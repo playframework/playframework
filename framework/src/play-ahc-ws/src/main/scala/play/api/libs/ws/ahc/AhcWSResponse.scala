@@ -3,8 +3,6 @@
  */
 package play.api.libs.ws.ahc
 
-import java.net.URI
-
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }
@@ -13,12 +11,10 @@ import play.api.libs.ws._
 
 import scala.xml.Elem
 
-object AhcWSResponse extends WSBodyReadables
-
 /**
  * A WS HTTP Response backed by an AsyncHttpClient response.
  *
- * @param underlying
+ * @param underlying the underlying WS response
  */
 case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse with WSBodyReadables {
 

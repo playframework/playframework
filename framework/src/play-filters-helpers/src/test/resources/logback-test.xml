@@ -13,12 +13,6 @@
         </encoder>
     </appender>
 
-    <logger name="play.api.libs.ws.ahc" level="DEBUG"/>
-    <logger name="play.filters.csrf" level="DEBUG"/>
-    <logger name="play.filters.CSRF" level="DEBUG"/>
-    <logger name="org.asynchttpclient" level="DEBUG"/>
-    <logger name="play.shaded.ahc.org.asynchttpclient" level="DEBUG"/>
-
     <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>

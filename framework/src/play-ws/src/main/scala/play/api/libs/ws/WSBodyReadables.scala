@@ -4,7 +4,7 @@
 package play.api.libs.ws
 
 /**
- * A set of useful [[BodyReadable]] implicit classes.
+ * JSON, XML and Multipart Form Data Readables used for Play-WS bodies.
  */
 trait WSBodyReadables extends DefaultBodyReadables with JsonBodyReadables with XMLBodyReadables
 

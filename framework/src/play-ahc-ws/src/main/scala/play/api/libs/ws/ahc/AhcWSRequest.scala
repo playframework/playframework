@@ -9,8 +9,7 @@ import java.net.URI
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.libs.ws._
-import play.api.mvc.{ Cookie, MultipartFormData }
-import play.shaded.ahc.org.asynchttpclient.cookie.{ Cookie => AHCCookie }
+import play.api.mvc.MultipartFormData
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
@@ -148,6 +147,96 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
 
   override def withBody[T: BodyWritable](body: T): Self = toWSRequest(underlying.withBody(body))
 
+  //-------------------------------------------------
+  // PATCH
+  //-------------------------------------------------
+
+  /**
+   * Perform a PATCH on the request asynchronously.
+   */
+  override def patch[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("PATCH")
+
+  /**
+   * Perform a PATCH on the request asynchronously.
+   * Request body won't be chunked
+   *
+   *
+   * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
+   */
+  @deprecated("Use patch(bodyWritable)", "2.6.0")
+  override def patch(body: File): Future[WSResponse] = {
+    patch[File](body)
+  }
+
+  /**
+   * Perform a PATCH on the request asynchronously.
+   *
+   * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
+   */
+  @deprecated("Use patch(bodyWritable)", "2.6.0")
+  override def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    patch[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
+  }
+
+  //-------------------------------------------------
+  // POST
+  //-------------------------------------------------
+
+  /**
+   * Perform a POST on the request asynchronously.
+   */
+  override def post[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("POST")
+
+  /**
+   * Perform a POST on the request asynchronously.
+   *
+   * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
+   */
+  @deprecated("Use post(BodyWritable)", "2.6.0")
+  override def post(body: File): Future[WSResponse] = {
+    post[File](body)
+  }
+
+  /**
+   * Performs a POST on the request asynchronously.
+   *
+   * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
+   */
+  @deprecated("Use post(BodyWritable)", "2.6.0")
+  override def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    post[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
+  }
+
+  //-------------------------------------------------
+  // PUT
+  //-------------------------------------------------
+
+  /**
+   * Perform a PUT on the request asynchronously.
+   */
+  override def put[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("PUT")
+
+  /**
+   * Perform a PUT on the request asynchronously.
+   * Request body won't be chunked
+   *
+   * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
+   */
+  @deprecated("Use put(BodyWritable)", "2.6.0")
+  override def put(body: File): Future[WSResponse] = {
+    put[File](body)
+  }
+
+  /**
+   * Perform a PUT on the request asynchronously.
+   *
+   * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
+   */
+  @deprecated("Use put(BodyWritable)", "2.6.0")
+  override def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
+    put[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
+  }
+
   override def delete(): Future[Response] = execute("DELETE")
 
   override def get(): Future[Response] = execute("GET")
@@ -155,33 +244,6 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   override def head(): Future[Response] = execute("HEAD")
 
   override def options(): Future[Response] = execute("OPTIONS")
-
-  /**
-   * Perform a PATCH on the request asynchronously.
-   */
-  //  override def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response] = {
-  //    withBody(body).execute("PATCH")
-  //  }
-  //override def patch(file: java.io.File): Future[Response] = withBody(file).execute("PATCH")
-  override def patch[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("PATCH")
-
-  /**
-   * Perform a POST on the request asynchronously.
-   */
-  //override def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response] =
-  // withBody(body).execute("POST")
-  //override def post(body: java.io.File): Future[Response] = withBody(body).execute("POST")
-
-  override def post[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("POST")
-
-  /**
-   * Perform a PUT on the request asynchronously.
-   */
-  //override def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response] = withBody(body).execute("PUT")
-
-  override def put[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("PUT")
-
-  //override def put(body: java.io.File): Future[Response] = withBody(body).execute("PUT")
 
   override def stream(): Future[Response] = {
     val futureResponse: Future[StandaloneWSResponse] = underlying.stream()
@@ -205,54 +267,4 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
     AhcWSRequest(request.asInstanceOf[StandaloneAhcWSRequest])
   }
 
-  /**
-   * Perform a PATCH on the request asynchronously.
-   * Request body won't be chunked
-   */
-  @deprecated("Use patch(bodyWritable)", "2.6.0")
-  override def patch(body: File): Future[WSResponse] = {
-    patch[File](body)
-  }
-
-  /**
-   * Perform a PATCH on the request asynchronously.
-   */
-  @deprecated("Use patch(bodyWritable)", "2.6.0")
-  override def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    patch[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
-  }
-
-  /**
-   * Perform a POST on the request asynchronously.
-   * Request body won't be chunked
-   */
-  @deprecated("Use post(bodyWritable)", "2.6.0")
-  override def post(body: File): Future[WSResponse] = {
-    post[File](body)
-  }
-
-  /**
-   * Perform a POST on the request asynchronously.
-   */
-  @deprecated("Use post(bodyWritable)", "2.6.0")
-  override def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    post[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
-  }
-
-  /**
-   * Perform a PUT on the request asynchronously.
-   * Request body won't be chunked
-   */
-  @deprecated("Use put(bodyWritable)", "2.6.0")
-  override def put(body: File): Future[WSResponse] = {
-    put[File](body)
-  }
-
-  /**
-   * Perform a PUT on the request asynchronously.
-   */
-  @deprecated("Use put(bodyWritable)", "2.6.0")
-  override def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    put[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
-  }
 }
