@@ -31,7 +31,7 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
    * @throws java.lang.IllegalArgumentException if the URL is invalid.
    */
   @throws[IllegalArgumentException]
-  override def url(url: String): AhcWSRequest = {
+  override def url(url: String): WSRequest = {
     AhcWSRequest(underlyingClient.url(url).asInstanceOf[StandaloneAhcWSRequest])
   }
 

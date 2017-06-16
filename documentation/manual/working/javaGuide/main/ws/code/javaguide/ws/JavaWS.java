@@ -3,19 +3,25 @@
  */
 package javaguide.ws;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import org.slf4j.Logger;
 import play.api.Configuration;
+import play.api.libs.ws.InMemoryBody;
 import play.core.j.HttpExecutionContext;
 import play.core.j.JavaHandlerComponents;
 import play.libs.concurrent.Futures;
 import play.libs.ws.*;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 // #ws-imports
 
@@ -121,6 +127,11 @@ public class JavaWS {
 
             ws.url(url).post(body(json));
             // #ws-post-json
+
+            // #ws-post-json-objectmapper
+            ObjectMapper objectMapper = play.libs.Json.newDefaultMapper();
+            ws.url(url).post(body(json, objectMapper));
+            // #ws-post-json-objectmapper
 
             // #ws-post-xml
             Document xml = play.libs.XML.fromString("<document></document>");
@@ -386,6 +397,37 @@ public class JavaWS {
         }
         // #ws-request-filter
     }
+
+    // #ws-custom-body-readable
+    public interface URLBodyReadables {
+        default BodyReadable<java.net.URL> url() {
+            return response -> {
+                play.shaded.ahc.org.asynchttpclient.Response ahcResponse =
+                        (play.shaded.ahc.org.asynchttpclient.Response) response.getUnderlying();
+                try {
+                    String s = ahcResponse.getResponseBody();
+                    return java.net.URI.create(s).toURL();
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
+    }
+    // #ws-custom-body-readable
+
+    // #ws-custom-body-writable
+    public interface URLBodyWritables {
+        default InMemoryBodyWritable body(java.net.URL url) {
+            try {
+                String s = url.toURI().toString();
+                ByteString byteString = ByteString.fromString(s);
+                return new InMemoryBodyWritable(byteString, "text/plain");
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    // #ws-custom-body-writable
 
     public static class Controller4 extends MockJavaAction {
         private final WSClient ws;

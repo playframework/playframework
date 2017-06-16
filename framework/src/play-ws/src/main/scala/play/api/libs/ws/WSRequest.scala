@@ -83,7 +83,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   override def addQueryStringParameters(parameters: (String, String)*): Self
 
   /**
-   * Returns this request with the given query string parameters, preserving the existing ones.
+   * Returns this request with the given cookies, preserving the existing ones.
    *
    * @param cookies the cookies to be used
    */
@@ -95,30 +95,6 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * @param cookie the cookies to be used
    */
   override def withCookies(cookie: WSCookie*): Self
-
-  /**
-   * Performs a PATCH request.
-   *
-   * @param body the payload wsBody submitted with this request
-   * @return a future with the response for the PATCH request
-   */
-  override def patch[T: BodyWritable](body: T): Future[Response]
-
-  /**
-   * Performs a POST request.
-   *
-   * @param body the payload wsBody submitted with this request
-   * @return a future with the response for the POST request
-   */
-  override def post[T: BodyWritable](body: T): Future[Response]
-
-  /**
-   * Performs a PUT request.
-   *
-   * @param body the payload wsBody submitted with this request
-   * @return a future with the response for the PUT request
-   */
-  override def put[T: BodyWritable](body: T): Future[Response]
 
   /**
    * The method for this request
@@ -218,23 +194,26 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    */
   override def withMethod(method: String): Self
 
+  //------------------------------------------------
+  // GET
+  //------------------------------------------------
+
   /**
    * performs a get
    */
   override def get(): Future[Response]
 
-  /**
-   * Perform a PATCH on the request asynchronously.
-   * Request body won't be chunked
-   */
-  @deprecated("Use patch(BodyWritable)", "2.6.0")
-  def patch(body: File): Future[Response]
+  //------------------------------------------------
+  // POST
+  //------------------------------------------------
 
   /**
-   * Perform a PATCH on the request asynchronously.
+   * Performs a POST request.
+   *
+   * @param body the payload wsBody submitted with this request
+   * @return a future with the response for the POST request
    */
-  @deprecated("Use patch(BodyWritable)", "2.6.0")
-  def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
+  override def post[T: BodyWritable](body: T): Future[Response]
 
   /**
    * Perform a POST on the request asynchronously.
@@ -249,6 +228,43 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   @deprecated("Use post(BodyWritable)", "2.6.0")
   def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
 
+  //------------------------------------------------
+  // PATCH
+  //------------------------------------------------
+
+  /**
+   * Performs a PATCH request.
+   *
+   * @param body the payload wsBody submitted with this request
+   * @return a future with the response for the PATCH request
+   */
+  override def patch[T: BodyWritable](body: T): Future[Response]
+
+  /**
+   * Perform a PATCH on the request asynchronously.
+   * Request body won't be chunked
+   */
+  @deprecated("Use patch(BodyWritable)", "2.6.0")
+  def patch(body: File): Future[Response]
+
+  /**
+   * Perform a PATCH on the request asynchronously.
+   */
+  @deprecated("Use patch(BodyWritable)", "2.6.0")
+  def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
+
+  //------------------------------------------------
+  // PUT
+  //------------------------------------------------
+
+  /**
+   * Performs a PUT request.
+   *
+   * @param body the payload wsBody submitted with this request
+   * @return a future with the response for the PUT request
+   */
+  override def put[T: BodyWritable](body: T): Future[Response]
+
   /**
    * Perform a PUT on the request asynchronously.
    * Request body won't be chunked
@@ -261,6 +277,10 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    */
   @deprecated("Use put(BodyWritable)", "2.6.0")
   def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
+
+  //------------------------------------------------
+  // DELETE, HEAD, OPTIONS
+  //------------------------------------------------
 
   /**
    * Perform a DELETE on the request asynchronously.
@@ -276,6 +296,10 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * Perform a OPTIONS on the request asynchronously.
    */
   override def options(): Future[Response]
+
+  //------------------------------------------------
+  // Generic execution
+  //------------------------------------------------
 
   /**
    * Executes the given HTTP method.

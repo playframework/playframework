@@ -51,7 +51,7 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 This returns a `Future[WSResponse]` where the [Response](api/scala/play/api/libs/ws/WSResponse.html) contains the data returned from the server.
 
-WSRequest extends [`play.api.libs.ws.WSBodyWritables`](api/scala/play/api/libs/ws/WSBodyWritables.html), which contains type classes for converting body input into a `ByteString`.  You can create your own type classes if you would like to post, patch or put a custom type into the request.
+Play WS comes with rich type support for bodies in the form of [`play.api.libs.ws.WSBodyWritables`](api/scala/play/api/libs/ws/WSBodyWritables.html), which contains type classes for converting input such as `JsValue` or `XML` in the body of a `WSRequest` into a `ByteString` or `Source[ByteString, _]`, and  [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/libs/ws/WSBodyReadables.html), which aggregates type classes that read the body of a `WSResponse` from a `ByteString` or `Source[ByteString, _]` and return the appropriate type, such as `JsValue` or XML.  These type classes are automatically in scope when you import the ws package, but you can also specify them explicitly.
 
 ### Request with authentication
 
@@ -67,7 +67,7 @@ If an HTTP call results in a 302 or a 301 redirect, you can automatically follow
 
 ### Request with query parameters
 
-Parameters can be specified as a series of key/value tuples.  Use `addQueryStringParameters` to add parameters, and `withQueryStringParameters` to overwrite all query string parameters.
+Parameters can be specified as a series of key/value tuples.  Use [`addQueryStringParameters`](api/scala/play/api/libs/ws/WSRequest.html#addQueryStringParameters\(parameters:\(String,String\)*\):StandaloneWSRequest.this.Self) to add parameters, and [`withQueryStringParameters`](api/scala/play/api/libs/ws/WSRequest.html#withQueryStringParameters\(parameters:\(String,String\)*\):WSRequest.this.Self) to overwrite all query string parameters.
 
 @[query-string](code/ScalaWSSpec.scala)
 
@@ -83,7 +83,7 @@ If you are sending plain text in a particular format, you may want to define the
 
 ### Request with cookies
 
-Cookies can be added to the request by using `DefaultWSCookie` or by passing through [`play.api.mvc.Cookie`](api/scala/play/api/mvc/Cookie.html).
+Cookies can be added to the request by using `DefaultWSCookie` or by passing through [`play.api.mvc.Cookie`](api/scala/play/api/mvc/Cookie.html).  Use [`addCookies`](api/scala/play/api/libs/ws/WSRequest.html#addCookies\(cookies:play.api.libs.ws.WSCookie*\):StandaloneWSRequest.this.Self) to append cookies, and [`withCookies`](api/scala/play/api/libs/ws/WSRequest.html#withCookies\(cookie:play.api.libs.ws.WSCookie*\):WSRequest.this.Self) to overwrite all cookies.
 
 @[cookie](code/ScalaWSSpec.scala)
 
@@ -95,7 +95,7 @@ A virtual host can be specified as a string.
 
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value. An infinite timeout can be set by passing `Duration.Inf`.
+If you wish to specify a request timeout, you can use [`withRequestTimeout`](api/scala/play/api/libs/ws/WSRequest.html#withRequestTimeout\(timeout:scala.concurrent.duration.Duration\):WSRequest.this.Self) to set a value. An infinite timeout can be set by passing `Duration.Inf`.
 
 @[request-timeout](code/ScalaWSSpec.scala)
 
@@ -192,7 +192,7 @@ You can process the response as an [XML literal](http://www.scala-lang.org/api/c
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html) `Sink`.  The `stream()` method on `WSRequest` returns a streaming `WSResponse` which contains a `bodyAsSource` method that returns a `Source[ByteString, _]`  
+`WS` lets you consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:akka.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
 
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
@@ -206,7 +206,7 @@ Another common destination for response bodies is to stream them back from a con
 
 @[stream-to-result](code/ScalaWSSpec.scala)
 
-As you may have noticed, before calling `stream()` we need to set the HTTP method to use by calling `withMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
+As you may have noticed, before calling [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) we need to set the HTTP method to use by calling `withMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
 
 @[stream-put](code/ScalaWSSpec.scala)
 
@@ -273,6 +273,20 @@ libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSS
 ```
 
 Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
+
+## Custom BodyReadables and BodyWritables
+
+### Creating a Custom Readable
+
+You can create a custom readable by accessing the AHC response body:
+
+@[ws-custom-body-readable](code/ScalaWSSpec.scala)
+
+### Creating a Custom BodyWritable
+
+You can create a custom body writable to a request as follows, using an `BodyWritable` and an `InMemoryBody`.  To specify a custom body writable with streaming, use a `SourceBody`.
+
+@[ws-custom-body-writable](code/ScalaWSSpec.scala)
 
 ## Accessing AsyncHttpClient
 

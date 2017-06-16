@@ -7,6 +7,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc._
 import play.api.test._
 import java.io._
+import java.net.URL
 
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -591,4 +592,26 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
   }
+
+  // #ws-custom-body-readable
+  trait URLBodyReadables {
+    implicit val urlBodyReadable = BodyReadable[java.net.URL] { response =>
+      import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }
+      val ahcResponse = response.underlying[AHCResponse]
+      val s = ahcResponse.getResponseBody
+      java.net.URI.create(s).toURL
+    }
+  }
+  // #ws-custom-body-readable
+
+  // #ws-custom-body-writable
+  trait URLBodyWritables {
+    implicit val urlBodyWritable = BodyWritable[java.net.URL]({ url =>
+      val s = url.toURI.toString
+      val byteString = ByteString.fromString(s)
+      InMemoryBody(byteString)
+    }, "text/plain")
+  }
+  // #ws-custom-body-writable
+
 }
