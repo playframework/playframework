@@ -29,25 +29,27 @@ class ScalaLangsOperations @Inject()(langs: Langs, messagesApi: play.api.i18n.Me
   val title: String = messages("home.title")
   // #using-messages-impl
 
-
-  // #using-implicit-messages-provider
-  implicit val messagesProvider: MessagesProvider = {
-    MessagesImpl(lang, messagesApi)
+  {
+    // #using-implicit-messages-provider
+    implicit val messagesProvider: MessagesProvider = {
+      MessagesImpl(lang, messagesApi)
+    }
+    // uses implicit messages
+    val title2 = Messages("home.title")
+    // #using-implicit-messages-provider
   }
-  // uses implicit messages
-  val title2 = Messages("home.title")
-  // #using-implicit-messages-provider
 
-
-  // #custom-message-provider
-  implicit val customMessagesProvider: MessagesProvider = new MessagesProvider {
-    // resolve messages at runtime
-    // ###replace:   override def messages: Messages = { ... }
-    override def messages: Messages = ???
+  {
+    // #custom-message-provider
+    implicit val customMessagesProvider: MessagesProvider = new MessagesProvider {
+      // resolve messages at runtime
+      // ###replace:   override def messages: Messages = { ... }
+      override def messages: Messages = ???
+    }
+    // uses implicit messages
+    val title3: String = Messages("home.title")
+    // #custom-message-provider
   }
-  // uses implicit messages
-  val title3: String = Messages("home.title")
-  // #custom-message-provider
 }
 
 // #inject-messages-api
@@ -74,7 +76,7 @@ class MyController @Inject()(val controllerComponents: ControllerComponents) ext
 
   // #lang-cookies
   def homePageInFrench = Action {
-    Redirect("/user/home").withLang("fr")
+    Redirect("/user/home").withLang(Lang("fr"))
   }
 
   def homePageWithDefaultLang = Action {
@@ -95,7 +97,7 @@ import play.api.i18n.LangImplicits
 class MyClass @Inject()(val messagesApi: MessagesApi) extends LangImplicits {
   def convertToMessage: Unit = {
     implicit val lang = Lang("en")
-    val messages: Messages = lang // implicit conversion
+    val messages: Messages = lang2Messages // implicit conversion
   }
 }
 // #using-lang-implicits-trait
