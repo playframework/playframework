@@ -4,6 +4,8 @@
 package play.http;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import play.mvc.EssentialFilter;
 
@@ -12,14 +14,18 @@ import play.mvc.EssentialFilter;
  */
 public class DefaultHttpFilters implements HttpFilters {
 
-  private final EssentialFilter[] filters;
+  private final List<EssentialFilter> filters;
 
   public DefaultHttpFilters(play.api.mvc.EssentialFilter... filters) {
-    this.filters = Arrays.stream(filters).map(f -> f.asJava()).toArray(EssentialFilter[]::new);
+    this(Arrays.asList(filters));
+  }
+
+  public DefaultHttpFilters(List<? extends play.api.mvc.EssentialFilter> filters) {
+    this.filters = filters.stream().map(f -> f.asJava()).collect(Collectors.toList());
   }
 
   @Override
-  public EssentialFilter[] filters() {
+  public List<EssentialFilter> getFilters() {
     return filters;
   }
 }

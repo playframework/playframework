@@ -60,8 +60,7 @@ public class BuiltInComponentsFromContextTest {
 
     @Test
     public void shouldProvideDefaultFilters() {
-        List<EssentialFilter> filters = Arrays.asList(this.componentsFromContext.httpFilters());
-        assertThat(filters.isEmpty(), is(false));
+        assertThat(this.componentsFromContext.httpFilters().isEmpty(), is(false));
     }
 
     @Test

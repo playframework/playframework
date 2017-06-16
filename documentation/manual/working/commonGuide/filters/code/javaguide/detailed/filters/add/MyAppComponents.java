@@ -12,7 +12,7 @@ import play.filters.components.HttpFiltersComponents;
 import play.mvc.EssentialFilter;
 import play.routing.Router;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MyAppComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
@@ -22,12 +22,10 @@ public class MyAppComponents extends BuiltInComponentsFromContext implements Htt
     }
 
     @Override
-    public EssentialFilter[] httpFilters() {
-        List<EssentialFilter> combinedFilters = Arrays.asList(HttpFiltersComponents.super.httpFilters());
+    public List<EssentialFilter> httpFilters() {
+        List<EssentialFilter> combinedFilters = new ArrayList<>(HttpFiltersComponents.super.httpFilters());
         combinedFilters.add(new LoggingFilter(materializer()));
-
-        EssentialFilter[] activeFilters = new EssentialFilter[combinedFilters.size()];
-        return combinedFilters.toArray(activeFilters);
+        return combinedFilters;
     }
 
     @Override

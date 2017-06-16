@@ -239,7 +239,7 @@ private[play] object JavaServerHelper {
     val context = JApplicationLoader.create(Environment.simple(mode = mode).asJava)
     val application = new JBuiltInComponentsFromContext(context) {
       override def router: JRouter = block.apply(this)
-      override def httpFilters(): Array[play.mvc.EssentialFilter] = Array.empty[play.mvc.EssentialFilter]
+      override def httpFilters(): java.util.List[play.mvc.EssentialFilter] = java.util.Collections.emptyList()
     }.application.asScala()
     Play.start(application)
     val serverConfig = ServerConfig(mode = mode, port = httpPort.map(_.intValue), sslPort = sslPort.map(_.intValue))
