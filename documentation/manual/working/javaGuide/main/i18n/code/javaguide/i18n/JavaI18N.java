@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 
-
 public class JavaI18N extends WithApplication {
 
     @Override
@@ -43,12 +42,6 @@ public class JavaI18N extends WithApplication {
     @Test
     public void checkSpecifyLangHello() {
         MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
-        //#current-lang-render
-        // Dependency inject with @Inject() public MyClass(MessagesApi messagesApi) { ... }
-        Collection<Lang> candidates = Collections.singletonList(new Lang(Locale.US));
-        Messages messages = messagesApi.preferred(candidates);
-        String message = messages.at("home.title");
-        //#current-lang-render
         //#specify-lang-render
         String title = messagesApi.get(Lang.forCode("fr"), "hello");
         //#specify-lang-render
