@@ -5,25 +5,57 @@
 
 Since HTTP 1.1, to keep a single connection open to serve several HTTP requests and responses, the server must send the appropriate `Content-Length` HTTP header along with the response.
 
-By default, when you send a simple result, such as:
+By default, you are not specifying a `Content-Length` header when you send back a simple result, such as:
 
 @[by-default](code/javaguide/async/JavaStream.java)
 
-You are not specifying a `Content-Length` header. Of course, because the content you are sending is well known, Play is able to compute the content size for you and to generate the appropriate header.
+Of course, because the content you are sending is well-known, Play is able to compute the content size for you and to generate the appropriate header.
 
-> **Note:** for text-based content this is not as simple as it looks, since the `Content-Length` header must be computed according the encoding used to translate characters to bytes.
+> **Note**: for text-based content it is not as simple as it looks, since the `Content-Length` header must be computed according the character encoding used to translate characters to bytes.
 
-To be able to compute the `Content-Length` header properly, Play must consume the whole response data and load its content into memory.
+Actually, we previously saw that the response body is specified using a [`play.http.HttpEntity`](api/java/play/http/HttpEntity.html):
+
+@[by-default-http-entity](code/javaguide/async/JavaStream.java)
+
+This means that to compute the `Content-Length` header properly, Play must consume the whole content and load it into memory.
+
+## Sending large amounts of data
+
+If it’s not a problem to load the whole content into memory, what about large data sets? Let’s say we want to return a large file to the web client.
+
+Let’s first see how to create an `Source[ByteString, _]` for the file content:
+
+@[create-source-from-file](code/javaguide/async/JavaStream.java)
+
+Now it looks simple right? Let’s just use this streamed HttpEntity to specify the response body:
+
+@[streaming-http-entity](code/javaguide/async/JavaStream.java)
+
+Actually we have a problem here. As we don’t specify the `Content-Length` in streamed entity, Play will have to compute it itself, and the only way to do this is to consume the whole source content and load it into memory, and then compute the response size.
+
+That’s a problem for large files that we don’t want to load completely into memory. So to avoid that, we just have to specify the `Content-Length` header ourselves.
+
+@[streaming-http-entity-with-content-length](code/javaguide/async/JavaStream.java)
+
+This way Play will consume the body source in a lazy way, copying each chunk of data to the HTTP response as soon as it is available.
 
 ## Serving files
 
-If it’s not a problem to load the whole content into memory for simple content what about a large data set? Let’s say we want to send back a large file to the web client.
-
-Play provides easy to use helpers to this common task of serving a local file:
+Of course, Play provides easy-to-use helpers for common task of serving a local file:
 
 @[serve-file](code/javaguide/async/JavaStream.java)
 
-Additionally this helper will also compute the `Content-Type` header from the file name. And it will also add the `Content-Disposition` header to specify how the web browser should handle this response. The default is to ask the web browser to download this file by using `Content-Disposition: attachment; filename=fileToServe.pdf`.
+This helper will also compute the `Content-Type` header from the file name, and add the `Content-Disposition` header to specify how the web browser should handle this response. The default is to show this file `inline` by adding the header `Content-Disposition: inline; filename=fileToServe.pdf` to the HTTP response.
+
+You can also provide your own file name:
+
+@[serve-file-with-name](code/javaguide/async/JavaStream.java)
+
+If you want to serve this file `attachment`:
+
+@[serve-file-attachment](code/javaguide/async/JavaStream.java)
+
+Now you don't have to specify a file name since the web browser will not try to download it, but will just display the file content in the web browser window. This is useful for content types supported natively by the web browser, such as text, HTML or images.
 
 ## Chunked responses
 
