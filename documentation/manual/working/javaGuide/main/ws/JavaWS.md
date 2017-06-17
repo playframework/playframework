@@ -110,7 +110,7 @@ To upload a File as part of multipart form data, you need to pass a `Http.Multip
 
 ### Submitting JSON data
 
-The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]:
+The easiest way to post JSON data is to use Play's JSON support, using `play.libs.Json`:
 
 @[json-imports](code/javaguide/ws/JavaWS.java)
 
