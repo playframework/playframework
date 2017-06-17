@@ -47,7 +47,7 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
       with FormFactoryComponents {
     override def router(): Router = Router.empty()
 
-    override def httpFilters(): Array[EssentialFilter] = Array.empty
+    override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
 
     override def config(): Config = {
       val javaExtraConfig = extraConfig.mapValues {

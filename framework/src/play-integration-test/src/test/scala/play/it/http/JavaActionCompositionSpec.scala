@@ -15,6 +15,8 @@ import play.mvc.{ EssentialFilter, Result, Results }
 import play.mvc.Http.Cookie
 import play.routing.{ Router => JRouter }
 
+import scala.collection.JavaConverters._
+
 class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
   override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T = {
     implicit val port = testServerPort
@@ -60,7 +62,7 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
         }.asJava
       }
 
-      override def httpFilters(): Array[EssentialFilter] = Array.empty
+      override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
 
       override def actionCreator(): ActionCreator = {
         configuration.get[Option[String]]("play.http.actionCreator")

@@ -10,6 +10,7 @@ import play.http.DefaultHttpFilters;
 import play.mvc.EssentialFilter;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,15 +18,13 @@ public class Filters extends DefaultHttpFilters {
 
     @Inject
     public Filters(EnabledFilters enabledFilters, CORSFilter corsFilter) {
-        super(combine(enabledFilters.asJava().filters(), corsFilter.asJava()));
+        super(combine(enabledFilters.asJava().getFilters(), corsFilter.asJava()));
     }
 
-    private static EssentialFilter[] combine(EssentialFilter[] filters, EssentialFilter toAppend) {
-        List<EssentialFilter> combinedFilters = Arrays.asList(filters);
+    private static List<EssentialFilter> combine(List<EssentialFilter> filters, EssentialFilter toAppend) {
+        List<EssentialFilter> combinedFilters = new ArrayList<>(filters);
         combinedFilters.add(toAppend);
-
-        EssentialFilter[] activeFilters = new EssentialFilter[combinedFilters.size()];
-        return combinedFilters.toArray(activeFilters);
+        return combinedFilters;
     }
 }
 // #filters-combine-enabled-filters

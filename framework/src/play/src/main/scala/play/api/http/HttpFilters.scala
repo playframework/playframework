@@ -12,6 +12,8 @@ import play.api.{ Configuration, Environment, Logger }
 import play.api.mvc.EssentialFilter
 import play.utils.Reflect
 
+import scala.collection.JavaConverters._
+
 /**
  * Provides filters to the [[play.api.http.HttpRequestHandler]].
  */
@@ -128,7 +130,7 @@ object NoHttpFilters extends NoHttpFilters
  * Adapter from the Java HttpFilters to the Scala HttpFilters interface.
  */
 class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters)
-  extends DefaultHttpFilters(underlying.filters: _*)
+  extends DefaultHttpFilters(underlying.getFilters.asScala: _*)
 
 class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
-  extends play.http.DefaultHttpFilters(delegate.filters: _*)
+  extends play.http.DefaultHttpFilters(delegate.filters.asJava)

@@ -10,7 +10,6 @@ import play.filters.csrf.CSRFFilter;
 import play.mvc.EssentialFilter;
 import play.routing.Router;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,14 +21,11 @@ public class MyAppComponents extends BuiltInComponentsFromContext implements Htt
     }
 
     @Override
-    public EssentialFilter[] httpFilters() {
-        List<EssentialFilter> filters = Arrays
-                .stream(HttpFiltersComponents.super.httpFilters())
+    public List<EssentialFilter> httpFilters() {
+        return HttpFiltersComponents.super.httpFilters()
+                .stream()
                 .filter(filter -> !filter.getClass().equals(CSRFFilter.class))
                 .collect(Collectors.toList());
-
-        EssentialFilter[] activeFilters = new EssentialFilter[filters.size()];
-        return filters.toArray(activeFilters);
     }
 
     @Override

@@ -45,7 +45,7 @@ class GzipEncoding extends PlaySpecification {
         implicit val mat = ActorMaterializer()(app.actorSystem)
         def Action = app.injector.instanceOf[DefaultActionBuilder]
 
-        val filter = (new CustomFilters(mat)).filters()(0)
+        val filter = (new CustomFilters(mat)).getFilters.get(0)
 
         header(CONTENT_ENCODING,
           filter(Action(Results.Ok("foo")))(gzipRequest).run()
