@@ -108,7 +108,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
         }
       }
 
-      class Application @Inject() (val accessLoggingAction: AccessLoggingAction) extends Controller {
+      class Application @Inject() (val accessLoggingAction: AccessLoggingAction, cc: ControllerComponents) extends AbstractController(cc) {
 
         val logger = Logger(this.getClass())
 
@@ -133,7 +133,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       implicit val system = ActorSystem()
       implicit val mat = ActorMaterializer()
       implicit val ec: ExecutionContext = system.dispatcher
-      val controller = new Application(new AccessLoggingAction(new BodyParsers.Default()))
+      val controller = new Application(new AccessLoggingAction(new BodyParsers.Default()), Helpers.stubControllerComponents())
 
       controller.accessLoggingAction.accessLogger.underlyingLogger.getName must equalTo("access")
       controller.logger.underlyingLogger.getName must contain("Application")

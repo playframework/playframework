@@ -126,7 +126,7 @@ class MyComponents(context: Context)
     with HttpFiltersComponents
     with controllers.AssetsComponents {
   lazy val barRoutes = new bar.Routes(httpErrorHandler)
-  lazy val applicationController = new controllers.Application()
+  lazy val applicationController = new controllers.Application(controllerComponents)
 
   lazy val router = new Routes(httpErrorHandler, applicationController, barRoutes, assets)
 }
@@ -136,10 +136,12 @@ class MyComponents(context: Context)
 
 package controllers {
 
+  import javax.inject.Inject
+
   import play.api.http.HttpErrorHandler
   import play.api.mvc._
 
-  class Application extends Controller {
+  class Application @Inject() (cc:ControllerComponents) extends AbstractController(cc) {
     def index = Action(Ok)
     def foo = Action(Ok)
   }

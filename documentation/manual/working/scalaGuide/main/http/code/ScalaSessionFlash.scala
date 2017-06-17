@@ -8,12 +8,14 @@ package scalaguide.http.scalasessionflash {
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
   import org.junit.runner.RunWith
+  import org.specs2.mutable.SpecificationLike
   import org.specs2.runner.JUnitRunner
+
   import scala.concurrent.Future
   import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaSessionFlashSpec extends Specification with Controller {
+  class ScalaSessionFlashSpec extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
     "A scala SessionFlash" should {
 
       "Reading a Session value" in {

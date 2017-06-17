@@ -61,7 +61,7 @@ package scalaguide.i18n.scalai18n {
   //#i18n-support
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaI18nSpec extends PlaySpecification with Controller {
+  class ScalaI18nSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
     val conf = Configuration.reference ++ Configuration.from(Map("play.i18n.path" -> "scalaguide/i18n"))
 
     "A controller" should {

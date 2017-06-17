@@ -7,12 +7,13 @@ import akka.util.ByteString
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{Specification, SpecificationLike}
 import play.api.libs.json._
+
 import scala.concurrent.Future
 import org.specs2.execute.AsResult
 
-class ScalaActionsSpec extends Specification with Controller {
+class ScalaActionsSpec extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
 
   "A scala action" should {
     "allow writing a simple echo action" in {
@@ -66,7 +67,7 @@ class ScalaActionsSpec extends Specification with Controller {
     }
 
     "work for a full controller class" in {
-      testAction(new full.Application().index)
+      testAction(new full.Application(Helpers.stubControllerComponents()).index)
     }
 
     "support an action with parameters" in {
@@ -177,9 +178,13 @@ package scalaguide.http.scalaactions.full {
 //#full-controller
 //###insert: package controllers
 
+import javax.inject.Inject
+
 import play.api.mvc._
 
-class Application extends Controller {
+class Application @Inject()
+(cc: ControllerComponents)
+extends AbstractController(cc) {
 
   def index = Action {
     Ok("It works!")
