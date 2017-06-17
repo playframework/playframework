@@ -192,6 +192,8 @@ Calling `get()`, `post()` or `execute()` will cause the body of the response to 
 
 `WS` lets you consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/stream-flows-and-basics.html) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:akka.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
 
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
+
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
 @[stream-count-bytes](code/ScalaWSSpec.scala)
@@ -278,7 +280,7 @@ Play WS comes with rich type support for bodies in the form of [`play.api.libs.w
 
 ### Creating a Custom Readable
 
-You can create a custom readable by accessing the AHC response body:
+You can create a custom readable by accessing the response body:
 
 @[ws-custom-body-readable](code/ScalaWSSpec.scala)
 

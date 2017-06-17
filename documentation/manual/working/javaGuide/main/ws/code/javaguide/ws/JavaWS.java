@@ -9,8 +9,6 @@ import javaguide.testhelpers.MockJavaAction;
 // #ws-imports
 import org.slf4j.Logger;
 import play.api.Configuration;
-import play.api.libs.ws.InMemoryBody;
-import play.core.j.HttpExecutionContext;
 import play.core.j.JavaHandlerComponents;
 import play.libs.concurrent.Futures;
 import play.libs.ws.*;
@@ -20,8 +18,6 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 // #ws-imports
 
