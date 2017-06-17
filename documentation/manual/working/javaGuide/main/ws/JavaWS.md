@@ -13,13 +13,28 @@ To use WS, first add `ws` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
 
+
+## Enabling HTTP Caching in Play WS
+
+Play WS supports [HTTP caching](https://tools.ietf.org/html/rfc7234), but requires a JSR-107 cache implementation to enable this feature.  You can add `ehcache`:
+
+```scala
+libraryDependencies += ehcache
+```
+
+Or you can use another JSR-107 compatible cache such as [Caffeine](https://github.com/ben-manes/caffeine/wiki/JCache).
+
+Once you have the library dependencies, then enable the HTTP cache as shown on [[WS Cache Configuration|WsCache]] page.
+
+Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
+
 ## Making a Request
 
 Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the [`WSClient`](api/java/play/libs/ws/WSClient.html) type to use dependency injection:
 
 @[ws-controller](code/javaguide/ws/Application.java)
 
-> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for timeouts, and consider using [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
+> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 To build an HTTP request, you start with `ws.url()` to specify the URL.
 
@@ -107,7 +122,7 @@ The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString
 
 ### Request Filters
 
-You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.
 
 @[ws-request-filter](code/javaguide/ws/JavaWS.java)
 
@@ -176,10 +191,12 @@ You can map a `CompletionStage<WSResponse>` to a `CompletionStage<Result>` that 
 
 @[ws-action](code/javaguide/ws/JavaWS.java)
 
-### Using WSClient with CompletionStage Timeout
+### Using WSClient with Futures Timeout
 
-If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time.  
-The best way to do this is with Play's [[non-blocking Timeout feature|JavaAsync]], using [`play.libs.concurrent.Timeout`](api/java/play/libs/concurrent/Timeout.html).
+If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time -- this is more generic than using `withRequestTimeout`, which only applies to a single request.
+The best way to do this is with Play's [[non-blocking timeout feature|JavaAsync]], using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) to ensure some kind of resolution:
+
+@[ws-futures-timeout](code/javaguide/ws/JavaWS.java)
 
 ## Directly creating WSClient
 
@@ -195,7 +212,7 @@ Here is an example of how to create a `WSClient` instance by yourself:
 
 @[ws-client](code/javaguide/ws/JavaWS.java)
 
-You can also use [`play.test.WSTestClient.newClient`](api/java/play/test/WSTestClient.html) to create an instance of `WSClient` in a functional test.  See [[JavaTestingWebServiceClients]] for more details. 
+You can also use [`play.test.WSTestClient.newClient`](api/java/play/test/WSTestClient.html) to create an instance of `WSClient` in a functional test.  See [[JavaTestingWebServiceClients]] for more details.
 
 Or, you can run the `WSClient` completely standalone without involving a running Play application or configuration at all:
 
@@ -255,6 +272,10 @@ The request timeout can be overridden for a specific connection with `setTimeout
 ### Configuring WS with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
+### Configuring WS with Caching
+
+To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsCache]].
 
 ### Configuring AsyncClientConfig
 

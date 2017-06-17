@@ -23,13 +23,25 @@ public class MessagesApi {
 
     private final play.api.i18n.MessagesApi messages;
 
-    public play.api.i18n.MessagesApi scalaApi() {
-        return messages;
-    }
-
     @Inject
     public MessagesApi(play.api.i18n.MessagesApi messages) {
         this.messages = messages;
+    }
+
+    /**
+     * @return the Scala versions of the Messages API.
+     * @deprecated As of release 2.6.0. Use {@link #asScala()}
+     */
+    @Deprecated
+    public play.api.i18n.MessagesApi scalaApi() {
+        return asScala();
+    }
+
+    /**
+     * @return the Scala versions of the Messages API.
+     */
+    public play.api.i18n.MessagesApi asScala() {
+        return messages;
     }
 
     /**

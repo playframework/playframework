@@ -13,7 +13,7 @@ class ActualKeySecretConfigurationParserSpec extends SecretConfigurationParserSp
 class DeprecatedKeySecretConfigurationParserSpec extends SecretConfigurationParserSpec {
   override def secretKey: String = "play.crypto.secret"
 
-  override def parseSecret(mode: Mode.Mode, secret: Option[String] = None) = {
+  override def parseSecret(mode: Mode, secret: Option[String] = None) = {
     HttpConfiguration.fromConfiguration(
       Configuration.reference ++ Configuration.from(
         secret.map(secretKey -> _).toMap ++ Map(
@@ -32,7 +32,7 @@ trait SecretConfigurationParserSpec extends Specification {
 
   val Secret = "abcdefghijklmnopqrs"
 
-  def parseSecret(mode: Mode.Mode, secret: Option[String] = None): String = {
+  def parseSecret(mode: Mode, secret: Option[String] = None): String = {
     HttpConfiguration.fromConfiguration(
       Configuration.reference ++ Configuration.from(
         secret.map(secretKey -> _).toMap

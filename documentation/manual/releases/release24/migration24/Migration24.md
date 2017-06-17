@@ -295,7 +295,7 @@ play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
 
 ### Logging
 
-Logging is now configured solely via [logback configuration files](http://logback.qos.ch/manual/configuration.html).
+Logging is now configured solely via [logback configuration files](https://logback.qos.ch/manual/configuration.html).
 
 ## JDBC connection pool
 

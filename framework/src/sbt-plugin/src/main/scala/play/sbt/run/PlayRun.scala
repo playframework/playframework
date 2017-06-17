@@ -16,6 +16,9 @@ import play.sbt.PlayInternalKeys._
 import play.sbt.Colors
 import play.core.BuildLink
 import play.runsupport.{ AssetsClassLoader, Reloader }
+import play.runsupport.Reloader.GeneratedSourceMapping
+import play.twirl.compiler.MaybeGeneratedSource
+import play.twirl.sbt.SbtTwirl
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.Keys.executableScriptName
@@ -26,17 +29,24 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
  */
 object PlayRun {
 
+  class TwirlSourceMapping extends GeneratedSourceMapping {
+    def getOriginalLine(generatedSource: File, line: Integer): Integer = {
+      MaybeGeneratedSource.unapply(generatedSource).map(_.mapLine(line): java.lang.Integer).orNull
+    }
+  }
+
   /**
    * Configuration for the Play docs application's dependencies. Used to build a classloader for
    * that application. Hidden so that it isn't exposed when the user application is published.
    */
   val DocsApplication = config("docs").hide
 
-  val createURLClassLoader: ClassLoaderCreator = Reloader.createURLClassLoader
-  val createDelegatedResourcesClassLoader: ClassLoaderCreator = Reloader.createDelegatedResourcesClassLoader
+  val twirlSourceHandler = new TwirlSourceMapping()
 
-  val playDefaultRunTask = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader,
-    playReloaderClasspath, playReloaderClassLoader, playAssetsClassLoader)
+  val generatedSourceHandlers = SbtTwirl.defaultFormats.map{ case (k, v) => ("scala." + k, twirlSourceHandler) }
+
+  val playDefaultRunTask = playRunTask(playRunHooks, playDependencyClasspath,
+    playReloaderClasspath, playAssetsClassLoader)
 
   /**
    * This method is public API, used by sbt-echo, which is used by Activator:
@@ -48,8 +58,8 @@ object PlayRun {
    */
   def playRunTask(
     runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
-    dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
-    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator],
+    dependencyClasspath: TaskKey[Classpath],
+    reloaderClasspath: TaskKey[Classpath],
     assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
 
     val args = Def.spaceDelimited().parsed
@@ -64,33 +74,23 @@ object PlayRun {
       () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
     )
 
-    val runSbtTask: String => AnyRef = (task: String) => {
-      val parser = Act.scopedKeyParser(state)
-      val Right(sk) = complete.DefaultParsers.result(parser, task)
-      val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
-      result.flatMap(_.toEither.right.toOption).orNull
-    }
-
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
       (javaOptions in Runtime).value,
-      dependencyClasspath.value.files,
-      dependencyClassLoader.value,
-      reloadCompile,
-      reloaderClassLoader.value,
-      assetsClassLoader.value,
       playCommonClassloader.value,
+      dependencyClasspath.value.files,
+      reloadCompile,
+      assetsClassLoader.value,
       playMonitoredFiles.value,
       fileWatchService.value,
-      (managedClasspath in DocsApplication).value.files,
-      playDocsJar.value,
+      generatedSourceHandlers,
       playDefaultPort.value,
       playDefaultAddress.value,
       baseDirectory.value,
       devSettings.value,
       args,
-      runSbtTask,
-      (mainClass in (Compile, Keys.run)).value.get
+      (mainClass in (Compile, Keys.run)).value.get,
+      PlayRun
     )
 
     interaction match {

@@ -14,8 +14,7 @@ import play.api.http.HttpConfiguration._
 import play.api.http._
 import play.api.libs.Files.TemporaryFileReaperConfiguration.TemporaryFileReaperConfigurationProvider
 import play.api.libs.Files._
-import play.api.libs.concurrent.{ ActorSystemProvider, ExecutionContextProvider, MaterializerProvider }
-import play.api.libs.crypto._
+import play.api.libs.concurrent._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
@@ -50,6 +49,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[SecretConfiguration].toProvider[SecretConfigurationProvider],
     bind[TemporaryFileReaperConfiguration].toProvider[TemporaryFileReaperConfigurationProvider],
 
+    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
     bind[RequestFactory].to[DefaultRequestFactory],
     bind[TemporaryFileReaper].to[DefaultTemporaryFileReaper],
     bind[TemporaryFileCreator].to[DefaultTemporaryFileCreator],
@@ -57,6 +57,9 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[BodyParsers.Default].toSelf,
     bind[DefaultActionBuilder].to[DefaultActionBuilderImpl],
     bind[ControllerComponents].to[DefaultControllerComponents],
+    bind[MessagesActionBuilder].to[DefaultMessagesActionBuilderImpl],
+    bind[MessagesControllerComponents].to[DefaultMessagesControllerComponents],
+    bind[Futures].to[DefaultFutures],
 
     // Application lifecycle, bound both to the interface, and its implementation, so that Application can access it
     // to shut it down.
@@ -74,13 +77,6 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[ExecutionContext].to[ExecutionContextExecutor],
     bind[Executor].to[ExecutionContextExecutor],
     bind[HttpExecutionContext].toSelf,
-
-    bind[CookieSigner].toProvider[CookieSignerProvider],
-    bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
-
-    bind[CookieHeaderEncoding].to[DefaultCookieHeaderEncoding],
-    bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
-    bind[FlashCookieBaker].to[DefaultFlashCookieBaker],
 
     bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
   ) ++ dynamicBindings(

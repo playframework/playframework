@@ -7,6 +7,7 @@ import javax.validation.*;
 import javax.validation.metadata.*;
 import javax.validation.groups.Default;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -20,11 +21,17 @@ import static java.lang.annotation.RetentionPolicy.*;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
+import play.mvc.Http.HttpVerbs;
 
 import static play.libs.F.*;
 
 import play.data.validation.*;
+import play.data.validation.Constraints.Validatable;
 import play.data.format.Formatters;
+
+import play.Logger;
+
+import org.hibernate.validator.engine.HibernateConstraintViolation;
 
 import org.springframework.beans.*;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -54,7 +61,7 @@ public class Form<T> {
     private final String rootName;
     private final Class<T> backedType;
     private final Map<String,String> data;
-    private final Map<String,List<ValidationError>> errors;
+    private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
     final MessagesApi messagesApi;
@@ -94,13 +101,46 @@ public class Form<T> {
     }
 
     public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validator);
     }
 
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    }
+
+    /**
+     * @param rootName the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
     }
 
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    }
+
+    /**
+     * @param rootName the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param group the class with the group.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
     public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
     }
@@ -118,16 +158,43 @@ public class Form<T> {
      * @param formatters used for parsing and printing form fields
      * @param validator the validator component.
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
-        this.data = data;
-        this.errors = errors;
+        this.data = data != null ? new HashMap<>(data) : new HashMap<>();
+        this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
         this.value = value;
         this.groups = groups;
         this.messagesApi = messagesApi;
         this.formatters = formatters;
         this.validator = validator;
+    }
+
+    /**
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validator the validator component.
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+        this(
+            rootName,
+            clazz,
+            data,
+            errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<ValidationError>(),
+            value,
+            groups,
+            messagesApi,
+            formatters,
+            validator
+        );
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -153,8 +220,6 @@ public class Form<T> {
             );
         }
 
-        Map<String,String[]> queryString = request.queryString();
-
         Map<String,String> data = new HashMap<>();
 
         fillDataWith(data, urlFormEncoded);
@@ -162,7 +227,9 @@ public class Form<T> {
 
         jsonData.forEach(data::put);
 
-        fillDataWith(data, queryString);
+        if(!request.method().equalsIgnoreCase(HttpVerbs.POST) && !request.method().equalsIgnoreCase(HttpVerbs.PUT) && !request.method().equalsIgnoreCase(HttpVerbs.PATCH)) {
+            fillDataWith(data, request.queryString());
+        }
 
         return data;
     }
@@ -281,6 +348,156 @@ public class Form<T> {
         return errorMessage;
     }
 
+    private DataBinder dataBinder(String... allowedFields) {
+        DataBinder dataBinder;
+        if (rootName == null) {
+            dataBinder = new DataBinder(blankInstance());
+        } else {
+            dataBinder = new DataBinder(blankInstance(), rootName);
+        }
+        if (allowedFields.length > 0) {
+            dataBinder.setAllowedFields(allowedFields);
+        }
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
+        dataBinder.setValidator(validator);
+        dataBinder.setConversionService(formatters.conversion);
+        dataBinder.setAutoGrowNestedPaths(true);
+        return dataBinder;
+    }
+
+    private Map<String, String> getObjectData(Map<String, String> data) {
+        if (rootName != null) {
+            final Map<String, String> objectData = new HashMap<>();
+            data.forEach((key, value) -> {
+                if (key.startsWith(rootName + ".")) {
+                    objectData.put(key.substring(rootName.length() + 1), value);
+                }
+            });
+            return objectData;
+        }
+        return data;
+    }
+
+    private Set<ConstraintViolation<Object>> runValidation(DataBinder dataBinder, Map<String, String> objectData) {
+        return withRequestLocale(() -> {
+            dataBinder.bind(new MutablePropertyValues(objectData));
+            if (groups != null) {
+                return validator.validate(dataBinder.getTarget(), groups);
+            } else {
+                return validator.validate(dataBinder.getTarget());
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addConstraintViolationToBindingResult(ConstraintViolation<Object> violation, BindingResult result) {
+        String field = violation.getPropertyPath().toString().replace(".<collection element>", "");
+        FieldError fieldError = result.getFieldError(field);
+        if (fieldError == null || !fieldError.isBindingFailure()) {
+            try {
+                final Object dynamicPayload = violation.unwrap(HibernateConstraintViolation.class).getDynamicPayload(Object.class);
+
+                if (dynamicPayload instanceof String) {
+                    result.rejectValue(
+                        "", // global error
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        new Object[0], // no msg arguments to pass
+                        (String)dynamicPayload // dynamicPayload itself is the error message(-key)
+                    );
+                } else if (dynamicPayload instanceof ValidationError) {
+                    final ValidationError error = (ValidationError) dynamicPayload;
+                    result.rejectValue(
+                        error.key(),
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                        error.message()
+                    );
+                } else if (dynamicPayload instanceof List) {
+                    ((List<ValidationError>) dynamicPayload).forEach(error ->
+                        result.rejectValue(
+                            error.key(),
+                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                            error.arguments() != null ? error.arguments().toArray() : new Object[0],
+                            error.message()
+                        )
+                    );
+                } else {
+                    result.rejectValue(
+                        field,
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                        getMessageForConstraintViolation(violation)
+                    );
+                }
+            } catch (NotReadablePropertyException ex) {
+                throw new IllegalStateException("JSR-303 validated property '" + field +
+                        "' does not have a corresponding accessor for data binding - " +
+                        "check your DataBinder's configuration (bean property versus direct field access)", ex);
+            }
+        }
+    }
+
+    private List<ValidationError> getFieldErrorsAsValidationErrors(BindingResult result) {
+        return result.getFieldErrors().stream().map(error -> {
+            String key = error.getObjectName() + "." + error.getField();
+            if (key.startsWith("target.") && rootName == null) {
+                key = key.substring(7);
+            }
+
+            if (error.isBindingFailure()) {
+                ImmutableList.Builder<String> builder = ImmutableList.builder();
+                Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
+                for (String code: error.getCodes()) {
+                    code = code.replace("typeMismatch", "error.invalid");
+                    if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                        builder.add( code );
+                    }
+                }
+                return new ValidationError(key, builder.build().reverse(),
+                        convertErrorArguments(error.getArguments()));
+            } else {
+                return new ValidationError(key, error.getDefaultMessage(),
+                        convertErrorArguments(error.getArguments()));
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private List<ValidationError> globalErrorsAsValidationErrors(BindingResult result) {
+        return result.getGlobalErrors()
+                .stream()
+                .map(error ->
+                    new ValidationError(
+                        "",
+                        error.getDefaultMessage(),
+                        convertErrorArguments(error.getArguments())
+                    )
+                ).collect(Collectors.toList());
+    }
+
+    private Object callLegacyValidateMethod(BindingResult result) {
+        Object globalError = null;
+
+        // instances of Validatable have been validated already
+        boolean shouldTryLegacyValidateMethod = result.getTarget() != null && !(result.getTarget() instanceof Validatable);
+        if (shouldTryLegacyValidateMethod) {
+            try {
+                java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
+                if (v.getParameterCount() == 0) {
+                    globalError = v.invoke(result.getTarget());
+                    Logger.warn("The \"validate\" method in class \"{}\" is deprecated since Play 2.6. " +
+                                    "To migrate to class-level constraints see https://www.playframework.com/documentation/2.6.x/Migration26#java-form-changes " +
+                                    "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
+                            result.getTarget().getClass().getName());
+                }
+            } catch (NoSuchMethodException ex) {
+                // do nothing
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return globalError;
+    }
+
     /**
      * Binds data to this form - that is, handles form submission.
      *
@@ -291,126 +508,38 @@ public class Form<T> {
     @SuppressWarnings("unchecked")
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
 
-        DataBinder dataBinder;
-        Map<String, String> objectData = data;
-        if (rootName == null) {
-            dataBinder = new DataBinder(blankInstance());
-        } else {
-            dataBinder = new DataBinder(blankInstance(), rootName);
-            objectData = new HashMap<>();
-            for (String key: data.keySet()) {
-                if (key.startsWith(rootName + ".")) {
-                    objectData.put(key.substring(rootName.length() + 1), data.get(key));
-                }
-            }
-        }
-        if (allowedFields.length > 0) {
-            dataBinder.setAllowedFields(allowedFields);
-        }
-        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
-        dataBinder.setValidator(validator);
-        dataBinder.setConversionService(formatters.conversion);
-        dataBinder.setAutoGrowNestedPaths(true);
-        final Map<String, String> objectDataFinal = objectData;
-        Set<ConstraintViolation<Object>> validationErrors = withRequestLocale(() -> {
-            dataBinder.bind(new MutablePropertyValues(objectDataFinal));
-            if (groups != null) {
-                return validator.validate(dataBinder.getTarget(), groups);
-            } else {
-                return validator.validate(dataBinder.getTarget());
-            }
-        });
+        final DataBinder dataBinder = dataBinder(allowedFields);
+        final Map<String, String> objectDataFinal = getObjectData(data);
 
-        BindingResult result = dataBinder.getBindingResult();
+        final Set<ConstraintViolation<Object>> validationErrors = runValidation(dataBinder, objectDataFinal);
+        final BindingResult result = dataBinder.getBindingResult();
 
-        for (ConstraintViolation<Object> violation : validationErrors) {
-            String field = violation.getPropertyPath().toString();
-            FieldError fieldError = result.getFieldError(field);
-            if (fieldError == null || !fieldError.isBindingFailure()) {
-                try {
-                    result.rejectValue(field,
-                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                            getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
-                            getMessageForConstraintViolation(violation));
-                } catch (NotReadablePropertyException ex) {
-                    throw new IllegalStateException("JSR-303 validated property '" + field +
-                            "' does not have a corresponding accessor for data binding - " +
-                            "check your DataBinder's configuration (bean property versus direct field access)", ex);
-                }
-            }
+        validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));
+
+        boolean hasAnyError = result.hasErrors() || result.getGlobalErrorCount() > 0;
+
+        if (hasAnyError) {
+            final List<ValidationError> errors = getFieldErrorsAsValidationErrors(result);
+            final List<ValidationError> globalErrors = globalErrorsAsValidationErrors(result);
+
+            errors.addAll(globalErrors);
+
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
 
-        if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
-            Map<String,List<ValidationError>> errors = new HashMap<>();
-            for (FieldError error: result.getFieldErrors()) {
-                String key = error.getObjectName() + "." + error.getField();
-                if (key.startsWith("target.") && rootName == null) {
-                    key = key.substring(7);
-                }
-                if (!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<>());
-                }
-
-                ValidationError validationError;
-                if (error.isBindingFailure()) {
-                    ImmutableList.Builder<String> builder = ImmutableList.builder();
-                    Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
-                    for (String code: error.getCodes()) {
-                        code = code.replace("typeMismatch", "error.invalid");
-                        if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
-                            builder.add( code );
-                        }
-                    }
-                    validationError = new ValidationError(key, builder.build().reverse(),
-                            convertErrorArguments(error.getArguments()));
-                } else {
-                    validationError = new ValidationError(key, error.getDefaultMessage(),
-                            convertErrorArguments(error.getArguments()));
-                }
-                errors.get(key).add(validationError);
+        final Object globalError = callLegacyValidateMethod(result);
+        if (globalError != null) {
+            final List<ValidationError> errors = new ArrayList<>();
+            if (globalError instanceof String) {
+                errors.add(new ValidationError("", (String)globalError, new ArrayList<>()));
+            } else if (globalError instanceof List) {
+                errors.addAll((List<ValidationError>) globalError);
+            } else if (globalError instanceof Map) {
+                ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
             }
-
-            List<ValidationError> globalErrors = result.getGlobalErrors().stream()
-                    .map(error -> new ValidationError("", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
-                    .collect(Collectors.toList());
-
-            if (!globalErrors.isEmpty()) {
-                errors.put("", globalErrors);
-            }
-
-            return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
-        } else {
-            Object globalError = null;
-            if (result.getTarget() != null) {
-                try {
-                    java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                    globalError = v.invoke(result.getTarget());
-                } catch (NoSuchMethodException e) {
-                    // do nothing
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if (globalError != null) {
-                Map<String,List<ValidationError>> errors = new HashMap<>();
-                if (globalError instanceof String) {
-                    errors.put("", new ArrayList<>());
-                    errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
-                } else if (globalError instanceof List) {
-                    for (ValidationError error : (List<ValidationError>) globalError) {
-                      List<ValidationError> errorsForKey = errors.get(error.key());
-                      if (errorsForKey == null) {
-                        errors.put(error.key(), errorsForKey = new ArrayList<>());
-                      }
-                      errorsForKey.add(error);
-                    }
-                } else if (globalError instanceof Map) {
-                    errors = (Map<String,List<ValidationError>>)globalError;
-                }
-                return new Form(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
-            }
-            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
     }
 
     /**
@@ -420,6 +549,9 @@ public class Form<T> {
      * @return The converted arguments.
      */
     private List<Object> convertErrorArguments(Object[] arguments) {
+        if(arguments == null) {
+            return Collections.emptyList();
+        }
         List<Object> converted = Arrays.stream(arguments)
                 .filter(arg -> !(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable))
                 .collect(Collectors.toList());
@@ -428,9 +560,19 @@ public class Form<T> {
 
     /**
      * @return the actual form data.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #rawData()} instead which returns an unmodifiable map.
      */
+    @Deprecated
     public Map<String,String> data() {
         return data;
+    }
+
+    /**
+     * @return the actual form data as unmodifiable map.
+     */
+    public Map<String,String> rawData() {
+        return Collections.unmodifiableMap(data);
     }
 
     public String name() {
@@ -450,16 +592,15 @@ public class Form<T> {
      * @param value existing value of type <code>T</code> used to fill this form
      * @return a copy of this form filled with the new data
      */
-    @SuppressWarnings("unchecked")
     public Form<T> fill(T value) {
         if (value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(
+        return new Form<>(
                 rootName,
                 backedType,
                 new HashMap<>(),
-                new HashMap<String,ValidationError>(),
+                new ArrayList<>(),
                 Optional.ofNullable(value),
                 groups,
                 messagesApi,
@@ -479,7 +620,7 @@ public class Form<T> {
      * @return <code>true</code> if there any global errors related to this form.
      */
     public boolean hasGlobalErrors() {
-        return errors.containsKey("") && !errors.get("").isEmpty();
+        return !globalErrors().isEmpty();
     }
 
     /**
@@ -488,24 +629,40 @@ public class Form<T> {
      * @return All global errors.
      */
     public List<ValidationError> globalErrors() {
-        List<ValidationError> e = errors.get("");
-        if (e == null) {
-            e = new ArrayList<>();
-        }
-        return e;
+        return Collections.unmodifiableList(errors.stream().filter(error -> error.key().isEmpty()).collect(Collectors.toList()));
     }
 
     /**
      * Retrieves the first global error (an error without any key), if it exists.
      *
      * @return An error or <code>null</code>.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #getGlobalError()} instead.
      */
+    @Deprecated
     public ValidationError globalError() {
-        List<ValidationError> errors = globalErrors();
-        if (errors.isEmpty()) {
-            return null;
-        }
-        return errors.get(0);
+        return this.getGlobalError().orElse(null);
+    }
+
+    /**
+     * Retrieves the first global error (an error without any key), if it exists.
+     *
+     * @return An error.
+     */
+    public Optional<ValidationError> getGlobalError() {
+        return globalErrors().stream().findFirst();
+    }
+
+    /**
+     * Returns all errors.
+     *
+     * @return All errors associated with this form.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #allErrors()} instead.
+     */
+    @Deprecated
+    public Map<String,List<ValidationError>> errors() {
+        return Collections.unmodifiableMap(this.errors.stream().collect(Collectors.groupingBy(error -> error.key())));
     }
 
     /**
@@ -513,20 +670,38 @@ public class Form<T> {
      *
      * @return All errors associated with this form.
      */
-    public Map<String,List<ValidationError>> errors() {
-        return errors;
+    public List<ValidationError> allErrors() {
+        return Collections.unmodifiableList(errors);
+    }
+
+    /**
+     * @param key    the field name associated with the error.
+     * @return All errors for this key.
+     */
+    public List<ValidationError> errors(String key) {
+        if(key == null) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList()));
     }
 
     /**
      * @param key    the field name associated with the error.
      * @return an error by key, or null.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
      */
+    @Deprecated
     public ValidationError error(String key) {
-        List<ValidationError> err = errors.get(key);
-        if (err == null || err.isEmpty()) {
-            return null;
-        }
-        return err.get(0);
+        return this.getError(key).orElse(null);
+    }
+
+    /**
+     * @param key    the field name associated with the error.
+     * @return an error by key
+     */
+    public Optional<ValidationError> getError(String key) {
+        return errors(key).stream().findFirst();
     }
 
     /**
@@ -543,17 +718,15 @@ public class Form<T> {
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
-        errors.forEach((key, errs) -> {
-            if (errs != null && !errs.isEmpty()) {
-                List<String> messages = new ArrayList<>();
-                for (ValidationError error : errs) {
-                    if (messagesApi != null && lang != null) {
-                        messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
-                    } else {
-                        messages.add(error.message());
-                    }
+        errors.forEach(error -> {
+            if (error != null) {
+                final List<String> messages = new ArrayList<>();
+                if (messagesApi != null && lang != null) {
+                    messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
+                } else {
+                    messages.add(error.message());
                 }
-                allMessages.put(key, messages);
+                allMessages.put(error.key(), messages);
             }
         });
         return play.libs.Json.toJson(allMessages);
@@ -578,7 +751,7 @@ public class Form<T> {
     /**
      * Gets the concrete value only if the submission was a success.
      * If the form is invalid because of validation errors this method will throw an exception.
-     * If you want to retrieve the value even when the form is invalid use <code>value()</code> instead.
+     * If you want to retrieve the value even when the form is invalid use {@link #value()} instead.
      *
      * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
      * @return the concrete value.
@@ -594,12 +767,29 @@ public class Form<T> {
      * Adds an error to this form.
      *
      * @param error the <code>ValidationError</code> to add.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(ValidationError)} instead.
      */
+    @Deprecated
     public void reject(ValidationError error) {
-        if (!errors.containsKey(error.key())) {
-           errors.put(error.key(), new ArrayList<>());
+        if (error == null) {
+            throw new NullPointerException("Can't reject null-values");
         }
-        errors.get(error.key()).add(error);
+        errors.add(error);
+    }
+
+    /**
+     * @param error the <code>ValidationError</code> to add to the returned form.
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    public Form<T> withError(final ValidationError error) {
+        if (error == null) {
+            throw new NullPointerException("Can't reject null-values");
+        }
+        final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
+        copiedErrors.add(error);
+        return new Form<T>(this.rootName, this.backedType, this.data, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validator);
     }
 
     /**
@@ -608,9 +798,23 @@ public class Form<T> {
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
      */
+    @Deprecated
     public void reject(String key, String error, List<Object> args) {
         reject(new ValidationError(key, error, args));
+    }
+
+    /**
+     * @param key the error key
+     * @param error the error message
+     * @param args the error arguments
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    public Form<T> withError(final String key, final String error, final List<Object> args) {
+        return withError(new ValidationError(key, error, args != null ? new ArrayList<>(args) : new ArrayList<>()));
     }
 
     /**
@@ -618,9 +822,22 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
      */
+    @Deprecated
     public void reject(String key, String error) {
         reject(key, error, new ArrayList<>());
+    }
+
+    /**
+     * @param key the error key
+     * @param error the error message
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    public Form<T> withError(final String key, final String error) {
+        return withError(key, error, new ArrayList<>());
     }
 
     /**
@@ -628,25 +845,60 @@ public class Form<T> {
      *
      * @param error the error message
      * @param args the error arguments
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String, List)} instead.
      */
+    @Deprecated
     public void reject(String error, List<Object> args) {
         reject(new ValidationError("", error, args));
+    }
+
+    /**
+     * @param error the global error message
+     * @param args the global error arguments
+     * 
+     * @return a copy of this form with the given global error added.
+     */
+    public Form<T> withGlobalError(final String error, final List<Object> args) {
+        return withError("", error, args);
     }
 
     /**
      * Adds a global error to this form.
      *
      * @param error the error message.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String)} instead.
      */
+    @Deprecated
     public void reject(String error) {
         reject("", error, new ArrayList<>());
     }
 
     /**
-     * Discards errors of this form
+     * @param error the global error message
+     * 
+     * @return a copy of this form with the given global error added.
      */
+    public Form<T> withGlobalError(final String error) {
+        return withGlobalError(error, new ArrayList<>());
+    }
+
+    /**
+     * Discards errors of this form
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #discardingErrors()} instead.
+     */
+    @Deprecated
     public void discardErrors() {
         errors.clear();
+    }
+
+    /**
+     * @return a copy of this form but with the errors discarded.
+     */
+    public Form<T> discardingErrors() {
+        return new Form<T>(this.rootName, this.backedType, this.data, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validator);
     }
 
     /**
@@ -665,7 +917,7 @@ public class Form<T> {
      * @param key field name
      * @return the field (even if the field does not exist you get a field)
      */
-    public Field field(String key) {
+    public Field field(final String key) {
 
         // Value
         String fieldValue = null;
@@ -693,12 +945,6 @@ public class Form<T> {
             }
         }
 
-        // Error
-        List<ValidationError> fieldErrors = errors.get(key);
-        if (fieldErrors == null) {
-            fieldErrors = new ArrayList<>();
-        }
-
         // Format
         Tuple<String,List<Object>> format = null;
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
@@ -719,7 +965,7 @@ public class Form<T> {
                             }
                             attributes.add(attrValue);
                         }
-                        format = Tuple(d.name(), attributes);
+                        format = Tuple(d.name(), Collections.unmodifiableList(attributes));
                     }
                 }
             }
@@ -764,7 +1010,7 @@ public class Form<T> {
             }
         }
 
-        return new Field(this, key, constraints, format, fieldErrors, fieldValue);
+        return new Field(this, key, constraints, format, errors(key), fieldValue);
     }
 
     public String toString() {
@@ -816,9 +1062,9 @@ public class Form<T> {
         public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.form = form;
             this.name = name;
-            this.constraints = constraints;
+            this.constraints = constraints != null ? new ArrayList<>(constraints) : new ArrayList<>();
             this.format = format;
-            this.errors = errors;
+            this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
             this.value = value;
         }
 
@@ -826,20 +1072,39 @@ public class Form<T> {
          * Returns the field name.
          *
          * @return The field name.
+         * 
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getName()} instead.
          */
+        @Deprecated
         public String name() {
             return name;
+        }
+
+        /**
+        * @return The field name.
+        */
+        public Optional<String> getName() {
+            return Optional.ofNullable(name);
         }
 
         /**
          * Returns the field value, if defined.
          *
          * @return The field value, if defined.
+         * 
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
          */
+        @Deprecated
         public String value() {
             return value;
         }
 
+        /**
+         * @param or the value to return if value is null.
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
+         * @return The field value, if defined.
+         */
+        @Deprecated
         public String valueOr(String or) {
             if (value == null) {
                 return or;
@@ -848,12 +1113,19 @@ public class Form<T> {
         }
 
         /**
+        * @return The field value, if defined.
+        */
+        public Optional<String> getValue() {
+            return Optional.ofNullable(value);
+        }
+
+        /**
          * Returns all the errors associated with this field.
          *
          * @return The errors associated with this field.
          */
         public List<ValidationError> errors() {
-            return errors;
+            return Collections.unmodifiableList(errors);
         }
 
         /**
@@ -862,7 +1134,7 @@ public class Form<T> {
          * @return The constraints associated with this field.
          */
         public List<Tuple<String,List<Object>>> constraints() {
-            return constraints;
+            return Collections.unmodifiableList(constraints);
         }
 
         /**
@@ -877,12 +1149,11 @@ public class Form<T> {
         /**
          * @return the indexes available for this field (for repeated fields and List)
          */
-        @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
             if(form == null) {
-                return new ArrayList<>(0);
+                return Collections.emptyList();
             }
-            return form.value().map((Function<Object, List<Integer>>) value -> {
+            return Collections.unmodifiableList(form.value().map((Function<Object, List<Integer>>) value -> {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value);
                 beanWrapper.setAutoGrowNestedPaths(true);
                 String objectKey = name;
@@ -894,7 +1165,7 @@ public class Form<T> {
                 if (beanWrapper.isReadableProperty(objectKey)) {
                     Object value1 = beanWrapper.getPropertyValue(objectKey);
                     if (value1 instanceof Collection) {
-                        for (int i = 0; i<((Collection) value1).size(); i++) {
+                        for (int i = 0; i<((Collection<?>) value1).size(); i++) {
                             result.add(i);
                         }
                     }
@@ -905,7 +1176,7 @@ public class Form<T> {
                 Set<Integer> result = new TreeSet<>();
                 Pattern pattern = Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
 
-                for (String key: form.data().keySet()) {
+                for (String key: form.rawData().keySet()) {
                     java.util.regex.Matcher matcher = pattern.matcher(key);
                     if (matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
@@ -915,7 +1186,7 @@ public class Form<T> {
                 List<Integer> sortedResult = new ArrayList<>(result);
                 Collections.sort(sortedResult);
                 return sortedResult;
-            });
+            }));
         }
 
         /**

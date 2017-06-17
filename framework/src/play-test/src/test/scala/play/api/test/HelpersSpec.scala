@@ -9,7 +9,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
 import play.api.mvc.Results._
-import play.api.mvc.{ ActionBuilder, Controller, EssentialAction }
+import play.api.mvc._
 import play.api.test.Helpers._
 import play.twirl.api.Content
 
@@ -18,7 +18,7 @@ import scala.language.reflectiveCalls
 
 class HelpersSpec extends Specification {
 
-  val ctrl = new Controller {
+  val ctrl = new ControllerHelpers {
     private val Action = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
       Ok("abc").as("text/plain")
@@ -133,6 +133,20 @@ class HelpersSpec extends Specification {
         (contentAsJson(ctrl.jsonAction.apply(FakeRequest())) \ "content").as[String] must_== "abc"
       } finally {
         system.terminate()
+      }
+    }
+  }
+
+  "Fakes" in {
+    "FakeRequest" should {
+      "parse query strings" in {
+        val request = FakeRequest("GET", "/uri?q1=1&q2=2", FakeHeaders(), AnyContentAsEmpty)
+        request.queryString.get("q1") must beSome.which(_.contains("1"))
+        request.queryString.get("q2") must beSome.which(_.contains("2"))
+      }
+      "return an empty map when there is no query string parameters" in {
+        val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
+        request.queryString must beEmpty
       }
     }
   }

@@ -29,7 +29,6 @@ import client._
 
 //#full-test
 import play.core.server.Server
-import play.api.Play
 import play.api.routing.sird._
 import play.api.mvc._
 import play.api.libs.json._
@@ -39,9 +38,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 
-class GitHubClientSpec extends Specification with NoTimeConversions {
+class GitHubClientSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "GitHubClient" should {
@@ -73,8 +71,9 @@ import org.specs2.time.NoTimeConversions
 import play.api.routing.Router
 import play.api.{BuiltInComponents, BuiltInComponentsFromContext}
 import play.api.routing.sird._
+import play.filters.HttpFiltersComponents
 
-class ScalaTestingWebServiceClients extends Specification with NoTimeConversions {
+class ScalaTestingWebServiceClients extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "webservice testing" should {
@@ -104,7 +103,7 @@ class ScalaTestingWebServiceClients extends Specification with NoTimeConversions
       import play.core.server.Server
 
       Server.withApplicationFromContext() { context =>
-        new BuiltInComponentsFromContext(context) {
+        new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
               this.defaultActionBuilder { req =>
@@ -129,7 +128,7 @@ class ScalaTestingWebServiceClients extends Specification with NoTimeConversions
 
       def withGitHubClient[T](block: GitHubClient => T): T = {
         Server.withApplicationFromContext() { context =>
-          new BuiltInComponentsFromContext(context) {
+          new BuiltInComponentsFromContext(context) with HttpFiltersComponents{
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
                 this.defaultActionBuilder { req =>

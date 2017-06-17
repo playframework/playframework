@@ -9,7 +9,7 @@ import akka.actor.*;
 //###replace: import actors.HelloActorProtocol.*;
 import javaguide.akka.HelloActorProtocol.*;
 
-public class HelloActor extends UntypedActor {
+public class HelloActor extends UntypedAbstractActor {
 
     public static Props getProps() {
         return Props.create(HelloActor.class);

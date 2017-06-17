@@ -6,7 +6,7 @@ package play.sbt
 import sbt.Keys._
 import sbt._
 
-import play.runsupport.FileWatchService
+import play.dev.filewatch.FileWatchService
 
 /**
  * Declares the default imports for Play plugins.
@@ -35,6 +35,8 @@ object PlayImport {
 
   val javaForms = component("play-java-forms")
 
+  val jodaForms = component("play-joda-forms")
+
   val javaJdbc = component("play-java-jdbc")
 
   def javaEbean = movedExternal(
@@ -45,7 +47,15 @@ object PlayImport {
 
   val filters = component("filters-helpers")
 
-  val cache = component("play-cache")
+  @deprecated("Use ehcache for ehcache implementation, or cacheApi for just the API", since = "2.6.0")
+  val cache = component("play-ehcache")
+
+  // Integration with JSR 107
+  val jcache = component("play-jcache")
+
+  val cacheApi = component("play-cache")
+
+  val ehcache = component("play-ehcache")
 
   def json = movedExternal(
     """play-json module has been moved to a separate project.
@@ -57,6 +67,9 @@ object PlayImport {
 
   // alias javaWs to ws
   val javaWs = ws
+
+  // ws with HTTP caching based on jcache adapter
+  val wsCache = component("play-ahc-ws-cache")
 
   val openId = component("play-openid")
 

@@ -6,6 +6,8 @@ package play;
 import org.slf4j.Marker;
 import play.api.DefaultMarkerContext;
 
+import java.util.function.Supplier;
+
 /**
  * High level API for logging operations.
  *
@@ -126,10 +128,29 @@ public class Logger {
     /**
      * Log a message with the TRACE level.
      *
+     * @param msgSupplier <code>Supplier</code> that contains message to log
+     */
+    public static void trace(Supplier<String> msgSupplier) {
+        logger.trace(msgSupplier);
+    }
+
+    /**
+     * Log a message with the TRACE level.
+     *
      * @param message message to log
      * @param args The arguments to apply to the message String
      */
     public static void trace(String message, Object... args) {
+        logger.trace(message, args);
+    }
+
+    /**
+     * Log a message with the TRACE level.
+     *
+     * @param message message to log
+     * @param args Suppliers that contain arguments to apply to the message String
+     */
+    public static void trace(String message, Supplier<?>... args) {
         logger.trace(message, args);
     }
 
@@ -155,10 +176,29 @@ public class Logger {
     /**
      * Log a message with the DEBUG level.
      *
+     * @param msgSupplier <code>Supplier</code> that contains message to log
+     */
+    public static void debug(Supplier<String> msgSupplier) {
+        logger.debug(msgSupplier);
+    }
+
+    /**
+     * Log a message with the DEBUG level.
+     *
      * @param message message to log
      * @param args The arguments to apply to the message String
      */
     public static void debug(String message, Object... args) {
+        logger.debug(message, args);
+    }
+
+    /**
+     * Log a message with the DEBUG level.
+     *
+     * @param message message to log
+     * @param args Suppliers that contain arguments to apply to the message String
+     */
+    public static void debug(String message, Supplier<?>... args) {
         logger.debug(message, args);
     }
 
@@ -184,10 +224,29 @@ public class Logger {
     /**
      * Log a message with the INFO level.
      *
+     * @param msgSupplier <code>Supplier</code> that contains message to log
+     */
+    public static void info(Supplier<String> msgSupplier) {
+        logger.info(msgSupplier);
+    }
+
+    /**
+     * Log a message with the INFO level.
+     *
      * @param message message to log
      * @param args The arguments to apply to the message string
      */
     public static void info(String message, Object... args) {
+        logger.info(message, args);
+    }
+
+    /**
+     * Log a message with the INFO level.
+     *
+     * @param message message to log
+     * @param args Suppliers that contain arguments to apply to the message String
+     */
+    public static void info(String message, Supplier<?>... args) {
         logger.info(message, args);
     }
 
@@ -213,10 +272,29 @@ public class Logger {
     /**
      * Log a message with the WARN level.
      *
+     * @param msgSupplier <code>Supplier</code> that contains message to log
+     */
+    public static void warn(Supplier<String> msgSupplier) {
+        logger.warn(msgSupplier);
+    }
+
+    /**
+     * Log a message with the WARN level.
+     *
      * @param message message to log
      * @param args The arguments to apply to the message string
      */
     public static void warn(String message, Object... args) {
+        logger.warn(message, args);
+    }
+
+    /**
+     * Log a message with the WARN level.
+     *
+     * @param message message to log
+     * @param args Suppliers that contain arguments to apply to the message String
+     */
+    public static void warn(String message, Supplier<?>... args) {
         logger.warn(message, args);
     }
 
@@ -242,10 +320,29 @@ public class Logger {
     /**
      * Log a message with the ERROR level.
      *
+     * @param msgSupplier <code>Supplier</code> that contains message to log
+     */
+    public static void error(Supplier<String> msgSupplier) {
+        logger.error(msgSupplier);
+    }
+
+    /**
+     * Log a message with the ERROR level.
+     *
      * @param message message to log
      * @param args The arguments to apply to the message string
      */
     public static void error(String message, Object... args) {
+        logger.error(message, args);
+    }
+
+    /**
+     * Log a message with the ERROR level.
+     *
+     * @param message message to log
+     * @param args Suppliers that contain arguments to apply to the message String
+     */
+    public static void error(String message, Supplier<?> args) {
         logger.error(message, args);
     }
 
@@ -386,12 +483,39 @@ public class Logger {
         }
 
         /**
+         * Converts array of <code>Supplier<?></code> to array of results
+         *
+         * @param args suppliers we need to get results of
+         * @return array of results represented as <code>Object</code>
+         */
+        private Object[] suppliersToObj(Supplier<?>... args) {
+
+            final Object[] objArgs = new Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                objArgs[i] = args[i].get();
+            }
+
+            return objArgs;
+        }
+
+        /**
          * Logs a message with the TRACE level.
          *
          * @param message message to log
          */
         public void trace(String message) {
             logger.underlyingLogger().trace(message);
+        }
+
+        /**
+         * Log a message with the TRACE level.
+         *
+         * @param msgSupplier <code>Supplier</code> that contains message to log
+         */
+        public void trace(Supplier<String> msgSupplier) {
+            if (isTraceEnabled()) {
+                trace(msgSupplier.get());
+            }
         }
 
         /**
@@ -458,6 +582,17 @@ public class Logger {
         }
 
         /**
+         * Log a message with the DEBUG level.
+         *
+         * @param msgSupplier <code>Supplier</code> that contains message to log
+         */
+        public void debug(Supplier<String> msgSupplier) {
+            if (isDebugEnabled()) {
+                debug(msgSupplier.get());
+            }
+        }
+
+        /**
          * Logs a message with the DEBUG level.
          *
          * @param marker the marker data specific to this log statement
@@ -475,6 +610,18 @@ public class Logger {
          */
         public void debug(String message, Object... args) {
             logger.underlyingLogger().debug(message, args);
+        }
+
+        /**
+         * Log a message with the DEBUG level.
+         *
+         * @param message message to log
+         * @param args Suppliers that contain arguments to apply to the message String
+         */
+        public void debug(String message, Supplier<?>... args) {
+            if (isDebugEnabled()) {
+                debug(message, suppliersToObj(args));
+            }
         }
 
         /**
@@ -519,6 +666,17 @@ public class Logger {
         }
 
         /**
+         * Log a message with the INFO level.
+         *
+         * @param msgSupplier <code>Supplier</code> that contains message to log
+         */
+        public void info(Supplier<String> msgSupplier) {
+            if (isInfoEnabled()) {
+                info(msgSupplier.get());
+            }
+        }
+
+        /**
          * Logs a message with the INFO level.
          *
          * @param marker the marker data specific to this log statement
@@ -536,6 +694,18 @@ public class Logger {
          */
         public void info(String message, Object... args) {
             logger.underlyingLogger().info(message, args);
+        }
+
+        /**
+         * Log a message with the INFO level.
+         *
+         * @param message message to log
+         * @param args Suppliers that contain arguments to apply to the message String
+         */
+        public void info(String message, Supplier<?>... args) {
+            if (isInfoEnabled()) {
+                info(message, suppliersToObj(args));
+            }
         }
 
         /**
@@ -582,6 +752,17 @@ public class Logger {
         /**
          * Log a message with the WARN level.
          *
+         * @param msgSupplier <code>Supplier</code> that contains message to log
+         */
+        public void warn(Supplier<String> msgSupplier) {
+            if (isWarnEnabled()) {
+                warn(msgSupplier.get());
+            }
+        }
+
+        /**
+         * Log a message with the WARN level.
+         *
          * @param marker the marker data specific to this log statement
          * @param message message to log
          */
@@ -597,6 +778,18 @@ public class Logger {
          */
         public void warn(String message, Object... args) {
             logger.underlyingLogger().warn(message, args);
+        }
+
+        /**
+         * Log a message with the WARN level.
+         *
+         * @param message message to log
+         * @param args Suppliers that contain arguments to apply to the message String
+         */
+        public void warn(String message, Supplier<?>... args) {
+            if (isWarnEnabled()) {
+                logger.underlyingLogger().warn(message, suppliersToObj(args));
+            }
         }
 
         /**
@@ -643,6 +836,17 @@ public class Logger {
         /**
          * Log a message with the ERROR level.
          *
+         * @param msgSupplier <code>Supplier</code> that contains message to log
+         */
+        public void error(Supplier<String> msgSupplier) {
+            if (isErrorEnabled()) {
+                error(msgSupplier.get());
+            }
+        }
+
+        /**
+         * Log a message with the ERROR level.
+         *
          * @param marker the marker data specific to this log statement
          * @param message message to log
          */
@@ -658,6 +862,18 @@ public class Logger {
          */
         public void error(String message, Object... args) {
             logger.underlyingLogger().error(message, args);
+        }
+
+        /**
+         * Log a message with the ERROR level.
+         *
+         * @param message message to log
+         * @param args Suppliers that contain arguments to apply to the message String
+         */
+        public void error(String message, Supplier<?>... args) {
+            if (isErrorEnabled()) {
+                logger.underlyingLogger().error(message, suppliersToObj(args));
+            }
         }
 
         /**

@@ -81,8 +81,8 @@ object Probes {
   def flowProbe[T](name: String, messageLogger: T => String = (t: T) => t.toString): Flow[T, T, _] = {
     Flow[T].via(new GraphStage[FlowShape[T, T]] with Probe {
 
-      val in = Inlet[T]("in")
-      val out = Outlet[T]("out")
+      val in = Inlet[T]("Probes.in")
+      val out = Outlet[T]("Probes.out")
 
       override def shape: FlowShape[T, T] = FlowShape.of(in, out)
 

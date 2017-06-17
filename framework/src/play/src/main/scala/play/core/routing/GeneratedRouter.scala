@@ -240,7 +240,7 @@ abstract class GeneratedRouter extends Router {
     val modifyRequestFunc: RequestHeader => RequestHeader = { rh: RequestHeader =>
       val newTags = if (rh.tags.isEmpty) tags else rh.tags ++ tags
       val rh2 = rh.copy(tags = newTags)
-      val rh3 = rh2.withAttrs(rh2.attrs.updated(play.api.routing.Router.Attrs.HandlerDef, handlerDef))
+      val rh3 = rh2.addAttr(play.api.routing.Router.Attrs.HandlerDef, handlerDef)
       rh3
     }
 

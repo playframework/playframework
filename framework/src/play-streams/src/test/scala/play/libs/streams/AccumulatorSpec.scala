@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.streams
 
 import java.util.concurrent.{
@@ -21,7 +24,9 @@ import akka.japi.function.{ Function => JFn, Function2 => JFn2 }
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 
 class AccumulatorSpec extends org.specs2.mutable.Specification {
-  import scala.collection.JavaConverters.asJavaIterable
+  // JavaConversions is required because JavaConverters.asJavaIterable only exists in 2.12
+  // and we cross compile for 2.11
+  import scala.collection.JavaConverters._
 
   def withMaterializer[T](block: Materializer => T) = {
     val system = ActorSystem("test")
@@ -38,7 +43,7 @@ class AccumulatorSpec extends org.specs2.mutable.Specification {
       0,
       new JFn2[Int, Int, Int] { def apply(a: Int, b: Int) = a + b }))
 
-  def source = Source from asJavaIterable(1 to 3)
+  def source = Source from (1 to 3).asJava
   def sawait[T](f: Future[T]) = Await.result(f, 10.seconds)
   def await[T](f: CompletionStage[T]) =
     f.toCompletableFuture.get(10, TimeUnit.SECONDS)

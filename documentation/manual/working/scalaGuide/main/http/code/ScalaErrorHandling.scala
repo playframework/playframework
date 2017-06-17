@@ -29,11 +29,11 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
       import play.api._
       import play.api.routing._
       import javax.inject.Provider
-      def errorHandler(mode: Mode.Mode) = new default.ErrorHandler(
+      def errorHandler(mode: Mode) = new default.ErrorHandler(
         Environment.simple(mode = mode), Configuration.empty, new OptionalSourceMapper(None),
         new Provider[Router] { def get = Router.empty }
       )
-      def errorContent(mode: Mode.Mode) =
+      def errorContent(mode: Mode) =
         contentAsString(errorHandler(mode).onServerError(FakeRequest(), new RuntimeException("foo")))
 
       errorContent(Mode.Prod) must startWith("A server error occurred: ")

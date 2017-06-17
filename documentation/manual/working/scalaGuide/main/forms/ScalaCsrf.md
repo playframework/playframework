@@ -41,21 +41,17 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 
 ## Applying a global CSRF filter
 
-Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To enable the global filter, add the Play filters helpers dependency to your project in `build.sbt`:
+> **Note:** As of Play 2.6.x, the CSRF filter is included in Play's list of default filters that are applied automatically to projects.  See [[the Filters page|Filters]] for more information.
 
-```scala
-libraryDependencies += filters
-```
-
-Now add them to your `Filters` class as described in [[HTTP filters|ScalaHttpFilters]]:
-
-@[http-filters](code/ScalaCsrf.scala)
-
-The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.http.filters = "filters.MyFilters"
+play.filters.enabled += play.filters.csrf.CsrfFilter
 ```
+
+It is also possible to disable the CSRF filter for a specific route in the routes file. To do this, add the `nocsrf` modifier tag before your route:
+
+@[nocsrf](../http/code/scalaguide.http.routing.routes)
 
 ### Using an implicit request
 
@@ -63,24 +59,19 @@ All CSRF functionality assumes that a `RequestHeader` or a `Request` is availabl
 
 #### Defining an implicit Request in Actions
 
-For all the CSRF actions, the request must be exposed implicitly with `implicit request =>` as follows:
+For all the actions that need to access the CSRF token, the request must be exposed implicitly with `implicit request =>` as follows:
 
-``` scala
-def someMethod = SomeCSRFAction { implicit request =>
-  ... // methods that depend on an implicit request
-}
-```
+@[some-csrf-action](code/ScalaCsrfController.scala)
+
+That is because the helper methods like `CSRF.getToken` access receives the request as an implicit parameter to retrieve CSRF token, for example:
+
+@[implicit-access-to-token](code/ScalaCsrfController.scala)
 
 #### Passing an implicit Request between methods
 
 If you have broken up your code into methods that CSRF functionality is used in, then you can pass through the implicit request from the action:
 
-```scala
-def someMethod(...)(implicit request: Request[_]) = {
-  val token: Option[CSRF.Token] = CSRF.getToken
-  ... // do more things
-}
-```
+@[some-csrf-action-with-more-methods](code/ScalaCsrfController.scala)
 
 #### Defining an implicit Requests in Templates
 
@@ -166,3 +157,9 @@ The full range of CSRF configuration options can be found in the filters [refere
 ## Using CSRF with compile time dependency injection
 
 You can use all the above features if your application is using compile time dependency injection. The wiring is helped by the trait [CSRFComponents](api/scala/play/filters/csrf/CSRFComponents.html) that you can mix in your application components cake. For more details about compile time dependency injection, please refer to the [[associated documentation page|ScalaCompileTimeDependencyInjection]].
+
+## Testing CSRF 
+
+When rendering, you may need to add the CSRF token to a template.  You can do this with `import play.api.test.CSRFTokenHelper._`, which enriches `play.api.test.FakeRequest` with the `withCSRFToken` method:
+
+@[testing-csrf](code/scalaguide/forms/csrf/UserControllerSpec.scala)

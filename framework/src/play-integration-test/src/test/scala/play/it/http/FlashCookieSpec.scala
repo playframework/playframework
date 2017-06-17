@@ -18,28 +18,30 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
   sequential
 
-  def appWithRedirect = GuiceApplicationBuilder().appRoutes(app => {
-    val Action = app.injector.instanceOf[DefaultActionBuilder]
-    ({
-      case ("GET", "/flash") =>
-        Action {
-          Redirect("/landing").flashing(
-            "success" -> "found"
-          )
-        }
-      case ("GET", "/set-cookie") =>
-        Action {
-          Ok.withCookies(Cookie("some-cookie", "some-value"))
-        }
-      case ("GET", "/landing") =>
-        Action {
-          Ok("ok")
-        }
-    })
-  }).build()
+  def appWithRedirect(additionalConfiguration: Map[String, String]) = GuiceApplicationBuilder()
+    .configure(additionalConfiguration)
+    .appRoutes(app => {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
+      ({
+        case ("GET", "/flash") =>
+          Action {
+            Redirect("/landing").flashing(
+              "success" -> "found"
+            )
+          }
+        case ("GET", "/set-cookie") =>
+          Action {
+            Ok.withCookies(Cookie("some-cookie", "some-value"))
+          }
+        case ("GET", "/landing") =>
+          Action {
+            Ok("ok")
+          }
+      })
+    }).build()
 
-  def withClientAndServer[T](block: WSClient => T) = {
-    val app = appWithRedirect
+  def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
+    val app = appWithRedirect(additionalConfiguration)
     import app.materializer
     Server.withApplication(app) { implicit port =>
       withClient(block)
@@ -50,7 +52,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
     response.cookies.find(_.name.exists(_ == Flash.COOKIE_NAME))
 
   "the flash cookie" should {
-    "can be set for one request" in withClientAndServer { ws =>
+    "can be set for one request" in withClientAndServer() { ws =>
       val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
       response.status must equalTo(SEE_OTHER)
       val flashCookie = readFlashCookie(response)
@@ -60,7 +62,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       }
     }
 
-    "be removed after a redirect" in withClientAndServer { ws =>
+    "be removed after a redirect" in withClientAndServer() { ws =>
       val response = await(ws.url("/flash").get())
       response.status must equalTo(OK)
       val flashCookie = readFlashCookie(response)
@@ -71,11 +73,11 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       }
     }
 
-    "allow the setting of additional cookies when cleaned up" in withClientAndServer { ws =>
+    "allow the setting of additional cookies when cleaned up" in withClientAndServer() { ws =>
       val response = await(ws.url("/flash").withFollowRedirects(false).get())
       val Some(flashCookie) = readFlashCookie(response)
       val response2 = await(ws.url("/set-cookie")
-        .withHeaders("Cookie" -> s"${flashCookie.name.get}=${flashCookie.value.get}")
+        .withHttpHeaders("Cookie" -> s"${flashCookie.name.get}=${flashCookie.value.get}")
         .get())
 
       readFlashCookie(response2) must beSome.like {
@@ -88,9 +90,30 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
     }
 
-    "honor configuration for flash.secure" in Helpers.running(_.configure("play.http.flash.secure" -> true)) { _ =>
-      Flash.encodeAsCookie(Flash()).secure must beTrue
+    "honor the configuration for play.http.flash.sameSite" in {
+      "configured to lax" in withClientAndServer(Map("play.http.flash.sameSite" -> "lax")) { ws =>
+        val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
+        response.status must equalTo(SEE_OTHER)
+        response.header(SET_COOKIE) must beSome.which(_.contains("SameSite=Lax"))
+      }
+
+      "configured to strict" in withClientAndServer(Map("play.http.flash.sameSite" -> "strict")) { ws =>
+        val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
+        response.status must equalTo(SEE_OTHER)
+        response.header(SET_COOKIE) must beSome.which(_.contains("SameSite=Strict"))
+      }
     }
+
+    "honor configuration for flash.secure" in {
+      "configured to true" in Helpers.running(_.configure("play.http.flash.secure" -> true)) { _ =>
+        Flash.encodeAsCookie(Flash()).secure must beTrue
+      }
+
+      "configured to false" in Helpers.running(_.configure("play.http.flash.secure" -> false)) { _ =>
+        Flash.encodeAsCookie(Flash()).secure must beFalse
+      }
+    }
+
   }
 
 }

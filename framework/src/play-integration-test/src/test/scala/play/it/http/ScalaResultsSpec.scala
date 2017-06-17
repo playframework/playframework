@@ -10,16 +10,18 @@ import play.api.Application
 
 class ScalaResultsSpec extends PlaySpecification {
 
+  sequential
+
   def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding = app.injector.instanceOf[CookieHeaderEncoding]
-  def sessionBaker(implicit app: Application): CookieBaker[Session] = app.injector.instanceOf[SessionCookieBaker]
-  def flashBaker(implicit app: Application): CookieBaker[Flash] = app.injector.instanceOf[FlashCookieBaker]
+  def sessionBaker(implicit app: Application): SessionCookieBaker = app.injector.instanceOf[SessionCookieBaker]
+  def flashBaker(implicit app: Application): FlashCookieBaker = app.injector.instanceOf[FlashCookieBaker]
 
   def bake(result: Result)(implicit app: Application): Result = {
     result.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker)
   }
 
   def cookies(result: Result)(implicit app: Application): Seq[Cookie] = {
-    Cookies.decodeSetCookieHeader(bake(result).header.headers("Set-Cookie"))
+    cookieHeaderEncoding.decodeSetCookieHeader(bake(result).header.headers("Set-Cookie"))
   }
 
   "support session helper" in withApplication() { implicit app =>
@@ -40,7 +42,7 @@ class ScalaResultsSpec extends PlaySpecification {
         .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
     }
 
-    val setCookies = Cookies.decodeSetCookieHeader(headers("Set-Cookie")).map(c => c.name -> c).toMap
+    val setCookies = cookieHeaderEncoding.decodeSetCookieHeader(headers("Set-Cookie")).map(c => c.name -> c).toMap
     setCookies.size must be_==(5)
     setCookies("session").value must be_==("items2")
     setCookies("preferences").value must be_==("blue")
@@ -51,13 +53,8 @@ class ScalaResultsSpec extends PlaySpecification {
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
   }
 
-  "ignore session cookies that have been tampered with" in withApplication() { implicit app =>
-    val data = Map("user" -> "alice")
-    val encodedSession = sessionBaker.encode(data)
-    // Change a value in the session
-    val maliciousSession = encodedSession.replaceFirst("user=alice", "user=mallory")
-    val decodedSession = sessionBaker.decode(maliciousSession)
-    decodedSession must beEmpty
+  "bake cookies should not depends on global state" in withApplication("play.allowGlobalApplication" -> false) { implicit app =>
+    Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must not(beNull) // we are interested just that it executes without global state
   }
 
   "support a custom application context" in {

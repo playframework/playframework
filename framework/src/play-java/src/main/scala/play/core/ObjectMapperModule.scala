@@ -4,7 +4,6 @@
 package play.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import play.api._
 import play.api.inject._
 import play.libs.Json
 
@@ -19,12 +18,12 @@ import scala.concurrent.Future
  * reloads.
  */
 class ObjectMapperModule extends SimpleModule(
-  bind[ObjectMapper].toProvider[ObjectMapperProvider].eagerly
+  bind[ObjectMapper].toProvider[ObjectMapperProvider].eagerly()
 )
 
 @Singleton
 class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle) extends Provider[ObjectMapper] {
-  lazy val get = {
+  lazy val get: ObjectMapper = {
     val objectMapper = Json.newDefaultMapper()
     Json.setObjectMapper(objectMapper)
     lifecycle.addStopHook { () =>
@@ -32,4 +31,14 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle) extends P
     }
     objectMapper
   }
+}
+
+/**
+ * Components for Jackson ObjectMapper and Play's Json.
+ */
+trait ObjectMapperComponents {
+
+  def applicationLifecycle: DefaultApplicationLifecycle
+
+  lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle).get
 }

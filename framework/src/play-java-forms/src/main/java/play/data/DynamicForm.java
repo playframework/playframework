@@ -6,6 +6,7 @@ package play.data;
 import javax.validation.Validator;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import play.data.validation.*;
 import play.data.format.Formatters;
@@ -40,7 +41,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param formatters     the formatters component.
      * @param validator      the validator component.
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
+    public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
         super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validator);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
@@ -48,9 +49,33 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
 
     }
+
+    /**
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value if the form submission was successful
+     * @param messagesApi    the messagesApi component.
+     * @param formatters     the formatters component.
+     * @param validator      the validator component.
+     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
+     */
+    @Deprecated
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, Validator validator) {
+        this(
+                data,
+                errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<>(),
+                value,
+                messagesApi,
+                formatters,
+                validator
+        );
+    }
     
     /**
-     * Gets the concrete value if the submission was a success.
+     * Gets the concrete value only if the submission was a success.
+     * If the form is invalid because of validation errors this method will return null.
+     * If you want to retrieve the value even when the form is invalid use {@link #value(String)} instead.
+     * 
      * @param key the string key.
      * @return the value, or null if there is no match.
      */
@@ -62,9 +87,30 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
     }
 
+    /**
+     * Gets the concrete value
+     * @param key the string key.
+     * @return the value
+     */
+    public Optional<Object> value(String key) {
+        return super.value().map(v -> v.getData().get(asNormalKey(key)));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated
     @Override
     public Map<String, String> data() {
         return rawData;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, String> rawData() {
+        return Collections.unmodifiableMap(rawData);
     }
 
     /**
@@ -72,9 +118,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param value    the map of values to fill in the form.
      * @return the modified form.
      */
-    public DynamicForm fill(Map value) {
+    public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -114,7 +160,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
         
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.data(), form.errors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
     
     /**
@@ -128,15 +174,25 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         // javadoc cannot find the static inner class.
         Field field = super.field(asDynamicKey(key));
         return new Field(this, key, field.constraints(), field.format(), field.errors(),
-            field.value() == null ? get(key) : field.value()
+            field.getValue().orElse((String)value(key).orElse(null))
         );
     }
 
     /**
      * Retrieve an error by key.
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
      */
+    @Deprecated
     public ValidationError error(String key) {
         return super.error(asDynamicKey(key));
+    }
+
+    /**
+     * Retrieve an error by key.
+     */
+    public Optional<ValidationError> getError(String key) {
+        return super.getError(asDynamicKey(key));
     }
 
     /**
@@ -145,19 +201,48 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
      */
     public void reject(String key, String error, List<Object> args) {
         super.reject(asDynamicKey(key), error, args);
     }
 
     /**
+     * @param key the error key
+     * @param error the error message
+     * @param args the error arguments
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    @Override
+    public DynamicForm withError(final String key, final String error, final List<Object> args) {
+        final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
+        return new DynamicForm(this.rawData, form.allErrors(), form.value(), this.messagesApi, this.formatters, this.validator);
+    }
+    
+    /**
      * Adds an error to this form.
      *
      * @param key the error key
      * @param error the error message
+     * 
+     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
      */    
+    @Deprecated
     public void reject(String key, String error) {
         super.reject(asDynamicKey(key), error);
+    }
+    
+    /**
+     * @param key the error key
+     * @param error the error message
+     * 
+     * @return a copy of this form with the given error added.
+     */
+    @Override
+    public DynamicForm withError(final String key, final String error) {
+        return withError(key, error, new ArrayList<>());
     }
 
     // -- tools
@@ -183,22 +268,21 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
-    @SuppressWarnings("rawtypes")
     public static class Dynamic {
 
-        private Map data = new HashMap();
+        private Map<String, Object> data = new HashMap<>();
 
         public Dynamic() {
         }
 
-        public Dynamic(Map data) {
+        public Dynamic(Map<String, Object> data) {
             this.data = data;
         }
 
         /**
          * @return the data.
          */
-        public Map getData() {
+        public Map<String, Object> getData() {
             return data;
         }
 
@@ -206,7 +290,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
          * Sets the new data.
          * @param data    the map of data.
          */
-        public void setData(Map data) {
+        public void setData(Map<String, Object> data) {
             this.data = data;
         }
 

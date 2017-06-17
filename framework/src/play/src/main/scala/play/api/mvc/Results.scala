@@ -104,8 +104,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   }
 
   /**
-   * Adds cookies to this result. If the result already contains
-   * cookies then the new cookies will be merged with the old cookies.
+   * Adds cookies to this result. If the result already contains cookies then cookies with the same name in the new
+   * list will override existing ones.
    *
    * For example:
    * {{{
@@ -116,7 +116,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def withCookies(cookies: Cookie*): Result = {
-    if (cookies.isEmpty) this else copy(newCookies = newCookies ++ cookies)
+    val filteredCookies = newCookies.filter(cookie => !cookies.exists(_.name == cookie.name))
+    if (cookies.isEmpty) this else copy(newCookies = filteredCookies ++ cookies)
   }
 
   /**
@@ -131,7 +132,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withCookies(newCookies ++ cookies.map(_.toCookie): _*)
+    withCookies(cookies.map(_.toCookie): _*)
   }
 
   /**
@@ -252,7 +253,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
    */
   @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
-    if (!flash.isEmpty && header.status / 100 == 3) {
+    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
       Logger("play").forMode(Mode.Dev).warn(
         s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
       )
@@ -276,7 +277,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     requestHasFlash: Boolean = false): Result = {
 
     val allCookies = {
-      val setCookieCookies = Cookies.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
+      val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
       val session = newSession.map { data =>
         if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
       }
@@ -291,7 +292,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     if (allCookies.isEmpty) {
       this
     } else {
-      withHeaders(SET_COOKIE -> Cookies.encodeSetCookieHeader(allCookies))
+      withHeaders(SET_COOKIE -> cookieHeaderEncoding.encodeSetCookieHeader(allCookies))
     }
   }
 }
@@ -598,6 +599,9 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘418 IM_A_TEAPOT’ result. */
+  val ImATeapot = new Status(IM_A_TEAPOT)
+
   /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
   val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
 
@@ -611,7 +615,7 @@ trait Results {
   val TooManyRequests = new Status(TOO_MANY_REQUESTS)
 
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  @deprecated("Use TooManyRequests instead", "3.0.0")
+  @deprecated("Use TooManyRequests instead", "2.6.0")
   val TooManyRequest = TooManyRequests
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */

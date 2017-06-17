@@ -6,6 +6,7 @@ package controllers
 import javax.inject.Inject
 
 import play.api.mvc._
+import play.twirl.api.Html
 
 @deprecated("Use Default class instead", "2.6.0")
 object Default extends Default
@@ -21,7 +22,7 @@ object Default extends Default
  * GET   /xxx             controllers.Default.error
  * }}}
  */
-class Default @Inject() () extends Controller {
+class Default @Inject() () extends ControllerHelpers {
 
   private val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
 

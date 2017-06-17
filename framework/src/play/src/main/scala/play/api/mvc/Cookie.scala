@@ -4,12 +4,18 @@
 package play.api.mvc
 
 import java.net.{ URLDecoder, URLEncoder }
-import java.util.Locale
+import java.nio.charset.StandardCharsets
+import java.util.{ Base64, Date, Locale }
 import javax.inject.Inject
 
+import io.jsonwebtoken.Jwts
+import play.api.MarkerContexts.SecurityMarkerContext
 import play.api._
 import play.api.http._
-import play.api.libs.crypto.CookieSigner
+import play.api.inject.{ SimpleModule, bind }
+import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
+import play.api.mvc.Cookie.SameSite
+import play.libs.Scala
 import play.mvc.Http.{ Cookie => JCookie }
 
 import scala.collection.immutable.ListMap
@@ -27,14 +33,65 @@ import scala.util.control.NonFatal
  * @param secure whether this cookie is secured, sent only for HTTPS requests
  * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code
  */
-case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/",
-    domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true) {
+case class Cookie(
+    name: String,
+    value: String,
+    maxAge: Option[Int] = None,
+    path: String = "/",
+    domain: Option[String] = None,
+    secure: Boolean = false,
+    httpOnly: Boolean = true,
+    sameSite: Option[Cookie.SameSite] = None
+) {
   lazy val asJava = {
-    new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull, secure, httpOnly)
+    new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull,
+      secure, httpOnly, sameSite.map(_.asJava).orNull)
   }
 }
 
 object Cookie {
+
+  private val logger = Logger(this.getClass)
+
+  sealed abstract class SameSite(val value: String) {
+    private def matches(v: String): Boolean = value equalsIgnoreCase v
+
+    def asJava: play.mvc.Http.Cookie.SameSite = play.mvc.Http.Cookie.SameSite.parse(value).get
+  }
+  object SameSite {
+    def parse(value: String): Option[SameSite] = Seq(Strict, Lax).find(_ matches value)
+    case object Strict extends SameSite("Strict")
+    case object Lax extends SameSite("Lax")
+  }
+
+  /**
+   * Check the prefix of this cookie and make sure it matches the rules.
+   *
+   * @return the original cookie if it is valid, else a new cookie that has the proper attributes set.
+   */
+  def validatePrefix(cookie: Cookie): Cookie = {
+    val SecurePrefix = "__Secure-"
+    val HostPrefix = "__Host-"
+    @inline def warnIfNotSecure(prefix: String): Unit = {
+      if (!cookie.secure) {
+        logger.warn(s"$prefix prefix is used for cookie but Secure flag not set! Setting now. Cookie is: $cookie")(SecurityMarkerContext)
+      }
+    }
+
+    if (cookie.name startsWith SecurePrefix) {
+      warnIfNotSecure(SecurePrefix)
+      cookie.copy(secure = true)
+    } else if (cookie.name startsWith HostPrefix) {
+      warnIfNotSecure(HostPrefix)
+      if (cookie.path != "/") {
+        logger.warn(s"""$HostPrefix is used on cookie but Path is not "/"! Setting now. Cookie is: $cookie""")(SecurityMarkerContext)
+      }
+      cookie.copy(secure = true, path = "/")
+    } else {
+      cookie
+    }
+  }
+
   import scala.concurrent.duration._
 
   /**
@@ -75,10 +132,10 @@ trait Cookies extends Traversable[Cookie] {
 /**
  * Helper utilities to encode Cookies.
  */
-@deprecated("Inject [[play.api.mvc.CookieHeaderEncoding]] instead", "2.6.0")
 object Cookies extends CookieHeaderEncoding {
 
   // Use global state for cookie header configuration
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.6.0")
   override protected def config: CookiesConfiguration = HttpConfiguration.current.cookies
 
   def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
@@ -95,6 +152,8 @@ object Cookies extends CookieHeaderEncoding {
  * Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
  */
 trait CookieHeaderEncoding {
+
+  private implicit val markerContext = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
 
@@ -149,13 +208,15 @@ trait CookieHeaderEncoding {
    */
   def encodeSetCookieHeader(cookies: Seq[Cookie]): String = {
     val encoder = config.serverEncoder
-    val newCookies = cookies.map { c =>
+    val newCookies = cookies.map { cookie =>
+      val c = Cookie.validatePrefix(cookie)
       val nc = new DefaultCookie(c.name, c.value)
       nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
       nc.setPath(c.path)
       c.domain.foreach(nc.setDomain)
       nc.setSecure(c.secure)
       nc.setHttpOnly(c.httpOnly)
+      nc.setSameSite(c.sameSite.map(_.value).orNull)
       encoder.encode(nc)
     }
     newCookies.mkString(SetCookieHeaderSeparator)
@@ -187,7 +248,7 @@ trait CookieHeaderEncoding {
     } else {
       Try {
         val decoder = config.clientDecoder
-        for {
+        val newCookies = for {
           cookieString <- SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq
           cookie <- Option(decoder.decode(cookieString.trim))
         } yield Cookie(
@@ -197,8 +258,10 @@ trait CookieHeaderEncoding {
           Option(cookie.path).getOrElse("/"),
           Option(cookie.domain),
           cookie.isSecure,
-          cookie.isHttpOnly
+          cookie.isHttpOnly,
+          Option(cookie.sameSite).flatMap(SameSite.parse)
         )
+        newCookies.map(Cookie.validatePrefix)
       } getOrElse {
         logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
         Seq.empty
@@ -296,7 +359,7 @@ object CookieHeaderMerging {
 /**
  * Trait that should be extended by the Cookie helpers.
  */
-trait CookieBaker[T <: AnyRef] {
+trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
 
   /**
    * The cookie name.
@@ -339,9 +402,84 @@ trait CookieBaker[T <: AnyRef] {
   def path: String
 
   /**
+   * The value of the SameSite attribute of the cookie. Defaults to no SameSite.
+   */
+  def sameSite: Option[Cookie.SameSite] = None
+
+  /**
+   * Encodes the data as a `Cookie`.
+   */
+  def encodeAsCookie(data: T): Cookie = {
+    val cookie = encode(serialize(data))
+    Cookie(COOKIE_NAME, cookie, maxAge, path, domain, secure, httpOnly, sameSite)
+  }
+
+  /**
+   * Decodes the data from a `Cookie`.
+   */
+  def decodeCookieToMap(cookie: Option[Cookie]): Map[String, String] = {
+    serialize(decodeFromCookie(cookie))
+  }
+
+  /**
+   * Decodes the data from a `Cookie`.
+   */
+  def decodeFromCookie(cookie: Option[Cookie]): T = if (cookie.isEmpty) emptyCookie else {
+    val extractedCookie: Cookie = cookie.get
+    if (extractedCookie.name != COOKIE_NAME) emptyCookie /* can this happen? */ else {
+      deserialize(decode(extractedCookie.value))
+    }
+  }
+
+  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
+
+  /**
+   * Builds the cookie object from the given data map.
+   *
+   * @param data the data map to build the cookie object
+   * @return a new cookie object
+   */
+  protected def deserialize(data: Map[String, String]): T
+
+  /**
+   * Converts the given cookie object into a data map.
+   *
+   * @param cookie the cookie object to serialize into a map
+   * @return a new `Map` storing the key-value pairs for the given cookie
+   */
+  protected def serialize(cookie: T): Map[String, String]
+}
+
+/**
+ * This trait encodes and decodes data to a string used as cookie value.
+ */
+trait CookieDataCodec {
+
+  /**
+   * Encodes the data as a `String`.
+   */
+  def encode(data: Map[String, String]): String
+
+  /**
+   * Decodes from an encoded `String`.
+   */
+  def decode(data: String): Map[String, String]
+}
+
+/**
+ * This trait writes out cookies as url encoded safe text format, optionally prefixed with a
+ * signed code.
+ */
+trait UrlEncodedCookieDataCodec extends CookieDataCodec {
+
+  private val logger = Logger(this.getClass)
+
+  /**
    * The cookie signer.
    */
   def cookieSigner: CookieSigner
+
+  def isSigned: Boolean
 
   /**
    * Encodes the data as a `String`.
@@ -390,55 +528,240 @@ trait CookieBaker[T <: AnyRef] {
         val message = splitted.tail.mkString("-")
         if (safeEquals(splitted(0), cookieSigner.sign(message)))
           urldecode(message)
-        else
+        else {
+          logger.warn("Cookie failed message authentication check")(SecurityMarkerContext)
           Map.empty[String, String]
+        }
       } else urldecode(data)
     } catch {
       // fail gracefully is the session cookie is corrupted
-      case NonFatal(_) => Map.empty[String, String]
+      case NonFatal(e) =>
+        logger.warn("Could not decode cookie", e)(SecurityMarkerContext)
+        Map.empty[String, String]
     }
   }
-
-  /**
-   * Encodes the data as a `Cookie`.
-   */
-  def encodeAsCookie(data: T): Cookie = {
-    val cookie = encode(serialize(data))
-    Cookie(COOKIE_NAME, cookie, maxAge, path, domain, secure, httpOnly)
-  }
-
-  /**
-   * Decodes the data from a `Cookie`.
-   */
-  def decodeCookieToMap(cookie: Option[Cookie]): Map[String, String] = {
-    serialize(decodeFromCookie(cookie))
-  }
-
-  /**
-   * Decodes the data from a `Cookie`.
-   */
-  def decodeFromCookie(cookie: Option[Cookie]): T = if (cookie.isEmpty) emptyCookie else {
-    val extractedCookie: Cookie = cookie.get
-    if (extractedCookie.name != COOKIE_NAME) emptyCookie /* can this happen? */ else {
-      deserialize(decode(extractedCookie.value))
-    }
-  }
-
-  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
-
-  /**
-   * Builds the cookie object from the given data map.
-   *
-   * @param data the data map to build the cookie object
-   * @return a new cookie object
-   */
-  protected def deserialize(data: Map[String, String]): T
-
-  /**
-   * Converts the given cookie object into a data map.
-   *
-   * @param cookie the cookie object to serialize into a map
-   * @return a new `Map` storing the key-value pairs for the given cookie
-   */
-  protected def serialize(cookie: T): Map[String, String]
 }
+
+/**
+ * JWT cookie encoding and decoding functionality
+ */
+trait JWTCookieDataCodec extends CookieDataCodec {
+
+  private val logger = play.api.Logger(getClass)
+
+  def secretConfiguration: SecretConfiguration
+
+  def jwtConfiguration: JWTConfiguration
+
+  private lazy val formatter = new JWTCookieDataCodec.JWTFormatter(secretConfiguration, jwtConfiguration, clock)
+
+  /**
+   * Encodes the data as a `String`.
+   */
+  override def encode(data: Map[String, String]): String = {
+    val dataMap = Map(jwtConfiguration.dataClaim -> Jwts.claims(Scala.asJava(data)))
+    formatter.format(dataMap)
+  }
+
+  /**
+   * Decodes from an encoded `String`.
+   */
+  override def decode(encodedString: String): Map[String, String] = {
+    import io.jsonwebtoken._
+
+    import scala.collection.JavaConverters._
+    import scala.collection.breakOut
+
+    try {
+      // Get all the claims
+      val claimMap = formatter.parse(encodedString)
+
+      // Pull out the JWT data claim and only return that.
+      val data = claimMap(jwtConfiguration.dataClaim).asInstanceOf[java.util.Map[String, AnyRef]]
+      data.asScala.map{ case (k, v) => (k, v.toString) }(breakOut)
+    } catch {
+      case e: IllegalStateException =>
+        // Used in the case where the header algorithm does not match.
+        logger.error(e.getMessage)
+        Map.empty
+
+      // We want to warn specifically about premature and expired JWT,
+      // because they depend on clock skew and can cause silent user error
+      // if production servers get out of sync
+      case e: PrematureJwtException =>
+        val id = e.getClaims.getId
+        logger.warn(s"decode: premature JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
+        Map.empty
+
+      case e: ExpiredJwtException =>
+        val id = e.getClaims.getId
+        logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
+        Map.empty
+
+      case NonFatal(e) =>
+        logger.warn(s"decode: could not decode JWT: ${e.getMessage}", e)(SecurityMarkerContext)
+        Map.empty
+    }
+  }
+
+  /** The unique id of the JWT, if any. */
+  protected def uniqueId(): Option[String] = Some(JWTCookieDataCodec.JWTIDGenerator.generateId())
+
+  /** The clock used for checking expires / not before code */
+  protected def clock: java.time.Clock = java.time.Clock.systemUTC()
+}
+
+object JWTCookieDataCodec {
+
+  /**
+   * Maps to and from JWT claims.  This class is more basic than the JWT
+   * cookie signing, because it exposes all claims, not just the "data" ones.
+   *
+   * @param secretConfiguration the secret used for signing JWT
+   * @param jwtConfiguration the configuration for JWT
+   * @param clock the system clock
+   */
+  private[play] class JWTFormatter(
+      secretConfiguration: SecretConfiguration,
+      jwtConfiguration: JWTConfiguration,
+      clock: java.time.Clock) {
+    import io.jsonwebtoken._
+    import scala.collection.JavaConverters._
+
+    private val jwtClock = new io.jsonwebtoken.Clock {
+      override def now(): Date = java.util.Date.from(clock.instant())
+    }
+
+    private val base64EncodedSecret: String = {
+      Base64.getEncoder.encodeToString(
+        secretConfiguration.secret.getBytes(StandardCharsets.UTF_8)
+      )
+    }
+
+    /**
+     * Parses encoded JWT against configuration, returns all JWT claims.
+     *
+     * @param encodedString the signed and encoded JWT.
+     * @return the map of claims
+     */
+    def parse(encodedString: String): Map[String, AnyRef] = {
+      val jws: Jws[Claims] = Jwts.parser()
+        .setClock(jwtClock)
+        .setSigningKey(base64EncodedSecret)
+        .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
+        .parseClaimsJws(encodedString)
+
+      val headerAlgorithm = jws.getHeader.getAlgorithm
+      if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
+        val id = jws.getBody.getId
+        val msg = s"Invalid header algorithm $headerAlgorithm in JWT $id"
+        throw new IllegalStateException(msg)
+      }
+      val claims: Claims = jws.getBody
+      claims.asScala.toMap
+    }
+
+    /**
+     * Formats the input claims to a JWT string, and adds extra date related claims.
+     *
+     * @param claims all the claims to be added to JWT.
+     * @return the signed, encoded JWT with extra date related claims
+     */
+    def format(claims: Map[String, AnyRef]): String = {
+      val builder = Jwts.builder()
+      val now = jwtClock.now()
+
+      // Add the claims one at a time because it saves problems with mutable maps
+      // under the implementation...
+      claims.foreach {
+        case (k, v) =>
+          builder.claim(k, v)
+      }
+
+      // https://tools.ietf.org/html/rfc7519#section-4.1.4
+      jwtConfiguration.expiresAfter.map { duration =>
+        val expirationDate = new Date(now.getTime + duration.toMillis)
+        builder.setExpiration(expirationDate)
+      }
+
+      builder.setNotBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
+      builder.setIssuedAt(now) // https://tools.ietf.org/html/rfc7519#section-4.1.6
+
+      // Sign and compact into a string...
+      val sigAlg = SignatureAlgorithm.valueOf(jwtConfiguration.signatureAlgorithm)
+      builder.signWith(sigAlg, base64EncodedSecret).compact()
+    }
+  }
+
+  /** Utility object to generate random nonces for JWT from SecureRandom */
+  private[play] object JWTIDGenerator {
+    private val sr = new java.security.SecureRandom()
+    def generateId(): String = {
+      new java.math.BigInteger(130, sr).toString(32)
+    }
+  }
+}
+
+/**
+ * A trait that identifies the cookie encoding and uses the appropriate codec, for
+ * upgrading from a signed cookie encoding to a JWT cookie encoding.
+ */
+trait FallbackCookieDataCodec extends CookieDataCodec {
+
+  def jwtCodec: JWTCookieDataCodec
+
+  def signedCodec: UrlEncodedCookieDataCodec
+
+  def encode(data: Map[String, String]): String = {
+    jwtCodec.encode(data)
+  }
+
+  def decode(encodedData: String): Map[String, String] = {
+    // Per https://github.com/playframework/playframework/pull/7053#issuecomment-285220730
+    encodedData match {
+      case signedEncoding if signedEncoding.contains('=') =>
+        //  It's a legacy session with at least one value.
+        signedCodec.decode(signedEncoding)
+
+      case jwtEncoding if jwtEncoding.contains('.') =>
+        // It's a JWT session.
+        jwtCodec.decode(jwtEncoding)
+
+      case emptyLegacyEncoding =>
+        // It's an empty legacy session.
+        signedCodec.decode(emptyLegacyEncoding)
+    }
+  }
+}
+
+case class DefaultUrlEncodedCookieDataCodec(
+  isSigned: Boolean,
+  cookieSigner: CookieSigner
+) extends UrlEncodedCookieDataCodec
+
+case class DefaultJWTCookieDataCodec @Inject() (
+  secretConfiguration: SecretConfiguration,
+  jwtConfiguration: JWTConfiguration
+) extends JWTCookieDataCodec
+
+/**
+ * A cookie module that uses JWT as the cookie encoding, falling back to URL encoding.
+ */
+class CookiesModule extends SimpleModule((env, conf) => {
+  Seq(
+    bind[CookieSigner].toProvider[CookieSignerProvider],
+    bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
+    bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
+  )
+})
+
+/**
+ * A cookie module that uses the urlencoded cookie encoding.
+ */
+class LegacyCookiesModule extends SimpleModule((env, conf) => {
+  Seq(
+    bind[CookieSigner].toProvider[CookieSignerProvider],
+    bind[SessionCookieBaker].to[LegacySessionCookieBaker],
+    bind[FlashCookieBaker].to[LegacyFlashCookieBaker]
+  )
+})

@@ -3,6 +3,7 @@
  */
 package play.core.j
 
+import java.lang.annotation.Annotation
 import java.util.concurrent.CompletionStage
 import javax.inject.Inject
 
@@ -19,6 +20,8 @@ import play.mvc.Http.{ Context => JContext }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+import java.util.function.{ Supplier => JSupplier }
+
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.
  *
@@ -31,11 +34,11 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
       .filterNot(_ == null)
       .headOption.map(_.value).getOrElse(classOf[JBodyParser.Default])
 
-  val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
+  val controllerAnnotations: Seq[Annotation] = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
     clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
   }.flatten
 
-  val actionMixins = {
+  val actionMixins: Seq[(Annotation, Class[_ <: JAction[_]])] = {
     val allDeclaredAnnotations: Seq[java.lang.annotation.Annotation] = if (config.controllerAnnotationsFirst) {
       controllerAnnotations ++ method.getDeclaredAnnotations
     } else {
@@ -96,12 +99,12 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         action
     }
 
-    val finalAction = handlerComponents.actionCreator.wrapAction(if (config.executeActionCreatorActionFirst) {
+    val finalAction = if (config.executeActionCreatorActionFirst) {
       baseAction.delegate = finalUserDeclaredAction
       baseAction
     } else {
       finalUserDeclaredAction
-    })
+    }
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
@@ -169,4 +172,3 @@ class DefaultJavaHandlerComponents @Inject() (
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A = injector.instanceOf(parserClass)
   def getAction[A <: JAction[_]](actionClass: Class[A]): A = injector.instanceOf(actionClass)
 }
-

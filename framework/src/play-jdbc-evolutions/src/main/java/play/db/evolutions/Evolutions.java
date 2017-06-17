@@ -78,7 +78,7 @@ public class Evolutions {
      * @param schema The schema where all the play evolution tables are saved in
      */
     public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit, String schema) {
-        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala(), schema);
+        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema);
         evolutions.evolve(evolutions.scripts(reader), autocommit);
     }
 
@@ -143,7 +143,7 @@ public class Evolutions {
      * @param schema The schema where all the play evolution tables are saved in
      */
     public static void cleanupEvolutions(Database database, boolean autocommit, String schema) {
-        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala(), schema);
+        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema);
         evolutions.evolve(evolutions.resetScripts(), autocommit);
     }
 

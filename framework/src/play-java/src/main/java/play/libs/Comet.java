@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 /**
  * Provides an easy way to use a Comet formatted output with
- * <a href="http://doc.akka.io/docs/akka/current/java/stream/index.html">Akka Streams</a>.
+ * <a href="http://doc.akka.io/docs/akka/2.5/java/stream/index.html">Akka Streams</a>.
  *
  * There are two methods that can be used to convert strings and JSON, {@code Comet.string}
  * and {@code Comet.json}.  These methods build on top of the base method, {@code Comet.flow},

@@ -1,15 +1,16 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-
 package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
-import play.api.libs.ws.ahc.cache.EffectiveURIKey;
-import play.api.libs.ws.ahc.cache.ResponseEntry;
+import play.api.libs.ws.ahc.cache.AhcHttpCache;
+import play.api.libs.ws.ahc.cache.Cache;
+import play.api.libs.ws.ahc.cache.CachingAsyncHttpClient;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -22,10 +23,17 @@ import java.io.IOException;
 public class AhcWSClient implements WSClient {
 
     private final StandaloneAhcWSClient client;
+    private final Materializer materializer;
+
+    public AhcWSClient(AsyncHttpClient client, Materializer materializer) {
+        this.client = new StandaloneAhcWSClient(client, materializer);
+        this.materializer = materializer;
+    }
 
     @Inject
-    public AhcWSClient(StandaloneAhcWSClient client) {
+    public AhcWSClient(StandaloneAhcWSClient client, Materializer materializer) {
         this.client = client;
+        this.materializer = materializer;
     }
 
     /**
@@ -41,15 +49,25 @@ public class AhcWSClient implements WSClient {
      * @return a new instance of AhcWSClient.
      */
     public static AhcWSClient create(AhcWSClientConfig config,
-                                     javax.cache.Cache<EffectiveURIKey, ResponseEntry> cache,
+                                     AhcHttpCache cache,
                                      Materializer materializer) {
         final StandaloneAhcWSClient client = StandaloneAhcWSClient.create(config, cache, materializer);
-        return new AhcWSClient(client);
+        return new AhcWSClient(client, materializer);
     }
 
     @Override
     public Object getUnderlying() {
         return client.getUnderlying();
+    }
+
+    @Override
+    public play.api.libs.ws.WSClient asScala() {
+        return new play.api.libs.ws.ahc.AhcWSClient(
+            new play.api.libs.ws.ahc.StandaloneAhcWSClient(
+                (AsyncHttpClient) client.getUnderlying(),
+                materializer
+            )
+        );
     }
 
     @Override

@@ -13,7 +13,7 @@ import play.libs.Scala;
 
 /**
  * A Play application.
- *
+ * <p>
  * Application creation is handled by the framework engine.
  */
 public interface Application {
@@ -22,8 +22,17 @@ public interface Application {
      * Get the underlying Scala application.
      *
      * @return the application
+     * @see Application#asScala() method
      */
     play.api.Application getWrappedApplication();
+
+    /**
+     * Get the application as a Scala application.
+     *
+     * @return this application as a Scala application.
+     * @see play.api.Application
+     */
+    play.api.Application asScala();
 
     /**
      * Get the application configuration.
@@ -43,7 +52,8 @@ public interface Application {
     Config config();
 
     /**
-     * Get the injector for this application.
+     * Get the runtime injector for this application. In a runtime dependency injection based application, this can be
+     * used to obtain components as bound by the DI framework.
      *
      * @return the injector
      */
@@ -72,7 +82,9 @@ public interface Application {
      *
      * @param relativePath relative path of the file to fetch
      * @return a file instance - it is not guaranteed that the file exists
+     * @deprecated Deprecated as in 2.6.0. Use {@link Environment#getFile} instead.
      */
+    @Deprecated
     default File getFile(String relativePath) {
         return getWrappedApplication().getFile(relativePath);
     }
@@ -82,7 +94,9 @@ public interface Application {
      *
      * @param relativePath relative path of the resource to fetch
      * @return URL to the resource (may be null)
+     * @deprecated Deprecated as in 2.6.0. Use {@link Environment#resource(String)} instead.
      */
+    @Deprecated
     default URL resource(String relativePath) {
         return Scala.orNull(getWrappedApplication().resource(relativePath));
     }
@@ -92,7 +106,9 @@ public interface Application {
      *
      * @param relativePath relative path of the resource to fetch
      * @return InputStream to the resource (may be null)
+     * @deprecated Deprecated as in 2.6.0. Use{@link Environment#resourceAsStream(String)} instead.
      */
+    @Deprecated
     default InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(getWrappedApplication().resourceAsStream(relativePath));
     }
@@ -102,7 +118,9 @@ public interface Application {
      *
      * @return true if the application is in DEV mode
      */
-    default boolean isDev() { return getWrappedApplication().isDev(); }
+    default boolean isDev() {
+        return getWrappedApplication().isDev();
+    }
 
     /**
      * Check whether the application is in {@link Mode#PROD} mode.

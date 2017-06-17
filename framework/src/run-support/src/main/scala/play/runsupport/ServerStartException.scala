@@ -1,7 +1,8 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.runsupport
 
-import sbt.FeedbackProvidedException
-
-class ServerStartException(underlying: Throwable) extends FeedbackProvidedException {
+class ServerStartException(underlying: Throwable) extends IllegalStateException(underlying) {
   override def getMessage = underlying.getMessage
 }

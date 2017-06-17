@@ -1,18 +1,17 @@
 // Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 
-buildInfoSettings
-
-sourceGenerators in Compile += Def.task(buildInfo.value).taskValue
+enablePlugins(BuildInfoPlugin)
 
 val Versions = new {
-  val sbtNativePackager = "1.1.5"
-  val mima = "0.1.12"
+  val sbtNativePackager = "1.2.0"
+  val mima = "0.1.14"
   val sbtScalariform = "1.6.0"
-  val sbtJmh = "0.2.20"
+  val sbtJmh = "0.2.24"
   val sbtDoge = "0.1.5"
-  val webjarsLocatorCore = "0.26"
-  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.3.0")
-  val interplay: String = sys.props.getOrElse("interplay.version", "1.3.4")
+  val webjarsLocatorCore = "0.32"
+  val sbtHeader = "1.8.0"
+  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.3.2")
+  val interplay: String = sys.props.getOrElse("interplay.version", "1.3.5")
 }
 
 buildInfoKeys := Seq[BuildInfoKey](
@@ -29,6 +28,8 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % Versions.sbtTwirl)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % Versions.mima)
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % Versions.sbtScalariform)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % Versions.sbtJmh)
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % Versions.sbtHeader)
+
 
 libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,

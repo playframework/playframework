@@ -4,13 +4,13 @@
 package play.api.db
 
 import javax.inject.{ Inject, Singleton }
-import javax.naming.InitialContext
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
 import com.zaxxer.hikari.{ HikariConfig, HikariDataSource }
 import play.api._
 import play.api.inject._
+import play.api.libs.JNDI
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.{ Failure, Success, Try }
@@ -53,7 +53,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
 
       // Bind in JNDI
       dbConfig.jndiName.foreach { jndiName =>
-        new InitialContext().rebind(jndiName, wrappedDataSource)
+        JNDI.initialContext.rebind(jndiName, wrappedDataSource)
         logger.info(s"datasource [$name] bound to JNDI as $jndiName")
       }
 
@@ -120,7 +120,9 @@ private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Config
     config.get[Option[String]]("poolName").foreach(hikariConfig.setPoolName)
 
     // Infrequently used
-    hikariConfig.setInitializationFailFast(config.get[Boolean]("initializationFailFast"))
+    // Use getOptional here so the runtime warning is only triggered if it is not null
+    config.getOptional[Boolean]("initializationFailFast").foreach(hikariConfig.setInitializationFailFast)
+    hikariConfig.setInitializationFailTimeout(config.get[Long]("initializationFailTimeout"))
     hikariConfig.setIsolateInternalQueries(config.get[Boolean]("isolateInternalQueries"))
     hikariConfig.setAllowPoolSuspension(config.get[Boolean]("allowPoolSuspension"))
     hikariConfig.setReadOnly(config.get[Boolean]("readOnly"))

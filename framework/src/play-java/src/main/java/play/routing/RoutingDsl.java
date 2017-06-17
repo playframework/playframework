@@ -4,6 +4,7 @@
 package play.routing;
 
 import net.jodah.typetools.TypeResolver;
+import play.BuiltInComponents;
 import play.Logger;
 import play.api.Application;
 import play.api.mvc.AnyContent;
@@ -21,7 +22,11 @@ import scala.reflect.ClassTag$;
 import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterators;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -85,7 +90,7 @@ import java.util.stream.StreamSupport;
  */
 public class RoutingDsl {
 
-    private final Logger.ALogger logger = Logger.of(RoutingDsl.class);
+    private static final Logger.ALogger logger = Logger.of(RoutingDsl.class);
 
     private final BodyParser<AnyContent> bodyParser;
     private final JavaContextComponents contextComponents;
@@ -119,6 +124,10 @@ public class RoutingDsl {
     public RoutingDsl(PlayBodyParsers bodyParsers, JavaContextComponents contextComponents) {
         this.bodyParser = bodyParsers.defaultBodyParser();
         this.contextComponents = contextComponents;
+    }
+
+    public static RoutingDsl fromComponents(BuiltInComponents components) {
+        return new RoutingDsl(components.defaultScalaBodyParser(), components.javaContextComponents());
     }
 
     private Application app() {
@@ -331,7 +340,7 @@ public class RoutingDsl {
     }
 
     private static final Pattern paramExtractor =
-            Pattern.compile("([:\\*\\$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
+            Pattern.compile("([:*$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
 
     /**
      * A matcher for routes.

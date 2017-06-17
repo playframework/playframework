@@ -76,6 +76,6 @@ public class MessagesImpl implements Messages {
 
     @Override
     public play.api.i18n.Messages asScala() {
-        return new play.api.i18n.MessagesImpl(lang, messagesApi.scalaApi());
+        return new play.api.i18n.MessagesImpl(lang, messagesApi.asScala());
     }
 }

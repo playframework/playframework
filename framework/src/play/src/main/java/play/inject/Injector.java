@@ -34,4 +34,12 @@ public interface Injector {
      * @return The instance
      */
     <T> T instanceOf(BindingKey<T> key);
+
+    /**
+     * Get as an instance of the Scala injector.
+     *
+     * @return an instance of the Scala injector.
+     * @see play.api.inject.Injector
+     */
+    play.api.inject.Injector asScala();
 }

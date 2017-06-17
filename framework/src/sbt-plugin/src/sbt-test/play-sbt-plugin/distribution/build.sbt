@@ -10,7 +10,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += guice
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.1")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -42,7 +42,7 @@ checkStartScript := {
   }
 }
 
-def retry[B](max: Int = 10, sleep: Long = 500, current: Int = 1)(block: => B): B = {
+def retry[B](max: Int = 20, sleep: Long = 500, current: Int = 1)(block: => B): B = {
   try {
     block
   } catch {

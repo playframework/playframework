@@ -3,12 +3,13 @@
  */
 package scalaguide.binder.controllers
 
+import javax.inject.Inject
 
-import play.api._
 import play.api.mvc._
+
 import scalaguide.binder.models._
 
-class BinderApplication extends Controller {
+class BinderApplication @Inject()(components: ControllerComponents) extends AbstractController(components) {
  
   //#path
   def user(user: User) = Action {

@@ -11,13 +11,30 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
+
 import play.libs.XML.Constants
 import javax.xml.XMLConstants
 
-/** Application mode, either `DEV`, `TEST`, or `PROD`. */
-object Mode extends Enumeration {
-  type Mode = Value
-  val Dev, Test, Prod = Value
+/**
+ * Application mode, either `Dev`, `Test`, or `Prod`.
+ *
+ * @see [[play.Mode]]
+ */
+sealed abstract class Mode(val asJava: play.Mode)
+
+object Mode {
+
+  @deprecated("Use play.api.Mode instead of play.api.Mode.Mode", "2.6.0")
+  type Mode = play.api.Mode
+
+  @deprecated("Use play.api.Mode instead of play.api.Mode.Value", "2.6.0")
+  type Value = play.api.Mode
+
+  case object Dev extends play.api.Mode(play.Mode.DEV)
+  case object Test extends play.api.Mode(play.Mode.TEST)
+  case object Prod extends play.api.Mode(play.Mode.PROD)
+
+  lazy val values: Set[play.api.Mode] = Set(Dev, Test, Prod)
 }
 
 /**

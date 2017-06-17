@@ -8,7 +8,7 @@ import sbt.Keys._
 
 import play.api.PlayException
 import play.sbt.PlayExceptions._
-import play.runsupport.Reloader.{ CompileResult, CompileSuccess, CompileFailure, Source, SourceMap }
+import play.runsupport.Reloader.{ CompileResult, CompileSuccess, CompileFailure, Source }
 
 object PlayReload {
 
@@ -24,7 +24,7 @@ object PlayReload {
       }.fold(identity, identity)
   }
 
-  def sourceMap(analysis: sbt.inc.Analysis): SourceMap = {
+  def sourceMap(analysis: sbt.inc.Analysis): Map[String, Source] = {
     analysis.apis.internal.foldLeft(Map.empty[String, Source]) {
       case (sourceMap, (file, source)) => sourceMap ++ {
         source.api.definitions map { d => d.name -> Source(file, originalSource(file)) }

@@ -22,7 +22,7 @@ public class JavaTestingWebServiceClients {
     @Test
     public void mockService() {
         //#mock-service
-        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
                 .GET("/repositories").routeTo(() -> {
                     ArrayNode repos = Json.newArray();
                     ObjectNode repo = Json.newObject();
@@ -39,7 +39,7 @@ public class JavaTestingWebServiceClients {
     @Test
     public void sendResource() throws Exception {
         //#send-resource
-        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
                 .GET("/repositories").routeTo(() ->
                         ok().sendResource("github/repositories.json")
                 )

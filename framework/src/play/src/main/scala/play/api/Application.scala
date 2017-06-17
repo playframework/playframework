@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 import play.api.http._
 import play.api.i18n.I18nComponents
-import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.inject._
 import play.api.libs.Files._
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.libs.crypto._
@@ -57,7 +57,7 @@ trait Application {
   /**
    * `Dev`, `Prod` or `Test`
    */
-  def mode: Mode.Mode = environment.mode
+  def mode: Mode = environment.mode
 
   /**
    * The application's environment
@@ -96,6 +96,13 @@ trait Application {
    * The HTTP error handler
    */
   def errorHandler: HttpErrorHandler
+
+  /**
+   * Return the application as a Java application.
+   */
+  def asJava: play.Application = {
+    new play.DefaultApplication(this, configuration.underlying, injector.asJava)
+  }
 
   /**
    * Retrieves a file relative to the application root path.
@@ -178,7 +185,8 @@ trait Application {
   def stop(): Future[_]
 
   /**
-   * Get the injector for this application.
+   * Get the runtime injector for this application. In a runtime dependency injection based application, this can be
+   * used to obtain components as bound by the DI framework.
    *
    * @return The injector.
    */
@@ -226,7 +234,7 @@ class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 @Singleton
 class DefaultApplication @Inject() (
     override val environment: Environment,
-    applicationLifecycle: DefaultApplicationLifecycle,
+    applicationLifecycle: ApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
     override val requestFactory: RequestFactory,
@@ -235,11 +243,11 @@ class DefaultApplication @Inject() (
     override val actorSystem: ActorSystem,
     override val materializer: Materializer) extends Application {
 
-  def path = environment.rootPath
+  override def path: File = environment.rootPath
 
-  def classloader = environment.classLoader
+  override def classloader: ClassLoader = environment.classLoader
 
-  def stop() = applicationLifecycle.stop()
+  override def stop(): Future[_] = applicationLifecycle.stop()
 }
 
 /**
@@ -254,18 +262,62 @@ trait BuiltInComponents extends I18nComponents {
 
   def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner + csrfTokenSigner + httpConfiguration + tempFileCreator + fileMimeTypes
+  /**
+   * The runtime [[Injector]] instance provided to the [[DefaultApplication]]. This injector is set up to allow
+   * existing (deprecated) legacy APIs to function. It is not set up to support injecting arbitrary Play components.
+   */
+  lazy val injector: Injector = {
+    new SimpleInjector(NewInstanceInjector) +
+      cookieSigner + // play.api.libs.Crypto (for cookies)
+      httpConfiguration + // play.api.mvc.BodyParsers trait
+      tempFileCreator + // play.api.libs.TemporaryFileCreator object
+      messagesApi + // play.api.i18n.Messages object
+      langs // play.api.i18n.Langs object
+  }
 
-  lazy val playBodyParsers: PlayBodyParsers = PlayBodyParsers(httpConfiguration.parser, httpErrorHandler, materializer, tempFileCreator)
+  lazy val playBodyParsers: PlayBodyParsers =
+    PlayBodyParsers(tempFileCreator, httpErrorHandler, httpConfiguration.parser)(materializer)
   lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
   lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(router))
-  lazy val httpFilters: Seq[EssentialFilter] = Nil
+
+  /**
+   * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
+   * or play.api.NoHttpFiltersComponents.
+   *
+   * In most cases you will want to mixin HttpFiltersComponents and append your own filters:
+   *
+   * {{{
+   * class MyComponents(context: ApplicationLoader.Context)
+   *   extends BuiltInComponentsFromContext(context)
+   *   with play.filters.HttpFiltersComponents {
+   *
+   *   lazy val loggingFilter = new LoggingFilter()
+   *   override def httpFilters = {
+   *     super.httpFilters :+ loggingFilter
+   *   }
+   * }
+   * }}}
+   *
+   * If you want to filter elements out of the list, you can do the following:
+   *
+   * {{{
+   * class MyComponents(context: ApplicationLoader.Context)
+   *   extends BuiltInComponentsFromContext(context)
+   *   with play.filters.HttpFiltersComponents {
+   *   override def httpFilters = {
+   *     super.httpFilters.filterNot(_.getClass == classOf[CSRFFilter])
+   *   }
+   * }
+   * }}}
+   */
+  def httpFilters: Seq[EssentialFilter]
+
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
@@ -284,4 +336,13 @@ trait BuiltInComponents extends I18nComponents {
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
   lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+}
+
+/**
+ * A component to mix in when no default filters should be mixed in to BuiltInComponents.
+ *
+ * @see [[BuiltInComponents.httpFilters]]
+ */
+trait NoHttpFiltersComponents {
+  val httpFilters: Seq[EssentialFilter] = Nil
 }

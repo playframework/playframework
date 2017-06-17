@@ -13,7 +13,7 @@ import play.api.mvc._
 import play.api.{ Configuration, Environment }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.Execution.Implicits.trampoline
-import play.libs.typedmap.TypedMap
+import play.libs.typedmap.{ TypedKey, TypedMap }
 import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
 import play.mvc.{ Security, Result => JResult }
 
@@ -27,12 +27,8 @@ import scala.concurrent.Future
  */
 trait JavaHelpers {
 
-  def cookieToScalaCookie(c: play.mvc.Http.Cookie): Cookie = {
-    Cookie(c.name, c.value, Option(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
-  }
-
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
-    cookies.asScala.toSeq.map(cookieToScalaCookie)
+    cookies.asScala.toSeq.map(_.asScala())
   }
 
   def cookiesToJavaCookies(cookies: Cookies) = {
@@ -289,6 +285,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def _underlyingHeader: RequestHeader = header
 
+  override def asScala: RequestHeader = header
+
   def uri = header.uri
 
   def method = header.method
@@ -302,6 +300,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def attrs: TypedMap = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader =
     new RequestHeaderImpl(header.withAttrs(newAttrs.underlying()))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader =
+    withAttrs(attrs.put(key, value))
 
   def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -338,9 +338,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     if (header == null) null else header(0)
   }
 
-  def hasHeader(headerName: String): Boolean = {
-    getHeader(headerName) != null
-  }
+  def hasHeader(headerName: String): Boolean = header.headers.hasHeader(headerName)
 
   def hasBody: Boolean = header.hasBody
 
@@ -364,15 +362,19 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
   override def _underlyingRequest: Request[RequestBody] = request
+  override def asScala: Request[RequestBody] = request
 
-  override def attrs: TypedMap = new TypedMap(_underlyingHeader.attrs)
+  override def attrs: TypedMap = new TypedMap(asScala.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequest =
     new RequestImpl(request.withAttrs(newAttrs.underlying()))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequest =
+    withAttrs(attrs.put(key, value))
 
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody
   override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
 
   override def username: String = attrs().getOptional(Security.USERNAME).orElse(null)
-  override def withUsername(username: String): JRequest = withAttrs(attrs.put(Security.USERNAME, username))
+  override def withUsername(username: String): JRequest = addAttr(Security.USERNAME, username)
+
 }

@@ -153,8 +153,8 @@ public class DefaultJPAApi implements JPAApi {
             }
             throw t;
         } finally {
-            entityManagerContext.pop(true);
             if (entityManager != null) {
+                entityManagerContext.pop(true);
                 entityManager.close();
             }
         }

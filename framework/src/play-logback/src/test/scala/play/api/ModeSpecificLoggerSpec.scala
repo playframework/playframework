@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api
 
 import org.specs2.mutable.Specification
@@ -7,7 +10,7 @@ class ModeSpecificLoggerSpec extends Specification {
 
   sequential
 
-  case class ModeLoggerTest(mode: Mode.Mode*) {
+  case class ModeLoggerTest(mode: Mode*) {
     private val logger = Logger(getClass).forMode(mode: _*)
 
     logger.info("This is info")
@@ -32,7 +35,7 @@ class ModeSpecificLoggerSpec extends Specification {
     }
   }
 
-  private def withLoggerMode[T](mode: Mode.Mode)(block: => T): T = {
+  private def withLoggerMode[T](mode: Mode)(block: => T): T = {
     Logger.setApplicationMode(mode)
     val result = block
     Logger.unsetApplicationMode()

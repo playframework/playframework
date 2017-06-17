@@ -17,7 +17,7 @@ A `Future[Result]` will eventually be redeemed with a value of type `Result`. By
 
 The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients.
 
-Using a `Future` is only half of the picture though!  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.api.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
+Using a `Future` is only half of the picture though!  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.api.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html).
 
 @[my-execution-context](code/ScalaAsync.scala)
 
@@ -37,7 +37,7 @@ Here is a simple way to execute a block of code asynchronously and to get a `Fut
 
 > **Note:** It's important to understand which thread code runs on with futures. In the two code blocks above, there is an import on Plays default execution context. This is an implicit parameter that gets passed to all methods on the future API that accept callbacks. The execution context will often be equivalent to a thread pool, though not necessarily.
 >
-> You can't magically turn synchronous IO into asynchronous by wrapping it in a `Future`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `Future`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information.
+> You can't magically turn synchronous IO into asynchronous by wrapping it in a `Future`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `Future`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information, and download the [play example templates](https://playframework.com/download#examples) that show database integration.
 >
 > It can also be helpful to use Actors for blocking operations. Actors provide a clean model for handling timeouts and failures, setting up blocking execution contexts, and managing any state that may be associated with the service. Also Actors provide patterns like `ScatterGatherFirstCompletedRouter` to address simultaneous cache and database requests and allow remote execution on a cluster of backend servers. But an Actor may be overkill depending on what you need.
 
@@ -57,7 +57,7 @@ Play [[actions|ScalaActions]] are asynchronous by default. For instance, in the 
 
 ## Handling time-outs
 
-It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use [`play.api.libs.concurrent.Timeout`](api/scala/play/api/libs/concurrent/Timeout.html) to wrap a Future in a non-blocking timeout.
+It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html) to wrap a Future in a non-blocking timeout.
 
 @[timeout](code/ScalaAsync.scala)
 

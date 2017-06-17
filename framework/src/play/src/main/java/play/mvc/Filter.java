@@ -38,7 +38,7 @@ public abstract class Filter extends EssentialFilter {
                     play.api.mvc.RequestHeader requestHeader) {
                 return FutureConverters.toScala(
                         Filter.this.apply(
-                                (rh) -> FutureConverters.toJava(next.apply(rh._underlyingHeader())).thenApply(play.api.mvc.Result::asJava),
+                                (rh) -> FutureConverters.toJava(next.apply(rh.asScala())).thenApply(play.api.mvc.Result::asJava),
                                 new RequestHeaderImpl(requestHeader)
                         ).thenApply(Result::asScala)
                 );

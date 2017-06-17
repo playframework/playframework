@@ -7,12 +7,14 @@ import java.util.Locale
 
 import scala.collection.immutable
 import scala.concurrent.Future
-
 import java.net.{ URI, URISyntaxException }
 
+import akka.util.ByteString
 import play.api.LoggerLike
-import play.api.http.{ HttpErrorHandler, HeaderNames, HttpVerbs }
-import play.api.mvc.{ RequestHeader, Results, Result }
+import play.api.MarkerContexts.SecurityMarkerContext
+import play.api.http.{ HeaderNames, HttpErrorHandler, HttpVerbs }
+import play.api.libs.streams.Accumulator
+import play.api.mvc.{ EssentialAction, RequestHeader, Result, Results }
 
 /**
  * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin
@@ -36,7 +38,7 @@ private[cors] trait AbstractCORSPolicy {
     immutable.HashSet(GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
   }
 
-  protected def filterRequest(next: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
+  protected def filterRequest(next: EssentialAction, request: RequestHeader): Accumulator[ByteString, Result] = {
     (request.headers.get(HeaderNames.ORIGIN), request.method) match {
       case (None, _) =>
         /* http://www.w3.org/TR/cors/#resource-requests
@@ -78,8 +80,8 @@ private[cors] trait AbstractCORSPolicy {
    *
    * @see [[http://www.w3.org/TR/cors/#resource-requests Simple Cross-Origin Request, Actual Request, and Redirects]]
    */
-  private def handleCORSRequest(next: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
-    val origin = {
+  private def handleCORSRequest(next: EssentialAction, request: RequestHeader): Accumulator[ByteString, Result] = {
+    val origin: String = {
       val originOpt = request.headers.get(HeaderNames.ORIGIN)
       assume(originOpt.isDefined, "The presence of the ORIGIN header should guaranteed at this point.")
       originOpt.get
@@ -142,20 +144,25 @@ private[cors] trait AbstractCORSPolicy {
 
       import play.core.Execution.Implicits.trampoline
 
-      val taggedRequest = request.copy(tags = request.tags + (CORSFilter.RequestTag -> origin))
+      val taggedRequest = request
+        .addAttr(CORSFilter.Attrs.Origin, origin)
+        .copy(tags = request.tags + (CORSFilter.RequestTag -> origin))
+
       // We must recover any errors so that we can add the headers to them to allow clients to see the result
       val result = try {
         next(taggedRequest).recoverWith {
-          case e: Throwable => errorHandler.onServerError(taggedRequest, e)
+          case e: Throwable =>
+            errorHandler.onServerError(taggedRequest, e)
         }
       } catch {
-        case e: Throwable => errorHandler.onServerError(taggedRequest, e)
+        case e: Throwable =>
+          Accumulator.done(errorHandler.onServerError(taggedRequest, e))
       }
       result.map(_.withHeaders(headerBuilder.result(): _*))
     }
   }
 
-  private def handlePreFlightCORSRequest(request: RequestHeader): Future[Result] = {
+  private def handlePreFlightCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
     val origin = {
       val originOpt = request.headers.get(HeaderNames.ORIGIN)
       assume(originOpt.isDefined, "The presence of the ORIGIN header should guaranteed at this point.")
@@ -288,22 +295,20 @@ private[cors] trait AbstractCORSPolicy {
                * Note: Since the list of headers can be unbounded, simply returning supported
                * headers from Access-Control-Allow-Headers can be enough.
                */
-              if (!accessControlRequestHeaders.isEmpty) {
+              if (accessControlRequestHeaders.nonEmpty) {
                 headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_HEADERS -> accessControlRequestHeaders.mkString(",")
               }
 
-              Future.successful {
-                Results.Ok.withHeaders(headerBuilder.result(): _*)
-              }
+              Accumulator.done(Results.Ok.withHeaders(headerBuilder.result(): _*))
             }
           }
       }
     }
   }
 
-  private def handleInvalidCORSRequest(request: RequestHeader): Future[Result] = {
-    logger.trace(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")
-    Future.successful(Results.Forbidden)
+  private def handleInvalidCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
+    logger.warn(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
+    Accumulator.done(Future.successful(Results.Forbidden))
   }
 
   // http://tools.ietf.org/html/rfc6454#section-7.1

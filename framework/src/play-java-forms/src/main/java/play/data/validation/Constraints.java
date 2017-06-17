@@ -16,6 +16,8 @@ import java.lang.reflect.Constructor;
 import javax.validation.*;
 import javax.validation.metadata.*;
 
+import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,10 +77,17 @@ public class Constraints {
             map(c -> c.getAnnotation()).
             collect(Collectors.<Annotation>toList());
 
-        return Stream.of(orderedAnnotations).filter(constraintAnnot::contains) // only use annotations for which we actually have a constraint
-            .filter(a -> a.annotationType().isAnnotationPresent(Display.class)).map(a -> 
-                displayableConstraint(constraints.parallelStream().filter(c -> c.getAnnotation().equals(a)).findFirst().get())
-        ).collect(Collectors.toList());
+        return Stream
+                .of(orderedAnnotations)
+                .filter(constraintAnnot::contains) // only use annotations for which we actually have a constraint
+                .filter(a -> a.annotationType().isAnnotationPresent(Display.class))
+                .map(a -> displayableConstraint(
+                        constraints.parallelStream()
+                                .filter(c -> c.getAnnotation().equals(a))
+                                .findFirst()
+                                .get()
+                        )
+                ).collect(Collectors.toList());
     }
     
     /**
@@ -89,7 +98,7 @@ public class Constraints {
      */
     public static Tuple<String,List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
         final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
-        return Tuple(displayAnnotation.name(), Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(Collectors.toList()));
+        return Tuple(displayAnnotation.name(), Collections.unmodifiableList(Stream.of(displayAnnotation.attributes()).map(attr -> constraint.getAttributes().get(attr)).collect(Collectors.toList())));
     }
 
     // --- Required
@@ -97,11 +106,11 @@ public class Constraints {
     /**
      * Defines a field as required.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = RequiredValidator.class)
     @play.data.Form.Display(name="constraint.required")
-    public static @interface Required {
+    public @interface Required {
         String message() default RequiredValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -151,11 +160,11 @@ public class Constraints {
     /**
      * Defines a minimum value for a numeric field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinValidator.class)
     @play.data.Form.Display(name="constraint.min", attributes={"value"})
-    public static @interface Min {
+    public @interface Min {
         String message() default MinValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -209,11 +218,11 @@ public class Constraints {
     /**
      * Defines a maximum value for a numeric field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxValidator.class)
     @play.data.Form.Display(name="constraint.max", attributes={"value"})
-    public static @interface Max {
+    public @interface Max {
         String message() default MaxValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -267,11 +276,11 @@ public class Constraints {
     /**
      * Defines a minimum length for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinLengthValidator.class)
     @play.data.Form.Display(name="constraint.minLength", attributes={"value"})
-    public static @interface MinLength {
+    public @interface MinLength {
         String message() default MinLengthValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -297,7 +306,7 @@ public class Constraints {
         }
 
         public boolean isValid(String object) {
-            if(object == null || object.length() == 0) {
+            if(object == null || object.isEmpty()) {
                 return true;
             }
 
@@ -324,11 +333,11 @@ public class Constraints {
     /**
      * Defines a maximum length for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxLengthValidator.class)
     @play.data.Form.Display(name="constraint.maxLength", attributes={"value"})
-    public static @interface MaxLength {
+    public @interface MaxLength {
         String message() default MaxLengthValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -354,7 +363,7 @@ public class Constraints {
         }
 
         public boolean isValid(String object) {
-            if(object == null || object.length() == 0) {
+            if(object == null || object.isEmpty()) {
                 return true;
             }
 
@@ -381,11 +390,11 @@ public class Constraints {
     /**
      * Defines a email constraint for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = EmailValidator.class)
     @play.data.Form.Display(name="constraint.email", attributes={})
-    public static @interface Email {
+    public @interface Email {
         String message() default EmailValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -402,17 +411,20 @@ public class Constraints {
 
         public EmailValidator() {}
 
+        @Override
         public void initialize(Email constraintAnnotation) {
         }
 
+        @Override
         public boolean isValid(String object) {
-            if(object == null || object.length() == 0) {
+            if (object == null || object.isEmpty()) {
                 return true;
             }
 
             return regex.matcher(object).matches();
         }
 
+        @Override
         public Tuple<String, Object[]> getErrorMessageKey() {
             return Tuple(message, new Object[] {});
         }
@@ -432,11 +444,11 @@ public class Constraints {
     /**
      * Defines a pattern constraint for a string field.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = PatternValidator.class)
     @play.data.Form.Display(name="constraint.pattern", attributes={"value"})
-    public static @interface Pattern {
+    public @interface Pattern {
         String message() default PatternValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -457,18 +469,21 @@ public class Constraints {
             this.regex = java.util.regex.Pattern.compile(regex);
         }
 
+        @Override
         public void initialize(Pattern constraintAnnotation) {
             regex = java.util.regex.Pattern.compile(constraintAnnotation.value());
         }
 
+        @Override
         public boolean isValid(String object) {
-            if(object == null || object.length() == 0) {
+            if (object == null || object.isEmpty()) {
                 return true;
             }
 
             return regex.matcher(object).matches();
         }
 
+        @Override
         public Tuple<String, Object[]> getErrorMessageKey() {
             return Tuple(message, new Object[] { regex });
         }
@@ -484,14 +499,16 @@ public class Constraints {
         return new PatternValidator(regex);
     }
 
+    // --- validate fields with custom validator
+    
      /**
      * Defines a custom validator.
      */
-    @Target({FIELD})
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = ValidateWithValidator.class)
     @play.data.Form.Display(name="constraint.validatewith", attributes={})
-    public static @interface ValidateWith {
+    public @interface ValidateWith {
         String message() default ValidateWithValidator.defaultMessage;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
@@ -547,4 +564,47 @@ public class Constraints {
 
     }
 
+    // --- class level helpers
+
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = ValidateValidator.class)
+    public @interface Validate {
+        String message() default "error.invalid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+
+    public interface Validatable<T> {
+        T validate();
+    }
+
+    public static class ValidateValidator implements PlayConstraintValidator<Validate, Validatable<?>> {
+
+        @Override
+        public void initialize(final Validate constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
+            return reportValidationStatus(value.validate(), constraintValidatorContext);
+        }
+    }
+
+    public interface PlayConstraintValidator<A extends Annotation, T> extends ConstraintValidator<A, T> {
+
+        default boolean validationSuccessful(final Object validationResult) {
+            return validationResult == null || (validationResult instanceof List && ((List<?>)validationResult).isEmpty());
+        }
+
+        default boolean reportValidationStatus(final Object validationResult, final ConstraintValidatorContext constraintValidatorContext) {
+            if(validationSuccessful(validationResult)) {
+                return true;
+            }
+            constraintValidatorContext
+                .unwrap(HibernateConstraintValidatorContext.class)
+                .withDynamicPayload(validationResult);
+            return false;
+        }
+    }
 }

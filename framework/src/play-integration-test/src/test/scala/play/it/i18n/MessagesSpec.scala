@@ -4,10 +4,10 @@
 package play.it.i18n
 
 import play.api.test.{ PlaySpecification, WithApplication }
-import play.api.mvc.Controller
+import play.api.mvc.ControllerHelpers
 import play.api.i18n._
 
-class MessagesSpec extends PlaySpecification with Controller {
+class MessagesSpec extends PlaySpecification with ControllerHelpers {
 
   sequential
 

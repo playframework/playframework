@@ -20,7 +20,7 @@ https://www.meetup.com/Play-Berlin-Brandenburg/
 
 ## Vienna - AUSTRIA
 
-http://playframework.wien
+https://www.meetup.com/PlayFramework-Wien/
 
 ## Buenos Aires
 

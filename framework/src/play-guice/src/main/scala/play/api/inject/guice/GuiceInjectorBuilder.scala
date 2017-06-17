@@ -44,7 +44,7 @@ abstract class GuiceBuilder[Self] protected (
   /**
    * Set the environment mode.
    */
-  final def in(mode: Mode.Mode): Self =
+  final def in(mode: Mode): Self =
     copyBuilder(environment = environment.copy(mode = mode))
 
   /**

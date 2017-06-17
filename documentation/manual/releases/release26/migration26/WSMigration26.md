@@ -1,6 +1,12 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Play WS Migration Guide
 
+Play WS is now a standalone project and is available at https://github.com/playframework/play-ws. It can be added to an SBT project with:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
+```
+
 ## Package changes
 
 Play WS historically consisted of two libraries, `ws` and `playWs`, containing the Scala and Java APIs respectively, each individually creating an AsyncHTTPClient behind the scenes.  There is now only one `play-ahc-ws` library, which contains both Scala and Java `WSClient` instances, and both point to a singleton `AsyncHttpClient` provider.
@@ -19,12 +25,6 @@ def withBody(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Se
 
 Signpost OAuth has been changed so that instead of using the Commons HTTPClient OAuthProvider, it now uses the DefaultOAuthProvider, which uses HTTPURLConnection under the hood.
 
-The standalone WS instance is available at https://github.com/playframework/play-ws and can be added to an SBT project with:
-
-```scala
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
-```
-
 ## API changes
 
 ### Scala
@@ -41,7 +41,7 @@ The deprecated Scala singleton object `play.api.libs.ws.WS` has been removed.  A
 
 For Guice, there is a `WSClient` available in the system:
 
-``` scala
+```scala
 class MyService @Inject()(ws: WSClient) {
    def call(): Unit = {     
      ws.url("http://localhost:9000/foo").get()
@@ -53,7 +53,7 @@ If you cannot use an injected WSClient instance, then you can also create your [
 
 If you are running a functional test, you can use the `play.api.test.WsTestClient`, which will start up and shut down a standalone WSClient instance:
 
-``` scala
+```scala
 play.api.test.WsTestClient.withClient { ws =>
   ws.url("http://localhost:9000/foo").get()
 }
@@ -65,7 +65,7 @@ The `ning` package has been replaced by the `ahc` package, and the Ning* classes
 
 In Java, the `play.libs.ws.WS` class has been deprecated.  An injected `WSClient` instance should be used instead.
 
-``` java
+```java
 public class MyService {
      private final WSClient ws;
 
@@ -84,7 +84,7 @@ If you cannot use an injected WSClient instance, then you can also create your [
 
 If you are running a functional test, you can use the `play.test.WsTestClient`, which will start up and shut down a standalone `WSClient` instance:
 
-``` java
+```java
 WSClient ws = play.test.WsTestClient.newClient(19001);
 ...
 ws.close();

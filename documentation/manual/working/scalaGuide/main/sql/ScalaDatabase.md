@@ -1,6 +1,8 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Accessing an SQL database
 
+> **NOTE**: JDBC is a blocking operation that will cause threads to wait.  You can negatively impact the performance of your Play application by running JDBC queries directly in your controller!  Please see the "Configuring a CustomExecutionContext" section.
+
 ## Configuring JDBC connection pools
 
 Play provides a plug-in for managing JDBC connection pools. You can configure as many databases as you need.
@@ -119,25 +121,41 @@ Play is bundled only with an [H2](http://www.h2database.com) database driver. Co
 For example, if you use MySQL5, you need to add a [[dependency|SBTDependencies]] for the connector:
 
 ```scala
-libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.41"
 ```
 
 Or if the driver can't be found from repositories you can drop the driver into your project's [[unmanaged dependencies|Anatomy]] `lib` directory.
+
+## Configuring a CustomExecutionContext
+
+You should always use a custom execution context when using JDBC, to ensure that Play's rendering thread pool is completely focused on rendering pages and using cores to their full extent.  You can use Play's `CustomExecutionContext` class to configure a custom execution context dedicated to serving JDBC operations.  See [[ScalaAsync]] and [[ThreadPools]] for more details.
+
+All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-scala-anorm-example/ shows that the [CompanyRepository](https://github.com/playframework/play-scala-anorm-example/blob/master/app/models/CompanyRepository.scala) class takes a `DatabaseExecutionContext` that wraps all the database operations.
+
+For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page]( https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles, i.e. if you have a four core CPU and one disk, you have a total of 9 JDBC connections in the pool:
+
+```
+# db connections = ((physical_core_count * 2) + effective_spindle_count)
+fixedConnectionPool = 9
+
+database.dispatcher {
+  executor = "thread-pool-executor"
+  throughput = 1
+  thread-pool-executor {
+    fixed-pool-size = ${fixedConnectionPool}
+  }
+}
+```
 
 ## Obtaining a JDBC connection
 
 There are several ways to retrieve a JDBC connection. The following code show you a JDBC example very simple, working with MySQL 5.*:
 
-@[](code/ScalaControllerInject.scala)
+@[inject-controller](code/ScalaControllerInject.scala)
 
 But of course you need to call `close()` at some point on the opened connection to return it to the connection pool. Another way is to let Play manage closing the connection for you:
 
-```scala
-// access "default" database
-db.withConnection { conn =>
-  // do whatever you need with the connection
-}
-```
+@[access-default-database](code/ScalaControllerInject.scala)
 
 The connection will be automatically closed at the end of the block.
 
@@ -145,15 +163,11 @@ The connection will be automatically closed at the end of the block.
 
 A variant is to set the connection's auto-commit to `false` and to manage a transaction for the block:
 
-```scala
-db.withTransaction { conn =>
-  // do whatever you need with the connection
-}
-```
+@[access-db-connection](code/ScalaControllerInject.scala)
 
 For a database other than the default:
 
-@[](code/ScalaInjectNamed.scala)
+@[named-database](code/ScalaInjectNamed.scala)
 
 ## Selecting and configuring the connection pool
 

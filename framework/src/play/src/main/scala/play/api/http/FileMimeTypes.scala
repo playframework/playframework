@@ -34,13 +34,13 @@ import scala.annotation.implicitNotFound
  * }
  * }}}
  *
- * or, if [[play.api.mvc.AbstractController]] is extended, then
+ * or, if [[play.api.mvc.BaseController]] is extended, then
  * an implicit fileMimeTypes instance is already made available from
  * [[play.api.mvc.ControllerComponents]], meaning that no explicit import is required:
  *
  * {{{
- * class MyController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
- *    def sendFile() = ...
+ * class MyController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
+ *   def sendFile() = ...
  * }
  * }}}
  */
@@ -53,6 +53,11 @@ trait FileMimeTypes {
    * @return the MIME type, if defined
    */
   def forFileName(name: String): Option[String]
+
+  /**
+   * @return the Java version for this file mime types.
+   */
+  def asJava: play.mvc.FileMimeTypes = new play.mvc.FileMimeTypes(this)
 }
 
 @Singleton

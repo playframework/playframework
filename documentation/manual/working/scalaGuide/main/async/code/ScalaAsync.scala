@@ -98,13 +98,12 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: Execut
 
     //#timeout
     import scala.concurrent.duration._
-    import play.api.libs.concurrent.Timeout
+    import play.api.libs.concurrent.Futures._
 
     def index = Action.async {
-      Timeout.timeout(actorSystem, 1.seconds) {
-        intensiveComputation().map { i =>
-          Ok("Got result: " + i)
-        }
+      // futures instance implicit here
+      intensiveComputation().withTimeout(1.seconds).map { i =>
+        Ok("Got result: " + i)
       }.recover {
         case e: TimeoutException =>
           InternalServerError("timeout")

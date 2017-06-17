@@ -10,4 +10,8 @@ public class Api extends Controller {
     public Result list(String version) {
         return ok("version " + version);
     }
+
+    public Result newThing() {
+        return ok();
+    }
 }

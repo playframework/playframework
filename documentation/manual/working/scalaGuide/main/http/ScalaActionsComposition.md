@@ -7,7 +7,7 @@ This chapter introduces several ways of defining generic action functionality.
 
 We saw [[previously|ScalaActions]] that there are multiple ways to declare an action - with a request parameter, without a request parameter, with a body parser etc.  In fact there are more than this, as we'll see in the chapter on [[asynchronous programming|ScalaAsync]].
 
-These methods for building actions are actually all defined by a trait called [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) and the [`Action`](api/scala/play/api/mvc/Action$.html) object that we use to declare our actions is just an instance of this trait.  By implementing your own `ActionBuilder`, you can declare reusable action stacks, that can then be used to build actions.
+These methods for building actions are actually all defined by a trait called [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) and the [`Action`](api/scala/play/api/mvc/Action.html) object that we use to declare our actions is just an instance of this trait.  By implementing your own `ActionBuilder`, you can declare reusable action stacks, that can then be used to build actions.
 
 Let’s start with the simple example of a logging decorator, we want to log each call to this action.
 
@@ -15,7 +15,7 @@ The first way is to implement this functionality in the `invokeBlock` method, wh
 
 @[basic-logging](code/ScalaActionsComposition.scala)
 
-Now we can use it the same way we use `Action`:
+Now we can use [[Dependency Injection|ScalaDependencyInjection]] in your controller to get an instance of the `LoggingAction` and use it the same way we use `Action`:
 
 @[basic-logging-index](code/ScalaActionsComposition.scala)
  

@@ -107,7 +107,7 @@ class AssetsSpec extends Specification {
       val url = this.getClass.getClassLoader.getResource("file withspace.css")
       implicit val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration()).get
 
-      val assetInfo = new AssetInfo("file withspace.css", url, None, None, AssetsConfiguration(), fileMimeTypes)
+      val assetInfo = new AssetInfo("file withspace.css", url, Seq(), None, AssetsConfiguration(), fileMimeTypes)
       val lastModified = ResponseHeader.httpDateFormat.parse(assetInfo.lastModified.get)
       // If it uses the escaped path, the file won't be found, and so last modified will be 0
       Instant.from(lastModified).toEpochMilli must_!= 0

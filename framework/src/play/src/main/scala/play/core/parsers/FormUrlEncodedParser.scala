@@ -74,11 +74,16 @@ object FormUrlEncodedParser {
    * @return The sequence of key/value pairs
    */
   private def parseToPairs(data: String, encoding: String): Seq[(String, String)] = {
-    parameterDelimiter.split(data).map { param =>
-      val parts = param.split("=", -1)
-      val key = URLDecoder.decode(parts(0), encoding)
-      val value = URLDecoder.decode(parts.lift(1).getOrElse(""), encoding)
-      key -> value
+    val split = parameterDelimiter.split(data)
+    if (split.length == 1 && split(0).isEmpty) {
+      Seq.empty
+    } else {
+      split.map { param =>
+        val parts = param.split("=", -1)
+        val key = URLDecoder.decode(parts(0), encoding)
+        val value = URLDecoder.decode(parts.lift(1).getOrElse(""), encoding)
+        key -> value
+      }
     }
   }
 }

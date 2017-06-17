@@ -41,12 +41,14 @@ import simple.LoggingFilter
 // #filters
 import javax.inject.Inject
 import play.api.http.DefaultHttpFilters
+import play.api.http.EnabledFilters
 import play.filters.gzip.GzipFilter
 
 class Filters @Inject() (
+  defaultFilters: EnabledFilters,
   gzip: GzipFilter,
   log: LoggingFilter
-) extends DefaultHttpFilters(gzip, log)
+) extends DefaultHttpFilters(defaultFilters.filters :+ gzip :+ log: _*)
 //#filters
 
 object router {
@@ -61,10 +63,12 @@ object router {
 
 import play.api._
 import play.filters.gzip._
+import play.filters.HttpFiltersComponents
 import router.Routes
 
 class MyComponents(context: ApplicationLoader.Context)
     extends BuiltInComponentsFromContext(context)
+    with HttpFiltersComponents
     with GzipFilterComponents {
 
   // implicit executionContext and materializer are defined in BuiltInComponents

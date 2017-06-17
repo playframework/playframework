@@ -70,7 +70,7 @@ class HttpErrorHandlerSpec extends Specification {
 
   }
 
-  def handler(handlerClass: String, mode: Mode.Mode): HttpErrorHandler = {
+  def handler(handlerClass: String, mode: Mode): HttpErrorHandler = {
     val properties = Map(
       "play.http.errorHandler" -> handlerClass,
       "play.http.secret.key" -> "mysecret"

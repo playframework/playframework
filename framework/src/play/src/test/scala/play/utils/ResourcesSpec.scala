@@ -3,7 +3,7 @@
  */
 package play.utils
 
-import java.io.{ FileInputStream, BufferedInputStream, File, FileOutputStream }
+import java.io.{ BufferedInputStream, File }
 import java.net.{ URL, URLConnection, URLStreamHandler }
 import java.util.zip.{ ZipEntry, ZipOutputStream }
 import org.specs2.mutable.Specification
@@ -174,7 +174,7 @@ class ResourcesSpec extends Specification {
   }
 
   private def createZip(zip: File, files: Seq[File]) = {
-    val zipOutputStream = new ZipOutputStream(new FileOutputStream(zip))
+    val zipOutputStream = new ZipOutputStream(java.nio.file.Files.newOutputStream(zip.toPath))
     files.foreach(f => addFileToZip(zipOutputStream, f))
     zipOutputStream.close()
   }
@@ -187,7 +187,7 @@ class ResourcesSpec extends Specification {
     zip.putNextEntry(new ZipEntry(entryName))
 
     if (!file.isDirectory) {
-      val in = new BufferedInputStream(new FileInputStream(file))
+      val in = new BufferedInputStream(java.nio.file.Files.newInputStream(file.toPath))
       var b = in.read()
       while (b > -1) {
         zip.write(b)

@@ -58,8 +58,9 @@ object GeneratedRouterSpec extends Specification {
         "handler",
         Nil,
         "GET",
+        "/",
         "Comment",
-        "/"
+        Seq("Tag")
       )
       val request = FakeRequest()
       routeToHandler(handler, handlerDef, request) { routedHandler: Handler =>
@@ -85,8 +86,9 @@ object GeneratedRouterSpec extends Specification {
         "index",
         Nil,
         "GET",
+        "/",
         "Comment",
-        "/"
+        Seq("Tag")
       )
       val request = FakeRequest()
       routeToHandler(controller.index, handlerDef, request) { routedHandler: Handler =>

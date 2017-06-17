@@ -6,9 +6,10 @@ package play.core.server.common
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
+import io.jsonwebtoken.{ Jws, Jwts }
 import org.specs2.mutable.Specification
 import play.api.http.Status._
-import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpEntity }
+import play.api.http._
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -20,6 +21,10 @@ import scala.util.{ Success, Try }
 
 class ServerResultUtilsSpec extends Specification {
 
+  val jwtCodec = new JWTCookieDataCodec {
+    override def jwtConfiguration = JWTConfiguration()
+    override def secretConfiguration = SecretConfiguration()
+  }
   val resultUtils = new ServerResultUtils(HttpConfiguration())
 
   private def cookieRequestHeader(cookie: Option[(String, String)]): RequestHeader = {
@@ -32,9 +37,10 @@ class ServerResultUtilsSpec extends Specification {
 
   "resultUtils.prepareCookies" should {
     def cookieResult(cookie: Option[(String, String)], result: Result): Option[Seq[Cookie]] = {
+      val encoding = new DefaultCookieHeaderEncoding()
       val rh = cookieRequestHeader(cookie)
       val newResult = resultUtils.prepareCookies(rh, result)
-      newResult.header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader)
+      newResult.header.headers.get("Set-Cookie").map(encoding.decodeSetCookieHeader)
     }
 
     "do nothing when flash not present" in {
@@ -45,7 +51,7 @@ class ServerResultUtilsSpec extends Specification {
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
-        cookie.value must_== "a=b"
+        jwtCodec.decode(cookie.value) must_== Map("a" -> "b")
       }
     }
     "clear flash when received" in {
@@ -72,7 +78,7 @@ class ServerResultUtilsSpec extends Specification {
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
-        cookie.value must_== "c=d"
+        jwtCodec.decode(cookie.value) must_== Map("c" -> "d")
       }
     }
   }

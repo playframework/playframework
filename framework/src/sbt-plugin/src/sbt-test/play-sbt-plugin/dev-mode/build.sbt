@@ -6,12 +6,12 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += guice
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.1")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
 // Start by using the sbt watcher
-PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(pollInterval.value)
+PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.sbt(pollInterval.value)
 
 TaskKey[Unit]("resetReloads") := {
   (target.value / "reload.log").delete()

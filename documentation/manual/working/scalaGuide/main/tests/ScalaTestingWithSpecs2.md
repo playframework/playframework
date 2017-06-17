@@ -40,26 +40,13 @@ Specifications can be run in either IntelliJ IDEA (using the [Scala plugin](http
 
 Here is a valid specification for Eclipse:
 
-```scala
-package models // this file must be in a directory called "models"
-
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
-
-@RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends Specification {
-  ...
-}
-```
+@[basic-spec](code/models/UserSpec.scala)
 
 ### Matchers
 
 When you use an example, you must return an example result. Usually, you will see a statement containing a `must`:
 
-```scala
-"Hello world" must endWith("world")
-```
+@[assertion-example](code/models/UserSpec.scala)
 
 The expression that follows the `must` keyword are known as [`matchers`](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.Matchers.html). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
 
@@ -75,9 +62,7 @@ Mocks are used to isolate unit tests against external dependencies.  For example
 
 To use Mockito, add the following import:
 
-```scala
-import org.specs2.mock._
-```
+@[import-mockito](code/models/UserSpec.scala)
 
 You can mock out references to classes like so:
 
@@ -139,15 +124,35 @@ You can test it like:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
+### StubControllerComponents
+
+The [`StubControllerComponentsFactory`](api/scala/play/api/test/StubControllerComponentsFactory.html) creates a stub [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be used for unit testing a controller:
+
+@[scalatest-stubcontrollercomponents](code/specs2/ExampleHelpersSpec.scala)
+
+### StubBodyParser
+
+The [`StubBodyParserFactory`](api/scala/play/api/test/StubBodyParserFactory.html) creates a stub [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) that can be used for unit testing content:
+
+@[scalatest-stubbodyparser](code/specs2/ExampleHelpersSpec.scala)
+
 ## Unit Testing Forms
 
 Forms are also just regular classes, and can unit tested using Play's Test Helpers. Using [`play.api.test.FakeRequest`](api/scala/play/api/test/FakeRequest.html), you can call `form.bindFromRequest` and test for errors against any custom constraints.
 
-To unit test form processing and render validation errors, you will want a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance in implicit scope.  The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map.
+To unit test form processing and render validation errors, you will want a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) instance in implicit scope.  The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html):
   
 You can test it like:
 
 @[scalatest-exampleformspec](code/specs2/ExampleControllerSpec.scala)
+
+When rendering a template that takes form helpers, you can pass in a Messages the same way, or use `Helpers.stubMessages`:
+
+@[scalatest-exampletemplatespec](code/specs2/ExampleControllerSpec.scala)
+
+Or, if you are using a form that uses `CSRF.formField` and requires an implicit request, you can use [`MessagesRequest`] in the template and use `Helpers.stubMessagesRequest`:
+
+@[scalatest-examplecsrftemplatespec](code/specs2/ExampleControllerSpec.scala)
 
 ## Unit Testing EssentialAction
 

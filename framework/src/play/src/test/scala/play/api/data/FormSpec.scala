@@ -11,9 +11,13 @@ import play.api.i18n._
 import play.api.libs.json.Json
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.MultipartFormData
+import play.core.test.FakeRequest
 
 class FormSpec extends Specification {
   "A form" should {
+
     "have an error due to a malformed email" in {
       val f5 = ScalaForms.emailForm.fillAndValidate(("john@", "John"))
       f5.errors must haveSize(1)
@@ -35,6 +39,76 @@ class FormSpec extends Specification {
       f9.errors must beEmpty
 
       ScalaForms.emailForm.fillAndValidate(("o'flynn@example.com", "O'Flynn")).errors must beEmpty
+    }
+
+    "bind params when POSTing a multipart body" in {
+      val multipartBody = MultipartFormData[TemporaryFile](
+        dataParts = Map("email" -> Seq("michael@jackson.com")),
+        files = Seq.empty,
+        badParts = Seq.empty
+      )
+
+      implicit val request = FakeRequest(method = "POST", "/").withMultipartFormDataBody(multipartBody)
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using POST" in {
+      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PUT" in {
+      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params ignored when using PATCH" in {
+      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("michael@jackson.com"), None))
+    }
+
+    "query params NOT ignored when using GET" in {
+      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using DELETE" in {
+      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using HEAD" in {
+      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
+    }
+
+    "query params NOT ignored when using OPTIONS" in {
+      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+
+      val f1 = ScalaForms.updateForm.bindFromRequest()
+      f1.errors must beEmpty
+      f1.get must equalTo((Some("bob@marley.com"), Some("john")))
     }
 
     "support mapping 22 fields" in {
@@ -282,45 +356,46 @@ class FormSpec extends Specification {
 
   "render form using java.time.LocalDate" in {
     import java.time.LocalDate
-    val dateForm = Form(("date" -> localDate))
+    val dateForm = Form("date" -> localDate)
     val data = Map("date" -> "2012-01-01")
     dateForm.bind(data).get mustEqual (LocalDate.of(2012, 1, 1))
   }
 
   "render form using java.time.LocalDate with format(15/6/2016)" in {
     import java.time.LocalDate
-    val dateForm = Form(("date" -> localDate("dd/MM/yyyy")))
+    val dateForm = Form("date" -> localDate("dd/MM/yyyy"))
     val data = Map("date" -> "15/06/2016")
     dateForm.bind(data).get mustEqual (LocalDate.of(2016, 6, 15))
   }
 
   "render form using java.time.LocalDateTime" in {
     import java.time.LocalDateTime
-    val dateForm = Form(("date" -> localDateTime))
+    val dateForm = Form("date" -> localDateTime)
     val data = Map("date" -> "2012-01-01 10:10:10")
     dateForm.bind(data).get mustEqual (LocalDateTime.of(2012, 1, 1, 10, 10, 10))
   }
 
   "render form using java.time.LocalDateTime with format(17/06/2016T17:15:33)" in {
     import java.time.LocalDateTime
-    val dateForm = Form(("date" -> localDateTime("dd/MM/yyyy HH:mm:ss")))
+    val dateForm = Form("date" -> localDateTime("dd/MM/yyyy HH:mm:ss"))
     val data = Map("date" -> "17/06/2016 10:10:10")
     dateForm.bind(data).get mustEqual (LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
 
   "render form using java.time.LocalTime" in {
     import java.time.LocalTime
-    val dateForm = Form(("date" -> localTime))
+    val dateForm = Form("date" -> localTime)
     val data = Map("date" -> "10:10:10")
     dateForm.bind(data).get mustEqual (LocalTime.of(10, 10, 10))
   }
 
   "render form using java.time.LocalTime with format(HH-mm-ss)" in {
     import java.time.LocalTime
-    val dateForm = Form(("date" -> localTime("HH-mm-ss")))
+    val dateForm = Form("date" -> localTime("HH-mm-ss"))
     val data = Map("date" -> "10-11-12")
     dateForm.bind(data).get mustEqual (LocalTime.of(10, 11, 12))
   }
+
 }
 
 object ScalaForms {
@@ -388,14 +463,21 @@ object ScalaForms {
   )
 
   val form = Form(
-    "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map { _ == '3' }) getOrElse false)
-      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
+    "foo" -> Forms.text.verifying("first.digit", s => s.headOption exists { _ == '3' })
+      .transform[Int](Integer.parseInt, _.toString).verifying("number.42", _ < 42)
   )
 
   val emailForm = Form(
     tuple(
       "email" -> email,
       "name" -> of[String]
+    )
+  )
+
+  val updateForm = Form(
+    tuple(
+      "email" -> optional(text),
+      "name" -> optional(text)
     )
   )
 

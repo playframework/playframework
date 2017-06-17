@@ -1,9 +1,10 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.libs.ws.ahc
 
-import javax.cache.Cache
-
 import akka.stream.Materializer
-import play.api.libs.ws.ahc.cache.{ EffectiveURIKey, ResponseEntry }
+import play.api.libs.ws.ahc.cache.AhcHttpCache
 import play.api.libs.ws.{ WSClient, WSRequest }
 
 /**
@@ -27,7 +28,7 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
    *
    * @param url The base URL to make HTTP requests to.
    * @return a request
-   * @throws IllegalArgumentException if the URL is invalid.
+   * @throws java.lang.IllegalArgumentException if the URL is invalid.
    */
   @throws[IllegalArgumentException]
   override def url(url: String): WSRequest = {
@@ -63,7 +64,7 @@ object AhcWSClient {
    */
   def apply(
     config: AhcWSClientConfig = AhcWSClientConfig(),
-    cache: Option[Cache[EffectiveURIKey, ResponseEntry]] = None)(implicit materializer: Materializer): AhcWSClient = {
+    cache: Option[AhcHttpCache] = None)(implicit materializer: Materializer): AhcWSClient = {
     new AhcWSClient(StandaloneAhcWSClient(config, cache))
   }
 }

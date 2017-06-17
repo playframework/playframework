@@ -22,8 +22,8 @@ private[play] final class ServerResultUtils(httpConfiguration: HttpConfiguration
   private val cookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
 
   val cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(httpConfiguration.cookies)
-  val sessionBaker: SessionCookieBaker = new DefaultSessionCookieBaker(httpConfiguration.session, cookieSigner)
-  val flashBaker: FlashCookieBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.session, cookieSigner)
+  val sessionBaker: SessionCookieBaker = new DefaultSessionCookieBaker(httpConfiguration.session, httpConfiguration.secret, cookieSigner)
+  val flashBaker: FlashCookieBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.secret, cookieSigner)
 
   private val logger = Logger(getClass)
 
@@ -242,10 +242,10 @@ private[play] final class ServerResultUtils(httpConfiguration: HttpConfiguration
       // Rewrite the headers with Set-Cookie split into separate headers
       headers.to[Seq].flatMap {
         case (SET_COOKIE, value) =>
-          val cookieParts = cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value)
-          cookieParts.map { cookiePart =>
-            SET_COOKIE -> cookiePart
-          }
+          splitSetCookieHeaderValue(value)
+            .map { cookiePart =>
+              SET_COOKIE -> cookiePart
+            }
         case (name, value) =>
           Seq((name, value))
       }
@@ -254,4 +254,7 @@ private[play] final class ServerResultUtils(httpConfiguration: HttpConfiguration
       headers
     }
   }
+
+  def splitSetCookieHeaderValue(value: String): Seq[String] =
+    cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value)
 }

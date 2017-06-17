@@ -28,8 +28,8 @@ public class AhcWSModule extends Module {
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
-                // AsyncHttpClientProvider is added by the Scala API
-                bind(WSClient.class).toProvider(AhcWSClientProvider.class)
+            // AsyncHttpClientProvider is added by the Scala API
+            bind(WSClient.class).toProvider(AhcWSClientProvider.class)
         );
     }
 
@@ -39,7 +39,7 @@ public class AhcWSModule extends Module {
 
         @Inject
         public AhcWSClientProvider(AsyncHttpClient asyncHttpClient, Materializer materializer, ObjectMapper objectMapper) {
-            client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer, objectMapper));
+            client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer, objectMapper), materializer);
         }
 
         @Override

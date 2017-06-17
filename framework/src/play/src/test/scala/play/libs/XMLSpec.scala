@@ -3,7 +3,7 @@
  */
 package play.libs
 
-import java.io.{ FileOutputStream, File }
+import java.io.File
 
 import org.specs2.mutable.Specification
 import org.xml.sax.SAXException
@@ -17,7 +17,7 @@ class XMLSpec extends Specification {
     }
 
     def writeStringToFile(file: File, text: String) = {
-      val out = new FileOutputStream(file)
+      val out = java.nio.file.Files.newOutputStream(file.toPath)
       try {
         out.write(text.getBytes("utf-8"))
       } finally {

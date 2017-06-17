@@ -5,6 +5,7 @@ package play.filters.csrf;
 
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -24,21 +25,30 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final SessionConfiguration sessionConfiguration;
     private final CSRF.TokenProvider tokenProvider;
     private final CSRFTokenSigner tokenSigner;
-    private final Injector injector;
+    private Function<RequireCSRFCheck, CSRFErrorHandler> configurator;
 
     @Inject
     public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Injector injector) {
+        this(config, sessionConfiguration, tokenProvider, csrfTokenSigner, configAnnotation -> injector.instanceOf(configAnnotation.error()));
+    }
+
+    public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, CSRFErrorHandler errorHandler) {
+        this(config, sessionConfiguration, tokenProvider, csrfTokenSigner, configAnnotation -> errorHandler);
+    }
+
+    public RequireCSRFCheckAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner csrfTokenSigner, Function<RequireCSRFCheck, CSRFErrorHandler> configurator) {
         this.config = config;
         this.sessionConfiguration = sessionConfiguration;
         this.tokenProvider = tokenProvider;
         this.tokenSigner = csrfTokenSigner;
-        this.injector = injector;
+        this.configurator = configurator;
     }
 
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
 
-        CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner);
+        CSRFActionHelper csrfActionHelper =
+            new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
         RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader());
         // Check for bypass
@@ -91,14 +101,14 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         if (CSRF.getToken(request).isEmpty()) {
             if (config.cookieName().isDefined()) {
                 Option<String> domain = Session.domain();
-                ctx.response().discardCookie(config.cookieName().get(), Session.path(),
+                ctx.response().discardCookie(config.cookieName().get(), sessionConfiguration.path(),
                         domain.isDefined() ? domain.get() : null, config.secureCookie());
             } else {
                 ctx.session().remove(config.tokenName());
             }
         }
 
-        CSRFErrorHandler handler = injector.instanceOf(configuration.error());
+        CSRFErrorHandler handler = configurator.apply(this.configuration);
         return handler.handle(new play.core.j.RequestHeaderImpl(request), msg);
     }
 }

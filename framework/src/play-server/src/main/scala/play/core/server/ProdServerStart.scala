@@ -30,7 +30,7 @@ object ProdServerStart {
    * @param process The process (real or abstract) to use for starting the
    * server.
    */
-  def start(process: ServerProcess): ServerWithStop = {
+  def start(process: ServerProcess): ReloadableServer = {
     try {
 
       // Read settings
@@ -128,7 +128,7 @@ object ProdServerStart {
       }
 
       val pid = process.pid getOrElse (throw ServerStartException("Couldn't determine current process's pid"))
-      val out = new FileOutputStream(pidFile)
+      val out = java.nio.file.Files.newOutputStream(pidFile.toPath)
       try out.write(pid.getBytes) finally out.close()
 
       Some(pidFile)

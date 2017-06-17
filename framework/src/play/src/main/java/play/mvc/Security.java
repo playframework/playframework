@@ -5,12 +5,17 @@ package play.mvc;
 
 import play.inject.Injector;
 import play.libs.typedmap.TypedKey;
-import play.mvc.Http.*;
+import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 
-import java.lang.annotation.*;
+import javax.inject.Inject;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import java.util.function.Function;
 
 /**
  * Defines several security helpers.
@@ -20,7 +25,7 @@ public class Security {
     public static final TypedKey<String> USERNAME = TypedKey.create("username");
 
     /**
-     * Wraps the annotated action in an <code>AuthenticatedAction</code>.
+     * Wraps the annotated action in an {@link AuthenticatedAction}.
      */
     @With(AuthenticatedAction.class)
     @Target({ElementType.TYPE, ElementType.METHOD})
@@ -37,21 +42,29 @@ public class Security {
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
 
-        private final Injector injector;
+        private final Function<Authenticated, Authenticator> configurator;
 
         @Inject
         public AuthenticatedAction(Injector injector) {
-            this.injector = injector;
+            this(authenticated -> injector.instanceOf(authenticated.value()));
+        }
+
+        public AuthenticatedAction(Authenticator authenticator) {
+            this(authenticated -> authenticator);
+        }
+
+        public AuthenticatedAction(Function<Authenticated, Authenticator> configurator) {
+            this.configurator = configurator;
         }
 
         public CompletionStage<Result> call(final Context ctx) {
-            Authenticator authenticator = injector.instanceOf(configuration.value());
+            Authenticator authenticator = configurator.apply(configuration);
             String username = authenticator.getUsername(ctx);
-            if(username == null) {
+            if (username == null) {
                 Result unauthorized = authenticator.onUnauthorized(ctx);
                 return CompletableFuture.completedFuture(unauthorized);
             } else {
-                Request usernameReq = ctx.request().withAttrs(ctx.request().attrs().put(USERNAME, username));
+                Request usernameReq = ctx.request().addAttr(USERNAME, username);
                 Context usernameCtx = ctx.withRequest(usernameReq);
                 return delegate.call(usernameCtx);
             }

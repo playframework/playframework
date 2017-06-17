@@ -12,13 +12,15 @@ import play.api.data.Forms.{ mapping, nonEmptyText, number }
 import play.api.http.{ MimeTypes, Writeable }
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{ BodyParser, BodyParsers, Result, Results }
-import play.api.test.{ FakeRequest, PlaySpecification, WithApplication }
+import play.api.mvc._
+import play.api.test.{ FakeRequest, Injecting, PlaySpecification, WithApplication }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class FormBodyParserSpec extends PlaySpecification {
+
+  sequential
 
   "The form body parser" should {
 
@@ -33,22 +35,26 @@ class FormBodyParserSpec extends PlaySpecification {
 
     val userForm = Form(mapping("name" -> nonEmptyText, "age" -> number)(User.apply)(User.unapply))
 
-    "bind JSON requests" in new WithApplication() {
-      parse(Json.obj("name" -> "Alice", "age" -> 42), BodyParsers.parse.form(userForm)) must beRight(User("Alice", 42))
+    "bind JSON requests" in new WithApplication() with Injecting {
+      val parsers = inject[PlayBodyParsers]
+      parse(Json.obj("name" -> "Alice", "age" -> 42), parsers.form(userForm)) must beRight(User("Alice", 42))
     }
 
-    "bind form-urlencoded requests" in new WithApplication() {
-      parse(Map("name" -> Seq("Alice"), "age" -> Seq("42")), BodyParsers.parse.form(userForm)) must beRight(User("Alice", 42))
+    "bind form-urlencoded requests" in new WithApplication() with Injecting {
+      val parsers = inject[PlayBodyParsers]
+      parse(Map("name" -> Seq("Alice"), "age" -> Seq("42")), parsers.form(userForm)) must beRight(User("Alice", 42))
     }
 
-    "not bind erroneous body" in new WithApplication() {
-      parse(Json.obj("age" -> "Alice"), BodyParsers.parse.form(userForm)) must beLeft(Results.BadRequest)
+    "not bind erroneous body" in new WithApplication() with Injecting {
+      val parsers = inject[PlayBodyParsers]
+      parse(Json.obj("age" -> "Alice"), parsers.form(userForm)) must beLeft(Results.BadRequest)
     }
 
-    "allow users to override the error reporting behaviour" in new WithApplication() {
+    "allow users to override the error reporting behaviour" in new WithApplication() with Injecting {
+      val parsers = inject[PlayBodyParsers]
       val messagesApi = app.injector.instanceOf[MessagesApi]
       implicit val messages = messagesApi.preferred(Seq.empty)
-      parse(Json.obj("age" -> "Alice"), BodyParsers.parse.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))) must beLeft.which { result =>
+      parse(Json.obj("age" -> "Alice"), parsers.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))) must beLeft.which { result =>
         result.header.status must equalTo(BAD_REQUEST)
         val json = contentAsJson(Future.successful(result))
         (json \ "age")(0).asOpt[String] must beSome("Numeric value expected")

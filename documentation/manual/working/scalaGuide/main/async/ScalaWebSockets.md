@@ -81,7 +81,7 @@ Actors are not always the right abstraction for handling WebSockets, particularl
 
 A `WebSocket` has access to the request headers (from the HTTP request that initiates the WebSocket connection), allowing you to retrieve standard headers and session data. However, it doesn’t have access to a request body, nor to the HTTP response.
 
-It this example we are creating a simple sink that prints each message to console. To send messages, we create a simple source that will send a single **Hello!** message.  We also need to concatenate a source that will never send anything, otherwise our single source will terminate the flow, and thus the connection.
+In this example we are creating a simple sink that prints each message to console. To send messages, we create a simple source that will send a single **Hello!** message.  We also need to concatenate a source that will never send anything, otherwise our single source will terminate the flow, and thus the connection.
 
 > **Tip:** You can test WebSockets on <https://www.websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
 
@@ -92,3 +92,13 @@ Let’s write another example that discards the input data and closes the socket
 Here is another example in which the input data is logged to standard out and then sent back to the client using a mapped flow:
 
 @[streams3](code/ScalaWebSockets.scala)
+
+## Configuring WebSocket Frame Length
+
+You can configure the max length for [WebSocket data frames](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Format) using `play.server.websocket.frame.maxLength` or passing `-Dwebsocket.frame.maxLength` system property when running your application. For example:
+
+```
+sbt -Dwebsocket.frame.maxLength=64k run
+```
+
+This configuration gives you more control of WebSocket frame length and can be adjusted to your application requirements. It may also reduce denial of service attacks using long data frames.

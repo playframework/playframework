@@ -35,7 +35,8 @@ public class Standalone {
 
         // Set up WSClient instance directly from asynchttpclient.
         WSClient client = new AhcWSClient(
-                new StandaloneAhcWSClient(asyncHttpClient, materializer)
+            asyncHttpClient,
+            materializer
         );
 
         // Call out to a remote system and then and close the client and akka.

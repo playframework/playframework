@@ -10,7 +10,7 @@ import play.api._
 import play.api.mvc._
 
 /**
- * provides source code to be displayed on error pages
+ * Provides source code to be displayed on error pages
  */
 trait SourceMapper {
 

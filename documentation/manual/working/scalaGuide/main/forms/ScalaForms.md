@@ -161,34 +161,37 @@ The generic `input` helper mentioned above will let you code the desired HTML re
 
 For complex form elements, you can also create your own custom view helpers (using scala classes in the `views` package) and [[custom field constructors|ScalaCustomFieldConstructors]].
 
-### Passing Messages to Form Helpers
+### Passing MessagesProvider to Form Helpers
 
-The form helpers above -- [`input`](api/scala/views/html/helper/input$.html), [`checkbox`](api/scala/views/html/helper/checkbox$.html), and so on -- all take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) as an implicit parameter.  The form handlers need to take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) because they need to provide error messages mapped to the language defined in the request.
+The form helpers above -- [`input`](api/scala/views/html/helper/input$.html), [`checkbox`](api/scala/views/html/helper/checkbox$.html), and so on -- all take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) as an implicit parameter.  The form handlers need to take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) because they need to provide error messages mapped to the language defined in the request.  You can see more about [`Messages`](api/scala/play/api/i18n/Messages.html) in the [[Internationalization with Messages|ScalaI18N]] page.
 
-There are two ways to pass in the [`Messages`](api/scala/play/api/i18n/Messages.html) object required.
-  
-The first way is to make the controller extend [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), which makes use of an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
+There are two ways to pass in the [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) object required.
+
+#### Option One: Implicitly Convert Request to Messages
+
+The first way is to make the controller extend [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html), which makes use of an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html), and will implicitly convert an implicit request to an implicit [`Messages`](api/scala/play/api/i18n/Messages.html):
 
 @[messages-controller](code/ScalaForms.scala)
 
-The second way is to use the [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) trait.  This is useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a `Messages` object must be available to the template.  By using a `WrappedRequest` that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates.
+This means that the following form template will be resolved:
 
-The implementation of a `MessagesRequest` is straightforward:
+@[form-define](code/scalaguide/forms/scalaforms/views/implicitMessages.scala.html)
 
-@[messages-request](code/ScalaForms.scala)
+#### Option Two: Use MessagesRequest
 
-The `MessagesRequest` is used inside an action by using an `ActionTransformer` (see [[the action composition section|ScalaActionsComposition]]) that transforms a `Request` into a `MessagesRequest`:
-
-@[messages-action-transformer](code/ScalaForms.scala)
-
-An example of a form that uses the `AbstractMessagesController`:
+The second way is to dependency inject a [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html), which provides a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html):
 
 @[messages-request-controller](code/ScalaForms.scala)
 
-Finally, the implicit request does double duty as both a [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) and a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) in the template:
+This is useful because to use [[CSRF|ScalaCsrf]] with forms, both a `Request` (technically a `RequestHeader`) and a [`Messages`](api/scala/play/api/i18n/Messages.html) object must be available to the template.  By using a [`MessagesRequest`](api/scala/play/api/mvc/MessagesRequest.html), which is a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), only a single implicit parameter needs to be made available to templates.
+
+Because you typically don't need the body of the request, you can pass [`MessagesRequestHeader`](api/scala/play/api/mvc/MessagesRequestHeader.html), rather than typing `MessagesRequest[_]`:
 
 @[form-define](code/scalaguide/forms/scalaforms/views/messages.scala.html)
 
+Rather than inject [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html) into your controller, you can also make [`MessagesActionBuilder`](api/scala/play/api/mvc/MessagesActionBuilder.html) be the default `Action` by extending [MessagesAbstractController](api/scala/play/api/mvc/MessagesAbstractController.html) to incorporate form processing into your controllers.
+
+@[messages-abstract-controller](code/ScalaForms.scala)
 
 ### Displaying errors in a view template
 
@@ -289,6 +292,10 @@ If you are using Play to generate your form HTML, you can generate as many input
 @[form-field-repeat](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
 
 The `min` parameter allows you to display a minimum number of fields even if the corresponding form data are empty.
+
+If you want to access the index of the fields you can use the `repeatWithIndex` helper instead:
+
+@[form-field-repeat-with-index](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
 
 ### Optional values
 

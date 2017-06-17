@@ -5,7 +5,8 @@ package play.filters.hosts
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import play.api.Configuration
+import play.api.MarkerContexts.SecurityMarkerContext
+import play.api.{ Configuration, Logger }
 import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject._
 import play.api.libs.streams.Accumulator
@@ -18,6 +19,8 @@ import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
 case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandler: HttpErrorHandler)
     extends EssentialFilter {
 
+  private val logger = Logger(this.getClass)
+
   // Java API
   def this(config: AllowedHostsConfig, errorHandler: play.http.HttpErrorHandler, contextComponents: JavaContextComponents) {
     this(config, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents))
@@ -29,6 +32,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
     if (hostMatchers.exists(_(req.host))) {
       next(req)
     } else {
+      logger.warn(s"Host not allowed: ${req.host}")(SecurityMarkerContext)
       Accumulator.done(errorHandler.onClientError(req, Status.BAD_REQUEST, s"Host not allowed: ${req.host}"))
     }
   }

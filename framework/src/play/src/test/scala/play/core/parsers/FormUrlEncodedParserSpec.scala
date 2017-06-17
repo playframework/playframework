@@ -29,6 +29,12 @@ class FormUrlEncodedParserSpec extends Specification {
     "decode fields with no value" in {
       FormUrlEncodedParser.parse("foo=bar&baz") must_== Map("foo" -> List("bar"), "baz" -> List(""))
     }
+    "decode single field with no value" in {
+      FormUrlEncodedParser.parse("foo") must_== Map("foo" -> List(""))
+    }
+    "decode when there are no fields" in {
+      FormUrlEncodedParser.parse("") must beEmpty
+    }
     "ensure field order is retained, when requested" in {
       val url_encoded = "Zero=zero&One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
       val result: Map[String, Seq[String]] = FormUrlEncodedParser.parse(url_encoded)

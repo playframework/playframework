@@ -36,7 +36,7 @@ public class JavaTestingWithDatabases {
                     "com.mysql.jdbc.Driver",
                     "jdbc:mysql://localhost/test",
                     ImmutableMap.of(
-                            "user", "test",
+                            "username", "test",
                             "password", "secret"
                     )
             );

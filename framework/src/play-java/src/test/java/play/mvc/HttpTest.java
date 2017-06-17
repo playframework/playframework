@@ -151,7 +151,7 @@ public class HttpTest {
         withApplication((app) -> {
             JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
-            Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false);
+            Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false, null);
             RequestBuilder rb = new RequestBuilder().cookie(frCookie);
             Context ctx = new Context(rb, contextComponents);
             // Start off as 'en' with no cookie set

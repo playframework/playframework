@@ -32,3 +32,7 @@ GET   /:page                controllers.Application.show(page)
 GET   /api/list-all         controllers.Api.list(version ?= null)
 # #optional
 
+# #nocsrf
++ nocsrf
+POST  /api/new              controllers.Api.newThing()
+# #nocsrf

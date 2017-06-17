@@ -9,7 +9,7 @@ import play.core.ApplicationProvider
 import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext, X509TrustManager }
 import java.security.KeyStore
 import java.security.cert.X509Certificate
-import java.io.{ FileInputStream, File }
+import java.io.File
 import play.api.Logger
 import scala.util.control.NonFatal
 import play.utils.PlayIO
@@ -38,7 +38,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
       val algorithm = if (keyStoreConfig.hasPath("algorithm")) keyStoreConfig.getString("algorithm") else KeyManagerFactory.getDefaultAlgorithm
       val file = new File(path)
       if (file.isFile) {
-        val in = new FileInputStream(file)
+        val in = java.nio.file.Files.newInputStream(file.toPath)
         try {
           keyStore.load(in, password)
           logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)

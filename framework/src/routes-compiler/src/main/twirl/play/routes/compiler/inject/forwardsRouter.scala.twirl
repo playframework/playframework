@@ -10,10 +10,8 @@
 
 @for(p <- pkg) {package @p}
 
-import play.api.routing.HandlerDef
 import play.core.routing._
 import play.core.routing.HandlerInvokerFactory._
-import play.core.j._
 
 import play.api.mvc._
 @for(i <- imports) {
@@ -32,8 +30,6 @@ class Routes(
     @dep.ident: @dep.clazz}
   ) = this(errorHandler, @for(dep <- deps){@dep.ident, }"/")
 
-  import ReverseRouteContext.empty
-
   def withPrefix(prefix: String): Routes = @ob
     @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
     new Routes(errorHandler, @for(dep <- deps){@dep.ident, }prefix)
@@ -45,8 +41,8 @@ class Routes(
 
   def documentation = List(@for((dep, index) <- rules.zipWithIndex) {
     @dep.rule match {
-      case Route(verb, path, call, _) if path.parts.isEmpty => {(@tq@verb@tq, this.prefix, @tq@call@tq)}
-      case Route(verb, path, call, _) => {(@tq@verb@tq, this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
+      case Route(verb, path, call, _, _) if path.parts.isEmpty => {(@tq@verb@tq, this.prefix, @tq@call@tq)}
+      case Route(verb, path, call, _, _) => {(@tq@verb@tq, this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
       case include: Include => {prefixed_@(dep.ident)_@(index).router.documentation}
   },}
     Nil
@@ -56,21 +52,22 @@ class Routes(
   }}
 
 @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
-case route @ Route(verb, path, call, comments) => {
+case route @ Route(verb, path, call, comments, modifiers) => {
   @markLines(route)
   private[this] lazy val @routeIdentifier(route, index) = Route("@verb.value",
     PathPattern(List(StaticPart(this.prefix)@if(path.parts.nonEmpty) {, StaticPart(this.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
   )
   private[this] lazy val @invokerIdentifier(route, index) = createInvoker(
     @injectedControllerMethodCall(route, dep.ident, p => s"fakeValue[${p.typeName}]"),
-    HandlerDef(this.getClass.getClassLoader,
+    play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "@for(p <- pkg) {@p}",
       "@(call.packageName).@call.controller",
       "@call.method",
       @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
       "@verb",
+      this.prefix + @encodeStringConstant(path.toString),
       @encodeStringConstant(comments.map(_.comment).mkString("\n")),
-      this.prefix + @encodeStringConstant(path.toString)
+      Seq(@modifiers.map(_.value).map(encodeStringConstant).mkString(", "))
     )
   )
 }
@@ -87,7 +84,7 @@ case include @ Include(path, router) => {
     @markLines(include)
     case prefixed_@(dep.ident)_@(index)(handler) => handler
   }
-  case route @ Route(_, _, _, _) => {
+  case route: Route => {
     @markLines(route)
     case @(routeIdentifier(route, index))(params) =>
       call@(routeBinding(route)) @ob @localNames(route)

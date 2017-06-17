@@ -5,10 +5,8 @@ package play.routing;
 
 import org.junit.BeforeClass;
 import play.Application;
-import play.DefaultApplication;
-import play.api.ApplicationLoader;
-import play.inject.DelegateInjector;
-import play.inject.Injector;
+import play.ApplicationLoader;
+import play.filters.components.NoHttpFiltersComponents;
 
 public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
@@ -17,10 +15,9 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
     @BeforeClass
     public static void startApp() {
-        play.api.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple()).underlying();
+        play.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple());
         components = new TestComponents(context);
-        Injector injector = new DelegateInjector(components.injector());
-        application = new DefaultApplication(components.application(), injector);
+        application = components.application();
     }
 
     @Override
@@ -33,15 +30,15 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
         return application;
     }
 
-    private static class TestComponents extends RoutingDslComponentsFromContext {
+    private static class TestComponents extends RoutingDslComponentsFromContext implements NoHttpFiltersComponents {
 
         TestComponents(ApplicationLoader.Context context) {
             super(context);
         }
 
         @Override
-        public play.api.routing.Router router() {
-            return routingDsl().build().asScala();
+        public Router router() {
+            return routingDsl().build();
         }
     }
 }

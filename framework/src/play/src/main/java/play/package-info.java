@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-
 /**
  * Provides the Play framework's publicly accessible Java API.
  *

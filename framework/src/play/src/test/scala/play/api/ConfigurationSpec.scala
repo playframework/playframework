@@ -118,7 +118,7 @@ class ConfigurationSpec extends Specification {
     }
 
     "fail if application.conf is not found" in {
-      def load(mode: Mode.Mode) = {
+      def load(mode: Mode) = {
         // system classloader should not have an application.conf
         Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, mode))
       }

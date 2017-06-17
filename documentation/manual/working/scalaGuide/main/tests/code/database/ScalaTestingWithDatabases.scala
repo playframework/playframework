@@ -31,7 +31,7 @@ class ScalaTestingWithDatabases extends Specification {
         url = "jdbc:mysql://localhost/test",
         name = "mydatabase",
         config = Map(
-          "user" -> "test",
+          "username" -> "test",
           "password" -> "secret"
         )
       )
@@ -66,7 +66,7 @@ class ScalaTestingWithDatabases extends Specification {
           url = "jdbc:mysql://localhost/test",
           name = "mydatabase",
           config = Map(
-            "user" -> "test",
+            "username" -> "test",
             "password" -> "secret"
           )
         )(block)

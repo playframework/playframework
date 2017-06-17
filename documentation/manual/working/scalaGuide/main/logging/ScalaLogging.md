@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](http://logback.qos.ch/) as the default logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](https://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
@@ -33,7 +33,7 @@ The logging API allows logging requests to print to one or many output destinati
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> Note: For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
+> Note: For further information on architecture, see the [Logback documentation](https://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
 First import the `Logger` class and companion object:
@@ -75,7 +75,7 @@ A common strategy for logging application events is to use a distinct logger per
 
 ### Using Markers and Marker Contexts
 
-The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
+The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
 
 The Logger API provides access to markers through the `play.api.MarkerContext` trait.
 
@@ -99,24 +99,29 @@ For convenience, there is an implicit conversion available from a `Marker` to a 
 
 @[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
 
-Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
 
+@[logging-request-context-trait](code/ScalaLoggingSpec.scala)
+
+And then used in a controller and carried through `Future` that may use different execution contexts:
+
+@[logging-log-info-with-request-context](code/ScalaLoggingSpec.scala)
+
+Note that marker contexts are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels.  For example, you can add a marker only when certain conditions are met:
+
+@[logging-log-trace-with-tracer-controller](code/ScalaLoggingSpec.scala)
+
+And then trigger logging with the following TurboFilter in `logback.xml`: 
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+  <Name>TRACER_FILTER</Name>
+  <Marker>TRACER</Marker>
+  <OnMatch>ACCEPT</OnMatch>
+</turboFilter>
 ```
-implicit def requestToMarkerContext[A](request: Request[A]): MarkerContext = {
-  import net.logstash.logback.marker.LogstashMarker
-  import net.logstash.logback.marker.Markers._
 
-  val requestMarkers: LogstashMarker = append("host", request.host)
-    .and(append("path", request.path))
-
-  MarkerContext(requestMarkers)
-}
-
-def index = Action { request =>  
-  logger.debug("index: ")(request)
-  Ok("testing")
-}
-```
+For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
 ### Logging patterns
 

@@ -8,7 +8,6 @@ import play.api.test._
 
 class GzipEncoding extends PlaySpecification {
 
-  //#filters
   import javax.inject.Inject
 
   import play.api.http.DefaultHttpFilters
@@ -16,7 +15,6 @@ class GzipEncoding extends PlaySpecification {
 
   class Filters @Inject() (gzipFilter: GzipFilter)
       extends DefaultHttpFilters(gzipFilter)
-  //#filters
 
   "gzip filter" should {
 
@@ -25,6 +23,7 @@ class GzipEncoding extends PlaySpecification {
       import play.api.mvc._
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
+        def Action = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter =
         //#should-gzip
@@ -44,6 +43,7 @@ class GzipEncoding extends PlaySpecification {
       val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
         implicit val mat = ActorMaterializer()(app.actorSystem)
+        def Action = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter = (new CustomFilters(mat)).filters()(0)
 

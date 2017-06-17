@@ -37,12 +37,16 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
 * **Short description:** A plugin for SBT that uses sbt-web to compile typescript resources
 
+### play-webpack Plugin
+* **Website:** <https://github.com/BowlingX/play-webpack>
+* **Short description:** A plugin for SBT to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
+
 ## Authentication (Login & Registration) and Authorization (Restricted Access)
 
 ### Silhouette (Scala)
 
-* **Website:** <http://www.silhouette.rocks/>
-* **Documentation:** <http://www.silhouette.rocks/docs/>
+* **Website:** <https://www.silhouette.rocks/>
+* **Documentation:** <https://www.silhouette.rocks/docs/>
 * **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
 ### Deadbolt 2 Plugin
@@ -173,7 +177,19 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/mumoshu/play2-memcached>
 * **Short description:** Provides a memcached based cache implementation
 
+## Task Schedulers
 
+### Akka Quartz Scheduler
+
+* **Website**: <https://github.com/enragedginger/akka-quartz-scheduler>
+* **Documentation**: <https://github.com/enragedginger/akka-quartz-scheduler/blob/master/README.md>
+* **Short description**: Quartz Extension and utilities for cron-style scheduling in Akka
+
+### play-akkjobs
+
+* **Website**: <https://github.com/tuxBurner/play-akkjobs>
+* **Documentation**: <https://github.com/tuxBurner/play-akkjobs/blob/master/README.md>
+* **Short description**: A simple Play 2.5 module, which allows you to manage jobs
 
 ## Templates and View
 
@@ -213,7 +229,6 @@ to Twirl
 * **Website:** <https://github.com/andriykuba/play-handlebars>
 * **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
 * **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
-
 
 ## Utilities
 

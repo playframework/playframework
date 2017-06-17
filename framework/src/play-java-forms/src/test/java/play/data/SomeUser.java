@@ -9,8 +9,13 @@ import play.data.validation.Constraints.Email;
 import play.data.validation.Constraints.MaxLength;
 import play.data.validation.Constraints.MinLength;
 import play.data.validation.Constraints.Required;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.Validatable;
 
-public class SomeUser {
+import play.data.validation.ValidationError;
+
+@Validate
+public class SomeUser implements Validatable<ValidationError> {
 
     @Required(groups = {Default.class, LoginCheck.class})
     @Email(groups = {LoginCheck.class})
@@ -74,6 +79,14 @@ public class SomeUser {
 
     public void setRepeatPassword(String repeatPassword) {
         this.repeatPassword = repeatPassword;
+    }
+
+    @Override
+    public ValidationError validate() {
+        if (this.password != null && this.repeatPassword != null && !this.password.equals(this.repeatPassword)) {
+            return new ValidationError("password", "Passwords do not match");
+        }
+        return null;
     }
 
 }

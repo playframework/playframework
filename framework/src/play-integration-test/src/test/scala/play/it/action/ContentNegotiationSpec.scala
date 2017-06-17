@@ -10,7 +10,7 @@ import play.api.test.{ FakeRequest, PlaySpecification }
 
 import scala.concurrent.Future
 
-class ContentNegotiationSpec extends PlaySpecification with BaseController {
+class ContentNegotiationSpec extends PlaySpecification with ControllerHelpers {
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()

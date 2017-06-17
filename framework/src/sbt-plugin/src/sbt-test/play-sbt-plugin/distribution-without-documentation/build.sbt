@@ -13,7 +13,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += guice
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.8")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.11.11")
 
 play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false
 

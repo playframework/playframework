@@ -32,4 +32,9 @@ public interface CookieSigner {
      * @return A hexadecimal encoded signature.
      */
     String sign(String message, byte[] key);
+
+    /**
+     * @return The Scala version for this cookie signer.
+     */
+    play.api.libs.crypto.CookieSigner asScala();
 }

@@ -172,7 +172,7 @@ Circular dependencies happen when one of your components depends on another comp
 
 @[circular](code/RuntimeDependencyInjection.scala)
 
-In this case, `Foo` depends on `Bar`, which depends on `Baz`, which depends on `Foo`. So you won't be able to instantate any of these classes. You can work around this problem by using a `Provider`:
+In this case, `Foo` depends on `Bar`, which depends on `Baz`, which depends on `Foo`. So you won't be able to instantiate any of these classes. You can work around this problem by using a `Provider`:
 
 @[circular-provider](code/RuntimeDependencyInjection.scala)
 

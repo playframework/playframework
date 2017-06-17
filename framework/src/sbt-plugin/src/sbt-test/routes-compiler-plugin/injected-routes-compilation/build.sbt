@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.1")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.2")
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"
@@ -37,6 +37,8 @@ managedResourceDirectories in TestAssets += target.value / "web" / "jsrouter"
 sourcePositionMappers := Nil
 
 routesGenerator := play.routes.compiler.InjectedRoutesGenerator
+
+play.sbt.routes.RoutesKeys.routesImport := Seq()
 
 compile in Compile := {
   (compile in Compile).result.value match {

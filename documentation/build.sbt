@@ -14,7 +14,9 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       version := PlayVersion.current,
       libraryDependencies ++= Seq(
         "com.h2database" % "h2" % "1.4.191" % Test,
-        "org.mockito" % "mockito-core" % "1.9.5" % "test"
+        "org.mockito" % "mockito-core" % "1.9.5" % "test",
+        // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
+        "net.logstash.logback" % "logstash-logback-encoder" % "4.9" % "test"
       ),
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
@@ -40,7 +42,7 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       // Don't include sbt files in the resources
       excludeFilter in(Test, unmanagedResources) := (excludeFilter in(Test, unmanagedResources)).value || "*.sbt",
 
-      crossScalaVersions := Seq(PlayVersion.scalaVersion, "2.11.8"),
+      crossScalaVersions := Seq(PlayVersion.scalaVersion, "2.11.11"),
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
@@ -54,7 +56,7 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       playProject("Play-Java-Forms") % "test",
       playProject("Play-Java-JPA") % "test",
       playProject("Play-Guice") % "test",
-      playProject("Play-Cache") % "test",
+      playProject("Play-Ehcache") % "test",
       playProject("Play-AHC-WS") % "test",
       playProject("Play-OpenID") % "test",
       playProject("Filters-Helpers") % "test",

@@ -28,7 +28,7 @@ public class JavaEmbeddingPlay {
     @Test
     public void simple() throws Exception {
         //#simple
-        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
                 .GET("/hello/:to").routeTo(to ->
                         ok("Hello " + to)
                 )
@@ -58,7 +58,7 @@ public class JavaEmbeddingPlay {
     @Test
     public void config() throws Exception {
         //#config
-        Server server = Server.forRouter((components) -> new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents())
+        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
                 .GET("/hello/:to").routeTo(to ->
                         ok("Hello " + to)
                 )

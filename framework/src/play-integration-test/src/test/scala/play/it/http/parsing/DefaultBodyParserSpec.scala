@@ -49,10 +49,14 @@ class DefaultBodyParserSpec extends PlaySpecification {
       }
     }
 
+    "parse unknown empty bodies as empty for PUT requests" in new WithApplication() {
+      parse("PUT", None, ByteString.empty) must_== Right(AnyContentAsEmpty)
+    }
+
     "parse unknown bodies as raw for PUT requests" in new WithApplication() {
-      parse("PUT", None, ByteString.empty) must beRight.like {
+      parse("PUT", None, ByteString("abc")) must beRight.like {
         case AnyContentAsRaw(rawBuffer) => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes must beEmpty
+          case outBytes => outBytes must_== ByteString("abc")
         }
       }
     }

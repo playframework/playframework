@@ -3,12 +3,10 @@
  */
 package play.api
 
-import play.api.i18n.{ I18nComponents, I18nModule }
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
 import play.api.inject.{ DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
 import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
-import play.core.j.{ DefaultJavaContextComponents, JavaHelpers }
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -87,7 +85,7 @@ object ApplicationLoader {
           override def load(context: ApplicationLoader.Context): Application = {
             val javaContext = new play.ApplicationLoader.Context(context)
             val javaApplication = javaApplicationLoader.load(javaContext)
-            javaApplication.getWrappedApplication
+            javaApplication.asScala()
           }
         }
         new JavaApplicationLoaderAdapter
@@ -121,7 +119,7 @@ object ApplicationLoader {
 /**
  * Helper that provides all the built in components dependencies from the application loader context
  */
-abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents with I18nComponents {
+abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
   lazy val environment = context.environment
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
@@ -131,8 +129,5 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
     defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
   )
-
-  override lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + cookieSigner +
-    csrfTokenSigner + httpConfiguration + tempFileCreator + messagesApi + langs + javaContextComponents + fileMimeTypes
 }
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.ws;
 
 import akka.stream.javadsl.Source;
@@ -21,6 +24,8 @@ public interface WSRequest extends StandaloneWSRequest {
      * @return a promise to the response
      */
     CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
+
 
     /**
      * Perform a POST on the request asynchronously.

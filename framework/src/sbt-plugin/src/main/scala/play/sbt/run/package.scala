@@ -3,7 +3,7 @@
  */
 package play.sbt
 import sbt._
-import play.runsupport.LoggerProxy
+import play.dev.filewatch.LoggerProxy
 
 package object run {
   import scala.language.implicitConversions

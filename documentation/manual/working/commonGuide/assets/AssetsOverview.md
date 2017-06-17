@@ -46,6 +46,12 @@ When you package your application, all assets for the application, including all
 
 Play comes with a built-in controller to serve public assets. By default, this controller provides caching, ETag, gzip and compression support. There are two different styles that the Assets controller supports: the first is to use Play's configuration, and the second is to use pass the assets path directly to the controller.
 
+### Binding the Assets components
+
+If you are using runtime dependency injection, Play already provides bindings in the `AssetsModule`, which is loaded by default. (If you are not using assets, you can disable this module by adding the configuration `play.modules.disabled += controllers.AssetsModule`.). The bindings there make `Assets` class injectable.
+
+If you are using components traits to do compile-time dependency injection, you should mix in `controllers.AssetsComponents`. Then the controller will be available as `assets: Assets`. You do not need to construct the controller yourself.
+
 ### Using assets with configuration
 
 For the most common case where you only have one place where assets are centrally located, you can use configuration to specify the location:

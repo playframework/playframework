@@ -100,16 +100,16 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager plugin for more information.
+Please consult the [documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/) on the native packager plugin for more information.
 
 ### Build a server distribution
 
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html#default-mappings)
+* [Default folders](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_server/index.html#default-mappings)
 
-A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html).
+A full documentation can be found in the [documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
@@ -152,7 +152,7 @@ s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
 
-Please see the sbt-native-packager [page on Play](http://www.scala-sbt.org/sbt-native-packager/recipes/play.html?highlight=play) for more details.
+Please see the sbt-native-packager [page on Play](http://sbt-native-packager.readthedocs.io/en/v1.2.0/recipes/play.html) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
@@ -160,7 +160,7 @@ To prevent Play from creating a PID just set the property to `/dev/null`:
 -Dpidfile.path=/dev/null
 ```
 
-For a full list of replacements take a closer look at the [customize java server documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/customize.html) and [customize java app documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html).
+For a full list of replacements take a closer look at the [customize java server documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_server/customize.html) and [customize java app documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
 
@@ -198,7 +198,7 @@ $ sbt
 [info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sources.jar ...
 [info] Done packaging.
 [info] Wrote /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.pom
-[info] Resolving jline#jline;2.12.1 ...
+[info] Resolving jline#jline;2.12.2 ...
 [info] Done updating.
 [info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.11/api...
 [info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.11/classes...

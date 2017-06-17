@@ -8,8 +8,8 @@ POST        /submit          controllers.Application.submit
 
 POST        /contact/save    controllers.Application.saveContact
 
-GET         /messages        controllers.MessagesController.index
+GET         /messages        controllers.FormController.index
 
-GET         /messageRequest  controllers.MessagesRequestController.index
+GET         /messageRequest  controllers.FormController.index
 
-POST        /messageRequest  controllers.MessagesRequestController.post
+POST        /messageRequest  controllers.FormController.post

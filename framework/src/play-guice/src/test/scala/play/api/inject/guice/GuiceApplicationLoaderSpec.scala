@@ -10,6 +10,7 @@ import play.api.i18n.I18nModule
 import play.{ Environment => JavaEnvironment }
 import play.api.{ ApplicationLoader, Configuration, Environment }
 import play.api.inject.{ BuiltinModule, DefaultApplicationLifecycle }
+import play.api.mvc.CookiesModule
 
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
@@ -31,7 +32,7 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
 
     "allow replacing automatically loaded modules" in {
-      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new I18nModule, new ManualTestModule)
+      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new I18nModule, new CookiesModule, new ManualTestModule)
       val loader = new GuiceApplicationLoader(builder)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Foo] must beAnInstanceOf[ManualFoo]
@@ -71,9 +72,7 @@ class GuiceApplicationLoaderSpec extends Specification {
   def fakeContextWithModule(module: Class[_ <: AbstractModule]) = {
     val f = fakeContext
     val c = f.initialConfiguration
-    val newModules: Seq[String] = c.getStringSeq("play.modules.enabled").fold(Seq.empty[String]) { oldModules =>
-      oldModules :+ module.getName
-    }
+    val newModules: Seq[String] = c.get[Seq[String]]("play.modules.enabled") :+ module.getName
     val modulesConf = Configuration("play.modules.enabled" -> newModules)
     val combinedConf = f.initialConfiguration ++ modulesConf
     f.copy(initialConfiguration = combinedConf)

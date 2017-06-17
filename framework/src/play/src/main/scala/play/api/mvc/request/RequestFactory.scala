@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.api.mvc.request
 
 import javax.inject.Inject
@@ -90,8 +93,8 @@ class DefaultRequestFactory @Inject() (
 
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
-    new DefaultSessionCookieBaker(config.session, new CookieSignerProvider(SecretConfiguration()).get),
-    new DefaultFlashCookieBaker(config.flash, config.session, new CookieSignerProvider(SecretConfiguration()).get)
+    new DefaultSessionCookieBaker(config.session, config.secret, new CookieSignerProvider(config.secret).get),
+    new DefaultFlashCookieBaker(config.flash, config.secret, new CookieSignerProvider(config.secret).get)
   )
 
   override def createRequestHeader(
@@ -109,11 +112,11 @@ class DefaultRequestFactory @Inject() (
     }
     val sessionCell = new LazyCell[Session] {
       override protected def emptyMarker: Session = null
-      override protected def create: Session = sessionBaker.decodeFromCookie(cookieCell.value.get(Session.COOKIE_NAME))
+      override protected def create: Session = sessionBaker.decodeFromCookie(cookieCell.value.get(sessionBaker.COOKIE_NAME))
     }
     val flashCell = new LazyCell[Flash] {
       override protected def emptyMarker: Flash = null
-      override protected def create: Flash = flashBaker.decodeFromCookie(cookieCell.value.get(Flash.COOKIE_NAME))
+      override protected def create: Flash = flashBaker.decodeFromCookie(cookieCell.value.get(flashBaker.COOKIE_NAME))
     }
     val updatedAttrMap = attrs + (
       RequestAttrKey.Id -> requestId,

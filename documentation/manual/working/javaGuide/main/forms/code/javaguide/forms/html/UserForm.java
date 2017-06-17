@@ -12,19 +12,19 @@ public class UserForm {
     private List<String> emails;
 
     public void setName(String name) {
-    	this.name = name;
+        this.name = name;
     }
 
     public String getName() {
-    	return name;
+        return name;
     }
 
     public void setEmails(List<String> emails) {
-    	this.emails = emails;
+        this.emails = emails;
     }
 
     public List<String> getEmails() {
-    	return emails;
+        return emails;
     }
 
 }

@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring logging
 
-Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
+Play uses SLF4J for logging, backed by [Logback](https://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](https://logback.qos.ch/manual/configuration.html) for details on configuration.
 
 ## Default configuration
 
@@ -17,7 +17,7 @@ A few things to note about these configurations:
 
 * These default configs specify only a console logger which outputs only 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
-* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](http://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* For production, the default config puts the console logger behind the logback [AsyncAppender](https://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](http://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
 
 To add a file logger, add the following appender to your `conf/logback.xml` file:
 
@@ -45,6 +45,20 @@ Add the necessary appender(s) to the root:
 </root>
 ```
 
+## Security Logging
+
+A security marker has been added for security related operations in Play, and failed security checks now log  at WARN level, with the security marker set.  This ensures that developers always know why a particular request is failing, which is important now that security filters are enabled by default in Play.
+
+The security marker also allows security failures to be triggered or filtered distinct from normal logging.  For example, to disable all logging with the SECURITY marker set, add the following lines to the `logback.xml` file:
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+    <Marker>SECURITY</Marker>
+    <OnMatch>DENY</OnMatch>
+</turboFilter>
+```
+
+In addition, log events using the security marker can also trigger a message to a Security Information & Event Management (SEIM) engine for further processing.
 
 ## Using a custom application loader
 
@@ -90,7 +104,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/web/logs/application.log</file>
+        <file>${application.home:-.}/logs/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
             <fileNamePattern>application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -117,7 +131,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
     </appender>
 
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/web/logs/access.log</file>
+        <file>${application.home:-.}/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover with compression -->
             <fileNamePattern>access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -150,7 +164,7 @@ This demonstrates a few useful features:
 - It writes log files to a directory external to the application so they will not affected by upgrades, etc.
 - The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
 - The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
-- Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](http://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
+- Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](https://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.
 
 > **Note**: the `file` tag is optional and you can omit it if you want to avoid file renaming. See [Logback docs](https://logback.qos.ch/codes.html#renamingError) for more information.
@@ -184,7 +198,7 @@ Akka system logging can be done by changing the `akka` logger to INFO.
 <logger name="actors.MyActor" level="DEBUG" />
 ```
 
-You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.  For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](http://doc.akka.io/docs/akka/current/scala/logging.html).
+You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.  For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](http://doc.akka.io/docs/akka/2.5/scala/logging.html).
 
 ## Using a Custom Logging Framework
 
@@ -216,7 +230,8 @@ play.logger.configurator=Log4J2LoggerConfigurator
 
 And then extend LoggerConfigurator with any customizations:
 
-@[log4j2-import](code/Log4j2LoggerConfigurator.scala)
+Java
+: @[log4j2-class](code/JavaLog4JLoggerConfigurator.java)
 
-@[log4j2-class](code/Log4j2LoggerConfigurator.scala)
-
+Scala
+: @[log4j2-class](code/Log4j2LoggerConfigurator.scala)

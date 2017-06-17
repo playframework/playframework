@@ -9,12 +9,12 @@ import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
 import akka.stream._
 import akka.util.{ ByteString, Timeout }
-import org.openqa.selenium._
+import org.openqa.selenium.WebDriver
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import play.api._
 import play.api.http._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Langs, MessagesApi }
+import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files
 import play.api.libs.json.{ JsValue, Json }
@@ -38,6 +38,21 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX = classOf[FirefoxDriver]
 
   /**
+   * Returns `true` if this application needs to run sequentially, rather than in parallel with other applications.
+   * Typically that means the application and/or test relies on some global state, so this defaults to the
+   * globalApplicationEnabled setting. This method is provided so the behavior can be customized if needed.
+   */
+  protected def shouldRunSequentially(app: Application): Boolean = app.globalApplicationEnabled
+
+  private[play] def runSynchronized[T](app: Application)(block: => T): T = {
+    if (shouldRunSequentially(app)) {
+      PlayRunners.mutex.synchronized(block)
+    } else {
+      block
+    }
+  }
+
+  /**
    * The base builder used in the running method.
    */
   lazy val baseApplicationBuilder = new GuiceApplicationBuilder()
@@ -51,7 +66,7 @@ trait PlayRunners extends HttpVerbs {
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
-    PlayRunners.mutex.synchronized {
+    runSynchronized(app) {
       try {
         Play.start(app)
         block
@@ -70,7 +85,7 @@ trait PlayRunners extends HttpVerbs {
    * Executes a block of code in a running server.
    */
   def running[T](testServer: TestServer)(block: => T): T = {
-    PlayRunners.mutex.synchronized {
+    runSynchronized(testServer.application) {
       try {
         testServer.start()
         block
@@ -92,7 +107,7 @@ trait PlayRunners extends HttpVerbs {
    */
   def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
-    PlayRunners.mutex.synchronized {
+    runSynchronized(testServer.application) {
       try {
         testServer.start()
         browser = TestBrowser(webDriver, None)
@@ -154,6 +169,12 @@ trait Writeables {
 
   implicit def writeableOf_AnyContentAsEmpty(implicit code: Codec): Writeable[AnyContentAsEmpty.type] =
     Writeable(_ => ByteString.empty, None)
+
+  implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
+
+  implicit def writeableOf_AnyContentAsMultipartForm(contentType: Option[String])(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(codec, contentType).map(_.mfd)
 }
 
 trait DefaultAwaitTimeout {
@@ -365,7 +386,14 @@ trait ResultExtractors {
    * different because the Play server automatically adds those cookies and merges the headers.
    */
   def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = {
-    Await.result(of.map(result => Cookies(result.newCookies))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map { result =>
+      val cookies = result.newCookies
+      new Cookies {
+        lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).mapValues(_.head)
+        override def get(name: String): Option[Cookie] = cookiesByName.get(name)
+        override def foreach[U](f: Cookie => U): Unit = cookies.foreach(f)
+      }
+    }(play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -377,7 +405,7 @@ trait ResultExtractors {
    * Extracts the Flash values set by this Result value.
    */
   def flash(of: Future[Result])(implicit timeout: Timeout): Flash = {
-    Await.result(of.map(_.newFlash.getOrElse(Flash.emptyCookie))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map(_.newFlash.getOrElse(new Flash()))(play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -389,7 +417,7 @@ trait ResultExtractors {
    * Extracts the Session values set by this Result value.
    */
   def session(of: Future[Result])(implicit timeout: Timeout): Session = {
-    Await.result(of.map(_.newSession.getOrElse(Session.emptyCookie))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map(_.newSession.getOrElse(new Session()))(play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -446,9 +474,68 @@ trait StubPlayBodyParsersFactory {
    * @param mat the input materializer.
    * @return a minimal PlayBodyParsers for unit testing.
    */
-  def stubPlayBodyParsers(mat: Materializer): PlayBodyParsers = {
+  def stubPlayBodyParsers(implicit mat: Materializer): PlayBodyParsers = {
     val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
-    PlayBodyParsers(ParserConfiguration(), errorHandler, mat, NoTemporaryFileCreator)
+    PlayBodyParsers(NoTemporaryFileCreator, errorHandler)
+  }
+
+}
+
+trait StubMessagesFactory {
+
+  /**
+   * @return a stub Langs
+   * @param availables default as Seq(Lang.defaultLang).
+   */
+  def stubLangs(availables: Seq[Lang] = Seq(Lang.defaultLang)): Langs = {
+    new DefaultLangs(availables)
+  }
+
+  /**
+   * Returns a stub DefaultMessagesApi with default values and an empty map.
+   *
+   * @param messages map of languages to map of messages, empty by default.
+   * @param langs stubLangs() by default
+   * @param langCookieName "PLAY_LANG" by default
+   * @param langCookieSecure false by default
+   * @param langCookieHttpOnly false by default
+   * @param httpConfiguration configuration, HttpConfiguration() by default.
+   * @return the messagesApi with minimal configuration.
+   */
+  def stubMessagesApi(
+    messages: Map[String, Map[String, String]] = Map.empty,
+    langs: Langs = stubLangs(),
+    langCookieName: String = "PLAY_LANG",
+    langCookieSecure: Boolean = false,
+    langCookieHttpOnly: Boolean = false,
+    httpConfiguration: HttpConfiguration = HttpConfiguration()): MessagesApi = {
+    new DefaultMessagesApi(messages, langs, langCookieName, langCookieSecure, langCookieHttpOnly, httpConfiguration)
+  }
+
+  /**
+   * Stub method that returns a [[play.api.i18n.Messages]] instance.
+   *
+   * @param messagesApi the messagesApi to use, uses stubMessagesApi by default.
+   * @param requestHeader the request to use, FakeRequest by default.
+   * @return the Messages instance
+   */
+  def stubMessages(
+    messagesApi: MessagesApi = stubMessagesApi(),
+    requestHeader: RequestHeader = FakeRequest()): Messages = {
+    messagesApi.preferred(requestHeader)
+  }
+
+  /**
+   * Stub method that returns a [[play.api.mvc.MessagesRequest]] instance.
+   *
+   * @param messagesApi the messagesApi to use, uses stubMessagesApi by default.
+   * @param request the request to use, FakeRequest by default.
+   * @return the Messages instance
+   */
+  def stubMessagesRequest(
+    messagesApi: MessagesApi = stubMessagesApi(),
+    request: Request[AnyContentAsEmpty.type] = FakeRequest()): MessagesRequest[AnyContentAsEmpty.type] = {
+    new MessagesRequest[AnyContentAsEmpty.type](request, messagesApi)
   }
 
 }
@@ -469,7 +556,7 @@ trait StubBodyParserFactory {
   }
 }
 
-trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with StubBodyParserFactory {
+trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with StubBodyParserFactory with StubMessagesFactory {
 
   /**
    * Create a minimal controller components, useful for unit testing.
@@ -491,23 +578,23 @@ trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with St
    * @param messagesApi: the messages api, new DefaultMessagesApi() by default.
    * @param langs the langs instance for messaging, new DefaultLangs() by default.
    * @param fileMimeTypes the mime type associated with file extensions, new DefaultFileMimeTypes(FileMimeTypesConfiguration() by default.
-   * @param executionContent an execution context, defaults to ExecutionContext.global
+   * @param executionContext an execution context, defaults to ExecutionContext.global
    * @return a fully configured ControllerComponents instance.
    */
   def stubControllerComponents(
     bodyParser: BodyParser[AnyContent] = stubBodyParser(AnyContentAsEmpty),
     playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(NoMaterializer),
-    messagesApi: MessagesApi = new DefaultMessagesApi(),
-    langs: Langs = new DefaultLangs(),
+    messagesApi: MessagesApi = stubMessagesApi(),
+    langs: Langs = stubLangs(),
     fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
-    executionContent: ExecutionContext = ExecutionContext.global): ControllerComponents = {
+    executionContext: ExecutionContext = ExecutionContext.global): ControllerComponents = {
     DefaultControllerComponents(
-      DefaultActionBuilder(bodyParser)(executionContent),
+      DefaultActionBuilder(bodyParser)(executionContext),
       playBodyParsers,
       messagesApi,
       langs,
       fileMimeTypes,
-      executionContent)
+      executionContext)
   }
 }
 

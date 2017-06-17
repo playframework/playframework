@@ -94,6 +94,13 @@ public interface Cookie extends Comparable<Cookie> {
     int maxAge();
 
     /**
+     * Returns the SameSite attribute of this cookie as a String
+     *
+     * @return The SameSite attribute of the cookie
+     */
+    String sameSite();
+
+    /**
      * Sets the maximum age of this {@link Cookie} in seconds.
      * If an age of {@code 0} is specified, this {@link Cookie} will be
      * automatically removed by browser because it will expire immediately.

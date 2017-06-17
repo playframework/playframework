@@ -63,14 +63,14 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], c
                   val ctx = JavaHelpers.createJavaContext(request, contextComponents)
                   try {
                     Context.current.set(ctx)
-                    route.actionMethod.invoke(route.action, parameters: _*) match {
-                      case result: Result => Future.successful(result.asScala)
+                    val javaResultFuture = route.actionMethod.invoke(route.action, parameters: _*) match {
+                      case result: Result => Future.successful(result)
                       case promise: CompletionStage[_] =>
                         val p = promise.asInstanceOf[CompletionStage[Result]]
-
-                        import play.core.Execution.Implicits.trampoline
-                        FutureConverters.toScala(p).map(_.asScala)
+                        FutureConverters.toScala(p)
                     }
+                    import play.core.Execution.Implicits.trampoline
+                    javaResultFuture.map(JavaHelpers.createResult(ctx, _))
                   } finally {
                     Context.current.remove()
                   }

@@ -42,7 +42,7 @@ public class StandaloneWithConfig {
         final DefaultAsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig);
 
         // Create a new WS client, and then close the client.
-        WSClient client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
+        WSClient client = new AhcWSClient(asyncHttpClient, materializer);
         client.close();
         system.terminate();
         //#ws-standalone-with-config

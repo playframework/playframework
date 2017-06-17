@@ -11,7 +11,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
  * This trait is used to provide a non-blocking timeout on an operation that returns a Future.
  *
- * Please note that the [[play.api.Application]] default ActorSystem should
+ * Please note that the [[play.api.Application]] default [[ActorSystem]] should
  * be used as input here, as the actorSystem.scheduler is responsible for scheduling
  * the timeout, using <a href="http://doc.akka.io/docs/akka/current/scala/futures.html#After">akka.pattern.actor</a> under the hood.
  *
@@ -19,7 +19,7 @@ import scala.concurrent.duration.FiniteDuration
  * timeout after a certain period of time:
  *
  * {{{
- * class MyService @Inject()(actorSystem: ActorSystem) extends Timeout {
+ * class MyService(val actorSystem: ActorSystem) extends Timeout {
  *
  *   def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Int] = {
  *     timeout(actorSystem, timeoutDuration)(rawCalculation())
@@ -33,7 +33,7 @@ import scala.concurrent.duration.FiniteDuration
  * }
  * }}}
  *
- * You should check for timeout by using [[scala.concurrent.Future.recover()]] or [[scala.concurrent.Future.recoverWith()]]
+ * You should check for timeout by using [[Future.recover()]] or [[Future.recoverWith()]]
  * and checking for [[TimeoutException]]:
  *
  * {{{
@@ -44,13 +44,14 @@ import scala.concurrent.duration.FiniteDuration
  * }}}
  *
  * @see [[http://docs.scala-lang.org/overviews/core/futures.html Futures and Promises]]
- *
+ * @deprecated Use an injected [[play.api.libs.concurrent.Futures.timeout]] here.
  */
+@deprecated("Use play.api.libs.concurrent.Futures.timeout", "2.6.0")
 trait Timeout {
 
   /**
    * Creates a future which will resolve to a timeout exception if the
-   * given Future has not successfully completed within timeoutDuration.
+   * given [[Future]] has not successfully completed within timeoutDuration.
    *
    * Note that timeout is not the same as cancellation.  Even in case of timeout,
    * the given future will still complete, even though that completed value
@@ -63,12 +64,8 @@ trait Timeout {
    * @return the future that completes first, either the failed future, or the operation.
    */
   def timeout[A](actorSystem: ActorSystem, timeoutDuration: FiniteDuration)(f: Future[A]): Future[A] = {
-    implicit val ec = actorSystem.dispatchers.defaultGlobalDispatcher
-    val timeoutFuture = akka.pattern.after(timeoutDuration, actorSystem.scheduler) {
-      val msg = s"Timeout after $timeoutDuration"
-      Future.failed(new TimeoutException(msg))
-    }
-    Future.firstCompletedOf(Seq(f, timeoutFuture))
+    val futures = new DefaultFutures(actorSystem)
+    futures.timeout(timeoutDuration)(f)
   }
 
 }
@@ -79,48 +76,8 @@ trait Timeout {
  * {{{
  * import play.api.libs.concurrent.Timeout._
  * }}}
+ *
+ * @deprecated Use an injected [[play.api.libs.concurrent.Futures]].
  */
-object Timeout extends Timeout with LowPriorityTimeoutImplicits
-
-/**
- * Low priority timeouts to add `withTimeout` methods to [[scala.concurrent.Future]].
- */
-trait LowPriorityTimeoutImplicits {
-
-  implicit class FutureTimeout[T](future: Future[T]) extends Timeout {
-
-    /**
-     * Creates a future which will resolve to a timeout exception if the
-     * given [[scala.concurrent.Future]] has not successfully completed within timeoutDuration.
-     *
-     * Note that timeout is not the same as cancellation.  Even in case of timeout,
-     * the given future will still complete, even though that completed value
-     * is not returned.
-     *
-     * @param timeoutDuration the duration after which a Future.failed(TimeoutException) should be thrown.
-     * @param actorSystem the application's actor system.
-     * @return the future that completes first, either the failed future, or the operation.
-     */
-    def withTimeout(timeoutDuration: FiniteDuration)(implicit actorSystem: ActorSystem): Future[T] = {
-      timeout(actorSystem, timeoutDuration)(future)
-    }
-
-    /**
-     * Creates a future which will resolve to a timeout exception if the
-     * given Future has not successfully completed within timeoutDuration.
-     *
-     * This version uses an implicit [[akka.util.Timeout]] rather than a [[scala.concurrent.duration.FiniteDuration]].
-     *
-     * Note that timeout is not the same as cancellation.  Even in case of timeout,
-     * the given future will still complete, even though that completed value
-     * is not returned.
-     *
-     * @param timeoutDuration the duration after which a Future.failed(TimeoutException) should be thrown.
-     * @param actorSystem the application's actor system.
-     * @return the future that completes first, either the failed future, or the operation.
-     */
-    def withTimeout(implicit timeoutDuration: akka.util.Timeout, actorSystem: ActorSystem): Future[T] = {
-      timeout(actorSystem, timeoutDuration.duration)(future)
-    }
-  }
-}
+@deprecated("Use play.api.libs.concurrent.Futures", "2.6.0")
+object Timeout extends Timeout with LowPriorityFuturesImplicits

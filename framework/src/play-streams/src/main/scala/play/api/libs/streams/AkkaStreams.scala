@@ -81,8 +81,8 @@ object AkkaStreams {
    */
   def ignoreAfterFinish[T]: Flow[T, T, _] = Flow[T].via(new GraphStage[FlowShape[T, T]] {
 
-    val in = Inlet[T]("in")
-    val out = Outlet[T]("out")
+    val in = Inlet[T]("AkkaStreams.in")
+    val out = Outlet[T]("AkkaStreams.out")
 
     override def shape: FlowShape[T, T] = FlowShape.of(in, out)
 

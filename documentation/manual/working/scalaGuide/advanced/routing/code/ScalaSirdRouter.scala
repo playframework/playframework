@@ -15,6 +15,8 @@ class ScalaSirdRouter extends Specification {
   import play.api.routing.sird._
   //#imports
 
+  private def Action(block: => Result)(implicit app: play.api.Application) = app.injector.instanceOf[DefaultActionBuilder].apply(block)
+
   "sird router" should {
     "allow a simple match" in new WithApplication {
       //#simple

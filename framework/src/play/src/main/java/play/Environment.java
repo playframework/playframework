@@ -26,7 +26,7 @@ public class Environment {
     }
 
     public Environment(File rootPath, ClassLoader classLoader, Mode mode) {
-        this(new play.api.Environment(rootPath, classLoader, play.api.Mode.apply(mode.ordinal())));
+        this(new play.api.Environment(rootPath, classLoader, mode.asScala()));
     }
 
     public Environment(File rootPath, Mode mode) {
@@ -65,13 +65,7 @@ public class Environment {
      * @return the mode
      */
     public Mode mode() {
-        if (env.mode().equals(play.api.Mode.Prod())) {
-            return Mode.PROD;
-        } else if (env.mode().equals(play.api.Mode.Dev())) {
-            return Mode.DEV;
-        } else {
-            return Mode.TEST;
-        }
+        return env.mode().asJava();
     }
 
     /**
@@ -148,8 +142,21 @@ public class Environment {
      * wraps.
      *
      * @return the environment
+     * @deprecated As of release 2.6.0. Use {@link #asScala()}
      */
+    @Deprecated
     public play.api.Environment underlying() {
         return env;
+    }
+
+    /**
+     * The underlying Scala API Environment object that this Environment
+     * wraps.
+     *
+     * @return the environment
+     * @see play.api.Environment
+     */
+    public play.api.Environment asScala() {
+       return env;
     }
 }

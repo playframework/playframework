@@ -50,7 +50,7 @@ public class WSTestClient {
         ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
         final AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(config);
-        final WSClient client = new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient, materializer));
+        final WSClient client = new AhcWSClient(asyncHttpClient, materializer);
 
         return new WSClient() {
             public Object getUnderlying() {
@@ -76,6 +76,16 @@ public class WSTestClient {
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
+            }
+
+            @Override
+            public play.api.libs.ws.WSClient asScala() {
+                return new play.api.libs.ws.ahc.AhcWSClient(
+                    new play.api.libs.ws.ahc.StandaloneAhcWSClient(
+                        asyncHttpClient,
+                        materializer
+                    )
+                );
             }
         };
     }

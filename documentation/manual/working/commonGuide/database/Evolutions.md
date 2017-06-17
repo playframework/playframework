@@ -9,15 +9,19 @@ When you use a relational database, you need a way to track and organize your da
 
 ## Enable evolutions
 
-Add `evolutions` into your dependencies list. For example, in `build.sbt`:
+Add `evolutions` and `jdbc` into your dependencies list. For example, in `build.sbt`:
 
 ```scala
-libraryDependencies += evolutions
+libraryDependencies ++= Seq(evolutions, jdbc)
 ```
 
 ### Running evolutions using compile-time DI
 
-If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. Since `applicationEvolutions` is a lazy val, you either need to explicitly access that val, for example in your `ApplicationLoader`, or have an explicit dependency from another component to make sure the evolutions run.
+If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. `EvolutionsComponents` requires `dbApi` to be defined, which you can get by mixing in `DBComponents` and `HikariCPComponents` (or `BoneCPComponents` if you are using BoneCP instead). Since `applicationEvolutions` is a lazy val supplied by `EvolutionsComponents`, you need to access that val to make sure the evolutions run. For example you could explicitly access it in your `ApplicationLoader`, or have an explicit dependency from another component.
+
+Your models will need an instance of `Database` to make connections to your database, which can be obtained from `dbApi.database`.
+
+@[compile-time-di-evolutions](code/CompileTimeDIEvolutions.scala)
 
 ## Evolutions scripts
 

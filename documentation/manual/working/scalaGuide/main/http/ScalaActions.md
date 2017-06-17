@@ -3,7 +3,7 @@
 
 ## What is an Action?
 
-Most of the requests received by a Play application are handled by an `Action`. 
+Most of the requests received by a Play application are handled by an `Action`.
 
 A `play.api.mvc.Action` is basically a `(play.api.mvc.Request => play.api.mvc.Result)` function that handles a request and generates a result to be sent to the client.
 
@@ -13,13 +13,13 @@ An action returns a `play.api.mvc.Result` value, representing the HTTP response 
 
 ## Building an Action
 
-The `play.api.mvc.Action` companion object offers several helper methods to construct an Action value. 
+Within any controller extending `BaseController`, the `Action` value is the default action builder. This action builder contains several helpers for creating `Action`s.
 
 The first simplest one just takes as argument an expression block returning a `Result`:
 
 @[zero-arg-action](code/ScalaActions.scala)
 
-This is the simplest way to create an Action, but we don't get a reference to the incoming request. It is often useful to access the HTTP request calling this Action. 
+This is the simplest way to create an Action, but we don't get a reference to the incoming request. It is often useful to access the HTTP request calling this Action.
 
 So there is another Action builder that takes as an argument a function `Request => Result`:
 
@@ -37,7 +37,7 @@ Body parsers will be covered later in this manual.  For now you just need to kno
 
 ## Controllers are action generators
 
-A `Controller` is nothing more than an object that generates `Action` values. Controllers can be defined as classes to take advantage of [[Dependency Injection|ScalaDependencyInjection]] or as objects.
+A controller in Play is nothing more than an object that generates `Action` values. Controllers are typically defined as classes to take advantage of [[Dependency Injection|ScalaDependencyInjection]].
 
 > **Note:** Keep in mind that defining controllers as objects will not be supported in future versions of Play. Using classes is the recommended approach.
 

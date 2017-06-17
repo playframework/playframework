@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
@@ -45,20 +44,21 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       }
       //#basic-logging
       implicit val system = ActorSystem()
-      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
+      implicit val mat = ActorMaterializer()
+      implicit val ec: ExecutionContext = system.dispatcher
+      val parse = PlayBodyParsers()
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
       //#basic-logging-index
-      def index = loggingAction {
-        Ok("Hello World")
+      class MyController @Inject()(loggingAction: LoggingAction) extends Controller {
+        def index = loggingAction {
+          Ok("Hello World")
+        }
       }
       //#basic-logging-index
 
-      testAction(index)
+      testAction(new MyController(loggingAction).index)
 
       //#basic-logging-parse
       def submit = loggingAction(parse.text) { request =>
@@ -67,7 +67,7 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#basic-logging-parse
 
       val request = FakeRequest().withTextBody("hello with the parse")
-      testAction(index, request)
+      testAction(new MyController(loggingAction).index, request)
     }
 
     "Wrapping existing actions" in {
@@ -82,8 +82,8 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
           action(request)
         }
 
-        lazy val parser = action.parser
-        lazy val executionContext = action.executionContext
+        override def parser = action.parser
+        override def executionContext = action.executionContext
       }
       //#actions-class-wrapping
 
@@ -97,10 +97,9 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       //#actions-wrapping-builder
 
       implicit val system = ActorSystem()
-      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parse = PlayBodyParsers(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
+      implicit val mat = ActorMaterializer()
+      implicit val ec: ExecutionContext = system.dispatcher
+      val parse = PlayBodyParsers()
       val parser = new BodyParsers.Default(parse)
       val loggingAction = new LoggingAction(parser)
 
@@ -212,10 +211,9 @@ class ScalaActionsCompositionSpec extends Specification with Controller {
       }
       //#authenticated-action-builder
       implicit val system = ActorSystem()
+      implicit val mat = ActorMaterializer()
       implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val eh: HttpErrorHandler =
-        new DefaultHttpErrorHandler(play.api.Environment.simple(), play.api.Configuration.empty)
-      val parser = new BodyParsers.Default(ParserConfiguration(), eh, ActorMaterializer(), SingletonTemporaryFileCreator)
+      val parser = new BodyParsers.Default()
       val userAction = new UserAction(parser)
 
       def currentUser = userAction { request =>

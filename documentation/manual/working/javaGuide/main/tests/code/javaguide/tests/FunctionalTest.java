@@ -30,7 +30,7 @@ public class FunctionalTest extends WithApplication {
     //#bad-route
     @Test
     public void testBadRoute() {
-        RequestBuilder request = new RequestBuilder()
+        RequestBuilder request = Helpers.fakeRequest()
                 .method(GET)
                 .uri("/xx/Kiwi");
 

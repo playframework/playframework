@@ -1,7 +1,5 @@
 /*
- *
- *  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
- *
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.core.server.ssl
 
@@ -13,9 +11,11 @@ import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
 import play.core.ApplicationProvider
 import play.core.server.ServerConfig
+
 import scala.util.Failure
 import java.io.File
 import javax.net.ssl.SSLEngine
+
 import play.server.api.SSLEngineProvider
 
 class WrongSSLEngineProvider {}
@@ -63,9 +63,13 @@ class ServerSSLEngineSpec extends Specification with Mockito {
   }
 
   def createEngine(engineProvider: Option[String], tempDir: Option[File] = None) = {
-    val app = mock[ApplicationProvider]
-    app.get returns Failure(new Exception("no app"))
-    ServerSSLEngine.createSSLEngineProvider(serverConfig(tempDir.getOrElse(new File(".")), engineProvider), app)
+    val app = mock[play.api.Application]
+    app.classloader returns this.getClass.getClassLoader
+    app.asJava returns mock[play.Application]
+
+    val appProvider = mock[ApplicationProvider]
+    appProvider.get returns scala.util.Success(app) // Failure(new Exception("no app"))
+    ServerSSLEngine.createSSLEngineProvider(serverConfig(tempDir.getOrElse(new File(".")), engineProvider), appProvider)
       .createSSLEngine()
   }
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ */
 package play.libs.concurrent;
 
 import akka.actor.ActorSystem;
@@ -25,7 +28,7 @@ import scala.concurrent.ExecutionContextExecutor;
  * operations that require processing outside of Play's main rendering
  * thread.
  *
- * @see <a href="http://doc.akka.io/docs/akka/current/java/dispatchers.html">Dispatchers</a>
+ * @see <a href="http://doc.akka.io/docs/akka/2.5/java/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  */
 public abstract class CustomExecutionContext implements ExecutionContextExecutor {

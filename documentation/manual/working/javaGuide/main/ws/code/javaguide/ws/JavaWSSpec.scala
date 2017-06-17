@@ -11,7 +11,7 @@ import play.test.Helpers._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsObject
 import javaguide.testhelpers.MockJavaActionHelper
-import javaguide.ws.JavaWS.Controller3
+import javaguide.ws.JavaWS.{Controller3, Controller4}
 
 import org.slf4j.Logger
 import org.specs2.mock.Mockito
@@ -67,6 +67,14 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
 
       result.status() must equalTo(OK)
       there was one(logger).debug("url = http://localhost:3333/feed")
+    }
+
+    "call WS with a timeout" in new WithServer(app = fakeApplication) {
+      val controller = app.injector.instanceOf[Controller4]
+
+      val result = MockJavaActionHelper.call(controller, fakeRequest())
+
+      contentAsString(result) must beEqualTo("Timeout after 1 second")
     }
   }
 

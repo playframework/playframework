@@ -38,7 +38,7 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      * @return a copy of this builder with the new environment
      */
     public final Self in(Environment env) {
-        return newBuilder(delegate.in(env.underlying()));
+        return newBuilder(delegate.in(env.asScala()));
     }
 
     /**
@@ -58,7 +58,7 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      * @return a copy of this build configured with this mode
      */
     public final Self in(Mode mode) {
-        return newBuilder(delegate.in(play.api.Mode.apply(mode.ordinal())));
+        return newBuilder(delegate.in(mode.asScala()));
     }
 
     /**

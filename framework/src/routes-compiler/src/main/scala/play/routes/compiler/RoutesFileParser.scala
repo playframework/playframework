@@ -4,12 +4,12 @@
 package play.routes.compiler
 
 import java.io.File
+import java.nio.charset.Charset
 
 import org.apache.commons.io.FileUtils
 
 import scala.util.parsing.combinator._
 import scala.util.parsing.input._
-
 import scala.language.postfixOps
 
 object RoutesFileParser {
@@ -22,7 +22,7 @@ object RoutesFileParser {
    */
   def parse(routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
 
-    val routesContent = FileUtils.readFileToString(routesFile)
+    val routesContent = FileUtils.readFileToString(routesFile, Charset.defaultCharset())
 
     parseContent(routesContent, routesFile)
   }
@@ -170,23 +170,24 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   def ignoreWhiteSpace: Parser[Option[String]] = opt(whiteSpace)
 
-  // This won't be needed when we upgrade to Scala 2.11, we will then be able to use JavaTokenParser.ident:
-  // https://github.com/scala/scala/pull/1466
-  def javaIdent: Parser[String] = """\p{javaJavaIdentifierStart}\p{javaJavaIdentifierPart}*""".r
-
   def tickedIdent: Parser[String] = """`[^`]+`""".r
 
-  def identifier: Parser[String] = namedError(javaIdent, "Identifier expected")
+  def identifier: Parser[String] = namedError(ident, "Identifier expected")
 
   def tickedIdentifier: Parser[String] = namedError(tickedIdent, "Identifier expected")
 
   def end: util.matching.Regex = """\s*""".r
 
-  def comment: Parser[Comment] = "#" ~> ".*".r ^^ {
-    case c => Comment(c)
+  def comment: Parser[Comment] = "#" ~> ".*".r ^^ Comment.apply
+
+  def modifiers: Parser[List[Modifier]] =
+    "+" ~> ignoreWhiteSpace ~> repsep("""[^#\s]+""".r, separator) <~ ignoreWhiteSpace ^^ (_.map(Modifier.apply))
+
+  def modifiersWithComment: Parser[(List[Modifier], Option[Comment])] = modifiers ~ opt(comment) ^^ {
+    case m ~ c => (m, c)
   }
 
-  def newLine: Parser[String] = namedError((("\r"?) ~> "\n"), "End of line expected")
+  def newLine: Parser[String] = namedError(("\r"?) ~> "\n", "End of line expected")
 
   def blankLine: Parser[Unit] = ignoreWhiteSpace ~> newLine ^^ { case _ => () }
 
@@ -238,7 +239,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case _ ~ parts => PathPattern(parts)
   }
 
-  def space(s: String): Parser[String] = (ignoreWhiteSpace ~> s <~ ignoreWhiteSpace)
+  def space(s: String): Parser[String] = ignoreWhiteSpace ~> s <~ ignoreWhiteSpace
 
   def parameterType: Parser[String] = ":" ~> ignoreWhiteSpace ~> simpleType
 
@@ -284,7 +285,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   // Absolute method consists of a series of Java identifiers representing the package name, controller and method.
   // Since the Scala parser is greedy, we can't easily extract this out, so just parse at least 3
-  def absoluteMethod: Parser[List[String]] = namedError(javaIdent ~ "." ~ javaIdent ~ "." ~ rep1sep(javaIdent, ".") ^^ {
+  def absoluteMethod: Parser[List[String]] = namedError(ident ~ "." ~ ident ~ "." ~ rep1sep(ident, ".") ^^ {
     case first ~ _ ~ second ~ _ ~ rest => first :: second :: rest
   }, "Controller method call expected")
 
@@ -295,7 +296,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
         val packageName = packageParts.mkString(".")
         val className = classAndMethod(0)
         val methodName = classAndMethod(1)
-        val dynamic = !instantiate.isEmpty
+        val dynamic = instantiate.isDefined
         HandlerCall(packageName, className, dynamic, methodName, parameters)
       }
   }
@@ -304,27 +305,35 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case parts => parts.mkString(".")
   }
 
-  def route = httpVerb ~! separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
-    case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
+  def route = httpVerb ~! separator ~ path ~ separator ~ positioned(call) ^^ {
+    case v ~ _ ~ p ~ _ ~ c => Route(v, p, c)
   }
 
-  def include = "->" ~! separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
-    case _ ~ _ ~ p ~ _ ~ r ~ _ => Include(p.toString, r)
+  def include = "->" ~! separator ~ path ~ separator ~ router ^^ {
+    case _ ~ _ ~ p ~ _ ~ r => Include(p.toString, r)
   }
 
-  def sentence: Parser[Product with Serializable] = namedError((comment | positioned(include) | positioned(route)), "HTTP Verb (GET, POST, ...), include (->) or comment (#) expected") <~ (newLine | EOF)
+  def sentence: Parser[Product] = ignoreWhiteSpace ~>
+    namedError(
+      comment | modifiersWithComment | positioned(include) | positioned(route),
+      "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
+    ) <~ ignoreWhiteSpace <~ (newLine | EOF)
 
   def parser: Parser[List[Rule]] = phrase((blankLine | sentence *) <~ end) ^^ {
     case routes =>
-      routes.reverse.foldLeft(List[(Option[Rule], List[Comment])]()) {
-        case (s, r @ Route(_, _, _, _)) => (Some(r), List()) :: s
-        case (s, i @ Include(_, _)) => (Some(i), List()) :: s
-        case (s, c @ ()) => (None, List()) :: s
-        case ((r, comments) :: others, c @ Comment(_)) => (r, c :: comments) :: others
+      routes.reverse.foldLeft(List[(Option[Rule], List[Comment], List[Modifier])]()) {
+        case (s, r @ Route(_, _, _, _, _)) => (Some(r), Nil, Nil) :: s
+        case (s, i @ Include(_, _)) => (Some(i), Nil, Nil) :: s
+        case (s, c @ ()) => (None, Nil, Nil) :: s
+        case ((r, comments, modifiers) :: others, c: Comment) =>
+          (r, c :: comments, modifiers) :: others
+        case ((r, comments, modifiers) :: others, (ms: List[Modifier], c: Option[Comment])) =>
+          (r, c.toList ::: comments, ms ::: modifiers) :: others
         case (s, _) => s
       }.collect {
-        case (Some(r @ Route(_, _, _, _)), comments) => r.copy(comments = comments).setPos(r.pos)
-        case (Some(i @ Include(_, _)), _) => i
+        case (Some(r @ Route(_, _, _, _, _)), comments, modifiers) =>
+          r.copy(comments = comments, modifiers = modifiers).setPos(r.pos)
+        case (Some(i @ Include(_, _)), _, _) => i
       }
   }
 

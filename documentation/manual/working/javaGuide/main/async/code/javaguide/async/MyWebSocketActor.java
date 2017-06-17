@@ -6,7 +6,7 @@ package javaguide.async;
 //#actor
 import akka.actor.*;
 
-public class MyWebSocketActor extends UntypedActor {
+public class MyWebSocketActor extends UntypedAbstractActor {
 
     public static Props props(ActorRef out) {
         return Props.create(MyWebSocketActor.class, out);

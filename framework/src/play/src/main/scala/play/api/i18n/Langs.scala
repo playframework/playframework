@@ -66,17 +66,33 @@ case class Lang(locale: Locale) {
  * Utilities related to Lang values.
  */
 object Lang {
+  import play.api.libs.functional.ContravariantFunctor
+  import play.api.libs.json.{ OWrites, Reads, Writes }
+
+  val jsonOWrites: OWrites[Lang] = implicitly[ContravariantFunctor[OWrites]].contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
+
+  implicit val jsonTagWrites: Writes[Lang] = implicitly[ContravariantFunctor[Writes]].contramap[Locale, Lang](Writes.localeWrites, _.locale)
+
+  val jsonOReads: Reads[Lang] = Reads.localeObjectReads.map(Lang(_))
+
+  implicit val jsonTagReads: Reads[Lang] = Reads.localeReads.map(Lang(_))
 
   /**
-   * The default Lang to use if nothing matches (platform default)
+   * The default Lang to use if nothing matches (platform default).
+   *
+   * Pre 2.6.x, defaultLang was an implicit value, meaning that it could be used in implicit scope
+   * resolution if no Lang was found in local scope.  This setting was too general and resulted
+   * in bugs where the defaultLang was being used instead of a request.lang, if request was not
+   * declared as implicit.
    */
-  implicit lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
+  lazy val defaultLang: Lang = Lang(java.util.Locale.getDefault)
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
    *  throw exception if language is unrecognized
    */
-  def apply(code: String): Lang = Lang(new Locale.Builder().setLanguageTag(code).build())
+  def apply(code: String): Lang =
+    Lang(new Locale.Builder().setLanguageTag(code).build())
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
@@ -97,27 +113,6 @@ object Lang {
   def get(code: String): Option[Lang] = Try(apply(code)).toOption
 
   private val langsCache = Application.instanceCache[Langs]
-
-  /**
-   * Retrieve Lang availables from the application configuration.
-   *
-   * {{{
-   * play.i18n.langs = ["fr", "en", "de"]
-   * }}}
-   */
-  @deprecated("Inject Langs into your component", "2.5.0")
-  def availables(implicit app: Application): Seq[Lang] = {
-    langsCache(app).availables
-  }
-
-  /**
-   * Guess the preferred lang in the langs set passed as argument.
-   * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.
-   */
-  @deprecated("Inject Langs into your component", "2.5.0")
-  def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
-    langsCache(app).preferred(langs)
-  }
 }
 
 /**
@@ -143,6 +138,11 @@ trait Langs {
    * none of the candidates are available.
    */
   def preferred(candidates: Seq[Lang]): Lang
+
+  /**
+   * @return the Java version for this Langs.
+   */
+  def asJava: play.i18n.Langs = new play.i18n.Langs(this)
 }
 
 @Singleton

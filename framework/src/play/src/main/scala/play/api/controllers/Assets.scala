@@ -9,7 +9,6 @@ import java.util.regex.Pattern
 import javax.inject.{ Inject, Singleton }
 
 import play.api._
-import play.api.http.{ ContentTypes, HttpErrorHandler, LazyHttpErrorHandler }
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
@@ -44,18 +43,22 @@ package controllers {
     override def bindings(environment: Environment, configuration: Configuration) = Seq(
       bind[Assets].toSelf,
       bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
-      bind[AssetsFinder].to[AssetsMetadata],
+      bind[AssetsFinder].toProvider[AssetsFinderProvider],
       bind[AssetsConfiguration].toProvider[AssetsConfigurationProvider]
     )
   }
 
+  class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
+    def get = assetsMetadata.finder
+  }
+
   /**
-   * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The [[PathBindable]]
+   * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The [[play.api.mvc.PathBindable PathBindable]]
    * for assets does additional "magic" using statics so routes like {@code routes.Assets.versioned("foo.js") } will
    * find the minified and digested version of that asset.
    *
    * It is also possible to avoid this provider and simply inject [[AssetsFinder]]. Then you can call
-   * [[AssetsFinder.path]] to get the final path of an asset according to the path and url prefix in configuration.
+   * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
    */
   @Singleton
   class AssetsMetadataProvider @Inject() (
@@ -97,7 +100,7 @@ package controllers {
     lazy val assetsMetadata: AssetsMetadata =
       new AssetsMetadataProvider(environment, assetsConfiguration, fileMimeTypes, applicationLifecycle).get
 
-    lazy val assetFinder: AssetsFinder = assetsMetadata
+    def assetsFinder: AssetsFinder = assetsMetadata.finder
 
     lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
   }
@@ -156,10 +159,28 @@ package controllers {
     aggressiveCacheControl: String = "public, max-age=31536000, immutable",
     digestAlgorithm: String = "md5",
     checkForMinified: Boolean = true,
-    textContentTypes: Set[String] = Set("application/json", "application/javascript"))
+    textContentTypes: Set[String] = Set("application/json", "application/javascript"),
+    encodings: Seq[AssetEncoding] = Seq(
+      AssetEncoding.Brotli,
+      AssetEncoding.Gzip,
+      AssetEncoding.Xz,
+      AssetEncoding.Bzip2
+    )
+  )
+
+  case class AssetEncoding(acceptEncoding: String, extension: String) {
+    def forFilename(filename: String): String = if (extension != "") s"$filename.$extension" else filename
+  }
+
+  object AssetEncoding {
+    val Brotli = AssetEncoding(ContentEncoding.Brotli, "br")
+    val Gzip = AssetEncoding(ContentEncoding.Gzip, "gz")
+    val Bzip2 = AssetEncoding(ContentEncoding.Bzip2, "bz2")
+    val Xz = AssetEncoding(ContentEncoding.Xz, "xz")
+  }
 
   object AssetsConfiguration {
-    def fromConfiguration(c: Configuration, mode: Mode.Mode = Mode.Test): AssetsConfiguration = {
+    def fromConfiguration(c: Configuration, mode: Mode = Mode.Test): AssetsConfiguration = {
       AssetsConfiguration(
         path = c.get[String]("play.assets.path"),
         urlPrefix = c.get[String]("play.assets.urlPrefix"),
@@ -172,8 +193,14 @@ package controllers {
         digestAlgorithm = c.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm"),
         checkForMinified = c.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
           .getOrElse(mode != Mode.Dev),
-        textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet
+        textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet,
+        encodings = getAssetEncodings(c)
       )
+    }
+
+    private def getAssetEncodings(c: Configuration): Seq[AssetEncoding] = {
+      c.get[Seq[Configuration]]("play.assets.encodings")
+        .map(configs => AssetEncoding(configs.get[String]("accept"), configs.get[String]("extension")))
     }
   }
 
@@ -203,10 +230,7 @@ package controllers {
     /**
      * The configured assets path
      */
-    override def assetsBasePath = delegate.assetsBasePath
-    override def assetsUrlPrefix = delegate.assetsUrlPrefix
-    override def findAssetPath(base: String, path: String) =
-      delegate.findAssetPath(base, path)
+    override def finder = delegate.finder
     override private[controllers] def digest(path: String) =
       delegate.digest(path)
     override private[controllers] def assetInfoForRequest(request: RequestHeader, name: String) =
@@ -214,13 +238,13 @@ package controllers {
   }
 
   /**
-   * Retains metadata for assets that can be readily cached.
-   *
-   * To get the final path of an asset, you can inject an instance and call finalPath.
+   * INTERNAL API: Retains metadata for assets that can be readily cached.
    */
-  trait AssetsMetadata extends AssetsFinder {
+  trait AssetsMetadata {
+    def finder: AssetsFinder
     private[controllers] def digest(path: String): Option[String]
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]]
+    private[controllers] def assetInfoForRequest(
+      request: RequestHeader, name: String): Future[Option[(AssetInfo, AcceptEncoding)]]
   }
 
   /**
@@ -305,15 +329,17 @@ package controllers {
 
     import HeaderNames._
 
-    val assetsBasePath = config.path
-    val assetsUrlPrefix = config.urlPrefix
+    lazy val finder: AssetsFinder = new AssetsFinder {
+      val assetsBasePath = config.path
+      val assetsUrlPrefix = config.urlPrefix
 
-    def findAssetPath(base: String, path: String): String = blocking {
-      val minPath = minifiedPath(path)
-      digest(minPath).fold(minPath) { dgst =>
-        val lastSep = minPath.lastIndexOf("/")
-        minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
-      }.drop(base.length + 1)
+      def findAssetPath(base: String, path: String): String = blocking {
+        val minPath = minifiedPath(path)
+        digest(minPath).fold(minPath) { dgst =>
+          val lastSep = minPath.lastIndexOf("/")
+          minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
+        }.drop(base.length + 1)
+      }
     }
 
     // Caching. It is unfortunate that we require both a digestCache and an assetInfo cache given that digest info is
@@ -357,14 +383,15 @@ package controllers {
 
     private lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 
-    private def assetInfoFromResource(name: String): Option[AssetInfo] = {
-      blocking {
-        for {
-          url <- resource(name)
-        } yield {
-          val gzipUrl: Option[URL] = resource(name + ".gz")
-          new AssetInfo(name, url, gzipUrl, digest(name), config, fileMimeTypes)
-        }
+    private def assetInfoFromResource(name: String): Option[AssetInfo] = blocking {
+      for {
+        url <- resource(name)
+      } yield {
+        val compressionUrls: Seq[(String, URL)] = config.encodings
+          .map { ae => (ae.acceptEncoding, resource(ae.forFilename(name))) }
+          .collect { case (key: String, Some(url: URL)) => (key, url) }
+
+        new AssetInfo(name, url, compressionUrls, digest(name), config, fileMimeTypes)
       }
     }
 
@@ -376,9 +403,9 @@ package controllers {
       }
     }
 
-    private[controllers] def assetInfoForRequest(request: RequestHeader, name: String): Future[Option[(AssetInfo, Boolean)]] = {
-      val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
-      assetInfo(name).map(_.map(_ -> gzipRequested))
+    private[controllers] def assetInfoForRequest(
+      request: RequestHeader, name: String): Future[Option[(AssetInfo, AcceptEncoding)]] = {
+      assetInfo(name).map(_.map(_ -> AcceptEncoding.forRequest(request)))
     }
   }
 
@@ -388,7 +415,7 @@ package controllers {
   private class AssetInfo(
       val name: String,
       val url: URL,
-      val gzipUrl: Option[URL],
+      val compressedUrls: Seq[(String, URL)],
       val digest: Option[String],
       config: AssetsConfiguration,
       fileMimeTypes: FileMimeTypes
@@ -396,6 +423,12 @@ package controllers {
 
     import ResponseHeader._
     import config._
+
+    private val encodingNames: Seq[String] = compressedUrls.map(_._1)
+    private val encodingsByName: Map[String, URL] = compressedUrls.toMap
+
+    // Determines whether we need to Vary: Accept-Encoding on the encoding because there are multiple available
+    val varyEncoding: Boolean = compressedUrls.nonEmpty
 
     /**
      * tells you if mimeType is text or not.
@@ -456,12 +489,15 @@ package controllers {
 
     lazy val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
 
-    def url(gzipAvailable: Boolean): URL = {
-      gzipUrl match {
-        case Some(x) => if (gzipAvailable) x else url
-        case None => url
-      }
-    }
+    def bestEncoding(acceptEncoding: AcceptEncoding): Option[String] =
+      acceptEncoding.preferred(encodingNames)
+        .filter(_ != ContentEncoding.Identity) // ignore identity encoding
+
+    // NOTE: we are assuming all clients can accept the unencoded version. Technically the if the `identity` encoding
+    // is given a q-value of zero, that's not the case, but in practice that is quite rare so we have chosen not to
+    // handle that case.
+    def url(acceptEncoding: AcceptEncoding): URL =
+      bestEncoding(acceptEncoding).flatMap(encodingsByName.get).getOrElse(url)
   }
 
   /**
@@ -579,7 +615,7 @@ package controllers {
         def unbind(key: String, value: Asset): String = {
           val base = pathFromParams(rrc)
           val path = base + "/" + value.name
-          StaticAssetsMetadata.findAssetPath(base, path)
+          StaticAssetsMetadata.finder.findAssetPath(base, path)
         }
       }
     }
@@ -588,7 +624,7 @@ package controllers {
   @Singleton
   class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
-  class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends BaseController {
+  class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
 
     import meta._
     import Assets._
@@ -626,25 +662,31 @@ package controllers {
       r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
     }
 
-    private def asGzipResult(response: Result, gzipRequested: Boolean, gzipAvailable: Boolean): Result = {
-      if (gzipRequested && gzipAvailable) {
-        response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-      } else if (gzipAvailable) {
-        response.withHeaders(VARY -> ACCEPT_ENCODING)
-      } else {
-        response
-      }
+    private def asEncodedResult(
+      response: Result,
+      acceptEncoding: AcceptEncoding,
+      assetInfo: AssetInfo
+    ): Result = {
+      assetInfo.bestEncoding(acceptEncoding)
+        .map(enc => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> enc))
+        .getOrElse {
+          if (assetInfo.varyEncoding) {
+            response.withHeaders(VARY -> ACCEPT_ENCODING)
+          } else {
+            response
+          }
+        }
     }
 
     /**
      * Generates an `Action` that serves a static resource, using the base asset path from configuration.
      */
-    def at(file: String): Action[AnyContent] = at(meta.assetsBasePath, file)
+    def at(file: String): Action[AnyContent] = at(finder.assetsBasePath, file)
 
     /**
      * Generates an `Action` that serves a versioned static resource, using the base asset path from configuration.
      */
-    def versioned(file: String): Action[AnyContent] = versioned(meta.assetsBasePath, Asset(file))
+    def versioned(file: String): Action[AnyContent] = versioned(finder.assetsBasePath, Asset(file))
 
     /**
      * Generates an `Action` that serves a versioned static resource.
@@ -679,15 +721,15 @@ package controllers {
 
     private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
-      val assetInfoFuture: Future[Option[(AssetInfo, Boolean)]] = assetName.map { name =>
+      val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName.map { name =>
         assetInfoForRequest(request, name)
       } getOrElse Future.successful(None)
 
       def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
       val pendingResult: Future[Result] = assetInfoFuture.flatMap {
-        case Some((assetInfo, gzipRequested)) =>
-          val connection = assetInfo.url(gzipRequested).openConnection()
+        case Some((assetInfo, acceptEncoding)) =>
+          val connection = assetInfo.url(acceptEncoding).openConnection()
           // Make sure it's not a directory
           if (Resources.isUrlConnectionADirectory(connection)) {
             Resources.closeUrlConnection(connection)
@@ -703,7 +745,7 @@ package controllers {
               cacheableResult(
                 assetInfo,
                 aggressiveCaching,
-                asGzipResult(result, gzipRequested, assetInfo.gzipUrl.isDefined)
+                asEncodedResult(result, acceptEncoding, assetInfo)
               )
             })
           }

@@ -33,6 +33,11 @@ trait Injector {
    * Get an instance bound to the given binding key.
    */
   def instanceOf[T](key: BindingKey[T]): T
+
+  /**
+   * Get as an instance of the Java injector.
+   */
+  def asJava: play.inject.Injector = new play.inject.DelegateInjector(this)
 }
 
 /**
@@ -94,6 +99,13 @@ class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.em
   /**
    * Add a component to the injector.
    */
-  def +[T](component: T)(implicit ct: ClassTag[T]) =
+  def +[T](component: T)(implicit ct: ClassTag[T]): SimpleInjector =
     new SimpleInjector(fallback, components + (ct.runtimeClass -> component))
+
+  /**
+   * Add a component to the injector.
+   */
+  def add[T](clazz: Class[T], component: T): SimpleInjector =
+    new SimpleInjector(fallback, components + (clazz -> component))
+
 }

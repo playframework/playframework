@@ -21,7 +21,7 @@ import javax.inject.Singleton;
 /**
  * The current application configuration.
  *
- * @deprecated Use Config instead.
+ * @deprecated As of release 2.6.0. Use {@link Config} instead.
  */
 @Singleton
 @Deprecated
@@ -45,7 +45,7 @@ public class Configuration {
      * @return the created config
      */
     public static Configuration load(Environment env) {
-        return new Configuration(play.api.Configuration.load(env.underlying()));
+        return new Configuration(play.api.Configuration.load(env.asScala()));
     }
 
     /**

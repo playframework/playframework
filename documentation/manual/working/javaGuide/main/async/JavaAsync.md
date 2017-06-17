@@ -45,7 +45,7 @@ Please see [[Java thread locals|ThreadPools#Java thread locals]] for more inform
 
 ## Using CustomExecutionContext and HttpExecution
 
-Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/2.4.9/java/dispatchers.html).  
+Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html).
 
 Add the following imports:
 
@@ -53,15 +53,15 @@ Add the following imports:
 
 Define a custom execution context:
 
-@[custom-execution-context](code/javaguide/async/controllers/MyExecutionContextImpl.java)
+@[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
 
-You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](http://doc.akka.io/docs/akka/2.4.9/java/dispatchers.html#Setting_the_dispatcher_for_an_Actor).
+You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html#Setting_the_dispatcher_for_an_Actor).
 
 Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpException.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
 
 @[async-explicit-ec](code/javaguide/async/controllers/Application.java)
 
-> You can't magically turn synchronous IO into asynchronous by wrapping it in a `CompletionStage`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `CompletionStage`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information.
+> You can't magically turn synchronous IO into asynchronous by wrapping it in a `CompletionStage`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `CompletionStage`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information, and download the [play example templates](https://playframework.com/download#examples) that show database integration.
 
 ## Actions are asynchronous by default
 
@@ -71,10 +71,9 @@ Play [[actions|JavaActions]] are asynchronous by default. For instance, in the c
 
 > **Note:** Whether the action code returns a `Result` or a `CompletionStage<Result>`, both kinds of returned object are handled internally in the same way. There is a single kind of `Action`, which is asynchronous, and not two kinds (a synchronous one and an asynchronous one). Returning a `CompletionStage` is a technique for writing non-blocking code.
 
-
 ## Handling time-outs
 
-It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use [`play.libs.concurrent.Timeout.timeout`](api/java/play/libs/concurrent/Timeout.html) method to wrap a CompletionStage in a non-blocking timeout.
+It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can use the [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) method to wrap a `CompletionStage` in a non-blocking timeout.
 
 @[timeout](code/javaguide/async/JavaAsync.java)
 

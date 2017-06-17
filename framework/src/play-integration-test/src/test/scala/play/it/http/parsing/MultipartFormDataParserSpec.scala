@@ -52,10 +52,10 @@ class MultipartFormDataParserSpec extends PlaySpecification {
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {
       case parts =>
-        parts.dataParts.get("text1") must_== Some(Seq("the first text field"))
-        parts.dataParts.get("text2:colon") must_== Some(Seq("the second text field"))
-        parts.dataParts.get("noQuotesText1") must_== Some(Seq("text field with unquoted name"))
-        parts.dataParts.get("noQuotesText1:colon") must_== Some(Seq("text field with unquoted name and colon"))
+        parts.dataParts.get("text1") must beSome(Seq("the first text field"))
+        parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
+        parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
+        parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
         parts.files must haveLength(2)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"

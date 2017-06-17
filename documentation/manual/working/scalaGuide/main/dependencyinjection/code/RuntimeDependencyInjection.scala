@@ -3,7 +3,6 @@
  */
 package scalaguide.dependencyinjection
 
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
 class RuntimeDependencyInjection extends PlaySpecification {
@@ -137,13 +136,13 @@ class Module(
     // hello.en = "myapp.EnglishHello"
     // hello.de = "myapp.GermanHello"
     val helloConfiguration: Configuration =
-      configuration.getConfig("hello").getOrElse(Configuration.empty)
+      configuration.getOptional[Configuration]("hello").getOrElse(Configuration.empty)
     val languages: Set[String] = helloConfiguration.subKeys
     // Iterate through all the languages and bind the
     // class associated with that language. Use Play's
     // ClassLoader to load the classes.
     for (l <- languages) {
-      val bindingClassName: String = helloConfiguration.getString(l).get
+      val bindingClassName: String = helloConfiguration.get[String](l)
       val bindingClass: Class[_ <: Hello] =
         environment.classLoader.loadClass(bindingClassName)
         .asSubclass(classOf[Hello])
@@ -169,11 +168,11 @@ class Module extends AbstractModule {
 
     bind(classOf[Hello])
       .annotatedWith(Names.named("en"))
-      .to(classOf[EnglishHello]).asEagerSingleton
+      .to(classOf[EnglishHello]).asEagerSingleton()
 
     bind(classOf[Hello])
       .annotatedWith(Names.named("de"))
-      .to(classOf[GermanHello]).asEagerSingleton
+      .to(classOf[GermanHello]).asEagerSingleton()
   }
 }
 //#eager-guice-module
@@ -210,8 +209,8 @@ import play.api.inject._
 class HelloModule extends Module {
   def bindings(environment: Environment,
                configuration: Configuration) = Seq(
-    bind[Hello].qualifiedWith("en").to[EnglishHello].eagerly,
-    bind[Hello].qualifiedWith("de").to[GermanHello].eagerly
+    bind[Hello].qualifiedWith("en").to[EnglishHello].eagerly(),
+    bind[Hello].qualifiedWith("de").to[GermanHello].eagerly()
   )
 }
 //#eager-play-module
@@ -225,9 +224,6 @@ package injected.controllers {
 
 package customapplicationloader {
 
-import play.api.{Configuration, Environment}
-
-import implemented._
 
 //#custom-application-loader
 import play.api.ApplicationLoader

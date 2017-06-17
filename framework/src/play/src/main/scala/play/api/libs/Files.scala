@@ -14,8 +14,8 @@ import javax.inject.{ Inject, Provider, Singleton }
 import akka.actor.{ ActorSystem, Cancellable }
 import com.google.common.base.{ FinalizablePhantomReference, FinalizableReferenceQueue }
 import com.google.common.collect.Sets
+import org.slf4j.LoggerFactory
 import play.api.Configuration
-import play.api.http.HttpConfiguration
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.Future
@@ -28,6 +28,8 @@ import scala.concurrent.duration._
  * FileSystem utilities.
  */
 object Files {
+
+  lazy val logger = LoggerFactory.getLogger("play.api.libs.Files")
 
   /**
    * Logic for creating a temporary file. Users should try to clean up the
@@ -59,6 +61,11 @@ object Files {
      * @return the boolean value of the FS delete operation, or an throwable.
      */
     def delete(file: TemporaryFile): Try[Boolean]
+
+    /**
+     * @return the Java version for the temporary file creator.
+     */
+    def asJava: play.libs.Files.TemporaryFileCreator = new play.libs.Files.DelegateTemporaryFileCreator(this)
   }
 
   trait TemporaryFile {
@@ -89,10 +96,38 @@ object Files {
       try {
         if (replace)
           JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
-        else
+        else if (!to.toFile.exists())
           JFiles.move(path, to)
+        else to
       } catch {
         case ex: FileAlreadyExistsException => to
+      }
+
+      temporaryFileCreator.create(to)
+    }
+
+    /**
+     * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+     *
+     * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+     * existent files or not, considering that it will always replaces, makes the API more predictable.
+     *
+     * @param to the path to the destination file
+     */
+    // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
+    def atomicMoveWithFallback(to: Path): TemporaryFile = {
+      try {
+        JFiles.move(path, to, StandardCopyOption.ATOMIC_MOVE)
+      } catch {
+        case outer: IOException =>
+          try {
+            JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
+            logger.debug(s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}")
+          } catch {
+            case inner: IOException =>
+              inner.addSuppressed(outer)
+              throw inner
+          }
       }
 
       temporaryFileCreator.create(to)

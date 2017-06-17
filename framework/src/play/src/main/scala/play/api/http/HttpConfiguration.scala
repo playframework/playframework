@@ -7,10 +7,11 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import com.typesafe.config.ConfigMemorySize
 import org.apache.commons.codec.digest.DigestUtils
+import play.api.mvc.Cookie.SameSite
 import play.api.{ http, _ }
 import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 /**
  * HTTP related configuration of a Play application
@@ -35,7 +36,7 @@ case class HttpConfiguration(
  * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
  * production.
  *
- * With the the Play secret we want to:
+ * With the Play secret we want to:
  *
  * 1) Encourage the practice of *not* using the same secret in dev and prod.
  * 2) Make it obvious that the secret should be changed.
@@ -57,7 +58,7 @@ case class HttpConfiguration(
  *
  * To achieve 4, using the location of application.conf to generate the secret should ensure this.
  *
- * @param secret   the application secre
+ * @param secret   the application secret
  * @param provider the JCE provider to use. If null, uses the platform default
  */
 case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)
@@ -83,10 +84,20 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * @param maxAge     The max age of the session, none, use "session" sessions
  * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
  * @param domain     The domain to set for the session cookie, if defined
+ * @param path       The path for which this cookie is valid
+ * @param sameSite   The cookie's SameSite attribute
+ * @param jwt        The JWT specific information
  */
-case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boolean = false,
-  maxAge: Option[FiniteDuration] = None, httpOnly: Boolean = true,
-  domain: Option[String] = None, path: String = "/")
+case class SessionConfiguration(
+  cookieName: String = "PLAY_SESSION",
+  secure: Boolean = false,
+  maxAge: Option[FiniteDuration] = None,
+  httpOnly: Boolean = true,
+  domain: Option[String] = None,
+  path: String = "/",
+  sameSite: Option[SameSite] = Some(SameSite.Lax),
+  jwt: JWTConfiguration = JWTConfiguration()
+)
 
 /**
  * The flash configuration
@@ -94,8 +105,20 @@ case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boo
  * @param cookieName The name of the cookie used to store the session
  * @param secure     Whether the flash cookie should set the secure flag or not
  * @param httpOnly   Whether the HTTP only attribute of the cookie should be set
+ * @param domain     The domain to set for the session cookie, if defined
+ * @param path       The path for which this cookie is valid
+ * @param sameSite   The cookie's SameSite attribute
+ * @param jwt        The JWT specific information
  */
-case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false, httpOnly: Boolean = true, path: String = "/")
+case class FlashConfiguration(
+  cookieName: String = "PLAY_FLASH",
+  secure: Boolean = false,
+  httpOnly: Boolean = true,
+  domain: Option[String] = None,
+  path: String = "/",
+  sameSite: Option[SameSite] = Some(SameSite.Lax),
+  jwt: JWTConfiguration = JWTConfiguration()
+)
 
 /**
  * Configuration for body parsers.
@@ -129,6 +152,9 @@ object HttpConfiguration {
 
   private val logger = Logger(classOf[HttpConfiguration])
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
+
+  private implicit val sameSiteConfigLoader: ConfigLoader[Option[SameSite]] =
+    ConfigLoader(_.getString).map(SameSite.parse)
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
 
@@ -171,13 +197,18 @@ object HttpConfiguration {
         maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
         httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
-        path = sessionPath
+        sameSite = config.get[Option[SameSite]]("play.http.session.sameSite"),
+        path = sessionPath,
+        jwt = JWTConfigurationParser(config, "play.http.session.jwt")
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
         secure = config.get[Boolean]("play.http.flash.secure"),
         httpOnly = config.get[Boolean]("play.http.flash.httpOnly"),
-        path = flashPath
+        domain = config.get[Option[String]]("play.http.flash.domain"),
+        sameSite = config.get[Option[SameSite]]("play.http.flash.sameSite"),
+        path = flashPath,
+        jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
         config.get[String]("play.http.fileMimeTypes")
@@ -270,5 +301,31 @@ object HttpConfiguration {
   @Singleton
   class SecretConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SecretConfiguration] {
     lazy val get: SecretConfiguration = conf.secret
+  }
+}
+
+/**
+ * The JSON Web Token configuration
+ *
+ * @param signatureAlgorithm The signature algorithm used to sign the JWT
+ * @param expiresAfter The period of time after which the JWT expires, if any.
+ * @param clockSkew The amount of clock skew to permit for expiration / not before checks
+ * @param dataClaim The claim key corresponding to the data map passed in by the user
+ */
+case class JWTConfiguration(
+  signatureAlgorithm: String = "HS256",
+  expiresAfter: Option[FiniteDuration] = None,
+  clockSkew: FiniteDuration = 30.seconds,
+  dataClaim: String = "data"
+)
+
+object JWTConfigurationParser {
+  def apply(config: Configuration, parent: String): JWTConfiguration = {
+    JWTConfiguration(
+      signatureAlgorithm = config.get[String](s"${parent}.signatureAlgorithm"),
+      expiresAfter = config.get[Option[FiniteDuration]](s"${parent}.expiresAfter"),
+      clockSkew = config.get[FiniteDuration](s"${parent}.clockSkew"),
+      dataClaim = config.get[String](s"${parent}.dataClaim")
+    )
   }
 }

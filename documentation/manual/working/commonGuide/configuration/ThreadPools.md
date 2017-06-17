@@ -18,7 +18,7 @@ Other cases when your code may block include:
 
 In general, if the API you are using returns `Future`s, it is non-blocking, otherwise it is blocking.
 
-> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.
+> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.  Please see Play's example templates on http://playframework.com/download#examples for how to configure your application for a blocking API.
 
 In contrast, the following types of IO do not block:
 
@@ -46,7 +46,7 @@ or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html).
+This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html).
 
 ### Configuring the default thread pool
 
@@ -60,7 +60,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/current/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.5/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 
@@ -68,7 +68,7 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 @[my-context-usage](code/ThreadPools.scala)
 
-In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.
+In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.  Please see [[ScalaAsync]] or [[JavaAsync]] for further details.
 
 To configure this Akka execution context, you can add the following configuration to your `application.conf`:
 
@@ -81,6 +81,8 @@ To use this execution context in Scala, you would simply use the scala `Future` 
 or you could just use it implicitly:
 
 @[my-context-implicit](code/ThreadPools.scala)
+
+In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
 ## Class loaders and thread locals
 
@@ -136,6 +138,8 @@ In this profile, you would use the default execution context everywhere, but con
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
 
+In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
+
 ### Many specific thread pools
 
 This profile is for when you want to do a lot of synchronous IO, but you also want to control exactly how much of which types of operations your application does at once.  In this profile, you would only do non blocking operations in the default execution context, and then dispatch blocking operations to different execution contexts for those specific operations.
@@ -150,7 +154,7 @@ These might then be configured like so:
 
 Then in your code, you would create `Future`s and pass the relevant `ExecutionContext` for the type of work that `Future` was doing.
 
-> **Note:** The configuration namespace can be chosen freely, as long as it matches the dispatcher ID passed to `app.actorSystem.dispatchers.lookup`.
+> **Note:** The configuration namespace can be chosen freely, as long as it matches the dispatcher ID passed to `app.actorSystem.dispatchers.lookup`.  The `CustomExecutionContext` class will do this for you automatically.
 
 ### Few specific thread pools
 
@@ -171,7 +175,7 @@ Note that you must have Akka logging set to a debug level to see output, so you 
 <logger name="akka" level="DEBUG" />
 ```
 
-Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should se your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
+Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should see your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
 
 ```
 { 
@@ -185,4 +189,4 @@ Once you see the logged HOCON output, you can copy and paste it into an "example
 }
 ```
 
-Note also that Play has different configuration settings for development mode than it does for production.  To ensure that the thread pool settings are correct, you should run Play in a [production configuration](https://www.playframework.com/documentation/2.5.x/Deploying#Running-a-test-instance).
+Note also that Play has different configuration settings for development mode than it does for production.  To ensure that the thread pool settings are correct, you should run Play in a [[production configuration|Deploying#Running-a-test-instance]].

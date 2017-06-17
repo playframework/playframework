@@ -12,6 +12,7 @@ import play.api.mvc._
 import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
 
+import scala.annotation.implicitNotFound
 import scala.io.Codec
 import scala.language._
 import scala.util.parsing.combinator._
@@ -249,6 +250,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
  * extend Product and does not expose MessagesApi as part of
  * its interface.
  */
+@implicitNotFound("An implicit Messages instance was not found.  Please see https://www.playframework.com/documentation/latest/ScalaI18N")
 trait Messages extends MessagesProvider {
 
   /**
@@ -310,6 +312,7 @@ trait Messages extends MessagesProvider {
 /**
  * This trait is used to indicate when a Messages instance can be produced.
  */
+@implicitNotFound("An implicit MessagesProvider instance was not found.  Please see https://www.playframework.com/documentation/latest/ScalaForms#passing-messages-to-form-helpers")
 trait MessagesProvider {
   def messages: Messages
 }
@@ -395,6 +398,11 @@ trait MessagesApi {
   def langCookieSecure: Boolean
 
   def langCookieHttpOnly: Boolean
+
+  /**
+   * @return The Java version for Messages API.
+   */
+  def asJava: play.i18n.MessagesApi = new play.i18n.MessagesApi(this)
 }
 
 /**
@@ -416,7 +424,7 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: Http.RequestHeader): Messages = {
-    preferred(request._underlyingHeader())
+    preferred(request.asScala())
   }
 
   override def preferred(request: RequestHeader): Messages = {

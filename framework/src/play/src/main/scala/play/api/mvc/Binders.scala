@@ -123,7 +123,7 @@ trait QueryStringBindable[A] {
  *   // GET  /show/:user      controllers.Application.show(user)
  *   // For example: /show/42
  *
- *   object Application extends Controller {
+ *   class HomeController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
  *     def show(user: User) = Action {
  *       ...
  *     }

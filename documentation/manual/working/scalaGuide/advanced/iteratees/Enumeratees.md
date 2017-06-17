@@ -1,6 +1,8 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling data streams reactively
 
+> **Note**: Play Iteratees has been moved to a standalone project. See more details in [[our migration guide|Migration26#Play-Iteratees-moved-to-separate-project]].
+
 ## The realm of Enumeratees
 
 ‘Enumeratee’ is a very important component in the iteratees API. It provides a way to adapt and transform streams of data. An `Enumeratee` that might sound familiar is the `Enumeratee.map`.
@@ -123,7 +125,7 @@ val toIntOrEnd: Enumeratee[String,Int ] = Enumeratee.mapInput[String] {
 def filter[E](predicate: E => Boolean): Enumeratee[E, E]
 ```
 
-The signature is pretty obvious, `Enumeratee.filter` creates an `Enumeratee[E,E]` and it will test each chunk of input using the provided `predicate: E => Boolean` and it passes it along to the inner (adapted) iteratee if it statisfies the predicate:
+The signature is pretty obvious, `Enumeratee.filter` creates an `Enumeratee[E,E]` and it will test each chunk of input using the provided `predicate: E => Boolean` and it passes it along to the inner (adapted) iteratee if it satisfies the predicate:
 
 ```scala
 val numbers = Enumerator(1,2,3,4,5,6,7,8,9,10)
