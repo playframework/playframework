@@ -3,11 +3,11 @@
  */
 package play.libs.ws.ahc;
 
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
-import play.libs.ws.WSCookie;
-import play.libs.ws.WSResponse;
-import play.libs.ws.StandaloneWSResponse;
+import play.libs.ws.*;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -19,32 +19,12 @@ import java.util.Optional;
  * A Play WS response backed by an AsyncHttpClient response.
  */
 public class AhcWSResponse implements WSResponse {
+    private static final WSBodyReadables readables = new WSBodyReadables() {};
 
     private final StandaloneWSResponse underlying;
 
-    public AhcWSResponse(StandaloneWSResponse response) {
+    AhcWSResponse(StandaloneWSResponse response) {
         this.underlying = response;
-    }
-
-    /**
-     * @deprecated  Deprecated since 2.6.0. Use {@link #getHeaders()} instead.
-     * @return the headers
-     */
-    @Deprecated
-    @Override
-    public Map<String, List<String>> getAllHeaders() {
-        return underlying.getHeaders();
-    }
-
-    /**
-     * @deprecated Deprecated since 2.6.0.  Use {@link #getSingleHeader(String)} instead.
-     * @param key the header name
-     * @return the header value, or null if no header is defined
-     */
-    @Deprecated
-    @Override
-    public String getHeader(String key) {
-        return underlying.getHeader(key);
     }
 
     @Override
@@ -68,6 +48,11 @@ public class AhcWSResponse implements WSResponse {
     }
 
     @Override
+    public String getContentType() {
+        return underlying.getContentType();
+    }
+
+    @Override
     public int getStatus() {
         return underlying.getStatus();
     }
@@ -83,8 +68,23 @@ public class AhcWSResponse implements WSResponse {
     }
 
     @Override
-    public WSCookie getCookie(String name) {
+    public Optional<WSCookie> getCookie(String name) {
         return underlying.getCookie(name);
+    }
+
+    @Override
+    public ByteString getBodyAsBytes() {
+        return underlying.getBodyAsBytes();
+    }
+
+    @Override
+    public <T> T getBody(BodyReadable<T> readable) {
+        return readable.apply(this);
+    }
+
+    @Override
+    public Source<ByteString, ?> getBodyAsSource() {
+        return underlying.getBodyAsSource();
     }
 
     @Override
@@ -92,28 +92,50 @@ public class AhcWSResponse implements WSResponse {
         return underlying.getBody();
     }
 
+    /**
+     * @deprecated  Deprecated since 2.6.0. Use {@link #getHeaders()} instead.
+     * @return the headers
+     */
     @Override
+    @Deprecated
+    public Map<String, List<String>> getAllHeaders() {
+        return underlying.getHeaders();
+    }
+
+    /**
+     * @deprecated Use {@code response.getBody(xml())}
+     */
+    @Override
+    @Deprecated
     public Document asXml() {
-        return underlying.asXml();
+        return underlying.getBody(readables.xml());
     }
 
+    /**
+     * @deprecated Use {@code response.getBody(json())}
+     */
     @Override
+    @Deprecated
     public JsonNode asJson() {
-        return underlying.asJson();
+        return underlying.getBody(readables.json());
     }
 
+    /**
+     * @deprecated Use {@code response.getBody(inputStream())}
+     */
     @Override
+    @Deprecated
     public InputStream getBodyAsStream() {
-        return underlying.getBodyAsStream();
+        return underlying.getBody(readables.inputStream());
     }
 
+    /**
+     * @deprecated Use {@code response.getBodyAsBytes().toArray()}
+     */
     @Override
+    @Deprecated
     public byte[] asByteArray() {
-        return underlying.asByteArray();
+        return underlying.getBodyAsBytes().toArray();
     }
 
-    @Override
-    public URI getUri() {
-        return underlying.getUri();
-    }
 }

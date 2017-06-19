@@ -7,7 +7,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc._
 import play.api.mvc.Results._
-import play.api.libs.ws.{ WSClient, WSCookie, WSResponse }
+import play.api.libs.ws.{ DefaultWSCookie, WSClient, WSCookie, WSResponse }
 import play.core.server.Server
 import play.it._
 
@@ -49,7 +49,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
   }
 
   def readFlashCookie(response: WSResponse): Option[WSCookie] =
-    response.cookies.find(_.name.exists(_ == Flash.COOKIE_NAME))
+    response.cookie(Flash.COOKIE_NAME)
 
   "the flash cookie" should {
     "can be set for one request" in withClientAndServer() { ws =>
@@ -68,7 +68,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       val flashCookie = readFlashCookie(response)
       flashCookie must beSome.like {
         case cookie =>
-          cookie.value must beNone
+          cookie.value must ===("")
           cookie.maxAge must beSome(0L)
       }
     }
@@ -77,15 +77,15 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       val response = await(ws.url("/flash").withFollowRedirects(false).get())
       val Some(flashCookie) = readFlashCookie(response)
       val response2 = await(ws.url("/set-cookie")
-        .withHttpHeaders("Cookie" -> s"${flashCookie.name.get}=${flashCookie.value.get}")
+        .addCookies(DefaultWSCookie(flashCookie.name, flashCookie.value))
         .get())
 
       readFlashCookie(response2) must beSome.like {
-        case cookie => cookie.value must beNone
+        case cookie => cookie.value must ===("")
       }
       response2.cookie("some-cookie") must beSome.like {
         case cookie =>
-          cookie.value must beSome("some-value")
+          cookie.value must ===("some-value")
       }
 
     }

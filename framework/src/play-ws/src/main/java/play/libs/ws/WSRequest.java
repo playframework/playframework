@@ -6,51 +6,25 @@ package play.libs.ws;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.w3c.dom.Document;
 import play.mvc.Http;
 
 import java.io.File;
 import java.io.InputStream;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 /**
- * An enhanced WSRequest that can use Play specific classes.
+ * This is the main interface to building a WS request in Java.
+ * <p>
+ * Note that this interface does not expose properties that are only exposed
+ * after building the request: notably, the URL, headers and query parameters
+ * are shown before an OAuth signature is calculated.
  */
 public interface WSRequest extends StandaloneWSRequest {
-
-    /**
-     * Perform a PATCH on the request asynchronously.
-     *
-     * @param body represented as a MultipartFormData.Part
-     * @return a promise to the response
-     */
-    CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
-
-
-
-    /**
-     * Perform a POST on the request asynchronously.
-     *
-     * @param body represented as a MultipartFormData.Part
-     * @return a promise to the response
-     */
-    CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
-
-    /**
-     * Perform a PUT on the request asynchronously.
-     *
-     * @param body represented as a MultipartFormData.Part
-     * @return a promise to the response
-     */
-    CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
-
-    /**
-     * Set the multipart body this request should use.
-     *
-     * @param body the body of the request.
-     * @return the modified WSRequest.
-     */
-    WSRequest setMultipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
-
 
     //-------------------------------------------------------------------------
     // "GET"
@@ -61,11 +35,21 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @return a promise to the response
      */
+    @Override
     CompletionStage<WSResponse> get();
 
     //-------------------------------------------------------------------------
     // "PATCH"
     //-------------------------------------------------------------------------
+
+    /**
+     * Perform a PATCH on the request asynchronously.
+     *
+     * @param body represented as BodyWritable
+     * @return a promise to the response
+     */
+    @Override
+    CompletionStage<WSResponse> patch(BodyWritable body);
 
     /**
      * Perform a PATCH on the request asynchronously.
@@ -84,6 +68,14 @@ public interface WSRequest extends StandaloneWSRequest {
     CompletionStage<WSResponse> patch(JsonNode body);
 
     /**
+     *  Perform a PATCH on the request asynchronously.
+     *
+     * @param body represented as a Document
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> patch(Document body);
+
+    /**
      * Perform a PATCH on the request asynchronously.
      *
      * @param body represented as an InputStream
@@ -97,11 +89,27 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param body represented as a File
      * @return a promise to the response
      */
-    CompletionStage<? extends WSResponse> patch(File body);
+    CompletionStage<WSResponse> patch(File body);
+
+    /**
+     * Perform a PATCH on the request asynchronously.
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
     //-------------------------------------------------------------------------
     // "POST"
     //-------------------------------------------------------------------------
+
+    /**
+     * Perform a POST on the request asynchronously.
+     *
+     * @param body represented as body writable
+     * @return a promise to the response
+     */
+    @Override
+    CompletionStage<WSResponse> post(BodyWritable body);
 
     /**
      * Perform a POST on the request asynchronously.
@@ -120,11 +128,21 @@ public interface WSRequest extends StandaloneWSRequest {
     CompletionStage<WSResponse> post(JsonNode body);
 
     /**
+     *  Perform a POST on the request asynchronously.
+     *
+     * @param body represented as a Document
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> post(Document body);
+
+    /**
      * Perform a POST on the request asynchronously.
      *
+     * @deprecated use {@link #post(BodyWritable)}
      * @param body represented as an InputStream
      * @return a promise to the response
      */
+    @Deprecated
     CompletionStage<WSResponse> post(InputStream body);
 
     /**
@@ -135,9 +153,26 @@ public interface WSRequest extends StandaloneWSRequest {
      */
     CompletionStage<WSResponse> post(File body);
 
+    /**
+     * Perform a POST on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
     //-------------------------------------------------------------------------
     // "PUT"
     //-------------------------------------------------------------------------
+
+    /**
+     * Perform a PUT on the request asynchronously.
+     *
+     * @param body represented as BodyWritable
+     * @return a promise to the response
+     */
+    @Override
+    CompletionStage<WSResponse> put(BodyWritable body);
 
     /**
      * Perform a PUT on the request asynchronously.
@@ -156,6 +191,14 @@ public interface WSRequest extends StandaloneWSRequest {
     CompletionStage<WSResponse> put(JsonNode body);
 
     /**
+     *  Perform a PUT on the request asynchronously.
+     *
+     * @param body represented as a Document
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> put(Document body);
+
+    /**
      * Perform a PUT on the request asynchronously.
      *
      * @param body represented as an InputStream
@@ -171,6 +214,14 @@ public interface WSRequest extends StandaloneWSRequest {
      */
     CompletionStage<WSResponse> put(File body);
 
+    /**
+     * Perform a PUT on the request asynchronously.
+     *
+     * @param body represented as a MultipartFormData.Part
+     * @return a promise to the response
+     */
+    CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
     //-------------------------------------------------------------------------
     // Miscellaneous execution methods
     //-------------------------------------------------------------------------
@@ -180,6 +231,7 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @return a promise to the response
      */
+    @Override
     CompletionStage<WSResponse> delete();
 
     /**
@@ -187,6 +239,7 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @return a promise to the response
      */
+    @Override
     CompletionStage<WSResponse> head();
 
     /**
@@ -194,6 +247,7 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @return a promise to the response
      */
+    @Override
     CompletionStage<WSResponse> options();
 
     /**
@@ -202,6 +256,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param method The method to execute
      * @return a promise to the response
      */
+    @Override
     CompletionStage<WSResponse> execute(String method);
 
     /**
@@ -209,6 +264,7 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @return a promise to the response
      */
+    @Override
     CompletionStage<WSResponse> execute();
 
     /**
@@ -216,7 +272,8 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @return a promise to the streaming response
      */
-    CompletionStage<? extends StreamedResponse> stream();
+    @Override
+    CompletionStage<WSResponse> stream();
 
     //-------------------------------------------------------------------------
     // Setters
@@ -228,7 +285,17 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param method the HTTP method.
      * @return the modified WSRequest.
      */
+    @Override
     WSRequest setMethod(String method);
+
+    /**
+     * Set the body this request should use.
+     *
+     * @param body the body of the request.
+     * @return the modified WSRequest.
+     */
+    @Override
+    WSRequest setBody(BodyWritable body);
 
     /**
      * Set the body this request should use.
@@ -249,9 +316,9 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Set the body this request should use.
      *
+     * @deprecated use {@link #setBody(BodyWritable)}
      * @param body Deprecated
      * @return Deprecated
-     * @deprecated use {@link #setBody(Source)} instead.
      */
     @Deprecated
     WSRequest setBody(InputStream body);
@@ -281,7 +348,30 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param value the header value
      * @return the modified WSRequest.
      */
+    @Override
+    WSRequest addHeader(String name, String value);
+
+    /**
+     * Adds a header to the request.  Note that duplicate headers are allowed
+     * by the HTTP specification, and removing a header is not available
+     * through this API.
+     *
+     * @deprecated use {@link #addHeader(String, String)}
+     * @param name  the header name
+     * @param value the header value
+     * @return the modified WSRequest.
+     */
+    @Deprecated
     WSRequest setHeader(String name, String value);
+
+    /**
+     * Sets all of the headers on the request.
+     *
+     * @param headers the headers
+     * @return the modified WSRequest.
+     */
+    @Override
+    WSRequest setHeaders(Map<String, List<String>> headers);
 
     /**
      * Sets the query string to query.
@@ -289,7 +379,17 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param query the fully formed query string
      * @return the modified WSRequest.
      */
+    @Override
     WSRequest setQueryString(String query);
+
+    /**
+     * Sets the query string to query.
+     *
+     * @param params the query string parameters
+     * @return the modified WSRequest.
+     */
+    @Override
+    WSRequest setQueryString(Map<String, List<String>> params);
 
     /**
      * Sets a query parameter with the given name, this can be called repeatedly.  Duplicate query parameters are allowed.
@@ -298,7 +398,54 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param value the query parameter value
      * @return the modified WSRequest.
      */
+    @Override
+    WSRequest addQueryParameter(String name, String value);
+
+    /**
+     * Sets a query parameter with the given name, this can be called repeatedly.  Duplicate query parameters are allowed.
+     *
+     * @deprecated use {@link #addQueryParameter(String, String)}
+     * @param name  the query parameter name
+     * @param value the query parameter value
+     * @return the modified WSRequest.
+     */
+    @Deprecated
     WSRequest setQueryParameter(String name, String value);
+
+    /**
+     * Adds a cookie to the request
+     *
+     * @param cookie the cookie to add.
+     * @return the modified request
+     */
+    @Override
+    WSRequest addCookie(WSCookie cookie);
+
+    /**
+     * Adds a cookie to the request
+     *
+     * @param cookie the cookie to add.
+     * @return the modified request
+     */
+    WSRequest addCookie(Http.Cookie cookie);
+
+    /**
+     * Sets several cookies on the request.
+     *
+     * @param cookies the cookies.
+     * @return the modified request
+     */
+    @Override
+    WSRequest addCookies(WSCookie... cookies);
+
+    /**
+     * Sets all the cookies on the request.
+     *
+     * @param cookies all the cookies.
+     * @return the modified request
+     */
+    @Override
+    WSRequest setCookies(List<WSCookie> cookies);
 
     /**
      * Sets the authentication header for the current request using BASIC authentication.
@@ -306,6 +453,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param userInfo a string formed as "username:password".
      * @return the modified WSRequest.
      */
+    @Override
     WSRequest setAuth(String userInfo);
 
     /**
@@ -315,6 +463,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param password the basic auth password
      * @return the modified WSRequest.
      */
+    @Override
     WSRequest setAuth(String username, String password);
 
     /**
@@ -325,6 +474,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param scheme   authentication scheme
      * @return the modified WSRequest.
      */
+    @Override
     WSRequest setAuth(String username, String password, WSAuthScheme scheme);
 
     /**
@@ -333,6 +483,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param calculator the signature calculator
      * @return the modified WSRequest
      */
+    @Override
     WSRequest sign(WSSignatureCalculator calculator);
 
     /**
@@ -341,6 +492,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param followRedirects true if the request should follow redirects
      * @return the modified WSRequest
      */
+    @Override
     WSRequest setFollowRedirects(boolean followRedirects);
 
     /**
@@ -349,6 +501,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param virtualHost the virtual host
      * @return the modified WSRequest
      */
+    @Override
     WSRequest setVirtualHost(String virtualHost);
 
     /**
@@ -357,6 +510,17 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
      * @return the modified WSRequest.
      */
+    @Override
+    WSRequest setRequestTimeout(Duration timeout);
+
+    /**
+     * Sets the request timeout in milliseconds.
+     *
+     * @deprecated use {@link #setRequestTimeout(Duration)}
+     * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
+     * @return the modified WSRequest.
+     */
+    @Deprecated
     WSRequest setRequestTimeout(long timeout);
 
     /**
@@ -365,6 +529,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param filter a transforming filter.
      * @return the modified request.
      */
+    @Override
     WSRequest setRequestFilter(WSRequestFilter filter);
 
     /**
@@ -374,6 +539,79 @@ public interface WSRequest extends StandaloneWSRequest {
      * @param contentType The content type
      * @return the modified WSRequest
      */
+    @Override
     WSRequest setContentType(String contentType);
 
+    //-------------------------------------------------------------------------
+    // Getters
+    //-------------------------------------------------------------------------
+
+    /**
+     * @return the URL of the request.  This has not passed through an internal request builder and so will not be signed.
+     */
+    @Override
+    String getUrl();
+
+    /**
+     * @return the headers (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed.
+     */
+    @Override
+    Map<String, List<String>> getHeaders();
+
+    /**
+     * @return the query parameters (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed.
+     */
+    @Override
+    Map<String, List<String>> getQueryParameters();
+
+    /**
+     * @return the auth username, null if not an authenticated request.
+     */
+    @Override
+    String getUsername();
+
+    /**
+     * @return the auth password, null if not an authenticated request
+     */
+    @Override
+    String getPassword();
+
+    /**
+     * @return the auth scheme, null if not an authenticated request.
+     */
+    @Override
+    WSAuthScheme getScheme();
+
+    /**
+     * @return the signature calculator (example: OAuth), null if none is set.
+     */
+    @Override
+    WSSignatureCalculator getCalculator();
+
+    /**
+     * Gets the original request timeout.
+     *
+     * @deprecated use {@link #getRequestTimeoutDuration()}
+     * @return the timeout
+     */
+    @Override
+    Duration getRequestTimeoutDuration();
+
+    /**
+     * Gets the original request timeout in milliseconds, passed into the
+     * request as input.
+     *
+     * @deprecated use {@link #getRequestTimeoutDuration()}
+     * @return the timeout
+     */
+    @Deprecated
+    long getRequestTimeout();
+
+    /**
+     * If the {@link #setFollowRedirects(boolean)} method has been called, then returns true.
+     *
+     * @return true if the request is configured to follow redirect, false otherwise.
+     */
+    @Override
+    boolean getFollowRedirects();
 }

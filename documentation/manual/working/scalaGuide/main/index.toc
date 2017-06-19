@@ -9,7 +9,7 @@ xml:Working with XML
 upload:Handling file upload
 sql:Accessing an SQL database
 cache:Using the Cache
-ws:Calling WebServices
+ws:Calling REST APIs with Play WS
 akka:Integrating with Akka
 i18n:Internationalization with Messages
 dependencyinjection:Dependency injection
