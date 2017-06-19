@@ -116,4 +116,4 @@ The default implementation of [`MessagesApi`](api/java/play/i18n/MessagesApi.htm
 
 @[explicit-messages-api](code/javaguide/i18n/JavaI18N.java)
 
-If you need a MessagesApi instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html).  See [[Testing your application|JavaTest]] for more details.
+If you need a MessagesApi instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi-java.util.Map-play.i18n.Langs-).  See [[Testing your application|JavaTest]] for more details.
