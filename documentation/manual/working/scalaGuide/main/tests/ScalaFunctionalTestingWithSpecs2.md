@@ -80,3 +80,11 @@ Instead of calling the `Action` yourself, you can let the `Router` do it:
 If you are using an SQL database, you can replace the database connection with an in-memory instance of an H2 database using `inMemoryDatabase`.
 
 @[scalafunctionaltest-testmodel](code/specs2/ScalaFunctionalTestSpec.scala)
+
+## Testing Messages API
+
+For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
+
+@[scalafunctionaltest-testmessages](code/specs2/ScalaFunctionalTestSpec.scala)
+
+If you need to customize the configuration, it's better to add configuration values into the GuiceApplicationBuilder rather than use the DefaultMessagesApiProvider directly.

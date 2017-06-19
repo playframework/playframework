@@ -108,8 +108,12 @@ you should expect the following results:
 
 You can retrieve a specific HTTP request’s supported languages:
 
-```
-public static Result index() {
-  return ok(request().acceptLanguages());
-}
-```
+@[accepted-languages](code/javaguide/i18n/JavaI18N.java)
+
+## Using explicit MessagesApi
+
+The default implementation of [`MessagesApi`](api/java/play/i18n/MessagesApi.html) is backed by a [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) instance.  You can instantiate a  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html)  object when using the injected MessagesApi is not convenient, using `play.libs.Scala.asScala` to convert between Java maps and Scala maps:
+
+@[explicit-messages-api](code/javaguide/i18n/JavaI18N.java)
+
+If you need a MessagesApi instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html).  See [[Testing your application|JavaTest]] for more details.

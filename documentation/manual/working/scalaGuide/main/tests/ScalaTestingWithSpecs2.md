@@ -161,3 +161,11 @@ Testing [`Action`](api/scala/play/api/mvc/Action.html) or [`Filter`](api/scala/p
 For this, the test [`Helpers.call`](api/scala/play/api/test/Helpers$.html#call) can be used like that:
 
 @[scalatest-exampleessentialactionspec](code/specs2/ExampleEssentialActionSpec.scala)
+
+## Unit Testing Messages
+
+For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) can be instantiated without arguments, and will take a raw map, so you can test forms and validation failures against custom MessageApi:
+
+@[scalatest-examplemessagesspec](code/specs2/ExampleMessagesSpec.scala)
+
+You can also use [`Helpers.stubMessagesApi()`](api/scala/play/api/test/Helpers$.html#stubMessagesApi\(messages:Map[String,Map[String,String]],langs:play.api.i18n.Langs,langCookieName:String,langCookieSecure:Boolean,langCookieHttpOnly:Boolean,httpConfiguration:play.api.http.HttpConfiguration\):play.api.i18n.MessagesApi) in testing to provide a premade empty MessagesApi.
