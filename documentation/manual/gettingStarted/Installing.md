@@ -29,6 +29,8 @@ We provide a number of sample projects that have an `./sbt` launcher in the loca
 
 Refer to the [SBT download page](http://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command. Otherwise you can use the SBT launcher located in your example project's directory.
 
+If your proxy requires user/password for authentication, you need to add system properties when invoking sbt instead: `./sbt -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
+
 ### Running Play with SBT
 
 SBT provides all the necessary commands to run your application. You can use `sbt run` to run your app. For more details on running Play from the command line, refer to the [[new application documentation|NewApplication]] for more details.
