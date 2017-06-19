@@ -31,21 +31,21 @@ public class Foo {
 }
 ```
 
-## Using a `reference.conf` file
+## Config values should always be defined
 
-Of course, there are differences between the `Config` and `play.Configuration` APIs. The main one is how to handle default values. [Typesafe Config advocates](https://github.com/typesafehub/config/tree/v1.3.1#how-to-handle-defaults) that all configuration keys must be declared in your `.conf` files, including the default values. Play itself is using `reference.conf` files to declare default values for all the possible configurations. To avoid the hassle of handling missing values, you can do the same if you are distributing a library. For your application, you can declare all the values directly inside `application.conf`. For example:
+The main difference between the `Config` and `play.Configuration` APIs is how to handle default values. [Typesafe Config advocates](https://github.com/typesafehub/config/tree/v1.3.1#how-to-handle-defaults) that all configuration keys must be declared in your `.conf` files, including the default values.
 
-Before:
+Play itself is using `reference.conf` files to declare default values for all the possible configurations. To avoid the hassle of handling missing values, you can do the same if you are distributing a library. When the configuration is read, the `application.conf` files are layered on top of the `reference.conf` configuration. For example:
+
+Before (`configuration` is `play.Configuration`):
 ```java
-// Here we have the default values inside the code which
-// is not the idiomatic way when using Typesafe Config.
+// Here we have the default values inside the code, which is not the idiomatic way when using Typesafe Config.
 Long timeout = configuration.getMilliseconds("my.service.timeout", 5000); // 5 seconds
 ```
 
 After:
 ```
-# This is declared in `conf/reference.conf`, but for applications you 
-# can declare it directly inside `conf/application.conf` file.
+# This is declared in `conf/reference.conf`.
 my.service.timeout = 5 seconds
 ```
 
@@ -56,16 +56,17 @@ And you can eventually override the value in your `application.conf` file:
 my.service.timeout = 10 seconds
 ```
 
-As stated above, this is specially useful when creating modules, since your module can provide reference values that are easy to override. Your Java code will then look like:
+This is especially useful when creating modules, since your module can provide reference values that are easy to override. Your Java code will then look like:
 
 ```java
-// Where config is an instance of com.typesafe.config.Config
-Long timeout = config.getDuration("my.service.timeout");
+Long timeout = config.getDuration("my.service.timeout", TimeUnit.MILLISECONDS);
 ```
+
+where `config` is your `com.typesafe.config.Config` instance.
 
 ## Manually checking values
 
-If you don't want or if you cannot have reference values, you can use [`Config.hasPath`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPath-java.lang.String-) or [`Config.hasPathOrNull`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPathOrNull-java.lang.String-) to check if the value is configured before accessing it. This is a better option if the configuration is required but you can provide a reference (default) value:
+If you don't want or if you cannot have default values for some reason, you can use [`Config.hasPath`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPath-java.lang.String-) or [`Config.hasPathOrNull`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPathOrNull-java.lang.String-) to check if the value is configured before accessing it. This is a better option if the configuration is required but you can provide a reference (default) value:
 
 ```java
 import com.typesafe.config.Config;
