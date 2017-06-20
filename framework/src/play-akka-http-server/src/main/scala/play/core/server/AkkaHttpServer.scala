@@ -50,8 +50,7 @@ class AkkaHttpServer(
 
   assert(config.port.isDefined || config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
 
-  private val serverConfig = config.configuration.get[Configuration]("play.server")
-  private val akkaConfig = serverConfig.get[Configuration]("akka")
+  private val akkaConfig = config.configuration.get[Configuration]("play.server.akka")
 
   def mode = config.mode
 
@@ -69,7 +68,7 @@ class AkkaHttpServer(
     )).underlying
     val initialSettings = ServerSettings(initialConfig)
 
-    val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
+    val idleTimeout = akkaConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
     val requestTimeoutOption = akkaConfig.getOptional[Duration]("requestTimeout")
 
     // all akka settings that are applied to the server needs to be set here
