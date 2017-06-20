@@ -640,16 +640,11 @@ Uploading files is an inherently dangerous operation, because unbounded file upl
 
 In 2.5.x, TemporaryFile were deleted as the file references were garbage collected, using `finalize`.   However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection did not occur in a timely fashion.  The background cleanup has been moved to use [FinalizableReferenceQueue](https://google.github.io/guava/releases/19.0/api/docs/com/google/common/base/FinalizableReferenceQueue.html) and PhantomReferences rather than use `finalize`.
 
-The Java and Scala APIs for `TemporaryFile` has been reworked so that all `TemporaryFile` references come from a `TemporaryFileCreator` trait, and the implementation can be swapped out as necessary, and there's now an `atomicMoveWithFallback` method that uses `StandardCopyOption.ATOMIC_MOVE` if available:
-
-```scala
-uploadedFile.ref.atomicMoveWithFallback(Paths.get(s"/tmp/picture/$filename"))
-```
+The Java and Scala APIs for `TemporaryFile` has been reworked so that all `TemporaryFile` references come from a `TemporaryFileCreator` trait, and the implementation can be swapped out as necessary, and there's now an [`atomicMoveWithFallback`](api/scala/play/api/libs/Files$$TemporaryFile.html#atomicMoveWithFallback\(to:java.nio.file.Path\):play.api.libs.Files.TemporaryFile) method that uses `StandardCopyOption.ATOMIC_MOVE` if available.
 
 ### TemporaryFileReaper
 
-There's also now a [`play.api.libs.Files.TemporaryFileReaper`](https://github.com/playframework/playframework/blob/2.6.0-RC2/framework/src/play/src/main/scala/play/api/libs/Files.scala#L235) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection finalize method.
-
+There's also now a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection method.
 
 ```
 play.temporaryFile {
