@@ -73,7 +73,7 @@ Finally, Play Iteratees has a separate versioning scheme, so the version no long
 
 ## Akka HTTP as the default server engine
 
-Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](http://netty.io/wiki/native-transports.html)), see how to do that in [NettyServer] documentation.
+Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](http://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
 
 ## Scala Controller changes
 
@@ -402,7 +402,7 @@ public class MyComponent {
 }
 ```
 
-Also, Akka version used by Play was updated to the 2.5.x. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
+Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
 
 ### Removed Yaml API
 
@@ -465,7 +465,7 @@ If you explicitly depend on an alternate DI library for Play, or have defined yo
 
 Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
 
-### Remove deprecated `play.Routes`
+### Removed deprecated `play.Routes`
 
 The deprecated `play.Routes` class used to create a JavaScript router were removed. You now have to use the new Java or Scala helpers:
 
