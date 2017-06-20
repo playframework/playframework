@@ -19,24 +19,15 @@ Most of the time you can simply list your dependencies in the `build.sbt` file.
 
 Declaring a dependency looks like this (defining `group`, `artifact` and `revision`):
 
-```scala
-libraryDependencies += "org.apache.derby" % "derby" % "10.11.1.1"
-```
+@[single-dep](code/dependencies.sbt)
 
 Or like this, with an optional `configuration`:
 
-```scala
-libraryDependencies += "org.apache.derby" % "derby" % "10.11.1.1" % "test"
-```
+@[single-dep-test](code/dependencies.sbt)
 
 Multiple dependencies can be added either by multiple declarations like the above, or you can provide a Scala sequence:
 
-```scala
-libraryDependencies ++= Seq(
-  "org.apache.derby" % "derby" % "10.11.1.1",
-  "org.hibernate" % "hibernate-entitymanager" % "4.3.9.Final"
-)
-```
+@[multi-deps](code/dependencies.sbt)
 
 Of course, sbt (via Ivy) has to know where to download the module. If your module is in one of the default repositories sbt comes with then this will just work.
 
@@ -44,15 +35,11 @@ Of course, sbt (via Ivy) has to know where to download the module. If your modul
 
 If you use `groupID %% artifactID % revision` rather than `groupID % artifactID % revision` (the difference is the double `%%` after the `groupID`), sbt will add your project's Scala version to the artifact name. This is just a shortcut. You could write this without the `%%`:
 
-```scala
-libraryDependencies += "org.scala-tools" % "scala-stm_2.11.1" % "0.3"
-```
+@[explicit-scala-version-dep](code/dependencies.sbt)
 
 Assuming the `scalaVersion` for your build is `2.11.1`, the following is identical (note the double `%%` after `"org.scala-tools"`):
 
-```scala
-libraryDependencies += "org.scala-tools" %% "scala-stm" % "0.3"
-```
+@[auto-scala-version-dep](code/dependencies.sbt)
 
 The idea is that many dependencies are compiled for multiple Scala versions, and you'd like to get the one that matches your project to ensure binary compatibility.
 
@@ -60,25 +47,13 @@ The idea is that many dependencies are compiled for multiple Scala versions, and
 
 sbt uses the standard Maven2 repository and the Typesafe Releases (<https://repo.typesafe.com/typesafe/releases>) repositories by default. If your dependency isn't on one of the default repositories, you'll have to add a resolver to help Ivy find it.
 
-Use the `resolvers` setting key to add your own resolver.
+Use the `resolvers` setting key to add your own resolver. For example:
 
-```scala
-resolvers += name at location
-```
-
-For example:
-
-```scala
-resolvers += "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-```
+@[resolver](code/dependencies.sbt)
 
 sbt can search your local Maven repository if you add it as a repository:
 
-```scala
-resolvers += (
-    "Local Maven Repository" at "file:///"+Path.userHome.absolutePath+"/.m2/repository"
-)
-```
+@[local-maven-repos](code/dependencies.sbt)
 
 ## Handling conflicts between dependencies
 
