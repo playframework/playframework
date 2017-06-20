@@ -35,15 +35,15 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   val Boundary = "83ff53821b7c"
   def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
     s"""--$Boundary
-      |Content-Disposition: form-data; name="foo"; filename="foo.txt"
-      |Content-Type: application/octet-stream
-      |
+       |Content-Disposition: form-data; name="foo"; filename="foo.txt"
+       |Content-Type: application/octet-stream
+       |
       |hello foo
-      |--$Boundary
-      |Content-Disposition: form-data; name="$tokenName"
-      |
+       |--$Boundary
+       |Content-Disposition: form-data; name="$tokenName"
+       |
       |$tokenValue
-      |--$Boundary--""".stripMargin.replaceAll("\n", "\r\n")
+       |--$Boundary--""".stripMargin.replaceAll("\n", "\r\n")
   }
 
   // This extracts the tests out into different configurations
@@ -67,26 +67,26 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     "accept requests with a session token and token in multipart body" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
-        .withHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
+        .addHttpHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
         .post(multiPartFormDataBody(TokenName, token))
       )(_.status must_== OK)
     }
     "accept requests with token in header" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
-        .withHeaders(HeaderName -> token)
+        .addHttpHeaders(HeaderName -> token)
         .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
     "reject requests with nocheck header" in {
       csrfCheckRequest(_.withCookies("foo" -> "bar")
-        .withHeaders(HeaderName -> "nocheck")
+        .addHttpHeaders(HeaderName -> "nocheck")
         .post(Map("foo" -> "bar"))
       )(_.status must_== errorStatusCode)
     }
     "reject requests with ajax header" in {
       csrfCheckRequest(_.withCookies("foo" -> "bar")
-        .withHeaders("X-Requested-With" -> "a spoon")
+        .addHttpHeaders("X-Requested-With" -> "a spoon")
         .post(Map("foo" -> "bar"))
       )(_.status must_== errorStatusCode)
     }
@@ -243,13 +243,13 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
       "accept requests with nocheck header" in {
         csrfCheckRequest(_.withCookies("foo" -> "bar")
-          .withHeaders(HeaderName -> "nocheck")
+          .addHttpHeaders(HeaderName -> "nocheck")
           .post(Map("foo" -> "bar"))
         )(_.status must_== OK)
       }
       "accept requests with ajax header" in {
         csrfCheckRequest(_.withCookies("foo" -> "bar")
-          .withHeaders("X-Requested-With" -> "a spoon")
+          .addHttpHeaders("X-Requested-With" -> "a spoon")
           .post(Map("foo" -> "bar"))
         )(_.status must_== OK)
       }
