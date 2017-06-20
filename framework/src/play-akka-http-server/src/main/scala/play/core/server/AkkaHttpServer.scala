@@ -75,8 +75,10 @@ class AkkaHttpServer(
     // all akka settings that are applied to the server needs to be set here
     val serverSettings: ServerSettings = initialSettings.withTimeouts {
       val timeouts = initialSettings.timeouts.withIdleTimeout(idleTimeout)
-      requestTimeoutOption.foreach(timeouts.withRequestTimeout)
-      timeouts
+      requestTimeoutOption match {
+        case Some(requestTimeout) => timeouts.withRequestTimeout(requestTimeout)
+        case None => timeouts
+      }
     }
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
