@@ -163,7 +163,7 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject() (implicit system: ActorSystem, mat: Materializer) extends Controller {
+    class Application @Inject()(cc:ControllerComponents) (implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
 
       def socket = WebSocket.accept[String, String] { request =>
         ActorFlow.actorRef { out =>
@@ -203,7 +203,7 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject() (implicit system: ActorSystem, mat: Materializer) extends Controller {
+    class Application @Inject() (cc:ControllerComponents)(implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
 
       def socket = WebSocket.acceptOrResult[String, String] { request =>
         Future.successful(request.session.get("user") match {
@@ -240,7 +240,9 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject() (implicit system: ActorSystem, mat: Materializer) extends Controller {
+    class Application @Inject()(cc:ControllerComponents)
+                               (implicit system: ActorSystem, mat: Materializer)
+      extends AbstractController(cc) {
 
       def socket = WebSocket.accept[JsValue, JsValue] { request =>
         ActorFlow.actorRef { out =>
@@ -290,7 +292,9 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject() (implicit system: ActorSystem, mat: Materializer) extends Controller {
+    class Application @Inject()(cc:ControllerComponents)
+                               (implicit system: ActorSystem, mat: Materializer)
+      extends AbstractController(cc) {
 
       def socket = WebSocket.accept[InEvent, OutEvent] { request =>
         ActorFlow.actorRef { out =>

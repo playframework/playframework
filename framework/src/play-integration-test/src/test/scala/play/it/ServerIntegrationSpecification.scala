@@ -4,7 +4,7 @@
 package play.it
 
 import org.specs2.execute._
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{ Specification, SpecificationLike }
 import org.specs2.specification.AroundEach
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -92,7 +92,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 }
 
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
-  self: Specification =>
+  self: SpecificationLike =>
   // Provide a flag to disable Netty tests
   private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
   skipAllIf(!runTests)
@@ -101,7 +101,7 @@ trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
 }
 
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
-  self: Specification =>
+  self: SpecificationLike =>
 
   override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
 }

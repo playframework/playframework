@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext
  * useful constants.
  *
  * {{{
- *   class Controller @Inject() (action: DefaultActionBuilder, parse: PlayBodyParsers) extends ControllerHelpers {
+ *   class MyController @Inject() (action: DefaultActionBuilder, parse: PlayBodyParsers) extends ControllerHelpers {
  *     def index = action(parse.text) {
  *       Ok
  *     }

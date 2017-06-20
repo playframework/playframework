@@ -5,9 +5,11 @@ package scalaguide.tests
 
 package controllers
 
+import javax.inject.Inject
+
 import play.api.mvc._
 
-class HomeController extends Controller {
+class HomeController @Inject()(cc:ControllerComponents) extends AbstractController(cc) {
   def index() = Action {
     Ok("Hello Bob") as("text/plain")
   }

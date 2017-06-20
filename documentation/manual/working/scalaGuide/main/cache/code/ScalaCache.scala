@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 @RunWith(classOf[JUnitRunner])
-class ScalaCacheSpec extends PlaySpecification with Controller {
+class ScalaCacheSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
 
   import play.api.cache.AsyncCacheApi
   import play.api.cache.Cached
@@ -164,7 +164,7 @@ import play.api.cache._
 import play.api.mvc._
 import javax.inject.Inject
 
-class Application @Inject() (cache: AsyncCacheApi) extends Controller {
+class Application @Inject() (cache: AsyncCacheApi, cc:ControllerComponents) extends AbstractController(cc) {
 
 }
 //#inject
@@ -177,8 +177,9 @@ import play.api.mvc._
 import javax.inject.Inject
 
 class Application @Inject()(
-    @NamedCache("session-cache") sessionCache: AsyncCacheApi
-) extends Controller {
+    @NamedCache("session-cache") sessionCache: AsyncCacheApi,
+    cc: ControllerComponents
+) extends AbstractController(cc) {
 
 }
 //#qualified
@@ -189,12 +190,12 @@ package cachedaction {
 import play.api.cache.Cached
 import javax.inject.Inject
 
-class Application @Inject() (cached: Cached) extends Controller {
+class Application @Inject() (cached: Cached, cc:ControllerComponents) extends AbstractController(cc) {
 
 }
 //#cached-action-app
 
-class Application1 @Inject() (cached: Cached)(implicit ec: ExecutionContext) extends Controller {
+class Application1 @Inject() (cached: Cached, cc:ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
   //#cached-action
   def index = cached("homePage") {
     Action {
@@ -228,7 +229,7 @@ class Application1 @Inject() (cached: Cached)(implicit ec: ExecutionContext) ext
   }
   //#cached-action-control
 }
-class Application2 @Inject() (cached: Cached) extends Controller {
+class Application2 @Inject() (cached: Cached, cc:ControllerComponents) extends AbstractController(cc) {
   //#cached-action-control-404
   def get(index: Int) = {
     val caching = cached

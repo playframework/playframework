@@ -276,10 +276,9 @@ For functional tests that involve configuration, the best option is to use `With
 ```scala
 
 import play.api.test.{ PlaySpecification, WithApplication }
-import play.api.mvc.Controller
 import play.api.i18n._
 
-class MessagesSpec extends PlaySpecification with Controller {
+class MessagesSpec extends PlaySpecification {
 
   sequential
 

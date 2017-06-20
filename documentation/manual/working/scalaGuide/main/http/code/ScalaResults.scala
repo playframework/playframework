@@ -12,7 +12,7 @@ package scalaguide.http.scalaresults {
   import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaResultsSpec extends PlaySpecification with Controller {
+  class ScalaResultsSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
 
     "A scala result" should {
       "default result Content-Type" in {
@@ -72,7 +72,7 @@ package scalaguide.http.scalaresults {
       }
 
       "Changing the charset for text based HTTP responses" in {
-        val index = new scalaguide.http.scalaresults.full.Application().index
+        val index = new scalaguide.http.scalaresults.full.Application(Helpers.stubControllerComponents()).index
         assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
       }
 
@@ -105,8 +105,11 @@ package scalaguide.http.scalaresults {
   }
 
   package scalaguide.http.scalaresults.full {
+
+    import javax.inject.Inject
+
     //#full-application-set-myCustomCharset
-    class Application extends Controller {
+    class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
       implicit val myCustomCharset = Codec.javaSupported("iso-8859-1")
 

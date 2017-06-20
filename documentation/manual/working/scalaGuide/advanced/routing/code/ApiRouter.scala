@@ -20,6 +20,6 @@ class ApiRouter @Inject()(controller: ApiController)
 }
 //#inject-sird-router
 
-class ApiController extends Controller {
+class ApiController @Inject()(cc:ControllerComponents) extends AbstractController(cc) {
   def index() = TODO
 }

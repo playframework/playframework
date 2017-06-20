@@ -10,11 +10,13 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.{ConfigLoader, Configuration}
 import play.api.mvc._
-import play.api.test.PlaySpecification
+import play.api.test.{Helpers, PlaySpecification}
 import java.net.URI
 
+import org.specs2.mutable.SpecificationLike
+
 @RunWith(classOf[JUnitRunner])
-class ScalaConfigSpec extends PlaySpecification with Controller {
+class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
 
   val config: Configuration = Configuration.from(Map(
     "foo" -> "bar",
