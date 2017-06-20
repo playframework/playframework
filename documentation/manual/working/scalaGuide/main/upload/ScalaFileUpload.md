@@ -47,7 +47,7 @@ Uploading files is an inherently dangerous operation, because unbounded file upl
 
 However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection does not occur in a timely fashion.  As such, there's also a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection method.
 
-The reaper is disabled by default, and is enabled through configuration of `application.conf`:
+The reaper is disabled by default, and is enabled through `application.conf`:
 
 ```
 play.temporaryFile {
@@ -60,4 +60,4 @@ play.temporaryFile {
 }
 ```
 
-The above configruation will delete files that are more than 30 minutes old, using the "olderThan" property.  It will start the reaper five minutes after the application starts, and will check the filesystem every 30 seconds thereafter.  The reaper is not aware of any existing file uploads, so protracted file uploads may run into the reaper if the system is not carefully configured.
+The above configuration will delete files that are more than 30 minutes old, using the "olderThan" property.  It will start the reaper five minutes after the application starts, and will check the filesystem every 30 seconds thereafter.  The reaper is not aware of any existing file uploads, so protracted file uploads may run into the reaper if the system is not carefully configured.

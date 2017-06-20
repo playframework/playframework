@@ -646,13 +646,17 @@ The Java and Scala APIs for `TemporaryFile` has been reworked so that all `Tempo
 
 There's also now a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection method.
 
+The reaper is disabled by default, and is enabled through `application.conf`:
+
 ```
 play.temporaryFile {
   reaper {
     enabled = true
     initialDelay = "5 minutes"
-    interval = "5 minutes"
-    olderThan = "5 minutes"
+    interval = "30 seconds"
+    olderThan = "30 minutes"
   }
 }
 ```
+
+The above configuration will delete files that are more than 30 minutes old, using the "olderThan" property.  It will start the reaper five minutes after the application starts, and will check the filesystem every 30 seconds thereafter.  The reaper is not aware of any existing file uploads, so protracted file uploads may run into the reaper if the system is not carefully configured.
