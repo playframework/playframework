@@ -5,12 +5,14 @@ package play.test;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import akka.stream.Materializer;
 import akka.util.ByteString;
@@ -19,12 +21,14 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import play.Application;
 import play.Play;
+import play.api.i18n.DefaultLangs;
 import play.api.test.Helpers$;
 import play.core.j.JavaContextComponents;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaHelpers$;
 import play.http.HttpEntity;
+import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Scala;
 import play.mvc.Call;
@@ -210,6 +214,27 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static Map<String, String> inMemoryDatabase(String name, Map<String, String> options) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
+    }
+
+    /**
+     * Constructs an empty messagesApi instance.
+     *
+     * @return a messagesApi instance containing no values.
+     */
+    public static MessagesApi stubMessagesApi() {
+        return new play.i18n.MessagesApi(new play.api.i18n.DefaultMessagesApi
+                (Collections.emptyMap(), new DefaultLangs().asJava()));
+    }
+
+    /**
+     * Constructs a MessagesApi instance containing the given keys and values.
+     *
+     * @return a messagesApi instance containing given keys and values.
+     */
+    public static MessagesApi stubMessagesApi(Map<String, Map<String, String>> messages, play.i18n.Langs langs) {
+        return new play.i18n.MessagesApi(
+            new play.api.i18n.DefaultMessagesApi(messages, langs)
+        );
     }
 
     /**
@@ -762,4 +787,5 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static TestBrowser testBrowser(WebDriver of) {
         return testBrowser(of, Helpers$.MODULE$.testServerPort());
     }
+
 }

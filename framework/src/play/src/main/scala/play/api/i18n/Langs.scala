@@ -147,6 +147,12 @@ trait Langs {
 
 @Singleton
 class DefaultLangs @Inject() (val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
+
+  // Java API
+  def this() = {
+    this(Seq(Lang.defaultLang))
+  }
+
   def preferred(candidates: Seq[Lang]): Lang = candidates.collectFirst(Function.unlift { lang =>
     availables.find(_.satisfies(lang))
   }).getOrElse(availables.headOption.getOrElse(Lang.defaultLang))

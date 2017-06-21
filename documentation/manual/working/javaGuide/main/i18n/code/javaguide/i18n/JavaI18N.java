@@ -4,6 +4,8 @@
 package javaguide.i18n;
 
 import org.junit.Test;
+
+import static java.util.stream.Collectors.joining;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -12,7 +14,9 @@ import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.i18n.html.hellotemplate;
 import javaguide.i18n.html.helloscalatemplate;
 import play.Application;
+import play.api.i18n.DefaultLangs;
 import play.core.j.JavaHandlerComponents;
+import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -24,10 +28,9 @@ import com.google.common.collect.ImmutableMap;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import scala.collection.immutable.Map;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Locale;
+import java.util.*;
 
 public class JavaI18N extends WithApplication {
 
@@ -149,6 +152,26 @@ public class JavaI18N extends WithApplication {
     }
 
     @Test
+    public void testAcceptedLanguages() {
+        Result result = MockJavaActionHelper.call(new AcceptedLanguageController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/").header("Accept-Language", "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"), mat);
+        assertThat(contentAsString(result), equalTo("fr-CH,fr,en,de"));
+    }
+
+    private static final class AcceptedLanguageController extends MockJavaAction {
+        AcceptedLanguageController(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        // #accepted-languages
+        public Result index() {
+            List<Lang> langs = request().acceptLanguages();
+            String codes = langs.stream().map(Lang::code).collect(joining(","));
+            return ok(codes);
+        }
+        // #accepted-languages
+    }
+
+    @Test
     public void testSingleApostrophe() {
         assertTrue(singleApostrophe());
     }
@@ -181,4 +204,22 @@ public class JavaI18N extends WithApplication {
 
         return areEqual;
     }
+
+    // #explicit-messages-api
+    private MessagesApi explicitMessagesApi() {
+        return new play.i18n.MessagesApi(
+                new play.api.i18n.DefaultMessagesApi(
+                        Collections.singletonMap(Lang.defaultLang().code(), Collections.singletonMap("foo", "bar")),
+                        new play.api.i18n.DefaultLangs().asJava())
+        );
+    }
+    // #explicit-messages-api
+
+    @Test
+    public void testExplicitMessagesApi() {
+        MessagesApi messagesApi = explicitMessagesApi();
+        String message = messagesApi.get(Lang.defaultLang(), "foo");
+        assertThat(message, equalTo("bar"));
+    }
+
 }

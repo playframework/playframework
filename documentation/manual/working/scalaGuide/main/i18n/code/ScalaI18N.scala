@@ -21,11 +21,37 @@ package scalaguide.i18n.scalai18n {
 
   }
 
+  //#i18n-messagescontroller
+  import javax.inject.Inject
+  import play.api.i18n._
+
+  class MyMessagesController @Inject()(mcc: MessagesControllerComponents)
+    extends MessagesAbstractController(mcc) {
+
+    def index = Action { implicit request: MessagesRequest[AnyContent] =>
+      val messages: Messages = request.messages
+      val message: String = messages("info.error")
+      Ok(message)
+    }
+
+    def messages2 = Action { implicit request: MessagesRequest[AnyContent] =>
+      val lang: Lang = request.messages.lang
+      val message: String = messagesApi("info.error")(lang)
+      Ok(message)
+    }
+
+    def messages4 = Action { implicit request: MessagesRequest[AnyContent] =>
+      // MessagesRequest is an implicit MessagesProvider
+      Ok(views.html.formpage())
+    }
+  }
+  //#i18n-messagescontroller
+
   //#i18n-support
   import javax.inject.Inject
   import play.api.i18n._
 
-  class MyController @Inject()(val controllerComponents: ControllerComponents)
+  class MySupportController @Inject()(val controllerComponents: ControllerComponents)
     extends BaseController
       with I18nSupport {
 
@@ -57,24 +83,33 @@ package scalaguide.i18n.scalai18n {
       Ok(views.html.formpage())
     }
   }
-
   //#i18n-support
 
   @RunWith(classOf[JUnitRunner])
   class ScalaI18nSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
     val conf = Configuration.reference ++ Configuration.from(Map("play.i18n.path" -> "scalaguide/i18n"))
 
-    "A controller" should {
+    "An i18nsupport controller" should {
 
       "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
-        val controller = app.injector.instanceOf[MyController]
+        val controller = app.injector.instanceOf[MySupportController]
 
         val result = controller.index(FakeRequest())
         contentAsString(result) must contain("You aren't logged in!")
       }
     }
 
-    "A Scala translation" should {
+    "An messages controller" should {
+
+    "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
+      val controller = app.injector.instanceOf[MyMessagesController]
+
+      val result = controller.index(FakeRequest())
+      contentAsString(result) must contain("You aren't logged in!")
+    }
+  }
+
+  "A Scala translation" should {
 
       val env = Environment.simple()
       val langs = new DefaultLangsProvider(conf).get

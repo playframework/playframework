@@ -64,9 +64,9 @@ class MyService @Inject()(langs: Langs, messagesApi: MessagesApi) {
 
 // #use-implicit-lang
 class MyOtherService @Inject()(langs: Langs, messagesApi: MessagesApi) {
-  val title: String = messagesApi("home.title")
-
   implicit val lang: Lang = langs.availables.head
+
+  lazy val title: String = messagesApi("home.title")
 }
 // #use-implicit-lang
 
