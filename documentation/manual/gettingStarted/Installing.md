@@ -31,9 +31,11 @@ Refer to the [SBT download page](http://www.scala-sbt.org/download.html) to inst
 
 If your proxy requires user/password for authentication, you need to add system properties when invoking sbt instead: `./sbt -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
 
+> **Note:** See [sbt documentation](http://www.scala-sbt.org/release/docs/Setup-Notes.html) for details about how to setup sbt.
+
 ### Running Play with SBT
 
-SBT provides all the necessary commands to run your application. You can use `sbt run` to run your app. For more details on running Play from the command line, refer to the [[new application documentation|NewApplication]] for more details.
+SBT provides all the necessary commands to run your application. For example, you can use `sbt run` to run your app. For more details on running Play from the command line, refer to the [[new application documentation|NewApplication]].
 
 ## Congratulations!
 
