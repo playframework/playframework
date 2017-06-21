@@ -8,7 +8,6 @@ import java.util.function.Function;
 import akka.util.ByteString;
 import play.api.mvc.Handler;
 import play.core.Execution;
-import play.core.j.RequestHeaderImpl;
 import play.libs.streams.Accumulator;
 import play.mvc.Http.RequestHeader;
 import scala.runtime.AbstractFunction1;
@@ -38,7 +37,7 @@ public abstract class EssentialAction
 
     @Override
     public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result> apply(play.api.mvc.RequestHeader rh) {
-        return apply(new RequestHeaderImpl(rh))
+        return apply(rh.asJava())
             .map(Result::asScala, Execution.trampoline())
             .asScala();
     }

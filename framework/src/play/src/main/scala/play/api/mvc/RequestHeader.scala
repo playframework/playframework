@@ -336,6 +336,7 @@ trait RequestHeader {
     method + " " + uri
   }
 
+  def asJava: play.mvc.Http.RequestHeader = new play.core.j.RequestHeaderImpl(this)
 }
 
 object RequestHeader {

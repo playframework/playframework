@@ -121,7 +121,7 @@ object HandlerInvokerFactory {
 
   private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
     import scala.language.existentials
-    val accumulator = parser.apply(new play.core.j.RequestHeaderImpl(request)).asScala()
+    val accumulator = parser.apply(request.asJava).asScala()
     import play.core.Execution.Implicits.trampoline
     accumulator.map { javaEither =>
       if (javaEither.left.isPresent) {
@@ -163,7 +163,7 @@ object HandlerInvokerFactory {
             val callWithContext = {
               try {
                 Context.current.set(javaContext)
-                FutureConverters.toScala(call(new j.RequestHeaderImpl(request)))
+                FutureConverters.toScala(call(request.asJava))
               } finally {
                 Context.current.remove()
               }

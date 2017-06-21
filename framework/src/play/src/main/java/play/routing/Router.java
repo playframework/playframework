@@ -10,7 +10,6 @@ import akka.japi.JavaPartialFunction;
 import play.api.mvc.Handler;
 import play.api.routing.HandlerDef;
 import play.api.routing.SimpleRouter$;
-import play.core.j.RequestHeaderImpl;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.RequestHeader;
 
@@ -29,7 +28,7 @@ public interface Router {
         return SimpleRouter$.MODULE$.apply(new JavaPartialFunction<play.api.mvc.RequestHeader, Handler>() {
             @Override
             public Handler apply(play.api.mvc.RequestHeader req, boolean isCheck) throws Exception {
-                Optional<Handler> handler = route(new RequestHeaderImpl(req));
+                Optional<Handler> handler = route(req.asJava());
                 if (handler.isPresent()) {
                     return handler.get();
                 } else if (isCheck) {
