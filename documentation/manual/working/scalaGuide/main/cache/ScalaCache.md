@@ -61,6 +61,12 @@ To remove an item from the cache use the `remove` method:
 
 @[remove-value](code/ScalaCache.scala)
 
+To remove all items from the cache use the `removeAll` method:
+
+@[removeAll-values](code/ScalaCache.scala)
+
+`removeAll()` is not available in `SyncCacheAPi`, as this could take time to remove all cache data.
+
 Note that the [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) has the same API, except it returns the values directly instead of using futures.
 
 ## Accessing different caches
@@ -120,5 +126,7 @@ play.modules.disabled += "play.api.cache.ehcache.EhCacheModule"
 ```
 
 You can then implement [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and bind it in the DI container. You can also bind [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) to [DefaultSyncCacheApi](api/java/play/cache/DefaultSyncCacheApi.html), which simply wraps the async implementation.
+
+Note that the `removeAll()` method may not be supported in your custom implementation. If not, we suggest throwing `UnsupportedOperationException` and avoid using that method in your code.
 
 To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.

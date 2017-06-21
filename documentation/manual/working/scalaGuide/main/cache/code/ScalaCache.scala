@@ -53,6 +53,11 @@ class ScalaCacheSpec extends AbstractController(Helpers.stubControllerComponents
       //#remove-value
       val removeResult: Future[Done] = cache.remove("item.key")
       //#remove-value
+
+      //#removeAll-values
+      val removeAllResult: Future[Done] = cache.removeAll()
+      //#removeAll-values
+
       Await.result(removeResult, 1.second)
 
       cache.sync.get[User]("item.key") must beNone
