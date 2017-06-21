@@ -64,7 +64,7 @@ class EhCacheApiSpec extends PlaySpecification {
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
-      cacheApi.removeAll()
+      Await.result(cacheApi.removeAll(), 1.second) must be(akka.Done)
       Await.result(cacheApi.get("foo"), 1.second) must beNone
     }
   }
