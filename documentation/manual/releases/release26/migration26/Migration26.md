@@ -75,6 +75,62 @@ Finally, Play Iteratees has a separate versioning scheme, so the version no long
 
 Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](http://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
 
+## Akka HTTP server timeouts
+
+Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](http://doc.akka.io/docs/akka-http/10.0.7/scala/http/common/timeouts.html#akka-http-timeouts) states that:
+
+> Akka HTTP comes with a variety of built-in timeout mechanisms to protect your servers from malicious attacks or programming mistakes.
+
+And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](http://doc.akka.io/docs/akka-http/current/scala/http/configuration.html). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are move reasonable to your application, for example:
+
+```
+play.server.akka.http.idleTimeout = 60s
+play.server.akka.requestTimeout = 40s
+```
+
+## Scala `Mode` changes
+
+Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
+
+```java
+// Consider this Java code
+play.api.Mode scalaMode = play.api.Mode.Test();
+```
+
+Must be rewritten to:
+
+```java
+// Consider this Java code
+play.api.Mode scalaMode = play.Mode.TEST.asScala();
+```
+
+It is also easier to convert between Java and Scala modes:
+
+```java
+// In your Java code
+play.api.Mode scalaMode = play.Mode.DEV.asScala();
+```
+
+Or in your Scala code:
+
+```scala
+play.Mode javaMode = play.api.Mode.Dev.asJava
+```
+
+Also, `play.api.Mode.Mode` is now deprecated and you should use `play.api.Mode` instead.
+
+## `Writeable[JsValue]` changes
+
+Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.
+
+Now, the default `Writeable[JsValue]` takes no implicit parameters and always writes to `UTF-8`. This covers the majority of cases, since most users want to use UTF-8 for JSON. It also allows us to easily use more efficient built-in methods for writing JSON to a byte array.
+
+If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
+
+## Scala ActionBuilder and BodyParser changes
+
+The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
+
 ## Scala Controller changes
 
 The idiomatic Play controller has in the past required global state. The main places that was needed was in the global `Action` object and `BodyParsers#parse` method.

@@ -49,25 +49,23 @@ A [`play.api.i18n.MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.ht
 
 @[custom-message-provider](code/scalaguide/i18n/ScalaI18nService.scala)
 
-> **Note:** An example of a [`WrappedRequest`](api/scala/play/api/mvc/WrappedRequest.html) that extends [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is covered in [[passing messages to form helpers|ScalaForms#passing-messages-to-form-helpers]] in the [[ScalaForms]] page.
-
 ## Using Messages with Controllers
 
-You can add an implicit [`Messages`](api/scala/play/api/i18n/Messages.html) to your actions by adding the [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait to your controller.  The [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait gives you an implicit `Messages` value as long as there is a `RequestHeader` in the implicit scope.  
-
-If you extend [`Controller`](api/scala/play/api/mvc/Controller.html) directly, this will require that you add `val messagesApi: MessagesApi` to your controller as [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) depends on it.  If you extend [`AbstractController`](api/scala/play/api/mvc/AbstractController.html), then `val messagesApi: MessagesApi` is already provided under the hood and all you have to do is extend [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html):
+You can add [`Messages`](api/scala/play/api/i18n/Messages.html) support to your request by extending [`MessagesAbstractController`](api/scala/play/api/mvc/MessagesAbstractController.html) or [`MessagesBaseController`](api/scala/play/api/mvc/MessagesBaseController.html):
+ 
+@[i18n-messagescontroller](code/ScalaI18N.scala)
+ 
+Or by adding the [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait to your controller and ensuring an instance of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is in scope, which will use implicits to convert a request.
 
 @[i18n-support](code/ScalaI18N.scala)
 
-The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) is useful (if not essential) because all the form helpers in Twirl templates take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), and it is assumed that a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is passed into the template as an implicit parameter when processing a form.  
+All the form helpers in Twirl templates take [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html), and it is assumed that a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) is passed into the template as an implicit parameter when processing a form.  
 
 ```twirl
 @(form: Form[Foo])(implicit messages: MessagesProvider)
 
 @helper.inputText(field = form("name")) @* <- takes MessagesProvider *@
 ```
-
-> **Note:** This is not a complete guide to form helpers. Please see [[showing forms in a view template|ScalaForms#showing-forms-in-a-view-template]] in the [[ScalaForms]] page for more detailed examples.
 
 ### Retrieving supported language from an HTTP request
 
@@ -77,12 +75,12 @@ You can retrieve the languages supported by a specific HTTP request:
 
 ### Request Types
 
-[`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) also adds the following methods to a [`Request`](api/scala/play/api/mvc/Request.html):
+The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait adds the following methods to a [`Request`](api/scala/play/api/mvc/Request.html):
 
 * `request.messages` returns an instance of `Messages`, using an implicit `MessagesApi` 
 * `request.lang` returns the preferred `Lang`, using an implicit `MessagesApi` 
 
-The preferred language is extracted from the `Accept-Language` header (and optionally the language cookie) and matching one of the `MessagesApi` supported languages using `messagesApi.preferred`.
+The preferred language is extracted from the `Accept-Language` header (and optionally the language cookie) and matching one of the [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) supported languages using `messagesApi.preferred`.
 
 ### Language Cookie Support
 
@@ -133,3 +131,8 @@ you should expect the following results:
 @[apostrophe-messages](code/ScalaI18N.scala)
 @[parameter-escaping](code/ScalaI18N.scala)
 
+## Explicit MessagesApi
+
+The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  You can see [[unit testing|ScalaTestingWithSpecs2#Unit-Testing-Messages]] and [[functional testing|ScalaFunctionalTestingWithSpecs2#Testing-Messages-API]] examples in the testing section of the documentation.
+
+You can also use [`Helpers.stubMessagesApi()`](api/scala/play/api/test/Helpers$.html#stubMessagesApi\(messages:Map[String,Map[String,String]],langs:play.api.i18n.Langs,langCookieName:String,langCookieSecure:Boolean,langCookieHttpOnly:Boolean,httpConfiguration:play.api.http.HttpConfiguration\):play.api.i18n.MessagesApi) in testing to provide a premade empty MessagesApi.

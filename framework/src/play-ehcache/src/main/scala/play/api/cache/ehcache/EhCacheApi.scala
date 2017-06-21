@@ -197,11 +197,13 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
     }
   }
 
-  def remove(key: String): Future[Done] = {
-    Future.successful {
-      cache.remove(key)
-      Done
-    }
+  def remove(key: String): Future[Done] = Future.successful {
+    cache.remove(key)
+    Done
+  }
+
+  def removeAll(): Future[Done] = Future {
+    cache.removeAll()
+    Done
   }
 }
-

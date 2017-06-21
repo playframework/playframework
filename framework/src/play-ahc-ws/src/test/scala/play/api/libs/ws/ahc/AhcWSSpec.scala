@@ -32,16 +32,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
 
   "Ahc WS" should {
 
-    "AhcWSCookie.underlying" in {
-      val mockCookie = mock[AHCCookie]
-      val cookie = new AhcWSCookie(mockCookie)
-      val thisCookie = cookie.underlying[AHCCookie]
-      thisCookie must not beNull
-    }
-
     "support several query string values for a parameter" in {
       val client = mock[StandaloneAhcWSClient]
-      val r: AhcWSRequest = makeAhcRequest("http://playframework.com/").withQueryString("foo" -> "foo1", "foo" -> "foo2").asInstanceOf[AhcWSRequest]
+      val r: AhcWSRequest = makeAhcRequest("http://playframework.com/").withQueryStringParameters("foo" -> "foo1", "foo" -> "foo2").asInstanceOf[AhcWSRequest]
       val req: AHCRequest = r.underlying.buildRequest()
 
       import scala.collection.JavaConverters._
@@ -118,7 +111,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     val client = mock[StandaloneAhcWSClient]
     val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
-      .withHeaders("Content-Type" -> "text/plain")
+      .addHttpHeaders("Content-Type" -> "text/plain")
       .withBody("HELLO WORLD")
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
@@ -131,7 +124,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
   "Have form body on POST of content type application/x-www-form-urlencoded explicitly set" in {
     val client = mock[StandaloneAhcWSClient]
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
-      .withHeaders("Content-Type" -> "application/x-www-form-urlencoded") // set content type by hand
+      .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded") // set content type by hand
       .withBody("HELLO WORLD") // and body is set to string (see #5221)
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
@@ -407,10 +400,10 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val cookies: Seq[WSCookie] = response.cookies
       val cookie = cookies.head
 
-      cookie.domain must ===(domain)
-      cookie.name must beSome(name)
-      cookie.value must beSome(value)
-      cookie.path must ===(path)
+      cookie.name must ===(name)
+      cookie.value must ===(value)
+      cookie.domain must beSome(domain)
+      cookie.path must beSome(path)
       cookie.maxAge must beSome(maxAge)
       cookie.secure must beFalse
     }
@@ -428,10 +421,10 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val optionCookie = response.cookie("someName")
       optionCookie must beSome[WSCookie].which {
         cookie =>
-          cookie.name must beSome(name)
-          cookie.value must beSome(value)
-          cookie.domain must ===(domain)
-          cookie.path must ===(path)
+          cookie.name must ===(name)
+          cookie.value must ===(value)
+          cookie.domain must beSome(domain)
+          cookie.path must beSome(path)
           cookie.maxAge must beSome(maxAge)
           cookie.secure must beFalse
       }

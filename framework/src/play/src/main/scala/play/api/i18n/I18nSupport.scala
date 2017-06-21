@@ -12,7 +12,7 @@ import play.api.mvc._
  * {{{
  *   import play.api.i18n.Messages
  *   class MyController(val messagesApi: MessagesApi ...)
- *     extends Controller(cc) with I18nSupport {
+ *     extends AbstractController(cc) with I18nSupport {
  *     val action = Action { implicit request =>
  *       val messageFromRequest = request.messages("hello.world")
  *       Ok(s"\$messageFromRequest")

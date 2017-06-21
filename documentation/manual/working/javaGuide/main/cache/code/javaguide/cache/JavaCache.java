@@ -72,6 +72,10 @@ public class JavaCache extends WithApplication {
         //#remove
         CompletionStage<Done> result = cache.remove("item.key");
         //#remove
+
+        //#removeAll
+        CompletionStage<Done> resultAll = cache.removeAll();
+        //#removeAll
         block(result);
         }
         assertThat(cache.sync().get("item.key"), nullValue());

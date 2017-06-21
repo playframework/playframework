@@ -146,6 +146,25 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     }
     // #scalafunctionaltest-testws
 
+    // #scalafunctionaltest-testmessages
+    "messages" should {
+      import play.api.i18n._
+
+      implicit val lang = Lang("en-US")
+
+      "provide default messages with the Java API" in new WithApplication() with Injecting {
+        val javaMessagesApi = inject[play.i18n.MessagesApi]
+        val msg = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
+        msg must ===("Email")
+      }
+
+      "provide default messages with the Scala API" in new WithApplication() with Injecting {
+        val messagesApi = inject[MessagesApi]
+        val msg = messagesApi("constraint.email")
+        msg must ===("Email")
+      }
+    }
+    // #scalafunctionaltest-testmessages
   }
 
 }

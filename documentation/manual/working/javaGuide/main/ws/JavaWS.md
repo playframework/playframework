@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
-# The Play WS API
+# Calling REST APIs with Play WS
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
 
@@ -32,7 +32,7 @@ Using an HTTP cache means savings on repeated requests to backend REST services,
 
 Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the [`WSClient`](api/java/play/libs/ws/WSClient.html) type to use dependency injection:
 
-@[ws-controller](code/javaguide/ws/Application.java)
+@[ws-controller](code/javaguide/ws/MyClient.java)
 
 > If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
 
@@ -78,51 +78,67 @@ For example, if you are sending plain text in a particular format, you may want 
 
 @[ws-header-content-type](code/javaguide/ws/JavaWS.java)
 
+### Request with cookie
+
+You can specify cookies for a request, using `WSCookieBuilder`:
+
+@[ws-cookie](code/javaguide/ws/JavaWS.java)
+
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `-1` can be used to set an infinite timeout.
+If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `Duration.ofMillis(Long.MAX_VALUE)` can be used to set an infinite timeout.
 
 @[ws-timeout](code/javaguide/ws/JavaWS.java)
 
 ### Submitting form data
 
-To post url-form-encoded data you can set the proper header and formatted data.
+To post url-form-encoded data you can set the proper header and formatted data with a content type of "application/x-www-form-urlencoded".
 
 @[ws-post-form-data](code/javaguide/ws/JavaWS.java)
 
-### Submitting JSON data
-
-The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]].
-
-@[json-imports](code/javaguide/ws/JavaWS.java)
-
-@[ws-post-json](code/javaguide/ws/JavaWS.java)
-
 ### Submitting multipart/form data
 
-The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>`
+The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>`:
 
 @[multipart-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-post-multipart](code/javaguide/ws/JavaWS.java)
 
-To Upload a File you need to pass a `Http.MultipartFormData.FilePart<Source<ByteString>, ?>` to the `Source`:
+To upload a File as part of multipart form data, you need to pass a `Http.MultipartFormData.FilePart<Source<ByteString>, ?>` to the `Source`:
 
 @[ws-post-multipart2](code/javaguide/ws/JavaWS.java)
 
-### Streaming data
+### Submitting JSON data
 
-It's also possible to stream data.
+The easiest way to post JSON data is to use Play's JSON support, using `play.libs.Json`:
+
+@[json-imports](code/javaguide/ws/JavaWS.java)
+
+@[ws-post-json](code/javaguide/ws/JavaWS.java)
+
+You can also pass in a custom `ObjectMapper`:
+
+@[ws-post-json-objectmapper](code/javaguide/ws/JavaWS.java)
+
+### Submitting XML data
+
+The easiest way to post XML data is to use Play's XML support, using [`play.libs.XML`](api/java/play/libs/XML.html):
+
+@[ws-post-xml](code/javaguide/ws/JavaWS.java)
+
+### Submitting Streaming data
+
+It's also possible to stream data in the request body using [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html).
 
 Here is an example showing how you could stream a large image to a different endpoint for further processing:
 
 @[ws-stream-request](code/javaguide/ws/JavaWS.java)
 
-The `largeImage` in the code snippet above is an Akka Streams `Source<ByteString, ?>`.
+The `largeImage` in the code snippet above is a `Source<ByteString, ?>`.
 
 ### Request Filters
 
-You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.
+You can do additional processing on a [`WSRequest`](api/java/play/libs/ws/WSRequest.html) by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` trait, and then adding it to the request with [`request.withRequestFilter(filter)`](api/java/play/libs/ws/WSRequest.html#setRequestFilter-play.libs.ws.WSRequestFilter-).
 
 @[ws-request-filter](code/javaguide/ws/JavaWS.java)
 
@@ -136,7 +152,6 @@ You can process the response as a `JsonNode` by calling `response.asJson()`.
 
 @[ws-response-json](code/javaguide/ws/JavaWS.java)
 
-
 ### Processing a response as XML
 
 Similarly, you can process the response as XML by calling `response.asXml()`.
@@ -145,9 +160,11 @@ Similarly, you can process the response as XML by calling `response.asXml()`.
 
 ### Processing large responses
 
-Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `CompletionStage<StreamedResponse>`. A `StreamedResponse` is a simple container holding together the response's headers and body.
+You can consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
+
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream--) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
 
 Any controller or component that wants to leverage the WS streaming functionality will have to add the following imports and dependencies:
 
@@ -165,7 +182,7 @@ Another common destination for response bodies is to stream them back from a con
 
 @[stream-to-result](code/javaguide/ws/JavaWS.java)
 
-As you may have noticed, before calling `stream()` we need to set the HTTP method to use by calling `setMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
+As you may have noticed, before calling [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) we need to set the HTTP method to use by calling [`setMethod(String)`](api/java/play/libs/ws/WSRequest.html#setMethod-java.lang.String-) on the request. Here follows another example that uses `PUT` instead of `GET`:
 
 @[stream-put](code/javaguide/ws/JavaWS.java)
 
@@ -230,6 +247,22 @@ Again, once you are done with your custom client work, you **must** close the cl
 
 Ideally, you should only close a client after you know all requests have been completed.  You should not use [`try-with-resources`](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html) to automatically close a WSClient instance, because WSClient logic is asynchronous and `try-with-resources` only supports synchronous code in its body.
 
+## Custom BodyReadables and BodyWritables
+
+Play WS comes with rich type support for bodies in the form of [`play.libs.ws.WSBodyWritables`](api/java/play/libs/ws/WSBodyWritables.html), which contains methods for converting input such as `JsonNode` or `XML` in the body of a `WSRequest` into a `ByteString` or `Source<ByteString, ?>`, and  [`play.libs.ws.WSBodyReadables`](api/java/play/libs/ws/WSBodyReadables.html), which contains methods that read the body of a `WSResponse` from a `ByteString` or `Source[ByteString, _]` and return the appropriate type, such as `JsValue` or XML.  The default methods are available to you through the WSRequest and WSResponse, but you can also use custom types with `response.getBody(myReadable())` and `request.post(myWritable(data))`.   This is especially useful if you want to use a custom library, i.e. you would like to stream XML through STaX API.
+
+### Creating a Custom Readable
+
+You can create a custom readable by parsing the response:
+
+@[ws-custom-body-readable](code/javaguide/ws/JavaWS.java)
+
+### Creating a Custom BodyWritable
+
+You can create a custom body writable to a request as follows, using an `InMemoryBodyWritable`.  To specify a custom body writable with streaming, use a `SourceBodyWritable`.
+
+@[ws-custom-body-writable](code/javaguide/ws/JavaWS.java)
+
 ## Standalone WS
 
 If you want to call WS outside of Play altogether, you can use the standalone version of Play WS, which does not depend on any Play libraries.  You can do this by adding `play-ahc-ws-standalone` to your project:
@@ -245,10 +278,6 @@ Please see https://github.com/playframework/play-ws and the [[2.6 migration guid
 You can get access to the underlying shaded [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
-
-This is important in a couple of cases. The WS library has a couple of limitations that require access to the underlying client:
-
-* `WS` does not support streaming body upload.  In this case, you should use the [`FeedableBodyGenerator`](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/request/body/generator/FeedableBodyGenerator.html) provided by AsyncHttpClient.
 
 ## Configuring WS
 
@@ -282,8 +311,6 @@ To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsC
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
 Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
-
-> **Note:** `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

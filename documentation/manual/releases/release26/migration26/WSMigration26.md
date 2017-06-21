@@ -1,10 +1,12 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Play WS Migration Guide
 
-Play WS is now a standalone project and is available at https://github.com/playframework/play-ws. It can be added to an SBT project with:
+Play WS is now a standalone project and is available at [https://github.com/playframework/play-ws](https://github.com/playframework/play-ws). It can be added to an SBT project with:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone-json" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone-xml" % "1.0.0"
 ```
 
 ## Package changes
@@ -61,6 +63,8 @@ play.api.test.WsTestClient.withClient { ws =>
 
 The `ning` package has been replaced by the `ahc` package, and the Ning* classes replaced by AHC*.
 
+A normal `WSResponse` instance is returned from `stream()` instead of `StreamedResponse`.  You should call `response.bodyAsSource` to return the streamed result.
+
 ### Java
 
 In Java, the `play.libs.ws.WS` class has been deprecated.  An injected `WSClient` instance should be used instead.
@@ -89,3 +93,5 @@ WSClient ws = play.test.WsTestClient.newClient(19001);
 ...
 ws.close();
 ```
+
+A normal `WSResponse` instance is returned from `stream()` instead of `StreamedResponse`.  You should call `response.getBodyAsSource()` to return the streamed result.

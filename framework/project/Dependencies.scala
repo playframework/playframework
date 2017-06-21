@@ -261,9 +261,11 @@ object Dependencies {
   ) ++ jcacheApi
 
   val caffeineVersion = "2.5.1"
-  val playWsStandaloneVersion = "1.0.0-RC1"
+  val playWsStandaloneVersion = "1.0.0"
   val playWsDeps = Seq(
-    "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion
+    "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
+    "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
+    "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion
   ) ++
     (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
     mockitoAll % Test

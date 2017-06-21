@@ -85,6 +85,12 @@ You can test your controllers using Play's [test helpers](api/java/play/test/Hel
 
 ## Unit testing view templates
 
-As a template is a standard Scala function, you can execute it from a test and check the result:
+As a template is a standard Scala method, you can execute it from a test and check the result:
 
 @[test-template](code/javaguide/tests/ControllerTest.java)
+
+## Unit testing with Messages
+
+If you need a `play.i18n.MessagesApi` instance for unit testing, you can use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi-java.util.Map-play.i18n.Langs-) to provide one:
+
+@[test-messages](code/javaguide/tests/MessagesTest.java)

@@ -159,12 +159,19 @@ class OptionalAhcHttpCacheProvider @Inject() (
     cache
   }
 
+  // Adapter to JCache that assumes HTTP cache only exists in memory, i.e. no blocking IO requiring a different dispatcher
   class JCacheAdapter(jcache: JCache[EffectiveURIKey, ResponseEntry]) extends Cache {
-    override def get(key: EffectiveURIKey): ResponseEntry = jcache.get(key)
+    override def get(key: EffectiveURIKey): Future[Option[ResponseEntry]] = {
+      Future.successful(Option(jcache.get(key)))
+    }
 
-    override def put(key: EffectiveURIKey, entry: ResponseEntry): Unit = jcache.put(key, entry)
+    override def put(key: EffectiveURIKey, entry: ResponseEntry): Future[Unit] = {
+      Future.successful(jcache.put(key, entry))
+    }
 
-    override def remove(key: EffectiveURIKey): Unit = jcache.remove(key)
+    override def remove(key: EffectiveURIKey): Future[Unit] = {
+      Future.successful(jcache.remove(key): Unit)
+    }
 
     override def close(): Unit = jcache.close()
   }
@@ -187,7 +194,6 @@ class OptionalAhcHttpCacheProvider @Inject() (
       )
     }
   }
-
 }
 
 /**

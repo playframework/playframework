@@ -3,12 +3,12 @@
  */
 package scalaguide.json
 
-import scala.concurrent.Future
+import javax.inject.Inject
 
+import scala.concurrent.Future
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
 import play.api.mvc._
 import play.api.test._
 
@@ -237,7 +237,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-class HomeController extends Controller {
+class HomeController @Inject()(cc:ControllerComponents) extends AbstractController(cc)  {
 
 }
 //#controller

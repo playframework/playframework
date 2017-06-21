@@ -66,13 +66,13 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
 
     // extra conditions for doing a check
     "check non form bodies" in {
-      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.withCookies("foo" -> "bar").post(Json.obj("foo" -> "bar")))(_.status must_== FORBIDDEN)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.addCookie("foo" -> "bar").post(Json.obj("foo" -> "bar")))(_.status must_== FORBIDDEN)
     }
     "check all methods" in {
-      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.withCookies("foo" -> "bar").delete())(_.status must_== FORBIDDEN)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.addCookie("foo" -> "bar").delete())(_.status must_== FORBIDDEN)
     }
     "not check safe methods" in {
-      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.withCookies("foo" -> "bar").options())(_.status must_== OK)
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.addCookie("foo" -> "bar").options())(_.status must_== OK)
     }
     "not check requests with no cookies" in {
       buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
@@ -182,7 +182,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
       def generate = signedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
+      def getToken(response: WSResponse) = response.cookie("csrf").map(_.value)
       def compareTokens(a: String, b: String) = signedTokenProvider.compareTokens(a, b) must beTrue
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)

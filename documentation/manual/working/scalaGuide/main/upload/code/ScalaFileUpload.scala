@@ -26,7 +26,7 @@ package scalaguide.upload.fileupload {
   import play.core.parsers.Multipart.FileInfo
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaFileUploadSpec extends PlaySpecification with Controller {
+  class ScalaFileUploadSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     "A scala file upload" should {

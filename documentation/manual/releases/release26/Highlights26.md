@@ -631,3 +631,32 @@ The [`StubBodyParserFactory`](api/scala/play/api/test/StubBodyParserFactory.html
 ```scala
 val stubParser = stubBodyParser(AnyContent("hello"))
 ```
+
+## File Upload Improvements
+
+Uploading files uses a `TemporaryFile` API which relies on storing files in a temporary filesystem, as specified in [[ScalaFileUpload]] / [[JavaFileUpload]], accessible through the `ref` attribute.  
+
+Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind `TemporaryFile` is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted. 
+
+In 2.5.x, TemporaryFile were deleted as the file references were garbage collected, using `finalize`.   However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection did not occur in a timely fashion.  The background cleanup has been moved to use [FinalizableReferenceQueue](https://google.github.io/guava/releases/20.0/api/docs/com/google/common/base/FinalizableReferenceQueue.html) and PhantomReferences rather than use `finalize`.
+
+The Java and Scala APIs for `TemporaryFile` has been reworked so that all `TemporaryFile` references come from a `TemporaryFileCreator` trait, and the implementation can be swapped out as necessary, and there's now an [`atomicMoveWithFallback`](api/scala/play/api/libs/Files$$TemporaryFile.html#atomicMoveWithFallback\(to:java.nio.file.Path\):play.api.libs.Files.TemporaryFile) method that uses `StandardCopyOption.ATOMIC_MOVE` if available.
+
+### TemporaryFileReaper
+
+There's also now a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection method.
+
+The reaper is disabled by default, and is enabled through `application.conf`:
+
+```
+play.temporaryFile {
+  reaper {
+    enabled = true
+    initialDelay = "5 minutes"
+    interval = "30 seconds"
+    olderThan = "30 minutes"
+  }
+}
+```
+
+The above configuration will delete files that are more than 30 minutes old, using the "olderThan" property.  It will start the reaper five minutes after the application starts, and will check the filesystem every 30 seconds thereafter.  The reaper is not aware of any existing file uploads, so protracted file uploads may run into the reaper if the system is not carefully configured.

@@ -6,16 +6,16 @@ package scalaguide.http.scalacontentnegotiation {
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
-  import org.specs2.mutable.Specification
   import play.api.libs.json._
-
   import org.junit.runner.RunWith
+  import org.specs2.mutable.SpecificationLike
   import org.specs2.runner.JUnitRunner
+
   import scala.concurrent.Future
   import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaContentNegotiation extends Specification with Controller {
+  class ScalaContentNegotiation extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
 
     "A Scala Content Negotiation" should {
       "negotiate accept type" in {
