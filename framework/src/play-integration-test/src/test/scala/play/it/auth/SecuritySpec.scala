@@ -62,7 +62,7 @@ class SecuritySpec extends PlaySpecification {
     lazy val executionContext = app.materializer.executionContext
     lazy val parser = app.injector.instanceOf[PlayBodyParsers].default
     def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
-      val builder = AuthenticatedBuilder(req => getUserFromRequest(req), app.injector.instanceOf[BodyParsers.Default])(app.materializer.executionContext)
+      val builder = AuthenticatedBuilder(req => getUserFromRequest(req), parser)(executionContext)
       builder.authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
         fakedb.withConnection { conn =>
           block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
@@ -93,29 +93,33 @@ class AuthMessagesRequest[A](
   messagesApi: MessagesApi,
   request: Request[A]) extends MessagesRequest[A](request, messagesApi)
 
-trait AuthMessagesActionBuilder extends ActionBuilder[AuthMessagesRequest, AnyContent]
+class UserAuthenticatedBuilder(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
+    extends AuthenticatedBuilder[User]({ req: RequestHeader =>
+      req.session.get("user").map(User)
+    }, parser) {
+  @Inject()
+  def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = {
+    this(parser: BodyParser[AnyContent])
+  }
+}
 
 class AuthenticatedActionBuilder(
   val parser: BodyParser[AnyContent],
-  messagesApi: MessagesApi)(implicit val executionContext: ExecutionContext)
-    extends AuthMessagesActionBuilder {
+  messagesApi: MessagesApi,
+  builder: AuthenticatedBuilder[User])(implicit val executionContext: ExecutionContext)
+    extends ActionBuilder[AuthMessagesRequest, AnyContent] {
 
   type ResultBlock[A] = (AuthMessagesRequest[A]) => Future[Result]
 
   @Inject
   def this(
     parser: BodyParsers.Default,
-    messagesApi: MessagesApi)(implicit ec: ExecutionContext) = {
-    this(parser: BodyParser[AnyContent], messagesApi)
+    messagesApi: MessagesApi,
+    builder: UserAuthenticatedBuilder)(implicit ec: ExecutionContext) = {
+    this(parser: BodyParser[AnyContent], messagesApi, builder)
   }
 
-  private def getUserFromRequest(req: RequestHeader) = {
-    req.session.get("user").map(User)
-  }
-
-  private val builder = new AuthenticatedBuilder[User](getUserFromRequest, parser)
-
-  def invokeBlock[A](request: Request[A], block: ResultBlock[A]) = {
+  def invokeBlock[A](request: Request[A], block: ResultBlock[A]): Future[Result] = {
     builder.authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
       block(new AuthMessagesRequest[A](authRequest.user, messagesApi, request))
     })
