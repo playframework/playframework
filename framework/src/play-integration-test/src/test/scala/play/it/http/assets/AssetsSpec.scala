@@ -309,7 +309,7 @@ trait AssetsSpec extends PlaySpecification
       "The first and last bytes only: 0 and 9999: bytes=0-0,-1" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=0-0,-1")
+            .addHttpHeaders(RANGE -> "bytes=0-0,-1")
             .get()
         )
 
@@ -320,7 +320,7 @@ trait AssetsSpec extends PlaySpecification
       "Multiple intervals to get the second 500 bytes" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=500-600,601-999")
+            .addHttpHeaders(RANGE -> "bytes=500-600,601-999")
             .get()
         )
 
@@ -331,7 +331,7 @@ trait AssetsSpec extends PlaySpecification
       "Return status 416 when first byte is gt the length of the complete entity" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=10500-10600")
+            .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
@@ -341,7 +341,7 @@ trait AssetsSpec extends PlaySpecification
       "Return a Content-Range header for 416 responses" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=10500-10600")
+            .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
@@ -351,7 +351,7 @@ trait AssetsSpec extends PlaySpecification
       "No Content-Disposition header when serving assets" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=10500-10600")
+            .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
@@ -360,7 +360,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a brotli compressed asset" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "br")
+          .addHttpHeaders(ACCEPT_ENCODING -> "br")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -371,7 +371,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a gzip compressed asset when brotli and gzip are available but only gzip is requested" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "gzip")
+          .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -397,7 +397,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a asset if accept encoding is given with a q value" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "br;q=1.0, gzip")
+          .addHttpHeaders(ACCEPT_ENCODING -> "br;q=1.0, gzip")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -408,7 +408,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a brotli compressed asset when brotli and gzip are requested, brotli first (because configured to be first)" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
+          .addHttpHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
           // something is wrong here... if we just have "gzip, deflate, sdch, br", the "br" does not end up in the ACCEPT_ENCODING header
           //          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br")
           .get())
@@ -420,7 +420,7 @@ trait AssetsSpec extends PlaySpecification
       }
       "serve a gzip compressed asset when brotli and gzip are available, but only gzip requested" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "gzip")
+          .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -432,7 +432,7 @@ trait AssetsSpec extends PlaySpecification
       }
       "serve a xz compressed asset when brotli, gzip and xz are available, but xz requested" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "xz")
+          .addHttpHeaders(ACCEPT_ENCODING -> "xz")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -443,7 +443,7 @@ trait AssetsSpec extends PlaySpecification
     }
     "serve a bz2 compressed asset when brotli, gzip and bz2 are available, but bz2 requested" in withServer { client =>
       val result = await(client.url("/encoding.js")
-        .withHeaders(ACCEPT_ENCODING -> "bz2")
+        .addHttpHeaders(ACCEPT_ENCODING -> "bz2")
         .get())
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)

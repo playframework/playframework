@@ -7,9 +7,11 @@ import org.specs2.mock.Mockito
 import play.api.http.HeaderNames
 import play.api.libs.ws._
 import play.api.http.Status._
+import play.api.libs.openid
+
 import scala.concurrent.Future
 
-class WSMock extends Mockito with WSClient {
+class WSMock extends WSClient with Mockito {
   val request = mock[WSRequest]
   val response = mock[WSResponse]
 
@@ -21,6 +23,7 @@ class WSMock extends Mockito with WSClient {
 
   request.get() returns Future.successful(response.asInstanceOf[request.Response])
   request.post(anyString)(any[BodyWritable[String]]) returns Future.successful(response.asInstanceOf[request.Response])
+  request.post(any[openid.Params])(any[BodyWritable[openid.Params]]) returns Future.successful(response.asInstanceOf[request.Response])
 
   def url(url: String): WSRequest = {
     urls += url

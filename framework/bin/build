@@ -26,5 +26,5 @@ DOCUMENTATION=$BASEDIR/documentation
 export JAVA_OPTS="-Xmx2G -Xss2M -XX:MaxMetaspaceSize=512M -XX:ReservedCodeCacheSize=192M -Dfile.encoding=UTF-8"
 
 build() {
-  "$SBT" --warn "$@" | grep --line-buffered -v 'Resolving \|Generating '
+  "$SBT" "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }
