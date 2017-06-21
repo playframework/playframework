@@ -5,17 +5,20 @@ package play.core.j
 
 import java.net.{ InetAddress, URI, URLDecoder }
 import java.security.cert.X509Certificate
+import java.util
+import java.util.Optional
 import java.util.concurrent.CompletionStage
 
-import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration }
+import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration, MediaRange }
 import play.api.i18n.{ Langs, MessagesApi, _ }
 import play.api.mvc._
 import play.api.{ Configuration, Environment }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.Execution.Implicits.trampoline
+import play.i18n
 import play.libs.typedmap.{ TypedKey, TypedMap }
 import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
-import play.mvc.{ Security, Result => JResult }
+import play.mvc.{ Http, Security, Result => JResult }
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.{ FutureConverters, OptionConverters }
@@ -85,8 +88,8 @@ trait JavaHelpers {
       })
     }
     val reqWithConnection = parsedUri.getScheme match {
-      case "http" => updateSecure(req, false)
-      case "https" => updateSecure(req, true)
+      case "http" => updateSecure(req, newSecure = false)
+      case "https" => updateSecure(req, newSecure = true)
       case _ => req
     }
 
@@ -117,8 +120,8 @@ trait JavaHelpers {
 
   /**
    * Creates a scala result from java context and result objects
-   * @param javaContext
-   * @param javaResult
+   * @param javaContext the Java Http.Context
+   * @param javaResult the Java Result
    */
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
     val scalaResult = javaResult.asScala
@@ -287,76 +290,59 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def asScala: RequestHeader = header
 
-  def uri = header.uri
+  override def uri: String = header.uri
 
-  def method = header.method
+  override def method: String = header.method
 
-  def version = header.version
+  override def version: String = header.version
 
-  def remoteAddress = header.remoteAddress
+  override def remoteAddress: String = header.remoteAddress
 
-  def secure = header.secure
+  override def secure: Boolean = header.secure
 
   override def attrs: TypedMap = new TypedMap(header.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequestHeader =
-    new RequestHeaderImpl(header.withAttrs(newAttrs.underlying()))
-  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader =
-    withAttrs(attrs.put(key, value))
+  override def withAttrs(newAttrs: TypedMap): JRequestHeader = header.withAttrs(newAttrs.underlying()).asJava
+  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
 
-  def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
+  override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
-  def host = header.host
+  override def host: String = header.host
 
-  def path = header.path
+  override def path: String = header.path
 
-  def headers = createHeaderMap(header.headers)
+  override def acceptLanguages: util.List[i18n.Lang] = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
-  def acceptLanguages = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+  override def queryString: util.Map[String, Array[String]] = header.queryString.mapValues(_.toArray).asJava
 
-  def queryString = {
-    header.queryString.mapValues(_.toArray).asJava
-  }
+  override def acceptedTypes: util.List[MediaRange] = header.acceptedTypes.asJava
 
-  def acceptedTypes = header.acceptedTypes.asJava
+  override def accepts(mediaType: String): Boolean = header.accepts(mediaType)
 
-  def accepts(mediaType: String) = header.accepts(mediaType)
-
-  def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
+  override def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
 
   override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
 
-  def getQueryString(key: String): String = {
+  override def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
 
-  def cookie(name: String): JCookie = {
+  override def cookie(name: String): JCookie = {
     cookies().get(name)
   }
 
-  def getHeader(headerName: String): String = {
-    val header: Array[String] = headers.get(headerName)
-    if (header == null) null else header(0)
-  }
+  override def hasBody: Boolean = header.hasBody
 
-  def hasHeader(headerName: String): Boolean = header.headers.hasHeader(headerName)
+  override def contentType(): Optional[String] = OptionConverters.toJava(header.contentType)
 
-  def hasBody: Boolean = header.hasBody
+  override def charset(): Optional[String] = OptionConverters.toJava(header.charset)
 
-  private def createHeaderMap(headers: Headers): java.util.Map[String, Array[String]] = {
-    val map = new java.util.TreeMap[String, Array[String]](play.core.utils.CaseInsensitiveOrdered)
-    map.putAll(headers.toMap.mapValues(_.toArray).asJava)
-    map
-  }
-
-  def contentType() = OptionConverters.toJava(header.contentType)
-
-  def charset() = OptionConverters.toJava(header.charset)
-
-  def tags = header.tags.asJava
+  override def tags: util.Map[String, String] = header.tags.asJava
 
   def withTag(name: String, value: String) = header.withTag(name, value)
 
-  override def toString = header.toString
+  override def toString: String = header.toString
+
+  override lazy val getHeaders: Http.Headers = header.headers.asJava
 
 }
 

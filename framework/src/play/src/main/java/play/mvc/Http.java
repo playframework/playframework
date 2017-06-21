@@ -13,7 +13,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
 import play.api.libs.json.JsValue;
-import play.api.mvc.Headers;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
 import play.core.j.JavaContextComponents;
@@ -510,6 +509,53 @@ public class Http {
         }
     }
 
+    public static class Headers {
+
+        private final Map<String,  List<String>> headers;
+
+        public Headers(Map<String, List<String>> headers) {
+            this.headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            this.headers.putAll(headers);
+        }
+
+        /**
+         * @return all the headers as a map.
+         */
+        public Map<String, List<String>> toMap() {
+            return headers;
+        }
+
+        /**
+         * Checks if the given header is present.
+         *
+         * @param headerName The name of the header (case-insensitive)
+         * @return <code>true</code> if the request did contain the header.
+         */
+        public boolean hasHeader(String headerName) {
+            return headers.containsKey(headerName);
+        }
+
+        /**
+         * Gets the header value. If more than one value is associated with this header, then returns the first one.
+         *
+         * @param name the header name
+         * @return the first header value or empty if no value available.
+         */
+        public Optional<String> get(String name) {
+            return Optional.ofNullable(headers.get(name)).flatMap(headerValues -> headerValues.stream().findFirst());
+        }
+
+        /**
+         * Get all the values associated with the header name.
+         *
+         * @param name the header name.
+         * @return the list of values associates with the header of empty.
+         */
+        public List<String> getAll(String name) {
+            return headers.getOrDefault(name, Collections.emptyList());
+        }
+    }
+
     public interface RequestHeader {
 
         /**
@@ -642,26 +688,49 @@ public class Http {
         Cookie cookie(String name);
 
         /**
+         * Retrieve all headers.
+         */
+        Headers getHeaders();
+
+        /**
          * Retrieves all headers.
          *
          * @return a map of of header name to headers with case-insensitive keys
+         *
+         * @deprecated Deprecated as of 2.6.0. Use {@link #getHeaders()} instead.
          */
-        Map<String,String[]> headers();
+        @Deprecated
+        default Map<String,String[]> headers() {
+            final Map<String, String[]> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            this.getHeaders().headers.forEach((key, values) -> {
+                String[] valuesArray = new String[values.size()];
+                result.put(key, values.toArray(valuesArray));
+            });
+            return result;
+        }
 
         /**
          * Retrieves a single header.
          *
          * @param headerName The name of the header (case-insensitive)
          * @return the value corresponding to <code>headerName</code>, or null if it was not present
+         *
+         * @deprecated Deprecated as of 2.6.0. Use {@link #header(String)} ()} instead.
          */
-        String getHeader(String headerName);
+        @Deprecated
+        default String getHeader(String headerName) {
+            return getHeaders().get(headerName).orElse(null);
+        }
 
         /**
-         * Checks if the request has a body.
+         * Retrieves a single header.
          *
-         * @return true if request has a body, false otherwise.
+         * @param headerName The name of the header (case-insensitive)
+         * @return the value corresponding to <code>headerName</code>, or empty if it was not present
          */
-        boolean hasBody();
+        default Optional<String> header(String headerName) {
+            return getHeaders().get(headerName);
+        }
 
         /**
          * Checks if the request has the header.
@@ -669,7 +738,16 @@ public class Http {
          * @param headerName The name of the header (case-insensitive)
          * @return <code>true</code> if the request did contain the header.
          */
-        boolean hasHeader(String headerName);
+        default boolean hasHeader(String headerName) {
+            return getHeaders().hasHeader(headerName);
+        }
+
+        /**
+         * Checks if the request has a body.
+         *
+         * @return true if request has a body, false otherwise.
+         */
+        boolean hasBody();
 
         /**
          * Get the content type of the request.
@@ -1114,6 +1192,7 @@ public class Http {
          * @return the tags for the request
          * @deprecated Use typed attributes, i.e. <code>attrs()</code>, instead.
          */
+        @Deprecated
         public Map<String, String> tags() {
             return Scala.asJava(req.tags());
         }
@@ -1294,7 +1373,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder headers(Map<String, String[]> headers) {
-            req = req.withHeaders(new Headers(
+            req = req.withHeaders(new play.api.mvc.Headers(
                     JavaHelpers$.MODULE$.javaMapOfArraysToScalaSeqOfPairs(headers)
             ));
             return this;
@@ -1841,6 +1920,7 @@ public class Http {
          * @param sameSite The SameSite value (Strict or Lax)
          * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
          */
+        @Deprecated
         public void setCookie(
                 String name, String value, Integer maxAge, String path, String domain,
                 boolean secure, boolean httpOnly, SameSite sameSite) {

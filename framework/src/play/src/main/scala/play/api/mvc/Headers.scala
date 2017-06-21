@@ -6,9 +6,9 @@ package play.api.mvc
 import java.util.Locale
 
 import play.api.http.HeaderNames
-import play.api.http.HeaderNames.CONTENT_LENGTH
-import play.api.http.HeaderNames.TRANSFER_ENCODING
 import play.core.utils.CaseInsensitiveOrdered
+
+import scala.collection.JavaConverters._
 
 import scala.collection.immutable.{ TreeMap, TreeSet }
 
@@ -112,6 +112,8 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse(""))
 
   override def toString = headers.toString()
+
+  lazy val asJava: play.mvc.Http.Headers = new play.mvc.Http.Headers(this.toMap.mapValues(_.asJava).asJava)
 
 }
 
