@@ -52,15 +52,19 @@ If you are in a Controller, you get the `Messages` instance through `Http.Contex
 
 @[show-context-messages](code/javaguide/i18n/JavaI18N.java)
 
+Please note that because the `Http.Context` depends on a thread local variable, if you are referencing `Http.Context.current().messages()` from inside a `CompletionStage` block that may be in a different thread, you may need to use `HttpExecutionContext.current()` to make the HTTP context available to the thread.  Please see [[Handling asynchronous results|JavaAsync#Using-HttpExecutionContext]] for more details.
+
+To use `Messages` as part of form processing, please see [[Handling form submission|JavaForms]].
+
 ## Use in templates
 
 Once you have the Messages object, you can pass it into the template:
 
 @[template](code/javaguide/i18n/explicitjavatemplate.scala.html)
 
-You can also use the Scala `Messages` object from within templates. The Scala `Messages` object has a shorter form that's equivalent to `messages.at` which many people find useful.
+You can also use the Scala [`Messages`](api/scala/play/api/i18n/Messages.html) object from within templates. The Scala [`Messages`](api/scala/play/api/i18n/Messages.html) object has a shorter form that's equivalent to `messages.at` which many people find useful.
 
-If you use the Scala `Messages` object remember not to import the Java `play.i18n.Messages` class or they will conflict!
+If you use the Scala [`Messages`](api/scala/play/api/i18n/Messages.html) object remember not to import the Java `play.i18n.Messages` class or they will conflict!
 
 @[template](code/javaguide/i18n/helloscalatemplate.scala.html)
 
@@ -112,8 +116,8 @@ You can retrieve a specific HTTP request’s supported languages:
 
 ## Using explicit MessagesApi
 
-The default implementation of [`MessagesApi`](api/java/play/i18n/MessagesApi.html) is backed by a [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) instance.  You can instantiate a  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html)  object when using the injected MessagesApi is not convenient, using `play.libs.Scala.asScala` to convert between Java maps and Scala maps:
+The default implementation of [`MessagesApi`](api/java/play/i18n/MessagesApi.html) is backed by a [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) instance which is a Scala API.  But you can instantiate a  [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html) and manually inject it into the `MessagesApi` like:
 
 @[explicit-messages-api](code/javaguide/i18n/JavaI18N.java)
 
-If you need a MessagesApi instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi-java.util.Map-play.i18n.Langs-).  See [[Testing your application|JavaTest]] for more details.
+If you need a [`MessagesApi`](api/java/play/i18n/MessagesApi.html) instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi-java.util.Map-play.i18n.Langs-).  See [[Testing your application|JavaTest]] for more details.
