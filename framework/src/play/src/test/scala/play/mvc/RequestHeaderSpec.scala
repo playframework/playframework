@@ -36,8 +36,8 @@ class RequestHeaderSpec extends Specification {
     "headers" in {
 
       "check if the header exists" in {
-        headers().hasHeader("a") must beTrue
-        headers().hasHeader("non-existend") must beFalse
+        headers().contains("a") must beTrue
+        headers().contains("non-existend") must beFalse
       }
 
       "get a single header value" in {
@@ -61,26 +61,26 @@ class RequestHeaderSpec extends Specification {
         }
 
         "when checking if the header exists" in {
-          headers().hasHeader("a") must beTrue
-          headers().hasHeader("A") must beTrue
+          headers().contains("a") must beTrue
+          headers().contains("A") must beTrue
         }
       }
 
       "can add new headers" in {
-        val h = headers().withHeader("new", "value")
-        h.hasHeader("new") must beTrue
+        val h = headers().addHeader("new", "value")
+        h.contains("new") must beTrue
         toScala(h.get("new")) must beSome("value")
       }
 
       "can add new headers with a list of values" in {
-        val h = headers().withHeader("new", List("v1", "v2", "v3").asJava)
+        val h = headers().addHeader("new", List("v1", "v2", "v3").asJava)
         h.getAll("new").asScala must containTheSameElementsAs(Seq("v1", "v2", "v3"))
       }
 
       "remove a header" in {
-        val h = headers().withHeader("to-be-removed", "value")
-        h.hasHeader("to-be-removed") must beTrue
-        h.remove("to-be-removed").hasHeader("to-be-removed") must beFalse
+        val h = headers().addHeader("to-be-removed", "value")
+        h.contains("to-be-removed") must beTrue
+        h.remove("to-be-removed").contains("to-be-removed") must beFalse
       }
     }
 

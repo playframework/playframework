@@ -531,7 +531,7 @@ public class Http {
          * @param headerName The name of the header (case-insensitive)
          * @return <code>true</code> if the request did contain the header.
          */
-        public boolean hasHeader(String headerName) {
+        public boolean contains(String headerName) {
             return headers.containsKey(headerName);
         }
 
@@ -781,7 +781,7 @@ public class Http {
          * @return <code>true</code> if the request did contain the header.
          */
         default boolean hasHeader(String headerName) {
-            return getHeaders().hasHeader(headerName);
+            return getHeaders().contains(headerName);
         }
 
         /**
