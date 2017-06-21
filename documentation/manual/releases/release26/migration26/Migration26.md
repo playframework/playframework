@@ -71,6 +71,19 @@ libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" 
 
 Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
+## Akka HTTP server timeouts
+
+Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](http://doc.akka.io/docs/akka-http/10.0.7/scala/http/common/timeouts.html#akka-http-timeouts) states that:
+
+> Akka HTTP comes with a variety of built-in timeout mechanisms to protect your servers from malicious attacks or programming mistakes.
+
+And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](http://doc.akka.io/docs/akka-http/current/scala/http/configuration.html). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are move reasonable to your application, for example:
+
+```
+play.server.akka.http.idleTimeout = 60s
+play.server.akka.requestTimeout = 40s
+```
+
 ## Scala `Mode` changes
 
 Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
