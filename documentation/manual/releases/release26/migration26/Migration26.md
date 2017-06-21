@@ -71,6 +71,10 @@ libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" 
 
 Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
 
+## Akka HTTP as the default server engine
+
+Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](http://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
+
 ## Akka HTTP server timeouts
 
 Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](http://doc.akka.io/docs/akka-http/10.0.7/scala/http/common/timeouts.html#akka-http-timeouts) states that:
@@ -126,8 +130,6 @@ If you need the old behavior back, you can define a `Writeable` with an arbitrar
 ## Scala ActionBuilder and BodyParser changes
 
 The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
-
-The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively. If you are inside a controller, they are automatically provided by the new `BaseController` trait (see the controller changes below).
 
 ## Scala Controller changes
 
@@ -195,6 +197,48 @@ class Controller @Inject() (
 }
 ```
 
+## Scala ActionBuilder and BodyParser changes
+
+The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
+
+The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively. If you are inside a controller, they are automatically provided by the new `BaseController` trait (see [the controller changes](#Scala-Controller-changes) above).
+
+## Scala `Mode` changes
+
+Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
+
+```java
+play.api.Mode scalaMode = play.api.Mode.Test();
+```
+
+Must be rewritten to:
+
+```java
+play.api.Mode scalaMode = play.Mode.TEST.asScala();
+```
+
+It is also easier to convert between Java and Scala modes:
+
+```java
+play.api.Mode scalaMode = play.Mode.DEV.asScala();
+```
+
+Or in your Scala code:
+
+```scala
+play.Mode javaMode = play.api.Mode.Dev.asJava
+```
+
+Also, `play.api.Mode.Mode` is now deprecated and you should use `play.api.Mode` instead.
+
+## `Writeable[JsValue]` changes
+
+Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.
+
+Now, the default `Writeable[JsValue]` takes no implicit parameters and always writes to `UTF-8`. This covers the majority of cases, since most users want to use UTF-8 for JSON. It also allows us to easily use more efficient built-in methods for writing JSON to a byte array.
+
+If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
+
 ## Cookies
 
 For Java users, we now recommend using `Cookie.builder` to create new cookies, for example:
@@ -225,7 +269,7 @@ play.http.session.sameSite = null // no same-site for session
 play.http.flash.sameSite = "strict" // strict same-site for flash
 ```
 
-*Note that this feature is currently not supported by many browsers, so you shouldn't rely on it. Chrome and Opera are the only major browsers to support SameSite right now.*
+> **Note**: this feature is currently [not supported by many browsers](http://caniuse.com/#feat=same-site-cookie-attribute), so you should not rely on it. Chrome and Opera are the only major browsers to support SameSite right now.
 
 ### __Host and __Secure prefixes
 
@@ -388,6 +432,34 @@ This was done to bring the behavior of indexing on `JsArray`s in line with that 
 
 The Crypto API has removed the deprecated classes `play.api.libs.Crypto`, `play.libs.Crypto` and `AESCTRCrypter`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.
 
+### `Akka` deprecated methods removed
+
+The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access the actor system.
+
+For Scala:
+
+```scala
+class MyComponent @Inject() (system: ActorSystem) {
+
+}
+```
+
+And for Java:
+
+```java
+public class MyComponent {
+
+    private final ActorSystem system;
+
+    @Inject
+    public MyComponent(ActorSystem system) {
+        this.system = system;
+    }
+}
+```
+
+Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
+
 ### Removed Yaml API
 
 We removed `play.libs.Yaml` since there was no use of it inside of play anymore. If you still need support for the Play YAML integration you need to add `snakeyaml` in you `build.sbt`:
@@ -431,15 +503,36 @@ public class Yaml {
 }
 ```
 
-If you explicitly depend on an alternate DI library for play, or have defined your own custom application loader, no changes should be required.
+Or in Scala:
+
+```scala
+class Yaml @Inject()(environment: play.api.Environment) {
+  def load(resourceName: String) = {
+    load(environment.resourceAsStream(resourceName), environment.classLoader)
+  }
+
+  def load(inputStream: InputStream, classLoader: ClassLoader) = {
+    new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader)).load(inputStream)
+  }
+}
+```
+
+If you explicitly depend on an alternate DI library for Play, or have defined your own custom application loader, no changes should be required.
 
 Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
 
-### Removed libraries
+### Removed deprecated `play.Routes`
+
+The deprecated `play.Routes` class used to create a JavaScript router were removed. You now have to use the new Java or Scala helpers:
+
+* [[Javascript Routing in Scala|ScalaJavascriptRouting]]
+* [[Javascript Routing in Java|JavaJavascriptRouter]]
+
+## Removed libraries
 
 In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.6, so you will need to manually add them to your build if you use them.
 
-#### Joda-Time removal
+### Joda-Time removal
 
 We recommend using the `java.time` APIs, so we are removing joda-time support from the core of Play.
 
@@ -468,7 +561,7 @@ import play.api.data.JodaWrites._
 import play.api.data.JodaReads._
 ```
 
-#### Joda-Convert removal
+### Joda-Convert removal
 
 Play had some internal uses of `joda-convert` if you used it in your project you need to add it to your `build.sbt`:
 
@@ -476,7 +569,7 @@ Play had some internal uses of `joda-convert` if you used it in your project you
 libraryDependencies += "org.joda" % "joda-convert" % "1.8.1"
 ```
 
-#### XercesImpl removal
+### XercesImpl removal
 
 For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a reference implementation we removed it. If your project relies on the external package you can simply add it to your `build.sbt`:
 
@@ -484,7 +577,7 @@ For XML handling Play used the Xerces XML Library. Since modern JVM are using Xe
 libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 ```
 
-#### H2 removal
+### H2 removal
 
 Prior versions of Play prepackaged the H2 database. But to make the core of Play smaller we removed it. If you make use of H2 you can add it to your `build.sbt`:
 
@@ -500,13 +593,15 @@ libraryDependencies += "com.h2database" % "h2" % "1.4.193" % Test
 
 The [[H2 Browser|Developing-with-the-H2-Database#H2-Browser]] will still work after you added the dependency.
 
-#### snakeyaml removal
+### snakeyaml removal
 
 Play removed `play.libs.Yaml` and therefore the dependency on `snakeyaml` was dropped. If you still use it add it to your `build.sbt`:
 
 ```scala
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 ```
+
+See also [notes about the removal of Yaml API](#Removed-Yaml-API).
 
 ### Tomcat-servlet-api removal
 
@@ -516,39 +611,11 @@ Play removed the `tomcat-servlet-api` since it was of no use. If you still use i
 libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 ```
 
-### Akka Migration
-
-The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access the actor system.
-
-For Scala:
-
-```scala
-class MyComponent @Inject() (system: ActorSystem) {
-
-}
-```
-
-And for Java:
-
-```java
-public class MyComponent {
-
-    private final ActorSystem system;
-
-    @Inject
-    public MyComponent(ActorSystem system) {
-        this.system = system;
-    }
-}
-```
-
-Also, Akka version used by Play was updated to the 2.5.x. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
-
-### Request attributes
+## Request attributes
 
 All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, whereas tags only supported storing Strings.
 
-#### Request tags deprecation
+### Request tags deprecation
 
 Tags have been deprecated so you should start migrating from using tags to using attributes. Migration should be fairly straightforward.
 
@@ -571,6 +638,7 @@ Java after:
 class Attrs {
   public static final TypedKey<String> USER_NAME = TypedKey.<String>create("userName");
 }
+
 // Getting an attribute from a Request or RequestHeader
 String userName = req.attrs().get(Attrs.USER_NAME);
 String userName = req.attrs().getOptional(Attrs.USER_NAME);
@@ -619,7 +687,7 @@ object Attrs {
 }
 ```
 
-#### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
+### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
 
 Request cookies are now stored in a request attribute. Previously they were stored in the request's `Cookie` header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
 
@@ -627,7 +695,7 @@ Now that cookies are stored in request attributes updating the cookie will chang
 
 If you still need the old behavior you can still use `Cookies.encodeCookieHeader` to convert the `Cookie` objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
-#### `play.api.mvc.Security.username` (Scala API), `session.username` changes
+### `play.api.mvc.Security.username` (Scala API), `session.username` changes
 
 `play.api.mvc.Security.username` (Scala API), `session.username` config key and dependent actions helpers are deprecated. `Security.username` just retrieves the `session.username` key from configuration, which defined the session key used to get the username. It was removed since it required statics to work, and it's fairly easy to implement the same or similar behavior yourself.
 
@@ -642,7 +710,7 @@ If you're using the `Authenticated(String => EssentialAction)` method, you can e
 
 where `UsernameKey` represents the session key you want to use for the username.
 
-#### Request Security (Java API) username property is now an attribute
+### Request Security (Java API) username property is now an attribute
 
 The Java Request object contains a `username` property which is set when the `Security.Authenticated` annotation is added to a Java action. In Play 2.6 the username property has been deprecated. The username property methods have been updated to store the username in the `Security.USERNAME` attribute. You should update your code to use the `Security.USERNAME` attribute directly. In a future version of Play we will remove the username property.
 
@@ -672,7 +740,7 @@ String username = req1.attr(USERNAME);
 Request reqWithUsername = new RequestBuilder().putAttr(USERNAME, "admin").build();
 ```
 
-#### Router tags are now attributes
+### Router tags are now attributes
 
 If you used any of the `Router.Tags.*` tags, you should change your code to use the new `Router.Attrs.HandlerDef` (Scala) or `Router.Attrs.HANDLER_DEF` (Java) attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
 
@@ -688,14 +756,7 @@ This new attribute contains a `HandlerDef` object with all the information that 
 
 > **Note**: As part of this change the `HandlerDef` object has been moved from the `play.core.routing` internal package into the `play.api.routing` public API package.
 
-### Remove deprecated `play.Routes`
-
-The deprecated `play.Routes` class used to create a JavaScript router were removed. You now have to use the new Java or Scala helpers:
-
-* [[Javascript Routing in Scala|ScalaJavascriptRouting]]
-* [[Javascript Routing in Java|JavaJavascriptRouter]]
-
-### `play.api.libs.concurrent.Execution` is deprecated
+## `play.api.libs.concurrent.Execution` is deprecated
 
 The `play.api.libs.concurrent.Execution` class has been deprecated, as it was using global mutable state under the hood to pull the "current" application's ExecutionContext.
 

@@ -568,11 +568,11 @@ public class JPAPersonRepository implements PersonRepository {
 }
 ```
 
-## Play WS Improvements
+## Play `WSClient` Improvements
 
-There are substantial improvements to Play WS.  Play WS is now a wrapper around a standalone Play WS implementation, which can be used outside of Play.  In addition, the underlying libraries involved in Play WS have been [shaded](https://github.com/sbt/sbt-assembly#shading), so that the Netty implementation used in Play WS does not conflict with Spark or Play.
+There are substantial improvements to Play `WSClient`.  Play `WSClient` is now a wrapper around the standalone [play-ws](https://github.com/playframework/play-ws) implementation, which can be used outside of Play.  In addition, the underlying libraries involved in [play-ws](https://github.com/playframework/play-ws) have been [shaded](https://github.com/sbt/sbt-assembly#shading), so that the Netty implementation used in it does not conflict with Spark, Play or any other library that uses a different version of Netty.
 
-Finally, Play WS now supports [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
+Finally, there is now support for [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
 
 For more details, please see [[WsCache]] and the [[WS Migration Guide|WSMigration26]].
 
@@ -586,7 +586,7 @@ Now, tuples are able to be serialized by play-json, and there are `Reads` and `W
 
 Play JSON 2.6.0 now supports Scala.js. You can add the dependency with:
 
-```
+```scala
 libraryDependencies += "com.typesafe.play" %%% "play-json" % version
 ```
 
@@ -628,7 +628,7 @@ val controller = new MyController(stubControllerComponents())
 
 The [`StubBodyParserFactory`](api/scala/play/api/test/StubBodyParserFactory.html) creates a stub [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) that can be used for unit testing content:
 
-```
+```scala
 val stubParser = stubBodyParser(AnyContent("hello"))
 ```
 
