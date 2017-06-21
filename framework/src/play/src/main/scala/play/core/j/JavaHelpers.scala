@@ -59,6 +59,13 @@ trait JavaHelpers {
     mapBuilder.result()
   }
 
+  def javaMapOfListToScalaSeqOfPairs(m: java.util.Map[String, java.util.List[String]]): Seq[(String, String)] = {
+    for {
+      (k, arr) <- m.asScala.to[Vector]
+      el <- arr.asScala
+    } yield (k, el)
+  }
+
   def javaMapOfArraysToScalaSeqOfPairs(m: java.util.Map[String, Array[String]]): Seq[(String, String)] = {
     for {
       (k, arr) <- m.asScala.to[Vector]

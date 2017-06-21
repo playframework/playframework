@@ -554,6 +554,48 @@ public class Http {
         public List<String> getAll(String name) {
             return headers.getOrDefault(name, Collections.emptyList());
         }
+
+        /**
+         * @return the scala version of this headers.
+         */
+        public play.api.mvc.Headers asScala() {
+            return new play.api.mvc.Headers(JavaHelpers$.MODULE$.javaMapOfListToScalaSeqOfPairs(this.headers));
+        }
+
+        /**
+         * Add a new header with the given value.
+         *
+         * @param name the header name
+         * @param value the header value
+         * @return this with the new header added
+         */
+        public Headers addHeader(String name, String value) {
+            this.headers.put(name, Collections.singletonList(value));
+            return this;
+        }
+
+        /**
+         * Add a new header with the given values.
+         *
+         * @param name the header name
+         * @param values the header values
+         * @return this with the new header added
+         */
+        public Headers addHeader(String name, List<String> values) {
+            this.headers.put(name, values);
+            return this;
+        }
+
+        /**
+         * Remove a header.
+         *
+         * @param name the header name.
+         * @return this without the removed header.
+         */
+        public Headers remove(String name) {
+            this.headers.remove(name);
+            return this;
+        }
     }
 
     public interface RequestHeader {
@@ -960,12 +1002,9 @@ public class Http {
         protected RequestBuilder body(RequestBody body) {
             if (body == null || body.as(Object.class) == null) {
                 // assume null signifies no body; RequestBody is a wrapper for the actual body content
-                Map<String, String[]> h = headers();
-                h.remove(HeaderNames.CONTENT_LENGTH);
-                h.remove(HeaderNames.TRANSFER_ENCODING);
-                headers(h);
+                headers(getHeaders().remove(HeaderNames.CONTENT_LENGTH).remove(HeaderNames.TRANSFER_ENCODING));
             } else {
-                if (header(HeaderNames.TRANSFER_ENCODING) == null) {
+                if (!getHeader(HeaderNames.TRANSFER_ENCODING).isPresent()) {
                     int length = body.asBytes().length();
                     header(HeaderNames.CONTENT_LENGTH, Integer.toString(length));
                 }
@@ -1347,31 +1386,65 @@ public class Http {
         /**
          * @param key the key to be used in the header
          * @return the value associated with the key, if multiple, the first, if none returns null
+         *
+         * @deprecate As of release 2.6, use {@link #getHeader(String)} instead.
          */
+        @Deprecated
         public String header(String key) {
-            String[] values = headers(key);
-            return (values == null || values.length == 0) ? null : values[0];
+            return getHeaders().get(key).orElse(null);
+        }
+
+        /**
+         * @param key the key to be used in the header
+         * @return the value associated with the key, if multiple, the first, if none returns null
+         */
+        public Optional<String> getHeader(String key) {
+            return getHeaders().get(key);
         }
 
         /**
          * @param key the key to be used in the header
          * @return all values (could be 0) associated with the key
+         *
+         * @deprecated As of release 2.6, use {@link #getHeaderValues(String)} instead.
          */
+        @Deprecated
         public String[] headers(String key) {
             return headers().get(key);
         }
 
         /**
          * @return the headers
+         *
+         * @deprecated As of release 2.6, use {@link #getHeaders()} instead.
          */
+        @Deprecated
         public Map<String, String[]> headers() {
             return JavaHelpers$.MODULE$.scalaMapOfSeqsToJavaMapOfArrays(req.headers().toMap());
         }
 
         /**
+         * @return the headers
+         */
+        public Headers getHeaders() {
+            return req.headers().asJava();
+        }
+
+        /**
+         * @param key the key to be used in the header
+         * @return all values (could be 0) associated with the key
+         */
+        public List<String> getHeaderValues(String key) {
+            return getHeaders().getAll(key);
+        }
+
+        /**
          * @param headers the headers to be replaced
          * @return the builder instance
+         *
+         * @deprecated As of release 2.6, use {@link #headers(Headers)} instead.
          */
+        @Deprecated
         public RequestBuilder headers(Map<String, String[]> headers) {
             req = req.withHeaders(new play.api.mvc.Headers(
                     JavaHelpers$.MODULE$.javaMapOfArraysToScalaSeqOfPairs(headers)
@@ -1380,15 +1453,33 @@ public class Http {
         }
 
         /**
+         * @param headers the headers to be replaced
+         * @return the builder instance
+         */
+        public RequestBuilder headers(Headers headers) {
+            req = req.withHeaders(headers.asScala());
+            return this;
+        }
+
+        /**
+         * @param key the key for in the header
+         * @param values the values associated with the key
+         * @return the builder instance
+         *
+         * @deprecate As of release 2.6, use {@link #header(String, List)} instead.
+         */
+        @Deprecated
+        public RequestBuilder header(String key, String[] values) {
+            return this.headers(getHeaders().addHeader(key, Arrays.asList(values)));
+        }
+
+        /**
          * @param key the key for in the header
          * @param values the values associated with the key
          * @return the builder instance
          */
-        public RequestBuilder header(String key, String[] values) {
-            Map<String, String[]> h = headers();
-            h.put(key, values);
-            headers(h);
-            return this;
+        public RequestBuilder header(String key, List<String> values) {
+            return this.headers(getHeaders().addHeader(key, values));
         }
 
         /**
@@ -1397,8 +1488,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder header(String key, String value) {
-            header(key, new String[] { value });
-            return this;
+            return this.headers(getHeaders().addHeader(key, value));
         }
 
         /**

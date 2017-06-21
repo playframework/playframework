@@ -65,6 +65,23 @@ class RequestHeaderSpec extends Specification {
           headers().hasHeader("A") must beTrue
         }
       }
+
+      "can add new headers" in {
+        val h = headers().withHeader("new", "value")
+        h.hasHeader("new") must beTrue
+        toScala(h.get("new")) must beSome("value")
+      }
+
+      "can add new headers with a list of values" in {
+        val h = headers().withHeader("new", List("v1", "v2", "v3").asJava)
+        h.getAll("new").asScala must containTheSameElementsAs(Seq("v1", "v2", "v3"))
+      }
+
+      "remove a header" in {
+        val h = headers().withHeader("to-be-removed", "value")
+        h.hasHeader("to-be-removed") must beTrue
+        h.remove("to-be-removed").hasHeader("to-be-removed") must beFalse
+      }
     }
 
     "has body" in {
