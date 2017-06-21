@@ -127,28 +127,43 @@ object Security {
    * This can be used to create an action builder, like so:
    *
    * {{{
-   * // in a Security trait
-   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
-   *
-   * // then in a controller
-   * def index = Authenticated { implicit request =>
-   *   Ok("Hello " + request.user)
+   * class UserAuthenticatedBuilder (parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
+   *   extends AuthenticatedBuilder[User]({ req: RequestHeader =>
+   *   req.session.get("user").map(User)
+   * }, parser) {
+   *   @Inject()
+   *   def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = {
+   *     this(parser: BodyParser[AnyContent])
+   *   }
    * }
    * }}}
    *
-   * It can also be used from an action builder, for example:
+   * You can then use the authenticated builder with other action builders, i.e. to use a
+   * messagesApi with authentication, you can add:
    *
    * {{{
-   * class AuthenticatedDbRequest[A](val user: User,
-   *                                 val conn: Connection,
-   *                                 request: Request[A]) extends WrappedRequest[A](request)
+   *  class AuthMessagesRequest[A](val user: User,
+   *                              messagesApi: MessagesApi,
+   *                              request: Request[A])
+   * extends MessagesRequest[A](request, messagesApi)
    *
-   * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
-   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
-   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
-   *       DB.withConnection { conn =>
-   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
-   *       }
+   * class AuthenticatedActionBuilder(val parser: BodyParser[AnyContent],
+   *                                  messagesApi: MessagesApi,
+   *                                  builder: AuthenticatedBuilder[User])
+   *                                 (implicit val executionContext: ExecutionContext)
+   *     extends ActionBuilder[AuthMessagesRequest, AnyContent] {
+   *   type ResultBlock[A] = (AuthMessagesRequest[A]) => Future[Result]
+   *
+   *   @Inject
+   *   def this(parser: BodyParsers.Default,
+   *            messagesApi: MessagesApi,
+   *            builder: UserAuthenticatedBuilder)(implicit ec: ExecutionContext) = {
+   *     this(parser: BodyParser[AnyContent], messagesApi, builder)
+   *   }
+   *
+   *   def invokeBlock[A](request: Request[A], block: ResultBlock[A]): Future[Result] = {
+   *     builder.authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
+   *       block(new AuthMessagesRequest[A](authRequest.user, messagesApi, request))
    *     })
    *   }
    * }
@@ -179,37 +194,6 @@ object Security {
     }
   }
 
-  /**
-   * An authenticated action builder.
-   *
-   * This can be used to create an action builder, like so:
-   *
-   * {{{
-   * // in a Security trait
-   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
-   *
-   * // then in a controller
-   * def index = Authenticated { implicit request =>
-   *   Ok("Hello " + request.user)
-   * }
-   * }}}
-   *
-   * It can also be used from an action builder, for example:
-   *
-   * {{{
-   * class AuthMessagesRequest[A](val user: User,
-   *                               messagesApi: MessagesApi,
-   *                               request: Request[A]) extends WrappedRequest[A](request)
-   *
-   * class Authenticated @Inject()(messagesApi: MessagesApi) extends ActionBuilder[AuthMessagesRequest] {
-   *   def invokeBlock[A](request: Request[A], block: (AuthMessagesRequest[A]) => Future[Result]) = {
-   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
-   *         block(new AuthenticatedDbRequest[A](authRequest.user, messagesApi, request))
-   *     })
-   *   }
-   * }
-   * }}}
-   */
   object AuthenticatedBuilder {
 
     /**
