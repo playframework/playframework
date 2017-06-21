@@ -21,33 +21,26 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 import scala.collection.JavaConverters._
 
-class NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecification {
-  override def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
+class NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecification
+
+class AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
+
+trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
+
+  val httpsPort = 9443
+
+  def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
+
+    def getTimeout(d: Duration) = d match {
+      case Duration.Inf => "null"
+      case Duration(t, u) => s"${u.toMillis(t)}ms"
+    }
+
     Map(
       "play.server.http.idleTimeout" -> getTimeout(httpTimeout),
       "play.server.https.idleTimeout" -> getTimeout(httpsTimeout)
     )
   }
-}
-
-class AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification {
-  override def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
-    Map(
-      "play.server.akka.http.idleTimeout" -> getTimeout(httpTimeout),
-      "play.server.akka.https.idleTimeout" -> getTimeout(httpsTimeout)
-    )
-  }
-}
-
-trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
-  val httpsPort = 9443
-
-  def getTimeout(d: Duration) = d match {
-    case Duration.Inf => "null"
-    case Duration(t, u) => s"${u.toMillis(t)}ms"
-  }
-
-  def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String]
 
   "Play's idle timeout support" should {
     def withServer[T](httpTimeout: Duration, httpsPort: Option[Int] = None, httpsTimeout: Duration = Duration.Inf)(action: EssentialAction)(block: Port => T) = {

@@ -80,8 +80,8 @@ Play 2.5.x does not have a request timeout configuration for [[Netty Server|Nett
 And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](http://doc.akka.io/docs/akka-http/current/scala/http/configuration.html). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are move reasonable to your application, for example:
 
 ```
-play.server.akka.http.idleTimeout = 60s
-play.server.akka.requestTimeout = 40s
+play.server.http.idleTimeout = 60s
+play.server.requestTimeout = 40s
 ```
 
 ## Scala `Mode` changes

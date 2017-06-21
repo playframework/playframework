@@ -50,7 +50,8 @@ class AkkaHttpServer(
 
   assert(config.port.isDefined || config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
 
-  private val akkaConfig = config.configuration.get[Configuration]("play.server.akka")
+  private val serverConfig = config.configuration.get[Configuration]("play.server")
+  private val akkaServerConfig = config.configuration.get[Configuration]("play.server.akka")
 
   def mode = config.mode
 
@@ -58,7 +59,7 @@ class AkkaHttpServer(
   implicit private val system: ActorSystem = actorSystem
   implicit private val mat: Materializer = materializer
 
-  private val http2Enabled: Boolean = akkaConfig.getOptional[Boolean]("http2.enabled") getOrElse false
+  private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
 
   private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
@@ -68,8 +69,8 @@ class AkkaHttpServer(
     )).underlying
     val initialSettings = ServerSettings(initialConfig)
 
-    val idleTimeout = akkaConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
-    val requestTimeoutOption = akkaConfig.getOptional[Duration]("requestTimeout")
+    val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
+    val requestTimeoutOption = akkaServerConfig.getOptional[Duration]("requestTimeout")
 
     // all akka settings that are applied to the server needs to be set here
     val serverSettings: ServerSettings = initialSettings.withTimeouts {
@@ -83,9 +84,9 @@ class AkkaHttpServer(
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
       // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
-      .withTransparentHeadRequests(akkaConfig.get[Boolean]("transparent-head-requests"))
-      .withServerHeader(akkaConfig.getOptional[String]("server-header").filterNot(_ == "").map(headers.Server(_)))
-      .withDefaultHostHeader(headers.Host(akkaConfig.get[String]("default-host-header")))
+      .withTransparentHeadRequests(akkaServerConfig.get[Boolean]("transparent-head-requests"))
+      .withServerHeader(akkaServerConfig.getOptional[String]("server-header").filterNot(_ == "").map(headers.Server(_)))
+      .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] = try {
@@ -103,7 +104,7 @@ class AkkaHttpServer(
             "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt", e)
     }
 
-    val bindTimeout = akkaConfig.get[FiniteDuration]("bindTimeout")
+    val bindTimeout = akkaServerConfig.get[FiniteDuration]("bindTimeout")
     Await.result(bindingFuture, bindTimeout)
   }
 
