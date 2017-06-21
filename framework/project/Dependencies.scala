@@ -9,8 +9,8 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.5.3"
-  val akkaHttpVersion = "10.0.7"
-  val playJsonVersion = "2.6.0-RC2"
+  val akkaHttpVersion = "10.0.8"
+  val playJsonVersion = "2.6.0"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -25,17 +25,19 @@ object Dependencies {
 
   val specsSbt = specsBuild
 
+  val jacksonVersion = "2.8.9"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
     "com.fasterxml.jackson.core" % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % "2.8.9")
+  ).map(_ % jacksonVersion)
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.25")
+  val slf4jVersion = "1.7.25"
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
 
   val guava = "com.google.guava" % "guava" % "22.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
@@ -68,7 +70,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.8.RELEASE"
+  val springFrameworkVersion = "4.3.9.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -136,7 +138,7 @@ object Dependencies {
       guava,
       jjwt,
 
-      "org.apache.commons" % "commons-lang3" % "3.5",
+      "org.apache.commons" % "commons-lang3" % "3.6",
 
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
@@ -147,7 +149,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.11.Final"
+  val nettyVersion = "4.1.12.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0-M1",
@@ -238,7 +240,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.26" excludeAll(
+    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.27" excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -260,7 +262,7 @@ object Dependencies {
     "org.ehcache" % "jcache" % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.5.1"
+  val caffeineVersion = "2.5.2"
   val playWsStandaloneVersion = "1.0.0"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
