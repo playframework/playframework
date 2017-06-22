@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 public class RangeResultsTest {
@@ -329,6 +330,7 @@ public class RangeResultsTest {
 
     private void mockRegularRequest() {
         Http.Request request = mock(Http.Request.class);
+        when(request.header(RANGE)).thenReturn(Optional.empty());
         when(this.ctx.request()).thenReturn(request);
         
         mockRegularFileTypes();
@@ -336,7 +338,7 @@ public class RangeResultsTest {
 
     private void mockRangeRequest() {
         Http.Request request = mock(Http.Request.class);
-        when(request.getHeader(RANGE)).thenReturn("bytes=0-1");
+        when(request.header(RANGE)).thenReturn(Optional.of("bytes=0-1"));
         when(this.ctx.request()).thenReturn(request);
 
         mockRegularFileTypes();

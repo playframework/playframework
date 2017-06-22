@@ -57,7 +57,6 @@ case class CSRFConfig(
 
   import java.{ util => ju }
 
-  import play.core.j.{ RequestHeaderImpl => JRequestHeaderImpl }
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
   import scala.compat.java8.FunctionConverters._
@@ -69,14 +68,14 @@ case class CSRFConfig(
   def withSecureCookie(isSecure: Boolean) = copy(secureCookie = isSecure)
   def withHttpOnlyCookie(isHttpOnly: Boolean) = copy(httpOnlyCookie = isHttpOnly)
   def withCreateIfNotFound(pred: ju.function.Predicate[JRequestHeader]) =
-    copy(createIfNotFound = pred.asScala.compose(new JRequestHeaderImpl(_)))
+    copy(createIfNotFound = pred.asScala.compose(_.asJava))
   def withPostBodyBuffer(bufsize: Long) = copy(postBodyBuffer = bufsize)
   def withSignTokens(signTokens: Boolean) = copy(signTokens = signTokens)
   def withMethods(checkMethod: ju.function.Predicate[String]) = copy(checkMethod = checkMethod.asScala)
   def withContentTypes(checkContentType: ju.function.Predicate[Optional[String]]) =
     copy(checkContentType = checkContentType.asScala.compose(_.asJava))
   def withShouldProtect(shouldProtect: ju.function.Predicate[JRequestHeader]) =
-    copy(shouldProtect = shouldProtect.asScala.compose(new JRequestHeaderImpl(_)))
+    copy(shouldProtect = shouldProtect.asScala.compose(_.asJava))
   def withBypassCorsTrustedOrigins(bypass: Boolean) = copy(bypassCorsTrustedOrigins = bypass)
 }
 

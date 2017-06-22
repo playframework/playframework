@@ -109,6 +109,6 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         }
 
         CSRFErrorHandler handler = configurator.apply(this.configuration);
-        return handler.handle(new play.core.j.RequestHeaderImpl(request), msg);
+        return handler.handle(request.asJava(), msg);
     }
 }

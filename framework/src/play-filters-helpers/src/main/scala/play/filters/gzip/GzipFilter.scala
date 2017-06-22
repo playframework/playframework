@@ -193,7 +193,7 @@ case class GzipFilterConfig(
   def withShouldGzip(shouldGzip: (RequestHeader, Result) => Boolean): GzipFilterConfig = copy(shouldGzip = shouldGzip)
 
   def withShouldGzip(shouldGzip: BiFunction[play.mvc.Http.RequestHeader, play.mvc.Result, Boolean]): GzipFilterConfig =
-    withShouldGzip((req: RequestHeader, res: Result) => shouldGzip.asScala(new j.RequestHeaderImpl(req), res.asJava))
+    withShouldGzip((req: RequestHeader, res: Result) => shouldGzip.asScala(req.asJava, res.asJava))
 
   def withChunkedThreshold(threshold: Int): GzipFilterConfig = copy(chunkedThreshold = threshold)
 

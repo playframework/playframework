@@ -11,9 +11,21 @@ import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
+
 class RequestHeaderSpec extends Specification {
 
   "request header" should {
+
+    "convert to java" in {
+      "keep all the headers" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
+        rh.asJava.getHeaders.contains(HOST) must beTrue
+      }
+      "keep the headers accessible case insensitively" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
+        rh.asJava.getHeaders.contains("host") must beTrue
+      }
+    }
 
     "have typed attributes" in {
       "can set and get a single attribute" in {
