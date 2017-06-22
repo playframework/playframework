@@ -330,6 +330,8 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 Starting with Play 2.6 query string parameters will not be bound to a form instance anymore when using `.bindFromRequest()` in combination with `POST`, `PUT` or `PATCH` requests.
 
+Static methods which where already deprecated in 2.5 (e.g. DynamicForm.form()) where removed in this release. Refer to the [[Play 2.5 Migration Guide|Migration25]] for details on how to migrate, in case you still use them.
+
 ### Java Form Changes
 
 The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
