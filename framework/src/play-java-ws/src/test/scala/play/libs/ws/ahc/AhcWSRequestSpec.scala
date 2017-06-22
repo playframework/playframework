@@ -85,6 +85,17 @@ class AhcWSRequestSpec extends Specification with Mockito {
       headers.get("Content-Length") must beNull // no content length!
     }
 
+    "support a query string parameter with an encoded equals sign" in {
+      import scala.collection.JavaConverters._
+      val client = mock[AhcWSClient]
+      val request = new AhcWSRequest(client, "http://example.com?bar=F%3Dma", /*materializer*/ null)
+      val queryParams = request.buildRequest().getQueryParams.asScala
+      val p = queryParams(0)
+
+      p.getName must beEqualTo("bar")
+      p.getValue must beEqualTo("F%253Dma")
+    }
+
     "Use a custom signature calculator" in {
       val client = mock[AhcWSClient]
       var called = false

@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -65,17 +66,26 @@ public class AhcWSRequest implements WSRequest {
     private final ArrayList<WSRequestFilter> filters = new ArrayList<>();
 
     public AhcWSRequest(AhcWSClient client, String url, Materializer materializer) {
-        this.client = client;
-        URI reference = URI.create(url);
+        try {
+            this.client = client;
 
-        this.url = url;
-        this.materializer = materializer;
-        String userInfo = reference.getUserInfo();
-        if (userInfo != null) {
-            this.setAuth(userInfo);
-        }
-        if (reference.getQuery() != null) {
-            this.setQueryString(reference.getQuery());
+            // Per https://github.com/playframework/playframework/issues/7444
+            // we should not allow the string to undergo URL decoding, which was
+            // being done by URI.create, which expects a completely valid URI as
+            // input.
+            URL reference = new URL(url);
+
+            this.url = url;
+            this.materializer = materializer;
+            String userInfo = reference.getUserInfo();
+            if (userInfo != null) {
+                this.setAuth(userInfo);
+            }
+            if (reference.getQuery() != null) {
+                this.setQueryString(reference.getQuery());
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
         }
     }
 
