@@ -33,3 +33,11 @@ play.filters.hosts {
   allowed = [".example.com", "localhost:9000"]
 }
 ```
+
+## Testing 
+
+Because the AllowedHostsFilter filter is added automatically, functional tests need to have the Host HTTP header added.
+
+If you are using `FakeRequest` or `Helpers.fakeRequest`, then the `Host` HTTP header is added for you automatically.  If you are using `play.mvc.Http.RequestBuilder`, then you may need to add your own line to add the header manually:
+
+@[test-with-request-builder](code/javaguide/detailed/filters/FiltersTest.java)

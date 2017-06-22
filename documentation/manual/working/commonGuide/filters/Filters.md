@@ -124,7 +124,7 @@ Scala
 
 ### Disabling Compile Time Default Filters
 
-To disable the default filters, mixin [`play.api.NoHttpFiltersComponents`](api/scala/play/api/NoHttpFiltersComponents.html) for Scala and [`play.filters.components.NoHttpFiltersComponents`](api/java/play/filters/components/NoHttpFiltersComponents.html) for Java:
+To disable the default filters, mix in [`play.api.NoHttpFiltersComponents`](api/scala/play/api/NoHttpFiltersComponents.html) for Scala and [`play.filters.components.NoHttpFiltersComponents`](api/java/play/filters/components/NoHttpFiltersComponents.html) for Java:
 
 Java
 : @[remove-all-filters-compile-time-di](code/javaguide/detailed/filters/removeAll/MyAppComponents.java)
@@ -132,4 +132,4 @@ Java
 Scala
 : @[remove-all-filters-compile-time-di](code/scalaguide/detailed/filters/FiltersComponents.scala)
 
-Both Scala `play.api.NoHttpFiltersComponents` and `play.filters.components.NoHttpFiltersComponents` of `httpFilters` method which returns an empty list of filters.
+Both Scala [`play.api.NoHttpFiltersComponents`](api/scala/play/api/NoHttpFiltersComponents.html)  and [`play.filters.components.NoHttpFiltersComponents`](api/java/play/filters/components/NoHttpFiltersComponents.html) have `httpFilters` method which returns an empty list of filters.
