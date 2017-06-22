@@ -2,6 +2,18 @@
 
 This page highlights the new features of Play 2.6. If you want to learn about the changes you need to make when you migrate to Play 2.6, check out the [[Play 2.6 Migration Guide|Migration26]].
 
+## "Global-State-Free" Applications
+
+The biggest under the hood change is that Play no longer relies on global state under the hood.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6.0, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all. 
+
+You can disable access to global application entirely by setting the following configuration value:
+
+```
+play.allowGlobalApplication=false
+```
+
+The above setting will cause an exception on any invocation of `Play.current`.
+
 ## Akka HTTP Server Backend
 
 Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend.  More detail about Play's integration with Akka-HTTP can be found [[on the Akka HTTP Server page|AkkaHttpServer]].  There is an additional page on [[configuring Akka HTTP|SettingsAkkaHttp]].
