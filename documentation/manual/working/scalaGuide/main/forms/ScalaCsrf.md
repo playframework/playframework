@@ -55,7 +55,7 @@ It is also possible to disable the CSRF filter for a specific route in the route
 
 ### Using an implicit request
 
-All CSRF functionality assumes that a `RequestHeader` or a `Request` is available in implicit scope, and will not compile without one available. 
+All CSRF functionality assumes that a implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) (or a [`Request`](api/scala/play/api/mvc/Request.html), which extends  [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html)) is available in implicit scope, and will not compile without one available.  Examples will be shown below.
 
 #### Defining an implicit Request in Actions
 
@@ -63,7 +63,7 @@ For all the actions that need to access the CSRF token, the request must be expo
 
 @[some-csrf-action](code/ScalaCsrfController.scala)
 
-That is because the helper methods like `CSRF.getToken` access receives the request as an implicit parameter to retrieve CSRF token, for example:
+That is because the helper methods like [`CSRF.getToken`](api/scala/views/html/helper/CSRF$.html#getToken\(implicitrequest:play.api.mvc.RequestHeader\):play.filters.csrf.CSRF.Token) access receives the request as an implicit parameter to retrieve CSRF token, for example:
 
 @[implicit-access-to-token](code/ScalaCsrfController.scala)
 
@@ -75,19 +75,31 @@ If you have broken up your code into methods that CSRF functionality is used in,
 
 #### Defining an implicit Requests in Templates
 
-Your HTML template should have an implicit `Request` parameter to your template, if it doesn't have one already:
+Your HTML template should have an implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) parameter to your template, if it doesn't have one already, because the [`CSRF.formField`](api/scala/views/html/helper/CSRF$.html#formField\(implicitrequest:play.api.mvc.RequestHeader\):play.twirl.api.Html) helper requires one to be passed in (discussed more below):
 
 ```html
-@(...)(implicit request: Request[_])
+@(...)(implicit request: RequestHeader)
+```
+
+Since you will typically use CSRF in conjunction with form helpers that require a [`MessagesProvider`](api/scala/play/api/mvc/MessagesProvider.html) instance, you may want to use [`MessagesAbstractController`](api/scala/play/api/mvc/MessagesAbstractController.html) or another controller which provides a [`MessagesRequestHeader`](api/scala/play/api/mvc/MessagesRequestHeader.html):
+
+```html
+@(...)(implicit request: MessagesRequestHeader)
+```
+
+Or, if you are using a controller with [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) you can pass in the messages as a seperate implicit parameter:
+
+```html
+@(...)(implicit request: RequestHeader, messages: Messages)
 ```
 
 ### Getting the current token
 
-The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes an implicit `RequestHeader`, so ensure that one is in scope.
+The current CSRF token can be accessed using the [`CSRF.getToken`](api/scala/views/html/helper/CSRF$.html#getToken\(implicitrequest:play.api.mvc.RequestHeader\):play.filters.csrf.CSRF.Token) method.  It takes an implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html), so ensure that one is in scope.
 
 @[get-token](code/ScalaCsrf.scala)
 
-If you are not using the CSRF filter, you also should inject the `CSRFAddToken` and `CSRFCheck` action wrappers to force adding a token or a CSRF check on a specific action. Otherwise the token will not be available.
+If you are not using the CSRF filter, you also should inject the [`CSRFAddToken`](api/scala/play/filters/csrf/CSRFAddToken.html) and [`CSRFCheck`](api/scala/play/filters/csrf/CSRFCheck.html) action wrappers to force adding a token or a CSRF check on a specific action. Otherwise the token will not be available.
 
 @[csrf-controller](code/ScalaCsrf.scala)
 
@@ -116,8 +128,6 @@ This might render a form that looks like this:
 </form>
 ```
 
-The form helper methods all require an implicit `RequestHeader` to be available in scope. This will typically be provided by adding an implicit `RequestHeader` parameter to your template, if it doesn't have one already.
-
 ### Adding a CSRF token to the session
 
 To ensure that a CSRF token is available to be rendered in forms, and sent back to the client, the global filter will generate a new token for all GET requests that accept HTML, if a token isn't already available in the incoming request.
@@ -128,11 +138,11 @@ Sometimes global CSRF filtering may not be appropriate, for example in situation
 
 In these cases, Play provides two actions that can be composed with your applications actions.
 
-The first action is the `CSRFCheck` action, and it performs the check.  It should be added to all actions that accept session authenticated POST form submissions:
+The first action is the [`CSRFCheck`](api/scala/play/filters/csrf/CSRFCheck.html) action, and it performs the check.  It should be added to all actions that accept session authenticated POST form submissions:
 
 @[csrf-check](code/ScalaCsrf.scala)
 
-The second action is the `CSRFAddToken` action, it generates a CSRF token if not already present on the incoming request.  It should be added to all actions that render forms:
+The second action is the [`CSRFAddToken`](api/scala/play/filters/csrf/CSRFAddToken.html) action, it generates a CSRF token if not already present on the incoming request.  It should be added to all actions that render forms:
 
 @[csrf-add-token](code/ScalaCsrf.scala)
 
@@ -160,6 +170,6 @@ You can use all the above features if your application is using compile time dep
 
 ## Testing CSRF 
 
-When rendering, you may need to add the CSRF token to a template.  You can do this with `import play.api.test.CSRFTokenHelper._`, which enriches `play.api.test.FakeRequest` with the `withCSRFToken` method:
+When rendering, you may need to add the CSRF token to a template.  You can do this with [`import play.api.test.CSRFTokenHelper._`](api/scala/play/api/test/CSRFTokenHelper$.html), which enriches [`play.api.test.FakeRequest`](api/scala/play/api/test/FakeRequest.html) with the `withCSRFToken` method:
 
 @[testing-csrf](code/scalaguide/forms/csrf/UserControllerSpec.scala)

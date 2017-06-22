@@ -140,7 +140,7 @@ The idiomatic Play controller has in the past required global state. The main pl
 We have provided several new controller classes with new ways of injecting that state, providing the same syntax:
  - [`BaseController`](api/scala/play/api/mvc/BaseController.html): a trait with an abstract [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be provided by an implementing class.
  - [`AbstractController`](api/scala/play/api/mvc/AbstractController.html): an abstract class extending [`BaseController`](api/scala/play/api/mvc/BaseController.html) with a [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) constructor parameter that can be injected using constructor injection.
- - [`InjectedController`](api/scala/play/api/mvc/InjectedController.html): a trait, extending [`BaseController`](api/scala/play/api/mvc/BaseController.html), that obtains the [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) through method injection (calling a setControllerComponents method). If you are using a runtime DI framework like Guice, this is done automatically.
+ - [`InjectedController`](api/scala/play/api/mvc/InjectedController.html): a trait, extending [`BaseController`](api/scala/play/api/mvc/BaseController.html), that obtains the [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) through method injection (calling a `setControllerComponents` method). If you are using a runtime DI framework like Guice, this is done automatically.
 
 [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending [`ControllerHelpers`](api/scala/play/api/mvc/ControllerHelpers.html) and injecting your own bundle of components. Play does not require your controllers to implement any particular trait.
 
@@ -183,7 +183,7 @@ class FooController @Inject() () extends InjectedController {
 }
 ```
 
-[`InjectedController`](api/scala/play/api/mvc/InjectedController.html) gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) since it hides the dependency.
+[`InjectedController`](api/scala/play/api/mvc/InjectedController.html) gets its [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) since it hides the dependency.
 
 If you prefer to pass the individual dependencies manually, you can do that instead and extend [`ControllerHelpers`](api/scala/play/api/mvc/ControllerHelpers.html), which has no dependencies or state. Here's an example:
 
@@ -201,9 +201,9 @@ class Controller @Inject() (
 
 ## Scala ActionBuilder and BodyParser changes
 
-The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
+The Scala [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
 
-The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively. If you are inside a controller, they are automatically provided by the new `BaseController` trait (see [the controller changes](#Scala-Controller-changes) above).
+The [`Action`](api/scala/play/api/mvc/Action$.html) global object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) are now deprecated. They are replaced by injectable traits, [`DefaultActionBuilder`](api/scala/play/api/mvc/DefaultActionBuilder.html) and [`PlayBodyParsers`](api/scala/play/api/mvc/PlayBodyParsers.html) respectively. If you are inside a controller, they are automatically provided by the new [`BaseController`](api/scala/play/api/mvc/BaseController.html) trait (see [the controller changes](#Scala-Controller-changes) above).
 
 ## Scala `Mode` changes
 
@@ -231,7 +231,7 @@ Or in your Scala code:
 play.Mode javaMode = play.api.Mode.Dev.asJava
 ```
 
-Also, `play.api.Mode.Mode` is now deprecated and you should use `play.api.Mode` instead.
+Also, `play.api.Mode.Mode` is now deprecated and you should use [`play.api.Mode`](api/scala/play/api/Mode.html) instead.
 
 ## `Writeable[JsValue]` changes
 
@@ -243,7 +243,7 @@ If you need the old behavior back, you can define a `Writeable` with an arbitrar
 
 ## Cookies
 
-For Java users, we now recommend using [`play.mvc.Http.CookieBuilder`](api/java/play/mvc/Http.CookieBuilder.html) to create new cookies, for example:
+For Java users, we now recommend using [`play.mvc.Http.Cookie.builder`](api/java/play/mvc/Http.Cookie.html#builder-java.lang.String-java.lang.String-) to create new cookies, for example:
 
 ```java
 Http.Cookie cookie = Cookie.builder("color", "blue")
@@ -275,11 +275,12 @@ play.http.flash.sameSite = "strict" // strict same-site for flash
 
 ### __Host and __Secure prefixes
 
-We've also added support for the [__Host and __Secure cookie name prefixes](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00#section-3).
+We've also added support for the [\__Host and \__Secure cookie name prefixes](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00#section-3).
 
 This will only affect you if you happen to be using these prefixes for cookie names. If you are, Play will warn when serializing and deserializing those cookies if the proper attributes are not set, then set them for you automatically. To remove the warning, either cease using those prefixes for your cookies, or be sure to set the attributes as follows:
- - Cookies named with `__Host-` should set `Path=/` and `Secure` attributes.
- - Cookies named with `__Secure-` should set the `Secure` attribute.
+
+- Cookies named with `__Host-` should set `Path=/` and `Secure` attributes.
+- Cookies named with `__Secure-` should set the `Secure` attribute.
 
 ## Assets
 
@@ -328,14 +329,14 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 ## Form changes
 
-Starting with Play 2.6 query string parameters will not be bound to a form instance anymore when using `.bindFromRequest()` in combination with `POST`, `PUT` or `PATCH` requests.
+Starting with Play 2.6, query string parameters will not be bound to a form instance anymore when using [`bindFromRequest()`](api/scala/play/api/data/Form.html#bindFromRequest\()\(implicitrequest:play.api.mvc.Request[_]):play.api.data.Form[T]) in combination with `POST`, `PUT` or `PATCH` requests.
 
 ### Java Form Changes
 
-The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
+The [`errors()`](api/java/play/data/Form.html#errors--) method of a [`play.data.Form`](api/java/play/data/Form.html) instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
-From now on a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
-Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the `Validatable` interface with the applicable type argument (all defined in `play.data.validation.Constraints`):
+From now on, a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
+Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the [`Validatable`](api/java/play/data/validation/Constraints.Validatable.html) interface with the applicable type argument (all defined in [`play.data.validation.Constraints`](api/java/play/data/validation/Constraints.html)):
 
 | **Return type**                                                                    | **Interface to implement**
 | -----------------------------------------------------------------------------------|-------------------------------------
@@ -391,7 +392,7 @@ See [[Java Configuration Migration|JavaConfigMigration26]].
 
 ## Scala Configuration API
 
-The Scala `play.api.Configuration` API now has new methods that allow loading any type using a `ConfigLoader`. These new methods expect configuration keys to exist in the configuration file. For example, the following old code:
+The Scala [`play.api.Configuration`](api/scala/play/api/Configuration.html) API now has new methods that allow loading any type using a [`ConfigLoader`](api/scala/play/api/ConfigLoader.html). These new methods expect configuration keys to exist in the configuration file. For example, the following old code:
 
 ```scala
 val myConfig: String = configuration.getString("my.config.key").getOrElse("default")
@@ -408,9 +409,9 @@ val myConfigOption: Option[String] = configuration.get[Option[String]]("my.confi
 val myConfig: String = myConfigOption.getOrElse(computeDefaultValue())
 ```
 
-Also, there are several methods in the old `Configuration` that return Java types, like `getBooleanList`. We recommend using the Scala version `get[Seq[Boolean]]` instead if possible. If that is not possible, you can access the `underlying` Config object and call `getBooleanList` from it.
+Also, there are several methods in the old [`play.api.Configuration`](api/scala/play/api/Configuration.html) that return Java types, like `getBooleanList`. We recommend using the Scala version `get[Seq[Boolean]]` instead if possible. If that is not possible, you can access the `underlying` Config object and call `getBooleanList` from it.
 
-The deprecation messages on the existing methods also explain how to migrate each method. See [[the Scala Configuration docs|ScalaConfig]] for more details on the proper use of `play.api.Configuration`.
+The deprecation messages on the existing methods also explain how to migrate each method. See [[the Scala Configuration docs|ScalaConfig]] for more details on the proper use of [`play.api.Configuration`](api/scala/play/api/Configuration.html).
 
 ## Play JSON API changes
 
@@ -521,7 +522,7 @@ class Yaml @Inject()(environment: play.api.Environment) {
 
 If you explicitly depend on an alternate DI library for Play, or have defined your own custom application loader, no changes should be required.
 
-Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
+Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an [`ApplicationLoader`](api/scala/play/api/ApplicationLoader.html).
 
 ### Removed deprecated `play.Routes`
 
@@ -691,11 +692,11 @@ object Attrs {
 
 ### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
 
-Request cookies are now stored in a request attribute. Previously they were stored in the request's `Cookie` header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
+Request cookies are now stored in a request attribute. Previously they were stored in the request's [`Cookie`](api/scala/play/api/mvc/Cookie.html header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
 
-Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the `Cookie` HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
+Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the [`Cookie`](api/scala/play/api/mvc/Cookie.html HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
 
-If you still need the old behavior you can still use `Cookies.encodeCookieHeader` to convert the `Cookie` objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
+If you still need the old behavior you can still use [`]Cookies.encodeCookieHeader`](api/scala/play/api/mvc/Cookies$.html#encodeCookieHeader\(cookies:Seq[play.api.mvc.Cookie]):String) to convert the [`Cookie`](api/scala/play/api/mvc/Cookie.html) objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
 ### `play.api.mvc.Security.username` (Scala API), `session.username` changes
 
@@ -744,7 +745,7 @@ Request reqWithUsername = new RequestBuilder().putAttr(USERNAME, "admin").build(
 
 ### Router tags are now attributes
 
-If you used any of the `Router.Tags.*` tags, you should change your code to use the new `Router.Attrs.HandlerDef` (Scala) or `Router.Attrs.HANDLER_DEF` (Java) attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
+If you used any of the `Router.Tags.*` tags, you should change your code to use the new [`Router.Attrs.HandlerDef`](api/scala/play/api/routing/Router$$Attrs$.html#HandlerDef:play.api.libs.typedmap.TypedKey[play.api.routing.HandlerDef]) (Scala) or [`Router.Attrs.HANDLER_DEF`](api/java/play/routing/Router.Attrs.html#HANDLER_DEF) (Java) attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
 
 This new attribute contains a `HandlerDef` object with all the information that is currently in the tags. The current tags all correspond to a field in the `HandlerDef` object:
 
@@ -859,7 +860,7 @@ There is a `Http.Context.current().fileMimeTypes()` method that is provided unde
 
 ### Scala API
 
-The `play.api.libs.MimeTypes` class has been changed to `play.api.http.FileMimeTypes` interface, and the implementation has changed to `play.api.http.DefaultMimeTypes`.
+The `play.api.libs.MimeTypes` class has been changed to [`play.api.http.FileMimeTypes`](api/scala/play/api/http/FileMimeTypes.html) interface, and the implementation has changed to [`play.api.http.DefaultFileMimeTypes`](api/scala/play/api/http/DefaultFileMimeTypes.html).
 
 All the results that send files or resources now take `FileMimeTypes` implicitly, i.e.
 
@@ -895,13 +896,13 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 
 ## Default Filters
 
-Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.EnabledFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
+Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now [`play.api.http.EnabledFilters`](api/scala/play/api/http/EnabledFilters.html), which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
 In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in SBT as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
 
-* `play.filters.csrf.CSRFFilter`
-* `play.filters.headers.SecurityHeadersFilter`
-* `play.filters.hosts.AllowedHostsFilter`
+* [`play.filters.csrf.CSRFFilter`](api/scala/play/filters/csrf/CSRFFilter.html)
+* [`play.filters.headers.SecurityHeadersFilter`](api/scala/play/filters/headers/SecurityHeadersFilter.html)
+* [`play.filters.hosts.AllowedHostsFilter`](api/scala/play/filters/hosts/AllowedHostsFilter.html)
 
 This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
 
@@ -923,7 +924,9 @@ CSRF is a very common attack that takes very little skill to implement.  You can
 
 ##### What changes do I need to make? 
 
-If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests, from the CSRF filter.  Adding `CSRF.formField` to your form templates will resolve the error.
+If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests from the CSRF filter.  
+
+Adding `CSRF.formField` to your form templates will resolve the error If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
 
 To check this behavior, please add <logger name="play.filters.csrf" value="TRACE"/> to your logback.xml.
 
