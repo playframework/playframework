@@ -903,6 +903,100 @@ In Play itself, `play.filters.enabled` is an empty list.  However, the filters l
 
 This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
 
+### Effects of Default Filters
+
+The default filters are configured to give a "secure by default" configuration to projects. 
+
+**You should keep these filters enabled: they make your application more secure.** 
+
+If you did not have these filters enabled in an existing project, then there is some configuration required, and you may not be familiar with the errors and failures involved.  To help with migration, we'll go over each filter, what it does and what configuration is required.
+
+#### CSRFFilter 
+
+The CSRF filter is described in [[ScalaCsrf]] and [[JavaCsrf]].  It protects against [cross site request forgery](https://en.wikipedia.org/wiki/Cross-site_request_forgery) attacks, by adding a CSRF token to forms that is checked on POST requests.
+
+##### Why it is enabled by default
+
+CSRF is a very common attack that takes very little skill to implement.  You can see an example of a CSRF attack using Play at [https://github.com/Manc/play-scala-csrf](https://github.com/Manc/play-scala-csrf).  
+
+##### What changes do I need to make? 
+
+If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests, from the CSRF filter.  Adding `CSRF.formField` to your form templates will resolve the error.
+
+To check this behavior, please add <logger name="play.filters.csrf" value="TRACE"/> to your logback.xml.
+
+You may also want to enable SameSite cookies in Play, which provide an additional defense against CSRF attacks.
+
+#### SecurityHeadersFilter
+
+[[SecurityHeadersFilter|SecurityHeaders]] prevents [cross site scripting](https://en.wikipedia.org/wiki/Cross-site_scripting) and [clickjacking](https://en.wikipedia.org/wiki/Clickjacking) attacks, by adding extra HTTP headers to the request.  
+
+##### Why it is enabled by default
+
+Browser based attacks are extremely commmon, and security headers can provide a defense in depth to help frustrate those attacks.
+
+##### What changes do I need to make? 
+
+The default "Content-Security-Policy" settings are quite strict, and it is likely that you will need to experiment with it to find the most useful settings.  The Content-Security-Policy settings will change how Javascript and remote frames are displayed in a browser.  **Embedded Javascript or CSS will not be loaded in your web page until you modify the Content-Security-Policy header.** 
+
+If you are sure that you do not want to enable it, you can disable the Content-Security-Policy as follows:
+
+```
+play.filters.headers.contentSecurityPolicy=null
+```
+
+[CSP-Useful](https://github.com/nico3333fr/CSP-useful) is a good resource on Content-Security-Policy in general.  Note that there are other potential solutions to embedded Javascript, such as adding a custom CSP nonce on every request.
+
+The other headers are less intrusive, and are unlikely to cause problems on a plain website, but may cause cookie or rendering problems on a Single Page Application.  Mozilla has documentation describing each header in detail, using the header name in the URL: for example, for X-Frame-Options go to [https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options).
+
+
+```
+play.filters.headers {
+
+    # The X-Frame-Options header. If null, the header is not set.
+    frameOptions = "DENY"
+
+    # The X-XSS-Protection header. If null, the header is not set.
+    xssProtection = "1; mode=block"
+
+    # The X-Content-Type-Options header. If null, the header is not set.
+    contentTypeOptions = "nosniff"
+
+    # The X-Permitted-Cross-Domain-Policies header. If null, the header is not set.
+    permittedCrossDomainPolicies = "master-only"
+
+    # The Content-Security-Policy header. If null, the header is not set.
+    contentSecurityPolicy = "default-src 'self'"
+
+    # The Referrer-Policy header. If null, the header is not set.
+    referrerPolicy = "origin-when-cross-origin, strict-origin-when-cross-origin"
+
+    # If true, allow an action to use .withHeaders to replace one or more of the above headers
+    allowActionSpecificHeaders = false
+}
+```
+
+#### AllowedHostsFilter
+
+The AllowedHostsFilter adds a whitelist of allowed hosts and sends a 400 (Bad Request) response to all requests with a host that do not match the whitelist.
+
+##### Why it is enabled by default
+
+This is an important filter to use in development, because DNS rebinding attacks can be used against a developer’s instance of Play: see [Rails Webconsole DNS Rebinding](https://benmmurphy.github.io/blog/2016/07/11/rails-webconsole-dns-rebinding/) for an example of how short lived DNS rebinding can attack a server running on localhost.
+
+##### What changes do I need to make? 
+
+If you are running a Play application on something other than localhost, you must configure the AllowedHostsFilter to specifically allow the hostname/ip you are connecting from.  This is especially important to note when you change environments, because typically you'll run on localhost in development, but will run remotely in staging and production.
+
+```
+play.filters.hosts {
+  # Allow requests to example.com, its subdomains, and localhost:9000.
+  allowed = [".example.com", "localhost:9000"]
+}
+```
+
+### Appending To Filters
+
 To append to the defaults list, use the `+=`:
 
 ```
