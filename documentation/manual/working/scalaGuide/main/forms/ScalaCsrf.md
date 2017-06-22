@@ -81,7 +81,7 @@ Your HTML template should have an implicit [`RequestHeader`](api/scala/play/api/
 @(...)(implicit request: RequestHeader)
 ```
 
-Since you will typically use CSRF in conjunction with form helpers that require a [`MessagesProvider`](api/scala/play/api/mvc/MessagesProvider.html) instance, you may want to use [`MessagesAbstractController`](api/scala/play/api/mvc/MessagesAbstractController.html) or another controller which provides a [`MessagesRequestHeader`](api/scala/play/api/mvc/MessagesRequestHeader.html):
+Since you will typically use CSRF in conjunction with form helpers that require a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) instance, you may want to use [`MessagesAbstractController`](api/scala/play/api/mvc/MessagesAbstractController.html) or another controller which provides a [`MessagesRequestHeader`](api/scala/play/api/mvc/MessagesRequestHeader.html):
 
 ```html
 @(...)(implicit request: MessagesRequestHeader)
