@@ -26,7 +26,7 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
   sequential
 
   /** An action whose result is just "true" or "false" depending on the value of result.secure */
-  val secureFlagAction = ActionBuilder.ignoringBody { request: Request[_] =>
+  def secureFlagAction = ActionBuilder.ignoringBody { request: Request[_] =>
     Results.Ok(request.secure.toString)
   }
 

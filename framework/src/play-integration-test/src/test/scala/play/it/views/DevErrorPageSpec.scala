@@ -3,7 +3,6 @@
  */
 package play.it.views
 
-import play.api.{ Configuration, Environment, Mode }
 import play.api.http.DefaultHttpErrorHandler
 import play.api.test._
 
