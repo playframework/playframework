@@ -75,13 +75,15 @@ Finally, Play Iteratees has a separate versioning scheme, so the version no long
 
 Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](http://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
 
-## Akka HTTP server timeouts
+You can read more at [[Akka HTTP Server Backend|AkkaHttpServer]].
+
+### Akka HTTP server timeouts
 
 Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](http://doc.akka.io/docs/akka-http/10.0.7/scala/http/common/timeouts.html#akka-http-timeouts) states that:
 
 > Akka HTTP comes with a variety of built-in timeout mechanisms to protect your servers from malicious attacks or programming mistakes.
 
-And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](http://doc.akka.io/docs/akka-http/current/scala/http/configuration.html). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are move reasonable to your application, for example:
+And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](http://doc.akka.io/docs/akka-http/current/scala/http/configuration.html). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are more reasonable to your application, for example:
 
 ```
 play.server.akka.http.idleTimeout = 60s
@@ -133,18 +135,18 @@ The Scala `ActionBuilder` trait has been modified to specify the type of the bod
 
 ## Scala Controller changes
 
-The idiomatic Play controller has in the past required global state. The main places that was needed was in the global `Action` object and `BodyParsers#parse` method.
+The idiomatic Play controller has in the past required global state. The main places that was needed was in the global [`Action`](api/scala/play/api/mvc/Action$.html) object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) method.
 
 We have provided several new controller classes with new ways of injecting that state, providing the same syntax:
- - `BaseController`: a trait with an abstract `ControllerComponents` that can be provided by an implementing class.
- - `AbstractController`: an abstract class extending `BaseController` with a `ControllerComponents` constructor parameter that can be injected using constructor injection.
- - `InjectedController`: a trait, extending `BaseController`, that obtains the `ControllerComponents` through method injection (calling a setControllerComponents method). If you are using a runtime DI framework like Guice, this is done automatically.
+ - [`BaseController`](api/scala/play/api/mvc/BaseController.html): a trait with an abstract [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be provided by an implementing class.
+ - [`AbstractController`](api/scala/play/api/mvc/AbstractController.html): an abstract class extending [`BaseController`](api/scala/play/api/mvc/BaseController.html) with a [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) constructor parameter that can be injected using constructor injection.
+ - [`InjectedController`](api/scala/play/api/mvc/InjectedController.html): a trait, extending [`BaseController`](api/scala/play/api/mvc/BaseController.html), that obtains the [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) through method injection (calling a setControllerComponents method). If you are using a runtime DI framework like Guice, this is done automatically.
 
-`ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `ControllerHelpers` and injecting your own bundle of components. Play does not require your controllers to implement any particular trait.
+[`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending [`ControllerHelpers`](api/scala/play/api/mvc/ControllerHelpers.html) and injecting your own bundle of components. Play does not require your controllers to implement any particular trait.
 
-Note that `BaseController` makes `Action` and `parse` refer to injected instances rather than the global objects, which is usually what you want to do.
+Note that [`BaseController`](api/scala/play/api/mvc/BaseController.html) makes [`Action`](api/scala/play/api/mvc/Action.html) and `parse` refer to injected instances rather than the global objects, which is usually what you want to do.
 
-Here's an example of code using `AbstractController`:
+Here's an example of code using [`AbstractController`](api/scala/play/api/mvc/AbstractController.html):
 
 ```scala
 class FooController @Inject() (components: ControllerComponents)
@@ -157,7 +159,7 @@ class FooController @Inject() (components: ControllerComponents)
 }
 ```
 
-and using `BaseController`:
+and using [`BaseController`](api/scala/play/api/mvc/BaseController.html):
 
 ```scala
 class FooController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
@@ -169,7 +171,7 @@ class FooController @Inject() (val controllerComponents: ControllerComponents) e
 }
 ```
 
-and `InjectedController`:
+and [`InjectedController`](api/scala/play/api/mvc/InjectedController.html):
 
 ```scala
 class FooController @Inject() () extends InjectedController {
@@ -181,9 +183,9 @@ class FooController @Inject() () extends InjectedController {
 }
 ```
 
-`InjectedController` gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using `InjectedController` with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding `InjectedController` since it hides the dependency.
+[`InjectedController`](api/scala/play/api/mvc/InjectedController.html) gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) since it hides the dependency.
 
-If you prefer to pass the individual dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
+If you prefer to pass the individual dependencies manually, you can do that instead and extend [`ControllerHelpers`](api/scala/play/api/mvc/ControllerHelpers.html), which has no dependencies or state. Here's an example:
 
 ```scala
 class Controller @Inject() (
@@ -241,10 +243,10 @@ If you need the old behavior back, you can define a `Writeable` with an arbitrar
 
 ## Cookies
 
-For Java users, we now recommend using `Cookie.builder` to create new cookies, for example:
+For Java users, we now recommend using [`play.mvc.Http.CookieBuilder`](api/java/play/mvc/Http.CookieBuilder.html) to create new cookies, for example:
 
 ```java
-Cookie cookie = Cookie.builder("color", "blue")
+Http.Cookie cookie = Cookie.builder("color", "blue")
   .withMaxAge(3600)
   .withSecure(true)
   .withHttpOnly(true)
@@ -283,7 +285,7 @@ This will only affect you if you happen to be using these prefixes for cookie na
 
 ### Binding Assets with compile-time DI
 
-If you are using compile-time DI, you should mix in `controllers.AssetsComponents` and use that to obtain the `assets: Assets` controller instance:
+If you are using compile-time DI, you should mix in [`controllers.AssetsComponents`](api/scala/controllers/AssetsComponents.html) and use that to obtain the `assets: Assets` controller instance:
 
 ```scala
 class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) with AssetsComponents {
@@ -295,7 +297,7 @@ If you have an existing `lazy val assets: Assets` you can remove it.
 
 ### Assets configuration
 
-Existing user-facing APIs have not changed, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
+Existing user-facing APIs have not changed, but we suggest moving over to the [`AssetsFinder`](api/scala/controllers/AssetsFinder.html) API for finding assets and setting up your assets directories in configuration:
 
 ```
 play.assets {
@@ -314,7 +316,7 @@ Then in routes you can do:
 
 You no longer need to provide an assets path at the start of the argument list, since that's now read from configuration.
 
-Then in your template you can use `AssetsFinder#path` to find the final path of the asset:
+Then in your template you can use [`AssetsFinder#path`](api/scala/controllers/AssetsFinder.html#path\(rawPath:String\):String) to find the final path of the asset:
 
 ```scala
 @(assets: AssetsFinder)
@@ -779,9 +781,9 @@ class MyComponentsFromContext(context: ApplicationLoader.Context)
 
 However, there are some good reasons why you may not want to import an execution context even in the general case.  In the general case, the application's execution context is good for rendering actions, and executing CPU-bound activities that do not involve blocking API calls or I/O activity.  If you are calling out to a database, or making network calls, then you may want to define your own custom execution context.
 
-The recommended way to create a custom execution context is through `CustomExecutionContext`, which uses the Akka dispatcher system ([java](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html) / [scala](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html))  so that executors can be defined through configuration.
+The recommended way to create a custom execution context is through [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html), which uses the Akka dispatcher system ([java](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html) / [scala](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html))  so that executors can be defined through configuration.
 
-To use your own execution context, extend the `CustomExecutionContext` abstract class with the full path to the dispatcher in the `application.conf` file:
+To use your own execution context, extend the [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html) abstract class with the full path to the dispatcher in the `application.conf` file:
 
 ```scala
 import play.api.libs.concurrent.CustomExecutionContext
@@ -808,7 +810,7 @@ class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionCon
 }
 ```
 
-Please see [[ThreadPools]] page for more information on custom execution contexts.
+Please see [[ThreadPools]] page for more information on custom thread pool configuration, and [[JavaAsync]] / [[ScalaAsync]] for using `CustomExecutionContext`.
 
 ## Changes to play.api.test Helpers
 
