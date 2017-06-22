@@ -731,6 +731,8 @@ public class Http {
 
         /**
          * Retrieve all headers.
+         *
+         * @return the request headers for this request.
          */
         Headers getHeaders();
 
@@ -1004,7 +1006,7 @@ public class Http {
                 // assume null signifies no body; RequestBody is a wrapper for the actual body content
                 headers(getHeaders().remove(HeaderNames.CONTENT_LENGTH).remove(HeaderNames.TRANSFER_ENCODING));
             } else {
-                if (!getHeader(HeaderNames.TRANSFER_ENCODING).isPresent()) {
+                if (!getHeaders().get(HeaderNames.TRANSFER_ENCODING).isPresent()) {
                     int length = body.asBytes().length();
                     header(HeaderNames.CONTENT_LENGTH, Integer.toString(length));
                 }
@@ -1387,7 +1389,7 @@ public class Http {
          * @param key the key to be used in the header
          * @return the value associated with the key, if multiple, the first, if none returns null
          *
-         * @deprecate As of release 2.6, use {@link #getHeader(String)} instead.
+         * @deprecated As of release 2.6, use {@link #getHeaders()} instead.
          */
         @Deprecated
         public String header(String key) {
@@ -1396,17 +1398,9 @@ public class Http {
 
         /**
          * @param key the key to be used in the header
-         * @return the value associated with the key, if multiple, the first, if none returns null
-         */
-        public Optional<String> getHeader(String key) {
-            return getHeaders().get(key);
-        }
-
-        /**
-         * @param key the key to be used in the header
          * @return all values (could be 0) associated with the key
          *
-         * @deprecated As of release 2.6, use {@link #getHeaderValues(String)} instead.
+         * @deprecated As of release 2.6, use {@link #getHeaders()} instead.
          */
         @Deprecated
         public String[] headers(String key) {
@@ -1424,18 +1418,10 @@ public class Http {
         }
 
         /**
-         * @return the headers
+         * @return the headers for this request builder
          */
         public Headers getHeaders() {
             return req.headers().asJava();
-        }
-
-        /**
-         * @param key the key to be used in the header
-         * @return all values (could be 0) associated with the key
-         */
-        public List<String> getHeaderValues(String key) {
-            return getHeaders().getAll(key);
         }
 
         /**
@@ -1453,6 +1439,8 @@ public class Http {
         }
 
         /**
+         * Set the headers to be used by the request builder.
+         *
          * @param headers the headers to be replaced
          * @return the builder instance
          */
@@ -1466,7 +1454,7 @@ public class Http {
          * @param values the values associated with the key
          * @return the builder instance
          *
-         * @deprecate As of release 2.6, use {@link #header(String, List)} instead.
+         * @deprecated As of release 2.6, use {@link #header(String, List)} instead.
          */
         @Deprecated
         public RequestBuilder header(String key, String[] values) {
