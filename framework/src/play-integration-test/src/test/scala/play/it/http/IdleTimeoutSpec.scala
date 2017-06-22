@@ -26,20 +26,27 @@ class NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecific
 class AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
 
 trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
+
   val httpsPort = 9443
+
+  def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
+
+    def getTimeout(d: Duration) = d match {
+      case Duration.Inf => "null"
+      case Duration(t, u) => s"${u.toMillis(t)}ms"
+    }
+
+    Map(
+      "play.server.http.idleTimeout" -> getTimeout(httpTimeout),
+      "play.server.https.idleTimeout" -> getTimeout(httpsTimeout)
+    )
+  }
 
   "Play's idle timeout support" should {
     def withServer[T](httpTimeout: Duration, httpsPort: Option[Int] = None, httpsTimeout: Duration = Duration.Inf)(action: EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      def getTimeout(d: Duration) = d match {
-        case Duration.Inf => "null"
-        case Duration(t, u) => s"${u.toMillis(t)}ms"
-      }
       val props = new Properties(System.getProperties)
-      props.putAll(Map(
-        "play.server.http.idleTimeout" -> getTimeout(httpTimeout),
-        "play.server.https.idleTimeout" -> getTimeout(httpsTimeout)
-      ).asJava)
+      props.putAll(timeouts(httpTimeout, httpsTimeout).asJava)
       val serverConfig = ServerConfig(port = Some(port), sslPort = httpsPort, mode = Mode.Test, properties = props)
       running(play.api.test.TestServer(
         config = serverConfig,
