@@ -129,10 +129,6 @@ Now, the default `Writeable[JsValue]` takes no implicit parameters and always wr
 
 If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
 
-## Scala ActionBuilder and BodyParser changes
-
-The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
-
 ## Scala Controller changes
 
 The idiomatic Play controller has in the past required global state. The main places that was needed was in the global [`Action`](api/scala/play/api/mvc/Action$.html) object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) method.
@@ -204,42 +200,6 @@ class Controller @Inject() (
 The Scala [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
 
 The [`Action`](api/scala/play/api/mvc/Action$.html) global object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) are now deprecated. They are replaced by injectable traits, [`DefaultActionBuilder`](api/scala/play/api/mvc/DefaultActionBuilder.html) and [`PlayBodyParsers`](api/scala/play/api/mvc/PlayBodyParsers.html) respectively. If you are inside a controller, they are automatically provided by the new [`BaseController`](api/scala/play/api/mvc/BaseController.html) trait (see [the controller changes](#Scala-Controller-changes) above).
-
-## Scala `Mode` changes
-
-Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
-
-```java
-play.api.Mode scalaMode = play.api.Mode.Test();
-```
-
-Must be rewritten to:
-
-```java
-play.api.Mode scalaMode = play.Mode.TEST.asScala();
-```
-
-It is also easier to convert between Java and Scala modes:
-
-```java
-play.api.Mode scalaMode = play.Mode.DEV.asScala();
-```
-
-Or in your Scala code:
-
-```scala
-play.Mode javaMode = play.api.Mode.Dev.asJava
-```
-
-Also, `play.api.Mode.Mode` is now deprecated and you should use [`play.api.Mode`](api/scala/play/api/Mode.html) instead.
-
-## `Writeable[JsValue]` changes
-
-Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.
-
-Now, the default `Writeable[JsValue]` takes no implicit parameters and always writes to `UTF-8`. This covers the majority of cases, since most users want to use UTF-8 for JSON. It also allows us to easily use more efficient built-in methods for writing JSON to a byte array.
-
-If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
 
 ## Cookies
 
