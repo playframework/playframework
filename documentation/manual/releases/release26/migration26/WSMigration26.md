@@ -1,7 +1,20 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Play WS Migration Guide
 
-Play WS is now a standalone project and is available at [https://github.com/playframework/play-ws](https://github.com/playframework/play-ws). It can be added to an SBT project with:
+Play WS is now a standalone project and is available at [https://github.com/playframework/play-ws](https://github.com/playframework/play-ws). To add it to your Play projects, you can use:
+
+```scala
+libraryDependencies += ws
+```
+
+And if you want to use the cache support, add both `ws` and `wsCache` dependencies:
+
+```scala
+libraryDependencies += ws
+libraryDependencies += wsCache
+```
+
+If you want to use it in a non Play project, it can be added to an SBT project with:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
