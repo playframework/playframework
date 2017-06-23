@@ -463,7 +463,7 @@ public class MyComponent {
 }
 ```
 
-Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
+Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/current/scala/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
 
 ### Removed Yaml API
 
