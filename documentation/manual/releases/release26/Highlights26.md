@@ -126,19 +126,7 @@ TwirlKeys.constructorAnnotations := Seq("@com.google.inject.Inject()")
 
 Now define the controller by injecting the template in the constructor:
 
-```scala
-public MyController @Inject()(indexTemplate: views.html.IndexTemplate,
-                              cc: ControllerComponents)
-  extends AbstractController(cc) {
-
-  def index = Action { implicit request =>
-    Ok(indexTemplate())
-  }
-}
-```
-
-or
-
+Java:
 ```java
 public class MyController extends Controller {
 
@@ -153,6 +141,18 @@ public class MyController extends Controller {
     return ok(template.render());
   }
 
+}
+```
+
+Scala:
+```scala
+public MyController @Inject()(indexTemplate: views.html.IndexTemplate,
+                              cc: ControllerComponents)
+  extends AbstractController(cc) {
+
+  def index = Action { implicit request =>
+    Ok(indexTemplate())
+  }
 }
 ```
 
