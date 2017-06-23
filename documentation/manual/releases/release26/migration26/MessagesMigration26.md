@@ -306,7 +306,7 @@ class MessagesSpec extends PlaySpecification {
 
 ```
 
-If you need to customize the configuration, it's better to add configuration values into the GuiceApplicationBuilder rather than use the DefaultMessagesApiProvider directly.
+If you need to customize the configuration, it's better to add configuration values into the `GuiceApplicationBuilder` rather than use the `DefaultMessagesApiProvider` directly.
 
 ### Deprecated Methods
 
