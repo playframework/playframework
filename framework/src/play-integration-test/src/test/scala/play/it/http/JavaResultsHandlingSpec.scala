@@ -149,6 +149,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.body must_== "Hello world"
     }
 
+    "add transient cookies in Response" in makeRequest(new MockController {
+      def action = {
+        response.setCookie(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null))
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header("Set-Cookie").get.toLowerCase must not contain "max-age="
+      response.body must_== "Hello world"
+    }
+
     "clear Session" in makeRequest(new MockController {
       def action = {
         session.clear()
