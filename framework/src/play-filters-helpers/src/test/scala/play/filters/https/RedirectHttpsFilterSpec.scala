@@ -36,7 +36,8 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
 
   "RedirectHttpsFilter" should {
 
-    "redirect when not on https including the path and url query parameters" in new WithApplication(buildApp()) with Injecting {
+    "redirect when not on https including the path and url query parameters" in new WithApplication(
+      buildApp(mode = Mode.Prod)) with Injecting {
       val req = request("/please/dont?remove=this&foo=bar")
       val result = route(app, req).get
 
@@ -47,28 +48,46 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
     "redirect with custom redirect status code if configured" in new WithApplication(buildApp(
       """
         |play.filters.https.redirectStatusCode = 301
-      """.stripMargin)) with Injecting {
+      """.stripMargin, mode = Mode.Prod)) with Injecting {
       val req = request("/please/dont?remove=this&foo=bar")
       val result = route(app, req).get
 
       status(result) must_== 301
     }
 
-    "not redirect when on https" in new WithApplication(buildApp()) {
-      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
+    "not redirect when on http in test" in new WithApplication(buildApp(mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
 
       header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== OK
     }
 
-    "redirect to custom HTTPS port if configured" in new WithApplication(buildApp("play.filters.https.port = 9443")) {
+    "redirect when on http in test and redirectEnabled = true" in new WithApplication(
+      buildApp("play.filters.https.redirectEnabled = true", mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure)).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== PERMANENT_REDIRECT
+    }
+
+    "not redirect when on https but send HSTS header" in new WithApplication(buildApp(mode = Mode.Prod)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure)).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=31536000; includeSubDomains")
+      status(result) must_== OK
+    }
+
+    "redirect to custom HTTPS port if configured" in new WithApplication(
+      buildApp("play.filters.https.port = 9443", mode = Mode.Prod)) {
       val result = route(app, request("/please/dont?remove=this&foo=bar")).get
 
       header(LOCATION, result) must beSome("https://playframework.com:9443/please/dont?remove=this&foo=bar")
     }
 
-    "not contain default HSTS header if secure in test" in new WithApplication(buildApp()) {
+    "not contain default HSTS header if secure in test" in new WithApplication(buildApp(mode = Mode.Test)) {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
 
