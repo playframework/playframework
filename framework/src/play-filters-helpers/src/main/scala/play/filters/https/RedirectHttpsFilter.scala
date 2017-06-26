@@ -59,11 +59,13 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
 }
 
 case class RedirectHttpsConfiguration(
-  strictTransportSecurity: Option[String] = Some("max-age=31536000; includeSubDomains"),
-  redirectStatusCode: Int = PERMANENT_REDIRECT,
-  sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
-  redirectEnabled: Boolean = true
-)
+    strictTransportSecurity: Option[String] = Some("max-age=31536000; includeSubDomains"),
+    redirectStatusCode: Int = PERMANENT_REDIRECT,
+    sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
+    redirectEnabled: Boolean = true
+) {
+  def hstsEnabled: Boolean = redirectEnabled && strictTransportSecurity.isDefined
+}
 
 private object RedirectHttpsKeys {
   val stsPath = "play.filters.https.strictTransportSecurity"
