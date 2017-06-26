@@ -2318,10 +2318,11 @@ public class Http {
         }
 
         public play.api.mvc.Cookie asScala() {
-            OptionalInt optMaxAge = OptionalInt.of(Optional.ofNullable(maxAge()).orElse(0));
+            OptionalInt optMaxAge = maxAge == null ? OptionalInt.empty() : OptionalInt.of(maxAge);
             Optional<String> optDomain = Optional.ofNullable(domain());
             Optional<play.api.mvc.Cookie.SameSite> optSameSite = sameSite().map(SameSite::asScala);
-            return new play.api.mvc.Cookie(name(), value(), OptionConverters.toScala(optMaxAge), path(), OptionConverters.toScala(optDomain), secure(), httpOnly(), OptionConverters.toScala(optSameSite));
+            return new play.api.mvc.Cookie(name(), value(), OptionConverters.toScala(optMaxAge), path(),
+                OptionConverters.toScala(optDomain), secure(), httpOnly(), OptionConverters.toScala(optSameSite));
         }
     }
 
