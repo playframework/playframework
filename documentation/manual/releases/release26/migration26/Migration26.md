@@ -51,7 +51,7 @@ Play JSON has been moved to a separate library hosted at https://github.com/play
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
 ```
 
-Also, Play JSON has a separate release cycle from the core Play library, so the version is no longer in sync with the Play version.
+Also, play-json has a separate release cycle from the core Play library, so the version is no longer in sync with the Play version.
 
 ### Play Iteratees moved to separate project
 
