@@ -66,7 +66,7 @@ where `config` is your `com.typesafe.config.Config` instance.
 
 ## Manually checking values
 
-If you don't want or if you cannot have default values for some reason, you can use [`Config.hasPath`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPath-java.lang.String-) or [`Config.hasPathOrNull`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPathOrNull-java.lang.String-) to check if the value is configured before accessing it. This is a better option if the configuration is required but you can provide a reference (default) value:
+If you don't want or if you cannot have default values for some reason, you can use [`Config.hasPath`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPath-java.lang.String-) or [`Config.hasPathOrNull`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPathOrNull-java.lang.String-) to check if the value is configured before accessing it. This is a better option if the configuration is required but you can't provide a reference (default) value:
 
 ```java
 import com.typesafe.config.Config;
