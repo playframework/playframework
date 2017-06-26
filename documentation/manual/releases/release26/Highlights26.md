@@ -54,7 +54,7 @@ Scala:
 ```scala
 // Create a TypedKey to store a User object
 object Attrs {
-  val User: TypedKey[User] = TypedKey[User].apply("user")
+  val User: TypedKey[User] = TypedKey.apply[User]("user")
 }
 
 // Get the User object from the request
