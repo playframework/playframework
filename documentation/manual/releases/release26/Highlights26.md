@@ -269,7 +269,7 @@ The security marker also allows security failures to be triggered or filtered di
 </turboFilter>
 ```
 
-In addition, log events using the security marker can also trigger a message to a Security Information & Event Management (SEIM) engine for further processing.
+In addition, log events using the security marker can also trigger a message to a Security Information & Event Management (SIEM) engine for further processing.
 
 ## Configuring a Custom Logging Framework in Java
 
@@ -502,7 +502,7 @@ For more information, please see [[ScalaAsync]] or [[JavaAsync]].
 
 ## CustomExecutionContext and Thread Pool Sizing
 
-This class defines a custom execution context that delegates to an akka.actor.ActorSystem.  It is very useful for situations in which the default execution context should not be used, for example if a database or blocking I/O is being used.  Detailed information can be found in the [[ThreadPools]] page, but Play 2.6.x adds a `CustomExecutionContext` class that handles the underlying Akka dispatcher lookup.
+This class defines a custom execution context that delegates to an `akka.actor.ActorSystem`.  It is very useful for situations in which the default execution context should not be used, for example if a database or blocking I/O is being used.  Detailed information can be found in the [[ThreadPools]] page, but Play 2.6.x adds a `CustomExecutionContext` class that handles the underlying Akka dispatcher lookup.
 
 ## Updated Templates with Preconfigured CustomExecutionContexts
 

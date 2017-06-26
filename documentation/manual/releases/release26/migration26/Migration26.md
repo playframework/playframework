@@ -9,7 +9,7 @@ The following steps need to be taken to update your sbt build before you can loa
 
 ### Play upgrade
 
-Update the Play version number in project/plugins.sbt to upgrade Play:
+Update the Play version number in `project/plugins.sbt` to upgrade Play:
 
 ```scala
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.x")
@@ -51,7 +51,7 @@ Play JSON has been moved to a separate library hosted at https://github.com/play
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
 ```
 
-Also, play-json has a separate release cycle from the core Play library, so the version no longer is in sync with the Play version.
+Also, play-json has a separate release cycle from the core Play library, so the version is no longer in sync with the Play version.
 
 ### Play Iteratees moved to separate project
 
@@ -69,7 +69,7 @@ libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" 
 
 > **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary.
 
-Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
+Finally, Play Iteratees has a separate versioning scheme, so the version is no longer in sync with the Play version.
 
 ## Akka HTTP as the default server engine
 
@@ -87,7 +87,7 @@ And you can see the default values for `akka.http.server.idle-timeout`, `akka.ht
 
 ```
 play.server.http.idleTimeout = 60s
-play.server.requestTimeout = 40s
+play.server.akka.requestTimeout = 40s
 ```
 
 ## Scala `Mode` changes
@@ -128,10 +128,6 @@ Previously, the default Scala `Writeable[JsValue]` allowed you to define an impl
 Now, the default `Writeable[JsValue]` takes no implicit parameters and always writes to `UTF-8`. This covers the majority of cases, since most users want to use UTF-8 for JSON. It also allows us to easily use more efficient built-in methods for writing JSON to a byte array.
 
 If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
-
-## Scala ActionBuilder and BodyParser changes
-
-The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
 
 ## Scala Controller changes
 
@@ -204,42 +200,6 @@ class Controller @Inject() (
 The Scala [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
 
 The [`Action`](api/scala/play/api/mvc/Action$.html) global object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) are now deprecated. They are replaced by injectable traits, [`DefaultActionBuilder`](api/scala/play/api/mvc/DefaultActionBuilder.html) and [`PlayBodyParsers`](api/scala/play/api/mvc/PlayBodyParsers.html) respectively. If you are inside a controller, they are automatically provided by the new [`BaseController`](api/scala/play/api/mvc/BaseController.html) trait (see [the controller changes](#Scala-Controller-changes) above).
-
-## Scala `Mode` changes
-
-Scala [`Mode`](api/scala/play/api/Mode.html) was refactored from an Enumeration to a hierarchy of case objects. Most of the Scala code won't change because of this refactoring. But, if you are accessing the Scala `Mode` values in your Java code, you will need to change it from:
-
-```java
-play.api.Mode scalaMode = play.api.Mode.Test();
-```
-
-Must be rewritten to:
-
-```java
-play.api.Mode scalaMode = play.Mode.TEST.asScala();
-```
-
-It is also easier to convert between Java and Scala modes:
-
-```java
-play.api.Mode scalaMode = play.Mode.DEV.asScala();
-```
-
-Or in your Scala code:
-
-```scala
-play.Mode javaMode = play.api.Mode.Dev.asJava
-```
-
-Also, `play.api.Mode.Mode` is now deprecated and you should use [`play.api.Mode`](api/scala/play/api/Mode.html) instead.
-
-## `Writeable[JsValue]` changes
-
-Previously, the default Scala `Writeable[JsValue]` allowed you to define an implicit `Codec`, which would allow you to write using a different charset. This could be a problem since `application/json` does not act like text-based content types. It only allows Unicode charsets (`UTF-8`, `UTF-16` and `UTF-32`) and does not define a `charset` parameter like many text-based content types.
-
-Now, the default `Writeable[JsValue]` takes no implicit parameters and always writes to `UTF-8`. This covers the majority of cases, since most users want to use UTF-8 for JSON. It also allows us to easily use more efficient built-in methods for writing JSON to a byte array.
-
-If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
 
 ## Cookies
 
@@ -329,9 +289,9 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 ## Form changes
 
-Starting with Play 2.6, query string parameters will not be bound to a form instance anymore when using [`bindFromRequest()`](api/scala/play/api/data/Form.html#bindFromRequest\()\(implicitrequest:play.api.mvc.Request[_]):play.api.data.Form[T]) in combination with `POST`, `PUT` or `PATCH` requests.
+Starting with Play 2.6, query string parameters will not be bound to a form instance anymore when using [`bindFromRequest()`](api/scala/play/api/data/Form.html#bindFromRequest\(\)\(implicitrequest:play.api.mvc.Request[_]\):play.api.data.Form[T]) in combination with `POST`, `PUT` or `PATCH` requests.
 
-Static methods which where already deprecated in 2.5 (e.g. DynamicForm.form()) where removed in this release. Refer to the [[Play 2.5 Migration Guide|Migration25]] for details on how to migrate, in case you still use them.
+Static methods which where already deprecated in 2.5 (e.g. `DynamicForm.form()`) where removed in this release. Refer to the [[Play 2.5 Migration Guide|Migration25]] for details on how to migrate, in case you still use them.
 
 ### Java Form Changes
 
@@ -439,7 +399,7 @@ The Crypto API has removed the deprecated classes `play.api.libs.Crypto`, `play.
 
 ### `Akka` deprecated methods removed
 
-The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access the actor system.
+The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access to the actor system.
 
 For Scala:
 
@@ -694,11 +654,11 @@ object Attrs {
 
 ### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
 
-Request cookies are now stored in a request attribute. Previously they were stored in the request's [`Cookie`](api/scala/play/api/mvc/Cookie.html header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
+Request cookies are now stored in a request attribute. Previously they were stored in the request's [`Cookie`](api/scala/play/api/mvc/Cookie.html) header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
 
-Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the [`Cookie`](api/scala/play/api/mvc/Cookie.html HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
+Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the [`Cookie`](api/scala/play/api/mvc/Cookie.html) HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
 
-If you still need the old behavior you can still use [`]Cookies.encodeCookieHeader`](api/scala/play/api/mvc/Cookies$.html#encodeCookieHeader\(cookies:Seq[play.api.mvc.Cookie]):String) to convert the [`Cookie`](api/scala/play/api/mvc/Cookie.html) objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
+If you still need the old behavior you can still use [`Cookies.encodeCookieHeader`](api/scala/play/api/mvc/Cookies$.html#encodeCookieHeader\(cookies:Seq[play.api.mvc.Cookie]\):String) to convert the [`Cookie`](api/scala/play/api/mvc/Cookie.html) objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
 ### `play.api.mvc.Security.username` (Scala API), `session.username` changes
 
@@ -709,8 +669,8 @@ You can read the username session key from configuration yourself using `configu
 If you're using the `Authenticated(String => EssentialAction)` method, you can easily create your own action to do something similar:
 
 ```scala
-  def AuthenticatedWithUsername(action: String => EssentialAction) =
-    WithAuthentication[String](_.session.get(UsernameKey))(action)
+def AuthenticatedWithUsername(action: String => EssentialAction) =
+  WithAuthentication[String](_.session.get(UsernameKey))(action)
 ```
 
 where `UsernameKey` represents the session key you want to use for the username.
@@ -930,7 +890,7 @@ If you are migrating from an existing project that does not use CSRF form helper
 
 Adding `CSRF.formField` to your form templates will resolve the error If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
 
-To check this behavior, please add <logger name="play.filters.csrf" value="TRACE"/> to your logback.xml.
+To check this behavior, please add `<logger name="play.filters.csrf" value="TRACE"/>` to your `logback.xml`.
 
 You may also want to enable SameSite cookies in Play, which provide an additional defense against CSRF attacks.
 
@@ -1199,8 +1159,7 @@ If you have custom cookies being used in Play, using the `CookieBaker[T]` trait,
 
 The `encode` and `decode` methods that `Map[String, String]` to and from the format found in the browser have been extracted into `CookieDataCodec`.  There are three implementations: `FallbackCookieDataCodec`, `JWTCookieDataCodec`, or `UrlEncodedCookieDataCodec`, which respectively represent URL-encoded with an HMAC, or a JWT, or a "read signed or JWT, write JWT" codec.
 
-
-and then provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration, or use `JWTConfiguration()` for the defaults.
+You will also need to provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration, or use `JWTConfiguration()` for the defaults.
 
 
 ```scala
@@ -1267,7 +1226,7 @@ HikariCP was updated and a new configuration was introduced: `initializationFail
 
 ## Other Configuration changes
 
-There are some configurations.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
+There are some configuration changes. The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them. Here is a summary of the changed keys:
 
 | Old key                       | New key                                 |
 |-------------------------------|-----------------------------------------|
