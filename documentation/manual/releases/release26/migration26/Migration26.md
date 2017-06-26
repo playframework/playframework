@@ -698,7 +698,7 @@ Request cookies are now stored in a request attribute. Previously they were stor
 
 Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the [`Cookie`](api/scala/play/api/mvc/Cookie.html HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
 
-If you still need the old behavior you can still use [`Cookies.encodeCookieHeader`](api/scala/play/api/mvc/Cookies.html#encodeCookieHeader\(cookies:Seq[play.api.mvc.Cookie]\):String) to convert the [`Cookie`](api/scala/play/api/mvc/Cookie.html) objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
+If you still need the old behavior you can still use [`Cookies.encodeCookieHeader`](api/scala/play/api/mvc/Cookies$.html#encodeCookieHeader\(cookies:Seq[play.api.mvc.Cookie]\):String) to convert the [`Cookie`](api/scala/play/api/mvc/Cookie.html) objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
 ### `play.api.mvc.Security.username` (Scala API), `session.username` changes
 
