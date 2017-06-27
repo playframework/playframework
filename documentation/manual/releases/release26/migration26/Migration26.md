@@ -271,8 +271,8 @@ Then in routes you can do:
 
 ```
 # prefix must match `play.assets.urlPrefix`
-/assets/*file           controllers.Assets.at(file)
-/versionedAssets/*file  controllers.Assets.versioned(file)
+GET /assets/*file           controllers.Assets.at(file)
+GET /versionedAssets/*file  controllers.Assets.versioned(file)
 ```
 
 You no longer need to provide an assets path at the start of the argument list, since that's now read from configuration.
