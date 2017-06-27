@@ -34,8 +34,6 @@ Now any controller or component that wants to use WS will have to add the follow
 
 @[ws-controller](code/javaguide/ws/MyClient.java)
 
-> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]].  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.libs.concurrent.Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
-
 To build an HTTP request, you start with `ws.url()` to specify the URL.
 
 @[ws-holder](code/javaguide/ws/JavaWS.java)
@@ -51,6 +49,10 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
 > Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [CompletionStage section of the migration guide](https://www.playframework.com/documentation/2.5.x/JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage) will be very helpful.
+
+> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures. 
+
+> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736), consider using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a  [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) like [Failsafe](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 ### Request with authentication
 
