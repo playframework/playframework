@@ -77,6 +77,36 @@ A common strategy for logging application events is to use a distinct logger per
 
 @[logging-create-logger-class](code/javaguide/logging/JavaLogging.java)
 
+### Using Markers
+
+The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
+
+Markers can be extremely useful, because they can carry extra contextual information for loggers.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event), request information can be encoded into logging statements automatically:
+
+@[logging-log-info-with-request-context](code/logging/JavaMarkerController.java)
+
+Note that the `requestMarker` method depends on having an `Http.Context` thread local variable in scope, so if you are using [[asynchronous code|JavaAsync]] you must specify an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html):
+
+@[logging-log-info-with-async-request-context](code/logging/JavaMarkerController.java)
+
+Note that markers are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels.  For example, you can add a marker only when certain conditions are met:
+
+@[logging-log-trace-with-tracer-controller](code/logging/JavaTracerController.java)
+
+And then trigger logging with the following TurboFilter in `logback.xml`:
+
+```xml
+<turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+  <Name>TRACER_FILTER</Name>
+  <Marker>TRACER</Marker>
+  <OnMatch>ACCEPT</OnMatch>
+</turboFilter>
+```
+
+At which point you can dynamically set debug statements in response to input.
+
+For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
+
 ### Logging patterns
 
 Effective use of loggers can help you achieve many goals with the same tool:
