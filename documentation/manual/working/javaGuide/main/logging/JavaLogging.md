@@ -40,13 +40,13 @@ Appenders combined with loggers can help you route and filter log messages. For 
 
 ## Using Loggers
 
-First import the `Logger` class:
+First import the [`Logger`](api/java/play/Logger.html) class:
 
 @[logging-import](code/javaguide/logging/JavaLogging.java)
 
 ### The default Logger
 
-The `Logger` class serves as the default logger using the name "application." You can use it to write log request statements:
+The [`Logger`](api/java/play/Logger.html) class serves as the default logger using the name "application." You can use it to write log request statements:
 
 @[logging-default-logger](code/javaguide/logging/JavaLogging.java)
 
