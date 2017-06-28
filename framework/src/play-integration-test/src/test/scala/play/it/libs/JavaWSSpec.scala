@@ -7,6 +7,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.{ Charset, StandardCharsets }
 import java.util
+import java.util.Optional
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
@@ -24,7 +25,7 @@ import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification
 import play.libs.ws.{ WSBodyReadables, WSBodyWritables, WSRequest, WSResponse }
 import play.mvc.Http
 
-import scala.compat.java8.FutureConverters
+import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.concurrent.{ Await, Future }
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
@@ -149,7 +150,13 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
     }
 
     "response asXml with correct contentType" in withXmlServer { ws =>
-      val body = ws.url("/xml").get().toCompletableFuture.get().asXml()
+      val response: WSResponse = ws.url("/xml").get().toCompletableFuture.get()
+      OptionConverters.toScala(response.getSingleHeader("Content-Type")) must (
+        // There are many valid responses, but for simplicity just hardcode the two responses that
+        // the Netty and Akka HTTP backends actually return.
+        beSome("application/xml; charset=windows-1252") or beSome("application/xml;charset=Windows-1252")
+      )
+      val body = response.asXml()
       new String(body.getElementsByTagName("name").item(0).getTextContent.getBytes("Windows-1252")) must_== isoString
     }
 
