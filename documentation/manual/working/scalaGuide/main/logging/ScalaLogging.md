@@ -99,7 +99,7 @@ For convenience, there is an implicit conversion available from a `Marker` to a 
 
 @[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
 
-Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an implicit conversion, request information can be encoded into logging statements automatically:
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits), request information can be encoded into logging statements automatically:
 
 @[logging-request-context-trait](code/ScalaLoggingSpec.scala)
 
@@ -120,6 +120,8 @@ And then trigger logging with the following TurboFilter in `logback.xml`:
   <OnMatch>ACCEPT</OnMatch>
 </turboFilter>
 ```
+
+At which point you can dynamically set debug statements in response to input.
 
 For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
