@@ -133,13 +133,13 @@ You can also disable the automatic registration of a module named `Module` in th
 
 #### Configurable bindings
 
-Sometimes you might want to read the Play `Configuration` or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+Sometimes you might want to read the [`Config`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
 
 In the example below, the `Hello` binding for each language is read from a configuration file. This allows new `Hello` bindings to be added by adding new settings in your `application.conf` file.
 
 @[dynamic-guice-module](code/javaguide/di/guice/dynamic/Module.java)
 
-> **Note:** In most cases, if you need to access `Configuration` when you create a component, you should inject the `Configuration` object into the component itself or into the component's `Provider`. Then you can read the `Configuration` when you create the component. You usually don't need to read `Configuration` when you create the bindings for the component.
+> **Note:** In most cases, if you need to access `Config` when you create a component, you should inject the `Config` object into the component itself or into the component's `Provider`. Then you can read the `Config` when you create the component. You usually don't need to read `Config` when you create the bindings for the component.
 
 #### Eager bindings
 
