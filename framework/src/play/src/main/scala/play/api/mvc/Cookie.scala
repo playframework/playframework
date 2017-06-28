@@ -59,7 +59,8 @@ object Cookie {
     def asJava: play.mvc.Http.Cookie.SameSite = play.mvc.Http.Cookie.SameSite.parse(value).get
   }
   object SameSite {
-    def parse(value: String): Option[SameSite] = Seq(Strict, Lax).find(_ matches value)
+    private[play] val values: Seq[SameSite] = Seq(Strict, Lax)
+    def parse(value: String): Option[SameSite] = values.find(_ matches value)
     case object Strict extends SameSite("Strict")
     case object Lax extends SameSite("Lax")
   }

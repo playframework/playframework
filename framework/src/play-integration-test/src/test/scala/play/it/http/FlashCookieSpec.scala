@@ -91,6 +91,12 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
     }
 
     "honor the configuration for play.http.flash.sameSite" in {
+      "configured to null" in withClientAndServer(Map("play.http.flash.sameSite" -> null)) { ws =>
+        val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
+        response.status must equalTo(SEE_OTHER)
+        response.header(SET_COOKIE) must beSome.which(!_.contains("SameSite"))
+      }
+
       "configured to lax" in withClientAndServer(Map("play.http.flash.sameSite" -> "lax")) { ws =>
         val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
         response.status must equalTo(SEE_OTHER)
