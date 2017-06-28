@@ -275,6 +275,8 @@ private[server] class AkkaModelConversion(
     headers.flatMap {
       case (HeaderNames.SET_COOKIE, value) =>
         resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
+      case (HeaderNames.CONTENT_DISPOSITION, value) =>
+        RawHeader(HeaderNames.CONTENT_DISPOSITION, value) :: Nil
       case (name, value) if name != HeaderNames.TRANSFER_ENCODING =>
         HttpHeader.parse(name, value) match {
           case HttpHeader.ParsingResult.Ok(header, errors /* errors are ignored if Ok */ ) =>

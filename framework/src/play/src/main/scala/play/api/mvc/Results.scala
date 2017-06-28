@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import java.nio.charset.StandardCharsets
+import java.lang.{ StringBuilder => JStringBuilder }
 import java.nio.file.{ Files, Path }
 import java.time.format.DateTimeFormatter
 import java.time.{ ZoneOffset, ZonedDateTime }
@@ -14,8 +14,7 @@ import play.api.http.HeaderNames._
 import play.api.http.{ FileMimeTypes, _ }
 import play.api.i18n.{ Lang, MessagesApi }
 import play.api.{ Logger, Mode }
-import play.core.utils.CaseInsensitiveOrdered
-import play.utils.UriEncoding
+import play.core.utils.{ CaseInsensitiveOrdered, HttpHeaderParameterEncoding }
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
@@ -406,8 +405,11 @@ trait Results {
           status,
           Map(
             CONTENT_DISPOSITION -> {
-              val dispositionType = if (inline) "inline" else "attachment"
-              s"""$dispositionType; filename="$name"; filename*=utf-8''${UriEncoding.encodePathSegment(name, StandardCharsets.UTF_8)}"""
+              val builder = new JStringBuilder
+              builder.append(if (inline) "inline" else "attachment")
+              builder.append("; ")
+              HttpHeaderParameterEncoding.encodeToBuilder("filename", name, builder)
+              builder.toString
             }
           )
         ),

@@ -3,8 +3,6 @@
  */
 package play.api.mvc
 
-import java.nio.charset.StandardCharsets
-
 import akka.NotUsed
 import akka.stream.Attributes
 import akka.stream.FlowShape
@@ -20,7 +18,7 @@ import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.Status._
-import play.utils.UriEncoding
+import play.core.utils.HttpHeaderParameterEncoding
 
 // Long should be good enough to represent even very large files
 // considering that Long.MAX_VALUE is 9223372036854775807 which
@@ -367,7 +365,7 @@ object RangeResult {
   def ofSource(entityLength: Option[Long], source: Source[ByteString, _], rangeHeader: Option[String], fileName: Option[String], contentType: Option[String]): Result = {
     val commonHeaders = Seq(
       Some(ACCEPT_RANGES -> "bytes"),
-      fileName.map(f => CONTENT_DISPOSITION -> s"""attachment; filename="$f"; filename*=utf-8''${UriEncoding.encodePathSegment(f, StandardCharsets.UTF_8)}""")
+      fileName.map(f => CONTENT_DISPOSITION -> s"""attachment; ${HttpHeaderParameterEncoding.encode("filename", f)}""")
     ).flatten.toMap
 
     RangeSet(entityLength, rangeHeader) match {
