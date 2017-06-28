@@ -2,20 +2,17 @@
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 import com.typesafe.sbt.SbtScalariform._
-
 import sbt.ScriptedPlugin._
 import sbt._
-import Keys._
+import Keys.{version, _}
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
-
 import de.heikoseeberger.sbtheader.HeaderKey._
 import de.heikoseeberger.sbtheader.HeaderPattern
 
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-
 import bintray.BintrayPlugin.autoImport._
 import interplay._
 import interplay.Omnidoc.autoImport._
@@ -58,6 +55,17 @@ object BuildSettings {
            |""".stripMargin)
     )
   )
+
+  private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
+
+  // Versions of previous minor releases being checked for binary compatibility
+  val mimaPreviousMinorReleaseVersions: Seq[String] = Seq("2.6.0")
+  def mimaPreviousPatchVersions(version: String): Seq[String] = version match {
+    case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
+    case _ => sys.error(s"Cannot find previous versions for $version")
+  }
+  def mimaPreviousVersions(version: String): Set[String] =
+    mimaPreviousMinorReleaseVersions.toSet ++ mimaPreviousPatchVersions(version)
 
   /**
    * These settings are used by all projects
@@ -152,13 +160,7 @@ object BuildSettings {
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
     mimaPreviousArtifacts := {
       // Binary compatibility is tested against these versions
-      val previousVersions = {
-        val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
-        version.value match {
-          case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
-          case _ => sys.error(s"Cannot find previous versions for ${version.value}")
-        }
-      }.toSet
+      val previousVersions = mimaPreviousVersions(version.value)
       if (crossPaths.value) {
         previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" %  v)
       } else {
