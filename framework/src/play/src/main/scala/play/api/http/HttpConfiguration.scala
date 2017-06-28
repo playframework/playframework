@@ -7,8 +7,8 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import com.typesafe.config.ConfigMemorySize
 import org.apache.commons.codec.digest.DigestUtils
+import play.api._
 import play.api.mvc.Cookie.SameSite
-import play.api.{ http, _ }
 import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
 import scala.concurrent.duration._
@@ -153,8 +153,17 @@ object HttpConfiguration {
   private val logger = Logger(classOf[HttpConfiguration])
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
 
-  private implicit val sameSiteConfigLoader: ConfigLoader[Option[SameSite]] =
-    ConfigLoader(_.getString).map(SameSite.parse)
+  private def parseSameSite(config: Configuration, key: String): Option[SameSite] = {
+    config.get[Option[String]](key).flatMap { value =>
+      val result = SameSite.parse(value)
+      if (result.isEmpty) {
+        logger.warn(
+          s"""Assuming $key = null, since "$value" is not a valid SameSite value (${SameSite.values.mkString(", ")})"""
+        )
+      }
+      result
+    }
+  }
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
 
@@ -197,7 +206,7 @@ object HttpConfiguration {
         maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
         httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
-        sameSite = config.get[Option[SameSite]]("play.http.session.sameSite"),
+        sameSite = parseSameSite(config, "play.http.session.sameSite"),
         path = sessionPath,
         jwt = JWTConfigurationParser(config, "play.http.session.jwt")
       ),
@@ -206,7 +215,7 @@ object HttpConfiguration {
         secure = config.get[Boolean]("play.http.flash.secure"),
         httpOnly = config.get[Boolean]("play.http.flash.httpOnly"),
         domain = config.get[Option[String]]("play.http.flash.domain"),
-        sameSite = config.get[Option[SameSite]]("play.http.flash.sameSite"),
+        sameSite = parseSameSite(config, "play.http.flash.sameSite"),
         path = flashPath,
         jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
       ),

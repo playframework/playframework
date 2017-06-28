@@ -41,6 +41,12 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
   "the session cookie" should {
 
     "honor configuration for play.http.session.sameSite" in {
+      "configured to null" in withClientAndServer(Map("play.http.session.sameSite" -> null)) { ws =>
+        val response = await(ws.url("/session").get())
+        response.status must equalTo(OK)
+        response.header(SET_COOKIE) must beSome.which(!_.contains("SameSite"))
+      }
+
       "configured to lax" in withClientAndServer(Map("play.http.session.sameSite" -> "lax")) { ws =>
         val response = await(ws.url("/session").get())
         response.status must equalTo(OK)
