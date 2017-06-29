@@ -45,12 +45,6 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     "add a token to responses that set 'no-cache' headers" in {
       buildCsrfAddResponseHeaders(CACHE_CONTROL -> "no-cache")(_.get())(_.cookies must not be empty)
     }
-    "not add a token when responding to GET requests that accept HTML and don't render the token" in {
-      buildCsrfAddTokenNoRender()(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must be empty)
-    }
-    "not add a token when responding to GET requests that accept XHTML and don't render the token" in {
-      buildCsrfAddTokenNoRender()(_.withHeaders(ACCEPT -> "application/xhtml+xml").get())(_.cookies must be empty)
-    }
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
     }
@@ -253,20 +247,6 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
                 Results.Ok(token.value)
               } getOrElse Results.NotFound
             }
-        }) { ws =>
-          handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-        }
-    }
-  }
-
-  def buildCsrfAddTokenNoRender(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
-      withActionServer(
-        configuration ++ Seq("play.http.filters" -> classOf[CsrfFilters].getName)
-      ) (implicit app => {
-          case _ =>
-            val Action = inject[DefaultActionBuilder]
-            Action(Results.Ok("Hello world!"))
         }) { ws =>
           handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
         }
