@@ -600,11 +600,14 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         Map.empty
 
       case e: io.jsonwebtoken.SignatureException =>
-        // io.jsonwebtoken.SignatureException: JWT signature does not match locally computed signature.
-        // JWT validity cannot be asserted and should not be trusted.
-        logger.warn(s"decode: cookie JWT signature does not match the locally computed signature " +
-          s"with the server.  This usually indicates the browser has a leftover cookie from another Play " +
-          s"application, so clearing cookies may resolve this error message.")(SecurityMarkerContext)
+        // Thrown when an invalid cookie signature is found -- this can be confusing to end users
+        // so give a special logging message to indicate problem.
+        val devLogger = logger.forMode(Mode.Dev)
+        devLogger.info(
+          s"""decode: The JWT signature in the cookie does not match the locally computed signature with the server.
+             |This usually indicates the browser has a leftover cookie from another Play application,
+             |so clearing cookies may resolve this error message.""".stripMargin)
+        logger.warn(s"decode: invalid JWT signature found!", e)(SecurityMarkerContext)
         Map.empty
 
       case NonFatal(e) =>
