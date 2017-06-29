@@ -338,6 +338,7 @@ lazy val publishedProjects = Seq[ProjectReference](
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
     .enablePlugins(PlayRootProject)
+    .enablePlugins(PlayWhitesourcePlugin)
     .enablePlugins(CrossPerProjectPlugin)
     .settings(playCommonSettings: _*)
     .settings(
@@ -348,6 +349,8 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
       mimaReportBinaryIssues := (),
-      commands += Commands.quickPublish
+      commands += Commands.quickPublish,
+      whitesourceAggregateProjectName := "playframework-2.6-stable",
+      whitesourceAggregateProjectToken := "389ebacb-9fd0-4baf-a097-261ac6b9231f"
     ).settings(Release.settings: _*)
     .aggregate(publishedProjects: _*)
