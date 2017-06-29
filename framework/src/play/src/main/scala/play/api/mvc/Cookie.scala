@@ -599,6 +599,14 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
         Map.empty
 
+      case e: io.jsonwebtoken.SignatureException =>
+        // io.jsonwebtoken.SignatureException: JWT signature does not match locally computed signature.
+        // JWT validity cannot be asserted and should not be trusted.
+        logger.warn(s"decode: cookie JWT signature does not match the locally computed signature " +
+          s"with the server.  This usually indicates the browser has a leftover cookie from another Play " +
+          s"application, so clearing cookies may resolve this error message.")(SecurityMarkerContext)
+        Map.empty
+
       case NonFatal(e) =>
         logger.warn(s"decode: could not decode JWT: ${e.getMessage}", e)(SecurityMarkerContext)
         Map.empty
