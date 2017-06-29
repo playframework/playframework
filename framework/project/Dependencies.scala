@@ -38,6 +38,7 @@ object Dependencies {
 
   val slf4jVersion = "1.7.25"
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
+  val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava = "com.google.guava" % "guava" % "22.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
@@ -191,7 +192,8 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
 
-      jnotify,
+      jnotify,      
+      slf4jSimple,
 
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
 
