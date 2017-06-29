@@ -522,8 +522,8 @@ libraryDependencies += "com.typesafe.play" % "play-json-joda" % playJsonVersion
 where `playJsonVersion` is the play-json version you wish to use. Play 2.6.x should be compatible with play-json 2.6.x. Note that play-json is now a separate project (described later).
 
 ```scala
-import play.api.data.JodaWrites._
-import play.api.data.JodaReads._
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
 ```
 
 ### Joda-Convert removal
