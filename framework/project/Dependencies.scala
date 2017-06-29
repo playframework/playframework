@@ -38,6 +38,7 @@ object Dependencies {
 
   val slf4jVersion = "1.7.25"
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
+  val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava = "com.google.guava" % "guava" % "22.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
@@ -180,8 +181,6 @@ object Dependencies {
     case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
-  val slf4jSimple = "org.slf4j" % "slf4j-simple" % "1.7.22"
-
   val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94-play-1"
 
   val typesafeConfig = "com.typesafe" % "config" % "1.3.1"
@@ -202,7 +201,7 @@ object Dependencies {
 
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.3"),
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.1"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.1")  
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.1")
     ) ++ specsBuild.map(_ % Test)
   }
 
