@@ -9,7 +9,13 @@ The following deprecated methods have been removed in Play 2.6.
 * `play.db.jpa.JPA.bindForAsync(em)`
 * `play.db.jpa.JPA.withTransaction`
 
-Please use a `JPAApi` injected instance, or create a `JPAApi` instance with `JPA.createFor`.
+Please use a `JPAApi` injected instance as specified in [[Using play.db.jpa.JPAApi|JavaJPA#Using-play.db.jpa.JPAApi]].
+
+## Deprecated JPA Class
+
+As of 2.6.1, the `play.db.jpa.JPA` class has been deprecated, as it uses global state under the hood.  The deprecation was mistakenly left out of 2.6.0.
+
+Please use a `JPAApi` injected instance as specified in [[Using play.db.jpa.JPAApi|JavaJPA#Using-play.db.jpa.JPAApi]].
 
 ## Added Async Warning
 
