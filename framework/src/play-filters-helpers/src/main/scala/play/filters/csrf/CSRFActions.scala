@@ -457,9 +457,6 @@ class CSRFActionHelper(
       case None =>
         filterLogger.warn("[CSRF] No token found on request!")
         result
-      case Some(tokenInfo) if !tokenInfo.wasRendered =>
-        filterLogger.trace("[CSRF] Not emitting CSRF token because token was never rendered")
-        result
       case _ if isCached(result) =>
         filterLogger.trace("[CSRF] Not adding token to cached response")
         result
