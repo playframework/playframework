@@ -62,7 +62,12 @@ trait AssetsSpec extends PlaySpecification
 
       result.status must_== OK
       result.body.trim must_== "{}"
-      result.header(CONTENT_TYPE) must beSome.which(_ == "application/json; charset=utf-8")
+      result.header(CONTENT_TYPE) must (
+        // There are many valid responses, but for simplicity just hardcode the two responses that
+        // the Netty and Akka HTTP backends actually return.
+        beSome("application/json; charset=utf-8") or
+        beSome("application/json")
+      )
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone

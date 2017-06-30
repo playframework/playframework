@@ -228,13 +228,10 @@ private[server] class AkkaModelConversion(
   }
 
   def parseContentType(contentType: Option[String]): ContentType = {
-    // actually play allows content types to be not spec compliant
-    // so we can't rely on the parsed content type of akka
     contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
-      MediaType.custom(ct, binary = true) match {
-        case b: MediaType.Binary => ContentType(b)
-        case _ => ContentTypes.NoContentType
-      }
+      ContentType.parse(ct).left.map { errors =>
+        throw new RuntimeException(s"Error parsing response Content-Type: <$ct>: $errors")
+      }.merge
     }
   }
 

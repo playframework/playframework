@@ -99,6 +99,46 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.body must_== "abcdefghi"
       }
 
+    "support reponses with custom Content-Types" in {
+      makeRequest(
+        Results.Ok.sendEntity(HttpEntity.Strict(ByteString(0xff.toByte), Some("schmitch/foo; bar=bax")))
+      ) { response =>
+          response.header(CONTENT_TYPE) must beSome("schmitch/foo; bar=bax")
+          response.header(CONTENT_LENGTH) must beSome("1")
+          response.header(TRANSFER_ENCODING) must beNone
+          response.bodyAsBytes must_== ByteString(0xff.toByte)
+        }
+    }
+
+    "support multipart/mixed responses" in {
+      // Example taken from https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
+      val contentType = "multipart/mixed; boundary=\"simple boundary\""
+      val body: String =
+        """|This is the preamble.  It is to be ignored, though it
+           |is a handy place for mail composers to include an
+           |explanatory note to non-MIME compliant readers.
+           |--simple boundary
+           |
+           |This is implicitly typed plain ASCII text.
+           |It does NOT end with a linebreak.
+           |--simple boundary
+           |Content-type: text/plain; charset=us-ascii
+           |
+           |This is explicitly typed plain ASCII text.
+           |It DOES end with a linebreak.
+           |
+           |--simple boundary--
+           |This is the epilogue.  It is also to be ignored.""".stripMargin
+      makeRequest(
+        Results.Ok.sendEntity(HttpEntity.Strict(ByteString(body), Some(contentType)))
+      ) { response =>
+          response.header(CONTENT_TYPE) must beSome(contentType)
+          response.header(CONTENT_LENGTH) must beSome(body.length.toString)
+          response.header(TRANSFER_ENCODING) must beNone
+          response.body must_== body
+        }
+    }
+
     "chunk results for chunked streaming strategy" in makeRequest(
       Results.Ok.chunked(Source(List("a", "b", "c")))
     ) { response =>
