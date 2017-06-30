@@ -655,6 +655,7 @@ object PlayBuild extends Build {
     "Play-Framework",
     file("."))
     .enablePlugins(PlayRootProject)
+    .enablePlugins(PlayWhitesourcePlugin)
     .enablePlugins(CrossPerProjectPlugin)
     .settings(playCommonSettings: _*)
     .settings(

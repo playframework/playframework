@@ -1,33 +1,31 @@
 language: scala
-# Trusty VM has 1.8u101
-# https://github.com/travis-ci/travis-ci/issues/3259#issuecomment-243534696
 dist: trusty
 sudo: false
 group: beta
 jdk:
-  - oraclejdk8
+- oraclejdk8
 env:
-  # Define scripts here so they run concurrently
+  matrix:
   - SCRIPT=codeChecks
   - SCRIPT=test
   - SCRIPT=testSbtPlugins
   - SCRIPT=testDocumentation
   - SCRIPT=testTemplates
+  - SCRIPT=whitesource
+  global:
+    secure: "LJoRKoBXzuQwRThzokkYQ9nxy0unJeaqSumM0H/Ffz8YFmcRDCpoPiepwJJAn6JWauGmaCB/edAy9h9+0Emuffa+iyf4mUpVxZR27vYLOJ8hl9YIZ6xMNZETAZhdJPC7TmhNxTuRYWwYYdRkcqkPZapVmNZXcW+El5hmEYIel/Y="
 script:
-  # Force sbt to run on a single CPU, this limits the resources Play uses
-  - framework/bin/$SCRIPT "set concurrentRestrictions in Global += Tags.limitAll(1)"
+- framework/bin/$SCRIPT "set concurrentRestrictions in Global += Tags.limitAll(1)"
 cache:
   directories:
-    - $HOME/.ivy2/cache
+  - $HOME/.ivy2/cache
 before_cache:
-  # Ensure changes to the cache aren't persisted
-  - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
-  - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
-  # Delete all ivydata files since ivy touches them on each build
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
+- rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
+- rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
+- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/d2c8a242a2615f659595
+    - https://webhooks.gitter.im/e/d2c8a242a2615f659595
     on_success: always
     on_failure: always
