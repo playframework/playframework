@@ -9,16 +9,20 @@ import akka.actor.*;
 //###replace: import actors.HelloActorProtocol.*;
 import javaguide.akka.HelloActorProtocol.*;
 
-public class HelloActor extends UntypedAbstractActor {
+public class HelloActor extends AbstractActor {
 
     public static Props getProps() {
-        return Props.create(HelloActor.class);
+        return Props.create(() -> new HelloActor());
     }
 
-    public void onReceive(Object msg) throws Exception {
-        if (msg instanceof SayHello) {
-            sender().tell("Hello, " + ((SayHello) msg).name, self());
-        }
+    @Override
+    public Receive createReceive() {
+      return receiveBuilder()
+        .match(SayHello.class, hello -> {
+            String reply = "Hello, " + hello.name;
+            sender().tell(reply, self());
+        })
+        .build();
     }
 }
 //#actor
