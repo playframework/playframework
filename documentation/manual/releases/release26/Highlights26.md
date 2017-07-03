@@ -2,6 +2,24 @@
 
 This page highlights the new features of Play 2.6. If you want to learn about the changes you need to make when you migrate to Play 2.6, check out the [[Play 2.6 Migration Guide|Migration26]].
 
+## Scala 2.12 support
+
+Play 2.6 is the first release of Play to have been cross built against Scala 2.12 and 2.11. A number of dependencies were updated so that we can have support for both versions.
+
+You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
+
+For Scala 2.12:
+
+```scala
+scalaVersion := "2.12.2"
+```
+
+For Scala 2.11:
+
+```scala
+scalaVersion := "2.11.11"
+```
+
 ## "Global-State-Free" Applications
 
 The biggest under the hood change is that Play no longer relies on global state under the hood.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6.0, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all. 
