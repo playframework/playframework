@@ -37,6 +37,17 @@ class RawBodyParserSpec extends Specification with AfterAll {
   }
 
   "Raw Body Parser" should {
+    "parse a strict body" >> {
+      val body = ByteString("lorem ipsum")
+      // Feed a strict element rather than a singleton source, strict element triggers
+      // fast path with zero materialization.
+      Await.result(parse.raw.apply(FakeRequest()).run(body), Duration.Inf) must beRight.like {
+        case rawBuffer => rawBuffer.asBytes() must beSome.like {
+          case outBytes => outBytes mustEqual body
+        }
+      }
+    }
+
     "parse a simple body" >> {
       val body = ByteString("lorem ipsum")
 
