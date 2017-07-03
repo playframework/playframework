@@ -116,6 +116,6 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       )
       responses.length must_== 1
       responses(0).status must_== 500
-    }.skipUntilNettyHttpFixed
+    }.skipUntilNettyHttpFixed // netty does not need that test, since it does not provide a built-in max-content-length
   }
 }
