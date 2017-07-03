@@ -82,5 +82,17 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 200
       responses(1).status must_== 200
     }
+
+    "handle a big http request" in withServer((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh =>
+      Results.Ok(rh.body.asText.getOrElse(""))
+    }) { port =>
+      // big body that should not crash akka and netty
+      val body = "Hello World" * 1024 * 1024
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+      )
+      responses.length must_== 1
+      responses(0).status must_== 200
+    }
   }
 }
