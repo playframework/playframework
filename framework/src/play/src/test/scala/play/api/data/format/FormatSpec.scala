@@ -3,13 +3,49 @@
  */
 package play.api.data.format
 
+import java.sql
+
 import org.specs2.mutable.Specification
-import java.util.{ UUID, Date, TimeZone }
+import java.util.{ Date, TimeZone, UUID }
 
 import play.api.data._
 import play.api.data.Forms._
 
 class FormatSpec extends Specification {
+
+  "A java.sql.Date format" should {
+    "support formatting with a pattern" in {
+      val data = Map("date" -> "04-07-2017")
+      val format = Formats.sqlDateFormat("dd-MM-yyyy")
+
+      format.bind("date", data).right.map(_.getTime) should beRight(1499137200000L)
+    }
+
+    "use yyyy-MM-dd as the default format" in {
+      val data = Map("date" -> "2017-07-04")
+      val format = Formats.sqlDateFormat
+
+      format.bind("date", data).right.map(_.getTime) should beRight(1499137200000L)
+    }
+
+    "fails when form data is using the wrong pattern" in {
+      val data = Map("date" -> "04-07-2017") // default pattern is yyyy-MM-dd, so this is wrong
+      val format = Formats.sqlDateFormat
+
+      format.bind("date", data) should beLeft
+    }
+
+    "convert raw data to form data using the given pattern" in {
+      val format = Formats.sqlDateFormat("dd-MM-yyyy")
+      format.unbind("date", new sql.Date(1499137200000L)).get("date") must beSome("04-07-2017")
+    }
+
+    "convert raw data to form data using the default pattern" in {
+      val format = Formats.sqlDateFormat
+      format.unbind("date", new sql.Date(1499137200000L)).get("date") must beSome("2017-07-04")
+    }
+  }
+
   "dateFormat" should {
     "support custom time zones" in {
       val data = Map("date" -> "00:00")

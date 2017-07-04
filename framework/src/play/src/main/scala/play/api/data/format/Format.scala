@@ -3,10 +3,8 @@
  */
 package play.api.data.format
 
-import java.text.{ DateFormat, SimpleDateFormat }
-import java.time.temporal.{ ChronoField, TemporalAccessor, TemporalField, TemporalQueries }
 import java.time._
-import java.time.format.{ DateTimeFormatter, DateTimeFormatterBuilder, ResolverStyle }
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 import play.api.data._
@@ -225,15 +223,15 @@ object Formats {
    */
   def sqlDateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
 
-    val dateFormatter = dateFormat(pattern, timeZone)
+    private val dateFormatter: Formatter[LocalDate] = localDateFormat(pattern)
 
     override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
-      dateFormatter.bind(key, data).right.map(d => new java.sql.Date(d.getTime))
+      dateFormatter.bind(key, data).right.map(d => java.sql.Date.valueOf(d))
     }
 
-    def unbind(key: String, value: java.sql.Date) = dateFormatter.unbind(key, value)
+    def unbind(key: String, value: java.sql.Date) = dateFormatter.unbind(key, value.toLocalDate)
   }
 
   /**
