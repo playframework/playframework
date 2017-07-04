@@ -21,7 +21,7 @@ import akka.util.ByteString
 import com.typesafe.config.{ ConfigFactory, ConfigMemorySize }
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpErrorHandler }
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
@@ -406,7 +406,7 @@ trait AkkaHttpServerComponents {
   lazy val sourceMapper: Option[SourceMapper] = None
   lazy val webCommands: WebCommands = new DefaultWebCommands
   lazy val configuration: Configuration = Configuration(ConfigFactory.load())
-  lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
+  lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
 
   def application: Application
 
