@@ -99,7 +99,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.body must_== "abcdefghi"
       }
 
-    "support reponses with custom Content-Types" in {
+    "support responses with custom Content-Types" in {
       makeRequest(
         Results.Ok.sendEntity(HttpEntity.Strict(ByteString(0xff.toByte), Some("schmitch/foo; bar=bax")))
       ) { response =>
@@ -351,7 +351,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       makeRequest {
         Results.Ok.withCookies(aCookie, bCookie, cCookie)
       } { response =>
-        response.allHeaders.get(SET_COOKIE) must beSome.like {
+        response.headers.get(SET_COOKIE) must beSome.like {
           case rawCookieHeaders =>
             val decodedCookieHeaders: Set[Set[Cookie]] = rawCookieHeaders.map { headerValue =>
               Cookies.decodeSetCookieHeader(headerValue).to[Set]

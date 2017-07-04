@@ -4,10 +4,11 @@
 package play.it.http
 
 import java.io.ByteArrayInputStream
-import java.util.Arrays
+import java.util.{ Arrays, Optional }
 
 import akka.NotUsed
 import akka.stream.javadsl.Source
+import akka.util.ByteString
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -17,7 +18,7 @@ import play.http.HttpEntity
 import play.it._
 import play.libs.{ Comet, EventSource, Json }
 import play.mvc.Http.{ Cookie, Flash, Session }
-import play.mvc.{ Http, ResponseHeader, Result, Results }
+import play.mvc._
 
 class NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -37,6 +38,102 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
         block(response)
       }
+    }
+
+    "add Date header" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header(DATE) must beSome
+    }
+
+    "work with non-standard HTTP response codes" in makeRequest(new MockController {
+      def action = {
+        Results.status(498)
+      }
+    }) { response =>
+      response.status must beEqualTo(498)
+    }
+
+    "add Content-Length for strict results" in makeRequest(new MockController {
+      def action = {
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beSome("11")
+      response.body must_== "Hello world"
+    }
+
+    "support responses with custom Content-Types" in makeRequest(new MockController {
+      def action = {
+        val entity = new HttpEntity.Strict(ByteString(0xff.toByte), Optional.of("schmitch/foo; bar=bax"))
+        new StatusHeader(OK).sendEntity(entity)
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must beSome("schmitch/foo; bar=bax")
+      response.header(CONTENT_LENGTH) must beSome("1")
+      response.header(TRANSFER_ENCODING) must beNone
+      response.bodyAsBytes must_== ByteString(0xff.toByte)
+    }
+
+    "support multipart/mixed responses" in {
+      val contentType = """multipart/mixed; boundary="simple boundary""""
+      val body: String =
+        """|This is the preamble.  It is to be ignored, though it
+           |is a handy place for mail composers to include an
+           |explanatory note to non-MIME compliant readers.
+           |--simple boundary
+           |
+           |This is implicitly typed plain ASCII text.
+           |It does NOT end with a linebreak.
+           |--simple boundary
+           |Content-type: text/plain; charset=us-ascii
+           |
+           |This is explicitly typed plain ASCII text.
+           |It DOES end with a linebreak.
+           |
+           |--simple boundary--
+           |This is the epilogue.  It is also to be ignored.""".stripMargin
+
+      makeRequest(new MockController {
+        def action = {
+          val entity = new HttpEntity.Strict(ByteString(body), Optional.of(contentType))
+          new StatusHeader(OK).sendEntity(entity)
+        }
+      }) { response =>
+        response.header(CONTENT_TYPE) must beSome(contentType)
+        response.header(CONTENT_LENGTH) must beSome(body.length.toString)
+        response.header(TRANSFER_ENCODING) must beNone
+        response.body must_== body
+      }
+    }
+
+    "serve a JSON with UTF-8 charset" in makeRequest(new MockController {
+      def action = {
+        val objectNode = Json.newObject
+        objectNode.put("foo", "bar")
+        Results.ok(objectNode)
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must (
+        // There are many valid responses, but for simplicity just hardcode the two responses that
+        // the Netty and Akka HTTP backends actually return.
+        beSome("application/json; charset=UTF-8") or
+        beSome("application/json")
+      )
+    }
+
+    "serve a XML with correct Content-Type" in makeRequest(new MockController {
+      def action = {
+        Results.ok("<name>marcos</name>").as("application/xml;charset=Windows-1252")
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must (
+        // There are many valid responses, but for simplicity just hardcode the two responses that
+        // the Netty and Akka HTTP backends actually return.
+        beSome("application/xml; charset=windows-1252") or beSome("application/xml;charset=Windows-1252")
+      )
     }
 
     "treat headers case insensitively" in makeRequest(new MockController {
@@ -177,8 +274,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         )
       }
     }) { response =>
-      response.headers.get("Set-Cookie").get(0) must contain("bar=KitKat")
-      response.headers.get("Set-Cookie").get(1) must contain("foo=1")
+      response.headers("Set-Cookie")(0) must contain("bar=KitKat")
+      response.headers("Set-Cookie")(1) must contain("foo=1")
       response.body must_== "Hello world"
     }
 

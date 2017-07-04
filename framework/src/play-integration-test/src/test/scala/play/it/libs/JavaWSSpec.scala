@@ -7,7 +7,6 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.{ Charset, StandardCharsets }
 import java.util
-import java.util.Optional
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
@@ -25,16 +24,13 @@ import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification
 import play.libs.ws.{ WSBodyReadables, WSBodyWritables, WSRequest, WSResponse }
 import play.mvc.Http
 
-import scala.compat.java8.{ FutureConverters, OptionConverters }
-import scala.concurrent.{ Await, Future }
+import scala.compat.java8.OptionConverters
+import scala.concurrent.Future
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
 
 class AkkaHttpJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with AkkaHttpIntegrationSpecification
 
-/**
- *
- */
 trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification with FutureAwait with WSBodyReadables with WSBodyWritables {
 
   def ee: ExecutionEnv
@@ -122,7 +118,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
 
     "streaming a request body with manual content length" in withHeaderCheck { ws =>
       val source = akka.stream.javadsl.Source.single(ByteString("abc"))
-      val res = ws.url("/post").setMethod("POST").setHeader(CONTENT_LENGTH, "3").setBody(source).execute()
+      val res = ws.url("/post").setMethod("POST").addHeader(CONTENT_LENGTH, "3").setBody(source).execute()
       val body = res.toCompletableFuture.get().getBody
 
       body must_== s"Content-Length: 3; Transfer-Encoding: -1"
@@ -147,17 +143,6 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
 
       body.path("form").path("hello").textValue() must_== "world"
       body.path("file").textValue() must_== "This is a test asset."
-    }
-
-    "response asXml with correct contentType" in withXmlServer { ws =>
-      val response: WSResponse = ws.url("/xml").get().toCompletableFuture.get()
-      OptionConverters.toScala(response.getSingleHeader("Content-Type")) must (
-        // There are many valid responses, but for simplicity just hardcode the two responses that
-        // the Netty and Akka HTTP backends actually return.
-        beSome("application/xml; charset=windows-1252") or beSome("application/xml;charset=Windows-1252")
-      )
-      val body = response.asXml()
-      new String(body.getElementsByTagName("name").item(0).getTextContent.getBytes("Windows-1252")) must_== isoString
     }
 
     "send a multipart request body via multipartBody()" in withServer { ws =>
@@ -254,19 +239,6 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
           val contentLength = req.headers.get(CONTENT_LENGTH)
           val transferEncoding = req.headers.get(TRANSFER_ENCODING)
           Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
-        }
-      }
-    } { implicit port =>
-      withClient(block)
-    }
-  }
-
-  def withXmlServer[T](block: play.libs.ws.WSClient => T) = {
-    Server.withRouterFromComponents() { components =>
-      {
-        case _ => components.defaultActionBuilder { req =>
-          val elem = <name>{ isoString }</name>.toString()
-          Ok(elem).as("application/xml;charset=Windows-1252")
         }
       }
     } { implicit port =>
