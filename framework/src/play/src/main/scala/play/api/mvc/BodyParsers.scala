@@ -497,6 +497,23 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def text: BodyParser[String] = text(DefaultMaxTextLength)
 
+  /**
+   * Buffer the body as a simple [[akka.util.ByteString]].
+   *
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
+   */
+  def byteString(maxLength: Int): BodyParser[ByteString] = {
+    tolerantBodyParser("byteString", maxLength, "Error decoding byte string body")((_, bytes) => bytes)
+  }
+
+  /**
+   * Buffer the body as a simple [[akka.util.ByteString]].
+   *
+   * Will buffer up to the configured max memory buffer amount, after which point, it will return an EntityTooLarge
+   * HTTP response.
+   */
+  def byteString: BodyParser[ByteString] = byteString(config.maxMemoryBuffer)
+
   // -- Raw parser
 
   /**
@@ -510,13 +527,15 @@ trait PlayBodyParsers extends BodyParserUtils {
   def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
     BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
       import play.core.Execution.Implicits.trampoline
-      enforceMaxLength(request, maxLength, Accumulator {
+      enforceMaxLength(request, maxLength, Accumulator.strict[ByteString, RawBuffer]({ maybeStrictBytes =>
+        Future.successful(RawBuffer(memoryThreshold, temporaryFileCreator, maybeStrictBytes.getOrElse(ByteString.empty)))
+      }, {
         val buffer = RawBuffer(memoryThreshold, temporaryFileCreator)
         val sink = Sink.fold[RawBuffer, ByteString](buffer) { (bf, bs) => bf.push(bs); bf }
         sink.mapMaterializedValue { future =>
           future andThen { case _ => buffer.close() }
         }
-      } map (buffer => Right(buffer)))
+      }) map (buffer => Right(buffer)))
     }
 
   /**
