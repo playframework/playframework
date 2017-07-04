@@ -8,7 +8,7 @@ import java.nio.charset.Charset
 import java.nio.file._
 
 import play.api.db.{ DBApi, Database }
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.Codecs.sha1
 import play.api.{ Configuration, Environment, Logger, Mode, Play }
 import play.core.DefaultWebCommands
@@ -247,7 +247,7 @@ object OfflineEvolutions {
     new EvolutionsComponents {
       lazy val environment = Environment(appPath, classloader, Mode.Dev)
       lazy val configuration = Configuration.load(environment)
-      lazy val applicationLifecycle = new DefaultApplicationLifecycle
+      lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
       lazy val dbApi: DBApi = _dbApi
       lazy val webCommands = new DefaultWebCommands
     }

@@ -51,6 +51,6 @@ object GuiceApplicationLoader {
     Seq(
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
       bind[WebCommands] to context.webCommands,
-      bind[DefaultApplicationLifecycle] to context.lifecycle)
+      bind[ApplicationLifecycle] to context.lifecycle)
   }
 }
