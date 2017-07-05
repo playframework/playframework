@@ -12,7 +12,7 @@ import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
-import akka.http.scaladsl.settings.ServerSettings
+import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
 import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.stream.Materializer
@@ -158,7 +158,8 @@ class AkkaHttpServer(
     val configuration: Option[Configuration] = applicationProvider.get.toOption.map(_.configuration)
     val forwardedHeaderHandler = new ForwardedHeaderHandler(
       ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(configuration))
-    new AkkaModelConversion(resultUtils, forwardedHeaderHandler)
+    val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(akkaServerConfig.get[String]("illegal-response-header-value-processing-mode"))
+    new AkkaModelConversion(resultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
   }
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
