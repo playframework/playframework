@@ -423,6 +423,9 @@ object PlayBodyParsers {
 
 /**
  * Body parsers officially supported by Play (i.e. built-in to Play)
+ *
+ * DO NOT EXTEND this trait in user or library code. It is intended only to represent Play's built-in body parsers.
+ * We may add methods here in the future, which may break binary compatibility for Scala 2.11 code.
  */
 trait PlayBodyParsers extends BodyParserUtils {
 
