@@ -4,7 +4,8 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues }
+import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues, mimaBinaryIssueFilters }
+import com.typesafe.tools.mima.core._
 import interplay.PlayBuildBase.autoImport._
 import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
@@ -97,6 +98,12 @@ import AkkaDependency._
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
+    .settings(
+      mimaBinaryIssueFilters := Seq(
+        // class is package private[server]
+        ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.akkahttp.AkkaModelConversion.this")
+      )
+    )
     .addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
