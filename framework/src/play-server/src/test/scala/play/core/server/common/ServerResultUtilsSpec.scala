@@ -6,14 +6,13 @@ package play.core.server.common
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
-import io.jsonwebtoken.{ Jws, Jwts }
 import org.specs2.mutable.Specification
 import play.api.http.Status._
 import play.api.http._
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestAttrKey, RequestTarget }
+import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
