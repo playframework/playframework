@@ -6,6 +6,7 @@ package play.core.server.akkahttp
 import java.net.{ InetAddress, InetSocketAddress, URI }
 import java.util.Locale
 
+import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.settings.ParserSettings
@@ -21,6 +22,7 @@ import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import play.mvc.Http.HeaderNames
 
+import scala.annotation.tailrec
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -117,12 +119,28 @@ private[server] class AkkaModelConversion(
 
         override lazy val queryMap: Map[String, Seq[String]] = {
           try {
-            request.uri.query().toMultiMap
+            toMultiMap(request.uri.query())
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse query string; returning empty map.", e)
               Map[String, Seq[String]]()
           }
+        }
+
+        // This method converts to a `Map`, preserving the order of the query parameters.
+        // It can be removed and replaced with `query().toMultiMap` once this Akka HTTP
+        // fix is available upstream:
+        // https://github.com/akka/akka-http/pull/1270
+        private def toMultiMap(query: Uri.Query): Map[String, Seq[String]] = {
+          @tailrec
+          def append(map: Map[String, Seq[String]], q: Query): Map[String, Seq[String]] = {
+            if (q.isEmpty) {
+              map
+            } else {
+              append(map.updated(q.key, map.getOrElse(q.key, Vector.empty[String]) :+ q.value), q.tail)
+            }
+          }
+          append(Map.empty, query)
         }
       },
       request.protocol.value,
