@@ -127,7 +127,10 @@ private[server] class AkkaModelConversion(
           }
         }
 
-        // see https://github.com/akka/akka-http/pull/1270
+        // This method converts to a `Map`, preserving the order of the query parameters.
+        // It can be removed and replaced with `query().toMultiMap` once this Akka HTTP
+        // fix is available upstream:
+        // https://github.com/akka/akka-http/pull/1270
         private def toMultiMap(query: Uri.Query): Map[String, Seq[String]] = {
           @tailrec
           def append(map: Map[String, Seq[String]], q: Query): Map[String, Seq[String]] = {
