@@ -68,9 +68,6 @@ object PlayImport {
   // alias javaWs to ws
   val javaWs = ws
 
-  // ws with HTTP caching based on jcache adapter
-  val wsCache = component("play-ahc-ws-cache")
-
   val openId = component("play-openid")
 
   val specs2 = component("play-specs2")
