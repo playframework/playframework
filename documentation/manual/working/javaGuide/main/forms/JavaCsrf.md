@@ -59,6 +59,8 @@ The current CSRF token can be accessed using the `CSRF.getToken` method.  It tak
 
 @[get-token](code/javaguide/forms/JavaCsrf.java)
 
+> **Note**: If the CSRF filter is installed, Play will try to avoid generating the token as long as the cookie being used is HttpOnly (meaning it cannot be accessed from JavaScript). When sending a response with a strict body, Play skips adding the token to the response unless `CSRF.getToken` has already been called. This results in a significant performance improvement for responses that don't need a CSRF token. If the cookie is not configured to be HttpOnly, Play will assume you wish to access it from JavaScript and generate it regardless.
+
 > **Note**: if you are accessing the template from a `CompletionStage` and get an `There is no HTTP Context` error, then you will need to add  [`HttpExecutionContext.current()`](api/java/play/libs/concurrent/HttpExecutionContext.html) -- see [[JavaAsync]] for details.
 
 To help in adding CSRF tokens to forms, Play provides some template helpers.  The first one adds it to the query string of the action URL:

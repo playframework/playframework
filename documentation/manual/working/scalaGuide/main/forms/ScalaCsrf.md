@@ -99,6 +99,8 @@ The current CSRF token can be accessed using the [`CSRF.getToken`](api/scala/vie
 
 @[get-token](code/ScalaCsrf.scala)
 
+> **Note**: If the CSRF filter is installed, Play will try to avoid generating the token as long as the cookie being used is HttpOnly (meaning it cannot be accessed from JavaScript). When sending a response with a strict body, Play skips adding the token to the response unless `CSRF.getToken` has already been called. This results in a significant performance improvement for responses that don't need a CSRF token. If the cookie is not configured to be HttpOnly, Play will assume you wish to access it from JavaScript and generate it regardless.
+
 If you are not using the CSRF filter, you also should inject the [`CSRFAddToken`](api/scala/play/filters/csrf/CSRFAddToken.html) and [`CSRFCheck`](api/scala/play/filters/csrf/CSRFCheck.html) action wrappers to force adding a token or a CSRF check on a specific action. Otherwise the token will not be available.
 
 @[csrf-controller](code/ScalaCsrf.scala)
