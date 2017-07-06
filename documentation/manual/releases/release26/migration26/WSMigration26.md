@@ -21,8 +21,8 @@ If you want to use it in a non Play project, it can be added to an SBT project w
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone-json" % "1.0.0"
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone-xml" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.0"
 ```
 
 ## Package changes
