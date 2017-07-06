@@ -10,7 +10,7 @@ import java.net.URLClassLoader
 import com.google.inject.AbstractModule
 import org.specs2.mutable.Specification
 import play.api.inject._
-import play.api.{ Configuration, Environment, Mode }
+import play.api.{ Configuration, Environment, Mode, inject }
 
 class GuiceInjectorBuilderSpec extends Specification {
 
@@ -37,6 +37,16 @@ class GuiceInjectorBuilderSpec extends Specification {
       env.rootPath must_== new File("test")
       env.mode must_== Mode.Dev
       env.classLoader must be(classLoader)
+    }
+
+    "use the right ClassLoader when injecting" in {
+      val classLoader = new URLClassLoader(Array.empty)
+      val classLoaderAware = new GuiceInjectorBuilder()
+        .in(classLoader)
+        .bindings(bind[GuiceInjectorBuilderSpec.ClassLoaderAware].toSelf)
+        .injector().instanceOf[GuiceInjectorBuilderSpec.ClassLoaderAware]
+
+      classLoaderAware.constructionClassLoader must_== classLoader
     }
 
     "set configuration" in {
@@ -143,6 +153,11 @@ object GuiceInjectorBuilderSpec {
 
   class SetConfigurationModule(conf: Configuration) extends AbstractModule {
     def configure() = bind(classOf[Configuration]) toInstance conf
+  }
+
+  class ClassLoaderAware {
+    // This is the value of the Thread's context ClassLoader at the time the object is constructed
+    val constructionClassLoader: ClassLoader = Thread.currentThread.getContextClassLoader
   }
 
   trait A
