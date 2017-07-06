@@ -17,9 +17,10 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.routing.sird._
       import play.core.server.AkkaHttpServer
 
-      val server = AkkaHttpServer.fromRouter() {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
+      val server = AkkaHttpServer.fromRouterWithComponents() { components => {
+          case GET(p"/hello/$to") => components.defaultActionBuilder {
+            Results.Ok(s"Hello $to")
+          }
         }
       }
 
@@ -39,12 +40,13 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.routing.sird._
       import play.core.server.{AkkaHttpServer, _}
 
-      val server = AkkaHttpServer.fromRouter(ServerConfig(
+      val server = AkkaHttpServer.fromRouterWithComponents(ServerConfig(
         port = Some(19000),
         address = "127.0.0.1"
-      )) {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
+      )) { components => {
+          case GET(p"/hello/$to") => components.defaultActionBuilder {
+            Results.Ok(s"Hello $to")
+          }
         }
       }
       //#config-akka-http
@@ -71,16 +73,20 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
         lazy val Action = defaultActionBuilder
 
-        lazy val router = Router.from {
+        override lazy val router: Router = Router.from {
           case GET(p"/hello/$to") => Action {
             Results.Ok(s"Hello $to")
           }
         }
 
-        override lazy val httpErrorHandler = new DefaultHttpErrorHandler(environment,
-          configuration, sourceMapper, Some(router)) {
+        override lazy val httpErrorHandler = new DefaultHttpErrorHandler(
+          environment,
+          configuration,
+          sourceMapper,
+          Some(router)
+        ) {
 
-          override protected def onNotFound(request: RequestHeader, message: String) = {
+          override protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
             Future.successful(Results.NotFound("Nothing was found!"))
           }
         }

@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 #  Embedding an Akka Http server in your application
 
-Play Akka HTTP server is also configurable as a embedded Play server. The simplest way to start an Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouter` method:
+Play Akka HTTP server is also configurable as a embedded Play server. The simplest way to start an Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouterWithComponents` method:
 
 @[simple-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 

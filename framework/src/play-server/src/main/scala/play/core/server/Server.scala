@@ -13,9 +13,8 @@ import play.api.routing.Router
 import scala.language.postfixOps
 import play.api._
 import play.api.mvc._
-import play.core.{ ApplicationProvider, DefaultWebCommands }
-import play.api.inject.DefaultApplicationLifecycle
-
+import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
+import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.routing.{ Router => JRouter }
 import play.{ ApplicationLoader => JApplicationLoader }
 import play.{ BuiltInComponents => JBuiltInComponents }
@@ -226,6 +225,54 @@ object Server {
     withApplication(appProducer(context), config)(block)
   }
 
+}
+
+/**
+ * Components to create a Server instance.
+ */
+trait ServerComponents extends BuiltInComponents {
+
+  def server: Server
+
+  lazy val serverConfig: ServerConfig = ServerConfig()
+
+  override lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
+  override lazy val sourceMapper: Option[SourceMapper] = None
+  override lazy val webCommands: WebCommands = new DefaultWebCommands
+  override lazy val configuration: Configuration = Configuration(ConfigFactory.load())
+  override lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
+
+  def serverStopHook: () => Future[Unit] = () => Future.successful(())
+}
+
+/**
+ * Define how to create a Server from a Router.
+ */
+trait ServerFromRouter {
+
+  def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents => Router): Server
+
+  /**
+   * Creates an AkkaHttpServer from the given router.
+   *
+   * @param config the server configuration
+   * @param routes the routes definitions
+   * @return an AkkaHttpServer instance
+   */
+  def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
+    createServerFromRouter(config) { _ => Router.from(routes) }
+  }
+
+  /**
+   * Creates an AkkaHttpServer from the given router, using [[ServerComponents]].
+   *
+   * @param config the server configuration
+   * @param routes the routes definitions
+   * @return an AkkaHttpServer instance
+   */
+  def fromRouterWithComponents(config: ServerConfig = ServerConfig())(routes: BuiltInComponents => PartialFunction[RequestHeader, Handler]): Server = {
+    createServerFromRouter(config)(components => Router.from(routes(components)))
+  }
 }
 
 private[play] object JavaServerHelper {
