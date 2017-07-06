@@ -24,7 +24,6 @@ import play.mvc.Http.HeaderNames
 
 import scala.annotation.tailrec
 import scala.collection.immutable
-import scala.collection.immutable.Queue
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
@@ -135,7 +134,7 @@ private[server] class AkkaModelConversion(
             if (q.isEmpty) {
               map
             } else {
-              append(map.updated(q.key, map.getOrElse(q.key, Queue.empty[String]) :+ q.value), q.tail)
+              append(map.updated(q.key, map.getOrElse(q.key, Vector.empty[String]) :+ q.value), q.tail)
             }
           }
           append(Map.empty, query)
