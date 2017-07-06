@@ -58,6 +58,10 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
 
+      mimaBinaryIssueFilters := Seq(
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.byteString")
+      ),
+
       sourceGenerators in Compile += Def.task(PlayVersion(version.value, scalaVersion.value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
 
       sourceDirectories in(Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
