@@ -38,7 +38,10 @@ trait UriHandlingSpec extends PlaySpecification with WsTestClient with ServerInt
     val port = testServerPort
     val app = GuiceApplicationBuilder()
       .overrides(bind[HttpErrorHandler].to(errorHandler))
-      .routes { case _ => ActionBuilder.ignoringBody { request: Request[_] => result(request) } }
+      .routes {
+        case (_, "/path") => ActionBuilder.ignoringBody { request: Request[_] => Results.Ok(request.queryString) }
+        case _ => ActionBuilder.ignoringBody { request: Request[_] => result(request) }
+      }
       .build()
     running(TestServer(port, app)) {
       block(port)
@@ -46,26 +49,37 @@ trait UriHandlingSpec extends PlaySpecification with WsTestClient with ServerInt
   }
 
   "Server" should {
+
+    "preserve order of repeated query string parameters" in makeRequest(
+      "/path?a=1&b=1&b=2&b=3&b=4&b=5"
+    ) { response =>
+        response.body must beEqualTo("a=1&b=1&b=2&b=3&b=4&b=5")
+      }
+
     "handle '/pat/resources/BodhiApplication?where={%22name%22:%22hsdashboard%22}' as a valid URI" in makeRequest(
       "/pat/resources/BodhiApplication?where={%22name%22:%22hsdashboard%22}"
     ) { response =>
         response.body must_=== """/pat/resources/BodhiApplication?where={"name":"hsdashboard"}"""
       }
+
     "handle '/dynatable/?queries%5Bsearch%5D=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%5D%7D&page=1&perPage=10&offset=0' as a URI" in makeRequest(
       "/dynatable/?queries%5Bsearch%5D=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%5D%7D&page=1&perPage=10&offset=0"
     ) { response =>
         response.body must_=== """/dynatable/?queries[search]={"condition":"AND","rules":[]}&page=1&perPage=10&offset=0"""
       }
+
     "handle '/foo%20bar.txt' as a URI" in makeRequest(
       "/foo%20bar.txt"
     ) { response =>
         response.body must_=== """/foo%20bar.txt"""
       }
+
     "handle '/?filter=a&filter=b' as a URI" in makeRequest(
       "/?filter=a&filter=b"
     ) { response =>
         response.body must_=== """/?filter=a|,|b"""
       }
+
     "handle '/?filter=a,b' as a URI" in makeRequest(
       "/?filter=a,b"
     ) { response =>
