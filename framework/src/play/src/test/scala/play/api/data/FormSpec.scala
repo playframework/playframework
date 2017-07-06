@@ -358,42 +358,82 @@ class FormSpec extends Specification {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate)
     val data = Map("date" -> "2012-01-01")
-    dateForm.bind(data).get mustEqual (LocalDate.of(2012, 1, 1))
+    dateForm.bind(data).get must beEqualTo(LocalDate.of(2012, 1, 1))
   }
 
   "render form using java.time.LocalDate with format(15/6/2016)" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate("dd/MM/yyyy"))
     val data = Map("date" -> "15/06/2016")
-    dateForm.bind(data).get mustEqual (LocalDate.of(2016, 6, 15))
+    dateForm.bind(data).get must beEqualTo(LocalDate.of(2016, 6, 15))
   }
 
   "render form using java.time.LocalDateTime" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> localDateTime)
     val data = Map("date" -> "2012-01-01 10:10:10")
-    dateForm.bind(data).get mustEqual (LocalDateTime.of(2012, 1, 1, 10, 10, 10))
+    dateForm.bind(data).get must beEqualTo(LocalDateTime.of(2012, 1, 1, 10, 10, 10))
   }
 
   "render form using java.time.LocalDateTime with format(17/06/2016T17:15:33)" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> localDateTime("dd/MM/yyyy HH:mm:ss"))
     val data = Map("date" -> "17/06/2016 10:10:10")
-    dateForm.bind(data).get mustEqual (LocalDateTime.of(2016, 6, 17, 10, 10, 10))
+    dateForm.bind(data).get must beEqualTo(LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
 
   "render form using java.time.LocalTime" in {
     import java.time.LocalTime
     val dateForm = Form("date" -> localTime)
     val data = Map("date" -> "10:10:10")
-    dateForm.bind(data).get mustEqual (LocalTime.of(10, 10, 10))
+    dateForm.bind(data).get must beEqualTo(LocalTime.of(10, 10, 10))
   }
 
   "render form using java.time.LocalTime with format(HH-mm-ss)" in {
     import java.time.LocalTime
     val dateForm = Form("date" -> localTime("HH-mm-ss"))
     val data = Map("date" -> "10-11-12")
-    dateForm.bind(data).get mustEqual (LocalTime.of(10, 11, 12))
+    dateForm.bind(data).get must beEqualTo(LocalTime.of(10, 11, 12))
+  }
+
+  "render form using java.sql.Date" in {
+    import java.time.LocalDate
+    val dateForm = Form("date" -> sqlDate)
+    val data = Map("date" -> "2017-07-04")
+    val date = dateForm.bind(data).get.toLocalDate
+    date must beEqualTo(LocalDate.of(2017, 7, 4))
+  }
+
+  "render form using java.sql.Date with format(dd-MM-yyyy)" in {
+    import java.time.LocalDate
+    val dateForm = Form("date" -> sqlDate("dd-MM-yyyy"))
+    val data = Map("date" -> "04-07-2017")
+    val date = dateForm.bind(data).get.toLocalDate
+    date must beEqualTo(LocalDate.of(2017, 7, 4))
+  }
+
+  "render form using java.sql.Timestamp" in {
+    import java.time.LocalDateTime
+    val dateForm = Form("date" -> sqlTimestamp)
+    val data = Map("date" -> "2017-07-04 10:11:12")
+    val date = dateForm.bind(data).get.toLocalDateTime
+    date must beEqualTo(LocalDateTime.of(2017, 7, 4, 10, 11, 12))
+  }
+
+  "render form using java.sql.Date with format(dd/MM/yyyy HH-mm-ss)" in {
+    import java.time.LocalDateTime
+    val dateForm = Form("date" -> sqlTimestamp("dd/MM/yyyy HH-mm-ss"))
+    val data = Map("date" -> "04/07/2017 10-11-12")
+    val date = dateForm.bind(data).get.toLocalDateTime
+    date must beEqualTo(LocalDateTime.of(2017, 7, 4, 10, 11, 12))
+  }
+
+  "render form using java.time.Timestamp with format(17/06/2016T17:15:33)" in {
+    import java.time.LocalDateTime
+    val dateForm = Form("date" -> sqlTimestamp("dd/MM/yyyy HH:mm:ss"))
+    val data = Map("date" -> "17/06/2016 10:10:10")
+    val date = dateForm.bind(data).get.toLocalDateTime
+    date must beEqualTo(LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
 
 }
@@ -463,7 +503,7 @@ object ScalaForms {
   )
 
   val form = Form(
-    "foo" -> Forms.text.verifying("first.digit", s => s.headOption exists { _ == '3' })
+    "foo" -> Forms.text.verifying("first.digit", s => s.headOption contains '3')
       .transform[Int](Integer.parseInt, _.toString).verifying("number.42", _ < 42)
   )
 

@@ -3,13 +3,120 @@
  */
 package play.api.data.format
 
+import java.sql
+import java.sql.Timestamp
+import java.time.{ LocalDate, LocalDateTime }
+
 import org.specs2.mutable.Specification
-import java.util.{ UUID, Date, TimeZone }
+import java.util.{ Date, TimeZone, UUID }
 
 import play.api.data._
 import play.api.data.Forms._
 
 class FormatSpec extends Specification {
+
+  "A java.sql.Date format" should {
+    "support formatting with a pattern" in {
+      val data = Map("date" -> "04-07-2017")
+      val format = Formats.sqlDateFormat("dd-MM-yyyy")
+      val bindResult = format.bind("date", data)
+
+      bindResult.right.map(_.toLocalDate.getDayOfMonth) should beRight(4)
+      bindResult.right.map(_.toLocalDate.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.right.map(_.toLocalDate.getYear) should beRight(2017)
+    }
+
+    "use yyyy-MM-dd as the default format" in {
+      val data = Map("date" -> "2017-07-04")
+      val format = Formats.sqlDateFormat
+      val bindResult = format.bind("date", data)
+
+      bindResult.right.map(_.toLocalDate.getDayOfMonth) should beRight(4)
+      bindResult.right.map(_.toLocalDate.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.right.map(_.toLocalDate.getYear) should beRight(2017)
+    }
+
+    "fails when form data is using the wrong pattern" in {
+      val data = Map("date" -> "04-07-2017") // default pattern is yyyy-MM-dd, so this is wrong
+      val format = Formats.sqlDateFormat
+
+      format.bind("date", data) should beLeft
+    }
+
+    "fails with the correct message key when using the wrong pattern" in {
+      val data = Map("date" -> "04-07-2017") // default pattern is yyyy-MM-dd, so this is wrong
+      val format = Formats.sqlDateFormat
+
+      format.bind("date", data) should beLeft.which(_.exists(_.message.equals("error.date")))
+    }
+
+    "convert raw data to form data using the given pattern" in {
+      val format = Formats.sqlDateFormat("dd-MM-yyyy")
+      val localDate = LocalDate.of(2017, java.time.Month.JULY, 4)
+      format.unbind("date", java.sql.Date.valueOf(localDate)).get("date") must beSome("04-07-2017")
+    }
+
+    "convert raw data to form data using the default pattern" in {
+      val format = Formats.sqlDateFormat
+      val localDate = LocalDate.of(2017, java.time.Month.JULY, 4)
+      format.unbind("date", java.sql.Date.valueOf(localDate)).get("date") must beSome("2017-07-04")
+    }
+  }
+
+  "A java.sql.Timestamp format" should {
+    "support formatting with a pattern" in {
+      val data = Map("date" -> "04-07-2017 10:11:12")
+      val format = Formats.sqlTimestampFormat("dd-MM-yyyy HH:mm:ss")
+      val bindResult = format.bind("date", data)
+
+      bindResult.right.map(_.toLocalDateTime.getDayOfMonth) should beRight(4)
+      bindResult.right.map(_.toLocalDateTime.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.right.map(_.toLocalDateTime.getYear) should beRight(2017)
+      bindResult.right.map(_.toLocalDateTime.getHour) should beRight(10)
+      bindResult.right.map(_.toLocalDateTime.getMinute) should beRight(11)
+      bindResult.right.map(_.toLocalDateTime.getSecond) should beRight(12)
+    }
+
+    "use yyyy-MM-dd HH:ss:mm as the default format" in {
+      val data = Map("date" -> "2017-07-04 10:11:12")
+      val format = Formats.sqlTimestampFormat
+      val bindResult = format.bind("date", data)
+
+      bindResult.right.map(_.toLocalDateTime.getDayOfMonth) should beRight(4)
+      bindResult.right.map(_.toLocalDateTime.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.right.map(_.toLocalDateTime.getYear) should beRight(2017)
+      bindResult.right.map(_.toLocalDateTime.getHour) should beRight(10)
+      bindResult.right.map(_.toLocalDateTime.getMinute) should beRight(11)
+      bindResult.right.map(_.toLocalDateTime.getSecond) should beRight(12)
+    }
+
+    "fails when form data is using the wrong pattern" in {
+      val data = Map("date" -> "04-07-2017") // default pattern is yyyy-MM-dd, so this is wrong
+      val format = Formats.sqlTimestampFormat
+
+      format.bind("date", data) should beLeft
+    }
+
+    "fails with the correct message key when using the wrong pattern" in {
+      val data = Map("date" -> "04-07-2017") // default pattern is yyyy-MM-dd, so this is wrong
+      val format = Formats.sqlTimestampFormat
+
+      format.bind("date", data) should beLeft.which(_.exists(_.message.equals("error.timestamp")))
+    }
+
+    "convert raw data to form data using the given pattern" in {
+      val format = Formats.sqlTimestampFormat("dd-MM-yyyy HH:mm:ss")
+      val localDateTime = LocalDateTime.of(2017, java.time.Month.JULY, 4, 10, 11, 12)
+      format.unbind("date", Timestamp.valueOf(localDateTime)).get("date") must beSome("04-07-2017 10:11:12")
+    }
+
+    "convert raw data to form data using the default pattern" in {
+      val format = Formats.sqlTimestampFormat
+      val localDateTime = LocalDateTime.of(2017, java.time.Month.JULY, 4, 10, 11, 12)
+      format.unbind("date", java.sql.Timestamp.valueOf(localDateTime)).get("date") must beSome("2017-07-04 10:11:12")
+    }
+  }
+
   "dateFormat" should {
     "support custom time zones" in {
       val data = Map("date" -> "00:00")
