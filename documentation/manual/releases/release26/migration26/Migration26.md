@@ -291,7 +291,7 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 Starting with Play 2.6, query string parameters will not be bound to a form instance anymore when using [`bindFromRequest()`](api/scala/play/api/data/Form.html#bindFromRequest\(\)\(implicitrequest:play.api.mvc.Request[_]\):play.api.data.Form[T]) in combination with `POST`, `PUT` or `PATCH` requests.
 
-Static methods which where already deprecated in 2.5 (e.g. `DynamicForm.form()`) where removed in this release. Refer to the [[Play 2.5 Migration Guide|Migration25]] for details on how to migrate, in case you still use them.
+Static methods which were already deprecated in 2.5 (e.g. `DynamicForm.form()`) were removed in this release. Refer to the [[Play 2.5 Migration Guide|Migration25]] for details on how to migrate, in case you still use them.
 
 ### Java Form Changes
 
