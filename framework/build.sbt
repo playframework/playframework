@@ -98,13 +98,6 @@ import AkkaDependency._
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
-    .settings(
-      mimaBinaryIssueFilters := Seq(
-        // class is package private[server]
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.akkahttp.AkkaModelConversion.this"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.AkkaHttpServerComponents.applicationLifecycle")
-      )
-    )
     .addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
