@@ -7,10 +7,12 @@ import java.util.zip.Deflater
 
 import akka.stream.scaladsl.{ Flow, Sink }
 import akka.util.ByteString
+import play.api.{ Configuration, Mode }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.test._
+import play.core.server.ServerConfig
 import play.it._
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -25,15 +27,24 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
 
   "Play request body handling" should {
 
-    def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+    def withServerAndConfig[T](configuration: (String, Any)*)(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().appRoutes { app =>
+
+      val serverConfig: ServerConfig = {
+        val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
+        c.copy(configuration = c.configuration ++ Configuration(configuration: _*))
+      }
+      running(play.api.test.TestServer(serverConfig, GuiceApplicationBuilder().appRoutes { app =>
         val Action = app.injector.instanceOf[DefaultActionBuilder]
         val parse = app.injector.instanceOf[PlayBodyParsers]
         ({ case _ => action(Action, parse) })
-      }.build())) {
+      }.build(), Some(integrationServerProvider))) {
         block(port)
       }
+    }
+
+    def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+      withServerAndConfig()(action)(block)
     }
 
     "handle gzip bodies" in withServer((Action, _) => Action { rh =>
@@ -82,5 +93,28 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 200
       responses(1).status must_== 200
     }
+
+    "handle a big http request" in withServer((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh =>
+      Results.Ok(rh.body.asText.getOrElse(""))
+    }) { port =>
+      // big body that should not crash akka and netty
+      val body = "Hello World" * 1024 * 1024
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+      )
+      responses.length must_== 1
+      responses(0).status must_== 200
+    }
+
+    "handle a big http request and fail" in withServerAndConfig("play.server.akka.max-content-length" -> "1b")((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh =>
+      Results.Ok(rh.body.asText.getOrElse(""))
+    }) { port =>
+      val body = "Hello World" * 2
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+      )
+      responses.length must_== 1
+      responses(0).status must_== 500
+    }.skipUntilNettyHttpFixed // netty does not need that test, since it does not provide a built-in max-content-length
   }
 }

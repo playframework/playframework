@@ -18,7 +18,7 @@ import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import com.typesafe.config.{ ConfigFactory, ConfigMemorySize }
+import com.typesafe.config.{ Config, ConfigFactory, ConfigMemorySize }
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpErrorHandler }
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
@@ -61,12 +61,23 @@ class AkkaHttpServer(
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
 
+  private def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
+    config.getString(path) match {
+      case "infinite" ⇒ Long.MaxValue
+      case x ⇒ config.getBytes(path)
+    }
+  }
+
   private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
 
     val initialConfig = (Configuration(system.settings.config) ++ Configuration(
       "akka.http.server.preview.enable-http2" -> http2Enabled
     )).underlying
+
+    val parserSettings = ParserSettings(initialConfig)
+      .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+
     val initialSettings = ServerSettings(initialConfig)
 
     val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
@@ -87,6 +98,7 @@ class AkkaHttpServer(
       .withTransparentHeadRequests(akkaServerConfig.get[Boolean]("transparent-head-requests"))
       .withServerHeader(akkaServerConfig.getOptional[String]("server-header").filterNot(_ == "").map(headers.Server(_)))
       .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
+      .withParserSettings(parserSettings)
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] = try {
