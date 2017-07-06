@@ -192,7 +192,7 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
 
-      jnotify,      
+      jnotify,
       slf4jSimple,
 
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
@@ -265,7 +265,7 @@ object Dependencies {
   ) ++ jcacheApi
 
   val caffeineVersion = "2.5.2"
-  val playWsStandaloneVersion = "1.0.0"
+  val playWsStandaloneVersion = "1.0.1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
