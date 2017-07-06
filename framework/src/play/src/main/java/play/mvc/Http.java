@@ -2535,11 +2535,11 @@ public class Http {
         String X_FORWARDED_PROTO = "X-Forwarded-Proto";
         String X_REQUESTED_WITH = "X-Requested-With";
         String STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
-        String X_FRAME_OPTIONS_HEADER = "X-Frame-Options";
-        String X_XSS_PROTECTION_HEADER = "X-XSS-Protection";
-        String X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options";
-        String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies";
-        String CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy";
+        String X_FRAME_OPTIONS = "X-Frame-Options";
+        String X_XSS_PROTECTION = "X-XSS-Protection";
+        String X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
+        String X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies";
+        String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
         String REFERRER_POLICY = "Referrer-Policy";
     }
 

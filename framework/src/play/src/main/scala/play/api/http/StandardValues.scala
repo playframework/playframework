@@ -326,11 +326,11 @@ trait HeaderNames {
 
   val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
 
-  val X_FRAME_OPTIONS_HEADER = "X-Frame-Options"
-  val X_XSS_PROTECTION_HEADER = "X-XSS-Protection"
-  val X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options"
-  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies"
-  val CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
+  val X_FRAME_OPTIONS = "X-Frame-Options"
+  val X_XSS_PROTECTION = "X-XSS-Protection"
+  val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
+  val X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies"
+  val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
   val REFERRER_POLICY = "Referrer-Policy"
 }
 
