@@ -4,9 +4,9 @@
 Play WS is now a standalone project and is available at [https://github.com/playframework/play-ws](https://github.com/playframework/play-ws). It can be added to an SBT project with:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
-libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.0.0"
-libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.1"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.0.1"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.1"
 ```
 
 ## Package changes
