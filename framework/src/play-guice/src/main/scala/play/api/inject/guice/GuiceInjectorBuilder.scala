@@ -5,11 +5,13 @@ package play.api.inject
 package guice
 
 import com.google.inject.util.{ Modules => GuiceModules, Providers => GuiceProviders }
-import com.google.inject.{ Module => GuiceModule, Binder, Stage, CreationException, Guice }
+import com.google.inject.{ Binder, CreationException, Guice, Stage, Module => GuiceModule }
 import java.io.File
-import javax.inject.Inject
+import javax.inject.{ Inject, Provider }
+
 import play.api.inject.{ Binding => PlayBinding, Injector => PlayInjector, Module => PlayModule }
 import play.api.{ Configuration, Environment, Mode, PlayException }
+
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
@@ -157,7 +159,9 @@ abstract class GuiceBuilder[Self] protected (
   def createModule(): GuiceModule = {
     import scala.collection.JavaConverters._
     val injectorModule = GuiceableModule.guice(Seq(
-      bind[PlayInjector].to[GuiceInjector],
+      bind[GuiceInjector].toSelf,
+      bind[GuiceClassLoader].to(new GuiceClassLoader(environment.classLoader)),
+      bind[PlayInjector].toProvider[GuiceInjectorWithClassLoaderProvider],
       // Java API injector is bound here so that it's available in both
       // the default application loader and the Java Guice builders
       bind[play.inject.Injector].to[play.inject.DelegateInjector]
@@ -408,4 +412,24 @@ class GuiceInjector @Inject() (injector: com.google.inject.Injector) extends Pla
    * Get an instance bound to the given binding key.
    */
   def instanceOf[T](key: BindingKey[T]) = injector.getInstance(GuiceKey(key))
+}
+
+/**
+ * An object that holds a `ClassLoader` for Guice to use. We use this
+ * simple value object so it can be looked up by its type when we're
+ * assembling the Guice injector.
+ *
+ * @param classLoader The wrapped `ClassLoader`.
+ */
+class GuiceClassLoader(val classLoader: ClassLoader)
+
+/**
+ * A provider for a Guice injector that wraps the injector to ensure
+ * it uses the correct `ClassLoader`.
+ *
+ * @param injector The injector to wrap.
+ * @param guiceClassLoader The `ClassLoader` the injector should use.
+ */
+class GuiceInjectorWithClassLoaderProvider @Inject() (injector: GuiceInjector, guiceClassLoader: GuiceClassLoader) extends Provider[Injector] {
+  override def get(): PlayInjector = new ContextClassLoaderInjector(injector, guiceClassLoader.classLoader)
 }
