@@ -3,12 +3,11 @@
  */
 package play.it.http
 
-import java.util.Properties
 import java.util.zip.Deflater
 
 import akka.stream.scaladsl.{ Flow, Sink }
 import akka.util.ByteString
-import play.api.Mode
+import play.api.{ Configuration, Mode }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -18,7 +17,6 @@ import play.it._
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
-import scala.collection.JavaConverters._
 
 class NettyRequestBodyHandlingSpec extends RequestBodyHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
@@ -29,12 +27,13 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
 
   "Play request body handling" should {
 
-    def withServerAndConfig[T](configuration: Map[String, String])(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+    def withServerAndConfig[T](configuration: (String, Any)*)(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      val props = new Properties(System.getProperties)
-      props.putAll(configuration.asJava)
 
-      val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)
+      val serverConfig: ServerConfig = {
+        val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
+        c.copy(configuration = c.configuration ++ Configuration(configuration: _*))
+      }
       running(play.api.test.TestServer(serverConfig, GuiceApplicationBuilder().appRoutes { app =>
         val Action = app.injector.instanceOf[DefaultActionBuilder]
         val parse = app.injector.instanceOf[PlayBodyParsers]
@@ -45,7 +44,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      withServerAndConfig(Map.empty)(action)(block)
+      withServerAndConfig()(action)(block)
     }
 
     "handle gzip bodies" in withServer((Action, _) => Action { rh =>
@@ -107,7 +106,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 200
     }
 
-    "handle a big http request and fail" in withServerAndConfig(Map("play.server.akka.max-content-length" -> "1b"))((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh =>
+    "handle a big http request and fail" in withServerAndConfig("play.server.akka.max-content-length" -> "1b")((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh =>
       Results.Ok(rh.body.asText.getOrElse(""))
     }) { port =>
       val body = "Hello World" * 2
