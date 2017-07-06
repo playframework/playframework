@@ -19,7 +19,7 @@ import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
-import play.core.j.JavaHelpers
+import play.core.j.{ JavaContextComponents, JavaHelpers }
 import play.core.{ SourceMapper, WebCommands }
 import play.utils._
 
@@ -258,7 +258,7 @@ trait BuiltInComponents extends I18nComponents {
   def sourceMapper: Option[SourceMapper]
   def webCommands: WebCommands
   def configuration: Configuration
-  def applicationLifecycle: DefaultApplicationLifecycle
+  def applicationLifecycle: ApplicationLifecycle
 
   def router: Router
 
@@ -335,7 +335,7 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
-  lazy val javaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+  lazy val javaContextComponents: JavaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 }
 
 /**
