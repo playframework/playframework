@@ -728,7 +728,7 @@ The `play.api.libs.concurrent.Execution` class has been deprecated, as it was us
 If you want to specify the implicit behavior that you had previously, then you should pass in the execution context implicitly in the constructor using [[dependency injection|ScalaDependencyInjection]]:
 
 ```scala
-class MyController @Inject()(implicit ec: ExecutionContext) {
+class MyController @Inject()(implicit val ec: ExecutionContext) {
 
 }
 ```
