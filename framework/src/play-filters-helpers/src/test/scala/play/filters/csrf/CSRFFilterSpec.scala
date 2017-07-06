@@ -6,14 +6,16 @@ package play.filters.csrf
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.ApplicationLoader.Context
-import play.api.http.HttpFilters
+import play.api.http.{ HttpEntity, HttpFilters }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.libs.json.Json
 import play.api.libs.ws._
 import play.api.mvc.Handler.Stage
-import play.api.mvc.{ DefaultActionBuilder, Handler, RequestHeader, Results }
+import play.api.mvc._
 import play.api.routing.{ HandlerDef, Router }
 import play.api.test._
 import play.api.{ Configuration, Environment, Mode }
@@ -70,6 +72,30 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     }
     "not check requests with no cookies" in {
       buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
+    }
+
+    "not add a token when responding to GET requests that accept HTML and don't get the token" in {
+      buildCsrfAddTokenNoRender(false)(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must be empty)
+    }
+    "not add a token when responding to GET requests that accept XHTML and don't get the token" in {
+      buildCsrfAddTokenNoRender(false)(_.withHeaders(ACCEPT -> "application/xhtml+xml").get())(_.cookies must be empty)
+    }
+    "add a token when responding to GET requests that don't get the token, if using non-HTTPOnly session cookie" in {
+      buildCsrfAddTokenNoRender(
+        false,
+        "play.filters.csrf.cookie.name" -> null,
+        "play.http.session.httpOnly" -> "false"
+      )(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
+    }
+    "add a token when responding to GET requests that don't get the token, if using non-HTTPOnly cookie" in {
+      buildCsrfAddTokenNoRender(
+        false,
+        "play.filters.csrf.cookie.name" -> "csrf",
+        "play.filters.csrf.cookie.httpOnly" -> "false"
+      )(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
+    }
+    "add a token when responding to GET requests that don't get the token, if response is streamed" in {
+      buildCsrfAddTokenNoRender(true)(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
     }
 
     // other
@@ -246,6 +272,27 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               CSRF.getToken(req).map { token =>
                 Results.Ok(token.value)
               } getOrElse Results.NotFound
+            }
+        }) { ws =>
+          handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
+        }
+    }
+  }
+
+  def buildCsrfAddTokenNoRender(streamed: Boolean, configuration: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+      withActionServer(
+        configuration ++ Seq("play.http.filters" -> classOf[CsrfFilters].getName)
+      ) (implicit app => {
+          case _ =>
+            val Action = inject[DefaultActionBuilder]
+            if (streamed) {
+              Action(Result(
+                header = ResponseHeader(200, Map.empty),
+                body = HttpEntity.Streamed(Source.single(ByteString("Hello world")), None, Some("text/html"))
+              ))
+            } else {
+              Action(Results.Ok("Hello world!"))
             }
         }) { ws =>
           handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
