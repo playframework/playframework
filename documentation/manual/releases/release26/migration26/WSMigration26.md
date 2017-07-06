@@ -5,8 +5,8 @@ Play WS is now a standalone project and is available at [https://github.com/play
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone-json" % "1.0.0"
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone-xml" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.0.0"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.0"
 ```
 
 ## Package changes
