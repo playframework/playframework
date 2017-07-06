@@ -3,10 +3,9 @@
  */
 package play.api.data.format
 
-import java.text.{ DateFormat, SimpleDateFormat }
-import java.time.temporal.{ ChronoField, TemporalAccessor, TemporalField, TemporalQueries }
+import java.sql.Timestamp
 import java.time._
-import java.time.format.{ DateTimeFormatter, DateTimeFormatterBuilder, ResolverStyle }
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 import play.api.data._
@@ -225,21 +224,46 @@ object Formats {
    */
   def sqlDateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
 
-    val dateFormatter = dateFormat(pattern, timeZone)
+    private val dateFormatter: Formatter[LocalDate] = localDateFormat(pattern)
 
     override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
-      dateFormatter.bind(key, data).right.map(d => new java.sql.Date(d.getTime))
+      dateFormatter.bind(key, data).right.map(d => java.sql.Date.valueOf(d))
     }
 
-    def unbind(key: String, value: java.sql.Date) = dateFormatter.unbind(key, value)
+    def unbind(key: String, value: java.sql.Date) = dateFormatter.unbind(key, value.toLocalDate)
   }
 
   /**
    * Default formatter for `java.sql.Date` type with pattern `yyyy-MM-dd`.
    */
   implicit val sqlDateFormat: Formatter[java.sql.Date] = sqlDateFormat("yyyy-MM-dd")
+
+  /**
+   * Formatter for the `java.sql.Timestamp` type.
+   *
+   * @param pattern a date pattern as specified in `java.time.DateTimeFormatter`.
+   * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
+   */
+  def sqlTimestampFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Timestamp] = new Formatter[java.sql.Timestamp] {
+
+    import java.time.LocalDateTime
+
+    private val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(timeZone.toZoneId)
+    private def timestampParse(data: String) = java.sql.Timestamp.valueOf(LocalDateTime.parse(data, formatter))
+
+    override val format = Some(("format.timestamp", Seq(pattern)))
+
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Timestamp] = parsing(timestampParse, "error.timestamp", Nil)(key, data)
+
+    override def unbind(key: String, value: java.sql.Timestamp) = Map(key -> value.toLocalDateTime.format(formatter))
+  }
+
+  /**
+   * Default formatter for `java.sql.Timestamp` type with pattern `yyyy-MM-dd HH:mm:ss`.
+   */
+  implicit val sqlTimestampFormat: Formatter[java.sql.Timestamp] = sqlTimestampFormat("yyyy-MM-dd HH:mm:ss")
 
   /**
    * Formatter for the `java.time.LocalDate` type.
