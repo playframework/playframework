@@ -351,7 +351,7 @@ class RangeResultSpec extends Specification {
       val source = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, Some("video.mp4"), None)
-      headers must havePair("Content-Disposition" -> "attachment; filename=\"video.mp4\"; filename*=utf-8''video.mp4")
+      headers must havePair("Content-Disposition" -> "attachment; filename=\"video.mp4\"")
     }
 
     "support non-ISO-8859-1 filename in Content-Disposition header" in {
@@ -359,7 +359,7 @@ class RangeResultSpec extends Specification {
       val source = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, Some("测 试.tmp"), None)
-      headers must havePair("Content-Disposition" -> "attachment; filename=\"测 试.tmp\"; filename*=utf-8''%E6%B5%8B%20%E8%AF%95.tmp")
+      headers.get("Content-Disposition") must beSome("attachment; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp")
     }
 
     "support first byte position" in {
@@ -404,7 +404,7 @@ class RangeResultSpec extends Specification {
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
           RangeResult.ofPath(file.toPath, None, Some("video/mp4"))
-        headers must havePair("Content-Disposition" -> "attachment; filename=\"path.mp4\"; filename*=utf-8''path.mp4")
+        headers must havePair("Content-Disposition" -> "attachment; filename=\"path.mp4\"")
         contentType must beSome("video/mp4")
       } finally {
         java.nio.file.Files.delete(file.toPath)
@@ -416,7 +416,7 @@ class RangeResultSpec extends Specification {
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
           RangeResult.ofFile(file, None, Some("video/mp4"))
-        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"; filename*=utf-8''file.mp4")
+        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
       } finally {
         java.nio.file.Files.delete(file.toPath)
@@ -429,7 +429,7 @@ class RangeResultSpec extends Specification {
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
           RangeResult.ofStream(inputStream, None, "file.mp4", Some("video/mp4"))
-        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"; filename*=utf-8''file.mp4")
+        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
       } finally {
         closeWithoutError(inputStream)
@@ -443,7 +443,7 @@ class RangeResultSpec extends Specification {
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
           RangeResult.ofStream(file.length(), inputStream, None, "file.mp4", Some("video/mp4"))
-        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"; filename*=utf-8''file.mp4")
+        headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
       } finally {
         closeWithoutError(inputStream)
