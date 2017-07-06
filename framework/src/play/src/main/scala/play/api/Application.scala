@@ -267,12 +267,13 @@ trait BuiltInComponents extends I18nComponents {
    * existing (deprecated) legacy APIs to function. It is not set up to support injecting arbitrary Play components.
    */
   lazy val injector: Injector = {
-    new SimpleInjector(NewInstanceInjector) +
+    val simple = new SimpleInjector(NewInstanceInjector) +
       cookieSigner + // play.api.libs.Crypto (for cookies)
       httpConfiguration + // play.api.mvc.BodyParsers trait
       tempFileCreator + // play.api.libs.TemporaryFileCreator object
       messagesApi + // play.api.i18n.Messages object
       langs // play.api.i18n.Langs object
+    new ContextClassLoaderInjector(simple, environment.classLoader)
   }
 
   lazy val playBodyParsers: PlayBodyParsers =
