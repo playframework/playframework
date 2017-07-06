@@ -20,13 +20,13 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.{ Config, ConfigFactory, ConfigMemorySize }
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HttpConfiguration, HttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
-import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
+import play.core.server.common.{ ReloadCache, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
 import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
 import play.server.SSLEngineProvider
@@ -154,25 +154,34 @@ class AkkaHttpServer(
   // Each request needs an id
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
-  // TODO: We can change this to an eager val when we fully support server configuration
-  // instead of reading from the application configuration. At the moment we need to wait
-  // until we have an Application available before we can read any configuration. :(
+  /**
+   * Values that are cached based on the current application.
+   */
+  private case class ReloadCacheValues(
+    resultUtils: ServerResultUtils,
+    modelConversion: AkkaModelConversion
+  )
 
-  private lazy val resultUtils: ServerResultUtils = {
-    val httpConfiguration = applicationProvider.get match {
-      case Success(app) => HttpConfiguration.fromConfiguration(app.configuration, app.environment)
-      case Failure(_) => HttpConfiguration()
+  /**
+   * A helper to cache values that are derived from the current application.
+   */
+  private val reloadCache = new ReloadCache[ReloadCacheValues] {
+    override protected def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
+      val serverResultUtils = reloadServerResultUtils(tryApp)
+      val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
+      val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(akkaServerConfig.get[String]("illegal-response-header-value-processing-mode"))
+      val modelConversion = new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
+      ReloadCacheValues(
+        resultUtils = serverResultUtils,
+        modelConversion = modelConversion
+      )
     }
-    new ServerResultUtils(httpConfiguration)
   }
 
-  private lazy val modelConversion: AkkaModelConversion = {
-    val configuration: Option[Configuration] = applicationProvider.get.toOption.map(_.configuration)
-    val forwardedHeaderHandler = new ForwardedHeaderHandler(
-      ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(configuration))
-    val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(akkaServerConfig.get[String]("illegal-response-header-value-processing-mode"))
-    new AkkaModelConversion(resultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
-  }
+  private def resultUtils: ServerResultUtils =
+    reloadCache.cachedFrom(applicationProvider.get).resultUtils
+  private def modelConversion: AkkaModelConversion =
+    reloadCache.cachedFrom(applicationProvider.get).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
     val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
