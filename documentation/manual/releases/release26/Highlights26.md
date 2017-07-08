@@ -164,7 +164,7 @@ public class MyController extends Controller {
 
 Scala:
 ```scala
-public MyController @Inject()(indexTemplate: views.html.IndexTemplate,
+class MyController @Inject()(indexTemplate: views.html.IndexTemplate,
                               cc: ControllerComponents)
   extends AbstractController(cc) {
 
