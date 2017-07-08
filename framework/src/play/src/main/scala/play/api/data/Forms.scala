@@ -536,6 +536,13 @@ object Forms {
    */
   val sqlDate: Mapping[java.sql.Date] = of[java.sql.Date](sqlDateFormat)
 
+  @deprecated("Use sqlDate(pattern). SQL dates do not have time zones.", "2.6.2")
+  def sqlDate(pattern: String, timeZone: java.util.TimeZone): Mapping[java.sql.Date] = sqlDate(pattern)
+
+  // Added for bincompat
+  @deprecated("This method will be removed when sqlDate(pattern, timeZone) is removed.", "2.6.2")
+  private[data] def sqlDate$default$2: java.util.TimeZone = java.util.TimeZone.getDefault
+
   /**
    * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
    *
@@ -545,9 +552,8 @@ object Forms {
    * }}}
    *
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
-   * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def sqlDate(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern, timeZone)
+  def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern)
 
   /**
    * Constructs a simple mapping for a timestamp field (mapped as `java.sql.Timestamp type`).
