@@ -197,8 +197,8 @@ object BuildSettings {
       // Added method to PlayBodyParsers, which is a Play API not meant to be extended by end users.
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.byteString")
     ),
-    unmanagedSourceDirectories in Compile <+= (sourceDirectory in Compile, scalaBinaryVersion) {
-      (dir, version) => dir / s"scala-$version"
+    unmanagedSourceDirectories in Compile += {
+      (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
