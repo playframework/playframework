@@ -6,8 +6,6 @@ package play.api.data
 import play.api.data.format._
 import play.api.data.validation._
 
-import scala.annotation._
-
 /**
  * Contains data manipulation helpers (typically HTTP form handling)
  *
@@ -52,10 +50,10 @@ object Forms {
    * )
    * }}}
    *
-   * @tparam T the mapped type
-   * @param apply A function able to create a value of T from a value of A1 (If T is case class you can use its own apply function)
-   * @param unapply A function able to create A1 from a value of T (If T is a case class you can use its own unapply function)
-   * @return a mapping for type `T`
+   * @tparam R the mapped type
+   * @param apply A function able to create a value of R from a value of A1 (If R is case class you can use its own apply function)
+   * @param unapply A function able to create A1 from a value of R (If R is a case class you can use its own unapply function)
+   * @return a mapping for type `R`
    */
   def mapping[R, A1](a1: (String, Mapping[A1]))(apply: Function1[A1, R])(unapply: Function1[R, Option[(A1)]]): Mapping[R] = {
     new ObjectMapping1(apply, unapply, a1)
