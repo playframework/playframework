@@ -4,7 +4,7 @@
 package play.api.inject
 
 import java.lang.reflect.Constructor
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
+import play.{ Environment => JavaEnvironment }
 
 import org.apache.commons.lang3.reflect.ConstructorUtils
 import play.api._
@@ -147,8 +147,6 @@ object Modules {
         tryConstruct(environment, configuration)
       } orElse {
         tryConstruct(new JavaEnvironment(environment), configuration.underlying)
-      } orElse {
-        tryConstruct(new JavaEnvironment(environment), new JavaConfiguration(configuration))
       } orElse {
         tryConstruct()
       } getOrElse {

@@ -39,16 +39,6 @@ public interface Application {
      *
      * @return the configuration
      */
-    @Deprecated
-    default Configuration configuration() {
-        return new Configuration(this.config());
-    }
-
-    /**
-     * Get the application configuration.
-     *
-     * @return the configuration
-     */
     Config config();
 
     /**

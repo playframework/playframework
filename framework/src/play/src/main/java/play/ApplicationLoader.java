@@ -133,18 +133,6 @@ public interface ApplicationLoader {
          *
          * @return the initial configuration
          */
-        @Deprecated
-        public Configuration initialConfiguration() {
-            return new Configuration(underlying.initialConfiguration());
-        }
-
-        /**
-         * Get the configuration from the context. This configuration is not necessarily the same
-         * configuration used by the application, as the ApplicationLoader may, through it's own
-         * mechanisms, modify it or completely ignore it.
-         *
-         * @return the initial configuration
-         */
         public Config initialConfig() {
             return underlying.initialConfiguration().underlying();
         }
@@ -177,22 +165,6 @@ public interface ApplicationLoader {
             play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
                     environment.asScala(),
                     underlying.initialConfiguration(),
-                    new DefaultApplicationLifecycle(),
-                    underlying.devContext());
-            return new Context(scalaContext);
-        }
-
-        /**
-         * Create a new context with a different configuration.
-         *
-         * @param initialConfiguration the configuration to use in the created context
-         * @return the created context
-         */
-        @Deprecated
-        public Context withConfiguration(Configuration initialConfiguration) {
-            play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
-                    underlying.environment(),
-                    initialConfiguration.getWrappedConfiguration(),
                     new DefaultApplicationLifecycle(),
                     underlying.devContext());
             return new Context(scalaContext);
