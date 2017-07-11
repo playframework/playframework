@@ -36,13 +36,6 @@ public final class Files {
         /** @return the path to the temporary file. */
         Path path();
 
-        /**
-         * @return the temporaryFile as a java.io.File.
-         * @deprecated Use path() over file().
-         */
-        @Deprecated
-        File file();
-
         TemporaryFileCreator temporaryFileCreator();
 
         default TemporaryFile moveTo(File to) {
@@ -109,11 +102,6 @@ public final class Files {
         @Override
         public Path path() {
             return temporaryFile.path();
-        }
-
-        @Override
-        public File file() {
-            return temporaryFile.path().toFile();
         }
 
         @Override
