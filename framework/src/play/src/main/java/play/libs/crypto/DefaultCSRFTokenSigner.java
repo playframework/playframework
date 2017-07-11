@@ -46,11 +46,6 @@ public class DefaultCSRFTokenSigner implements CSRFTokenSigner {
         return csrfTokenSigner.compareSignedTokens(tokenA, tokenB);
     }
 
-    @Deprecated
-    public boolean constantTimeEquals(String a, String b) {
-        return csrfTokenSigner.constantTimeEquals(a, b);
-    }
-
     @Override
     public play.api.libs.crypto.CSRFTokenSigner asScala() {
         return csrfTokenSigner;
