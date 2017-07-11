@@ -42,7 +42,7 @@ public interface InjectedActorSupport {
     }
 
     /**
-     * Context method expected to be implemented by {@link akka.actor.UntypedAbstractActor}.
+     * Context method expected to be implemented by {@link akka.actor.AbstractActor}.
      * @return the ActorContext.
      */
     ActorContext context();
