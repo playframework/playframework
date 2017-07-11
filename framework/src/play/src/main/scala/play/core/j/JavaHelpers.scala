@@ -343,8 +343,4 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody
   override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
-
-  override def username: String = attrs().getOptional(Security.USERNAME).orElse(null)
-  override def withUsername(username: String): JRequest = addAttr(Security.USERNAME, username)
-
 }

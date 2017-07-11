@@ -860,24 +860,6 @@ public class Http {
         <A> Request addAttr(TypedKey<A> key, A value);
 
         /**
-         * The user name for this request, if defined.
-         * This is usually set by annotating your Action with <code>@Authenticated</code>.
-         *
-         * @return the username
-         * @deprecated As of release 2.6, use <code>attrs.get(Security.USERNAME)</code> or <code>attrs.getOptional(Security.USERNAME)</code>.
-         */
-        @Deprecated String username();
-
-        /**
-         * Returns a request updated with specified user name
-         *
-         * @param username the new user name
-         * @return a copy of the request containing the specified user name
-         * @deprecated As of release 2.6, use <code>req.withAttrs(req.attrs().put(Security.USERNAME, username))</code>.
-         */
-        @Deprecated Request withUsername(String username);
-
-        /**
          * For internal Play-use only
          *
          * @return the underlying request
@@ -961,28 +943,6 @@ public class Http {
          */
         public RequestBody body() {
             return req.body();
-        }
-
-        /**
-         * Get the username. This method calls <code>attrs().getOptional(Security.USERNAME)</code>.
-         * @return the username or null
-         * @deprecated Use <code>attrs().get(Security.USERNAME)</code> or <code>attrs().getOptional(Security.USERNAME)</code> instead.
-         */
-        @Deprecated
-        public String username() {
-            return attrs().getOptional(Security.USERNAME).orElse(null);
-        }
-
-        /**
-         * Set the username. This method calls <code>attr(Security.USERNAME, username)</code>.
-         * @param username the username for the request
-         * @return the modified builder
-         * @deprecated Use <code>attr(Security.USERNAME, username)</code> instead.
-         */
-        @Deprecated
-        public RequestBuilder username(String username) {
-            attr(Security.USERNAME, username);
-            return this;
         }
 
         /**
