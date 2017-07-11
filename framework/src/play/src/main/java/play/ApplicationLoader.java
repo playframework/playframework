@@ -56,7 +56,7 @@ public interface ApplicationLoader {
     /**
      * The context for loading an application.
      */
-    final static class Context {
+    final class Context {
 
         private final play.api.ApplicationLoader.Context underlying;
 
@@ -94,18 +94,6 @@ public interface ApplicationLoader {
                     play.libs.Scala.asScala(initialSettings)),
                     new DefaultApplicationLifecycle(),
                     scala.Option.empty());
-        }
-
-        /**
-         * Get the wrapped Scala context.
-         *
-         * @return the wrapped scala context
-         *
-         * @deprecated As of release 2.6.0. Use {@link #asScala()}
-         */
-        @Deprecated
-        public play.api.ApplicationLoader.Context underlying() {
-            return underlying;
         }
 
         /**
@@ -184,44 +172,6 @@ public interface ApplicationLoader {
                     underlying.devContext());
             return new Context(scalaContext);
         }
-
-        // The following static methods are on the Context inner class rather
-        // than the ApplicationLoader interface because https://issues.scala-lang.org/browse/SI-8852
-        // wasn't fixed until Scala 2.11.3, and at the time of writing we need
-        // to support Scala 2.10.
-
-        /**
-         * Create an application loading context.
-         * <p>
-         * Locates and loads the necessary configuration files for the application.
-         *
-         * @param environment     The application environment.
-         * @param initialSettings The initial settings. These settings are merged with the settings from the loaded
-         *                        configuration files, and together form the initialConfiguration provided by the context.  It
-         *                        is intended for use in dev mode, to allow the build system to pass additional configuration
-         *                        into the application.
-         * @return the created context
-         * @deprecated as of 2.6.0. Use {@link ApplicationLoader#create(Environment, Map)}.
-         */
-        @Deprecated
-        public static Context create(Environment environment, Map<String, Object> initialSettings) {
-            return ApplicationLoader.create(environment, initialSettings);
-        }
-
-        /**
-         * Create an application loading context.
-         * <p>
-         * Locates and loads the necessary configuration files for the application.
-         *
-         * @param environment The application environment.
-         * @return a context created with the provided underlying environment
-         * @deprecated as of 2.6.0. Use {@link ApplicationLoader#create(Environment)}.
-         */
-        @Deprecated
-        public static Context create(Environment environment) {
-            return ApplicationLoader.create(environment);
-        }
-
     }
 
     /**

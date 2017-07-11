@@ -31,16 +31,6 @@ public class ApplicationProvider {
     }
 
     /**
-     * @return the application.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #get()} instead.
-     */
-    @Deprecated
-    public Application getApplication() {
-        return application;
-    }
-
-    /**
      * @return Returns an Optional with the application, if available.
      */
     public Optional<Application> get() {
