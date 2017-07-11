@@ -7,7 +7,7 @@ Form handling and submission is an important part of any web application.  Play 
 
 Play's form handling approach is based around the concept of binding data.  When data comes in from a POST request, Play will look for formatted values and bind them to a [`Form`](api/scala/play/api/data/Form.html) object.  From there, Play can use the bound form to value a case class with data, call custom validations, and so on.
 
-Typically forms are used directly from a `Controller` instance.  However, [`Form`](api/scala/play/api/data/Form.html) definitions do not have to match up exactly with case classes or models: they are purely for handling input and it is reasonable to use a distinct `Form` for a distinct POST.
+Typically forms are used directly from a [`BaseController`](api/scala/play/api/mvc/BaseController.html) instance.  However, [`Form`](api/scala/play/api/data/Form.html) definitions do not have to match up exactly with case classes or models: they are purely for handling input and it is reasonable to use a distinct `Form` for a distinct POST.
 
 ## Imports
 
@@ -112,7 +112,7 @@ Alternatively, you can use the `parse.form` [[body parser|ScalaBodyParsers]] tha
 
 @[form-bodyparser](code/ScalaForms.scala)
 
-In the failure case, the default behaviour is to return an empty BadRequest response. You can override this behaviour with your own logic. For instance, the following code is completely equivalent to the preceding one using `bindFromRequest` and `fold`.
+In the failure case, the default behaviour is to return an empty `BadRequest` response. You can override this behaviour with your own logic. For instance, the following code is completely equivalent to the preceding one using `bindFromRequest` and `fold`.
 
 @[form-bodyparser-errors](code/ScalaForms.scala)
 
@@ -316,6 +316,13 @@ You can populate a form with initial values using [`Form#fill`](api/scala/play/a
 Or you can define a default mapping on the number using [`Forms.default`](api/scala/play/api/data/Forms$.html):
 
 @[userForm-default](code/ScalaForms.scala)
+
+Keep in mind that default values are used only when:
+ 
+1. Populating the `Form` from data, for example, from the request
+2. And there is no corresponding data for the field.
+ 
+The default value is not used when creating the form.
 
 ### Ignored values
 
