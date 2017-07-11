@@ -6,13 +6,14 @@
 package javaguide.akka;
 
 import akka.actor.*;
+import akka.japi.*;
 //###replace: import actors.HelloActorProtocol.*;
 import javaguide.akka.HelloActorProtocol.*;
 
 public class HelloActor extends AbstractActor {
 
     public static Props getProps() {
-        return Props.create(() -> new HelloActor());
+        return Props.create(HelloActor.class);
     }
 
     @Override

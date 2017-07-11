@@ -31,7 +31,7 @@ public class JavaAkka {
         @Override
         public Receive createReceive() {
             return receiveBuilder()
-              .matchAny(() -> {
+              .matchAny(m -> {
                   latch.countDown();
               })
               .build();

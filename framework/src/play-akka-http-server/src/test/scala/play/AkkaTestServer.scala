@@ -18,7 +18,7 @@ object AkkaTestServer extends App {
     address = "127.0.0.1"
   )) {
     case GET(p"/") => Action { implicit req =>
-      Results.Ok(s"Hello world: " + req.headers.headers.toList)
+      Results.Ok(s"Hello world")
     }
   }
   println("Server (Akka HTTP) started: http://127.0.0.1:9000/ ")

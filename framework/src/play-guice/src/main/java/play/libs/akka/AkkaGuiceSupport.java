@@ -126,7 +126,7 @@ public interface AkkaGuiceSupport {
      *   {@literal @}Override
      *   public Receive createReceive() {
      *   return receiveBuilder()
-     *     .match(CreateChildActor.class, msg -> {
+     *     .match(CreateChildActor.class, msg -&gt; {
      *       ActorRef child = injectedChild(myChildActorFactory.apply(msg.getId()));
      *       sender().send(child, self);
      *     }
