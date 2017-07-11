@@ -70,6 +70,7 @@ public class Result {
      *
      * @deprecated Deprecated as of 2.6.0. Use {@link #Result(int, String, Map, HttpEntity)}.
      */
+    @Deprecated
     public Result(int status, Optional<String> reasonPhrase, Map<String, String> headers, HttpEntity body) {
         this(new ResponseHeader(status, headers, reasonPhrase.orElse(null)), body);
     }
@@ -153,6 +154,7 @@ public class Result {
      *
      * @see play.api.mvc.ResponseHeader
      */
+    @Deprecated
     protected play.api.mvc.ResponseHeader header() {
         return header.asScala();
     }

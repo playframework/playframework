@@ -64,25 +64,25 @@ public interface Router {
         public static final String ROUTE_VERB = "ROUTE_VERB";
         /**
          * The pattern that the router used to match the path
-         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         * @deprecated Use {@link Router.Attrs#HANDLER_DEF} instead.
          */
         @Deprecated
         public static final String ROUTE_PATTERN = "ROUTE_PATTERN";
         /**
          * The controller that was routed to
-         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         * @deprecated Use {@link Router.Attrs#HANDLER_DEF} instead.
          */
         @Deprecated
         public static final String ROUTE_CONTROLLER = "ROUTE_CONTROLLER";
         /**
          * The method on the controller that was invoked
-         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         * @deprecated Use {@link Router.Attrs#HANDLER_DEF} instead.
          */
         @Deprecated
         public static final String ROUTE_ACTION_METHOD = "ROUTE_ACTION_METHOD";
         /**
          * The comments in the routes file that were above the route
-         * @deprecated Use <code>Router.Attrs.HandlerDef</code> instead.
+         * @deprecated Use {@link Router.Attrs#HANDLER_DEF} instead.
          */
         @Deprecated
         public static final String ROUTE_COMMENTS = "ROUTE_COMMENTS";

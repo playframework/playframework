@@ -204,6 +204,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * 
      * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
      */
+    @Deprecated
     public void reject(String key, String error, List<Object> args) {
         super.reject(asDynamicKey(key), error, args);
     }
