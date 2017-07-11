@@ -649,7 +649,7 @@ trait FormSpec extends Specification {
     "honor its validate method" in {
       "when it returns an error object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.error("password").message() must beEqualTo ("Passwords do not match")
+        myForm.getError("password").get.message() must beEqualTo ("Passwords do not match")
       }
       "when it returns an null (error) object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
@@ -658,7 +658,7 @@ trait FormSpec extends Specification {
       }
       "when it returns an error object but is skipped because its not in validation group" in {
         val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.error("password") must beEqualTo (null)
+        myForm.getError("password").isPresent must beFalse
       }
       "when it returns a string" in {
         val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "fail@google.com").asJava)
@@ -680,7 +680,7 @@ trait FormSpec extends Specification {
       "when it returns an empty error list" in {
         val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Kiki").asJava)
         myForm.globalErrors().size() must beEqualTo(0)
-        myForm.errors().size() must beEqualTo(0)
+        myForm.allErrors().size() must beEqualTo(0)
         myForm.errors("name").size() must beEqualTo(0)
       }
     }
