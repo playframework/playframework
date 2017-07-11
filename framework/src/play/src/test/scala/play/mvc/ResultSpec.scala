@@ -27,13 +27,6 @@ class ResultSpec extends Specification {
       javaResult.charset must beEqualTo(Optional.empty)
     }
 
-    "not allow sending JSON as ISO-8859-1" in {
-      val charset = "iso-8859-1"
-      val node = play.libs.Json.newObject()
-      node.put("foo", 1)
-      play.mvc.Results.ok(node, charset) should throwAn[IllegalArgumentException]
-    }
-
     // This is in Scala because building wrapped scala results is easier.
     "test for cookies" in {
 

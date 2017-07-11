@@ -13,7 +13,7 @@ import net.sf.ehcache.{ CacheManager, Ehcache, Element, ObjectExistsException }
 import play.api.cache._
 import play.api.inject._
 import play.api.{ Configuration, Environment }
-import play.cache.{ NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, DefaultSyncCacheApi => JavaDefaultSyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
+import play.cache.{ NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -34,8 +34,7 @@ trait EhCacheComponents {
   /**
    * Use this to create with the given name.
    */
-  def cacheApi(name: String, create: Boolean = true): Async
-  = {
+  def cacheApi(name: String, create: Boolean = true): AsyncCacheApi = {
     val createNamedCaches = configuration.get[Boolean]("play.cache.createBoundCaches")
     val ec = configuration.get[Option[String]]("play.cache.dispatcher")
       .fold(executionContext)(actorSystem.dispatchers.lookup(_))

@@ -14,8 +14,8 @@ import com.google.common.primitives.Primitives
 import play.cache.caffeine.NamedCaffeineCache
 import play.api.cache._
 import play.api.inject._
-import play.api.{ Configuration }
-import play.cache.{ NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, CacheApi => JavaCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
+import play.api.Configuration
+import play.cache.{ NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -64,7 +64,6 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
     bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
     bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
     bind[CacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
-    bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey)),
     bind[JavaSyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey))
   )
 
@@ -90,7 +89,6 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
     bindDefault[JavaAsyncCacheApi],
     bindDefault[SyncCacheApi],
     bindDefault[CacheApi],
-    bindDefault[JavaCacheApi],
     bindDefault[JavaSyncCacheApi]
   ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
 })
@@ -154,9 +152,9 @@ private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi
 }
 
 private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
-  extends Provider[JavaSyncCacheApi with JavaCacheApi] {
+  extends Provider[JavaSyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: JavaSyncCacheApi with JavaCacheApi =
+  lazy val get: JavaSyncCacheApi =
     new SyncCacheApiAdapter(injector.instanceOf(key).sync)
 }
 
