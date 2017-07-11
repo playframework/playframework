@@ -7,10 +7,12 @@ import java.nio.charset.StandardCharsets
 import java.util.Optional
 
 import akka.util.ByteString
+import com.fasterxml.jackson.core.JsonEncoding
 import org.specs2.mutable._
 import play.api.http.HttpEntity.Strict
 import play.api.mvc.{ Cookie, Results => ScalaResults }
 import play.mvc.Http.HeaderNames
+
 import scala.compat.java8.OptionConverters._
 
 class ResultSpec extends Specification {
@@ -18,7 +20,7 @@ class ResultSpec extends Specification {
   "Result" should {
 
     "allow sending JSON as UTF-16LE" in {
-      val charset = "utf-16le"
+      val charset = JsonEncoding.UTF16_LE
       val node = play.libs.Json.newObject()
       node.put("foo", 1)
       val javaResult = play.mvc.Results.ok(node, charset)
