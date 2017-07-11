@@ -18,6 +18,7 @@ public interface HttpFilters {
      *
      * @deprecated as of 2.6.0. Use {@link #getFilters()} instead.
      */
+    @Deprecated
     default EssentialFilter[] filters() {
         EssentialFilter[] filters = new EssentialFilter[getFilters().size()];
         return getFilters().toArray(filters);

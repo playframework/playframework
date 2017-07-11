@@ -595,6 +595,7 @@ public interface WSRequest extends StandaloneWSRequest {
      * @return the timeout
      */
     @Override
+    @Deprecated
     Duration getRequestTimeoutDuration();
 
     /**

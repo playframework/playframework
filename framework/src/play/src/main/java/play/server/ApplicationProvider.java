@@ -35,6 +35,7 @@ public class ApplicationProvider {
      *
      * @deprecated Deprecated as of 2.6.0. Use {@link #get()} instead.
      */
+    @Deprecated
     public Application getApplication() {
         return application;
     }
