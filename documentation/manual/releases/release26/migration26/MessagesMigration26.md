@@ -235,7 +235,7 @@ Because `MessagesRequest` is a `MessagesProvider`, you only have to define the r
 
 Note that because the body of the `MessageRequest` is not relevant to the template, we can use `MessagesRequestHeader` here instead of `MessageRequest[_]`.
 
-Please see [[passing messages to form helpers|ScalaForms#passing-messages-to-form-helpers]] for more details.
+Please see [[passing messages to form helpers|ScalaForms#Passing-MessagesProvider-to-Form-Helpers]] for more details.
 
 ### DefaultMessagesApi component
 
