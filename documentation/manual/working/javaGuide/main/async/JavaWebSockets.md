@@ -19,7 +19,7 @@ Play provides some factory methods for constructing WebSockets in [WebSocket](ap
 
 ## Handling WebSockets with actors
 
-To handle a WebSocket with an actor, we can use a Play utility, [ActorFlow](api/java/play/libs/streams/ActorFlow.html) to convert an `ActorRef` to a flow.  This utility takes a function that converts the `ActorRef` to send messages to to a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection:
+To handle a WebSocket with an actor, we can use a Play utility, [ActorFlow](api/java/play/libs/streams/ActorFlow.html) to convert an `ActorRef` to a flow.  This utility takes a function that converts the `ActorRef` to send messages to a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection:
 
 @[content](code/javaguide/async/websocket/HomeController.java)
 
