@@ -30,7 +30,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
 
   sequential
 
-  "Ahc WS" should {
+  "Ahc WSClient" should {
 
     "support several query string values for a parameter" in {
       val client = mock[StandaloneAhcWSClient]
@@ -38,7 +38,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val req: AHCRequest = r.underlying.buildRequest()
 
       import scala.collection.JavaConverters._
-      val paramsList: Seq[Param] = req.getQueryParams.asScala.toSeq
+      val paramsList: Seq[Param] = req.getQueryParams.asScala
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo1")) must beTrue
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo2")) must beTrue
       paramsList.count(p => p.getName == "foo") must beEqualTo(2)

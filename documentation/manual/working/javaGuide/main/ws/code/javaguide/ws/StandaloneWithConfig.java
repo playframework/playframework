@@ -41,7 +41,7 @@ public class StandaloneWithConfig {
         final DefaultAsyncHttpClientConfig asyncHttpClientConfig = new AhcConfigBuilder(clientConf).configure().build();
         final DefaultAsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig);
 
-        // Create a new WS client, and then close the client.
+        // Create a new WSClient, and then close the client.
         WSClient client = new AhcWSClient(asyncHttpClient, materializer);
         client.close();
         system.terminate();

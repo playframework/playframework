@@ -140,7 +140,7 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       }
     }).build()
 
-    "test WS logic" in new WithServer(app = appWithRoutes, port = 3333) {
+    "test WSClient logic" in new WithServer(app = appWithRoutes, port = 3333) {
       val ws = app.injector.instanceOf[WSClient]
       await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
     }

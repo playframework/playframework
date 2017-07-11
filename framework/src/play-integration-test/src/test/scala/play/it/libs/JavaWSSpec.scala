@@ -42,7 +42,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
 
   sequential
 
-  "WS@java" should {
+  "WSClient@java" should {
 
     "make GET Requests" in withServer { ws =>
       val request: WSRequest = ws.url("/get")
@@ -59,7 +59,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
       val future = futureResponse.toCompletableFuture
       val rep: WSResponse = future.get(10, TimeUnit.SECONDS)
 
-      (rep.getStatus() aka "status" must_== 200) and (rep.asJson().path("origin").textValue must not beNull)
+      (rep.getStatus aka "status" must_== 200) and (rep.asJson().path("origin").textValue must not beNull)
     }
 
     "use queryString in url" in withServer { ws =>
