@@ -42,20 +42,6 @@ public class WithApplication {
         return app.injector().instanceOf(clazz);
     }
 
-    /**
-     * Provides an instance from the application.
-     *
-     * @param clazz the type's class.
-     * @param <T> the type to return, using `app.injector.instanceOf`
-     * @return an instance of type T.
-     *
-     * @deprecated As of 2.6.0. Use {@link #instanceOf(Class)}.
-     */
-    @Deprecated
-    <T> T inject(Class<T> clazz) {
-        return instanceOf(clazz);
-    }
-
     @Before
     public void startPlay() {
         app = provideApplication();
