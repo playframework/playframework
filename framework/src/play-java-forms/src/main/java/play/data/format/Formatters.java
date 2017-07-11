@@ -47,23 +47,6 @@ public class Formatters {
     }
 
     /**
-     * Parses this string as instance of a specific field in the given class
-     *
-     * @param field the related field (custom formatters are extracted from this field annotation)
-     * @param text the text to parse
-     * @param clazz class representing the required type
-     * @param <T> the type to parse out of the text
-     * @return the parsed value
-     *
-     * @deprecated As of 2.6.0, use {@link #parse(Field, String)} instead
-     */
-    @Deprecated
-    @SuppressWarnings({"unchecked", "unused"})
-    public <T> T parse(Field field, String text, Class<T> clazz) {
-        return (T)parse(field, text);
-    }
-
-    /**
      * Parses this string as instance of a specific field
      *
      * @param field the related field (custom formatters are extracted from this field annotation)
