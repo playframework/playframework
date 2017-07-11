@@ -51,6 +51,7 @@ public class WithApplication {
      *
      * @deprecated As of 2.6.0. Use {@link #instanceOf(Class)}.
      */
+    @Deprecated
     <T> T inject(Class<T> clazz) {
         return instanceOf(clazz);
     }
