@@ -80,7 +80,7 @@ public interface AkkaGuiceSupport {
      * Let's say you have an actor that looks like this:
      *
      * <pre>
-     * public class MyChildActor extends UntypedAbstractActor {
+     * public class MyChildActor extends AbstractActor {
      *     final Database db;
      *     final String id;
      *
@@ -115,7 +115,7 @@ public interface AkkaGuiceSupport {
      * Now, when you want an actor to instantiate this as a child actor, inject `MyChildActorFactory`:
      *
      * <pre>
-     * public class MyActor extends UntypedAbstractActor implements InjectedActorSupport {
+     * public class MyActor extends AbstractActor implements InjectedActorSupport {
      *   final MyChildActorFactory myChildActorFactory;
      *
      *   {@literal @}Inject
@@ -123,11 +123,14 @@ public interface AkkaGuiceSupport {
      *       this.myChildActorFactory = myChildActorFactory;
      *   }
      *
-     *   public onReceive(Object msg) {
-     *     if (msg instanceof CreateChildActor) {
-     *       ActorRef child = injectedChild(myChildActorFactory.apply(((CreateChildActor) msg).getId()));
+     *   {@literal @}Override
+     *   public Receive createReceive() {
+     *   return receiveBuilder()
+     *     .match(CreateChildActor.class, msg -&gt; {
+     *       ActorRef child = injectedChild(myChildActorFactory.apply(msg.getId()));
      *       sender().send(child, self);
      *     }
+     *     .build()
      *   }
      * }
      * </pre>
