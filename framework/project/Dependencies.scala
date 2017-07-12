@@ -76,10 +76,6 @@ object Dependencies {
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    ("org.reflections" % "reflections" % "0.9.11")
-      .exclude("com.google.code.findbugs", "annotations")
-      .classifier(""),
-
     // Used by the Java routing DSL
     "net.jodah" % "typetools" % "0.5.0"
   ) ++ specsBuild.map(_ % Test)
