@@ -114,10 +114,9 @@ public class Results {
      * @param content the result's body content, as a play-json object
      * @param charset the charset into which the json should be encoded
      *
-     * @deprecated As of 2.6.0, use status(int, JsonNode, JsonEncoding)
-     *
      * @return the result
      *
+     * @deprecated As of 2.6.0, use status(int, JsonNode, JsonEncoding)
      */
     @Deprecated
     public static Result status(int status, JsonNode content, String charset) {
@@ -766,7 +765,10 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use {@link #unauthorized(JsonNode, JsonEncoding)} instead.
      */
+    @Deprecated
     public static Result unauthorized(JsonNode content, String charset) {
         return status(UNAUTHORIZED, content, charset);
     }
@@ -913,7 +915,10 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param charset the charset into which the json should be encoded
      * @return the result
+     *
+     * @deprecated As of 2.6.0, use paymentRequired(JsonNode, JsonEncoding)
      */
+    @Deprecated
     public static Result paymentRequired(JsonNode content, String charset) {
         return status(PAYMENT_REQUIRED, content, charset);
     }
@@ -924,10 +929,7 @@ public class Results {
      * @param content the result's body content as a play-json object
      * @param encoding the encoding into which the json should be encoded
      * @return the result
-     *
-     * @deprecated As of 2.6.0, use paymentRequired(JsonNode, JsonEncoding)
      */
-    @Deprecated
     public static Result paymentRequired(JsonNode content, JsonEncoding encoding) {
         return status(PAYMENT_REQUIRED, content, encoding);
     }
