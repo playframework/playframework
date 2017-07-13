@@ -45,9 +45,12 @@ class GitHubClientSpec extends Specification {
   "GitHubClient" should {
     "get all repositories" in {
 
-      Server.withRouter() {
-        case GET(p"/repositories") => Action {
-          Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+      Server.withRouterFromComponents() { cs =>
+        import cs.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/repositories") => Action {
+            Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+          }
         }
       } { implicit port =>
         WsTestClient.withClient { client =>
@@ -85,9 +88,12 @@ class ScalaTestingWebServiceClients extends Specification {
       import play.api.routing.sird._
       import play.core.server.Server
 
-      Server.withRouter() {
-        case GET(p"/repositories") => Action {
-          Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+      Server.withRouterFromComponents() { cs => 
+        import cs.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/repositories") => Action {
+            Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+          }
         }
       } { implicit port =>
         //#mock-service
