@@ -45,8 +45,10 @@ class GitHubClientSpec extends Specification {
   "GitHubClient" should {
     "get all repositories" in {
 
-      Server.withRouterFromComponents() { cs => {
-          case GET(p"/repositories") => cs.defaultActionBuilder {
+      Server.withRouterFromComponents() { cs =>
+        import components.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/repositories") => Action {
             Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
           }
         }
@@ -87,8 +89,10 @@ class ScalaTestingWebServiceClients extends Specification {
       import play.api.routing.sird._
       import play.core.server.Server
 
-      Server.withRouterFromComponents() { cs => {
-          case GET(p"/repositories") => cs.defaultActionBuilder {
+      Server.withRouterFromComponents() { cs =>
+        import components.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/repositories") => Action {
             Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
           }
         }
