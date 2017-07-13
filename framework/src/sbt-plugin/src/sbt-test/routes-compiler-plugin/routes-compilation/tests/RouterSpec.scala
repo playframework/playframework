@@ -5,22 +5,41 @@ package test
 
 import play.api.test._
 import controllers.Assets.Asset
+import models.UserId
 
 object RouterSpec extends PlaySpecification {
 
   "reverse routes containing boolean parameters" in {
-    "in the query string" in {
+    "the query string" in {
       controllers.routes.Application.takeBool(true).url must equalTo ("/take-bool?b=true")
       controllers.routes.Application.takeBool(false).url must equalTo ("/take-bool?b=false")
     }
-    "in the  path" in {
+    "the path" in {
       controllers.routes.Application.takeBool2(true).url must equalTo ("/take-bool-2/true")
       controllers.routes.Application.takeBool2(false).url must equalTo ("/take-bool-2/false")
     }
   }
 
+  "reverse routes containing custom parameters" in {
+    "the query string" in {
+      controllers.routes.Application.queryUser(UserId("foo")).url must equalTo ("/query-user?userId=foo")
+      controllers.routes.Application.queryUser(UserId("foo/bar")).url must equalTo ("/query-user?userId=foo%2Fbar")
+      controllers.routes.Application.queryUser(UserId("foo?bar")).url must equalTo ("/query-user?userId=foo%3Fbar")
+      controllers.routes.Application.queryUser(UserId("foo%bar")).url must equalTo ("/query-user?userId=foo%25bar")
+      controllers.routes.Application.queryUser(UserId("foo&bar")).url must equalTo ("/query-user?userId=foo%26bar")
+    }
+    "the path" in {
+      controllers.routes.Application.user(UserId("foo")).url must equalTo ("/users/foo")
+      controllers.routes.Application.user(UserId("foo/bar")).url must equalTo ("/users/foo%2Fbar")
+      controllers.routes.Application.user(UserId("foo?bar")).url must equalTo ("/users/foo%3Fbar")
+      controllers.routes.Application.user(UserId("foo%bar")).url must equalTo ("/users/foo%25bar")
+      // & is not special for path segments
+      controllers.routes.Application.user(UserId("foo&bar")).url must equalTo ("/users/foo&bar")
+    }
+  }
+
   "bind boolean parameters" in {
-    "from the query string" in new WithApplication() { 
+    "from the query string" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool?b=true"))
       contentAsString(result) must equalTo ("true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool?b=false"))
@@ -29,7 +48,7 @@ object RouterSpec extends PlaySpecification {
       contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
       contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
     }
-    "from the path" in new WithApplication() { 
+    "from the path" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool-2/true"))
       contentAsString(result) must equalTo ("true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool-2/false"))
@@ -42,25 +61,25 @@ object RouterSpec extends PlaySpecification {
 
   "bind int parameters from the query string as a list" in {
 
-    "from a list of numbers" in new WithApplication() { 
+    "from a list of numbers" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
       contentAsString(result) must equalTo("1,2,3")
     }
-    "from a list of numbers and letters" in new WithApplication() { 
+    "from a list of numbers and letters" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
       status(result) must equalTo(BAD_REQUEST)
     }
-    "when there is no parameter at all" in new WithApplication() { 
+    "when there is no parameter at all" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list"))
       contentAsString(result) must equalTo("")
     }
-    "using the Java API" in new WithApplication() { 
+    "using the Java API" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
       contentAsString(result) must equalTo("1,2,3")
     }
   }
 
-  "URL encoding and decoding works correctly" in new WithApplication() { 
+  "URL encoding and decoding works correctly" in new WithApplication() {
     def checkDecoding(
                        dynamicEncoded: String, staticEncoded: String, queryEncoded: String,
                        dynamicDecoded: String, staticDecoded: String, queryDecoded: String) = {
@@ -102,7 +121,7 @@ object RouterSpec extends PlaySpecification {
     checkEncoding("123", "456", "789", "123", "456", "789")
   }
 
-  "allow reverse routing of routes includes" in new WithApplication() { 
+  "allow reverse routing of routes includes" in new WithApplication() {
     // Force the router to bootstrap the prefix
     implicitApp.injector.instanceOf[play.api.routing.Router]
     controllers.module.routes.ModuleController.index().url must_== "/module/index"
