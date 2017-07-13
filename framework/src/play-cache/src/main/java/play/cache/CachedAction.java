@@ -3,7 +3,6 @@
  */
 package play.cache;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import play.mvc.Action;
@@ -27,14 +26,7 @@ public class CachedAction extends Action<Cached> {
     public CompletionStage<Result> call(Context ctx) {
         final String key = configuration.key();
         final Integer duration = configuration.duration();
-        return cacheApi.<Result>get(key).thenComposeAsync(cacheResult -> {
-            if (cacheResult != null) {
-                return CompletableFuture.completedFuture(cacheResult);
-            }
-            return delegate.call(ctx).thenComposeAsync(result ->
-                    cacheApi.set(key, result, duration).thenApply(ignore -> result)
-            );
-        });
+        return cacheApi.getOrElseUpdate(key, () -> delegate.call(ctx), duration);
     }
 
 }
