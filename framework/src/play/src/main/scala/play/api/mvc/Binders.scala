@@ -308,6 +308,15 @@ object JavascriptLiteral {
  */
 object QueryStringBindable {
 
+  /**
+   * A helper class for creating QueryStringBindables to map the value of a single key
+   *
+   * @param parse a function to parse the param value
+   * @param serialize a function to serialize and URL-encode the param value. Remember to encode arbitrary strings,
+   *                  for example using URLEncoder.encode.
+   * @param error a function for rendering an error message if an error occurs
+   * @tparam A the type being parsed
+   */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends QueryStringBindable[A] {
 
@@ -549,8 +558,22 @@ object QueryStringBindable {
  */
 object PathBindable {
 
-  class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)(implicit codec: Codec)
+  /**
+   * A helper class for creating PathBindables to map the value of a path pattern/segment
+   *
+   * @param parse a function to parse the path value
+   * @param serialize a function to serialize the path value to a string
+   * @param error a function for rendering an error message if an error occurs
+   * @tparam A the type being parsed
+   */
+  class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends PathBindable[A] {
+
+    // added for bincompat
+    @deprecated("Use constructor without codec", "2.6.2")
+    private[mvc] def this(parse: String => A, serialize: A => String, error: (String, Exception) => String, codec: Codec) = {
+      this(parse, serialize, error)
+    }
 
     def bind(key: String, value: String): Either[String, A] = {
       try {

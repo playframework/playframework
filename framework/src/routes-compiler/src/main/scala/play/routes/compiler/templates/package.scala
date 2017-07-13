@@ -259,10 +259,9 @@ package object templates {
       case DynamicPart(name, _, encode) =>
         route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
           val paramName: String = paramNameOnQueryString(param.name)
-          if (encode && encodeable(param.typeName))
-            """implicitly[play.api.mvc.PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", play.core.routing.dynamicString(""" + safeKeyword(localNames.getOrElse(param.name, param.name)) + """))"""
-          else
-            """implicitly[play.api.mvc.PathBindable[""" + param.typeName + """]].unbind("""" + paramName + """", """ + safeKeyword(localNames.getOrElse(param.name, param.name)) + """)"""
+          val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
+            s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
+          if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
         }.getOrElse {
           throw new Error("missing key " + name)
         }
@@ -337,10 +336,10 @@ package object templates {
       case DynamicPart(name, _, encode) =>
         route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
           val paramName: String = paramNameOnQueryString(param.name)
-          if (encode && encodeable(param.typeName))
-            " + (\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", encodeURIComponent(""" + localNames.getOrElse(param.name, param.name) + """))"""
-          else
-            " + (\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames.getOrElse(param.name, param.name) + """)"""
+          val jsUnbound =
+            "(\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" +
+              s"""("$paramName", ${localNames.getOrElse(param.name, param.name)})"""
+          if (encode) s" + encodeURIComponent($jsUnbound)" else s" + $jsUnbound"
         }.getOrElse {
           throw new Error("missing key " + name)
         }
@@ -412,8 +411,6 @@ package object templates {
   def encodeStringConstant(constant: String): String = {
     constant.split('$').mkString(tq, s"""$tq + "$$" + $tq""", tq)
   }
-
-  private def encodeable(paramType: String): Boolean = paramType == "String"
 
   def groupRoutesByPackage(routes: Seq[Route]): Map[String, Seq[Route]] = routes.groupBy(_.call.packageName)
   def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]] = routes.groupBy(_.call.controller)
