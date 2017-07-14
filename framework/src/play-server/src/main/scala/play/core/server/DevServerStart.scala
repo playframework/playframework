@@ -95,7 +95,7 @@ object DevServerStart {
 
         // Create reloadable ApplicationProvider
         val appProvider = new ApplicationProvider {
-          private val sl = new java.util.concurrent.locks.StampedLock
+          val sl = new java.util.concurrent.locks.StampedLock
 
           var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
@@ -119,32 +119,44 @@ object DevServerStart {
             // but it's more coherent with the way it works in PROD mode.
             implicit val ec = scala.concurrent.ExecutionContext.global
             Await.result(scala.concurrent.Future {
-              val stamp = sl.writeLock()
-              try {
-                val reloaded = buildLink.reload match {
-                  case NonFatal(t) => Failure(t)
-                  case cl: ClassLoader => Success(Some(cl))
-                  case null => Success(None)
+              // reload checks if anything has changed, and if so, returns an updated classloader.
+              // This returns a boolean and changes happen asynchronously on another thread.
+              val reloaded = buildLink.reload match {
+                case NonFatal(t) => Failure(t)
+                case cl: ClassLoader => Success(Some(cl))
+                case null => Success(None)
+              }
+
+              // Tell the global execution context we're going to block...
+              scala.concurrent.blocking {
+                reloaded.flatMap {
+                  case Some(projectClassloader) =>
+                    // After this point we are actively changing the state of the application, so
+                    // grab a write lock...
+                    val stamp = sl.writeLock()
+                    try {
+                      reload(projectClassloader)
+                    } finally {
+                      sl.unlockWrite(stamp)
+                    }
+                  case None =>
+                    // Block to acquire a read lock as long as a thread holds the write lock
+                    val stamp = sl.readLock()
+                    try {
+                      lastState
+                    } finally {
+                      sl.unlockRead(stamp)
+                    }
                 }
-
-                reloaded.flatMap { maybeClassLoader =>
-                  val maybeApplication: Option[Try[Application]] = maybeClassLoader.map { projectClassloader =>
-                    reload(projectClassloader)
-                  }
-
-                  maybeApplication.flatMap(_.toOption).foreach { app =>
-                    lastState = Success(app)
-                  }
-
-                  maybeApplication.getOrElse(lastState)
-                }
-              } finally {
-                sl.unlockWrite(stamp)
               }
             }, Duration.Inf)
           }
 
-          def reload(projectClassloader: ClassLoader) = {
+          override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
+            currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
+          }
+
+          def reload(projectClassloader: ClassLoader): Try[Application] = {
             try {
               if (lastState.isSuccess) {
                 println()
@@ -185,8 +197,8 @@ object DevServerStart {
               }
 
               Play.start(newApplication)
-
-              Success(newApplication)
+              lastState = Success(newApplication)
+              lastState
             } catch {
               case e: PlayException => {
                 lastState = Failure(e)
@@ -202,11 +214,6 @@ object DevServerStart {
               }
             }
           }
-
-          override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-            currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
-          }
-
         }
 
         // Start server with the application
