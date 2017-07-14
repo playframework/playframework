@@ -95,6 +95,10 @@ object DevServerStart {
 
         // Create reloadable ApplicationProvider
         val appProvider = new ApplicationProvider {
+          // Use a stamped lock over a synchronized block so we can better control concurrency and avoid
+          // blocking.  This improves performance from 4851.53 req/s to 7133.80 req/s and fixes #7614.
+          // Arguably performance shouldn't matter because load tests should be run against a production
+          // configuration, but there's no point in making it slower than it has to be...
           val sl = new java.util.concurrent.locks.StampedLock
 
           var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
@@ -127,12 +131,12 @@ object DevServerStart {
                 case null => Success(None)
               }
 
-              // Tell the global execution context we're going to block...
+              // Tell the global execution context we may block...
               scala.concurrent.blocking {
                 reloaded.flatMap {
                   case Some(projectClassloader) =>
                     // After this point we are actively changing the state of the application, so
-                    // grab a write lock...
+                    // block until we can grab a write lock...
                     val stamp = sl.writeLock()
                     try {
                       reload(projectClassloader)
@@ -140,7 +144,7 @@ object DevServerStart {
                       sl.unlockWrite(stamp)
                     }
                   case None =>
-                    // Block to acquire a read lock as long as a thread holds the write lock
+                    // Block to acquire a read lock as long as another thread holds the write lock
                     val stamp = sl.readLock()
                     try {
                       lastState
