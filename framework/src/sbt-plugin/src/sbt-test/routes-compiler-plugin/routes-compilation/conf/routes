@@ -8,6 +8,9 @@ GET         /with/:param            controllers.Application.withParam(param)
 
 GET         /instance               @controllers.InstanceController.index
 
+GET         /users/:userId          controllers.Application.user(userId: models.UserId)
+GET         /query-user             controllers.Application.queryUser(userId: models.UserId)
+
 GET         /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
 
 GET         /take-bool              controllers.Application.takeBool(b: Boolean)

@@ -4,6 +4,7 @@
 package test
 
 import play.api.test._
+import models.UserId
 
 object RouterSpec extends PlaySpecification {
 
@@ -18,8 +19,26 @@ object RouterSpec extends PlaySpecification {
     }
   }
 
+  "reverse routes containing custom parameters" in {
+    "the query string" in {
+      controllers.routes.Application.queryUser(UserId("foo")).url must equalTo ("/query-user?userId=foo")
+      controllers.routes.Application.queryUser(UserId("foo/bar")).url must equalTo ("/query-user?userId=foo%2Fbar")
+      controllers.routes.Application.queryUser(UserId("foo?bar")).url must equalTo ("/query-user?userId=foo%3Fbar")
+      controllers.routes.Application.queryUser(UserId("foo%bar")).url must equalTo ("/query-user?userId=foo%25bar")
+      controllers.routes.Application.queryUser(UserId("foo&bar")).url must equalTo ("/query-user?userId=foo%26bar")
+    }
+    "the path" in {
+      controllers.routes.Application.user(UserId("foo")).url must equalTo ("/users/foo")
+      controllers.routes.Application.user(UserId("foo/bar")).url must equalTo ("/users/foo%2Fbar")
+      controllers.routes.Application.user(UserId("foo?bar")).url must equalTo ("/users/foo%3Fbar")
+      controllers.routes.Application.user(UserId("foo%bar")).url must equalTo ("/users/foo%25bar")
+      // & is not special for path segments
+      controllers.routes.Application.user(UserId("foo&bar")).url must equalTo ("/users/foo&bar")
+    }
+  }
+
   "bind boolean parameters" in {
-    "from the query string" in new WithApplication() { 
+    "from the query string" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool?b=true"))
       contentAsString(result) must equalTo ("true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool?b=false"))
