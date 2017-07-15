@@ -131,26 +131,36 @@ object DevServerStart {
                 case null => Success(None)
               }
 
-              // Tell the global execution context we may block...
+              // Tell the global execution context we may block this thread, so we can avoid exhaustion...
               scala.concurrent.blocking {
                 reloaded.flatMap {
                   case Some(projectClassloader) =>
                     // After this point we are actively changing the state of the application, so
                     // block until we can grab a write lock...
-                    val stamp = sl.writeLock()
+                    val writeStamp = sl.writeLock()
                     try {
                       reload(projectClassloader)
                     } finally {
-                      sl.unlockWrite(stamp)
+                      sl.unlockWrite(writeStamp)
                     }
                   case None =>
-                    // Block to acquire a read lock as long as another thread holds the write lock
-                    val stamp = sl.readLock()
-                    try {
-                      lastState
-                    } finally {
-                      sl.unlockRead(stamp)
+                    // http://www.jfokus.se/jfokus13/preso/jf13_PhaserAndStampedLock.pdf
+                    // http://www.dre.vanderbilt.edu/~schmidt/cs892/2017-PDFs/L5-Java-ReadWriteLocks-pt3-pt4.pdf
+
+                    // try an optimistic read
+                    var stamp = sl.tryOptimisticRead()
+                    // read the state
+                    var tryApp = lastState
+                    // if a write occurred since the optimistic read, try again with a blocking read lock
+                    if (!sl.validate(stamp)) {
+                      stamp = sl.readLock()
+                      try {
+                        tryApp = lastState
+                      } finally {
+                        sl.unlockRead(stamp)
+                      }
                     }
+                    tryApp
                 }
               }
             }, Duration.Inf)
