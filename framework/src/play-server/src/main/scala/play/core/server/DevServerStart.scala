@@ -147,19 +147,17 @@ object DevServerStart {
                 // http://www.dre.vanderbilt.edu/~schmidt/cs892/2017-PDFs/L5-Java-ReadWriteLocks-pt3-pt4.pdf
                 // http://blog.takipi.com/java-8-stampedlocks-vs-readwritelocks-and-synchronized/
 
-                // try an optimistic read
-                var stamp = sl.tryOptimisticRead()
-                // read the state
+                var readLock = sl.tryOptimisticRead()
                 var tryApp = lastState
-                // if a write occurred since the optimistic read, try again with a blocking read lock
-                // it will take multiple seconds for the reload to complete, so it's better to block
-                // than spin-wait here.
-                if (!sl.validate(stamp)) {
-                  stamp = sl.readLock()
+                if (!sl.validate(readLock)) {
+                  // if a write occurred since the optimistic read, try again with a blocking read lock.
+                  // it will take multiple seconds for the reload to complete, so it's better to block
+                  // than spin-wait here.
+                  readLock = sl.readLock()
                   try {
                     tryApp = lastState
                   } finally {
-                    sl.unlockRead(stamp)
+                    sl.unlockRead(readLock)
                   }
                 }
                 tryApp
