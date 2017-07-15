@@ -95,6 +95,11 @@ object DevServerStart {
 
         // Create reloadable ApplicationProvider
         val appProvider = new ApplicationProvider {
+          // Use a stamped lock over a synchronized block so we can better control concurrency and avoid
+          // blocking.  This improves performance from 4851.53 req/s to 7133.80 req/s and fixes #7614.
+          // Arguably performance shouldn't matter because load tests should be run against a production
+          // configuration, but there's no point in making it slower than it has to be...
+          val sl = new java.util.concurrent.locks.StampedLock
 
           var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
@@ -111,93 +116,51 @@ object DevServerStart {
            * can be displayed in the user's browser. Failure is usually the result of a compilation error.
            */
           def get: Try[Application] = {
+            // reload checks if anything has changed, and if so, returns an updated classloader.
+            // This returns a boolean and changes happen asynchronously on another thread.
+            val reloaded = buildLink.reload match {
+              case NonFatal(t) => Failure(t)
+              case cl: ClassLoader => Success(Some(cl))
+              case null => Success(None)
+            }
 
-            synchronized {
-
-              // Let's load the application on another thread
-              // as we are now on the Netty IO thread.
-              //
-              // Because we are on DEV mode here, it doesn't really matter
-              // but it's more coherent with the way it works in PROD mode.
-              implicit val ec = scala.concurrent.ExecutionContext.global
-              Await.result(scala.concurrent.Future {
-
-                val reloaded = buildLink.reload match {
-                  case NonFatal(t) => Failure(t)
-                  case cl: ClassLoader => Success(Some(cl))
-                  case null => Success(None)
+            // Blocking happens in the Netty IO thread.  There is no good way to avoid this -- even
+            // in the previous implementation, there was an Await.result(Future(), Duration.Inf),
+            // so we can avoid the flow of control switch and (hopefully) make it a little faster by
+            // blocking directly.
+            reloaded.flatMap {
+              case Some(projectClassloader) =>
+                // After this point we are actively changing the state of the application, so
+                // block until we can grab a write lock...
+                val writeStamp = sl.writeLock()
+                try {
+                  reload(projectClassloader)
+                } finally {
+                  sl.unlockWrite(writeStamp)
                 }
+              case None =>
+                // Returning an unchanged application happens frequently in dev mode, and
+                // so we want to return as fast as possible using an optimistic read:
+                //
+                // http://www.javaspecialists.eu/archive/Issue215.html
+                // http://www.jfokus.se/jfokus13/preso/jf13_PhaserAndStampedLock.pdf
+                // http://www.dre.vanderbilt.edu/~schmidt/cs892/2017-PDFs/L5-Java-ReadWriteLocks-pt3-pt4.pdf
+                // http://blog.takipi.com/java-8-stampedlocks-vs-readwritelocks-and-synchronized/
 
-                reloaded.flatMap { maybeClassLoader =>
-
-                  val maybeApplication: Option[Try[Application]] = maybeClassLoader.map { projectClassloader =>
-                    try {
-
-                      if (lastState.isSuccess) {
-                        println()
-                        println(play.utils.Colors.magenta("--- (RELOAD) ---"))
-                        println()
-                      }
-
-                      val reloadable = this
-
-                      // First, stop the old application if it exists
-                      lastState.foreach(Play.stop)
-
-                      // Basically no matter if the last state was a Success, we need to
-                      // call all remaining hooks
-                      lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
-
-                      // Create the new environment
-                      val environment = Environment(path, projectClassloader, Mode.Dev)
-                      val sourceMapper = new SourceMapper {
-                        def sourceOf(className: String, line: Option[Int]) = {
-                          Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
-                            case Array(file: java.io.File, null) => Some((file, None))
-                            case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
-                            case _ => None
-                          }
-                        }
-                      }
-
-                      val webCommands = new DefaultWebCommands
-                      currentWebCommands = Some(webCommands)
-                      val lifecycle = new DefaultApplicationLifecycle()
-                      lastLifecycle = Some(lifecycle)
-
-                      val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                        val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands, lifecycle)
-                        val loader = ApplicationLoader(context)
-                        loader.load(context)
-                      }
-
-                      Play.start(newApplication)
-
-                      Success(newApplication)
-                    } catch {
-                      case e: PlayException => {
-                        lastState = Failure(e)
-                        lastState
-                      }
-                      case NonFatal(e) => {
-                        lastState = Failure(UnexpectedException(unexpected = Some(e)))
-                        lastState
-                      }
-                      case e: LinkageError => {
-                        lastState = Failure(UnexpectedException(unexpected = Some(e)))
-                        lastState
-                      }
-                    }
+                var readLock = sl.tryOptimisticRead()
+                var tryApp = lastState
+                if (!sl.validate(readLock)) {
+                  // if a write occurred since the optimistic read, try again with a blocking read lock.
+                  // it will take multiple seconds for the reload to complete, so it's better to block
+                  // than spin-wait here.
+                  readLock = sl.readLock()
+                  try {
+                    tryApp = lastState
+                  } finally {
+                    sl.unlockRead(readLock)
                   }
-
-                  maybeApplication.flatMap(_.toOption).foreach { app =>
-                    lastState = Success(app)
-                  }
-
-                  maybeApplication.getOrElse(lastState)
                 }
-
-              }, Duration.Inf)
+                tryApp
             }
           }
 
@@ -205,6 +168,64 @@ object DevServerStart {
             currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
           }
 
+          def reload(projectClassloader: ClassLoader): Try[Application] = {
+            try {
+              if (lastState.isSuccess) {
+                println()
+                println(play.utils.Colors.magenta("--- (RELOAD) ---"))
+                println()
+              }
+
+              val reloadable = this
+
+              // First, stop the old application if it exists
+              lastState.foreach(Play.stop)
+
+              // Basically no matter if the last state was a Success, we need to
+              // call all remaining hooks
+              lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
+
+              // Create the new environment
+              val environment = Environment(path, projectClassloader, Mode.Dev)
+              val sourceMapper = new SourceMapper {
+                def sourceOf(className: String, line: Option[Int]) = {
+                  Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
+                    case Array(file: java.io.File, null) => Some((file, None))
+                    case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
+                    case _ => None
+                  }
+                }
+              }
+
+              val webCommands = new DefaultWebCommands
+              currentWebCommands = Some(webCommands)
+              val lifecycle = new DefaultApplicationLifecycle()
+              lastLifecycle = Some(lifecycle)
+
+              val newApplication = Threads.withContextClassLoader(projectClassloader) {
+                val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands, lifecycle)
+                val loader = ApplicationLoader(context)
+                loader.load(context)
+              }
+
+              Play.start(newApplication)
+              lastState = Success(newApplication)
+              lastState
+            } catch {
+              case e: PlayException => {
+                lastState = Failure(e)
+                lastState
+              }
+              case NonFatal(e) => {
+                lastState = Failure(UnexpectedException(unexpected = Some(e)))
+                lastState
+              }
+              case e: LinkageError => {
+                lastState = Failure(UnexpectedException(unexpected = Some(e)))
+                lastState
+              }
+            }
+          }
         }
 
         // Start server with the application
