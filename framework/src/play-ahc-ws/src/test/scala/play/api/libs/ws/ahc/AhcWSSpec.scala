@@ -354,7 +354,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     import java.io._
     import java.util.zip._
 
-    lazy val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
+    lazy val Action = ActionBuilder.ignoringBody
 
     val routes: Application => PartialFunction[(String, String), Handler] = {
       app =>
@@ -383,7 +383,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
   "support gziped encoding" in new WithServer(gzipFakeApp) {
     val client = app.injector.instanceOf[WSClient]
     val req = client.url("http://localhost:" + port + "/").get()
-    val rep = Await.result(req, 1 second)
+    val rep = Await.result(req, 1.second)
     rep.body must ===("gziped response")
   }
 
