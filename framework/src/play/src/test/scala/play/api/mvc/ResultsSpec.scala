@@ -91,16 +91,16 @@ class ResultsSpec extends Specification {
     }
 
     "support cookies helper" in withApplication {
-      val setCookieHeader = Cookies.encodeSetCookieHeader(Seq(Cookie("session", "items"), Cookie("preferences", "blue")))
+      val setCookieHeader = cookieHeaderEncoding.encodeSetCookieHeader(Seq(Cookie("session", "items"), Cookie("preferences", "blue")))
 
-      val decodedCookies = Cookies.decodeSetCookieHeader(setCookieHeader).map(c => c.name -> c).toMap
+      val decodedCookies = cookieHeaderEncoding.decodeSetCookieHeader(setCookieHeader).map(c => c.name -> c).toMap
       decodedCookies.size must be_==(2)
       decodedCookies("session").value must be_==("items")
       decodedCookies("preferences").value must be_==("blue")
 
-      val newCookieHeader = Cookies.mergeSetCookieHeader(setCookieHeader, Seq(Cookie("lang", "fr"), Cookie("session", "items2")))
+      val newCookieHeader = cookieHeaderEncoding.mergeSetCookieHeader(setCookieHeader, Seq(Cookie("lang", "fr"), Cookie("session", "items2")))
 
-      val newDecodedCookies = Cookies.decodeSetCookieHeader(newCookieHeader).map(c => c.name -> c).toMap
+      val newDecodedCookies = cookieHeaderEncoding.decodeSetCookieHeader(newCookieHeader).map(c => c.name -> c).toMap
       newDecodedCookies.size must be_==(3)
       newDecodedCookies("session").value must be_==("items2")
       newDecodedCookies("preferences").value must be_==("blue")
@@ -113,7 +113,7 @@ class ResultsSpec extends Specification {
           .discardingCookies(DiscardingCookie("logged"))
       }
 
-      val setCookies = Cookies.decodeSetCookieHeader(headers("Set-Cookie")).map(c => c.name -> c).toMap
+      val setCookies = cookieHeaderEncoding.decodeSetCookieHeader(headers("Set-Cookie")).map(c => c.name -> c).toMap
       setCookies must haveSize(4)
       setCookies("session").value must be_==("items2")
       setCookies("session").maxAge must beNone
@@ -143,7 +143,7 @@ class ResultsSpec extends Specification {
         cookies2: List[Cookie],
         expected: Option[Set[Cookie]]) = {
         val result = bake { Ok("hello").withCookies(cookies1: _*).withCookies(cookies2: _*) }
-        result.header.headers.get("Set-Cookie").map(Cookies.decodeSetCookieHeader(_).to[Set]) must_== expected
+        result.header.headers.get("Set-Cookie").map(cookieHeaderEncoding.decodeSetCookieHeader(_).to[Set]) must_== expected
       }
       val preferencesCookie = Cookie("preferences", "blue")
       val sessionCookie = Cookie("session", "items")
@@ -175,18 +175,18 @@ class ResultsSpec extends Specification {
 
     "support clearing a language cookie using clearingLang" in withApplication { app: Application =>
       implicit val messagesApi = app.injector.instanceOf[MessagesApi]
-      val cookie = Cookies.decodeSetCookieHeader(bake(Ok.clearingLang).header.headers("Set-Cookie")).head
+      val cookie = cookieHeaderEncoding.decodeSetCookieHeader(bake(Ok.clearingLang).header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName
       cookie.value must_== ""
     }
 
     "allow discarding a cookie by deprecated names method" in withApplication {
-      Cookies.decodeSetCookieHeader(bake(Ok.discardingCookies(DiscardingCookie("blah"))).header.headers("Set-Cookie")).head.name must_== "blah"
+      cookieHeaderEncoding.decodeSetCookieHeader(bake(Ok.discardingCookies(DiscardingCookie("blah"))).header.headers("Set-Cookie")).head.name must_== "blah"
     }
 
     "allow discarding multiple cookies by deprecated names method" in withApplication {
       val baked = bake { Ok.discardingCookies(DiscardingCookie("foo"), DiscardingCookie("bar")) }
-      val cookies = Cookies.decodeSetCookieHeader(baked.header.headers("Set-Cookie")).map(_.name)
+      val cookies = cookieHeaderEncoding.decodeSetCookieHeader(baked.header.headers("Set-Cookie")).map(_.name)
       cookies must containTheSameElementsAs(Seq("foo", "bar"))
     }
 

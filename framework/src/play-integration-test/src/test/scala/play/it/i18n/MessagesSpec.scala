@@ -3,8 +3,9 @@
  */
 package play.it.i18n
 
+import controllers.Execution
 import play.api.test.{ PlaySpecification, WithApplication }
-import play.api.mvc.ControllerHelpers
+import play.api.mvc.{ ActionBuilder, ControllerHelpers }
 import play.api.i18n._
 
 class MessagesSpec extends PlaySpecification with ControllerHelpers {
@@ -12,6 +13,8 @@ class MessagesSpec extends PlaySpecification with ControllerHelpers {
   sequential
 
   implicit val lang = Lang("en-US")
+
+  lazy val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
   "Messages" should {
     "provide default messages" in new WithApplication(_.requireExplicitBindings()) {

@@ -52,9 +52,11 @@ class SecuritySpec extends PlaySpecification {
   }
 
   def TestAction(implicit app: Application) =
-    AuthenticatedBuilder(app.injector.instanceOf[BodyParsers.Default])(app.materializer.executionContext)
+    AuthenticatedBuilder(getUserInfoFromRequest, app.injector.instanceOf[BodyParsers.Default])(app.materializer.executionContext)
 
-  def getUserFromRequest(req: RequestHeader) = req.session.get("user") map (User(_))
+  def getUserInfoFromRequest(req: RequestHeader) = req.session.get("username")
+
+  def getUserFromRequest(req: RequestHeader) = req.session.get("user").map(User)
 
   class AuthenticatedDbRequest[A](val user: User, val conn: Connection, request: Request[A]) extends WrappedRequest[A](request)
 
