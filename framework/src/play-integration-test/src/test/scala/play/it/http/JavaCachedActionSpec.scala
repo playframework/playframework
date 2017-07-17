@@ -12,7 +12,6 @@ import com.google.common.primitives.Primitives
 import play.api.Application
 import play.api.cache.AsyncCacheApi
 import play.api.cache.ehcache.EhCacheModule
-import play.api.inject.{ ContextClassLoaderInjector, NewInstanceInjector, SimpleInjector }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
 import play.cache.{ Cached, DefaultAsyncCacheApi }
@@ -78,13 +77,6 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
         first.body must not(beEqualTo(second.body))
       }
 
-      "support using injector" in makeRequest(new CachedControllerWithInjector()) { port =>
-        val responses = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        )
-
-        responses.head.status must beEqualTo(OK)
-      }
     }
 
     "when action is annotated" in {
@@ -132,29 +124,6 @@ class CachedController extends MockController {
     play.mvc.Results.ok("Cached result: " + System.currentTimeMillis())
   }
 }
-
-@Cached(key = "play.it.http.CachedControllerWithInjector.cache", duration = 1 /* second */ )
-class CachedControllerWithInjector extends MockController {
-  override def action: Result = {
-    injector.instanceOf(classOf[SomeComponent])
-    play.mvc.Results.ok("Cached result: " + System.currentTimeMillis())
-  }
-
-  def injector: play.inject.Injector = {
-    val thread = Thread.currentThread()
-    // injectception
-    new play.inject.DelegateInjector(
-      new ContextClassLoaderInjector(
-        new SimpleInjector(
-          fallback = NewInstanceInjector
-        ) + SomeComponent(), // register SomeComponent to SimpleInjector
-        thread.getContextClassLoader
-      )
-    )
-  }
-}
-
-case class SomeComponent()
 
 /**
  * This is necessary to avoid EhCache shutdown problems.
