@@ -43,6 +43,14 @@ The comet helper should typically be used with a `forever-iframe` technique, wit
 <iframe src="/comet"></iframe>
 ```
 
+> **Note**: add the following config to your application.conf and also ensure that you have route mappings set up in order to see the above comet in action.
+```
+play.filters.headers {
+  frameOptions = "SAMEORIGIN"
+  contentSecurityPolicy = "connect-src 'self'"
+}
+```
+
 For an example of a Comet helper, see the [Play 2.5 Clock Template](https://github.com/typesafehub/play-2.5-clock/).
 
 ## Debugging Comet
