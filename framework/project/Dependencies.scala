@@ -14,7 +14,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specsVersion = "3.8.9"
+  val specsVersion = "3.9.4"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -44,7 +44,7 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.195"
+  val h2database = "com.h2database" % "h2" % "1.4.196"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
   val acolyteVersion = "1.0.44-j7p"
@@ -86,7 +86,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time" % "2.9.9",
-    "org.joda" % "joda-convert" % "1.8.1"
+    "org.joda" % "joda-convert" % "1.8.2"
   )
 
   val javaFormsDeps = Seq(
@@ -150,7 +150,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.12.Final"
+  val nettyVersion = "4.1.13.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0-M1",
@@ -264,7 +264,7 @@ object Dependencies {
     "org.ehcache" % "jcache" % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.5.2"
+  val caffeineVersion = "2.5.3"
   val playWsStandaloneVersion = "1.0.1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
