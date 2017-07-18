@@ -15,8 +15,6 @@ import play.mvc.{ EssentialFilter, Result, Results }
 import play.mvc.Http.Cookie
 import play.routing.{ Router => JRouter }
 
-import scala.collection.JavaConverters._
-
 class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
   override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T = {
     implicit val port = testServerPort
@@ -135,7 +133,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         Results.ok(request.username())
       }
     }) { response =>
-      val setCookie = response.allHeaders.get("Set-Cookie").mkString("\n")
+      val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("PLAY_SESSION=; Max-Age=-86400")
       response.body must_== "foo"
     }
@@ -146,7 +144,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         Results.ok(request.username())
       }
     }) { response =>
-      val setCookie = response.allHeaders.get("Set-Cookie").mkString("\n")
+      val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("PLAY_FLASH=; Max-Age=-86400")
       response.body must_== "foo"
     }
@@ -157,7 +155,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         Results.ok(request.username())
       }
     }) { response =>
-      val setCookie = response.allHeaders.get("Set-Cookie").mkString("\n")
+      val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("foo=bar")
       response.body must_== "foo"
     }
