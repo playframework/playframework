@@ -369,6 +369,9 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
 
     "split Set-Cookie headers" in {
       import play.api.mvc.Cookie
+
+      lazy val cookieHeaderEncoding = new DefaultCookieHeaderEncoding()
+
       val aCookie = Cookie("a", "1")
       val bCookie = Cookie("b", "2")
       val cCookie = Cookie("c", "3")
@@ -378,7 +381,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.allHeaders.get(SET_COOKIE) must beSome.like {
           case rawCookieHeaders =>
             val decodedCookieHeaders: Set[Set[Cookie]] = rawCookieHeaders.map { headerValue =>
-              Cookies.decodeSetCookieHeader(headerValue).to[Set]
+              cookieHeaderEncoding.decodeSetCookieHeader(headerValue).to[Set]
             }.to[Set]
             decodedCookieHeaders must_== (Set(Set(aCookie), Set(bCookie), Set(cCookie)))
         }

@@ -6,11 +6,11 @@ package play.filters.csrf
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import play.api.Application
-import play.api.http.{ ContentTypeOf, ContentTypes, SecretConfiguration }
+import play.api.http.{ ContentTypeOf, ContentTypes, SecretConfiguration, SessionConfiguration }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.crypto._
 import play.api.libs.ws._
-import play.api.mvc.{ Handler, Session }
+import play.api.mvc.{ DefaultSessionCookieBaker, Handler, SessionCookieBaker }
 import play.api.test.{ PlaySpecification, TestServer }
 import play.filters.csrf.CSRF.{ SignedTokenProvider, UnsignedTokenProvider }
 
@@ -28,9 +28,15 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
-  val tokenSigner = new DefaultCSRFTokenSigner(new DefaultCookieSigner(SecretConfiguration(CRYPTO_SECRET)), java.time.Clock.systemUTC())
+  val cookieSigner = new DefaultCookieSigner(SecretConfiguration(CRYPTO_SECRET))
+  val tokenSigner = new DefaultCSRFTokenSigner(cookieSigner, java.time.Clock.systemUTC())
   val signedTokenProvider = new SignedTokenProvider(tokenSigner)
   val unsignedTokenProvider = new UnsignedTokenProvider(tokenSigner)
+  val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
+    SessionConfiguration(),
+    SecretConfiguration(secret = CRYPTO_SECRET),
+    cookieSigner
+  )
 
   val Boundary = "83ff53821b7c"
   def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
@@ -54,7 +60,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     // accept/reject tokens
     "accept requests with token in query string" in {
       lazy val token = generate
-      csrfCheckRequest(req => addToken(req.withQueryString(TokenName -> token), token)
+      csrfCheckRequest(req => addToken(req.withQueryStringParameters(TokenName -> token), token)
         .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
@@ -67,26 +73,26 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     "accept requests with a session token and token in multipart body" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
-        .withHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
+        .addHttpHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
         .post(multiPartFormDataBody(TokenName, token))
       )(_.status must_== OK)
     }
     "accept requests with token in header" in {
       lazy val token = generate
       csrfCheckRequest(req => addToken(req, token)
-        .withHeaders(HeaderName -> token)
+        .addHttpHeaders(HeaderName -> token)
         .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
     "reject requests with nocheck header" in {
       csrfCheckRequest(_.withCookies("foo" -> "bar")
-        .withHeaders(HeaderName -> "nocheck")
+        .addHttpHeaders(HeaderName -> "nocheck")
         .post(Map("foo" -> "bar"))
       )(_.status must_== errorStatusCode)
     }
     "reject requests with ajax header" in {
       csrfCheckRequest(_.withCookies("foo" -> "bar")
-        .withHeaders("X-Requested-With" -> "a spoon")
+        .addHttpHeaders("X-Requested-With" -> "a spoon")
         .post(Map("foo" -> "bar"))
       )(_.status must_== errorStatusCode)
     }
@@ -133,12 +139,13 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   "a CSRF filter" should {
 
     "work with signed session tokens" in {
+
       def csrfCheckRequest = buildCsrfCheckRequest(sendUnauthorizedResult = false)
       def csrfAddToken = buildCsrfAddToken()
       def generate = signedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withSession(TokenName -> token)
       def getToken(response: WSResponse) = {
-        val session = response.cookies.find(_.name == Session.COOKIE_NAME).map(_.value).map(Session.decode)
+        val session = response.cookies.find(_.name == sessionCookieBaker.COOKIE_NAME).map(_.value).map(sessionCookieBaker.decode)
         session.flatMap(_.get(TokenName))
       }
       def compareTokens(a: String, b: String) = signedTokenProvider.compareTokens(a, b) must beTrue
@@ -155,7 +162,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           addToken(req, "foo").post(Map("foo" -> "bar", TokenName -> generate))
         ) { response =>
           response.status must_== FORBIDDEN
-          response.cookie(Session.COOKIE_NAME) must beSome.like {
+          response.cookie(sessionCookieBaker.COOKIE_NAME) must beSome.like {
             case cookie => cookie.value must ===("")
           }
         }
@@ -177,7 +184,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def generate = unsignedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withSession(TokenName -> token)
       def getToken(response: WSResponse) = {
-        val session = response.cookie(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+        val session = response.cookie(sessionCookieBaker.COOKIE_NAME).map(_.value).map(sessionCookieBaker.decode)
         session.flatMap(_.get(TokenName))
       }
       def compareTokens(a: String, b: String) = a must_== b
@@ -243,13 +250,13 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
       "accept requests with nocheck header" in {
         csrfCheckRequest(_.withCookies("foo" -> "bar")
-          .withHeaders(HeaderName -> "nocheck")
+          .addHttpHeaders(HeaderName -> "nocheck")
           .post(Map("foo" -> "bar"))
         )(_.status must_== OK)
       }
       "accept requests with ajax header" in {
         csrfCheckRequest(_.withCookies("foo" -> "bar")
-          .withHeaders("X-Requested-With" -> "a spoon")
+          .addHttpHeaders("X-Requested-With" -> "a spoon")
           .post(Map("foo" -> "bar"))
         )(_.status must_== OK)
       }
@@ -273,7 +280,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   implicit class EnrichedRequestHolder(request: WSRequest) {
     def withSession(session: (String, String)*): WSRequest = {
-      request.withCookies(Session.COOKIE_NAME -> Session.encode(session.toMap))
+      request.withCookies(sessionCookieBaker.COOKIE_NAME -> sessionCookieBaker.encode(session.toMap))
     }
     def withCookies(cookies: (String, String)*): WSRequest = {
       request.addCookies(cookies.map(c => DefaultWSCookie(c._1, c._2)): _*)

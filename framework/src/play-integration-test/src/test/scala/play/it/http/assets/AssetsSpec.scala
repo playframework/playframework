@@ -3,7 +3,7 @@
  */
 package play.it.http.assets
 
-import controllers.{ Assets, AssetsComponents }
+import controllers.AssetsComponents
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.test._
@@ -19,16 +19,14 @@ import play.it._
 class NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
 class AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecification
 
-trait AssetsSpec extends PlaySpecification
-    with WsTestClient with ServerIntegrationSpecification {
+trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   sequential
 
   "Assets controller" should {
 
-    def defaultCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.defaultCache")
-
-    def aggressiveCacheControl = Play.current.configuration.getDeprecated[Option[String]]("play.assets.aggressiveCache")
+    var defaultCacheControl: Option[String] = None
+    var aggressiveCacheControl: Option[String] = None
 
     def withServer[T](block: WSClient => T): T = {
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
@@ -36,9 +34,13 @@ trait AssetsSpec extends PlaySpecification
           override def router: Router = Router.from {
             case req => assets.versioned("/testassets", req.path)
           }
+
+          defaultCacheControl = configuration.get[Option[String]]("play.assets.defaultCache")
+          aggressiveCacheControl = configuration.get[Option[String]]("play.assets.aggressiveCache")
+
         }.application
-      } {
-        withClient(block)(_)
+      } { implicit port =>
+        withClient(block)
       }
     }
 
@@ -111,7 +113,7 @@ trait AssetsSpec extends PlaySpecification
 
     "serve a gzipped asset" in withServer { client =>
       val result = await(client.url("/foo.txt")
-        .withHeaders(ACCEPT_ENCODING -> "gzip")
+        .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
         .get())
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -127,7 +129,7 @@ trait AssetsSpec extends PlaySpecification
     "return not modified when etag matches" in withServer { client =>
       val Some(etag) = await(client.url("/foo.txt").get()).header(ETAG)
       val result = await(client.url("/foo.txt")
-        .withHeaders(IF_NONE_MATCH -> etag)
+        .addHttpHeaders(IF_NONE_MATCH -> etag)
         get ())
 
       result.status must_== NOT_MODIFIED
@@ -140,7 +142,7 @@ trait AssetsSpec extends PlaySpecification
     "return not modified when multiple etags supply and one matches" in withServer { client =>
       val Some(etag) = await(client.url("/foo.txt").get()).header(ETAG)
       val result = await(client.url("/foo.txt")
-        .withHeaders(IF_NONE_MATCH -> ("\"foo\", " + etag + ", \"bar\""))
+        .addHttpHeaders(IF_NONE_MATCH -> ("\"foo\", " + etag + ", \"bar\""))
         .get())
 
       result.status must_== NOT_MODIFIED
@@ -149,7 +151,7 @@ trait AssetsSpec extends PlaySpecification
 
     "return asset when etag doesn't match" in withServer { client =>
       val result = await(client.url("/foo.txt")
-        .withHeaders(IF_NONE_MATCH -> "\"foobar\"")
+        .addHttpHeaders(IF_NONE_MATCH -> "\"foobar\"")
         .get())
 
       result.status must_== OK
@@ -159,7 +161,7 @@ trait AssetsSpec extends PlaySpecification
     "return not modified when not modified since" in withServer { client =>
       val Some(timestamp) = await(client.url("/foo.txt").get()).header(LAST_MODIFIED)
       val result = await(client.url("/foo.txt")
-        .withHeaders(IF_MODIFIED_SINCE -> timestamp)
+        .addHttpHeaders(IF_MODIFIED_SINCE -> timestamp)
         .get())
 
       result.status must_== NOT_MODIFIED
@@ -174,7 +176,7 @@ trait AssetsSpec extends PlaySpecification
 
     "return asset when modified since" in withServer { client =>
       val result = await(client.url("/foo.txt")
-        .withHeaders(IF_MODIFIED_SINCE -> "Tue, 13 Mar 2012 13:08:36 GMT")
+        .addHttpHeaders(IF_MODIFIED_SINCE -> "Tue, 13 Mar 2012 13:08:36 GMT")
         .get())
 
       result.status must_== OK
@@ -183,7 +185,7 @@ trait AssetsSpec extends PlaySpecification
 
     "ignore if modified since header if if none match header is set" in withServer { client =>
       val result = await(client.url("/foo.txt")
-        .withHeaders(
+        .addHttpHeaders(
           IF_NONE_MATCH -> "\"foobar\"",
           IF_MODIFIED_SINCE -> "Wed, 01 Jan 2113 00:00:00 GMT" // might break in 100 years, but I won't be alive, so :P
         ).get())
@@ -194,7 +196,7 @@ trait AssetsSpec extends PlaySpecification
 
     "return the asset if the if modified since header can't be parsed" in withServer { client =>
       val result = await(client.url("/foo.txt")
-        .withHeaders(IF_MODIFIED_SINCE -> "Not a date")
+        .addHttpHeaders(IF_MODIFIED_SINCE -> "Not a date")
         .get())
 
       result.status must_== OK
@@ -221,7 +223,7 @@ trait AssetsSpec extends PlaySpecification
       result.status must_== OK
       result.body must_== "This is a test asset."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
-      result.header(ETAG) must_== Some("\"12345678901234567890123456789012\"")
+      result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone
@@ -251,7 +253,7 @@ trait AssetsSpec extends PlaySpecification
       "return a 206 Partial Content status" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=0-10")
+            .addHttpHeaders(RANGE -> "bytes=0-10")
             .get()
         )
 
@@ -261,7 +263,7 @@ trait AssetsSpec extends PlaySpecification
       "The first 500 bytes: 0-499 inclusive" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=0-499")
+            .addHttpHeaders(RANGE -> "bytes=0-499")
             .get()
         )
 
@@ -274,7 +276,7 @@ trait AssetsSpec extends PlaySpecification
       "The second 500 bytes: 500-999 inclusive" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=500-999")
+            .addHttpHeaders(RANGE -> "bytes=500-999")
             .get()
         )
 
@@ -288,7 +290,7 @@ trait AssetsSpec extends PlaySpecification
       "The final 500 bytes: 9500-9999, inclusive" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=9500-9999")
+            .addHttpHeaders(RANGE -> "bytes=9500-9999")
             .get()
         )
 
@@ -301,7 +303,7 @@ trait AssetsSpec extends PlaySpecification
       "The final 500 bytes using a open range: 9500-" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=9500-")
+            .addHttpHeaders(RANGE -> "bytes=9500-")
             .get()
         )
 
@@ -314,7 +316,7 @@ trait AssetsSpec extends PlaySpecification
       "The first and last bytes only: 0 and 9999: bytes=0-0,-1" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=0-0,-1")
+            .addHttpHeaders(RANGE -> "bytes=0-0,-1")
             .get()
         )
 
@@ -325,7 +327,7 @@ trait AssetsSpec extends PlaySpecification
       "Multiple intervals to get the second 500 bytes" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=500-600,601-999")
+            .addHttpHeaders(RANGE -> "bytes=500-600,601-999")
             .get()
         )
 
@@ -336,7 +338,7 @@ trait AssetsSpec extends PlaySpecification
       "Return status 416 when first byte is gt the length of the complete entity" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=10500-10600")
+            .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
@@ -346,7 +348,7 @@ trait AssetsSpec extends PlaySpecification
       "Return a Content-Range header for 416 responses" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=10500-10600")
+            .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
@@ -356,7 +358,7 @@ trait AssetsSpec extends PlaySpecification
       "No Content-Disposition header when serving assets" in withServer { client =>
         val result = await(
           client.url("/range.txt")
-            .withHeaders(RANGE -> "bytes=10500-10600")
+            .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
@@ -365,7 +367,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a brotli compressed asset" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "br")
+          .addHttpHeaders(ACCEPT_ENCODING -> "br")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -376,7 +378,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a gzip compressed asset when brotli and gzip are available but only gzip is requested" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "gzip")
+          .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -402,7 +404,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a asset if accept encoding is given with a q value" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "br;q=1.0, gzip")
+          .addHttpHeaders(ACCEPT_ENCODING -> "br;q=1.0, gzip")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -413,7 +415,7 @@ trait AssetsSpec extends PlaySpecification
 
       "serve a brotli compressed asset when brotli and gzip are requested, brotli first (because configured to be first)" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
+          .addHttpHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
           // something is wrong here... if we just have "gzip, deflate, sdch, br", the "br" does not end up in the ACCEPT_ENCODING header
           //          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br")
           .get())
@@ -425,7 +427,7 @@ trait AssetsSpec extends PlaySpecification
       }
       "serve a gzip compressed asset when brotli and gzip are available, but only gzip requested" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "gzip")
+          .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -437,7 +439,7 @@ trait AssetsSpec extends PlaySpecification
       }
       "serve a xz compressed asset when brotli, gzip and xz are available, but xz requested" in withServer { client =>
         val result = await(client.url("/encoding.js")
-          .withHeaders(ACCEPT_ENCODING -> "xz")
+          .addHttpHeaders(ACCEPT_ENCODING -> "xz")
           .get())
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
@@ -448,7 +450,7 @@ trait AssetsSpec extends PlaySpecification
     }
     "serve a bz2 compressed asset when brotli, gzip and bz2 are available, but bz2 requested" in withServer { client =>
       val result = await(client.url("/encoding.js")
-        .withHeaders(ACCEPT_ENCODING -> "bz2")
+        .addHttpHeaders(ACCEPT_ENCODING -> "bz2")
         .get())
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)

@@ -15,7 +15,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.oauth.{ ConsumerKey, OAuthCalculator, RequestToken }
 import play.api.libs.ws._
-import play.api.mvc.{ Action, DefaultActionBuilder, Handler, Results }
+import play.api.mvc._
 import play.api.test.{ DefaultAwaitTimeout, FutureAwaits, Helpers, WithServer }
 import play.shaded.ahc.io.netty.handler.codec.http.DefaultHttpHeaders
 import play.shaded.ahc.org.asynchttpclient.Realm.AuthScheme
@@ -73,7 +73,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val client = mock[StandaloneAhcWSClient]
       import scala.collection.JavaConverters._
       val req: AHCRequest = makeAhcRequest("http://playframework.com/")
-        .withHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[AhcWSRequest]
+        .addHttpHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[AhcWSRequest]
         .underlying.buildRequest()
       req.getHeaders.getAll("key").asScala must containTheSameElementsAs(Seq("value1", "value2"))
     }
@@ -90,7 +90,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
   "not make Content-Type header if there is Content-Type in headers already" in {
     import scala.collection.JavaConverters._
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
-      .withHeaders("content-type" -> "fake/contenttype; charset=utf-8")
+      .addHttpHeaders("content-type" -> "fake/contenttype; charset=utf-8")
       .withBody(<aaa>value1</aaa>)
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
@@ -174,7 +174,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     val calc = OAuthCalculator(consumerKey, requestToken)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
-      .withHeaders("Content-Length" -> "9001") // add a meaningless content length here...
+      .addHttpHeaders("Content-Length" -> "9001") // add a meaningless content length here...
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
 
@@ -193,7 +193,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     val calc = OAuthCalculator(consumerKey, requestToken)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
-      .withHeaders("Content-Length" -> "9001") // add a meaningless content length here...
+      .addHttpHeaders("Content-Length" -> "9001") // add a meaningless content length here...
       .sign(calc) // this is signed, so content length is no longer valid per #5221
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
@@ -207,7 +207,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
   "Verify Content-Type header is passed through correctly" in {
     import scala.collection.JavaConverters._
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
-      .withHeaders("Content-Type" -> "text/plain; charset=US-ASCII")
+      .addHttpHeaders("Content-Type" -> "text/plain; charset=US-ASCII")
       .withBody("HELLO WORLD")
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
@@ -216,7 +216,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
 
   "POST binary data as is" in {
     val binData = ByteString((0 to 511).map(_.toByte).toArray)
-    val req: AHCRequest = makeAhcRequest("http://playframework.com/").withHeaders("Content-Type" -> "application/x-custom-bin-data").withBody(binData)
+    val req: AHCRequest = makeAhcRequest("http://playframework.com/").addHttpHeaders("Content-Type" -> "application/x-custom-bin-data").withBody(binData)
       .asInstanceOf[AhcWSRequest].underlying
       .buildRequest()
 
@@ -354,6 +354,8 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     import java.io._
     import java.util.zip._
 
+    lazy val Action = ActionBuilder.ignoringBody
+
     val routes: Application => PartialFunction[(String, String), Handler] = {
       app =>
         {
@@ -381,7 +383,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
   "support gziped encoding" in new WithServer(gzipFakeApp) {
     val client = app.injector.instanceOf[WSClient]
     val req = client.url("http://localhost:" + port + "/").get()
-    val rep = Await.result(req, 1 second)
+    val rep = Await.result(req, 1.second)
     rep.body must ===("gziped response")
   }
 
@@ -460,7 +462,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       ahcHeaders.add("Bar", "baz")
       ahcResponse.getHeaders returns ahcHeaders
       val response = makeAhcResponse(ahcResponse)
-      val headers = response.allHeaders
+      val headers = response.headers
       headers must beEqualTo(Map("Foo" -> Seq("bar", "baz"), "Bar" -> Seq("baz")))
       headers.contains("foo") must beTrue
       headers.contains("Foo") must beTrue

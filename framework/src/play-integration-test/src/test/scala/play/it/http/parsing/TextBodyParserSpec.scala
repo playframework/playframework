@@ -6,14 +6,17 @@ package play.it.http.parsing
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.Application
 import play.api.test._
-import play.api.mvc.{ BodyParser, BodyParsers }
+import play.api.mvc.{ BodyParser, PlayBodyParsers }
 
 class TextBodyParserSpec extends PlaySpecification {
 
+  implicit def tolerantTextBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].tolerantText
+
   "The text body parser" should {
 
-    def parse(text: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[String] = BodyParsers.parse.tolerantText)(implicit mat: Materializer) = {
+    def parse(text: String, contentType: Option[String], encoding: String)(implicit mat: Materializer, bodyParser: BodyParser[String]) = {
       await(
         bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
           .run(Source.single(ByteString(text, encoding)))
@@ -36,12 +39,13 @@ class TextBodyParserSpec extends PlaySpecification {
     }
 
     "accept text/plain content type" in new WithApplication() {
-      parse("bar", Some("text/plain"), "utf-8", BodyParsers.parse.text) must beRight("bar")
+      parse("bar", Some("text/plain"), "utf-8") must beRight("bar")
     }
 
     "reject non text/plain content types" in new WithApplication() {
-      parse("bar", Some("application/xml"), "utf-8", BodyParsers.parse.text) must beLeft
-      parse("bar", None, "utf-8", BodyParsers.parse.text) must beLeft
+      val textBodyParser = app.injector.instanceOf[PlayBodyParsers].text
+      parse("bar", Some("application/xml"), "utf-8")(app.materializer, textBodyParser) must beLeft
+      parse("bar", None, "utf-8")(app.materializer, textBodyParser) must beLeft
     }
 
   }

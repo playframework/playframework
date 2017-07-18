@@ -100,7 +100,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
         if (CSRF.getToken(request).isEmpty()) {
             if (config.cookieName().isDefined()) {
-                Option<String> domain = Session.domain();
+                Option<String> domain = sessionConfiguration.domain();
                 ctx.response().discardCookie(config.cookieName().get(), sessionConfiguration.path(),
                         domain.isDefined() ? domain.get() : null, config.secureCookie());
             } else {
