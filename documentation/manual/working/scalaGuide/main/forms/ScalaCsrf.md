@@ -55,7 +55,7 @@ It is also possible to disable the CSRF filter for a specific route in the route
 
 ### Using an implicit request
 
-All CSRF functionality assumes that a implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) (or a [`Request`](api/scala/play/api/mvc/Request.html), which extends  [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html)) is available in implicit scope, and will not compile without one available.  Examples will be shown below.
+All CSRF functionality assumes that an implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) (or a [`Request`](api/scala/play/api/mvc/Request.html), which extends  [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html)) is available in implicit scope, and will not compile without one available.  Examples will be shown below.
 
 #### Defining an implicit Request in Actions
 
