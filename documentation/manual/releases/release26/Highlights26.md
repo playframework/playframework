@@ -47,7 +47,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayJava, PlayAkkaHttp2Support)
 ```
 
-This automates most of the process of setting up HTTP/2. However, it does not work with the `run` command by default. See the [[the Akka HTTP Server page|AkkaHttpServer]] for more details.
+This automates most of the process of setting up HTTP/2. However, it does not work with the `run` command by default. See the [[Akka HTTP Server page|AkkaHttpServer]] for more details.
 
 ## Request attributes
 
