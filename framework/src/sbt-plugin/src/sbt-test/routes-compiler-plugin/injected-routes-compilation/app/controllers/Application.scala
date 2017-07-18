@@ -5,6 +5,7 @@ package controllers
 
 import play.api.mvc._
 import scala.collection.JavaConversions._
+import models.UserId
 
 class Application extends Controller {
   def index = Action {
@@ -15,6 +16,12 @@ class Application extends Controller {
   }
   def withParam(param: String) = Action {
     Ok(param)
+  }
+  def user(userId: UserId) = Action {
+    Ok(userId.id)
+  }
+  def queryUser(userId: UserId) = Action {
+    Ok(userId.id)
   }
   def takeInt(i: Int) = Action {
     Ok(s"$i")
