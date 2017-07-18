@@ -80,16 +80,16 @@ class ConfigurationSpec extends Specification {
     }
 
     "make all get accessible using scala" in {
-      exampleConfig.getBooleanSeq("blah.0").get must ===(Seq(true, false, true))
-      exampleConfig.getIntSeq("blah.1").get must ===(Seq(1, 2, 3))
-      exampleConfig.getDoubleSeq("blah.2").get must ===(Seq(1.1, 2.2, 3.3))
-      exampleConfig.getLongSeq("blah.3").get must ===(Seq(1L, 2L, 3L))
-      exampleConfig.getStringSeq("blah.4").get must contain(exactly("one", "two", "three"))
+      exampleConfig.get[Seq[Boolean]]("blah.0") must ===(Seq(true, false, true))
+      exampleConfig.get[Seq[Int]]("blah.1") must ===(Seq(1, 2, 3))
+      exampleConfig.get[Seq[Double]]("blah.2") must ===(Seq(1.1, 2.2, 3.3))
+      exampleConfig.get[Seq[Long]]("blah.3") must ===(Seq(1L, 2L, 3L))
+      exampleConfig.get[Seq[String]]("blah.4") must contain(exactly("one", "two", "three"))
     }
 
     "handle invalid and null configuration values" in {
-      exampleConfig.getBooleanSeq("foo.bar1").get must throwA[PlayException]
-      exampleConfig.getBoolean("foo.bar3") must throwA[PlayException]
+      exampleConfig.get[Seq[Boolean]]("foo.bar1") must throwA[com.typesafe.config.ConfigException]
+      exampleConfig.get[Boolean]("foo.bar3") must throwA[com.typesafe.config.ConfigException]
     }
 
     "throw serializable exceptions" in {
@@ -110,7 +110,7 @@ class ConfigurationSpec extends Specification {
       );
       {
         try {
-          conf.getStringList("item")
+          conf.get[Seq[String]]("item")
         } catch {
           case NonFatal(e) => copyViaSerialize(e)
         }

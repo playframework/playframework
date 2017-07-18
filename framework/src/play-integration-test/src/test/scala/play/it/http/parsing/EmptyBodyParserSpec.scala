@@ -6,17 +6,21 @@ package play.it.http.parsing
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.Application
 import play.api.test._
-import play.api.mvc.BodyParsers
+import play.api.mvc.{ BodyParser, PlayBodyParsers }
 
 class EmptyBodyParserSpec extends PlaySpecification {
 
   "The empty body parser" should {
 
-    def parse(bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: Materializer) = {
+    implicit def emptyBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].empty
+
+    def parse(bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: Materializer, bodyParser: BodyParser[Unit]) = {
       await(
-        BodyParsers.parse.empty(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
-          .run(Source.single(bytes))
+        bodyParser(
+          FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
+        ).run(Source.single(bytes))
       )
     }
 

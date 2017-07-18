@@ -5,18 +5,23 @@ package play.it.action
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
+import play.api._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.format.Formats._
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc._
+import play.api.mvc.MultipartFormData
 import play.api.mvc.Results._
-import play.api.mvc.BodyParsers._
-import play.api.test.{ FakeRequest, PlaySpecification, WithApplication }
+import play.api.test.{ FakeRequest, PlaySpecification, WithApplication, WsTestClient }
+import play.api.routing.Router
 
-class FormActionSpec extends PlaySpecification {
+class FormActionSpec extends PlaySpecification with WsTestClient {
+
+  case class User(
+    name: String,
+    email: String,
+    age: Int
+  )
 
   val userForm = Form(
     mapping(
@@ -27,29 +32,29 @@ class FormActionSpec extends PlaySpecification {
   )
 
   def application: Application = {
+    val context = ApplicationLoader.createContext(Environment.simple())
+    new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
 
-    implicit val actorSystem = ActorSystem("form-action-spec")
-    implicit val materializer = ActorMaterializer()
+      import play.api.routing.sird.{ POST => SirdPost, _ }
 
-    GuiceApplicationBuilder()
-      .overrides(
-        play.api.inject.bind[ActorSystem].toInstance(actorSystem),
-        play.api.inject.bind[Materializer].toInstance(materializer)
-      )
-      .routes {
-        case (POST, "/multipart") => Action(parse.multipartFormData) { implicit request =>
+      override lazy val actorSystem: ActorSystem = ActorSystem("form-action-spec")
+      override implicit lazy val materializer: Materializer = ActorMaterializer()(this.actorSystem)
+
+      override def router: Router = Router.from {
+        case SirdPost(p"/multipart") => defaultActionBuilder(playBodyParsers.multipartFormData) { implicit request =>
           val user = userForm.bindFromRequest().get
           Ok(s"${user.name} - ${user.email}")
         }
-        case (POST, "/multipart/max-length") => Action(parse.multipartFormData(1024)) { implicit request =>
+        case SirdPost(p"/multipart/max-length") => defaultActionBuilder(playBodyParsers.multipartFormData(1024)) { implicit request =>
           val user = userForm.bindFromRequest().get
           Ok(s"${user.name} - ${user.email}")
         }
-        case (POST, "/multipart/wrapped-max-length") => Action(parse.maxLength(1024, parse.multipartFormData)) { implicit request =>
+        case SirdPost(p"/multipart/wrapped-max-length") => defaultActionBuilder(playBodyParsers.maxLength(1024, playBodyParsers.multipartFormData)(this.materializer)) { implicit request =>
           val user = userForm.bindFromRequest().get
           Ok(s"${user.name} - ${user.email}")
         }
-      }.build()
+      }
+    }.application
   }
 
   "Form Actions" should {
@@ -83,9 +88,3 @@ class FormActionSpec extends PlaySpecification {
     }
   }
 }
-
-case class User(
-  name: String,
-  email: String,
-  age: Int
-)

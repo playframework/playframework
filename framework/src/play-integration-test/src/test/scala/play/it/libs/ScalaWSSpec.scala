@@ -70,7 +70,7 @@ trait ScalaWSSpec extends PlaySpecification with ServerIntegrationSpecification 
 
     "streaming a request body with manual content length" in withHeaderCheck { ws =>
       val source = Source.single(ByteString("abc"))
-      val res = ws.url("/post").withMethod("POST").withHeaders(CONTENT_LENGTH -> "3").withBody(source).execute()
+      val res = ws.url("/post").withMethod("POST").addHttpHeaders(CONTENT_LENGTH -> "3").withBody(source).execute()
       val body = await(res).body
 
       body must_== s"Content-Length: 3; Transfer-Encoding: -1"
@@ -109,7 +109,7 @@ trait ScalaWSSpec extends PlaySpecification with ServerIntegrationSpecification 
       }
 
       "with query string" in withServer { ws =>
-        ws.url("/").withQueryString("lorem" -> "ipsum").
+        ws.url("/").withQueryStringParameters("lorem" -> "ipsum").
           sign(calc) aka "signed request" must not(throwA[Exception])
       }
     }

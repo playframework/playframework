@@ -39,7 +39,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       buildCsrfAddToken()(_.put(""))(_.status must_== NOT_FOUND)
     }
     "not add a token to GET requests that don't accept HTML" in {
-      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
+      buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
     }
     "not add a token to responses that set cache headers" in {
       buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must be empty)
@@ -48,16 +48,16 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       buildCsrfAddResponseHeaders(CACHE_CONTROL -> "no-cache")(_.get())(_.cookies must not be empty)
     }
     "add a token to GET requests that accept HTML" in {
-      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
+      buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
     }
     "add a token to GET requests that accept XHTML" in {
-      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/xhtml+xml").get())(_.status must_== OK)
+      buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "application/xhtml+xml").get())(_.status must_== OK)
     }
     "not add a token to HEAD requests that don't accept HTML" in {
-      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/json").head())(_.status must_== NOT_FOUND)
+      buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "application/json").head())(_.status must_== NOT_FOUND)
     }
     "add a token to HEAD requests that accept HTML" in {
-      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").head())(_.status must_== OK)
+      buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "text/html").head())(_.status must_== OK)
     }
 
     // extra conditions for doing a check
@@ -75,27 +75,27 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     }
 
     "not add a token when responding to GET requests that accept HTML and don't get the token" in {
-      buildCsrfAddTokenNoRender(false)(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must be empty)
+      buildCsrfAddTokenNoRender(false)(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.cookies must be empty)
     }
     "not add a token when responding to GET requests that accept XHTML and don't get the token" in {
-      buildCsrfAddTokenNoRender(false)(_.withHeaders(ACCEPT -> "application/xhtml+xml").get())(_.cookies must be empty)
+      buildCsrfAddTokenNoRender(false)(_.addHttpHeaders(ACCEPT -> "application/xhtml+xml").get())(_.cookies must be empty)
     }
     "add a token when responding to GET requests that don't get the token, if using non-HTTPOnly session cookie" in {
       buildCsrfAddTokenNoRender(
         false,
         "play.filters.csrf.cookie.name" -> null,
         "play.http.session.httpOnly" -> "false"
-      )(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
+      )(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
     }
     "add a token when responding to GET requests that don't get the token, if using non-HTTPOnly cookie" in {
       buildCsrfAddTokenNoRender(
         false,
         "play.filters.csrf.cookie.name" -> "csrf",
         "play.filters.csrf.cookie.httpOnly" -> "false"
-      )(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
+      )(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
     }
     "add a token when responding to GET requests that don't get the token, if response is streamed" in {
-      buildCsrfAddTokenNoRender(true)(_.withHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
+      buildCsrfAddTokenNoRender(true)(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.cookies must not be empty)
     }
 
     // other
@@ -181,7 +181,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       val token = signedTokenProvider.generateToken
       val ws = inject[WSClient]
       val response = await(ws.url("http://localhost:" + port).withSession(TokenName -> token)
-        .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
+        .addHttpHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
         .post(
           Seq(
             // Ensure token is first so that it makes it into the buffered part

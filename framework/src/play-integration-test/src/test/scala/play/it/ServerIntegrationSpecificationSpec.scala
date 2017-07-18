@@ -6,14 +6,13 @@ package play.it
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.mvc.request.RequestAttrKey
 import play.api.test._
 
 class NettyServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with NettyIntegrationSpecification {
-  override def isAkkaHttpServer = false
   override def expectedServerTag = Some("netty")
 }
 class AkkaHttpServerIntegrationSpecificationSpec extends ServerIntegrationSpecificationSpec with AkkaHttpIntegrationSpecification {
-  override def isAkkaHttpServer = true
   override def expectedServerTag = None
 }
 
@@ -24,15 +23,13 @@ class AkkaHttpServerIntegrationSpecificationSpec extends ServerIntegrationSpecif
 trait ServerIntegrationSpecificationSpec extends PlaySpecification
     with WsTestClient with ServerIntegrationSpecification {
 
-  def isAkkaHttpServer: Boolean
-
   def expectedServerTag: Option[String]
 
   "ServerIntegrationSpecification" should {
 
     val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
-      case ("GET", "/httpServerTag") => ActionBuilder.ignoringBody { implicit request =>
-        val httpServer = request.tags.get("HTTP_SERVER")
+      case ("GET", "/httpServerTag") => ActionBuilder.ignoringBody { implicit request: RequestHeader =>
+        val httpServer = request.attrs.get(RequestAttrKey.Server)
         Ok(httpServer.toString)
       }
     }

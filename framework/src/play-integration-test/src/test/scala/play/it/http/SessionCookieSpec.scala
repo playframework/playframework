@@ -3,11 +3,15 @@
  */
 package play.it.http
 
-import play.api.inject.guice.GuiceApplicationBuilder
+import com.typesafe.config.ConfigFactory
+import play.api.{ BuiltInComponentsFromContext, Configuration, NoHttpFiltersComponents }
+import play.api.http.{ SecretConfiguration, SessionConfiguration }
+import play.api.libs.crypto.CookieSignerProvider
 import play.api.test._
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.libs.ws.WSClient
+import play.api.routing.Router
 import play.core.server.Server
 import play.it._
 
@@ -18,22 +22,22 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
 
   sequential
 
-  def appWithActions(additionalConfiguration: Map[String, String]) = GuiceApplicationBuilder()
-    .configure(additionalConfiguration)
-    .appRoutes(app => {
-      val Action = app.injector.instanceOf[DefaultActionBuilder]
-      ({
-        case ("GET", "/session") =>
-          Action {
+  def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
+    Server.withApplicationFromContext() { context =>
+      new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
+
+        import play.api.routing.sird.{ GET => SirdGet, _ }
+        import scala.collection.JavaConverters._
+
+        override def configuration: Configuration = super.configuration ++ new Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava))
+
+        override def router: Router = Router.from {
+          case SirdGet(p"/session") => defaultActionBuilder {
             Ok.withSession("session-key" -> "session-value")
           }
-      })
-    }).build()
-
-  def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
-    val app = appWithActions(additionalConfiguration)
-    import app.materializer
-    Server.withApplication(app) { implicit port =>
+        }
+      }.application
+    } { implicit port =>
       withClient(block)
     }
   }
@@ -62,11 +66,23 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
 
     "honor configuration for play.http.session.secure" in {
       "configured to true" in Helpers.running(_.configure("play.http.session.secure" -> true)) { _ =>
-        Session.encodeAsCookie(Session()).secure must beTrue
+        val secretConfiguration = SecretConfiguration()
+        val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
+          SessionConfiguration(secure = true),
+          secretConfiguration,
+          new CookieSignerProvider(secretConfiguration).get
+        )
+        sessionCookieBaker.encodeAsCookie(Session()).secure must beTrue
       }
 
       "configured to false" in Helpers.running(_.configure("play.http.session.secure" -> false)) { _ =>
-        Session.encodeAsCookie(Session()).secure must beFalse
+        val secretConfiguration = SecretConfiguration()
+        val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
+          SessionConfiguration(secure = false),
+          secretConfiguration,
+          new CookieSignerProvider(secretConfiguration).get
+        )
+        sessionCookieBaker.encodeAsCookie(Session()).secure must beFalse
       }
     }
 

@@ -5,9 +5,9 @@ package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
 
-import play.api.{ Application }
+import play.api.Application
 import play.api.libs.ws._
-import play.api.mvc.Session
+import play.api.mvc.{ DefaultSessionCookieBaker, SessionCookieBaker }
 import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.{ Context, RequestHeader }
@@ -70,7 +70,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   "The Java CSRF filter support" should {
     "allow adding things to the session when a token is also added to the session" in {
       buildCsrfWithSession()(_.get()) { response =>
-        val session = response.cookie(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+        val session = response.cookie(sessionCookieBaker.COOKIE_NAME).map(_.value).map(sessionCookieBaker.decode)
         session must beSome.which { s =>
           s.get(TokenName) must beSome[String]
           s.get("hello") must beSome("world")

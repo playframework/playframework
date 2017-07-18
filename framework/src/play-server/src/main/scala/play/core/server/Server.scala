@@ -202,7 +202,7 @@ object Server {
    *
    * {{{
    *   Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
-   *     new BuiltInComponentsFromContext(context) with AssetsComponents {
+   *     new BuiltInComponentsFromContext(context) with AssetsComponents with play.filters.HttpFiltersComponents {
    *      override def router: Router = Router.from {
    *        case req => assets.versioned("/testassets", req.path)
    *      }

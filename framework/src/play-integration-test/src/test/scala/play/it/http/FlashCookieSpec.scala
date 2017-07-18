@@ -3,11 +3,15 @@
  */
 package play.it.http
 
-import play.api.inject.guice.GuiceApplicationBuilder
+import com.typesafe.config.ConfigFactory
+import play.api.http.{ FlashConfiguration, SecretConfiguration }
+import play.api.libs.crypto.CookieSignerProvider
+import play.api.{ BuiltInComponentsFromContext, Configuration, NoHttpFiltersComponents }
 import play.api.test._
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.libs.ws.{ DefaultWSCookie, WSClient, WSCookie, WSResponse }
+import play.api.routing.Router
 import play.core.server.Server
 import play.it._
 
@@ -18,38 +22,38 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
   sequential
 
-  def appWithRedirect(additionalConfiguration: Map[String, String]) = GuiceApplicationBuilder()
-    .configure(additionalConfiguration)
-    .appRoutes(app => {
-      val Action = app.injector.instanceOf[DefaultActionBuilder]
-      ({
-        case ("GET", "/flash") =>
-          Action {
+  def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
+    Server.withApplicationFromContext() { context =>
+      new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
+
+        import play.api.routing.sird.{ GET => SirdGet, _ }
+        import scala.collection.JavaConverters._
+
+        override def configuration: Configuration = super.configuration ++ new Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava))
+
+        override def router: Router = Router.from {
+          case SirdGet(p"/flash") => defaultActionBuilder {
             Redirect("/landing").flashing(
               "success" -> "found"
             )
           }
-        case ("GET", "/set-cookie") =>
-          Action {
+          case SirdGet(p"/set-cookie") => defaultActionBuilder {
             Ok.withCookies(Cookie("some-cookie", "some-value"))
           }
-        case ("GET", "/landing") =>
-          Action {
+          case SirdGet(p"/landing") => defaultActionBuilder {
             Ok("ok")
           }
-      })
-    }).build()
-
-  def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
-    val app = appWithRedirect(additionalConfiguration)
-    import app.materializer
-    Server.withApplication(app) { implicit port =>
+        }
+      }.application
+    } { implicit port =>
       withClient(block)
     }
   }
 
+  lazy val flashCookieBaker: FlashCookieBaker = new DefaultFlashCookieBaker()
+
   def readFlashCookie(response: WSResponse): Option[WSCookie] =
-    response.cookie(Flash.COOKIE_NAME)
+    response.cookie(flashCookieBaker.COOKIE_NAME)
 
   "the flash cookie" should {
     "can be set for one request" in withClientAndServer() { ws =>
@@ -112,11 +116,23 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
     "honor configuration for flash.secure" in {
       "configured to true" in Helpers.running(_.configure("play.http.flash.secure" -> true)) { _ =>
-        Flash.encodeAsCookie(Flash()).secure must beTrue
+        val secretConfig = SecretConfiguration()
+        val fcb: FlashCookieBaker = new DefaultFlashCookieBaker(
+          FlashConfiguration(secure = true),
+          secretConfig,
+          new CookieSignerProvider(secretConfig).get
+        )
+        fcb.encodeAsCookie(Flash()).secure must beTrue
       }
 
       "configured to false" in Helpers.running(_.configure("play.http.flash.secure" -> false)) { _ =>
-        Flash.encodeAsCookie(Flash()).secure must beFalse
+        val secretConfig = SecretConfiguration()
+        val fcb: FlashCookieBaker = new DefaultFlashCookieBaker(
+          FlashConfiguration(secure = false),
+          secretConfig,
+          new CookieSignerProvider(secretConfig).get
+        )
+        fcb.encodeAsCookie(Flash()).secure must beFalse
       }
     }
 
