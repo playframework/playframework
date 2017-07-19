@@ -86,6 +86,7 @@ class CachedSpec extends PlaySpecification {
       val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
+      Thread.sleep(1000) // give ehcache time to set the value because that happens asynchronously
       val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 

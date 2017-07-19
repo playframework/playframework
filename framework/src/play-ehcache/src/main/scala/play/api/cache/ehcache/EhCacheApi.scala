@@ -176,18 +176,18 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
           element.setTimeToLive(seconds.toInt)
         }
     }
-    Future.successful {
+    Future {
       cache.put(element)
       Done
     }
   }
 
-  def get[T](key: String)(implicit ct: ClassTag[T]): Future[Option[T]] = {
+  def get[T](key: String)(implicit ct: ClassTag[T]): Future[Option[T]] = Future {
     val result = Option(cache.get(key)).map(_.getObjectValue).filter { v =>
       Primitives.wrap(ct.runtimeClass).isInstance(v) ||
         ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
     }.asInstanceOf[Option[T]]
-    Future.successful(result)
+    result
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
@@ -197,7 +197,7 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
     }
   }
 
-  def remove(key: String): Future[Done] = Future.successful {
+  def remove(key: String): Future[Done] = Future {
     cache.remove(key)
     Done
   }
