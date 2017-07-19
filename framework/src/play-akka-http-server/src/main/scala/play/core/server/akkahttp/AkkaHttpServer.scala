@@ -181,11 +181,12 @@ class AkkaHttpServer(
       case (websocket: WebSocket, Some(upgrade)) =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+        val bufferLimit = config.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L).asInstanceOf[Int]
         websocket(taggedRequestHeader).flatMap {
           case Left(result) =>
             modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, 16384))
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
         }
 
       case (websocket: WebSocket, None) =>
