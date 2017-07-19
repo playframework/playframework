@@ -27,7 +27,7 @@ sbt new playframework/play-java-seed.g8
 sbt new playframework/play-scala-seed.g8
 ```
 
-After that, use `sbt run` and then go to http://localhost:9000 to see the running server.
+After that, `cd` into 'play-scala-seed' or 'play-java-seed' directory (or whatever your app name was), and type `sbt run`.  You'll then be able to go to http://localhost:9000 for access to your locally hosted application in dev mode.  You could use `sbt "run 10000"` if you, for example, want to run your dev server on a port other than the default port of 9000.
 
 Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form. You can also create your own giter8 seeds and scaffolds based off this one by forking from the https://github.com/playframework/play-java-seed.g8 or https://github.com/playframework/play-scala-seed.g8 github projects.
 
