@@ -606,9 +606,9 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         logger.warn(s"decode: cookie has invalid signature! message = ${e.getMessage}")(SecurityMarkerContext)
         val devLogger = logger.forMode(Mode.Dev)
         devLogger.info(
-          s"""The JWT signature in the cookie does not match the locally computed signature with the server.
-             |This usually indicates the browser has a leftover cookie from another Play application,
-             |so clearing cookies may resolve this error message.""".stripMargin)
+          "The JWT signature in the cookie does not match the locally computed signature with the server. "
+          + "This usually indicates the browser has a leftover cookie from another Play application, so clearing " 
+          + "cookies may resolve this error message.")
         Map.empty
 
       case NonFatal(e) =>
