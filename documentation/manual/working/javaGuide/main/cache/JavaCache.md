@@ -83,6 +83,25 @@ Now to access these different caches, when you inject them, use the [NamedCache]
 
 @[qualified](code/javaguide/cache/qualified/Application.java)
 
+## Setting the execution context
+
+By default all the get, set, remove,... operations on the Ehcache are done within Play's default execution context.
+Usually that configuration should be enough for most use cases because it is assumed that accessing the cache is a very fast operation, so usually no thread gets blocked by it.
+However depending on how EhCache was configured (e.g. by [not storing elements in memory](http://www.ehcache.org/generated/2.10.4/html/ehc-all/#page/Ehcache_Documentation_Set%2Fco-store_storage_tiers.html) these operations might get slow and therefore might block Play's default threads.
+For such a case you can provide a different execution context and set it via `play.cache.dispatcher` so the EhCache plugin makes use of it:
+
+```
+play.cache.dispatcher = "contexts.blockingCacheDispatcher"
+
+contexts {
+  blockingCacheDispatcher {
+    fork-join-executor {
+      parallelism-factor = 3.0
+    }
+  }
+}
+```
+
 ## Caching HTTP responses
 
 You can easily create a smart cached action using standard `Action` composition.

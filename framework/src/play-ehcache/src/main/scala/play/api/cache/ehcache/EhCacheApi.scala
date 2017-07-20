@@ -5,6 +5,7 @@ package play.api.cache.ehcache
 
 import javax.inject.{ Inject, Provider, Singleton }
 
+import akka.actor.ActorSystem
 import akka.Done
 import akka.stream.Materializer
 import com.google.common.primitives.Primitives
@@ -127,8 +128,11 @@ private[play] object NamedEhCacheProvider {
 
 private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends Provider[AsyncCacheApi] {
   @Inject private var injector: Injector = _
+  @Inject private var config: Configuration = _
+  @Inject private var actorSystem: ActorSystem = _
+  private lazy val ec: ExecutionContext = config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(injector.instanceOf[ExecutionContext])
   lazy val get: AsyncCacheApi =
-    new EhCacheApi(injector.instanceOf(key))(injector.instanceOf[ExecutionContext])
+    new EhCacheApi(injector.instanceOf(key))(ec)
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
