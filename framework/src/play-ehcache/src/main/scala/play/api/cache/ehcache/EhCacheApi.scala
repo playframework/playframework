@@ -128,9 +128,10 @@ private[play] object NamedEhCacheProvider {
 
 private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends Provider[AsyncCacheApi] {
   @Inject private var injector: Injector = _
+  @Inject private var defaultEc: ExecutionContext = _
   @Inject private var config: Configuration = _
   @Inject private var actorSystem: ActorSystem = _
-  private lazy val ec: ExecutionContext = config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(injector.instanceOf[ExecutionContext])
+  private lazy val ec: ExecutionContext = config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
     new EhCacheApi(injector.instanceOf(key))(ec)
 }
