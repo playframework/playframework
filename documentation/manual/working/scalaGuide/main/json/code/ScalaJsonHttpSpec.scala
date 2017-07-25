@@ -104,7 +104,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
     }
 
-    "allow handling JSON with BodyParser" in {
+    "allow handling JSON with BodyParser" in new WithApplication() with Injecting {
 
       import play.api.libs.json._
       import play.api.libs.functional.syntax._
@@ -119,8 +119,10 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         (JsPath \ "location").read[Location]
       )(Place.apply _)
 
+      val parse = inject[PlayBodyParsers]
+
       //#handle-json-bodyparser
-      def savePlace = Action(BodyParsers.parse.json) { request =>
+      def savePlace = Action(parse.json) { request =>
         val placeResult = request.body.validate[Place]
         placeResult.fold(
           errors => {
@@ -151,8 +153,10 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
     }
 
-    "allow concise handling JSON with BodyParser" in {
+    "allow concise handling JSON with BodyParser" in new WithApplication() with Injecting {
       import scala.concurrent.ExecutionContext.Implicits.global
+
+      val parse = inject[PlayBodyParsers]
 
       //#handle-json-bodyparser-concise
       import play.api.libs.json._
@@ -171,7 +175,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
 
       // This helper parses and validates JSON using the implicit `placeReads`
       // above, returning errors if the parsed json fails validation.
-      def validateJson[A : Reads] = BodyParsers.parse.json.validate(
+      def validateJson[A : Reads] = parse.json.validate(
         _.validate[A].asEither.left.map(e => BadRequest(JsError.toJson(e)))
       )
 
