@@ -11,6 +11,8 @@ import javax.net.ssl.X509TrustManager
 
 import org.apache.commons.io.IOUtils
 import play.api.http.HttpConfiguration
+import play.api.libs.crypto.CookieSignerProvider
+import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
 import play.api.test.Helpers._
 import play.core.server.common.ServerResultUtils
 import play.core.utils.CaseInsensitiveOrdered
@@ -228,7 +230,14 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         headers.get(CONTENT_LENGTH).map { length =>
           readCompletely(length.toInt)
         } getOrElse {
-          if (new ServerResultUtils(HttpConfiguration()).mayHaveEntity(status)) {
+          val httpConfig = HttpConfiguration()
+          val serverResultUtils = new ServerResultUtils(
+            httpConfig,
+            new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
+            new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
+            new DefaultCookieHeaderEncoding(httpConfig.cookies)
+          )
+          if (serverResultUtils.mayHaveEntity(status)) {
             consumeRemaining(reader)
           } else {
             ""

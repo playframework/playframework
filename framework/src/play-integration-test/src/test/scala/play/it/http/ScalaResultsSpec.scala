@@ -93,6 +93,26 @@ class ScalaResultsSpec extends PlaySpecification {
     }
   }
 
+  "support legacy cookie bakers" in {
+    "legacy session baker should work normally" in withLegacyCookiesModule { implicit app =>
+      sessionBaker must beAnInstanceOf[LegacySessionCookieBaker]
+
+      val data = Map("user" -> "kiki", "langs" -> "fr:en:de")
+      val encodedSession = sessionBaker.encode(data)
+      val decodedSession = sessionBaker.decode(encodedSession)
+      decodedSession must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
+    }
+
+    "legacy flash baker should work normally" in withLegacyCookiesModule { implicit app =>
+      flashBaker must beAnInstanceOf[LegacyFlashCookieBaker]
+
+      val data = Map("message" -> "success")
+      val encodedSession = flashBaker.encode(data)
+      val decodedSession = flashBaker.decode(encodedSession)
+      decodedSession must_== Map("message" -> "success")
+    }
+  }
+
   def withApplication[T](config: (String, Any)*)(block: Application => T): T = running(
     _.configure(Map(config: _*) + ("play.http.secret.key" -> "foo"))
   )(block)
@@ -109,4 +129,9 @@ class ScalaResultsSpec extends PlaySpecification {
       "play.http.flash.path" -> path
     )(block)
   }
+
+  def withLegacyCookiesModule[T](block: Application => T) = withApplication(
+    "play.modules.disabled" -> Seq("play.api.mvc.CookiesModule"),
+    "play.modules.enabled" -> Seq("play.api.i18n.I18nModule", "play.api.inject.BuiltinModule", "play.api.mvc.LegacyCookiesModule")
+  )(block)
 }

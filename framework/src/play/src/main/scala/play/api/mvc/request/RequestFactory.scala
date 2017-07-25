@@ -87,9 +87,9 @@ object RequestFactory {
  * - flash cookie
  */
 class DefaultRequestFactory @Inject() (
-    cookieHeaderEncoding: CookieHeaderEncoding,
-    sessionBaker: SessionCookieBaker,
-    flashBaker: FlashCookieBaker) extends RequestFactory {
+    val cookieHeaderEncoding: CookieHeaderEncoding,
+    val sessionBaker: SessionCookieBaker,
+    val flashBaker: FlashCookieBaker) extends RequestFactory {
 
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),

@@ -17,13 +17,11 @@ import play.api.mvc.request.RequestAttrKey
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-private[play] final class ServerResultUtils(httpConfiguration: HttpConfiguration) {
-
-  private val cookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
-
-  val cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(httpConfiguration.cookies)
-  val sessionBaker: SessionCookieBaker = new DefaultSessionCookieBaker(httpConfiguration.session, httpConfiguration.secret, cookieSigner)
-  val flashBaker: FlashCookieBaker = new DefaultFlashCookieBaker(httpConfiguration.flash, httpConfiguration.secret, cookieSigner)
+private[play] final class ServerResultUtils(
+    httpConfiguration: HttpConfiguration,
+    sessionBaker: SessionCookieBaker,
+    flashBaker: FlashCookieBaker,
+    cookieHeaderEncoding: CookieHeaderEncoding) {
 
   private val logger = Logger(getClass)
 
