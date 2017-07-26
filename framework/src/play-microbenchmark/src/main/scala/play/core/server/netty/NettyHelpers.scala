@@ -10,14 +10,25 @@ import io.netty.channel._
 import io.netty.handler.codec.http.{ DefaultHttpRequest, HttpMethod, HttpRequest, HttpVersion }
 import io.netty.handler.ssl.SslHandler
 import play.api.http.HttpConfiguration
+import play.api.libs.crypto.CookieSignerProvider
+import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 object NettyHelpers {
 
-  val conversion: NettyModelConversion = new NettyModelConversion(
-    new ServerResultUtils(HttpConfiguration()),
-    new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None))
-  )
+  val conversion: NettyModelConversion = {
+    val httpConfig = HttpConfiguration()
+    val serverResultUtils = new ServerResultUtils(
+      httpConfig,
+      new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
+      new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
+      new DefaultCookieHeaderEncoding(httpConfig.cookies)
+    )
+    new NettyModelConversion(
+      serverResultUtils,
+      new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None))
+    )
+  }
 
   val localhost: InetSocketAddress = new InetSocketAddress("127.0.0.1", 9999)
   val sslEngine: SSLEngine = SSLContext.getDefault.createSSLEngine()
