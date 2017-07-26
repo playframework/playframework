@@ -96,7 +96,7 @@ First of all, we'll create a request object that adds an `Item` to our `UserRequ
 
 @[request-with-item](code/ScalaActionsComposition.scala)
 
-Now we'll create an action refiner that looks up that item and returns `Either` an error (`Left`) or a new `ItemRequest` (`Right`).  Note that this action refiner is defined inside a method that takes the id of the item:
+Now we'll create an action refiner that looks up that item and returns `Either` a new `ItemRequest` (`Left`) or an error (`Right`).  Note that this action refiner is defined inside a method that takes the id of the item:
 
 @[item-action-builder](code/ScalaActionsComposition.scala)
 
