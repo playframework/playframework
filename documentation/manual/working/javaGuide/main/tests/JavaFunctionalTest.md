@@ -11,6 +11,10 @@ You can add these methods and classes by importing the following:
 
 Play frequently requires a running [`Application`](api/java/play/Application.html) as context. To provide an environment for tests, Play provides helpers that produce new application instances for testing:
 
+```java
+import static play.test.Helpers.*;
+```
+
 @[test-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 
 ## Injecting tests
