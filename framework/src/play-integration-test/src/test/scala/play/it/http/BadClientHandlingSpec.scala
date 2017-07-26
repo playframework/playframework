@@ -25,7 +25,6 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       val port = testServerPort
 
       val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with HttpFiltersComponents {
-        def Action = defaultActionBuilder
         def router = {
           import sird._
           Router.from {

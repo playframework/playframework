@@ -71,8 +71,6 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
       val components = new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
 
-        lazy val Action = defaultActionBuilder
-
         override lazy val router: Router = Router.from {
           case GET(p"/hello/$to") => Action {
             Results.Ok(s"Hello $to")
