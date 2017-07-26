@@ -9,6 +9,7 @@ import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.http.Status._
 import play.api.http._
+import play.api.libs.crypto.CookieSignerProvider
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -24,7 +25,15 @@ class ServerResultUtilsSpec extends Specification {
     override def jwtConfiguration = JWTConfiguration()
     override def secretConfiguration = SecretConfiguration()
   }
-  val resultUtils = new ServerResultUtils(HttpConfiguration())
+  val resultUtils = {
+    val httpConfig = HttpConfiguration()
+    new ServerResultUtils(
+      httpConfig,
+      new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
+      new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
+      new DefaultCookieHeaderEncoding(httpConfig.cookies)
+    )
+  }
 
   private def cookieRequestHeader(cookie: Option[(String, String)]): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
