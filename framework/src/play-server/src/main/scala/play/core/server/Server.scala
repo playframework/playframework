@@ -248,12 +248,12 @@ trait ServerComponents extends BuiltInComponents {
 /**
  * Define how to create a Server from a Router.
  */
-trait ServerFromRouter {
+private[server] trait ServerFromRouter {
 
-  def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents => Router): Server
+  protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents => Router): Server
 
   /**
-   * Creates an AkkaHttpServer from the given router.
+   * Creates a [[Server]] from the given router.
    *
    * @param config the server configuration
    * @param routes the routes definitions
@@ -264,7 +264,7 @@ trait ServerFromRouter {
   }
 
   /**
-   * Creates an AkkaHttpServer from the given router, using [[ServerComponents]].
+   * Creates a [[Server]] from the given router, using [[ServerComponents]].
    *
    * @param config the server configuration
    * @param routes the routes definitions
