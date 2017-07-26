@@ -11,7 +11,7 @@ import akka.stream.{ FlowShape, Materializer, OverflowStrategy }
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
 import play.api.Configuration
-import play.api.http.{ HttpChunk, HttpEntity, MediaRange, MediaType, Status }
+import play.api.http._
 import play.api.inject._
 import play.api.libs.streams.GzipFlow
 import play.api.mvc.RequestHeader.acceptHeader
@@ -75,6 +75,14 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
           // It's below the chunked threshold, so buffer then compress and send
           compressStrictEntity(entity.data, contentType).map(strictEntity =>
             result.copy(header = header, body = strictEntity)
+          )
+
+        case HttpEntity.Streamed(data, _, contentType) if request.version == HttpProtocol.HTTP_1_0 =>
+          // It's above the chunked threshold, but we can't chunk it because we're using HTTP 1.0.
+          // Instead, we use a close delimited body (ie, regular body with no content length)
+          val gzipped = data via GzipFlow.gzip(config.bufferSize)
+          Future.successful(
+            result.copy(header = header, body = HttpEntity.Streamed(gzipped, None, contentType))
           )
 
         case HttpEntity.Streamed(data, _, contentType) =>

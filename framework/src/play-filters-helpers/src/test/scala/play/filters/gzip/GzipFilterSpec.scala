@@ -9,7 +9,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Application
-import play.api.http.{ HttpChunk, HttpEntity, HttpFilters }
+import play.api.http.{ HttpChunk, HttpEntity, HttpFilters, HttpProtocol }
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing.{ Router, SimpleRouterImpl }
@@ -214,6 +214,18 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
             session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
           }
       }
+
+      "not fallback to a chunked body when HTTP 1.0 is being used and the chunked threshold is exceeded" in withApplication(
+        Ok.sendEntity(entity), chunkedThreshold = 512) { implicit app =>
+          val result = route(app, gzipRequest.withVersion(HttpProtocol.HTTP_1_0)).get
+          checkGzippedBody(result, body)(app.materializer)
+          val entity = await(result).body
+          entity must beLike {
+            // Make sure it's a streamed entity with no content length
+            case HttpEntity.Streamed(_, None, None) => ok
+          }
+
+        }
     }
 
     "a chunked body" should {
