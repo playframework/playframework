@@ -15,7 +15,7 @@ Play frequently requires a running [`Application`](api/scala/play/api/Applicatio
 
 ## WithApplication
 
-To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default application (created from the default `GuiceApplicationBuilder`) is provided for convenience.
+To pass in an application to an example, use [`WithApplication`](api/scala/play/api/test/WithApplication.html).  An explicit [`Application`](api/scala/play/api/Application.html) can be passed in, but a default application (created from the default [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html)) is provided for convenience.
 
 Because [`WithApplication`](api/scala/play/api/test/WithApplication.html) is a built in [`Around`](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.Contexts.html#aroundeach) block, you can override it to provide your own data population:
 
@@ -83,8 +83,8 @@ If you are using an SQL database, you can replace the database connection with a
 
 ## Testing Messages API
 
-For functional tests that involve configuration, the best option is to use `WithApplication` and pull in an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
+For functional tests that involve configuration, the best option is to use [`WithApplication`](api/scala/play/api/test/WithApplication.html) and pull in an injected [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html):
 
 @[scalafunctionaltest-testmessages](code/specs2/ScalaFunctionalTestSpec.scala)
 
-If you need to customize the configuration, it's better to add configuration values into the GuiceApplicationBuilder rather than use the DefaultMessagesApiProvider directly.
+If you need to customize the configuration, it's better to add configuration values into the [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) rather than use the [`DefaultMessagesApiProvider`](api/scala/play/api/i18n/DefaultMessagesApiProvider.html) directly.
