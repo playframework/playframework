@@ -17,9 +17,12 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.routing.sird._
       import play.core.server.AkkaHttpServer
 
-      val server = AkkaHttpServer.fromRouterWithComponents() { components => {
-          case GET(p"/hello/$to") => components.defaultActionBuilder {
-            Results.Ok(s"Hello $to")
+      val server = AkkaHttpServer.fromRouterWithComponents() { components =>
+        import Results._
+        import components.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/hello/$to") => Action {
+            Ok(s"Hello $to")
           }
         }
       }
@@ -43,9 +46,12 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       val server = AkkaHttpServer.fromRouterWithComponents(ServerConfig(
         port = Some(19000),
         address = "127.0.0.1"
-      )) { components => {
-          case GET(p"/hello/$to") => components.defaultActionBuilder {
-            Results.Ok(s"Hello $to")
+      )) { components =>
+        import Results._
+        import components.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/hello/$to") => Action {
+            Ok(s"Hello $to")
           }
         }
       }

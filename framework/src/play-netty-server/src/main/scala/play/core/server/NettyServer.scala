@@ -296,9 +296,12 @@ class NettyServerProvider extends ServerProvider {
  * Or from a given router using [[BuiltInComponents]]:
  *
  * {{{
- *   val server = NettyServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components => {
- *       case GET(p"/") => components.defaultActionBuilder {
- *         Results.Ok("Hello")
+ *   val server = NettyServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
+ *     import play.api.mvc.Results._
+ *     import components.{ defaultActionBuilder => Action }
+ *     {
+ *       case GET(p"/") => Action {
+ *         Ok("Hello")
  *       }
  *     }
  *   }
