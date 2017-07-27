@@ -424,9 +424,9 @@ object AkkaHttpServer extends ServerFromRouter {
       application.materializer, () => Future.successful(()))
   }
 
-  override protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents => Router): Server = {
+  override protected def createServerFromRouter(serverConf: ServerConfig = ServerConfig())(routes: ServerComponents => Router): Server = {
     new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
-      override lazy val serverConfig: ServerConfig = serverConfig
+      override lazy val serverConfig: ServerConfig = serverConf
       override def router: Router = routes(this)
     }.server
   }
