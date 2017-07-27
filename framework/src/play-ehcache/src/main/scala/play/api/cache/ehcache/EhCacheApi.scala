@@ -5,6 +5,7 @@ package play.api.cache.ehcache
 
 import javax.inject.{ Inject, Provider, Singleton }
 
+import akka.actor.ActorSystem
 import akka.Done
 import akka.stream.Materializer
 import com.google.common.primitives.Primitives
@@ -127,8 +128,12 @@ private[play] object NamedEhCacheProvider {
 
 private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends Provider[AsyncCacheApi] {
   @Inject private var injector: Injector = _
+  @Inject private var defaultEc: ExecutionContext = _
+  @Inject private var config: Configuration = _
+  @Inject private var actorSystem: ActorSystem = _
+  private lazy val ec: ExecutionContext = config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
-    new EhCacheApi(injector.instanceOf(key))(injector.instanceOf[ExecutionContext])
+    new EhCacheApi(injector.instanceOf(key))(ec)
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
@@ -176,18 +181,18 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
           element.setTimeToLive(seconds.toInt)
         }
     }
-    Future.successful {
+    Future {
       cache.put(element)
       Done
     }
   }
 
-  def get[T](key: String)(implicit ct: ClassTag[T]): Future[Option[T]] = {
+  def get[T](key: String)(implicit ct: ClassTag[T]): Future[Option[T]] = Future {
     val result = Option(cache.get(key)).map(_.getObjectValue).filter { v =>
       Primitives.wrap(ct.runtimeClass).isInstance(v) ||
         ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
     }.asInstanceOf[Option[T]]
-    Future.successful(result)
+    result
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
@@ -197,7 +202,7 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
     }
   }
 
-  def remove(key: String): Future[Done] = Future.successful {
+  def remove(key: String): Future[Done] = Future {
     cache.remove(key)
     Done
   }
