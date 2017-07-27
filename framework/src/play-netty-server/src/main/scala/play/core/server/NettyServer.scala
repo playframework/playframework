@@ -9,7 +9,7 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
-import com.typesafe.config.{ Config, ConfigFactory, ConfigValue }
+import com.typesafe.config.{ Config, ConfigValue }
 import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
 import io.netty.bootstrap.Bootstrap
@@ -23,8 +23,6 @@ import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
-import play.api.mvc.{ Handler, RequestHeader }
 import play.api.routing.Router
 import play.core._
 import play.core.server.netty._
@@ -332,9 +330,9 @@ object NettyServer extends ServerFromRouter {
       application.materializer)
   }
 
-  override protected def createServerFromRouter(serverConfig: ServerConfig)(routes: (ServerComponents) => Router): Server = {
+  override protected def createServerFromRouter(serverConf: ServerConfig)(routes: (ServerComponents) => Router): Server = {
     new NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents {
-      override lazy val serverConfig: ServerConfig = serverConfig
+      override lazy val serverConfig: ServerConfig = serverConf
       override def router: Router = routes(this)
     }.server
   }

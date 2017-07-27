@@ -18,17 +18,16 @@ import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import com.typesafe.config.{ Config, ConfigFactory, ConfigMemorySize }
+import com.typesafe.config.{ Config, ConfigMemorySize }
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
-import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
+import play.core.ApplicationProvider
 import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
