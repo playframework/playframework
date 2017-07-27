@@ -24,6 +24,7 @@ class ExampleControllerSpec extends PlaySpecification with Results {
   }
 
 }
+// #scalatest-examplecontrollerspec
 
 // #scalatest-exampleformspec
 object FormData {
@@ -76,8 +77,6 @@ class ExampleFormSpec extends PlaySpecification with Results {
   }
 }
 // #scalatest-exampleformspec
-
-// #scalatest-examplecontrollerspec
 
 // #scalatest-exampletemplatespec
 class ExampleTemplateSpec extends PlaySpecification {
