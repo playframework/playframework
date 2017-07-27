@@ -330,7 +330,7 @@ object NettyServer extends ServerFromRouter {
       application.materializer)
   }
 
-  override protected def createServerFromRouter(serverConf: ServerConfig)(routes: (ServerComponents) => Router): Server = {
+  override protected def createServerFromRouter(serverConf: ServerConfig)(routes: ServerComponents with BuiltInComponents => Router): Server = {
     new NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = serverConf
       override def router: Router = routes(this)

@@ -230,17 +230,17 @@ object Server {
 /**
  * Components to create a Server instance.
  */
-trait ServerComponents extends BuiltInComponents {
+trait ServerComponents {
 
   def server: Server
 
   lazy val serverConfig: ServerConfig = ServerConfig()
 
-  override lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
-  override lazy val sourceMapper: Option[SourceMapper] = None
-  override lazy val webCommands: WebCommands = new DefaultWebCommands
-  override lazy val configuration: Configuration = Configuration(ConfigFactory.load())
-  override lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
+  lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
+  lazy val sourceMapper: Option[SourceMapper] = None
+  lazy val webCommands: WebCommands = new DefaultWebCommands
+  lazy val configuration: Configuration = Configuration(ConfigFactory.load())
+  lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
 
   def serverStopHook: () => Future[Unit] = () => Future.successful(())
 }
@@ -250,7 +250,7 @@ trait ServerComponents extends BuiltInComponents {
  */
 private[server] trait ServerFromRouter {
 
-  protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents => Router): Server
+  protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server
 
   /**
    * Creates a [[Server]] from the given router.
