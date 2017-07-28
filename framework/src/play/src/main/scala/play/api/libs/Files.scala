@@ -276,20 +276,16 @@ object Files {
           import scala.compat.java8.StreamConverters._
 
           val directoryStream = JFiles.list(f)
-            .filter(new Predicate[Path]() {
+
+          try {
+            val reaped = directoryStream.filter(new Predicate[Path]() {
               override def test(p: Path): Boolean = {
                 val lastModifiedTime = JFiles.getLastModifiedTime(p).toInstant
                 lastModifiedTime.isBefore(secondsAgo)
               }
-            })
+            }).toScala[List]
 
-          try {
-            val reaped = directoryStream.toScala[List]
-
-            reaped.foreach { p =>
-              delete(p)
-            }
-
+            reaped.foreach(delete)
             reaped
           } finally {
             directoryStream.close()
