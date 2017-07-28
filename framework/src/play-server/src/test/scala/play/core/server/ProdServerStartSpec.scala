@@ -3,10 +3,18 @@
  */
 package play.core.server
 
-import com.google.common.io.Files
 import java.io.File
+import java.nio.charset.Charset
+import java.nio.file.Files
 import java.util.Properties
+import java.util.concurrent._
+
+import com.google.common.io.{ Files => GFiles }
 import org.specs2.mutable.Specification
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1) extends Exception(s"Exit with $message, $returnCode", cause.orNull)
 
@@ -57,7 +65,7 @@ class FakeServerProvider extends ServerProvider {
 class ProdServerStartSpec extends Specification {
 
   def withTempDir[T](block: File => T) = {
-    val temp = Files.createTempDir()
+    val temp = GFiles.createTempDir()
     try {
       block(temp)
     } finally {
@@ -165,6 +173,87 @@ class ProdServerStartSpec extends Specification {
       exitResult {
         ProdServerStart.start(process)
       } must beLeft
+    }
+
+    "not have a race condition when creating a pid file" in withTempDir { tempDir =>
+
+      // This test creates several fake server processes and starts them concurrently,
+      // checking whether or not PID file creation behaves properly. The test is
+      // not deterministic; it might pass even if there is a bug in the code. In practice,
+      // this test does appear to fail every time when there is a bug. Behavior may
+      // differ across machines.
+
+      // Number of fake process threads to create.
+      val fakeProcessThreads = 25
+
+      // Where the PID file will be created.
+      val expectedPidFile = new File(tempDir, "RUNNING_PID")
+
+      // Run the test with one thread per fake process
+      val threadPoolService: ExecutorService = Executors.newFixedThreadPool(fakeProcessThreads)
+      try {
+        val threadPool: ExecutionContext = ExecutionContext.fromExecutorService(threadPoolService)
+
+        // Use a latch to stall the threads until they are all ready to go, then
+        // release them all at once. This maximizes the chance of a race condition
+        // being visible.
+        val raceLatch = new CountDownLatch(fakeProcessThreads)
+
+        // Spin up each thread and collect the result in a future. The boolean
+        // results indicate whether or not the process believes it created a PID file.
+        val futureResults: Seq[Future[Boolean]] = for (fakePid <- 0 until fakeProcessThreads) yield {
+          Future {
+
+            // Create the process and await the latch
+            val process = new FakeServerProcess(
+              args = Seq(tempDir.getAbsolutePath),
+              pid = Some(fakePid.toString)
+            )
+            val serverConfig: ServerConfig = ProdServerStart.readServerConfigSettings(process)
+            raceLatch.countDown()
+
+            // The code to be tested - creating the PID file
+            val createPidResult: Try[Option[File]] = Try {
+              ProdServerStart.createPidFile(process, serverConfig.configuration)
+            }
+
+            // Check the result of creating the PID file
+            createPidResult match {
+              case Success(None) =>
+                ko("createPidFile didn't even try to create a file")
+                false
+              case Success(Some(createdFile)) =>
+                // Check file is written to the right place
+                createdFile.exists must beTrue
+                createdFile.getAbsolutePath must_== expectedPidFile.getAbsolutePath
+                // Check file contains exactly the PID
+                val writtenPid: String = new String(Files.readAllBytes(createdFile.toPath()), Charset.forName("UTF-8"))
+                writtenPid must_== fakePid.toString
+                true
+              case Failure(sse: ServerStartException) =>
+                // Check the exception when the PID file couldn't be written
+                sse.message must contain("application is already running")
+                false
+              case Failure(e) =>
+                throw e
+            }
+          }(threadPool)
+        }
+
+        // Await the result
+        val results: Seq[Boolean] = {
+          import ExecutionContext.Implicits.global // implicit for Future.sequence
+          Await.result(
+            Future.sequence(futureResults),
+            Duration(30, TimeUnit.SECONDS))
+        }
+
+        // Check that at most 1 PID file was created
+        val pidFilesCreated: Int = results.filter(identity).size
+        pidFilesCreated must_== 1
+
+      } finally threadPoolService.shutdown()
+      ok
     }
 
   }

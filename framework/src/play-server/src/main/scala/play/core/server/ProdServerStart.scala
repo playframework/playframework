@@ -4,7 +4,10 @@
 package play.core.server
 
 import java.io._
+import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
+
 import play.api._
+
 import scala.util.control.NonFatal
 
 /**
@@ -122,13 +125,11 @@ object ProdServerStart {
       .getOrElse(throw ServerStartException("Pid file path not configured"))
     if (pidFilePath == "/dev/null") None else {
       val pidFile = new File(pidFilePath).getAbsoluteFile
-
-      if (pidFile.exists) {
-        throw ServerStartException(s"This application is already running (Or delete ${pidFile.getPath} file).")
-      }
-
       val pid = process.pid getOrElse (throw ServerStartException("Couldn't determine current process's pid"))
-      val out = java.nio.file.Files.newOutputStream(pidFile.toPath)
+      val out = try Files.newOutputStream(pidFile.toPath, StandardOpenOption.CREATE_NEW) catch {
+        case _: FileAlreadyExistsException =>
+          throw ServerStartException(s"This application is already running (Or delete ${pidFile.getPath} file).")
+      }
       try out.write(pid.getBytes) finally out.close()
 
       Some(pidFile)
