@@ -25,4 +25,4 @@ For example, to just provide a custom server error message in production, leavin
 
 @[default](code/ScalaErrorHandling.scala)
 
-Checkout the full API documentation for [`DefaultHttpErrorHandler`](api/scala/play/api/http/DefaultHttpErrorHandler.html) to see what methods are available to override, and how you can take advantage of them.
+Check out the full API documentation for [`DefaultHttpErrorHandler`](api/scala/play/api/http/DefaultHttpErrorHandler.html) to see what methods are available to override, and how you can take advantage of them.
