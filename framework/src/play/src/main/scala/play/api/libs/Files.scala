@@ -309,7 +309,12 @@ object Files {
 
     if (config.enabled) {
       import config._
-      logger.info(s"Reaper enabled on $playTempFolder, starting in $initialDelay with $interval intervals")
+      playTempFolder match {
+        case Some(folder) =>
+          logger.debug(s"Reaper enabled on $folder, starting in $initialDelay with $interval intervals")
+        case None =>
+          logger.debug(s"Reaper enabled but no temp folder has been created yet, starting in $initialDelay with $interval intervals")
+      }
       cancellable = Some(actorSystem.scheduler.schedule(initialDelay, interval){
         reap()
       }(actorSystem.dispatcher))
