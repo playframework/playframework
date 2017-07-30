@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-import com.typesafe.sbt.SbtScalariform._
 import sbt.ScriptedPlugin._
 import sbt._
 import Keys.{version, _}
@@ -199,7 +198,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.akkahttp.AkkaModelConversion.this"),
 
       // Added method to PlayBodyParsers, which is a Play API not meant to be extended by end users.
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.byteString")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.byteString"),
+
+      // Refactoring to unify AkkaHttpServer and NettyServer fromRouter methods
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.NettyServer.fromRouter"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.AkkaHttpServer.fromRouter")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

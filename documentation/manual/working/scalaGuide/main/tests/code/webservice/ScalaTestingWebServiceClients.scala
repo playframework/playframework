@@ -45,11 +45,12 @@ class GitHubClientSpec extends Specification {
   "GitHubClient" should {
     "get all repositories" in {
 
-      Server.withRouterFromComponents() { cs =>
-        import cs.{ defaultActionBuilder => Action }
+      Server.withRouterFromComponents() { components =>
+        import Results._
+        import components.{ defaultActionBuilder => Action }
         {
           case GET(p"/repositories") => Action {
-            Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+            Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
           }
         }
       } { implicit port =>
@@ -89,11 +90,12 @@ class ScalaTestingWebServiceClients extends Specification {
       import play.api.routing.sird._
       import play.core.server.Server
 
-      Server.withRouterFromComponents() { cs =>
-        import cs.{ defaultActionBuilder => Action }
+      Server.withRouterFromComponents() { components =>
+        import Results._
+        import components.{ defaultActionBuilder => Action }
         {
           case GET(p"/repositories") => Action {
-            Results.Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
+            Ok(Json.arr(Json.obj("full_name" -> "octocat/Hello-World")))
           }
         }
       } { implicit port =>
@@ -113,7 +115,7 @@ class ScalaTestingWebServiceClients extends Specification {
         new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
-              this.defaultActionBuilder { req =>
+              Action { req =>
                 Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
               }
           }
@@ -138,7 +140,7 @@ class ScalaTestingWebServiceClients extends Specification {
           new BuiltInComponentsFromContext(context) with HttpFiltersComponents{
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
-                this.defaultActionBuilder { req =>
+                Action { req =>
                   Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
                 }
             }
