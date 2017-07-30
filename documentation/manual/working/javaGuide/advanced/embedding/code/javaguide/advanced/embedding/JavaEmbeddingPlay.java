@@ -28,11 +28,13 @@ public class JavaEmbeddingPlay {
     @Test
     public void simple() throws Exception {
         //#simple
-        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
+        Server server = Server.forRouter((components) ->
+            RoutingDsl.fromComponents(components)
                 .GET("/hello/:to").routeTo(to ->
-                        ok("Hello " + to)
+                    ok("Hello " + to)
                 )
-                .build());
+                .build()
+        );
         //#simple
 
         try {
@@ -58,9 +60,10 @@ public class JavaEmbeddingPlay {
     @Test
     public void config() throws Exception {
         //#config
-        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
+        Server server = Server.forRouter((components) ->
+            RoutingDsl.fromComponents(components)
                 .GET("/hello/:to").routeTo(to ->
-                        ok("Hello " + to)
+                    ok("Hello " + to)
                 )
                 .build()
         );
