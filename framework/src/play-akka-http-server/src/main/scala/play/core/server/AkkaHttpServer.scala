@@ -424,6 +424,11 @@ object AkkaHttpServer extends ServerFromRouter {
       application.materializer, () => Future.successful(()))
   }
 
+  // Preserve binary compatibility on the 2.6.x branch by casting the return type
+  override def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): AkkaHttpServer = {
+    super.fromRouter(config)(routes).asInstanceOf[AkkaHttpServer]
+  }
+
   override protected def createServerFromRouter(serverConf: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server = {
     new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = serverConf

@@ -23,6 +23,7 @@ import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
+import play.api.mvc.{ Handler, RequestHeader }
 import play.api.routing.Router
 import play.core._
 import play.core.server.netty._
@@ -328,6 +329,11 @@ object NettyServer extends ServerFromRouter {
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
     new NettyServer(config, ApplicationProvider(application), () => Future.successful(()), application.actorSystem)(
       application.materializer)
+  }
+
+  // Preserve binary compatibility on the 2.6.x branch by casting the return type
+  override def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): NettyServer = {
+    super.fromRouter(config)(routes).asInstanceOf[NettyServer]
   }
 
   override protected def createServerFromRouter(serverConf: ServerConfig)(routes: ServerComponents with BuiltInComponents => Router): Server = {
