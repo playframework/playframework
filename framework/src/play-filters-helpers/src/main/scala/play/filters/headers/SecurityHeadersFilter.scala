@@ -6,6 +6,7 @@ package play.filters.headers
 import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.Configuration
+import play.api.http.HeaderNames
 import play.api.inject._
 import play.api.mvc._
 
@@ -34,12 +35,12 @@ import play.api.mvc._
  * @see <a href="https://www.w3.org/TR/referrer-policy/">Referrer Policy</a>
  */
 object SecurityHeadersFilter {
-  val X_FRAME_OPTIONS_HEADER = "X-Frame-Options"
-  val X_XSS_PROTECTION_HEADER = "X-XSS-Protection"
-  val X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options"
-  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies"
-  val CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
-  val REFERRER_POLICY = "Referrer-Policy"
+  val X_FRAME_OPTIONS_HEADER = HeaderNames.X_FRAME_OPTIONS
+  val X_XSS_PROTECTION_HEADER = HeaderNames.X_XSS_PROTECTION
+  val X_CONTENT_TYPE_OPTIONS_HEADER = HeaderNames.X_CONTENT_TYPE_OPTIONS
+  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES
+  val CONTENT_SECURITY_POLICY_HEADER = HeaderNames.CONTENT_SECURITY_POLICY
+  val REFERRER_POLICY = HeaderNames.REFERRER_POLICY
 
   /**
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
