@@ -193,6 +193,18 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.common.ServerResultUtils.cookieHeaderEncoding"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.common.ServerResultUtils.flashBaker"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.common.ServerResultUtils.this"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CONTENT_SECURITY_POLICY"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CONTENT_SECURITY_POLICY_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_XSS_PROTECTION_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_XSS_PROTECTION"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$REFERRER_POLICY_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.REFERRER_POLICY"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_CONTENT_TYPE_OPTIONS"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_CONTENT_TYPE_OPTIONS_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_PERMITTED_CROSS_DOMAIN_POLICIES_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_FRAME_OPTIONS"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_FRAME_OPTIONS_="),
 
       // private
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.akkahttp.AkkaModelConversion.this"),
