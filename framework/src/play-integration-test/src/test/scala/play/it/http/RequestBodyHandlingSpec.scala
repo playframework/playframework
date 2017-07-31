@@ -98,8 +98,8 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       Results.Ok(rh.body.asText.getOrElse(""))
     }) { port =>
       // big body that should not crash akka and netty
-      val body = "Hello World" * 1024 * 1024
-      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+      val body = "Hello World" * (1024 * 1024)
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(1))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
       )
       responses.length must_== 1
