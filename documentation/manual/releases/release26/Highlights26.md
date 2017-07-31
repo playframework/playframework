@@ -374,6 +374,17 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
 
 > **Note**: this implementation is fully compatible with Scala version `LoggerConfigurator` and can even be used in Scala projects if necessary, which means that module creators can provide a Java or Scala implementation of LoggerConfigurator and they will be usable in both Java and Scala projects.
 
+## Separate Java Forms module and PlayMinimalJava plugin
+
+The [[Java forms|JavaForms]] functionality has been split out into a separate module. The forms functionality depends on a few Spring modules and the Hibernate validator, so if you are not using forms, you may wish to remove the Java forms module to avoid those unnecessary dependencies.
+
+This module is automatically included by the `PlayJava` plugin, but can be disabled by using the `PlayMinimalJava` plugin instead:
+
+```
+lazy val root = (project in file("."))
+  .enablePlugins(PlayMinimalJava)
+```
+
 ## Java Compile Time Components
 
 Just as in Scala, Play now has components to enable [[Java Compile Time Dependency Injection|JavaCompileTimeDependencyInjection]]. The components were created as interfaces that you should `implements` and they provide default implementations. There are components for all the types that could be injected when using [[Runtime Dependency Injection|JavaDependencyInjection]]. To create an application using Compile Time Dependency Injection, you just need to provide an implementation of `play.ApplicationLoader` that uses a custom implementation of `play.BuiltInComponents`, for example:
