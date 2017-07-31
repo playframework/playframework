@@ -263,6 +263,16 @@ trait BuiltInComponents extends I18nComponents {
   def router: Router
 
   /**
+   * Alias method to [[defaultActionBuilder]]. This just helps to keep the idiom of using `Action`
+   * when creating `Router`s using the built in components.
+   *
+   * @return the default action builder.
+   */
+  def Action: DefaultActionBuilder = defaultActionBuilder
+
+  def parse = playBodyParsers
+
+  /**
    * The runtime [[Injector]] instance provided to the [[DefaultApplication]]. This injector is set up to allow
    * existing (deprecated) legacy APIs to function. It is not set up to support injecting arbitrary Play components.
    */

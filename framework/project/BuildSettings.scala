@@ -1,8 +1,6 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-import com.typesafe.sbt.SbtScalariform._
-
 import sbt.ScriptedPlugin._
 import sbt._
 import Keys.{version, _}

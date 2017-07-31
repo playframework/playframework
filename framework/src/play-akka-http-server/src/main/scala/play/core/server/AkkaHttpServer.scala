@@ -18,17 +18,16 @@ import akka.http.scaladsl.{ ConnectionContext, Http }
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import com.typesafe.config.{ Config, ConfigFactory, ConfigMemorySize }
+import com.typesafe.config.{ Config, ConfigMemorySize }
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
-import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
+import play.core.ApplicationProvider
 import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
@@ -53,7 +52,7 @@ class AkkaHttpServer(
   private val serverConfig = config.configuration.get[Configuration]("play.server")
   private val akkaServerConfig = config.configuration.get[Configuration]("play.server.akka")
 
-  def mode = config.mode
+  override def mode: Mode = config.mode
 
   // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
   implicit private val system: ActorSystem = actorSystem
@@ -348,9 +347,9 @@ class AkkaHttpServer(
     httpServerBinding.orElse(httpsServerBinding).map(_.localAddress).get
   }
 
-  def httpPort = httpServerBinding.map(_.localAddress.getPort)
+  override def httpPort: Option[Int] = httpServerBinding.map(_.localAddress.getPort)
 
-  def httpsPort = httpsServerBinding.map(_.localAddress.getPort)
+  override def httpsPort: Option[Int] = httpsServerBinding.map(_.localAddress.getPort)
 
   /**
    * There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and
@@ -377,7 +376,34 @@ class AkkaHttpServer(
   }
 }
 
-object AkkaHttpServer {
+/**
+ * Creates an AkkaHttpServer from the given router:
+ *
+ * {{{
+ *   val server = AkkaHttpServer.fromRouter(ServerConfig(port = Some(9002))) {
+ *     case GET(p"/") => Action {
+ *       Results.Ok("Hello")
+ *     }
+ *   }
+ * }}}
+ *
+ * Or from a given router using [[BuiltInComponents]]:
+ *
+ * {{{
+ *   val server = AkkaHttpServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
+ *     import play.api.mvc.Results._
+ *     import components.{ defaultActionBuilder => Action }
+ *     {
+ *       case GET(p"/") => Action {
+ *         Ok("Hello")
+ *       }
+ *     }
+ *   }
+ * }}}
+ *
+ * Use this together with <a href="https://www.playframework.com/documentation/2.6.x/ScalaSirdRouter">Sird Router</a>.
+ */
+object AkkaHttpServer extends ServerFromRouter {
 
   private val logger = Logger(classOf[AkkaHttpServer])
 
@@ -398,10 +424,15 @@ object AkkaHttpServer {
       application.materializer, () => Future.successful(()))
   }
 
-  def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): AkkaHttpServer = {
+  // Preserve binary compatibility on the 2.6.x branch by casting the return type
+  override def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): AkkaHttpServer = {
+    super.fromRouter(config)(routes).asInstanceOf[AkkaHttpServer]
+  }
+
+  override protected def createServerFromRouter(serverConf: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server = {
     new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
-      override lazy val serverConfig: ServerConfig = config
-      lazy val router: Router = Router.from(routes)
+      override lazy val serverConfig: ServerConfig = serverConf
+      override def router: Router = routes(this)
     }.server
   }
 }
@@ -415,8 +446,10 @@ class AkkaHttpServerProvider extends ServerProvider {
       context.stopHook)
 }
 
-trait AkkaHttpServerComponents {
-  lazy val serverConfig: ServerConfig = ServerConfig()
+/**
+ * Components for building a simple Akka HTTP Server.
+ */
+trait AkkaHttpServerComponents extends ServerComponents {
   lazy val server: AkkaHttpServer = {
     // Start the application first
     Play.start(application)
@@ -424,16 +457,5 @@ trait AkkaHttpServerComponents {
       application.materializer, serverStopHook)
   }
 
-  lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
-  lazy val sourceMapper: Option[SourceMapper] = None
-  lazy val webCommands: WebCommands = new DefaultWebCommands
-  lazy val configuration: Configuration = Configuration(ConfigFactory.load())
-  lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
-
   def application: Application
-
-  /**
-   * Called when Server.stop is called.
-   */
-  def serverStopHook: () => Future[Unit] = () => Future.successful(())
 }
