@@ -3,6 +3,14 @@
 
 Before you start with Play forms, read the documentation on the [[Play enhancer|PlayEnhancer]]. The Play enhancer generates accessors for fields in Java classes for you, so that you don't have to generate them yourself. You may decide to use this as a convenience. All the examples below show manually writing accessors for your classes.
 
+## Enabling/Disabling the forms module
+
+By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` SBT plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
+
+The forms module is also available in `PlayImport` as `javaForms`, which can be used with `libraryDependencies += javaForms` in your `build.sbt`.
+
+> **Note:** If you are not using forms, you can remove the forms dependency by using the `PlayMinimalJava` SBT plugin instead of `PlayJava`. This also allows you to remove several transitive dependencies only used by the forms module, including several Spring modules and the Hibernate validator.
+    
 ## Defining a form
 
 The `play.data` package contains several helpers to handle HTTP form data submission and validation. The easiest way to handle a form submission is to define a `play.data.Form` that wraps an existing class:

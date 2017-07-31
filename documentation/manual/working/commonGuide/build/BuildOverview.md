@@ -40,7 +40,10 @@ The `version` line provides  the version of your application which is used as pa
 
 The `libraryDependencies` line specifies the libraries that your application depends on. You can see more details about [how to manage your dependencies in the sbt docs](http://www.scala-sbt.org/0.13/docs/Library-Management.html).
 
-You should use the `PlayJava` or `PlayScala` plugin to configure sbt for Java or Scala respectively.
+Finally, you need to enable an SBT plugin on your project to "Play-ify" it. This adds support for Play-specific features such as the twirl compiler and the routes compiler, and adds the necessary Play libraries to build your project and run the server. Generally you should use one of the following Play plugins for a Play application:
+ - `PlayScala`: a standard Play Scala project.
+ - `PlayJava`: a standard Play Java project, with the [[forms|JavaForms]] module.
+ - `PlayMinimalJava`: a minimal Play Java project, without forms support.
 
 ### Using scala for building
 
