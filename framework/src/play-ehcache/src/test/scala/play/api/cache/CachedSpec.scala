@@ -214,7 +214,7 @@ class CachedSpec extends PlaySpecification {
     }
 
     "cache everything one hour" in new WithApplication() {
-      val cache = cached(app).everything(x => x.uri, 3600)
+      val cache = cached(app).everything((x: RequestHeader) => x.uri, 3600)
 
       val actionOk = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
@@ -235,6 +235,46 @@ class CachedSpec extends PlaySpecification {
       res0.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
       res1.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
 
+    }
+
+    "cache everything for a given duration" in new WithApplication {
+      val duration = 15.minutes
+      val cache = cached.everything((x: RequestHeader) => x.uri, duration)
+
+      val actionOk = cache.build(dummyAction)
+      val actionNotFound = cache.build(notFoundAction)
+
+      val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run())
+      val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
+
+      def toDuration(header: String) = {
+        val now = Instant.now().toEpochMilli
+        val target = Instant.from(http.dateFormat.parse(header)).toEpochMilli
+        Duration(target - now, MILLISECONDS)
+      }
+
+      res0.map(toDuration) must beSome(beBetween((duration - 10.seconds), duration))
+      res1.map(toDuration) must beSome(beBetween((duration - 10.seconds), duration))
+    }
+
+    "cache 200 OK results for a given duration" in new WithApplication {
+      val duration = 15.minutes
+      val cache = cached.status((x: RequestHeader) => x.uri, OK, duration)
+
+      val actionOk = cache.build(dummyAction)
+      val actionNotFound = cache.build(notFoundAction)
+
+      val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run())
+      val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
+
+      def toDuration(header: String) = {
+        val now = Instant.now().toEpochMilli
+        val target = Instant.from(http.dateFormat.parse(header)).toEpochMilli
+        Duration(target - now, MILLISECONDS)
+      }
+
+      res0.map(toDuration) must beSome(beBetween((duration - 10.seconds), duration))
+      res1.map(toDuration) must beNone
     }
   }
 

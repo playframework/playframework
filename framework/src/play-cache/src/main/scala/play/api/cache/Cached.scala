@@ -49,7 +49,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param key Cache key
    */
   def apply(key: String): CachedBuilder = {
-    apply(_ => key, duration = 0)
+    apply((_: RequestHeader) => key, duration = 0)
   }
 
   /**
@@ -60,6 +60,16 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    */
   def apply(key: RequestHeader => String, duration: Int): CachedBuilder = {
     new CachedBuilder(cache, key, { case (_: ResponseHeader) => Duration(duration, SECONDS) })
+  }
+
+  /**
+   * Cache an action.
+   *
+   * @param key Cache key
+   * @param duration Cache duration
+   */
+  def apply(key: RequestHeader => String, duration: Duration): CachedBuilder = {
+    new CachedBuilder(cache, key, { case (_: ResponseHeader) => duration })
   }
 
   /**
@@ -82,10 +92,22 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
     empty(key).default(duration)
 
   /**
+   * Caches everything for the specified duration
+   */
+  def everything(key: RequestHeader => String, duration: Duration): CachedBuilder =
+    empty(key).default(duration)
+
+  /**
    * Caches the specified status, for the specified number of seconds
    */
   def status(key: RequestHeader => String, status: Int, duration: Int): CachedBuilder =
     empty(key).includeStatus(status, Duration(duration, SECONDS))
+
+  /**
+   * Caches the specified status, for the specified duration
+   */
+  def status(key: RequestHeader => String, status: Int, duration: Duration): CachedBuilder =
+    empty(key).includeStatus(status, duration)
 
   /**
    * Caches the specified status forever
