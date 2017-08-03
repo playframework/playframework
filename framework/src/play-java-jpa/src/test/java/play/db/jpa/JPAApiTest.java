@@ -3,12 +3,19 @@
  */
 package play.db.jpa;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import play.db.Database;
 import play.db.Databases;
 
 import org.junit.Test;
+import play.db.jpa.DefaultJPAConfig.JPAConfigProvider;
 
 import javax.persistence.EntityManager;
 
@@ -19,6 +26,30 @@ public class JPAApiTest {
 
     @Rule
     public TestDatabase db = new TestDatabase();
+
+    @Test
+    public void shouldWorkWithEmptyConfiguration() {
+        Config config = ConfigFactory.load();
+        assertThat(new JPAConfigProvider(config).get().persistenceUnits(), notNullValue());
+    }
+
+    @Test
+    public void shouldWorkWithLegacyConfiguration() {
+        Config overrides = ConfigFactory.parseString("jpa.default = defaultPersistenceUnit");
+        Config config = overrides.withFallback(ConfigFactory.load());
+        List<String> unitNames = new JPAConfigProvider(config).get().persistenceUnits().stream()
+            .map(unit -> unit.unitName).collect(Collectors.toList());
+        assertThat(unitNames, equalTo(Arrays.asList("defaultPersistenceUnit")));
+    }
+
+    @Test
+    public void shouldWorkWithPlayConfiguration() {
+        Config overrides = ConfigFactory.parseString("play.jpa.default = defaultPersistenceUnit");
+        Config config = overrides.withFallback(ConfigFactory.load());
+        List<String> unitNames = new JPAConfigProvider(config).get().persistenceUnits().stream()
+            .map(unit -> unit.unitName).collect(Collectors.toList());
+        assertThat(unitNames, equalTo(Arrays.asList("defaultPersistenceUnit")));
+    }
 
     @Test
     public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
