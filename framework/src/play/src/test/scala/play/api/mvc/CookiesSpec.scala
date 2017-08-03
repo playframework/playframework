@@ -187,6 +187,11 @@ class CookiesSpec extends Specification {
       codec.decode(jwtValue) must contain("hello" -> "world")
     }
 
+    "decode empty string to map" in {
+      val jwtValue = ""
+      codec.decode(jwtValue) must beEmpty
+    }
+
     "encode and decode in a round trip" in {
       val jwtValue = codec.encode(Map("hello" -> "world"))
       codec.decode(jwtValue) must contain("hello" -> "world")
@@ -279,6 +284,10 @@ class CookiesSpec extends Specification {
     "decode a JWT cookie encoding" in {
       val signedEncoding = "eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
       sessionCookieBaker.decode(signedEncoding) must contain("hello" -> "world")
+    }
+
+    "decode an empty cookie" in {
+      sessionCookieBaker.decode("") must beEmpty
     }
 
     "decode an empty legacy session" in {
