@@ -8,6 +8,7 @@ import play.Application;
 import play.mvc.Http;
 import play.mvc.PathBindable;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import java.io.InputStream;
 import java.util.function.Function;
@@ -29,6 +30,18 @@ public abstract class AbstractRoutingDslTest {
 
     private Router router(Function<RoutingDsl, Router> function) {
         return function.apply(routingDsl());
+    }
+
+    @Test
+    public void shouldPreserveRequestBody() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+            .routeTo(() -> {
+                // This better emulates how users will access the request object
+                Http.Request request = Http.Context.current().request();
+                return ok(request.body().asText());
+            }).build());
+
+        assertThat(makeRequest(router, "POST", "/with-body", "The Body"), equalTo("The Body"));
     }
 
     @Test
@@ -317,7 +330,15 @@ public abstract class AbstractRoutingDslTest {
     }
 
     private String makeRequest(Router router, String method, String path) {
-        Result result = routeAndCall(application(), router, fakeRequest(method, path));
+        return makeRequest(router, method, path, /* no body */null);
+    }
+
+    private String makeRequest(Router router, String method, String path, String body) {
+        Http.RequestBuilder request = fakeRequest(method, path);
+        if (body != null) {
+            request.bodyText(body);
+        }
+        Result result = routeAndCall(application(), router, request);
         if (result == null) {
             return null;
         } else {

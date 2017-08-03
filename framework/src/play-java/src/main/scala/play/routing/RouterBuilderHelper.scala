@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage
 import play.api.mvc._
 import play.core.j.{ JavaContextComponents, JavaHelpers }
 import play.mvc.Http.Context
-import play.mvc.Result
+import play.mvc.{ Http, Result }
 import play.utils.UriEncoding
 
 import scala.collection.JavaConverters._
@@ -59,7 +59,8 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], c
             val action = maybeParams match {
               case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
               case Right(parameters) =>
-                ActionBuilder.ignoringBody.async(bodyParser) { request =>
+                import play.core.Execution.Implicits.trampoline
+                ActionBuilder.ignoringBody.async(bodyParser.map(ac => new Http.RequestBody(ac))) { request =>
                   val ctx = JavaHelpers.createJavaContext(request, contextComponents)
                   try {
                     Context.current.set(ctx)
@@ -69,7 +70,6 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], c
                         val p = promise.asInstanceOf[CompletionStage[Result]]
                         FutureConverters.toScala(p)
                     }
-                    import play.core.Execution.Implicits.trampoline
                     javaResultFuture.map(JavaHelpers.createResult(ctx, _))
                   } finally {
                     Context.current.remove()
