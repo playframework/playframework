@@ -60,7 +60,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.5/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.5.3/java/general/configuration.html#listing-of-the-reference-configuration).
 
 ## Using other thread pools
 
