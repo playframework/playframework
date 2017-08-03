@@ -903,7 +903,10 @@ public class Http {
         /**
          * Constructor only based on a header.
          * @param header the header from a request
+         *
+         * @deprecated Since 2.7.0. Use {@link #RequestImpl(play.api.mvc.Request)} instead.
          */
+        @Deprecated
         public RequestImpl(play.api.mvc.RequestHeader header) {
             super(header.withBody(null));
         }
