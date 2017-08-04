@@ -516,7 +516,7 @@ import play.api.data.JodaForms._
 If you need Joda support in play-json, you can add the following dependency:
 
 ```scala
-libraryDependencies += "com.typesafe.play" % "play-json-joda" % playJsonVersion
+libraryDependencies += "com.typesafe.play" %% "play-json-joda" % playJsonVersion
 ```
 
 where `playJsonVersion` is the play-json version you wish to use. Play 2.6.x should be compatible with play-json 2.6.x. Note that play-json is now a separate project (described later).
