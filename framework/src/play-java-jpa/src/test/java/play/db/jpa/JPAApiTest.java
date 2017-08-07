@@ -3,22 +3,75 @@
  */
 package play.db.jpa;
 
-import org.junit.Rule;
-import org.junit.rules.ExternalResource;
-import play.db.Database;
-import play.db.Databases;
-
-import org.junit.Test;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExternalResource;
+import play.db.Database;
+import play.db.Databases;
+import play.db.jpa.DefaultJPAConfig.JPAConfigProvider;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 public class JPAApiTest {
 
     @Rule
     public TestDatabase db = new TestDatabase();
+
+    @Test
+    public void shouldWorkWithEmptyConfiguration() {
+        Config config = ConfigFactory.load();
+        assertThat(new JPAConfigProvider(config).get().persistenceUnits(), notNullValue());
+    }
+
+    @Test
+    public void shouldWorkWithLegacyConfiguration() {
+        Config overrides = ConfigFactory.parseString("jpa.default = defaultPersistenceUnit");
+        Config config = overrides.withFallback(ConfigFactory.load());
+        Set<String> unitNames = new JPAConfigProvider(config).get().persistenceUnits().stream()
+            .map(unit -> unit.unitName).collect(Collectors.toSet());
+        assertThat(unitNames, equalTo(Sets.newHashSet("defaultPersistenceUnit")));
+    }
+
+    @Test
+    public void shouldWorkWithPlayConfiguration() {
+        Config overrides = ConfigFactory.parseString("play.jpa.default = defaultPersistenceUnit");
+        Config config = overrides.withFallback(ConfigFactory.load());
+        Set<String> unitNames = new JPAConfigProvider(config).get().persistenceUnits().stream()
+            .map(unit -> unit.unitName).collect(Collectors.toSet());
+        assertThat(unitNames, equalTo(Sets.newHashSet("defaultPersistenceUnit")));
+    }
+
+    @Test
+    public void shouldWorkWithMultipleConfiguration() {
+        Config overrides = ConfigFactory.parseString(
+            "play.jpa.one = pu1\njpa.two = pu2");
+        Config config = overrides.withFallback(ConfigFactory.load());
+        Set<String> unitNames = new JPAConfigProvider(config).get().persistenceUnits().stream()
+            .map(unit -> unit.unitName).collect(Collectors.toSet());
+        assertThat(unitNames, equalTo(Sets.newHashSet("pu1", "pu2")));
+    }
+
+    @Test
+    public void shouldWorkWithMultipleOverlappingConfiguration() {
+        Config overrides = ConfigFactory.parseString(
+            "play.jpa.one = pu1\njpa.one = pu2");
+        Config config = overrides.withFallback(ConfigFactory.load());
+        Set<String> unitNames = new JPAConfigProvider(config).get().persistenceUnits().stream()
+            .map(unit -> unit.unitName).collect(Collectors.toSet());
+        assertThat(unitNames, equalTo(Sets.newHashSet("pu2")));
+    }
 
     @Test
     public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
