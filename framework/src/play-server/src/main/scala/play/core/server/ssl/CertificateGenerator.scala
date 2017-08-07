@@ -10,7 +10,6 @@ import java.math.BigInteger
 import java.util.Date
 import sun.security.util.ObjectIdentifier
 import java.time.{ Duration, Instant }
-import scala.util.Properties.isJavaAtLeast
 
 /**
  * Used for testing only.  This relies on internal sun.security packages, so cannot be used in OpenJDK.
@@ -73,14 +72,10 @@ object CertificateGenerator {
     val sn: BigInteger = new BigInteger(64, new SecureRandom)
     val owner: X500Name = new X500Name(dn)
 
-    // Note: CertificateSubjectName and CertificateIssuerName are removed in Java 8
-    // and when setting the subject or issuer just the X500Name should be used.
-    val justName = isJavaAtLeast("1.8")
-
     info.set(X509CertInfo.VALIDITY, interval)
     info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(sn))
-    info.set(X509CertInfo.SUBJECT, if (justName) owner else new CertificateSubjectName(owner))
-    info.set(X509CertInfo.ISSUER, if (justName) owner else new CertificateIssuerName(owner))
+    info.set(X509CertInfo.SUBJECT, owner)
+    info.set(X509CertInfo.ISSUER, owner)
     info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic))
     info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
 
