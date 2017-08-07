@@ -104,6 +104,7 @@ If you wish to specify a request timeout, you can use [`withRequestTimeout`](api
 ### Submitting form data
 
 To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed into `post`.
+If the body is empty, you must pass play.api.libs.ws.EmptyBody into the post method.
 
 @[url-encoded](code/ScalaWSSpec.scala)
 
