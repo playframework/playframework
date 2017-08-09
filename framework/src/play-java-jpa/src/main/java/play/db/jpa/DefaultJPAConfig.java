@@ -3,17 +3,14 @@
  */
 package play.db.jpa;
 
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
+import com.typesafe.config.Config;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-
-import com.google.common.collect.ImmutableSet;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import play.Logger;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Default JPA configuration.
@@ -41,18 +38,18 @@ public class DefaultJPAConfig implements JPAConfig {
 
         @Inject
         public JPAConfigProvider(Config configuration) {
+            String jpaKey = configuration.getString("play.jpa.config");
+
             ImmutableSet.Builder<JPAConfig.PersistenceUnit> persistenceUnits = new ImmutableSet.Builder<JPAConfig.PersistenceUnit>();
-            Config playJpa = configuration.getConfig("play.jpa");
-            Config jpa = configuration.hasPath("jpa") ? configuration.getConfig("jpa") : ConfigFactory.empty();
-            if (!playJpa.isEmpty() && !jpa.isEmpty()) {
-                Logger.warn("Both play.jpa and jpa configuration maps have persistence units defined. " +
-                    "We suggest using only the play.jpa map.");
+
+            if (configuration.hasPath(jpaKey)) {
+                Config jpa = configuration.getConfig(jpaKey);
+                jpa.entrySet().forEach(entry -> {
+                    String key = entry.getKey();
+                    persistenceUnits.add(new JPAConfig.PersistenceUnit(key, jpa.getString(key)));
+                });
             }
-            final Config fullConfig = jpa.withFallback(playJpa);
-            fullConfig.entrySet().forEach(entry -> {
-                String key = entry.getKey();
-                persistenceUnits.add(new JPAConfig.PersistenceUnit(key, fullConfig.getString(key)));
-            });
+
             jpaConfig = new DefaultJPAConfig(persistenceUnits.build());
         }
 
