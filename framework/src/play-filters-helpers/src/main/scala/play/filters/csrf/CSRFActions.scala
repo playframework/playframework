@@ -148,7 +148,7 @@ class CSRFAction(
             filterLogger.trace("[CSRF] Valid token found in body")
             true
           } else {
-            filterLogger.warn("[CSRF] Check failed because no or invalid token found in body")(SecurityMarkerContext)
+            filterLogger.warn("[CSRF] Check failed because no or invalid token found in body for " + request.uri)(SecurityMarkerContext)
             false
           }
         }))
@@ -162,7 +162,7 @@ class CSRFAction(
         action(request).run(validatedBodySource)
       }.recoverWith {
         case NoTokenInBody =>
-          filterLogger.warn("[CSRF] Check failed with NoTokenInBody")(SecurityMarkerContext)
+          filterLogger.warn("[CSRF] Check failed with NoTokenInBody for " + request.uri)(SecurityMarkerContext)
           csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
       }
   }
