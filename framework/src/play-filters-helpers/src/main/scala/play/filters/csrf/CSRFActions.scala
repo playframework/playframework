@@ -56,54 +56,49 @@ class CSRFAction(
     // this function exists purely to aid readability
     def continue = next(request)
 
-    // Only filter unsafe methods and content types
-    if (config.checkMethod(request.method) && config.checkContentType(request.contentType)) {
+    // Only filter unsafe methods and content types for requests that require a check
+    if (config.checkMethod(request.method) && config.checkContentType(request.contentType) && csrfActionHelper.requiresCsrfCheck(request)) {
+      
+      // Only proceed with checks if there is an incoming token in the header, otherwise there's no point
+      csrfActionHelper.getTokenToValidate(request).map { headerToken =>
 
-      if (!csrfActionHelper.requiresCsrfCheck(request)) {
-        continue
-      } else {
+        // First check if there's a token in the query string or header, if we find one, don't bother handling the body
+        csrfActionHelper.getHeaderToken(request).map { queryStringToken =>
 
-        // Only proceed with checks if there is an incoming token in the header, otherwise there's no point
-        csrfActionHelper.getTokenToValidate(request).map { headerToken =>
-
-          // First check if there's a token in the query string or header, if we find one, don't bother handling the body
-          csrfActionHelper.getHeaderToken(request).map { queryStringToken =>
-
-            if (tokenProvider.compareTokens(headerToken, queryStringToken)) {
-              filterLogger.trace("[CSRF] Valid token found in query string")
-              continue
-            } else {
-              filterLogger.warn("[CSRF] Check failed because invalid token found in query string: " +
-                request.uri)(SecurityMarkerContext)
-              checkFailed(request, "Bad CSRF token found in query String")
-            }
-
-          } getOrElse {
-
-            // Check the body
-            request.contentType match {
-              case Some("application/x-www-form-urlencoded") =>
-                filterLogger.trace(s"[CSRF] Check form body with url encoding")
-                checkFormBody(request, next, headerToken, config.tokenName)
-              case Some("multipart/form-data") =>
-                filterLogger.trace(s"[CSRF] Check form body with multipart")
-                checkMultipartBody(request, next, headerToken, config.tokenName)
-              // No way to extract token from other content types
-              case Some(content) =>
-                filterLogger.warn(s"[CSRF] Check failed because $content for request " + request.uri)(SecurityMarkerContext)
-                checkFailed(request, s"No CSRF token found for $content body")
-              case None =>
-                filterLogger.warn(s"[CSRF] Check failed because request without content type for " + request.uri)(SecurityMarkerContext)
-                checkFailed(request, s"No CSRF token found for body without content type")
-            }
-
+          if (tokenProvider.compareTokens(headerToken, queryStringToken)) {
+            filterLogger.trace("[CSRF] Valid token found in query string")
+            continue
+          } else {
+            filterLogger.warn("[CSRF] Check failed because invalid token found in query string: " +
+              request.uri)(SecurityMarkerContext)
+            checkFailed(request, "Bad CSRF token found in query String")
           }
+
         } getOrElse {
 
-          filterLogger.warn("[CSRF] Check failed because no token found in headers for " + request.uri)(SecurityMarkerContext)
-          checkFailed(request, "No CSRF token found in headers")
+          // Check the body
+          request.contentType match {
+            case Some("application/x-www-form-urlencoded") =>
+              filterLogger.trace(s"[CSRF] Check form body with url encoding")
+              checkFormBody(request, next, headerToken, config.tokenName)
+            case Some("multipart/form-data") =>
+              filterLogger.trace(s"[CSRF] Check form body with multipart")
+              checkMultipartBody(request, next, headerToken, config.tokenName)
+            // No way to extract token from other content types
+            case Some(content) =>
+              filterLogger.warn(s"[CSRF] Check failed because $content for request " + request.uri)(SecurityMarkerContext)
+              checkFailed(request, s"No CSRF token found for $content body")
+            case None =>
+              filterLogger.warn(s"[CSRF] Check failed because request without content type for " + request.uri)(SecurityMarkerContext)
+              checkFailed(request, s"No CSRF token found for body without content type")
+          }
 
         }
+      } getOrElse {
+
+        filterLogger.warn("[CSRF] Check failed because no token found in headers for " + request.uri)(SecurityMarkerContext)
+        checkFailed(request, "No CSRF token found in headers")
+
       }
     } else if (csrfActionHelper.getTokenToValidate(request).isEmpty && config.createIfNotFound(request)) {
 
