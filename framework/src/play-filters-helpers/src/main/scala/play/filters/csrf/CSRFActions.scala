@@ -74,7 +74,7 @@ class CSRFAction(
               continue
             } else {
               filterLogger.warn("[CSRF] Check failed because invalid token found in query string: " +
-                queryStringToken)(SecurityMarkerContext)
+                request.uri)(SecurityMarkerContext)
               checkFailed(request, "Bad CSRF token found in query String")
             }
 
@@ -90,17 +90,17 @@ class CSRFAction(
                 checkMultipartBody(request, next, headerToken, config.tokenName)
               // No way to extract token from other content types
               case Some(content) =>
-                filterLogger.warn(s"[CSRF] Check failed because $content request")(SecurityMarkerContext)
+                filterLogger.warn(s"[CSRF] Check failed because $content for request " + request.uri)(SecurityMarkerContext)
                 checkFailed(request, s"No CSRF token found for $content body")
               case None =>
-                filterLogger.warn(s"[CSRF] Check failed because request without content type")(SecurityMarkerContext)
+                filterLogger.warn(s"[CSRF] Check failed because request without content type for " + request.uri)(SecurityMarkerContext)
                 checkFailed(request, s"No CSRF token found for body without content type")
             }
 
           }
         } getOrElse {
 
-          filterLogger.warn("[CSRF] Check failed because no token found in headers")(SecurityMarkerContext)
+          filterLogger.warn("[CSRF] Check failed because no token found in headers for " + request.uri)(SecurityMarkerContext)
           checkFailed(request, "No CSRF token found in headers")
 
         }
