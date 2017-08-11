@@ -7,11 +7,14 @@ package javaguide.application.httpfilters;
 import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import akka.util.ByteString;
-import play.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.libs.streams.Accumulator;
 import play.mvc.*;
 
 public class EssentialLoggingFilter extends EssentialFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(EssentialLoggingFilter.class);
 
     private final Executor executor;
 
@@ -30,7 +33,7 @@ public class EssentialLoggingFilter extends EssentialFilter {
                 long endTime = System.currentTimeMillis();
                 long requestTime = endTime - startTime;
 
-                Logger.info("{} {} took {}ms and returned {}",
+                log.info("{} {} took {}ms and returned {}",
                     request.method(), request.uri(), requestTime, result.status());
 
                 return result.withHeader("Request-Time", "" + requestTime);

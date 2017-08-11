@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/java/play/Logger.html) class and uses [Logback](https://logback.qos.ch/) as the default logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play uses [`SLF4J`](https://www.slf4j.org) as a logging facade with [Logback](https://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
@@ -40,13 +40,13 @@ Appenders combined with loggers can help you route and filter log messages. For 
 
 ## Using Loggers
 
-First import the [`Logger`](api/java/play/Logger.html) class:
+First import the `Logger` class:
 
 @[logging-import](code/javaguide/logging/JavaLogging.java)
 
 ### The default Logger
 
-The [`Logger`](api/java/play/Logger.html) class serves as the default logger using the name "application." You can use it to write log request statements:
+You can then use the `Logger` to write log request statements:
 
 @[logging-default-logger](code/javaguide/logging/JavaLogging.java)
 
@@ -69,7 +69,7 @@ Note that the messages have the log level, logger name, message, and stack trace
 
 Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
 
-You can create a new logger using the `Logger.of` factory method with a name argument:
+You can create a new logger using the `LoggerFactory` with a name argument:
 
 @[logging-create-logger-name](code/javaguide/logging/JavaLogging.java)
 
