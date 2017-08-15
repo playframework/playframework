@@ -249,7 +249,8 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     .dependsOn(PlayAkkaHttpServerProject)
     .dependsOn(PlayNettyServerProject)
 
-// This project is just for microbenchmarking Play, not really a public artifact
+// This project is just for microbenchmarking Play. Not published.
+// NOTE: this project depends on JMH, which is GPLv2.
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
     .enablePlugins(JmhPlugin)
     .settings(
@@ -331,7 +332,6 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayFiltersHelpersProject,
   PlayIntegrationTestProject,
-  PlayMicrobenchmarkProject,
   PlayDocsSbtPlugin,
   StreamsProject
 )
