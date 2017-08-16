@@ -3,7 +3,6 @@ LatestRelease:Latest release
 gettingStarted:Getting started
 working:Working with Play
 hacking:Contributing to Play
-experimental:Experimental libraries
 about:About Play
 releases:Play releases
 ModuleDirectory:Module directory
