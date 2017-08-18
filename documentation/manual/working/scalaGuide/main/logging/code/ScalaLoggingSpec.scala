@@ -264,7 +264,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
 trait RequestMarkerContext {
 
   // Adding 'implicit request' enables implicit conversion chaining
-  // See http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits
+  // See http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html
   implicit def requestHeaderToMarkerContext(implicit request: RequestHeader): MarkerContext = {
     import net.logstash.logback.marker.LogstashMarker
     import net.logstash.logback.marker.Markers._
