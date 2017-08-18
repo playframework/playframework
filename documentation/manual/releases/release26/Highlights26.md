@@ -242,7 +242,7 @@ import play.api._
 logger.info("some info message")(MarkerContext(someMarker))
 ```
 
-This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits), request information can be encoded into logging statements automatically:
+This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html), request information can be encoded into logging statements automatically:
 
 @[logging-request-context-trait](../../working/scalaGuide/main/logging/code/ScalaLoggingSpec.scala)
 
