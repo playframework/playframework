@@ -181,8 +181,6 @@ object Dependencies {
     case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
-  val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94-play-1"
-
   val typesafeConfig = "com.typesafe" % "config" % "1.3.1"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
@@ -191,8 +189,6 @@ object Dependencies {
     Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
-
-      jnotify,
       slf4jSimple,
 
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
