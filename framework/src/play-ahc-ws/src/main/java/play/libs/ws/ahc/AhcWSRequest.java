@@ -7,14 +7,21 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
-import play.libs.ws.*;
+import play.libs.ws.BodyWritable;
+import play.libs.ws.DefaultWSCookie;
 import play.libs.ws.StandaloneWSRequest;
 import play.libs.ws.StandaloneWSResponse;
+import play.libs.ws.WSAuthScheme;
+import play.libs.ws.WSBodyWritables;
+import play.libs.ws.WSCookie;
+import play.libs.ws.WSRequest;
+import play.libs.ws.WSRequestFilter;
+import play.libs.ws.WSResponse;
+import play.libs.ws.WSSignatureCalculator;
 import play.mvc.Http;
 
 import java.io.File;
 import java.io.InputStream;
-import java.lang.annotation.Documented;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -172,7 +179,7 @@ public class AhcWSRequest implements WSRequest {
 
     @Override
     public CompletionStage<WSResponse> execute(String method) {
-        return request.execute().thenApply(responseFunction);
+        return request.setMethod(method).execute().thenApply(responseFunction);
     }
 
     @Override
