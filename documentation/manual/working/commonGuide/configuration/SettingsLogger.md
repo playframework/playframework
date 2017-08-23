@@ -78,7 +78,7 @@ You can provide a default logging configuration by providing a file `conf/logbac
 
 You can also specify a configuration file via a System property.  This is particularly useful for production environments where the configuration file may be managed outside of your application source.
 
-> Note: The logging system gives top preference to configuration files specified by system properties, secondly to files in the `conf` directory, and lastly to the default. This allows you to customize your application's logging configuration and still override it for specific environments or developer setups.
+> **Note**: The logging system gives top preference to configuration files specified by system properties, secondly to files in the `conf` directory, and lastly to the default. This allows you to customize your application's logging configuration and still override it for specific environments or developer setups.
 
 #### Using `-Dlogger.resource`
 
@@ -95,6 +95,8 @@ Specify a configuration file to be loaded from the file system:
 ```
 $ start -Dlogger.file=/opt/prod/logger.xml
 ```
+
+> **Note**: To see which file is being used, you can set a system property to debug it: `-Dlogback.debug=true`.
 
 ### Examples
 

@@ -152,6 +152,8 @@ Specify another logback configuration file to be loaded from an URL:
 $ /path/to/bin/<project-name> -Dlogger.url=http://conf.mycompany.com/logger.xml
 ```
 
+> **Note**: To see which file is being used, you can set a system property to debug it: `-Dlogback.debug=true`.
+
 ## JVM configuration
 
 You can specify any JVM arguments to the application startup script. Otherwise the default JVM settings will be used:
