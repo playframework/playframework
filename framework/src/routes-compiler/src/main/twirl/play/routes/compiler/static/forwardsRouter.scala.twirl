@@ -85,7 +85,7 @@ case (include @ Include(path, router), index) => {
   }
   case (route: Route, index) => {
     @markLines(route)
-    case @(routeIdentifier(route, index))(params) =>
+    case @(routeIdentifier(route, index))(params@@_) =>
       call@(routeBinding(route)) @ob @localNames(route)
         @(invokerIdentifier(route, index)).call(@controllerMethodCall(route, x => safeKeyword(x.name)))
       @cb
