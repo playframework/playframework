@@ -132,7 +132,7 @@ object Messages extends MessagesImplicits {
     val ignoreWhiteSpace = opt(whiteSpace)
     val blankLine = ignoreWhiteSpace <~ newLine ^^ { case _ => Comment("") }
     val comment = """^#.*""".r ^^ { case s => Comment(s) }
-    val messageKey = namedError("""^[a-zA-Z0-9_.-]+""".r, "Message key expected")
+    val messageKey = namedError("""^[a-zA-Z0-9$_.-]+""".r, "Message key expected")
     val messagePattern = namedError(
       rep(
         ("""\""" ^^ (_ => "")) ~> ( // Ignore the leading \
