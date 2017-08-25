@@ -722,7 +722,9 @@ public class Form<T> {
             if (error != null) {
                 final List<String> messages = new ArrayList<>();
                 if (messagesApi != null && lang != null) {
-                    messages.add(messagesApi.get(lang, error.messages(), translateMsgArg(error.arguments(), messagesApi, lang)));
+                    final List<String> reversedMessages = new ArrayList(error.messages());
+                    Collections.reverse(reversedMessages);
+                    messages.add(messagesApi.get(lang, reversedMessages, translateMsgArg(error.arguments(), messagesApi, lang)));
                 } else {
                     messages.add(error.message());
                 }

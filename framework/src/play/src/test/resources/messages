@@ -1,6 +1,8 @@
 error.custom=This is a {0}
 error.customarg=custom error
 
+error.generalcustomerror=Some general custom error message
+
 constraint.custom=I am a {0}
 constraint.customarg=custom constraint
 
