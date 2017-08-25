@@ -134,10 +134,13 @@ public class HttpFormsTest {
             Context ctx = new Context(rb, contextComponents(app));
             Context.current.set(ctx);
 
+            List<String> msgs = new ArrayList<>();
+            msgs.add("error.generalcustomerror");
+            msgs.add("error.custom");
             List<Object> args = new ArrayList<>();
             args.add("error.customarg");
             List<ValidationError> errors = new ArrayList<>();
-            errors.add(new ValidationError("foo", "error.custom", args));
+            errors.add(new ValidationError("foo", msgs, args));
             Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
