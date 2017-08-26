@@ -53,6 +53,15 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
       (rep.getStatus() aka "status" must_== 200) and (rep.asJson().path("origin").textValue must not beNull)
     }
 
+    "make DELETE Requests" in withServer { ws =>
+      val request: WSRequest = ws.url("/delete")
+      val futureResponse: CompletionStage[WSResponse] = request.execute("DELETE")
+      val future = futureResponse.toCompletableFuture
+      val rep: WSResponse = future.get(10, TimeUnit.SECONDS)
+
+      (rep.getStatus() aka "status" must_== 200) and (rep.asJson().path("origin").textValue must not beNull)
+    }
+
     "use queryString in url" in withServer { ws =>
       val rep = ws.url("/get?foo=bar").get().toCompletableFuture.get(10, TimeUnit.SECONDS)
 
