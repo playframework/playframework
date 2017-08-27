@@ -56,4 +56,18 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    */
   def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String = "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
 
+  /**
+   * Transform this call to a URL relative to the current request's path.
+   *
+   * {{{
+   * import play.api.mvc.{ Call, RequestHeader }
+   *
+   * implicit val req: RequestHeader = myRequest
+   * // If current req.path == "/playframework"
+   * val url: String = Call("GET", "/url").relative()
+   * // == "../url"
+   * }}}
+   */
+  def relative()(implicit request: RequestHeader): String = this.relative(request.path)
+
 }
