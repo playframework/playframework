@@ -25,7 +25,7 @@ object Dependencies {
 
   val specsSbt = specsBuild
 
-  val jacksonVersion = "2.8.9"
+  val jacksonVersion = "2.9.0"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
@@ -47,7 +47,7 @@ object Dependencies {
   val h2database = "com.h2database" % "h2" % "1.4.196"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.44-j7p"
+  val acolyteVersion = "1.0.46"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
@@ -71,7 +71,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.9.RELEASE"
+  val springFrameworkVersion = "4.3.10.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -150,7 +150,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.13.Final"
+  val nettyVersion = "4.1.15.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -233,7 +233,7 @@ object Dependencies {
     junitInterface,
     guava,
     findBugs,
-    "org.fluentlenium" % "fluentlenium-core" % "3.2.0" exclude("org.jboss.netty", "netty"),
+    "org.fluentlenium" % "fluentlenium-core" % "3.3.0" exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
