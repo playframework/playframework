@@ -20,8 +20,6 @@ import play.mvc.Http.{ Context => JContext }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-import java.util.function.{ Supplier => JSupplier }
-
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.
  *

@@ -3,7 +3,7 @@
  */
 package play.api
 
-import java.util.concurrent.{ LinkedBlockingDeque, BlockingDeque, ConcurrentHashMap }
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.slf4j.{ Logger => Slf4jLogger, LoggerFactory, Marker }
