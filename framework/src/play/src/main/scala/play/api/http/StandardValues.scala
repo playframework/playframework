@@ -51,22 +51,22 @@ trait ContentTypes {
   /**
    * Content-Type of application cache.
    */
-  val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
+  final val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
 
   /**
    * Content-Type of json. This content type does not define a charset parameter.
    */
-  val JSON = MimeTypes.JSON
+  final val JSON = MimeTypes.JSON
 
   /**
    * Content-Type of form-urlencoded. This content type does not define a charset parameter.
    */
-  val FORM = MimeTypes.FORM
+  final val FORM = MimeTypes.FORM
 
   /**
    * Content-Type of binary data.
    */
-  val BINARY = MimeTypes.BINARY
+  final val BINARY = MimeTypes.BINARY
 
   /**
    * @return the `codec` charset appended to `mimeType`
@@ -84,13 +84,13 @@ object HttpVerbs extends HttpVerbs
  * Standard HTTP Verbs
  */
 trait HttpVerbs {
-  val GET = "GET"
-  val POST = "POST"
-  val PUT = "PUT"
-  val PATCH = "PATCH"
-  val DELETE = "DELETE"
-  val HEAD = "HEAD"
-  val OPTIONS = "OPTIONS"
+  final val GET = "GET"
+  final val POST = "POST"
+  final val PUT = "PUT"
+  final val PATCH = "PATCH"
+  final val DELETE = "DELETE"
+  final val HEAD = "HEAD"
+  final val OPTIONS = "OPTIONS"
 }
 
 /** Common HTTP MIME types */
@@ -102,57 +102,57 @@ trait MimeTypes {
   /**
    * Content-Type of text.
    */
-  val TEXT = "text/plain"
+  final val TEXT = "text/plain"
 
   /**
    * Content-Type of html.
    */
-  val HTML = "text/html"
+  final val HTML = "text/html"
 
   /**
    * Content-Type of json.
    */
-  val JSON = "application/json"
+  final val JSON = "application/json"
 
   /**
    * Content-Type of xml.
    */
-  val XML = "application/xml"
+  final val XML = "application/xml"
 
   /**
    * Content-Type of xml.
    */
-  val XHTML = "application/xhtml+xml"
+  final val XHTML = "application/xhtml+xml"
 
   /**
    * Content-Type of css.
    */
-  val CSS = "text/css"
+  final val CSS = "text/css"
 
   /**
    * Content-Type of javascript.
    */
-  val JAVASCRIPT = "text/javascript"
+  final val JAVASCRIPT = "text/javascript"
 
   /**
    * Content-Type of form-urlencoded.
    */
-  val FORM = "application/x-www-form-urlencoded"
+  final val FORM = "application/x-www-form-urlencoded"
 
   /**
    * Content-Type of server sent events.
    */
-  val EVENT_STREAM = "text/event-stream"
+  final val EVENT_STREAM = "text/event-stream"
 
   /**
    * Content-Type of binary data.
    */
-  val BINARY = "application/octet-stream"
+  final val BINARY = "application/octet-stream"
 
   /**
    * Content-Type of application cache.
    */
-  val CACHE_MANIFEST = "text/cache-manifest"
+  final val CACHE_MANIFEST = "text/cache-manifest"
 
 }
 
@@ -172,61 +172,61 @@ object Status extends Status {
  */
 trait Status {
 
-  val CONTINUE = 100
-  val SWITCHING_PROTOCOLS = 101
+  final val CONTINUE = 100
+  final val SWITCHING_PROTOCOLS = 101
 
-  val OK = 200
-  val CREATED = 201
-  val ACCEPTED = 202
-  val NON_AUTHORITATIVE_INFORMATION = 203
-  val NO_CONTENT = 204
-  val RESET_CONTENT = 205
-  val PARTIAL_CONTENT = 206
-  val MULTI_STATUS = 207
+  final val OK = 200
+  final val CREATED = 201
+  final val ACCEPTED = 202
+  final val NON_AUTHORITATIVE_INFORMATION = 203
+  final val NO_CONTENT = 204
+  final val RESET_CONTENT = 205
+  final val PARTIAL_CONTENT = 206
+  final val MULTI_STATUS = 207
 
-  val MULTIPLE_CHOICES = 300
-  val MOVED_PERMANENTLY = 301
-  val FOUND = 302
-  val SEE_OTHER = 303
-  val NOT_MODIFIED = 304
-  val USE_PROXY = 305
-  val TEMPORARY_REDIRECT = 307
-  val PERMANENT_REDIRECT = 308
+  final val MULTIPLE_CHOICES = 300
+  final val MOVED_PERMANENTLY = 301
+  final val FOUND = 302
+  final val SEE_OTHER = 303
+  final val NOT_MODIFIED = 304
+  final val USE_PROXY = 305
+  final val TEMPORARY_REDIRECT = 307
+  final val PERMANENT_REDIRECT = 308
 
-  val BAD_REQUEST = 400
-  val UNAUTHORIZED = 401
-  val PAYMENT_REQUIRED = 402
-  val FORBIDDEN = 403
-  val NOT_FOUND = 404
-  val METHOD_NOT_ALLOWED = 405
-  val NOT_ACCEPTABLE = 406
-  val PROXY_AUTHENTICATION_REQUIRED = 407
-  val REQUEST_TIMEOUT = 408
-  val CONFLICT = 409
-  val GONE = 410
-  val LENGTH_REQUIRED = 411
-  val PRECONDITION_FAILED = 412
-  val REQUEST_ENTITY_TOO_LARGE = 413
-  val REQUEST_URI_TOO_LONG = 414
-  val UNSUPPORTED_MEDIA_TYPE = 415
-  val REQUESTED_RANGE_NOT_SATISFIABLE = 416
-  val EXPECTATION_FAILED = 417
-  val IM_A_TEAPOT = 418
-  val UNPROCESSABLE_ENTITY = 422
-  val LOCKED = 423
-  val FAILED_DEPENDENCY = 424
-  val UPGRADE_REQUIRED = 426
-  val TOO_MANY_REQUESTS = 429
+  final val BAD_REQUEST = 400
+  final val UNAUTHORIZED = 401
+  final val PAYMENT_REQUIRED = 402
+  final val FORBIDDEN = 403
+  final val NOT_FOUND = 404
+  final val METHOD_NOT_ALLOWED = 405
+  final val NOT_ACCEPTABLE = 406
+  final val PROXY_AUTHENTICATION_REQUIRED = 407
+  final val REQUEST_TIMEOUT = 408
+  final val CONFLICT = 409
+  final val GONE = 410
+  final val LENGTH_REQUIRED = 411
+  final val PRECONDITION_FAILED = 412
+  final val REQUEST_ENTITY_TOO_LARGE = 413
+  final val REQUEST_URI_TOO_LONG = 414
+  final val UNSUPPORTED_MEDIA_TYPE = 415
+  final val REQUESTED_RANGE_NOT_SATISFIABLE = 416
+  final val EXPECTATION_FAILED = 417
+  final val IM_A_TEAPOT = 418
+  final val UNPROCESSABLE_ENTITY = 422
+  final val LOCKED = 423
+  final val FAILED_DEPENDENCY = 424
+  final val UPGRADE_REQUIRED = 426
+  final val TOO_MANY_REQUESTS = 429
   @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
-  val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
+  final val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
-  val INTERNAL_SERVER_ERROR = 500
-  val NOT_IMPLEMENTED = 501
-  val BAD_GATEWAY = 502
-  val SERVICE_UNAVAILABLE = 503
-  val GATEWAY_TIMEOUT = 504
-  val HTTP_VERSION_NOT_SUPPORTED = 505
-  val INSUFFICIENT_STORAGE = 507
+  final val INTERNAL_SERVER_ERROR = 500
+  final val NOT_IMPLEMENTED = 501
+  final val BAD_GATEWAY = 502
+  final val SERVICE_UNAVAILABLE = 503
+  final val GATEWAY_TIMEOUT = 504
+  final val HTTP_VERSION_NOT_SUPPORTED = 505
+  final val INSUFFICIENT_STORAGE = 507
 }
 
 /** Defines all standard HTTP headers. */
@@ -235,103 +235,103 @@ object HeaderNames extends HeaderNames
 /** Defines all standard HTTP headers. */
 trait HeaderNames {
 
-  val ACCEPT = "Accept"
-  val ACCEPT_CHARSET = "Accept-Charset"
-  val ACCEPT_ENCODING = "Accept-Encoding"
-  val ACCEPT_LANGUAGE = "Accept-Language"
-  val ACCEPT_RANGES = "Accept-Ranges"
-  val AGE = "Age"
-  val ALLOW = "Allow"
-  val AUTHORIZATION = "Authorization"
+  final val ACCEPT = "Accept"
+  final val ACCEPT_CHARSET = "Accept-Charset"
+  final val ACCEPT_ENCODING = "Accept-Encoding"
+  final val ACCEPT_LANGUAGE = "Accept-Language"
+  final val ACCEPT_RANGES = "Accept-Ranges"
+  final val AGE = "Age"
+  final val ALLOW = "Allow"
+  final val AUTHORIZATION = "Authorization"
 
-  val CACHE_CONTROL = "Cache-Control"
-  val CONNECTION = "Connection"
-  val CONTENT_DISPOSITION = "Content-Disposition"
-  val CONTENT_ENCODING = "Content-Encoding"
-  val CONTENT_LANGUAGE = "Content-Language"
-  val CONTENT_LENGTH = "Content-Length"
-  val CONTENT_LOCATION = "Content-Location"
-  val CONTENT_MD5 = "Content-MD5"
-  val CONTENT_RANGE = "Content-Range"
-  val CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding"
-  val CONTENT_TYPE = "Content-Type"
-  val COOKIE = "Cookie"
+  final val CACHE_CONTROL = "Cache-Control"
+  final val CONNECTION = "Connection"
+  final val CONTENT_DISPOSITION = "Content-Disposition"
+  final val CONTENT_ENCODING = "Content-Encoding"
+  final val CONTENT_LANGUAGE = "Content-Language"
+  final val CONTENT_LENGTH = "Content-Length"
+  final val CONTENT_LOCATION = "Content-Location"
+  final val CONTENT_MD5 = "Content-MD5"
+  final val CONTENT_RANGE = "Content-Range"
+  final val CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding"
+  final val CONTENT_TYPE = "Content-Type"
+  final val COOKIE = "Cookie"
 
-  val DATE = "Date"
+  final val DATE = "Date"
 
-  val ETAG = "ETag"
-  val EXPECT = "Expect"
-  val EXPIRES = "Expires"
+  final val ETAG = "ETag"
+  final val EXPECT = "Expect"
+  final val EXPIRES = "Expires"
 
-  val FROM = "From"
+  final val FROM = "From"
 
-  val HOST = "Host"
+  final val HOST = "Host"
 
-  val IF_MATCH = "If-Match"
-  val IF_MODIFIED_SINCE = "If-Modified-Since"
-  val IF_NONE_MATCH = "If-None-Match"
-  val IF_RANGE = "If-Range"
-  val IF_UNMODIFIED_SINCE = "If-Unmodified-Since"
+  final val IF_MATCH = "If-Match"
+  final val IF_MODIFIED_SINCE = "If-Modified-Since"
+  final val IF_NONE_MATCH = "If-None-Match"
+  final val IF_RANGE = "If-Range"
+  final val IF_UNMODIFIED_SINCE = "If-Unmodified-Since"
 
-  val LAST_MODIFIED = "Last-Modified"
-  val LINK = "Link"
-  val LOCATION = "Location"
+  final val LAST_MODIFIED = "Last-Modified"
+  final val LINK = "Link"
+  final val LOCATION = "Location"
 
-  val MAX_FORWARDS = "Max-Forwards"
+  final val MAX_FORWARDS = "Max-Forwards"
 
-  val PRAGMA = "Pragma"
-  val PROXY_AUTHENTICATE = "Proxy-Authenticate"
-  val PROXY_AUTHORIZATION = "Proxy-Authorization"
+  final val PRAGMA = "Pragma"
+  final val PROXY_AUTHENTICATE = "Proxy-Authenticate"
+  final val PROXY_AUTHORIZATION = "Proxy-Authorization"
 
-  val RANGE = "Range"
-  val REFERER = "Referer"
-  val RETRY_AFTER = "Retry-After"
+  final val RANGE = "Range"
+  final val REFERER = "Referer"
+  final val RETRY_AFTER = "Retry-After"
 
-  val SERVER = "Server"
+  final val SERVER = "Server"
 
-  val SET_COOKIE = "Set-Cookie"
-  val SET_COOKIE2 = "Set-Cookie2"
+  final val SET_COOKIE = "Set-Cookie"
+  final val SET_COOKIE2 = "Set-Cookie2"
 
-  val TE = "Te"
-  val TRAILER = "Trailer"
-  val TRANSFER_ENCODING = "Transfer-Encoding"
+  final val TE = "Te"
+  final val TRAILER = "Trailer"
+  final val TRANSFER_ENCODING = "Transfer-Encoding"
 
-  val UPGRADE = "Upgrade"
-  val USER_AGENT = "User-Agent"
+  final val UPGRADE = "Upgrade"
+  final val USER_AGENT = "User-Agent"
 
-  val VARY = "Vary"
-  val VIA = "Via"
+  final val VARY = "Vary"
+  final val VIA = "Via"
 
-  val WARNING = "Warning"
-  val WWW_AUTHENTICATE = "WWW-Authenticate"
+  final val WARNING = "Warning"
+  final val WWW_AUTHENTICATE = "WWW-Authenticate"
 
-  val FORWARDED = "Forwarded"
-  val X_FORWARDED_FOR = "X-Forwarded-For"
-  val X_FORWARDED_HOST = "X-Forwarded-Host"
-  val X_FORWARDED_PORT = "X-Forwarded-Port"
-  val X_FORWARDED_PROTO = "X-Forwarded-Proto"
+  final val FORWARDED = "Forwarded"
+  final val X_FORWARDED_FOR = "X-Forwarded-For"
+  final val X_FORWARDED_HOST = "X-Forwarded-Host"
+  final val X_FORWARDED_PORT = "X-Forwarded-Port"
+  final val X_FORWARDED_PROTO = "X-Forwarded-Proto"
 
-  val X_REQUESTED_WITH = "X-Requested-With"
+  final val X_REQUESTED_WITH = "X-Requested-With"
 
-  val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
-  val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
-  val ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"
-  val ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials"
-  val ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods"
-  val ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers"
+  final val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
+  final val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
+  final val ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"
+  final val ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials"
+  final val ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods"
+  final val ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers"
 
-  val ORIGIN = "Origin"
-  val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
-  val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
+  final val ORIGIN = "Origin"
+  final val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
+  final val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
 
-  val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
+  final val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
 
-  val X_FRAME_OPTIONS = "X-Frame-Options"
-  val X_XSS_PROTECTION = "X-XSS-Protection"
-  val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
-  val X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies"
-  val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
-  val REFERRER_POLICY = "Referrer-Policy"
+  final val X_FRAME_OPTIONS = "X-Frame-Options"
+  final val X_XSS_PROTECTION = "X-XSS-Protection"
+  final val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
+  final val X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies"
+  final val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
+  final val REFERRER_POLICY = "Referrer-Policy"
 }
 
 /**
@@ -344,9 +344,9 @@ object HttpProtocol extends HttpProtocol
  */
 trait HttpProtocol {
   // Versions
-  val HTTP_1_0 = "HTTP/1.0"
-  val HTTP_1_1 = "HTTP/1.1"
+  final val HTTP_1_0 = "HTTP/1.0"
+  final val HTTP_1_1 = "HTTP/1.1"
 
   // Other HTTP protocol values
-  val CHUNKED = "chunked"
+  final val CHUNKED = "chunked"
 }

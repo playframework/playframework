@@ -21,35 +21,35 @@ trait RequestMethodExtractors {
   /**
    * Extracts a GET request.
    */
-  val GET = new RequestMethodExtractor("GET")
+  final val GET = new RequestMethodExtractor("GET")
 
   /**
    * Extracts a POST request.
    */
-  val POST = new RequestMethodExtractor("POST")
+  final val POST = new RequestMethodExtractor("POST")
 
   /**
    * Extracts a PUT request.
    */
-  val PUT = new RequestMethodExtractor("PUT")
+  final val PUT = new RequestMethodExtractor("PUT")
 
   /**
    * Extracts a DELETE request.
    */
-  val DELETE = new RequestMethodExtractor("DELETE")
+  final val DELETE = new RequestMethodExtractor("DELETE")
 
   /**
    * Extracts a PATCH request.
    */
-  val PATCH = new RequestMethodExtractor("PATCH")
+  final val PATCH = new RequestMethodExtractor("PATCH")
 
   /**
    * Extracts an OPTIONS request.
    */
-  val OPTIONS = new RequestMethodExtractor("OPTIONS")
+  final val OPTIONS = new RequestMethodExtractor("OPTIONS")
 
   /**
    * Extracts a HEAD request.
    */
-  val HEAD = new RequestMethodExtractor("HEAD")
+  final val HEAD = new RequestMethodExtractor("HEAD")
 }
