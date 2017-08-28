@@ -102,6 +102,7 @@ class MessagesSpec extends Specification {
 # this is a comment
 simplekey=value
 key.with.dots=value
+key.with.dollar$sign=value
 multiline.unix=line1\
 line2
 multiline.dos=line1\
@@ -121,6 +122,7 @@ backslash.dummy=\a\b\c\e\f
 
       messages("simplekey") must ===("value")
       messages("key.with.dots") must ===("value")
+      messages("key.with.dollar$sign") must ===("value")
       messages("multiline.unix") must ===("line1line2")
       messages("multiline.dos") must ===("line1line2")
       messages("multiline.inline") must ===("line1\nline2")
