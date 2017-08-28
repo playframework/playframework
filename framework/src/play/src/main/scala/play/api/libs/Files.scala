@@ -155,15 +155,15 @@ object Files {
     private val references = Sets.newConcurrentHashSet[Reference[TemporaryFile]]()
 
     private val TempDirectoryPrefix = "playtemp"
-    private val _playTempFolder: Path = {
+    private val playTempFolder: Path = {
       val tmpFolder = JFiles.createTempDirectory(TempDirectoryPrefix)
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
 
     override def create(prefix: String, suffix: String): TemporaryFile = {
-      JFiles.createDirectories(_playTempFolder)
-      val tempFile = JFiles.createTempFile(_playTempFolder, prefix, suffix)
+      JFiles.createDirectories(playTempFolder)
+      val tempFile = JFiles.createTempFile(playTempFolder, prefix, suffix)
       createReference(new DefaultTemporaryFile(tempFile, this))
     }
 
@@ -210,9 +210,9 @@ object Files {
      * Application stop hook which deletes the temporary folder recursively (including subfolders).
      */
     applicationLifecycle.addStopHook { () =>
-      Future.successful(JFiles.walkFileTree(_playTempFolder, new SimpleFileVisitor[Path] {
+      Future.successful(JFiles.walkFileTree(playTempFolder, new SimpleFileVisitor[Path] {
         override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-          logger.debug(s"stopHook: Removing leftover temporary file $path from ${_playTempFolder}")
+          logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
           deletePath(path)
           FileVisitResult.CONTINUE
         }
