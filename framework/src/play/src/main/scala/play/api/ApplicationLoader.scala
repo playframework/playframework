@@ -5,7 +5,7 @@ package play.api
 
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils.Reflect
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle, Injector, NewInstanceInjector, SimpleInjector }
+import play.api.inject.ApplicationLifecycle
 import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
 
 /**
