@@ -278,3 +278,8 @@ to Twirl
 * **Website:** <https://pusher.com/>
 * **Documentation:** <https://github.com/tindr/Play2Pusher>
 * **Short description:** Easily interact with the Pusher Service within your Play application.
+
+### Push Notifications module (Java)
+* **Website:** <https://github.com/splendidbits/play-pushservices>
+* **Documentation:** <https://github.com/splendidbits/play-pushservices/blob/master/README.md>
+* **Short description:** A stupid-simple module for creating, batching, queuing and sending push notifications.
