@@ -299,7 +299,7 @@ object Dependencies {
     ) ++ specsBuild.map(_ % Test)
 
 
-  val asyncHttpClientVersion = "2.0.24"
+  val asyncHttpClientVersion = "2.0.35"
   val playWsDeps = Seq(
     guava,
     "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,
