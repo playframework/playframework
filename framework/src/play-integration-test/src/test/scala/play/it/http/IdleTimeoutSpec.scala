@@ -11,10 +11,9 @@ import play.api.Mode
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{ EssentialAction, Results }
 import play.api.test._
-import play.it.{ NettyIntegrationSpecification, ServerIntegrationSpecification }
-import play.it.AkkaHttpIntegrationSpecification
 import play.api.libs.streams.Accumulator
 import play.core.server._
+import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._

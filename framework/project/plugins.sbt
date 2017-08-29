@@ -6,6 +6,7 @@ val Versions = new {
   val sbtNativePackager = "1.2.0"
   val mima = "0.1.14"
   val sbtScalariform = "1.6.0"
+  val sbtJavaAgent = "0.1.3"
   val sbtJmh = "0.2.24"
   val sbtDoge = "0.1.5"
   val webjarsLocatorCore = "0.32"
@@ -27,6 +28,7 @@ addSbtPlugin("com.typesafe.play" % "interplay" % Versions.interplay)
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % Versions.sbtTwirl)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % Versions.mima)
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % Versions.sbtScalariform)
+addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % Versions.sbtJavaAgent)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % Versions.sbtJmh)
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % Versions.sbtHeader)
 

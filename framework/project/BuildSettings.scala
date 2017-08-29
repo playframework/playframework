@@ -194,7 +194,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.akkahttp.AkkaModelConversion.this"),
 
       // Added method to PlayBodyParsers, which is a Play API not meant to be extended by end users.
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.byteString")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.byteString"),
+
+      // Moved play[private] out of from companion object to allow it to access member variables
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.start")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
