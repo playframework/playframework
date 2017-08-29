@@ -3,87 +3,81 @@
  */
 package play.it.http
 
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSResponse
+import org.specs2.execute.AsResult
+import org.specs2.specification.core.Fragment
+import play.api.BuiltInComponents
 import play.api.mvc._
-import play.api.test.{ PlaySpecification, WsTestClient }
-import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
+import play.api.routing.Router
+import play.api.routing.sird
+import play.api.test.PlaySpecification
+import play.it.test._
 
-import scala.util.Try
+class UriHandlingSpec extends PlaySpecification with AllEndpointsIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
-class NettyUriHandlingSpec extends UriHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpUriHandlingSpec extends UriHandlingSpec with AkkaHttpIntegrationSpecification
-
-trait UriHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
-
-  sequential
-
-  def tryRequest[T](uri: String, result: Request[_] => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
-    val response = Try(await(wsUrl(uri).get()))
-    block(response)
+  private def makeRequest[T: AsResult](path: String)(block: (ServerEndpoint, okhttp3.Response) => T): Fragment = withRouter { components: BuiltInComponents =>
+    import components.Action
+    import sird.UrlContext
+    Router.from {
+      case sird.GET(p"/path") => Action { request: Request[_] => Results.Ok(request.queryString) }
+      case _ => Action { request: Request[_] => Results.Ok(request.path + queryToString(request.queryString)) }
+    }
+  }.withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+    val response: okhttp3.Response = okEndpoint.makeRequest(path)
+    block(okEndpoint.endpoint, response)
   }
 
-  def queryToString(qs: Map[String, Seq[String]]) = {
+  private def queryToString(qs: Map[String, Seq[String]]) = {
     val queryString = qs.map { case (key, value) => key + "=" + value.sorted.mkString("|,|") }.mkString("&")
     if (queryString.nonEmpty) "?" + queryString else ""
-  }
-
-  def makeRequest[T](uri: String)(block: WSResponse => T) = {
-    tryRequest(uri, request => Results.Ok(request.path + queryToString(request.queryString)))(tryResult => block(tryResult.get))
-  }
-
-  def withServer[T](result: Request[_] => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: play.api.test.Port => T) = {
-    val port = testServerPort
-    val app = GuiceApplicationBuilder()
-      .overrides(bind[HttpErrorHandler].to(errorHandler))
-      .routes {
-        case (_, "/path") => ActionBuilder.ignoringBody { request: Request[_] => Results.Ok(request.queryString) }
-        case _ => ActionBuilder.ignoringBody { request: Request[_] => result(request) }
-      }
-      .build()
-    running(TestServer(port, app)) {
-      block(port)
-    }
   }
 
   "Server" should {
 
     "preserve order of repeated query string parameters" in makeRequest(
       "/path?a=1&b=1&b=2&b=3&b=4&b=5"
-    ) { response =>
-        response.body must beEqualTo("a=1&b=1&b=2&b=3&b=4&b=5")
+    ) {
+        case (endpoint, response) => {
+          response.body.string must_== "a=1&b=1&b=2&b=3&b=4&b=5"
+        }.pendingUntilHttp2Fixed(endpoint)
       }
 
     "handle '/pat/resources/BodhiApplication?where={%22name%22:%22hsdashboard%22}' as a valid URI" in makeRequest(
       "/pat/resources/BodhiApplication?where={%22name%22:%22hsdashboard%22}"
-    ) { response =>
-        response.body must_=== """/pat/resources/BodhiApplication?where={"name":"hsdashboard"}"""
+    ) {
+        case (endpoint, response) => {
+          response.body.string must_=== """/pat/resources/BodhiApplication?where={"name":"hsdashboard"}"""
+        }.pendingUntilHttp2Fixed(endpoint)
       }
 
     "handle '/dynatable/?queries%5Bsearch%5D=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%5D%7D&page=1&perPage=10&offset=0' as a URI" in makeRequest(
       "/dynatable/?queries%5Bsearch%5D=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%5D%7D&page=1&perPage=10&offset=0"
-    ) { response =>
-        response.body must_=== """/dynatable/?queries[search]={"condition":"AND","rules":[]}&page=1&perPage=10&offset=0"""
+    ) {
+        case (endpoint, response) => {
+          response.body.string must_=== """/dynatable/?queries[search]={"condition":"AND","rules":[]}&page=1&perPage=10&offset=0"""
+        }.pendingUntilHttp2Fixed(endpoint)
       }
 
     "handle '/foo%20bar.txt' as a URI" in makeRequest(
       "/foo%20bar.txt"
-    ) { response =>
-        response.body must_=== """/foo%20bar.txt"""
+    ) {
+        case (endpoint, response) =>
+          response.body.string must_=== """/foo%20bar.txt"""
       }
 
     "handle '/?filter=a&filter=b' as a URI" in makeRequest(
       "/?filter=a&filter=b"
-    ) { response =>
-        response.body must_=== """/?filter=a|,|b"""
+    ) {
+        case (endpoint, response) => {
+          response.body.string must_=== """/?filter=a|,|b"""
+        }.pendingUntilHttp2Fixed(endpoint)
       }
 
     "handle '/?filter=a,b' as a URI" in makeRequest(
       "/?filter=a,b"
-    ) { response =>
-        response.body must_=== """/?filter=a,b"""
+    ) {
+        case (endpoint, response) => {
+          response.body.string must_=== """/?filter=a,b"""
+        }.pendingUntilHttp2Fixed(endpoint)
       }
   }
 

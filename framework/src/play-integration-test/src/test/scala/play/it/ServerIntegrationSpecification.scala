@@ -91,17 +91,19 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 
 }
 
+/** Run integration tests against a Netty server */
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
   // Provide a flag to disable Netty tests
   private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
   skipAllIf(!runTests)
 
-  override def integrationServerProvider: ServerProvider = NettyServer.provider
+  final override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
 
+/** Run integration tests against an Akka HTTP server */
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
 
-  override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
+  final override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
 }

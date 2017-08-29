@@ -214,7 +214,10 @@ object BuildSettings {
 
       // Refactoring to unify AkkaHttpServer and NettyServer fromRouter methods
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.NettyServer.fromRouter"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.AkkaHttpServer.fromRouter")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.AkkaHttpServer.fromRouter"),
+
+      // Moved play[private] out of from companion object to allow it to access member variables
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.start")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

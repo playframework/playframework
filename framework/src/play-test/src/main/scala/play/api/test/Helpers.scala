@@ -125,7 +125,7 @@ trait PlayRunners extends HttpVerbs {
    * The port to use for a test server. Defaults to 19001. May be configured using the system property
    * testserver.port
    */
-  lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
+  lazy val testServerPort: Int = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
 
   /**
    * Constructs a in-memory (h2) database configuration to add to an Application.
