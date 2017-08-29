@@ -4,9 +4,10 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.typesafe.tools.mima.plugin.MimaKeys.{ mimaPreviousArtifacts, mimaReportBinaryIssues }
+import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
 import interplay.PlayBuildBase.autoImport._
 import sbt.Keys.parallelExecution
+import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 import sbt.ScriptedPlugin._
 import sbt._
 
@@ -57,7 +58,12 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
 
-      sourceGenerators in Compile += Def.task(PlayVersion(version.value, scalaVersion.value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
+      sourceGenerators in Compile += Def.task(PlayVersion(
+        version.value,
+        scalaVersion.value,
+        sbtVersion.value,
+        jettyAlpnAgent.revision,
+        (sourceManaged in Compile).value)).taskValue,
 
       sourceDirectories in(Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
@@ -175,7 +181,12 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
 lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
       libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
-      sourceGenerators in Compile += Def.task(PlayVersion(version.value, (scalaVersion in PlayProject).value, sbtVersion.value, (sourceManaged in Compile).value)).taskValue,
+      sourceGenerators in Compile += Def.task(PlayVersion(
+        version.value,
+        (scalaVersion in PlayProject).value,
+        sbtVersion.value,
+        jettyAlpnAgent.revision,
+        (sourceManaged in Compile).value)).taskValue,
 
       // This only publishes the sbt plugin projects on each scripted run.
       // The runtests script does a full publish before running tests.
@@ -231,10 +242,13 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "p
 
 // This project is just for testing Play, not really a public artifact
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
+    .enablePlugins(JavaAgent)
     .settings(
-      libraryDependencies += h2database % Test,
+      libraryDependencies += okHttp % Test,
       parallelExecution in Test := false,
-      mimaPreviousArtifacts := Set.empty
+      mimaPreviousArtifacts := Set.empty,
+      fork in Test := true,
+      javaAgents += jettyAlpnAgent % "test"
     )
     .dependsOn(
       PlayProject % "test->test",
@@ -247,6 +261,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     .dependsOn(PlayJavaProject)
     .dependsOn(PlayJavaFormsProject)
     .dependsOn(PlayAkkaHttpServerProject)
+    .dependsOn(PlayAkkaHttp2SupportProject)
     .dependsOn(PlayNettyServerProject)
 
 // This project is just for microbenchmarking Play, not really a public artifact

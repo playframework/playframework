@@ -62,7 +62,7 @@ trait WsTestClient {
    * @param port The port
    * @return The result of the block of code
    */
-  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http") = {
+  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http"): T = {
     val client = clientProducer(port.value, scheme)
     try {
       block(client)

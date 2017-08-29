@@ -38,7 +38,7 @@ object ServerSSLEngine {
         createJavaSSLEngineProvider(s.asInstanceOf[Class[JavaSSLEngineProvider]], serverConfig, applicationProvider)
 
       case _ =>
-        throw new ClassCastException("Must define play.server.api.SSLEngineProvider or play.server.SSLEngineProvider as interface!")
+        throw new ClassCastException(s"Can't create SSLEngineProvider: ${providerClass} must implement either play.server.api.SSLEngineProvider or play.server.SSLEngineProvider.")
     }
   }
 

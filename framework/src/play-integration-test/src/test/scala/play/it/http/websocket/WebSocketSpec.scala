@@ -32,9 +32,9 @@ class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecificatio
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
 class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
-class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
+class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with AkkaHttpIntegrationSpecification
 
-trait PingWebSocketSpec extends PlaySpecification with WsTestClient with NettyIntegrationSpecification with WebSocketSpecMethods {
+trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with WebSocketSpecMethods {
 
   sequential
 

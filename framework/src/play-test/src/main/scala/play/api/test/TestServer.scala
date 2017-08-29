@@ -21,6 +21,15 @@ case class TestServer(
     serverProvider: Option[ServerProvider]) {
 
   private var testServerProcess: TestServerProcess = _
+  private var testServer: Server = _
+
+  private def getTestServerIfRunning: Server = {
+    val s = testServer
+    if (s == null) {
+      throw new IllegalStateException("Test server not running")
+    }
+    s
+  }
 
   /**
    * Starts this server.
@@ -31,7 +40,17 @@ case class TestServer(
     }
 
     try {
-      testServerProcess = TestServer.start(serverProvider, config, application)
+      testServerProcess = new TestServerProcess
+      val resolvedServerProvider: ServerProvider = serverProvider.getOrElse {
+        ServerProvider.fromConfiguration(testServerProcess.classLoader, config.configuration)
+      }
+      Play.start(application)
+      testServer = resolvedServerProvider.createServer(config, application)
+      testServerProcess.addShutdownHook {
+        val ts = testServer
+        testServer = null // Clear field before stopping, in case an error occurs
+        ts.stop()
+      }
     } catch {
       case NonFatal(t) =>
         t.printStackTrace
@@ -44,16 +63,27 @@ case class TestServer(
    */
   def stop() {
     if (testServerProcess != null) {
-      val shuttingDownProcess = testServerProcess
-      testServerProcess = null
-      shuttingDownProcess.shutdown()
+      val p = testServerProcess
+      testServerProcess = null // Clear field before shutting, in case an error occurs
+      p.shutdown()
     }
   }
 
   /**
    * The port that the server is running on.
    */
+  @deprecated("Using runningHttpPort or runningHttpsPort instead", "2.6.4")
   def port: Int = config.port.getOrElse(throw new IllegalStateException("No HTTP port defined"))
+
+  /**
+   * The HTTP port that the server is running on.
+   */
+  def runningHttpPort: Option[Int] = getTestServerIfRunning.httpPort
+
+  /**
+   * The HTTPS port that the server is running on.
+   */
+  def runningHttpsPort: Option[Int] = getTestServerIfRunning.httpsPort
 }
 
 object TestServer {
@@ -74,26 +104,6 @@ object TestServer {
     ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test,
       rootDir = application.path), application, serverProvider
   )
-
-  /**
-   * Start a TestServer with the given config and application. To stop it,
-   * call `shutdown` on the returned TestServerProcess.
-   */
-  private[play] def start(
-    testServerProvider: Option[ServerProvider],
-    config: ServerConfig,
-    application: Application): TestServerProcess = {
-    val process = new TestServerProcess
-    val serverProvider: ServerProvider = {
-      testServerProvider
-    } getOrElse {
-      ServerProvider.fromConfiguration(process.classLoader, config.configuration)
-    }
-    Play.start(application)
-    val server = serverProvider.createServer(config, application)
-    process.addShutdownHook { server.stop() }
-    process
-  }
 
 }
 
