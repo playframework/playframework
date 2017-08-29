@@ -8,7 +8,12 @@ import sbt.complete.Parsers
 
 object Generators {
   // Generates a scala file that contains the play version for use at runtime.
-  def PlayVersion(version: String, scalaVersion: String, sbtVersion: String, dir: File): Seq[File] = {
+  def PlayVersion(
+      version: String,
+      scalaVersion: String,
+      sbtVersion: String,
+      jettyAlpnAgentVersion: String,
+      dir: File): Seq[File] = {
     val file = dir / "PlayVersion.scala"
     val scalaSource =
         """|package play.core
@@ -17,8 +22,13 @@ object Generators {
            |  val current = "%s"
            |  val scalaVersion = "%s"
            |  val sbtVersion = "%s"
+           |  private[play] val jettyAlpnAgentVersion = "%s"
            |}
-           |""".stripMargin.format(version, scalaVersion, sbtVersion)
+           |""".stripMargin.format(
+              version,
+              scalaVersion,
+              sbtVersion,
+              jettyAlpnAgentVersion)
 
     if (!file.exists() || IO.read(file) != scalaSource) {
       IO.write(file, scalaSource)

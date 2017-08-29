@@ -180,7 +180,8 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-   * Merge two configurations.
+   * Merge two configurations. The second configuration overrides the first configuration.
+   * This is the opposite direction of `Config`'s `withFallback` method.
    */
   def ++(other: Configuration): Configuration = {
     Configuration(other.underlying.withFallback(underlying))
