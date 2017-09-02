@@ -78,21 +78,25 @@ class FlashCookieSpec extends Specification {
       m.size must_== 1
       m("a") must_== " \",;\\"
     }
+
     "decode values of the previously supported format" in {
       val es = oldEncoder(Map("a" -> "b", "c" -> "d"))
-      val m = flash.decode(es)
-      m.size must_== 0
+
+      flash.decode(es).size must_== 0
     }
+
     "decode values of the previously supported format with the new delimiters in them" in {
       val es = oldEncoder(Map("a" -> "b&="))
-      val m = flash.decode(es)
-      m.size must_== 0
+
+      flash.decode(es).size must_== 0
     }
+
     "decode values with gibberish in them" in {
       val es = "asfjdlkasjdflk"
-      val m = flash.decode(es)
-      m.size must_== 0
+
+      flash.decode(es).size must_== 0
     }
+
     "put disallows null values" in {
       val c = Flash(Map("foo" -> "bar"))
       c + (("x", null)) must throwA(new IllegalArgumentException("requirement failed: Cookie values cannot be null"))
