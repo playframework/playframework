@@ -38,18 +38,20 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Constraints associated with this form, indexed by field name.
    */
-  val constraints: Map[String, Seq[(String, Seq[Any])]] = mapping.mappings.map { m =>
-    m.key -> m.constraints.collect { case Constraint(Some(name), args) => name -> args }
-  }.filterNot(_._2.isEmpty).toMap
+  val constraints: Map[String, Seq[(String, Seq[Any])]] =
+    mapping.mappings.collect {
+      case m if m.constraints.nonEmpty => m.key -> m.constraints.collect {
+        case Constraint(Some(name), args) => name -> args
+      }
+    }(scala.collection.breakOut)
 
   /**
    * Formats associated to this form, indexed by field name. *
    */
-  val formats: Map[String, (String, Seq[Any])] = mapping.mappings.map { m =>
-    m.key -> m.format
-  }.collect {
-    case (k, Some(f)) => k -> f
-  }.toMap
+  val formats: Map[String, (String, Seq[Any])] =
+    mapping.mappings.flatMap { m =>
+      m.format.map { fmt => m.key -> fmt }
+    }(scala.collection.breakOut)
 
   /**
    * Binds data to this form, i.e. handles form submission.

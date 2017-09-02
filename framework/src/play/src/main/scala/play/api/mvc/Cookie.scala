@@ -505,11 +505,16 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
       // cookie. This can cause the client to send an empty cookie back to us after we've attempted to clear it. So
       // just decode empty cookies to an empty map. See https://github.com/playframework/playframework/issues/7680.
       if (data.nonEmpty) {
-        data
-          .split("&")
-          .map(_.split("=", 2))
-          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
-          .toMap
+        data.split("&").flatMap { pair =>
+          pair.span(_ != '=') match { // "foo=bar".span(_ != '=') -> (foo,=bar)
+            case (encName, encVal) =>
+              Some(URLDecoder.decode(encName, "UTF-8") -> URLDecoder.decode(
+                encVal.drop(1), "UTF-8"))
+
+            case _ => // Skip invalid
+              Option.empty[(String, String)]
+          }
+        }(scala.collection.breakOut)
       } else Map.empty
     }
 
@@ -675,8 +680,8 @@ object JWTCookieDataCodec {
         val msg = s"Invalid header algorithm $headerAlgorithm in JWT $id"
         throw new IllegalStateException(msg)
       }
-      val claims: Claims = jws.getBody
-      claims.asScala.toMap
+
+      jws.getBody.asScala.toMap
     }
 
     /**

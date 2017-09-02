@@ -220,13 +220,20 @@ object HttpConfiguration {
         jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
-        config.get[String]("play.http.fileMimeTypes")
-        .split('\n')
-        .map(_.trim)
-        .filter(_.nonEmpty)
-        .filter(_ (0) != '#')
-        .map(_.split('='))
-        .map(parts => parts(0) -> parts.drop(1).mkString).toMap
+        config.get[String]("play.http.fileMimeTypes").split('\n').flatMap { l =>
+          val line = l.trim
+
+          line.splitAt(1) match {
+            case ("", "") => Option.empty[(String, String)] // blank
+            case ("#", _) => Option.empty[(String, String)] // comment
+
+            case _ => // "foo=bar".span(_ != '=') -> (foo,=bar)
+              line.span(_ != '=') match {
+                case (key, v) => Some(key -> v.drop(1)) // '=' prefix
+                case _ => Option.empty[(String, String)] // skip invalid
+              }
+          }
+        }(scala.collection.breakOut)
       ),
       secret = getSecretConfiguration(config, environment)
     )

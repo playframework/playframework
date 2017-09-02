@@ -18,6 +18,7 @@ import play.utils.{ PlayIO, Resources }
 
 import scala.annotation.implicitNotFound
 import scala.collection.mutable
+import scala.collection.breakOut
 import scala.io.Codec
 import scala.language._
 import scala.util.parsing.combinator._
@@ -101,7 +102,7 @@ object Messages extends MessagesImplicits {
    */
   def parse(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
     new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
-      messages.map { message => message.key -> message.pattern }.toMap
+      messages.map { message => message.key -> message.pattern }(breakOut)
     }
   }
 
@@ -538,11 +539,11 @@ class DefaultMessagesApiProvider @Inject() (
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
-    langs.availables.map(_.code).map { lang =>
-      (lang, loadMessages("messages." + lang))
-    }.toMap
-      .+("default" -> loadMessages("messages"))
-      .+("default.play" -> loadMessages("messages.default"))
+    (langs.availables.map(_.code).map { lang =>
+      lang -> loadMessages(s"messages.${lang}")
+    }(breakOut): Map[String, Map[String, String]]).
+      +("default" -> loadMessages("messages")) + (
+        "default.play" -> loadMessages("messages.default"))
   }
 
   protected def loadMessages(file: String): Map[String, String] = {
