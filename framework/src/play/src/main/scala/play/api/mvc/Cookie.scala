@@ -514,7 +514,7 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
 
             case (encName, encVal) =>
               Some(URLDecoder.decode(encName, "UTF-8") -> URLDecoder.decode(
-                encVal.drop(1), "UTF-8"))
+                encVal.tail, "UTF-8"))
 
           }
         }(scala.collection.breakOut)

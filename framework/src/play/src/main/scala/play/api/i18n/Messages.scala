@@ -539,8 +539,9 @@ class DefaultMessagesApiProvider @Inject() (
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
-    (langs.availables.map(_.code).map { lang =>
-      lang -> loadMessages(s"messages.${lang}")
+    (langs.availables.map { lang =>
+      val code = lang.code
+      code -> loadMessages(s"messages.${code}")
     }(breakOut): Map[String, Map[String, String]]).
       +("default" -> loadMessages("messages")) + (
         "default.play" -> loadMessages("messages.default"))
