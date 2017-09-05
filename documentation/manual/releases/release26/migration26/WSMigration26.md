@@ -81,6 +81,10 @@ The `ning` package has been replaced by the `ahc` package, and the Ning* classes
 
 A normal `WSResponse` instance is returned from `stream()` instead of `StreamedResponse`.  You should call `response.bodyAsSource` to return the streamed result.
 
+There are some naming changes with deprecations to make things more explicit on `play.api.libs.ws.WSRequest`. Extra care should be exercised when migrating these:
+- [`WsRequest.withHeaders`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withHeaders\(headers:\(String,String\)*\):WSRequest.this.Self) is now [`WsRequest.addHttpHeaders`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@addHttpHeaders\(hdrs:\(String,String\)*\):StandaloneWSRequest.this.Self) (same behaviour) or [`WsRequest.withHttpHeaders`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withHttpHeaders\(headers:\(String,String\)*\):WSRequest.this.Self) (throws away existing headers)
+- [`WsRequest.withQueryString`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withQueryString\(parameters:\(String,String\)*\):WSRequest.this.Self) is now [`WsRequest.addQueryStringParameters`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@addQueryStringParameters\(parameters:\(String,String\)*\):StandaloneWSRequest.this.Self) (same behaviour) or [`WsRequest.withQueryStringParameters`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withQueryStringParameters\(parameters:\(String,String\)*\):WSRequest.this.Self) (throws away existing query string)
+
 ### Java
 
 In Java, the `play.libs.ws.WS` class has been deprecated.  An injected `WSClient` instance should be used instead.
