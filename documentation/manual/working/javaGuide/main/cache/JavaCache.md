@@ -55,6 +55,8 @@ You can also supply a `Callable` that generates stores the value if no value is 
 
 @[get-or-else](code/javaguide/cache/JavaCache.java)
 
+**Note**: `getOrElseUpdate` is not an atomic operation in Ehcache and is implemented as a `get` followed by computing the value from the `Callable`, then a `set`. This means it's possible for the value to be computed multiple times if multiple threads are calling `getOrElse` simultaneously.
+
 To remove an item from the cache use the `remove` method:
 
 @[remove](code/javaguide/cache/JavaCache.java)
