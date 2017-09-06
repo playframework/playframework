@@ -1,7 +1,8 @@
 package javaguide.logging;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
-import play.Logger;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -21,7 +22,7 @@ public class JavaMarkerController extends Controller {
         this.httpExecutionContext = httpExecutionContext;
     }
 
-    private final Logger.ALogger logger = Logger.of(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(JavaMarkerController.class);
 
     // #logging-log-info-with-request-context
     // ###insert: import static net.logstash.logback.marker.Markers.append;
