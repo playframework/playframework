@@ -133,21 +133,21 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
     try {
       checkEvolutionsState()
-      Collections.unfoldLeft(executeQuery(
-        """
-            select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id
-        """)) { rs =>
-        rs.next match {
-          case false => None
-          case true => {
-            Some((rs, Evolution(
-              rs.getInt(1),
-              Option(rs.getString(3)) getOrElse "",
-              Option(rs.getString(4)) getOrElse "")))
+      executeQuery(
+        "select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id"
+      ) { rs =>
+          Collections.unfoldLeft(rs) { rs =>
+            rs.next match {
+              case false => None
+              case true => {
+                Some((rs, Evolution(
+                  rs.getInt(1),
+                  Option(rs.getString(3)) getOrElse "",
+                  Option(rs.getString(4)) getOrElse "")))
+              }
+            }
           }
         }
-      }
-
     } finally {
       connection.close()
     }
@@ -265,25 +265,26 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     implicit val connection = database.getConnection(autocommit = autocommit)
 
     try {
-      val problem = executeQuery("select id, hash, apply_script, revert_script, state, last_problem from ${schema}play_evolutions where state like 'applying_%'")
+      executeQuery(
+        "select id, hash, apply_script, revert_script, state, last_problem from ${schema}play_evolutions where state like 'applying_%'"
+      ) { problem =>
+          if (problem.next) {
+            val revision = problem.getInt("id")
+            val state = problem.getString("state")
+            val hash = problem.getString("hash").take(7)
+            val script = state match {
+              case "applying_up" => problem.getString("apply_script")
+              case _ => problem.getString("revert_script")
+            }
+            val error = problem.getString("last_problem")
 
-      if (problem.next) {
-        val revision = problem.getInt("id")
-        val state = problem.getString("state")
-        val hash = problem.getString("hash").take(7)
-        val script = state match {
-          case "applying_up" => problem.getString("apply_script")
-          case _ => problem.getString("revert_script")
+            logger.error(error)
+
+            val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
+
+            throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
+          }
         }
-        val error = problem.getString("last_problem")
-
-        logger.error(error)
-
-        val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
-
-        throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
-      }
-
     } catch {
       case e: InconsistentDatabase => throw e
       case NonFatal(_) => createPlayEvolutionsTable()
@@ -309,15 +310,26 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
   // SQL helpers
 
-  private def executeQuery(sql: String)(implicit c: Connection): ResultSet = {
-    c.createStatement.executeQuery(applySchema(sql))
+  private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
+    val ps = c.createStatement
+    try {
+      val rs = ps.executeQuery(applySchema(sql))
+      f(rs)
+    } finally {
+      ps.close()
+    }
   }
 
   private def execute(sql: String)(implicit c: Connection): Boolean = {
-    c.createStatement.execute(applySchema(sql))
+    val s = c.createStatement
+    try {
+      s.execute(applySchema(sql))
+    } finally {
+      s.close()
+    }
   }
 
-  private def prepareAndExecute(sql: String)(block: PreparedStatement => Unit)(implicit c: Connection) = {
+  private def prepareAndExecute(sql: String)(block: PreparedStatement => Unit)(implicit c: Connection): Boolean = {
     val ps = c.prepareStatement(applySchema(sql))
     try {
       block(ps)
