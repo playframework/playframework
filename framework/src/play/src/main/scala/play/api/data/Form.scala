@@ -197,7 +197,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns `true` if there is an error related to this form.
    */
-  def hasErrors: Boolean = !errors.isEmpty
+  def hasErrors: Boolean = errors.nonEmpty
 
   /**
    * Retrieve the first error for this key.
@@ -216,7 +216,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns `true` if there is a global error related to this form.
    */
-  def hasGlobalErrors: Boolean = !globalErrors.isEmpty
+  def hasGlobalErrors: Boolean = globalErrors.nonEmpty
 
   /**
    * Returns the concrete value, if the submission was a success.
@@ -305,7 +305,7 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   /**
    * Check if this field has errors.
    */
-  lazy val hasErrors: Boolean = !errors.isEmpty
+  lazy val hasErrors: Boolean = errors.nonEmpty
 
   /**
    * Retrieve a field from the same form, using a key relative to this field key.
