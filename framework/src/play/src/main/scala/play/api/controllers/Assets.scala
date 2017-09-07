@@ -30,6 +30,7 @@ package play.api.controllers {
 package controllers {
 
   import java.time._
+  import java.time.format.DateTimeParseException
   import javax.inject.Provider
 
   import akka.stream.scaladsl.StreamConverters
@@ -579,6 +580,9 @@ package controllers {
           }
         } catch {
           case e: IllegalArgumentException =>
+            Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+            None
+          case e: DateTimeParseException =>
             Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
             None
         }
