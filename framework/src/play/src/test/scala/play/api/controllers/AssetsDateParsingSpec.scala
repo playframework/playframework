@@ -37,6 +37,14 @@ class AssetsDateParsingSpec extends Specification {
       parseAndReformat("Wed Jan 07 2015 22:54:20 GMT-0800 (Pacific Standard Time)") must beSome("2015-01-08T06:54:20.000Z")
     }
 
+    "return None for improperly formatted date" in {
+      parseAndReformat("2015-01-07T05:00:00Z") must beNone
+    }
+
+    "return None for invalid date" in {
+      parseAndReformat("Mon, 26 Jul 1997 05:00:00 GMT") must beNone
+    }
+
     "not parse empty date header" in {
       parseAndReformat("") must beNone
     }
