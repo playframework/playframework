@@ -244,9 +244,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   def removingFromSession(keys: String*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data -- keys))
 
-  override def toString = {
-    "Result(" + header + ")"
-  }
+  override def toString = s"Result(${header})"
 
   /**
    * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx

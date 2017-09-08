@@ -3,11 +3,17 @@
  */
 package play.core.parsers
 
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+import scala.collection.breakOut
+import scala.concurrent.Future
+
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
+
 import play.api.libs.Files.{ TemporaryFile, TemporaryFileCreator }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -15,9 +21,6 @@ import play.api.mvc.MultipartFormData._
 import play.api.http.Status._
 import play.api.http.HttpErrorHandler
 
-import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.Future
 import play.core.Execution.Implicits.trampoline
 
 /**
@@ -183,7 +186,7 @@ object Multipart {
             case KeyValue(key, v) =>
               (key.trim, v.trim.replaceAll("""\\"""", "\""))
             case key => (key.trim, "")
-          }.toMap)
+          }(breakOut): Map[String, String])
 
         _ <- values.get("form-data")
         partName <- values.get("name")
@@ -201,9 +204,9 @@ object Multipart {
       for {
         values <- headers.get("content-disposition").map(
           _.split(";").map(_.trim).map {
-          case KeyValue(key, v) => (key.trim, v.trim)
-          case key => (key.trim, "")
-        }.toMap)
+            case KeyValue(key, v) => (key.trim, v.trim)
+            case key => (key.trim, "")
+          }(breakOut): Map[String, String])
         _ <- values.get("form-data")
         partName <- values.get("name")
       } yield partName
@@ -337,10 +340,13 @@ object Multipart {
               bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
-              val headers = headerString.lines.map { header =>
-                val key :: value = header.trim.split(":").toList
-                (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
-              }.toMap
+              val headers: Map[String, String] =
+                headerString.lines.map { header =>
+                  val key :: value = header.trim.split(":").toList
+
+                  (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
+
+                }.toMap
 
               val partStart = headerEnd + 4
 

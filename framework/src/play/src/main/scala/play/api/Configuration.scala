@@ -1087,9 +1087,10 @@ object ConfigLoader {
     def load(config: Config, path: String): Map[String, A] = {
       val obj = config.getObject(path)
       val conf = obj.toConfig
+
       obj.keySet().asScala.map { key =>
         key -> valueLoader.load(conf, key)
-      }.toMap
+      }(scala.collection.breakOut)
     }
   }
 }

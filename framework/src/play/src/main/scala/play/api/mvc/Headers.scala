@@ -54,9 +54,9 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    */
   def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
 
-  override def equals(other: Any) = {
-    other.isInstanceOf[Headers] &&
-      toMap == other.asInstanceOf[Headers].toMap
+  override def equals(that: Any) = that match {
+    case other: Headers => toMap == other.toMap
+    case _ => false
   }
 
   /**
@@ -98,12 +98,15 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    * Transform the Headers to a Map
    */
   lazy val toMap: Map[String, Seq[String]] = {
-    val map = headers.groupBy(_._1.toLowerCase(Locale.ENGLISH)).map {
+    val builder = TreeMap.newBuilder[String, Seq[String]](CaseInsensitiveOrdered)
+
+    headers.groupBy(_._1.toLowerCase(Locale.ENGLISH)).foreach {
       case (_, headers) =>
         // choose the case of first header as canonical
-        headers.head._1 -> headers.map(_._2)
+        builder += headers.head._1 -> headers.map(_._2)
     }
-    TreeMap(map.toSeq: _*)(CaseInsensitiveOrdered)
+
+    builder.result()
   }
 
   /**

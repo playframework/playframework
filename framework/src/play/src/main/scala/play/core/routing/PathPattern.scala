@@ -73,7 +73,7 @@ case class PathPattern(parts: Seq[PathPart]) {
     if (matcher.matches) {
       Some(groups.map {
         case (name, g) => name -> g(matcher)
-      }.toMap)
+      }(scala.collection.breakOut))
     } else {
       None
     }

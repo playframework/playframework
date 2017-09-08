@@ -504,13 +504,21 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
       // In some cases we've seen clients ignore the Max-Age and Expires on a cookie, and fail to properly clear the
       // cookie. This can cause the client to send an empty cookie back to us after we've attempted to clear it. So
       // just decode empty cookies to an empty map. See https://github.com/playframework/playframework/issues/7680.
-      if (data.nonEmpty) {
-        data
-          .split("&")
-          .map(_.split("=", 2))
-          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
-          .toMap
-      } else Map.empty
+      if (data.isEmpty) {
+        Map.empty[String, String]
+      } else {
+        data.split("&").flatMap { pair =>
+          pair.span(_ != '=') match { // "foo=bar".span(_ != '=') -> (foo,=bar)
+            case (_, "") => // Skip invalid
+              Option.empty[(String, String)]
+
+            case (encName, encVal) =>
+              Some(URLDecoder.decode(encName, "UTF-8") -> URLDecoder.decode(
+                encVal.tail, "UTF-8"))
+
+          }
+        }(scala.collection.breakOut)
+      }
     }
 
     // Do not change this unless you understand the security issues behind timing attacks.
@@ -675,8 +683,8 @@ object JWTCookieDataCodec {
         val msg = s"Invalid header algorithm $headerAlgorithm in JWT $id"
         throw new IllegalStateException(msg)
       }
-      val claims: Claims = jws.getBody
-      claims.asScala.toMap
+
+      jws.getBody.asScala.toMap
     }
 
     /**
