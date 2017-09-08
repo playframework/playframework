@@ -5,11 +5,17 @@ package play.data;
 
 import javax.validation.Validator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import play.data.validation.*;
 import play.data.format.Formatters;
+import play.data.validation.ValidationError;
 import play.i18n.MessagesApi;
 
 /**
@@ -17,8 +23,11 @@ import play.i18n.MessagesApi;
  */
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
+    /** Statically compiled Pattern for checking if a key is already surrounded by "data[]". */
+    private static final Pattern MATCHES_DATA = Pattern.compile("^data\\[.+\\]$");
+
     private final Map<String, String> rawData;
-    
+
     /**
      * Creates a new empty dynamic form.
      *
@@ -30,7 +39,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         super(DynamicForm.Dynamic.class, messagesApi, formatters, validator);
         rawData = new HashMap<>();
     }
-    
+
     /**
      * Creates a new dynamic form.
      *
@@ -70,12 +79,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
                 validator
         );
     }
-    
+
     /**
      * Gets the concrete value only if the submission was a success.
      * If the form is invalid because of validation errors this method will return null.
      * If you want to retrieve the value even when the form is invalid use {@link #value(String)} instead.
-     * 
+     *
      * @param key the string key.
      * @return the value, or null if there is no match.
      */
@@ -151,18 +160,16 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        {
-            Map<String,String> newData = new HashMap<>();
-            for(Map.Entry<String, String> e: data.entrySet()) {
-                newData.put(asDynamicKey(e.getKey()), e.getValue());
-            }
-            data = newData;
+        Map<String,String> newData = new HashMap<>();
+        for(Map.Entry<String, String> e: data.entrySet()) {
+            newData.put(asDynamicKey(e.getKey()), e.getValue());
         }
-        
+        data = newData;
+
         Form<Dynamic> form = super.bind(data, allowedFields);
         return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
     }
-    
+
     /**
      * Retrieves a field.
      *
@@ -180,7 +187,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
     /**
      * Retrieve an error by key.
-     * 
+     *
      * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
      */
     @Deprecated
@@ -201,7 +208,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
-     * 
+     *
      * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
      */
     @Deprecated
@@ -213,7 +220,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
-     * 
+     *
      * @return a copy of this form with the given error added.
      */
     @Override
@@ -221,24 +228,24 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
         return new DynamicForm(this.rawData, form.allErrors(), form.value(), this.messagesApi, this.formatters, this.validator);
     }
-    
+
     /**
      * Adds an error to this form.
      *
      * @param key the error key
      * @param error the error message
-     * 
+     *
      * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
-     */    
+     */
     @Deprecated
     public void reject(String key, String error) {
         super.reject(asDynamicKey(key), error);
     }
-    
+
     /**
      * @param key the error key
      * @param error the error message
-     * 
+     *
      * @return a copy of this form with the given error added.
      */
     @Override
@@ -249,7 +256,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     // -- tools
 
     static String asDynamicKey(String key) {
-        if(key.isEmpty() || key.matches("^data\\[.+\\]$")) {
+        if(key.isEmpty() || MATCHES_DATA.matcher(key).matches()) {
            return key;
         } else {
             return "data[" + key + "]";
@@ -257,7 +264,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     static String asNormalKey(String key) {
-        if(key.matches("^data\\[.+\\]$")) {
+        if(MATCHES_DATA.matcher(key).matches()) {
            return key.substring(5, key.length() - 1);
         } else {
             return key;
@@ -265,7 +272,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     // -- /
-    
+
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
@@ -300,6 +307,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
 
     }
-    
+
 }
 
