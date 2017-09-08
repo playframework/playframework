@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +27,9 @@ import static play.mvc.Http.Session;
  * Any action result.
  */
 public class Result {
+
+    /** Statically compiled pattern for extracting the charset from a Result.  */
+    private static final Pattern SPLIT_CHARSET = Pattern.compile("(?i);\\s*charset=");
 
     private final ResponseHeader header;
     private final HttpEntity body;
@@ -229,7 +233,7 @@ public class Result {
      */
     public Optional<String> charset() {
         return body.contentType().flatMap(h -> {
-            String[] parts = h.split("(?i);\\s*charset=", 2);
+            String[] parts = SPLIT_CHARSET.split(h, 2);
             if (parts.length > 1) {
                 String charset = parts[1];
                 return Optional.of(charset.trim());
