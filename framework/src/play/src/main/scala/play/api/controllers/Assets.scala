@@ -20,11 +20,9 @@ import scala.util.control.NonFatal
 import scala.util.{ Failure, Success }
 
 package play.api.controllers {
-
   sealed trait TrampolineContextProvider {
     implicit def trampoline = play.core.Execution.Implicits.trampoline
   }
-
 }
 
 package controllers {
