@@ -14,7 +14,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specsVersion = "3.9.4"
+  val specsVersion = "3.9.5"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -25,7 +25,7 @@ object Dependencies {
 
   val specsSbt = specsBuild
 
-  val jacksonVersion = "2.9.0"
+  val jacksonVersion = "2.9.1"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
@@ -40,7 +40,7 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava = "com.google.guava" % "guava" % "22.0"
+  val guava = "com.google.guava" % "guava" % "23.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
@@ -56,7 +56,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.6.3",
+    "com.zaxxer" % "HikariCP" % "2.7.1",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -88,7 +88,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time" % "2.9.9",
-    "org.joda" % "joda-convert" % "1.8.2"
+    "org.joda" % "joda-convert" % "1.8.3"
   )
 
   val javaFormsDeps = Seq(
@@ -161,7 +161,7 @@ object Dependencies {
 
   val nettyUtilsDependencies = slf4j
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.8.1"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.0"
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.5",
@@ -199,9 +199,9 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.3"),
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.1"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.1")
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4"),
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.2"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
     ) ++ specsBuild.map(_ % Test)
   }
 
@@ -216,7 +216,7 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.0",
+    "org.reactivestreams" % "reactive-streams" % "1.0.1",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     scalaJava8Compat
   ) ++ specsBuild.map(_ % Test) ++ javaTestDeps
@@ -232,7 +232,7 @@ object Dependencies {
     guava % Test
   ) ++ specsBuild.map(_ % Test)
 
-  val seleniumVersion = "3.4.0"
+  val seleniumVersion = "3.5.3"
   val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
     junitInterface,
     guava,
