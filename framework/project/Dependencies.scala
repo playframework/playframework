@@ -25,7 +25,7 @@ object Dependencies {
 
   val specsSbt = specsBuild
 
-  val jacksonVersion = "2.8.9"
+  val jacksonVersion = "2.8.10"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
@@ -44,10 +44,10 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
-  val h2database = "com.h2database" % "h2" % "1.4.195"
+  val h2database = "com.h2database" % "h2" % "1.4.196"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.44-j7p"
+  val acolyteVersion = "1.0.46"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.6"
@@ -56,7 +56,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.6.3",
+    "com.zaxxer" % "HikariCP" % "2.7.1",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -73,7 +73,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.9.RELEASE"
+  val springFrameworkVersion = "4.3.10.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -88,7 +88,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time" % "2.9.9",
-    "org.joda" % "joda-convert" % "1.8.1"
+    "org.joda" % "joda-convert" % "1.8.3"
   )
 
   val javaFormsDeps = Seq(
@@ -152,7 +152,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.12.Final"
+  val nettyVersion = "4.1.15.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -161,7 +161,7 @@ object Dependencies {
 
   val nettyUtilsDependencies = slf4j
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.8.1"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.0"
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.5",
@@ -199,9 +199,9 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.3"),
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.1"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.1")
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4"),
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.2"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
     ) ++ specsBuild.map(_ % Test)
   }
 
@@ -216,7 +216,7 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.0",
+    "org.reactivestreams" % "reactive-streams" % "1.0.1",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     scalaJava8Compat
   ) ++ specsBuild.map(_ % Test) ++ javaTestDeps
@@ -232,12 +232,12 @@ object Dependencies {
     guava % Test
   ) ++ specsBuild.map(_ % Test)
 
-  val seleniumVersion = "3.4.0"
+  val seleniumVersion = "3.5.3"
   val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
     junitInterface,
     guava,
     findBugs,
-    "org.fluentlenium" % "fluentlenium-core" % "3.2.0" exclude("org.jboss.netty", "netty"),
+    "org.fluentlenium" % "fluentlenium-core" % "3.3.0" exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the

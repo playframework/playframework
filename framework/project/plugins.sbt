@@ -3,16 +3,16 @@
 enablePlugins(BuildInfoPlugin)
 
 val Versions = new {
-  val sbtNativePackager = "1.2.0"
-  val mima = "0.1.14"
+  val sbtNativePackager = "1.2.2"
+  val mima = "0.1.18"
   val sbtScalariform = "1.6.0"
-  val sbtJavaAgent = "0.1.3"
-  val sbtJmh = "0.2.24"
+  val sbtJavaAgent = "0.1.4"
+  val sbtJmh = "0.2.27"
   val sbtDoge = "0.1.5"
-  val webjarsLocatorCore = "0.32"
+  val webjarsLocatorCore = "0.33"
   val sbtHeader = "1.8.0"
   val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.3.4")
-  val interplay: String = sys.props.getOrElse("interplay.version", "1.3.6")
+  val interplay: String = sys.props.getOrElse("interplay.version", "1.3.7")
 }
 
 buildInfoKeys := Seq[BuildInfoKey](
