@@ -555,8 +555,12 @@ object BuildSettings {
 
       // Remove DefaultDBApi.connect method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect$default$1"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect")
-  ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect"),
+
+      // Not public API
+      ProblemFilters.exclude[MissingTypesProblem]("controllers.Execution$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.controllers.TrampolineContextProvider")
+    ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },

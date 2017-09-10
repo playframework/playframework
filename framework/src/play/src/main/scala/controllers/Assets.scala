@@ -20,7 +20,7 @@ import scala.concurrent.{ ExecutionContext, Future, Promise, blocking }
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success }
 
-package play.api.controllers {
+package play.core.controllers {
   sealed trait TrampolineContextProvider {
     implicit def trampoline = play.core.Execution.Implicits.trampoline
   }
@@ -33,7 +33,7 @@ package controllers {
   import javax.inject.Provider
 
   import akka.stream.scaladsl.StreamConverters
-  import play.api.controllers.TrampolineContextProvider
+  import play.core.controllers.TrampolineContextProvider
   import play.api.http._
   import play.api.inject.{ ApplicationLifecycle, Module }
 
