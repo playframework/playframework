@@ -161,7 +161,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   def apply(key: String): Field = Field(
     this,
     key,
-    constraints.get(key).getOrElse(Nil),
+    constraints.getOrElse(key, Nil),
     formats.get(key),
     errors.collect { case e if e.key == key => e },
     data.get(key))
