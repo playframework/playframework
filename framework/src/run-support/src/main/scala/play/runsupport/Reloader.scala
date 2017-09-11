@@ -78,10 +78,15 @@ object Reloader {
     devSettings: Seq[(String, String)]): (Seq[(String, String)], Option[Int], Option[Int], String) = {
     val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
-    val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
-
+    val properties = propertyArgs.map {
+      _.drop(2).span(_ != '=') match {
+        case (key, v) => key -> v.tail
+      }
+    }
     val props = properties.toMap
-    def prop(key: String): Option[String] = props.get(key) orElse sys.props.get(key)
+
+    def prop(key: String): Option[String] =
+      props.get(key) orElse sys.props.get(key)
 
     def parsePortValue(portValue: Option[String], defaultValue: Option[Int] = None): Option[Int] = {
       portValue match {
@@ -91,18 +96,20 @@ object Reloader {
       }
     }
 
+    val devMap = devSettings.toMap
+
     // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
     // Or it can be defined in devSettings as "play.server.http.port"
-    val httpPortString: Option[String] = otherArgs.headOption orElse prop("http.port") orElse devSettings.toMap.get("play.server.http.port")
+    val httpPortString: Option[String] = otherArgs.headOption orElse prop("http.port") orElse devMap.get("play.server.http.port")
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
     // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPortString: Option[String] = prop("https.port") orElse devSettings.toMap.get("play.server.https.port")
+    val httpsPortString: Option[String] = prop("https.port") orElse devMap.get("play.server.https.port")
     val httpsPort = parsePortValue(httpsPortString)
 
     // http address can be defined as a -Dhttp.address argument or system property
-    val httpAddress = prop("http.address") orElse devSettings.toMap.get("play.server.http.address") getOrElse defaultHttpAddress
+    val httpAddress = prop("http.address") orElse devMap.get("play.server.http.address") getOrElse defaultHttpAddress
 
     (properties, httpPort, httpsPort, httpAddress)
   }

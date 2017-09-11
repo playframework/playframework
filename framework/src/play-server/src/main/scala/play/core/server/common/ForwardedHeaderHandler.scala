@@ -161,21 +161,29 @@ private[server] object ForwardedHeaderHandler {
      * optional unparsed protocol. Further parsing may happen later, see `remoteConnection`.
      */
     def forwardedHeaders(headers: Headers): Seq[ForwardedEntry] = version match {
-      case Rfc7239 =>
-        (for {
+      case Rfc7239 => {
+        val params = (for {
           fhs <- headers.getAll("Forwarded")
           fh <- fhs.split(",\\s*")
-        } yield fh).map(_.split(";").flatMap(s => {
-          val splitted = s.split("=", 2)
-          if (splitted.length < 2) Seq.empty else {
-            // Remove surrounding quotes
-            val name = splitted(0).toLowerCase(java.util.Locale.ENGLISH)
-            val value = unquote(splitted(1))
-            Seq(name -> value)
+        } yield (fh.split(";").flatMap {
+          _.span(_ != '=') match {
+            case (_, "") => Option.empty[(String, String)] // no value
+
+            case (rawName, v) => {
+              // Remove surrounding quotes
+              val name = rawName.toLowerCase(java.util.Locale.ENGLISH)
+              val value = unquote(v.tail)
+
+              Some(name -> value)
+            }
           }
-        }).toMap).map { paramMap: Map[String, String] =>
+        }(scala.collection.breakOut): Map[String, String]))
+
+        params.map { paramMap: Map[String, String] =>
           ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))
         }
+      }
+
       case Xforwarded =>
         def h(h: Headers, key: String) = h.getAll(key).flatMap(s => s.split(",\\s*")).map(unquote)
         val forHeaders = h(headers, "X-Forwarded-For")
