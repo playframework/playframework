@@ -179,13 +179,9 @@ class NettyServer(
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }
 
-      val idleTimeout = if (secure) {
-        serverConfig.get[Duration]("https.idleTimeout")
-      } else {
-        serverConfig.get[Duration]("http.idleTimeout")
-      }
+      val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
       idleTimeout match {
-        case Duration.Inf => // Do nothing
+        case Duration.Inf => // Do nothing, in other words, don't set any timeout.
         case Duration(timeout, timeUnit) =>
           logger.trace(s"using idle timeout of $timeout $timeUnit on port $port")
           // only timeout if both reader and writer have been idle for the specified time

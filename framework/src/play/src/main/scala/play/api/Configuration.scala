@@ -1034,7 +1034,9 @@ object ConfigLoader {
     ConfigLoader(_.getBooleanList).map(_.asScala.map(_.booleanValue))
 
   implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader { config => path =>
-    if (!config.getIsNull(path)) config.getDuration(path).toNanos.nanos else Duration.Inf
+    if (config.getIsNull(path)) Duration.Inf
+    else if (config.getString(path) == "infinite") Duration.Inf
+    else config.getDuration(path).toNanos.nanos
   }
 
   // Note: this does not support null values but it added for convenience

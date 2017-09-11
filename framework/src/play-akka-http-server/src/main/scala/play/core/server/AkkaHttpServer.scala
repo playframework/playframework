@@ -62,8 +62,8 @@ class AkkaHttpServer(
 
   private def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
     config.getString(path) match {
-      case "infinite" ⇒ Long.MaxValue
-      case x ⇒ config.getBytes(path)
+      case "infinite" => Long.MaxValue
+      case x => config.getBytes(path)
     }
   }
 
