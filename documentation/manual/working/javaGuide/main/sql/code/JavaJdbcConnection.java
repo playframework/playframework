@@ -12,7 +12,6 @@ import play.mvc.Controller;
 import play.db.NamedDatabase;
 import play.db.Database;
 
-// inject "orders" database instead of "default"
 class JavaJdbcConnection {
     private Database db;
     private DatabaseExecutionContext executionContext;
