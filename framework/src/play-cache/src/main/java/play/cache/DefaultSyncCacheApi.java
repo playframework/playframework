@@ -13,7 +13,11 @@ import java.util.concurrent.TimeoutException;
 import javax.inject.Inject;
 
 /**
- * A default implementation of SyncCacheApi that wraps AsyncCacheApi
+ * An implementation of SyncCacheApi that wraps AsyncCacheApi
+ *
+ * Note: this class is really not the "default" implementation of the CacheApi in Play. SyncCacheApiAdapter is actually
+ * used in the default Ehcache implementation. A better name for this class might be "BlockingSyncCacheApi" since it
+ * blocks on the futures from the async implementation.
  */
 public class DefaultSyncCacheApi implements SyncCacheApi, CacheApi {
 
