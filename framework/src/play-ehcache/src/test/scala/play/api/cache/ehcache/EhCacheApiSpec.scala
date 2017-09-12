@@ -3,16 +3,17 @@
  */
 package play.api.cache.ehcache
 
+import java.util.concurrent.Executors
 import javax.inject.{ Inject, Provider }
 
 import net.sf.ehcache.CacheManager
-import play.api.cache.{ AsyncCacheApi, DefaultSyncCacheApi, SyncCacheApi }
+import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
 import play.api.inject._
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.cache.NamedCache
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class EhCacheApiSpec extends PlaySpecification {
   sequential
@@ -25,7 +26,7 @@ class EhCacheApiSpec extends PlaySpecification {
     ) {
       val controller = app.injector.instanceOf[NamedCacheController]
       val syncCacheName =
-        controller.cache.asInstanceOf[DefaultSyncCacheApi].cacheApi.asInstanceOf[EhCacheApi].cache.getName
+        controller.cache.asInstanceOf[SyncEhCacheApi].cache.getName
       val asyncCacheName =
         controller.asyncCache.asInstanceOf[EhCacheApi].cache.getName
 
@@ -48,6 +49,16 @@ class EhCacheApiSpec extends PlaySpecification {
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       syncCacheApi.getOrElseUpdate("foo")("baz") must_== "bar"
+    }
+
+    "get values from cache without deadlocking" in new WithApplication(
+      _.overrides(
+        bind[ExecutionContext].toInstance(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
+      )
+    ) {
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      syncCacheApi.set("foo", "bar")
+      syncCacheApi.getOrElseUpdate[String]("foo")("baz") must_== "bar"
     }
 
     "remove values from cache" in new WithApplication() {
