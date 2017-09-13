@@ -237,6 +237,17 @@ If a chain of WS calls does not complete in time, it may be useful to wrap the r
 
 @[ws-futures-timeout](code/ScalaWSSpec.scala)
 
+## Compile Time Dependency Injection
+
+If you are using compile time depedency injection.  You can access the `WSClient` by doing the following:
+
+```scala
+lazy val asyncHttpClientProvider = new AsyncHttpClientProvider(environment, configuration, applicationLifecycle)
+lazy val asyncHttpClient = asyncHttpClientProvider.get
+lazy val wsClientProvider = new AhcWSClientProvider(asyncHttpClient)
+lazy val wsClient = wsClientProvider.get
+```
+
 ## Directly creating WSClient
 
 We recommend that you get your `WSClient` instances using dependency injection as described above. `WSClient` instances created through dependency injection are simpler to use because they are automatically created when the application starts and cleaned up when the application stops.
