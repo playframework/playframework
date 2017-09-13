@@ -263,16 +263,6 @@ trait BuiltInComponents extends I18nComponents {
   def router: Router
 
   /**
-   * Alias method to [[defaultActionBuilder]]. This just helps to keep the idiom of using `Action`
-   * when creating `Router`s using the built in components.
-   *
-   * @return the default action builder.
-   */
-  def Action: DefaultActionBuilder = defaultActionBuilder
-
-  def parse = playBodyParsers
-
-  /**
    * The runtime [[Injector]] instance provided to the [[DefaultApplication]]. This injector is set up to allow
    * existing (deprecated) legacy APIs to function. It is not set up to support injecting arbitrary Play components.
    */
@@ -347,6 +337,22 @@ trait BuiltInComponents extends I18nComponents {
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
   lazy val javaContextComponents: JavaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+
+  // NOTE: the following helpers are declared as protected since they are only meant to be used inside BuiltInComponents
+  // This also makes them not conflict with other methods of the same type when used with Macwire.
+
+  /**
+   * Alias method to [[defaultActionBuilder]]. This just helps to keep the idiom of using `Action`
+   * when creating `Router`s using the built in components.
+   *
+   * @return the default action builder.
+   */
+  protected def Action: DefaultActionBuilder = defaultActionBuilder
+
+  /**
+   * Alias method to [[playBodyParsers]].
+   */
+  protected def parse: PlayBodyParsers = playBodyParsers
 }
 
 /**
