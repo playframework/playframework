@@ -35,7 +35,7 @@ trait ControllerHelpers extends Results with HttpProtocol with Status with Heade
    *   def action(query: String) = TODO
    * }}}
    */
-  lazy val TODO: Action[AnyContent] = Action {
+  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody {
     NotImplemented[Html](views.html.defaultpages.todo())
   }
 }
