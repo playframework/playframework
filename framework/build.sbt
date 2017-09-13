@@ -180,7 +180,7 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
 
 lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
-      libraryDependencies ++= sbtDependencies(sbtVersion.value, scalaVersion.value),
+      libraryDependencies ++= sbtDependencies(sbtBinaryVersion.value, scalaBinaryVersion.value),
       sourceGenerators in Compile += Def.task(PlayVersion(
         version.value,
         (scalaVersion in PlayProject).value,

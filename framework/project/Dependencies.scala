@@ -169,10 +169,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
 
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
-    moduleId.extra(
-      "sbtVersion" -> CrossVersion.binarySbtVersion(sbtVersion),
-      "scalaVersion" -> CrossVersion.binaryScalaVersion(scalaVersion)
-    )
+    Defaults.sbtPluginExtra(moduleId, sbtVersion, scalaVersion)
   }
 
   val runSupportDependencies = Seq(
