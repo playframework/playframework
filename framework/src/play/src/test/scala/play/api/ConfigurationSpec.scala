@@ -34,6 +34,26 @@ class ConfigurationSpec extends Specification {
 
   "Configuration" should {
 
+    import scala.concurrent.duration._
+    "support getting durations" in {
+
+      "simple duration" in {
+        val conf = config("my.duration" -> "10s")
+        conf.get[Duration]("my.duration") must beEqualTo(10.seconds)
+      }
+
+      "handle 'infinite' as Duration.Inf" in {
+        val conf = config("my.duration" -> "infinite")
+        conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
+      }
+
+      "handle null as Duration.Inf" in {
+        val conf = config("my.duration" -> null)
+        conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
+      }
+
+    }
+
     "support getting optional values" in {
       "when null" in {
         config("foo.bar" -> null).get[Option[String]]("foo.bar") must beNone
