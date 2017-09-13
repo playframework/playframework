@@ -15,7 +15,7 @@ import play.it.test._
 class UriHandlingSpec extends PlaySpecification with AllEndpointsIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
   private def makeRequest[T: AsResult](path: String)(block: (ServerEndpoint, okhttp3.Response) => T): Fragment = withRouter { components: BuiltInComponents =>
-    import components.Action
+    import components.{ defaultActionBuilder => Action }
     import sird.UrlContext
     Router.from {
       case sird.GET(p"/path") => Action { request: Request[_] => Results.Ok(request.queryString) }

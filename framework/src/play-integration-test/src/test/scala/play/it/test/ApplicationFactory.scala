@@ -36,7 +36,7 @@ trait ApplicationFactories {
     }
   }
   def withAction(createAction: DefaultActionBuilder => Action[_]): ApplicationFactory = withRouter { components: BuiltInComponents =>
-    val action = createAction(components.Action)
+    val action = createAction(components.defaultActionBuilder)
     Router.from { case _ => action }
   }
   def withResult(result: Result): ApplicationFactory = withAction { Action: DefaultActionBuilder =>
