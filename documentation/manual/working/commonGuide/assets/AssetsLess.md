@@ -84,7 +84,7 @@ h1 {
 LESS compilation is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.6")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.2")
 ```
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-less#sbt-less) for information on how it may be configured.

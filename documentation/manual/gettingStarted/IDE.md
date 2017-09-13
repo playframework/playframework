@@ -12,7 +12,7 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases).
 
 ```scala
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.1.0")
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.2")
 ```
 
 You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
@@ -159,7 +159,7 @@ Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
 ```scala
-addSbtPlugin("org.ensime" % "ensime-sbt" % "0.2.3")
+addSbtPlugin("org.ensime" % "sbt-ensime" % "1.12.15")
 ```
 
 Start SBT:
