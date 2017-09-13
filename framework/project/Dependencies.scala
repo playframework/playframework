@@ -194,12 +194,9 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
       slf4jSimple,
-
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
-
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4"),
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.2"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
     ) ++ specsBuild.map(_ % Test)
