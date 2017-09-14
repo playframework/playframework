@@ -197,9 +197,10 @@ object PlaySettings {
       } else Nil
     },
     scriptClasspath := {
+      val scriptClasspathValue = scriptClasspath.value
       if (externalizeResources.value) {
-        "../conf/" +: scriptClasspath.value
-      } else scriptClasspath.value
+        "../conf/" +: scriptClasspathValue
+      } else scriptClasspathValue
     },
     // taskDyn ensures we only build the sans externalised jar if we need to
     scriptClasspathOrdering := Def.taskDyn {

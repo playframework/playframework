@@ -68,6 +68,11 @@ object RoutesCompiler extends AutoPlugin {
 
     routesCompilerTasks := Def.taskDyn {
 
+      val generateReverseRouterValue = generateReverseRouter.value
+      val namespaceReverseRouterValue = namespaceReverseRouter.value
+      val sourcesInRoutes = (sources in routes).value
+      val routesImportValue = routesImport.value
+
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value.map { agg =>
         routesCompilerTasks in (agg.project, configuration.value)
@@ -79,9 +84,9 @@ object RoutesCompiler extends AutoPlugin {
         }
 
         // Find the routes compile tasks for this project
-        val thisProjectTasks = (sources in routes).value.map { file =>
-          RoutesCompilerTask(file, routesImport.value, forwardsRouter = true,
-            reverseRouter = generateReverseRouter.value, namespaceReverseRouter = namespaceReverseRouter.value)
+        val thisProjectTasks = sourcesInRoutes.map { file =>
+          RoutesCompilerTask(file, routesImportValue, forwardsRouter = true,
+            reverseRouter = generateReverseRouterValue, namespaceReverseRouter = namespaceReverseRouterValue)
         }
 
         thisProjectTasks ++ reverseRouterTasks

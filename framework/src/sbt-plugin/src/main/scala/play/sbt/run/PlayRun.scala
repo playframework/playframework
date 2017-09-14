@@ -182,8 +182,9 @@ object PlayRun {
 
   val playAllAssetsSetting = playAllAssets := Seq(playPrefixAndAssets.value)
 
-  val playAssetsClassLoaderSetting = playAssetsClassLoader := { parent =>
-    new AssetsClassLoader(parent, playAllAssets.value)
+  val playAssetsClassLoaderSetting = playAssetsClassLoader := {
+    val playAllAssetsValue = playAllAssets.value
+    parent => new AssetsClassLoader(parent, playAllAssetsValue)
   }
 
   val playRunProdCommand = Command.args("runProd", "<port>")(testProd)
