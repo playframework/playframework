@@ -7,6 +7,13 @@ import java.io.{ BufferedReader, InputStreamReader, InputStream }
 import java.net.HttpURLConnection
 import java.util.concurrent.Executors
 import java.util.jar.JarFile
+
+import scala.collection.{ breakOut, mutable }
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future, ExecutionContext }
+import scala.util.control.NonFatal
+
 import com.typesafe.play.docs.sbtplugin.Imports._
 import org.pegdown.ast._
 import org.pegdown.ast.Node
@@ -16,11 +23,6 @@ import play.sbt.Colors
 import play.doc._
 import sbt.{ FileRepository => _, _ }
 import sbt.Keys._
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future, ExecutionContext }
-import scala.util.control.NonFatal
 
 import Imports.PlayDocsKeys._
 
@@ -49,12 +51,17 @@ object PlayDocsValidation {
    * This is used to compare translations to the originals, checking that all files exist and all code samples exist.
    */
   case class CodeSamplesReport(files: Seq[FileWithCodeSamples]) {
-    lazy val byFile = files.map(f => f.name -> f).toMap
-    lazy val byName = files.filterNot(_.name.endsWith("_Sidebar.md")).map { file =>
-      val filename = file.name
-      val name = filename.takeRight(filename.length - filename.lastIndexOf('/'))
-      name -> file
-    }.toMap
+    lazy val byFile: Map[String, FileWithCodeSamples] =
+      files.map(f => f.name -> f)(breakOut)
+
+    lazy val byName: Map[String, FileWithCodeSamples] = files.collect {
+      case file if !file.name.endsWith("_Sidebar.md") =>
+        val filename = file.name
+        val name = filename.takeRight(
+          filename.length - filename.lastIndexOf('/'))
+
+        name -> file
+    }(breakOut)
   }
   case class FileWithCodeSamples(name: String, source: String, codeSamples: Seq[CodeSample])
   case class CodeSample(source: String, segment: String,
@@ -330,7 +337,8 @@ object PlayDocsValidation {
 
     val pageIndex = PageIndex.parseFrom(combinedRepo, "", None)
 
-    val pages = report.markdownFiles.map(f => f.getName.dropRight(3) -> f).toMap
+    val pages: Map[String, File] =
+      report.markdownFiles.map(f => f.getName.dropRight(3) -> f)(breakOut)
 
     var failed = false
 

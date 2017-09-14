@@ -205,11 +205,9 @@ package object templates {
   /**
    * Calculate the local names that need to be matched
    */
-  def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = {
-    params.map {
-      case (lp, i) => route.call.parameters.get(i).name -> lp.name
-    }.toMap
-  }
+  def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = params.map {
+    case (lp, i) => route.call.parameters.get(i).name -> lp.name
+  }(scala.collection.breakOut)
 
   /**
    * Calculate the unique reverse constraints, and generate them using the given block

@@ -5,7 +5,8 @@ package play.sbt.routes
 
 import play.core.PlayVersion
 import play.routes.compiler.{ RoutesGenerator, RoutesCompilationError }
-import play.routes.compiler.RoutesCompiler.{ RoutesCompilerTask, GeneratedSource }
+import play.routes.compiler.{ RoutesCompiler => Compiler }, Compiler.{ RoutesCompilerTask, GeneratedSource }
+
 import sbt._
 import sbt.Keys._
 import com.typesafe.sbt.web.incremental._
@@ -141,18 +142,20 @@ object RoutesCompiler extends AutoPlugin {
     cacheDirectory: File, log: Logger): Seq[File] = {
     val ops = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
     val (products, errors) = syncIncremental(cacheDirectory, ops) { opsToRun: Seq[RoutesCompilerOp] =>
+      val errs = Seq.newBuilder[RoutesCompilationError]
 
-      val results = opsToRun.map { op =>
-        op -> play.routes.compiler.RoutesCompiler.compile(op.task, generator, generatedDir)
-      }
-      val opResults = results.map {
-        case (op, Right(inputs)) => op -> OpSuccess(Set(op.task.file), inputs.toSet)
-        case (op, Left(_)) => op -> OpFailure
-      }.toMap
-      val errors = results.collect {
-        case (_, Left(e)) => e
-      }.flatten
-      (opResults, errors)
+      val opResults: Map[RoutesCompilerOp, OpResult] = opsToRun.map { op =>
+        Compiler.compile(op.task, generator, generatedDir) match {
+          case Right(inputs) =>
+            op -> OpSuccess(Set(op.task.file), inputs.toSet)
+
+          case Left(details) =>
+            errs ++= details
+            op -> OpFailure
+        }
+      }(scala.collection.breakOut)
+
+      opResults -> errs.result()
     }
 
     if (errors.nonEmpty) {
@@ -160,6 +163,7 @@ object RoutesCompiler extends AutoPlugin {
         case RoutesCompilationError(source, message, line, column) =>
           reportCompilationError(log, RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
+
       throw exceptions.head
     }
 
