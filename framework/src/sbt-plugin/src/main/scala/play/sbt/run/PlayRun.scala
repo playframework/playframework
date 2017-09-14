@@ -264,7 +264,7 @@ object PlayRun {
         if (noExitSbt) {
           state
         } else {
-          state.copy(remainingCommands = Seq.empty)
+          state.copy(remainingCommands = List.empty)
         }
     }
 
@@ -288,7 +288,7 @@ object PlayRun {
     if (args.contains("--no-exit-sbt")) {
       state
     } else {
-      state.copy(remainingCommands = Seq.empty)
+      state.copy(remainingCommands = List.empty)
     }
   }
 }
