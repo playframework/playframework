@@ -168,8 +168,8 @@ object Dependencies {
     specsMatcherExtra % Test
   ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
 
-  private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
-    Defaults.sbtPluginExtra(moduleId, sbtVersion, scalaVersion)
+  private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
+    Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
   val runSupportDependencies = Seq(
@@ -189,7 +189,7 @@ object Dependencies {
   val typesafeConfig = "com.typesafe" % "config" % "1.3.1"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
-    def sbtDep(moduleId: ModuleID) = sbtPluginDep(sbtVersion, scalaVersion, moduleId)
+    def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
 
     Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
