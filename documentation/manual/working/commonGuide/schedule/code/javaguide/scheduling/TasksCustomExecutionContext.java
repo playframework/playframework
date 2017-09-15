@@ -10,8 +10,10 @@ import play.libs.concurrent.CustomExecutionContext;
 import scala.concurrent.duration.Duration;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.concurrent.TimeUnit;
 
+@Singleton
 public class TasksCustomExecutionContext extends CustomExecutionContext {
 
     @Inject

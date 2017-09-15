@@ -7,11 +7,12 @@ package scalaguide.scheduling
 import scala.concurrent.duration._
 
 //#custom-task-execution-context
-import javax.inject.Inject
+import javax.inject.{ Inject, Singleton }
 
 import akka.actor.ActorSystem
 import play.api.libs.concurrent.CustomExecutionContext
 
+@Singleton
 class TasksCustomExecutionContext @Inject() (actorSystem: ActorSystem)
   extends CustomExecutionContext(actorSystem, "tasks-dispatcher")
 //#custom-task-execution-context

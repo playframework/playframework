@@ -7,8 +7,10 @@ import akka.actor.ActorSystem;
 import play.libs.concurrent.CustomExecutionContext;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 //#custom-execution-context
+@Singleton
 public class MyExecutionContext extends CustomExecutionContext {
 
     @Inject

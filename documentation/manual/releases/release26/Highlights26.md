@@ -559,6 +559,10 @@ database.dispatcher {
 To define a custom execution context, subclass [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html) with the dispatcher name:
 
 ```scala
+import akka.actor.ActorSystem
+import play.api.libs.concurrent.CustomExecutionContext
+import javax.inject.{ Inject, Singleton }
+
 @Singleton
 class DatabaseExecutionContext @Inject()(system: ActorSystem)
    extends CustomExecutionContext(system, "database.dispatcher")
@@ -579,11 +583,14 @@ To define a custom execution context, subclass [`CustomExecutionContext`](api/ja
 ```java
 import akka.actor.ActorSystem;
 import play.libs.concurrent.CustomExecutionContext;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public class DatabaseExecutionContext
         extends CustomExecutionContext {
 
-    @javax.inject.Inject
+    @Inject
     public DatabaseExecutionContext(ActorSystem actorSystem) {
         // uses a custom thread pool defined in application.conf
         super(actorSystem, "database.dispatcher");

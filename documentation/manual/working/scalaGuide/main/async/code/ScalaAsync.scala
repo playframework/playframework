@@ -3,7 +3,7 @@
  */
 package scalaguide.async.scalaasync
 
-import javax.inject.Inject
+import javax.inject.{ Inject, Singleton }
 
 import scala.concurrent._
 import akka.actor._
@@ -40,6 +40,7 @@ import play.api.libs.concurrent.CustomExecutionContext
 
 trait MyExecutionContext extends ExecutionContext
 
+@Singleton
 class MyExecutionContextImpl @Inject()(system: ActorSystem)
   extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
 
