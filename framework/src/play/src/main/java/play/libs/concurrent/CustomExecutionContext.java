@@ -14,19 +14,40 @@ import scala.concurrent.ExecutionContextExecutor;
  * the full path to the Akka dispatcher.
  *
  * <pre>
- * {@code
+ * <code>
+ * {@literal @}Singleton
  * class MyCustomExecutionContext extends CustomExecutionContext {
  *   // Dependency inject the actorsystem from elsewhere
+ *   {@literal @}Inject
  *   public MyCustomExecutionContext(ActorSystem actorSystem) {
  *     super(actorSystem, "full.path.to.my-custom-executor");
  *   }
  * }
- * }
+ * </code>
  * </pre>
  *
- * Then use your custom execution context where you have blocking
+ * and then bind it in dependency injection:
+ *
+ * <pre>
+ * <code>
+ * bind(DatabaseExecutionContext.class).toSelf().eagerly()
+ * </code>
+ * </pre>
+ *
+ * Then inject and use your custom execution context where you have blocking
  * operations that require processing outside of Play's main rendering
  * thread.
+ *
+ * <pre>
+ * <code>
+ * public class DatabaseService {
+ *   {@literal @}Inject
+ *   public DatabaseService(DatabaseExecutionContext executionContext) {
+ *     ...
+ *   }
+ * }
+ * </code>
+ * </pre>
  *
  * @see <a href="http://doc.akka.io/docs/akka/2.5/java/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
