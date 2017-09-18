@@ -5,10 +5,8 @@ package play.sbt
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
-
 import sbt._
 import sbt.Keys._
-
 import play.TemplateImports
 import play.dev.filewatch.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
@@ -17,14 +15,13 @@ import play.sbt.routes.RoutesKeys
 import play.sbt.run._
 import play.sbt.run.PlayRun.DocsApplication
 import play.twirl.sbt.Import.TwirlKeys
-
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 
-object PlaySettings {
+object PlaySettings extends PlaySettingsCompat {
 
   lazy val minimalJavaSettings = Seq[Setting[_]](
 
@@ -125,7 +122,7 @@ object PlaySettings {
 
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
 
-    playCompileEverything := PlayCommands.playCompileEverythingTask.value,
+    playCompileEverything := getPlayCompileEverything(PlayCommands.playCompileEverythingTask.value),
 
     playReload := PlayCommands.playReloadTask.value,
 
@@ -140,7 +137,7 @@ object PlaySettings {
 
     playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
 
-    fileWatchService := FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
+    fileWatchService := FileWatchService.defaultWatchService(target.value, getPoolInterval(pollInterval.value).toMillis.toInt, sLog.value),
 
     playDefaultPort := 9000,
     playDefaultAddress := "0.0.0.0",
@@ -158,7 +155,7 @@ object PlaySettings {
 
     playAssetsWithCompilation := {
       val ignore = ((assets in Assets)?).value
-      (compile in Compile).value
+      getPlayAssetsWithCompilation((compile in Compile).value)
     },
 
     // Assets for run mode
@@ -189,8 +186,8 @@ object PlaySettings {
 
     // Support for externalising resources
     mappings in Universal ++= {
+      val resourceMappings = (playExternalizedResources in Compile).value
       if (externalizeResources.value) {
-        val resourceMappings = (playExternalizedResources in Compile).value
         resourceMappings.map {
           case (resource, path) => resource -> ("conf/" + path)
         }
@@ -264,10 +261,10 @@ object PlaySettings {
    */
   private def externalizedSettings: Seq[Setting[_]] =
     Defaults.packageTaskSettings(playJarSansExternalized, mappings in playJarSansExternalized) ++ Seq(
-      playExternalizedResources := {
-        val rdirs = unmanagedResourceDirectories.value
-        (unmanagedResources.value --- rdirs) pair (relativeTo(rdirs) | flat)
-      },
+      playExternalizedResources := getPlayExternalizedResources(
+        unmanagedResourceDirectories.value,
+        unmanagedResources.value
+      ),
       mappings in playJarSansExternalized := {
         // packageBin mappings have all the copied resources from the classes directory
         // so we need to get the copied resources, and map the source files to the destination files,
