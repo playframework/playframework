@@ -9,7 +9,7 @@ import play.api._
 import sbt._
 
 /**
- * Fix compatibility issues for RoutesCompiler. This is the version compatible with sbt 1.0.
+ * Fix compatibility issues for PlayExceptions. This is the version compatible with sbt 1.0.
  */
 object PlayExceptions {
 
