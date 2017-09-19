@@ -1,7 +1,9 @@
 //
 // Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 //
-lazy val root = (project in file(".")).enablePlugins(RoutesCompiler)
+lazy val root = (project in file("."))
+  .enablePlugins(RoutesCompiler)
+  .enablePlugins(MediatorWorkaroundPlugin)
 
 scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3")
 

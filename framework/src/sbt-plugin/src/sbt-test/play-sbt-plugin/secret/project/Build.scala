@@ -3,6 +3,7 @@
  */
 
 import play.sbt.PlayScala
+import play.sbt.test.MediatorWorkaroundPlugin
 import sbt.Keys._
 import sbt._
 
@@ -13,7 +14,7 @@ object ApplicationBuild extends Build {
 
   val Secret = """(?s).*play.http.secret.key="(.*)".*""".r
 
-  val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayScala, MediatorWorkaroundPlugin).settings(
     version := appVersion,
     TaskKey[Unit]("checkSecret") := {
       val file = IO.read(baseDirectory.value / "conf/application.conf")

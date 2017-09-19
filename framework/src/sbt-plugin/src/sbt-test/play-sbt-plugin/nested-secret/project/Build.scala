@@ -4,6 +4,7 @@
 
 import com.typesafe.config.{Config, ConfigFactory}
 import play.sbt.PlayScala
+import play.sbt.test.MediatorWorkaroundPlugin
 import play.sbt.PlayImport._
 import sbt.Keys._
 import sbt._
@@ -13,7 +14,7 @@ object ApplicationBuild extends Build {
   val appName = "secret-sample"
   val appVersion = "1.0-SNAPSHOT"
 
-  val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayScala, MediatorWorkaroundPlugin).settings(
     version := appVersion,
     libraryDependencies += guice,
     TaskKey[Unit]("checkSecret") := {

@@ -4,17 +4,20 @@
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(playmodule, nonplaymodule)
   .settings(common: _*)
 
 lazy val playmodule = (project in file("playmodule"))
   .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(transitive)
   .settings(common: _*)
 
 // A transitive dependency of playmodule, to check that we are pulling in transitive deps
 lazy val transitive = (project in file("transitive"))
   .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
   .settings(common: _*)
 
 // A non play module, to check that play settings that are not defined don't cause errors

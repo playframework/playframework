@@ -3,7 +3,9 @@
 //
 import scala.reflect._
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
 
 libraryDependencies += guice
 

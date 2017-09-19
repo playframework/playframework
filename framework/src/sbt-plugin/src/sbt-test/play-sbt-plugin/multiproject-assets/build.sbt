@@ -9,11 +9,15 @@ name := "assets-sample"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(module)
   .aggregate(module)
 
-lazy val module = (project in file("module")).enablePlugins(PlayScala)
+lazy val module = (project in file("module"))
+  .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.3")
 
