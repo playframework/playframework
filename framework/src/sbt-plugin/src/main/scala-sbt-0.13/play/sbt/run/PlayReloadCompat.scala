@@ -11,7 +11,7 @@ import sbt.{ Incomplete, Output, Result, file }
 /**
  * Fix compatibility issues for PlayReload. This is the version compatible with sbt 0.13.
  */
-trait PlayReloadCompat {
+private[run] trait PlayReloadCompat {
 
   def compile(reloadCompile: () => Result[sbt.inc.Analysis], classpath: () => Result[Classpath], streams: () => Option[Streams]): CompileResult = {
     reloadCompile().toEither

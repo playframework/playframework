@@ -6,7 +6,7 @@ package play.sbt.test
 import sbt.Keys.{ scalaModuleInfo, sbtPlugin }
 import sbt.AutoPlugin
 
-trait MediatorWorkaroundPluginCompat extends AutoPlugin {
+private[test] trait MediatorWorkaroundPluginCompat extends AutoPlugin {
 
   override def projectSettings = Seq(
     scalaModuleInfo := { scalaModuleInfo.value map {_.copy(overrideScalaVersion = sbtPlugin.value)} }

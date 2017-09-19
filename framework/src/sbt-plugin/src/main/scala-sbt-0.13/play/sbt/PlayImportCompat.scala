@@ -9,7 +9,7 @@ import sbt.{ Def, Level, LogManager, Logger, Scope, Settings, State }
 /**
  * Fix compatibility issues for PlayImport. This is the version compatible with sbt 0.13.
  */
-trait PlayImportCompat {
+private[sbt] trait PlayImportCompat {
 
   /**
    * Add this to your build.sbt, eg:

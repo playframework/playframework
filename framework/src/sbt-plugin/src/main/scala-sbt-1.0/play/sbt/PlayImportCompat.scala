@@ -11,7 +11,6 @@ import sbt.internal.util.ManagedLogger
 /**
  * Fix compatibility issues for PlayImport. This is the version compatible with sbt 1.0.
  */
-trait PlayImportCompat {
-
-  //
+private[sbt] trait PlayImportCompat {
+  // has nothing
 }

@@ -12,7 +12,7 @@ import scala.language.implicitConversions
 /**
  * Fix compatibility issues for RoutesCompiler. This is the version compatible with sbt 0.13.
  */
-trait RoutesCompilerCompat {
+private[routes]trait RoutesCompilerCompat {
 
   val routesPositionMapper: Position => Option[Position] = position => {
     position.sourceFile collect {

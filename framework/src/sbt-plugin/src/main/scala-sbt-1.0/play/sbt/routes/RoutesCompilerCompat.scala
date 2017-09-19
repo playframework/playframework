@@ -13,7 +13,7 @@ import scala.language.implicitConversions
 /**
  * Fix compatibility issues for RoutesCompiler. This is the version compatible with sbt 1.0.
  */
-trait RoutesCompilerCompat {
+private[routes] trait RoutesCompilerCompat {
 
   private def toScala[T](o: Optional[T]): Option[T] = {
     if (o.isPresent) Option(o.get())

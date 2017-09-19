@@ -12,7 +12,7 @@ import sbt.internal.Output
 /**
  * Fix compatibility issues for PlayReload. This is the version compatible with sbt 1.0.
  */
-trait PlayReloadCompat {
+private[run] trait PlayReloadCompat {
 
   def compile(reloadCompile: () => Result[sbt.internal.inc.Analysis], classpath: () => Result[Classpath], streams: () => Option[Streams]): CompileResult = {
     reloadCompile().toEither

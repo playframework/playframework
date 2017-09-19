@@ -11,7 +11,7 @@ import scala.sys.process._
 /**
  * Fix compatibility issues for PlayRun. This is the version compatible with sbt 1.0.
  */
-trait PlayRunCompat {
+private[run] trait PlayRunCompat {
 
   def sleepForPoolDelay = Thread.sleep(Watched.PollDelay.toMillis)
 
