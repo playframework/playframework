@@ -172,12 +172,12 @@ object Dependencies {
     Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
-  val runSupportDependencies = Seq(
-    // TODO: sbt 1.0
-    // It is ok to use this version at master branch, but for 2.6.x we need
-    // to use 1.0.x versions since they are fully compatible with 2.6.x releases.
-    "com.lightbend.play" %% "play-file-watch" % "1.1.2"
-  ) ++ specsBuild.map(_ % Test)
+  // TODO: sbt 1.0
+  // It is ok to use this version at master branch, but for 2.6.x we need
+  // to use 1.0.x versions since they are fully compatible with 2.6.x releases.
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.2"
+
+  val runSupportDependencies = Seq(playFileWatch) ++ specsBuild.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
@@ -194,6 +194,7 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
       slf4jSimple,
+      playFileWatch,
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
