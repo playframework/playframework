@@ -13,11 +13,5 @@ import sbt.internal.util.ManagedLogger
  */
 trait PlayImportCompat {
 
-  /**
-   * This is not supported anymore.
-   */
-  def emojiLogs = {
-    sLog.value.warn("emojiLogs is not supported anymore. Remove it from your build.")
-  }
-
+  //
 }
