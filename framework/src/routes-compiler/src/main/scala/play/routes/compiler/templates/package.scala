@@ -231,7 +231,7 @@ package object templates {
     if (fixedParams.isEmpty) {
       ""
     } else {
-      "implicit val _rrc = new play.core.routing.ReverseRouteContext(Map(%s))".format(fixedParams.mkString(", "))
+      "implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(%s)); _rrc".format(fixedParams.mkString(", "))
     }
   }
 
