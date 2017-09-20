@@ -54,7 +54,7 @@ TaskKey[Unit]("checkPlayMonitoredFiles") := {
 }
 
 TaskKey[Unit]("checkPlayCompileEverything") := {
-  val analyses: Seq[sbt.inc.Analysis] = play.sbt.PlayInternalKeys.playCompileEverything.value
+  val analyses = play.sbt.PlayInternalKeys.playCompileEverything.value
   if (analyses.size != 4) {
     throw new RuntimeException("Expected 4 analysis objects, but got " + analyses.size)
   }
