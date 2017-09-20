@@ -13,8 +13,12 @@ import scala.util.Properties
  */
 object DevModeBuild {
 
-  val MaxAttempts = 10
+  // Using 30 max attempts so that we can give more chances to
+  // the file watcher service. This is relevant when using the
+  // default JDK watch service which does uses polling.
+  val MaxAttempts = 30
   val WaitTime = 500l
+
   val ConnectTimeout = 10000
   val ReadTimeout = 10000
 
