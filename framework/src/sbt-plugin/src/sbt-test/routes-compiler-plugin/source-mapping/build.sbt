@@ -1,6 +1,7 @@
 //
 // Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 //
+import Common._
 import scala.reflect._
 
 lazy val root = (project in file("."))
@@ -22,8 +23,8 @@ InputKey[Unit]("allProblemsAreFrom") := {
     case cf: xsbti.CompileFailed => cf.problems()
     case other => throw other
   }.map { problem =>
-    val problemSource = assertSome(problem.position().sourceFile())
-    val problemLine = assertSome(problem.position().line())
+    val problemSource = assertNotEmpty(problem.position().sourceFile())
+    val problemLine = assertNotEmpty(problem.position().line())
     if (problemSource.getCanonicalPath != source.getCanonicalPath)
       throw new Exception("Problem from wrong source file: " + problemSource)
     if (problemLine != line)
@@ -35,11 +36,6 @@ InputKey[Unit]("allProblemsAreFrom") := {
 
 def assertSome[T: ClassTag](o: Option[T]): T = {
   o.getOrElse(throw new Exception("Expected Some[" + implicitly[ClassTag[T]] + "]"))
-}
-
-def assertSome[T: ClassTag](m: xsbti.Maybe[T]): T = {
-  if (m.isEmpty) throw new Exception("Expected Some[" + implicitly[ClassTag[T]] + "]")
-  else m.get()
 }
 
 def assertLeft[T: ClassTag](e: Either[T, _]) = {

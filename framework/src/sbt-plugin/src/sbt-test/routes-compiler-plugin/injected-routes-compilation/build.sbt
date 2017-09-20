@@ -1,6 +1,7 @@
 //
 // Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
 //
+import Common._
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
@@ -46,7 +47,7 @@ compile in Compile := {
   (compile in Compile).result.value match {
     case Inc(inc) =>
       // If there was a compilation error, dump generated routes files so we can read them
-      (target in routes in Compile).value.***.filter(_.isFile).get.map { file =>
+      allFiles((target in routes in Compile).value).map { file =>
         println("Dumping " + file + ":")
         IO.readLines(file).zipWithIndex.foreach {
           case (line, index) => println("%4d".format(index + 1) + ": " + line)
