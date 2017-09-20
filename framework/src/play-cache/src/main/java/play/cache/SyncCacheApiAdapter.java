@@ -33,7 +33,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
 
   @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
-    return scalaApi.getOrElseUpdate(key, msDuration(expiration), Scala.asScala(block), Scala.classTag());
+    return scalaApi.getOrElseUpdate(key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
   }
 
   @Override
@@ -53,7 +53,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
 
   @Override
   public void set(String key, Object value, int expiration) {
-    scalaApi.set(key, value, msDuration(expiration));
+    scalaApi.set(key, value, intToDuration(expiration));
   }
 
   @Override
@@ -66,7 +66,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
     scalaApi.remove(key);
   }
 
-  private Duration msDuration(int millis) {
-    return Duration.apply(millis, TimeUnit.MILLISECONDS);
+  private Duration intToDuration(int seconds) {
+    return seconds == 0 ? Duration.Inf() : Duration.apply(seconds, TimeUnit.SECONDS);
   }
 }
