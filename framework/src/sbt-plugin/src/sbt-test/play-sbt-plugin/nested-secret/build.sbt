@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
@@ -10,18 +10,17 @@ lazy val root = (project in file("."))
   .settings(
     name := "secret-sample",
     version := "1.0-SNAPSHOT",
-    libraryDependencies += guice
-  )
-
-TaskKey[Unit]("checkSecret") := {
-  val file: File = baseDirectory.value / "conf/application.conf"
-  val config: Config = ConfigFactory.parseFileAnySyntax(file)
-  if(!config.hasPath("play.http.secret.key")){
-    throw new RuntimeException("secret not found!!\n" + file)
-  } else {
-    config.getString("play.http.secret.key") match {
-      case "changeme" => throw new RuntimeException("secret not changed!!\n" + file)
-      case _ =>
+    libraryDependencies += guice,
+    TaskKey[Unit]("checkSecret") := {
+      val file: File = baseDirectory.value / "conf/application.conf"
+      val config: Config = ConfigFactory.parseFileAnySyntax(file)
+      if (!config.hasPath("play.http.secret.key")) {
+        throw new RuntimeException("secret not found!!\n" + file)
+      } else {
+        config.getString("play.http.secret.key") match {
+          case "changeme" => throw new RuntimeException("secret not changed!!\n" + file)
+          case _ =>
+        }
+      }
     }
-  }
-}
+  )
