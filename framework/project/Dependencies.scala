@@ -265,7 +265,7 @@ object Dependencies {
   ) ++ jcacheApi
 
   val caffeineVersion = "2.5.3"
-  val playWsStandaloneVersion = "1.1.0"
+  val playWsStandaloneVersion = "1.1.1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
