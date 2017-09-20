@@ -8,6 +8,8 @@ import java.util.Optional
 import play.api._
 import sbt._
 
+import scala.language.implicitConversions
+
 /**
  * Fix compatibility issues for PlayExceptions. This is the version compatible with sbt 1.0.
  */
@@ -31,15 +33,10 @@ object PlayExceptions {
 
   case class CompilationException(problem: xsbti.Problem) extends PlayException.ExceptionSource(
     "Compilation error", filterAnnoyingErrorMessages(problem.message)) {
-    def line = toScala(problem.position.line).map(m => m.asInstanceOf[java.lang.Integer]).orNull
-    def position = toScala(problem.position.pointer).map(m => m.asInstanceOf[java.lang.Integer]).orNull
-    def input = toScala(problem.position.sourceFile).map(IO.read(_)).orNull
-    def sourceName = toScala(problem.position.sourceFile).map(_.getAbsolutePath).orNull
-  }
-
-  private def toScala[T](o: Optional[T]): Option[T] = {
-    if (o.isPresent) Option(o.get())
-    else None
+    def line = problem.position.line.asScala.map(m => m.asInstanceOf[java.lang.Integer]).orNull
+    def position = problem.position.pointer.asScala.map(m => m.asInstanceOf[java.lang.Integer]).orNull
+    def input = problem.position.sourceFile.asScala.map(IO.read(_)).orNull
+    def sourceName = problem.position.sourceFile.asScala.map(_.getAbsolutePath).orNull
   }
 
 }

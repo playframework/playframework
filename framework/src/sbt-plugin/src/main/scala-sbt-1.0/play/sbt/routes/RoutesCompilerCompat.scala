@@ -15,29 +15,19 @@ import scala.language.implicitConversions
  */
 private[routes] trait RoutesCompilerCompat {
 
-  private def toScala[T](o: Optional[T]): Option[T] = {
-    if (o.isPresent) Option(o.get())
-    else None
-  }
-
-  private def toJava[T](o: Option[T]): Optional[T] = o match {
-    case Some(v) => Optional.ofNullable(v)
-    case None => Optional.empty[T]
-  }
-
   val routesPositionMapper: Position => Option[Position] = position => {
-    toScala(position.sourceFile).collect {
+    position.sourceFile.asScala.collect {
       case GeneratedSource(generatedSource) => {
         new xsbti.Position {
           override lazy val line: Optional[Integer] = {
-            val r = toScala(position.line)
+            position.line.asScala
               .flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int]))
               .map(l => l.asInstanceOf[java.lang.Integer])
-            toJava(r)
+              .asJava
           }
           override lazy val lineContent: String = {
-            toScala(line).flatMap { lineNumber =>
-              toScala(sourceFile).flatMap { file =>
+            line.asScala.flatMap { lineNumber =>
+              sourceFile.asScala.flatMap { file =>
                 IO.read(file).split('\n').lift(lineNumber - 1)
               }
             }.getOrElse("")
