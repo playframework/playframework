@@ -73,7 +73,7 @@ object PlayReload {
         //                                                               `-> objectApi  -> structure ->  declared
         //                                                                                           `-> inherited
         //
-        // But it this the right path to access this information?
+        // But it this the right path to access this information if there is any?
     }
   }
 
