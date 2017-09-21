@@ -900,7 +900,7 @@ You may also want to enable SameSite cookies in Play, which provide an additiona
 
 ##### Why it is enabled by default
 
-Browser based attacks are extremely commmon, and security headers can provide a defense in depth to help frustrate those attacks.
+Browser based attacks are extremely common, and security headers can provide a defense in depth to help frustrate those attacks.
 
 ##### What changes do I need to make? 
 
