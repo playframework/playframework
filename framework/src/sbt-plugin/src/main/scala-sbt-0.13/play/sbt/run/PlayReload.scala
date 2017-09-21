@@ -3,15 +3,44 @@
  */
 package play.sbt.run
 
-import play.runsupport.Reloader.{ CompileResult, CompileSuccess, Source }
-import play.sbt.run.PlayReload.{ compileFailure, getScopedKey, originalSource }
-import sbt.Keys.{ Classpath, Streams }
-import sbt.{ Incomplete, Output, Result, file }
+import sbt._
+import sbt.Keys._
+
+import play.api.PlayException
+import play.runsupport.Reloader.{ CompileFailure, CompileResult, CompileSuccess, Source }
+import play.sbt.PlayExceptions.{ CompilationException, UnexpectedException }
 
 /**
  * Fix compatibility issues for PlayReload. This is the version compatible with sbt 0.13.
  */
-private[run] trait PlayReloadCompat {
+object PlayReload {
+
+  def originalSource(file: File): Option[File] = {
+    play.twirl.compiler.MaybeGeneratedSource.unapply(file).flatMap(_.source)
+  }
+
+  def compileFailure(streams: Option[Streams])(incomplete: Incomplete): CompileResult = {
+    CompileFailure(taskFailureHandler(incomplete, streams))
+  }
+
+  def taskFailureHandler(incomplete: Incomplete, streams: Option[Streams]): PlayException = {
+    Incomplete.allExceptions(incomplete).headOption.map {
+      case e: PlayException => e
+      case e: xsbti.CompileFailed =>
+        getProblems(incomplete, streams)
+          .find(_.severity == xsbti.Severity.Error)
+          .map(CompilationException)
+          .getOrElse(UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e)))
+      case e: Exception => UnexpectedException(unexpected = Some(e))
+    }.getOrElse {
+      UnexpectedException(Some("The compilation task failed without any exception!"))
+    }
+  }
+
+  def getScopedKey(incomplete: Incomplete): Option[ScopedKey[_]] = incomplete.node flatMap {
+    case key: ScopedKey[_] => Option(key)
+    case task: Task[_] => task.info.attributes get taskDefinitionKey
+  }
 
   def compile(reloadCompile: () => Result[sbt.inc.Analysis], classpath: () => Result[Classpath], streams: () => Option[Streams]): CompileResult = {
     reloadCompile().toEither
@@ -49,7 +78,7 @@ private[run] trait PlayReloadCompat {
               parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
             }
             case JavacErrorPosition(pos) =>
-              parsed = parsed._1 -> Some(pos.size)
+              parsed = parsed._1 -> Some(pos.length)
               if (first == ((None, None))) {
                 first = parsed
               }
@@ -57,18 +86,18 @@ private[run] trait PlayReloadCompat {
           first
         }.collect {
           case (Some(error), maybePosition) => new xsbti.Problem {
-            def message = error._3
-            def category = ""
-            def position = new xsbti.Position {
-              def line = xsbti.Maybe.just(error._2.toInt)
-              def lineContent = ""
-              def offset = xsbti.Maybe.nothing[java.lang.Integer]
-              def pointer = maybePosition.map(pos => xsbti.Maybe.just((pos - 1).asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-              def pointerSpace = xsbti.Maybe.nothing[String]
-              def sourceFile = xsbti.Maybe.just(file(error._1))
-              def sourcePath = xsbti.Maybe.just(error._1)
+            override def message: String = error._3
+            override def category: String = ""
+            override def position: xsbti.Position = new xsbti.Position {
+              override def line: xsbti.Maybe[java.lang.Integer] = xsbti.Maybe.just(error._2.toInt)
+              override def lineContent: String = ""
+              override def offset: xsbti.Maybe[java.lang.Integer] = xsbti.Maybe.nothing[java.lang.Integer]
+              override def pointer: xsbti.Maybe[java.lang.Integer] = maybePosition.map(pos => xsbti.Maybe.just((pos - 1).asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
+              override def pointerSpace: xsbti.Maybe[String] = xsbti.Maybe.nothing[String]
+              override def sourceFile: xsbti.Maybe[java.io.File] = xsbti.Maybe.just(file(error._1))
+              override def sourcePath: xsbti.Maybe[String] = xsbti.Maybe.just(error._1)
             }
-            def severity = xsbti.Severity.Error
+            override def severity: xsbti.Severity = xsbti.Severity.Error
           }
         }
 

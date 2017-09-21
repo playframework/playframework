@@ -3,16 +3,45 @@
  */
 package play.sbt.run
 
-import play.runsupport.Reloader.{ CompileResult, CompileSuccess, Source }
-import play.sbt.run.PlayReload.{ compileFailure, getScopedKey, originalSource }
-import sbt.Keys.{ Classpath, Streams }
-import sbt.{ Incomplete, Result, file }
+import sbt._
+import sbt.Keys._
 import sbt.internal.Output
+
+import play.api.PlayException
+import play.runsupport.Reloader.{ CompileFailure, CompileResult, CompileSuccess, Source }
+import play.sbt.PlayExceptions.{ CompilationException, UnexpectedException }
 
 /**
  * Fix compatibility issues for PlayReload. This is the version compatible with sbt 1.0.
  */
-private[run] trait PlayReloadCompat {
+object PlayReload {
+
+  def originalSource(file: File): Option[File] = {
+    play.twirl.compiler.MaybeGeneratedSource.unapply(file).flatMap(_.source)
+  }
+
+  def compileFailure(streams: Option[Streams])(incomplete: Incomplete): CompileResult = {
+    CompileFailure(taskFailureHandler(incomplete, streams))
+  }
+
+  def taskFailureHandler(incomplete: Incomplete, streams: Option[Streams]): PlayException = {
+    Incomplete.allExceptions(incomplete).headOption.map {
+      case e: PlayException => e
+      case e: xsbti.CompileFailed =>
+        getProblems(incomplete, streams)
+          .find(_.severity == xsbti.Severity.Error)
+          .map(CompilationException)
+          .getOrElse(UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e)))
+      case e: Exception => UnexpectedException(unexpected = Some(e))
+    }.getOrElse {
+      UnexpectedException(Some("The compilation task failed without any exception!"))
+    }
+  }
+
+  def getScopedKey(incomplete: Incomplete): Option[ScopedKey[_]] = incomplete.node flatMap {
+    case key: ScopedKey[_] => Option(key)
+    case task: Task[_] => task.info.attributes get taskDefinitionKey
+  }
 
   def compile(reloadCompile: () => Result[sbt.internal.inc.Analysis], classpath: () => Result[Classpath], streams: () => Option[Streams]): CompileResult = {
     reloadCompile().toEither
@@ -28,12 +57,23 @@ private[run] trait PlayReloadCompat {
 
   def sourceMap(analysis: sbt.internal.inc.Analysis): Map[String, Source] = {
     analysis.apis.internal.foldLeft(Map.empty[String, Source]) {
-      case (sourceMap, (sourceClassName, analyzedClass)) => sourceMap
-      // TODO: sbt 1.0
-      // What is the new API now?
-      // ++ {
-      //   source.api.definitions map { d => d.name -> Source(file, originalSource(file)) }
-      // }
+      case (sourceMap, (sourceClassName, analyzedClass)) =>
+        sourceMap // ++ { what? }
+        // TODO: sbt 1.0
+        // What is the new API now?
+        // - For sbt 0.13 analysis.api.internal is a Map[java.io.File, xsbti.api.Source] where
+        //   Source has api: xsbti.api.SourceAPI which has definitions: xsbti.api.Definition[]
+        //   and finally definition has a name. We can then use the java.io.File
+        // - For sbt 1.0 analysis.api.internal is a Map[String, xsbti.api.AnalyzedClass], so we
+        //   don't have a java.io.File and access to the definitions can (should?) be done
+        //   via:
+        //
+        //     analysis -> api -> internal -> analyzedClass -> companions -> classApi   -> structure ->  declared
+        //                                                              \                            `-> inherited
+        //                                                               `-> objectApi  -> structure ->  declared
+        //                                                                                           `-> inherited
+        //
+        // But it this the right path to access this information?
     }
   }
 
