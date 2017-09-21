@@ -3,11 +3,7 @@
  */
 package play.mvc;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Stack;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import play.libs.Paths;
 
 /**
  * Defines a 'call', describing an HTTP request. For example used to create links or populate redirect data.
@@ -139,109 +135,30 @@ public abstract class Call {
       return "ws" + (secure ? "s" : "") + "://" + host + this.url();
     }
 
-    private static String CURDIR = ".";
-    private static String SEP = "/";
-    private static String PARDIR = "..";
+    /**
+     * Transform this call to a relative path.
+     * @param requestHeader used to identify the current URL to make this Call relative to.
+     * @return the relative path string
+     */
+    public String relativeTo(Http.RequestHeader requestHeader) {
+        return this.relativeTo(requestHeader.path());
+    }
 
     /**
      * Transform this call to a relative path.
-     * @param requestHeader used to identify the current depth for the requested URL.
+     * @param startPath the URL to make this Call relative to.
      * @return the relative path string
      */
-    public String relative(Http.RequestHeader requestHeader) {
-        return relative(requestHeader.path());
-    }
-
-    protected String relative(String startPath) {
-        // If the start and Call.url are the same then link to the current directory
-        if (startPath.equals(this.url())) {
-            return CURDIR + this.appendFragment();
-        }
-
-        String[] start = toSegments(canonical(startPath));
-        String[] target = toSegments(canonical());
-
-        // If start path has no trailing separator (a "file" path), then drop file segment
-        if (!startPath.endsWith(SEP)) {
-            start = Arrays.copyOfRange(start, 0, start.length - 1);
-        }
-
-        // If target path has no trailing separator, then drop file segment, but keep a reference to add it later
-        String targetFile = "";
-        if (!this.url().endsWith(SEP)) {
-            targetFile = target[target.length-1];
-            target = Arrays.copyOfRange(target, 0, target.length - 1);
-        }
-
-        // Work out how much of the filepath is shared by start and path.
-        String[] common = commonPrefix(start, target);
-        String[] parents = toParentDirs(start.length - common.length);
-
-        int relativeStartIdx = common.length;
-        String[] relativeDirs = Arrays.copyOfRange(target, relativeStartIdx, target.length);
-        String[] relativePath = Arrays.copyOf(parents, parents.length + relativeDirs.length);
-        System.arraycopy(relativeDirs, 0, relativePath, parents.length, relativeDirs.length);
-
-        // If this is not a sibling reference append a trailing / to path
-        String trailingSep = "";
-        if (relativePath.length > 0) {
-            trailingSep = SEP;
-        }
-
-        return Arrays.stream(relativePath).collect(Collectors.joining(SEP)) + trailingSep + targetFile + this.appendFragment();
+    public String relativeTo(String startPath) {
+        return Paths.relative(startPath, this.url()) + this.appendFragment();
     }
 
     /**
      * Transform this path into its canonical form.
-     * @return The canonical path.
+     * @return the canonical path.
      */
     public String canonical() {
-        return canonical(this.url());
-    }
-
-    private String canonical(String url) {
-        String[] urlPath = toSegments(url);
-        Stack<String> canonical = new Stack<>();
-        for (String comp : urlPath) {
-            if (comp.equals("") || comp.equals(CURDIR)) {
-                continue;
-            }
-            if (!comp.equals(PARDIR) || (!canonical.empty() && canonical.peek().equals(PARDIR))) {
-                canonical.push(comp);
-            } else {
-                canonical.pop();
-            }
-        }
-
-        String prefixSep = url.startsWith(SEP) ? SEP : "";
-        String trailingSep = url.endsWith(SEP) ? SEP : "";
-
-        return prefixSep + canonical.stream().collect(Collectors.joining(SEP)) + trailingSep + this.appendFragment();
-    }
-
-    private String[] toSegments(String url) {
-        return Arrays
-                .stream(url.split(SEP))
-                .filter(s -> !s.isEmpty()).toArray(String[]::new);
-    }
-
-    private String[] toParentDirs(int count) {
-        return IntStream
-                .range(0, count)
-                .mapToObj(i -> PARDIR).toArray(String[]::new);
-    }
-
-    private String[] commonPrefix(String[] path1, String[] path2) {
-        int minLength = path1.length < path2.length ? path1.length : path2.length;
-
-        ArrayList<String> match = new ArrayList<>();
-        for (int i = 0; i < minLength; i++)
-            if (!path1[i].equals(path2[i]))
-                break;
-            else
-                match.add(path1[i]);
-
-        return match.toArray(new String[0]);
+        return Paths.canonical(this.url()) + this.appendFragment();
     }
 
     public String path() {

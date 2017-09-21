@@ -24,7 +24,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should return sibling path without common root",
                 "one",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -41,7 +41,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative should return sibling path without common root",
                 "two/asset.js",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -58,7 +58,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should include one parent directory and last common element of target route with no trailing /",
                 "../one",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -75,7 +75,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should include one parent directory and no last common element",
                 "../",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -92,7 +92,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should include two parent directory",
                 "../one-b/two-b",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -109,7 +109,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should no common root segments and include three parent directories",
                 "../../one-b/two-b/asset.js",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -126,7 +126,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should have two common root segments and include two parent directories",
                 "../three-b/four-b/asset.js",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -143,7 +143,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path should retain trailing forward slash if it exists in Call",
                 "two-c/",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -160,7 +160,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path return current dir",
                 ".",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**
@@ -179,7 +179,7 @@ public final class CallRelativeTest {
 
         assertEquals("Relative path return current dir",
                 "../../../../one-b/two-b/",
-                call.relative(req));
+                call.relativeTo(req));
     }
 
     /**

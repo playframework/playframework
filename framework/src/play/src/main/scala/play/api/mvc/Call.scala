@@ -64,10 +64,10 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    *
    * implicit val req: RequestHeader = myRequest
    * // If current req.path == "/playframework"
-   * val url: String = Call("GET", "/url").relative()
+   * val url: String = Call("GET", "/url").relative
    * // == "../url"
    * }}}
    */
-  def relative()(implicit request: RequestHeader): String = this.relative(request.path)
+  def relative(implicit request: RequestHeader): String = this.relativeTo(request.path)
 
 }
