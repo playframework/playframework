@@ -18,14 +18,10 @@ private[sbt] trait PlaySettingsCompat {
   def getPoolInterval(poolInterval: Duration): Duration = poolInterval
 
   def getPlayCompileEverything(analysisSeq: Seq[xsbti.compile.CompileAnalysis]): Seq[sbt.internal.inc.Analysis] = {
-    // TODO: sbt 1.0
-    // Is this cast safe?
     analysisSeq.map(_.asInstanceOf[sbt.internal.inc.Analysis])
   }
 
   def getPlayAssetsWithCompilation(compileValue: xsbti.compile.CompileAnalysis): sbt.internal.inc.Analysis = {
-    // TODO: sbt 1.0
-    // Is this cast safe?
     compileValue.asInstanceOf[sbt.internal.inc.Analysis]
   }
 
