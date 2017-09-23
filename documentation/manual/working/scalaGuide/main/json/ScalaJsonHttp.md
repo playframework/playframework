@@ -43,7 +43,7 @@ Response:
 
 ```
 HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+Content-Type: application/json
 Content-Length: 141
 
 [{"name":"Sandleford","location":{"lat":51.377797,"long":-1.318965}},{"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197}}]
@@ -93,7 +93,7 @@ Response:
 
 ```
 HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+Content-Type: application/json
 Content-Length: 57
 
 {"status":"OK","message":"Place 'Nuthanger Farm' saved."}
@@ -112,7 +112,7 @@ Response:
 
 ```
 HTTP/1.1 400 Bad Request
-Content-Type: application/json; charset=utf-8
+Content-Type: application/json
 Content-Length: 79
 
 {"status":"KO","message":{"obj.name":[{"msg":"error.path.missing","args":[]}]}}
@@ -130,7 +130,7 @@ Response:
 
 ```
 HTTP/1.1 400 Bad Request
-Content-Type: application/json; charset=utf-8
+Content-Type: application/json
 Content-Length: 92
 
 {"status":"KO","message":{"obj.location.lat":[{"msg":"error.expected.jsnumber","args":[]}]}}
