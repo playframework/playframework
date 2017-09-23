@@ -12,10 +12,9 @@ lazy val root = (project in file("."))
     version := "1.0-SNAPSHOT",
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3"),
     libraryDependencies += guice,
-    extraLoggers ~= {
-      currentFunction => {
-        key: ScopedKey[_] => currentFunction(key).+:(bufferLogger)
-      }
+    extraLoggers := {
+      val currentFunction = extraLoggers.value
+      (key: ScopedKey[_]) => bufferLogger +: currentFunction(key)
     },
     InputKey[Boolean]("checkLogContains") := {
       InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains)).evaluated
