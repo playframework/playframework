@@ -3,7 +3,7 @@
  */
 package play.mvc;
 
-import play.core.j.Paths;
+import play.core.Paths;
 
 /**
  * Defines a 'call', describing an HTTP request. For example used to create links or populate redirect data.

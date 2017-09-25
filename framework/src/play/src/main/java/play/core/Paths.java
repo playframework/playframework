@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.core.j;
+package play.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
