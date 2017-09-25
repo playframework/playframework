@@ -1,15 +1,13 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.mvc;
+package play.core;
 
 import org.junit.Test;
-import play.mvc.Http.Request;
-import play.mvc.Http.RequestBuilder;
 
 import static org.junit.Assert.assertEquals;
 
-public final class CallRelativeTest {
+public final class PathsTest {
     /**
      * Current Path:    /playframework
      * Target Path:     /one
@@ -17,14 +15,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative1() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/playframework").build();
-
-        final TestCall call = new TestCall("/one", "GET");
+        final String startPath = "/playframework";
+        final String targetPath = "/one";
 
         assertEquals("Relative path should return sibling path without common root",
                 "one",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -34,14 +30,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative2() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two").build();
-
-        final TestCall call = new TestCall("/one/two/asset.js", "GET");
+        final String startPath = "/one/two";
+        final String targetPath = "/one/two/asset.js";
 
         assertEquals("Relative should return sibling path without common root",
                 "two/asset.js",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -51,14 +45,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative3() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two").build();
-
-        final TestCall call = new TestCall("/one", "GET");
+        final String startPath = "/one/two";
+        final String targetPath = "/one";
 
         assertEquals("Relative path should include one parent directory and last common element of target route with no trailing /",
                 "../one",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -68,14 +60,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative4() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two/").build();
-
-        final TestCall call = new TestCall("/one/", "GET");
+        final String startPath = "/one/two/";
+        final String targetPath = "/one/";
 
         assertEquals("Relative path should include one parent directory and no last common element",
                 "../",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -85,14 +75,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative5() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two").build();
-
-        final TestCall call = new TestCall("/one-b/two-b", "GET");
+        final String startPath = "/one/two";
+        final String targetPath = "/one-b/two-b";
 
         assertEquals("Relative path should include two parent directory",
                 "../one-b/two-b",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -102,14 +90,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative6() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two/three").build();
-
-        final TestCall call = new TestCall("/one-b/two-b/asset.js", "GET");
+        final String startPath = "/one/two/three";
+        final String targetPath = "/one-b/two-b/asset.js";
 
         assertEquals("Relative path should no common root segments and include three parent directories",
                 "../../one-b/two-b/asset.js",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -119,14 +105,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative7() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two/three/four").build();
-
-        final TestCall call = new TestCall("/one/two/three-b/four-b/asset.js", "GET");
+        final String startPath = "/one/two/three/four";
+        final String targetPath = "/one/two/three-b/four-b/asset.js";
 
         assertEquals("Relative path should have two common root segments and include two parent directories",
                 "../three-b/four-b/asset.js",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -136,14 +120,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative8() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two").build();
-
-        final TestCall call = new TestCall("/one/two-c/", "GET");
+        final String startPath = "/one/two";
+        final String targetPath = "/one/two-c/";
 
         assertEquals("Relative path should retain trailing forward slash if it exists in Call",
                 "two-c/",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -153,14 +135,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative9() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two").build();
-
-        final TestCall call = new TestCall("/one/two", "GET");
+        final String startPath = "/one/two";
+        final String targetPath = "/one/two";
 
         assertEquals("Relative path return current dir",
                 ".",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -172,14 +152,12 @@ public final class CallRelativeTest {
      */
     @Test
     public void testRelative10() throws Throwable {
-        final Request req = new RequestBuilder()
-                .uri("http://playframework.com/one/two//three/../three-b/./four/").build();
-
-        final TestCall call = new TestCall("/one-b//two-b/./", "GET");
+        final String startPath = "/one/two//three/../three-b/./four/";
+        final String targetPath = "/one-b//two-b/./";
 
         assertEquals("Relative path return current dir",
                 "../../../../one-b/two-b/",
-                call.relativeTo(req));
+                Paths.relative(startPath, targetPath));
     }
 
     /**
@@ -188,11 +166,11 @@ public final class CallRelativeTest {
      */
     @Test
     public void testCanonical1() throws Throwable {
-        final TestCall call = new TestCall("/one/two/../two-b/three", "GET");
+        final String targetPath = "/one/two/../two-b/three";
 
         assertEquals("Canonical path return handles parent directories",
                 "/one/two-b/three",
-                call.canonical());
+                Paths.canonical(targetPath));
     }
 
     /**
@@ -201,11 +179,11 @@ public final class CallRelativeTest {
      */
     @Test
     public void testCanonical2() throws Throwable {
-        final TestCall call = new TestCall("/one/two/./three", "GET");
+        final String targetPath = "/one/two/./three";
 
         assertEquals("Canonical path handles current directories",
                 "/one/two/three",
-                call.canonical());
+                Paths.canonical(targetPath));
     }
 
     /**
@@ -214,10 +192,10 @@ public final class CallRelativeTest {
      */
     @Test
     public void testCanonical3() throws Throwable {
-        final TestCall call = new TestCall("/one/two//three", "GET");
+        final String targetPath = "/one/two//three";
 
         assertEquals("Canonical path handles multiple directory separators",
                 "/one/two/three",
-                call.canonical());
+                Paths.canonical(targetPath));
     }
 }

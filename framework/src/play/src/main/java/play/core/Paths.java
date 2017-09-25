@@ -10,13 +10,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Utilities to work with URL paths.
+ * Implementations to work with URL paths.  This is a utility class with usages by {@link play.mvc.Call}.
  */
-public class Paths {
+public final class Paths {
+    private Paths() {}
+
     private static String CURRENT_DIR = ".";
     private static String SEPARATOR = "/";
     private static String PARENT_DIR = "..";
 
+    /**
+     * Create a path to targetPath that's relative to the given startPath.
+     */
     public static String relative(String startPath, String targetPath) {
         // If the start and target path's are the same then link to the current directory
         if (startPath.equals(targetPath)) {
@@ -54,6 +59,10 @@ public class Paths {
         return Arrays.stream(relativePath).collect(Collectors.joining(SEPARATOR)) + trailingSep + targetFile;
     }
 
+    /**
+     * Create a canonical path that does not contain parent directories, current directories, or superfluous directory
+     * separators.
+     */
     public static String canonical(String url) {
         String[] urlPath = toSegments(url);
         Stack<String> canonical = new Stack<>();

@@ -162,6 +162,50 @@ public final class CallTest {
                      call.webSocketURL(true, "typesafe.com"));
     }
 
+    @Test
+    public void testRelative1() throws Throwable {
+        final Request req = new RequestBuilder()
+                .uri("http://playframework.com/one/two").build();
+
+        final TestCall call = new TestCall("/one/two-b", "GET");
+
+        assertEquals("Relative path takes start path from Request",
+                "two-b",
+                call.relativeTo(req));
+    }
+
+    @Test
+    public void testRelative2() throws Throwable {
+        final String startPath = "/one/two";
+
+        final TestCall call = new TestCall("/one/two-b", "GET");
+
+        assertEquals("Relative path takes start path as String",
+                "two-b",
+                call.relativeTo(startPath));
+    }
+
+    @Test
+    public void testRelative3() throws Throwable {
+        final Request req = new RequestBuilder()
+                .uri("http://playframework.com/one/two").build();
+
+        final TestCall call = new TestCall("/one/two-b", "GET", "foo");
+
+        assertEquals("Relative path includes fragment",
+                "two-b#foo",
+                call.relativeTo(req));
+    }
+
+    @Test
+    public void testCanonical() throws Throwable {
+        final TestCall call = new TestCall("/one/.././two//three-b", "GET");
+
+        assertEquals("Canonical path returned from Call",
+                "/two/three-b",
+                call.canonical());
+    }
+
 }
 
 final class TestCall extends Call {
@@ -173,6 +217,12 @@ final class TestCall extends Call {
         this.u = u;
         this.m = m;
         this.f = null;
+    }
+
+    TestCall(String u, String m, String f) {
+        this.u = u;
+        this.m = m;
+        this.f = f;
     }
 
     public String url() { return this.u; }
