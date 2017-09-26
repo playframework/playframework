@@ -308,6 +308,9 @@ object BuildSettings {
         .enablePlugins(PlaySbtPlugin)
         .settings(playCommonSettings: _*)
         .settings(playScriptedSettings: _*)
+        .settings(
+          fork in Test := false
+        )
   }
 
 }
