@@ -64,7 +64,7 @@ object Imports {
  *
  * Any changes to this plugin need to be made in consideration of the downstream projects that depend on it.
  */
-object PlayDocsPlugin extends AutoPlugin {
+object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
   import Imports._
   import Imports.PlayDocsKeys._
@@ -143,16 +143,18 @@ object PlayDocsPlugin extends AutoPlugin {
 
     evaluateSbtFiles := {
       val unit = loadedBuild.value.units(thisProjectRef.value.build)
-      val (eval, structure) = Load.defaultLoad(state.value, unit.localBase, state.value.log)
+      val (eval, structure) = defaultLoad(state.value, unit.localBase)
       val sbtFiles = ((unmanagedSourceDirectories in Test).value * "*.sbt").get
       val log = state.value.log
       if (sbtFiles.nonEmpty) {
         log.info("Testing .sbt files...")
       }
+
+      val baseDir = baseDirectory.value
       val result = sbtFiles.map { sbtFile =>
-        val relativeFile = relativeTo(baseDirectory.value)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
+        val relativeFile = getRelativeFile(baseDir, sbtFile)
         try {
-          EvaluateConfigurations.evaluateConfiguration(eval(), sbtFile, unit.imports)(unit.loader)
+          evaluateConfigurations(sbtFile, unit.imports, unit.loader, eval)
           log.info(s"  ${Colors.green("+")} $relativeFile")
           true
         } catch {
