@@ -47,7 +47,13 @@ Some developers prefer to write their assertions in a more fluent style than JUn
 
 Mocks are used to isolate unit tests against external dependencies. For example, if your class under test depends on an external data access class, you can mock this to provide controlled data and eliminate the need for an external data resource.
 
-The [Mockito](https://github.com/mockito/mockito) library is included in your project build to assist you in using mocks.
+The [Mockito](https://github.com/mockito/mockito) library is a popular mocking framework for Java.  To use it in your tests add a dependency on the `mockito-core` artifact to your `build.sbt` file.  For example:
+
+```scala
+libraryDependencies += "org.mockito" % "mockito-core" % "2.10.0" % "test"
+```
+
+You can find the current version number of `mockito-core` [here](https://mvnrepository.com/artifact/org.mockito/mockito-core).
 
 Using Mockito, you can mock classes or interfaces like so:
 
