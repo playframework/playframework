@@ -56,7 +56,7 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
 
     "support sub-second timeouts" in withServer(300.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map { _ =>
-        Thread.sleep(400L)
+        Thread.sleep(1400L)
         Results.Ok
       }
     }) { port =>
