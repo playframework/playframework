@@ -152,13 +152,14 @@ object BuildSettings {
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
     mimaPreviousArtifacts := {
       // Binary compatibility is tested against these versions
+      val invalidVersions = Seq("2.6.4")
       val previousVersions = {
         val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
         version.value match {
           case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
           case _ => sys.error(s"Cannot find previous versions for ${version.value}")
         }
-      }.toSet
+      }.toSet -- invalidVersions
       if (crossPaths.value) {
         previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" %  v)
       } else {
