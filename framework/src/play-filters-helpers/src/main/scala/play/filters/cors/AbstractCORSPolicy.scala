@@ -14,7 +14,7 @@ import play.api.LoggerLike
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.{ HeaderNames, HttpErrorHandler, HttpVerbs }
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{ EssentialAction, RequestHeader, Result, Results }
+import play.api.mvc._
 
 /**
  * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin
@@ -96,52 +96,6 @@ private[cors] trait AbstractCORSPolicy {
     if (!corsConfig.allowedOrigins(origin)) {
       handleInvalidCORSRequest(request)
     } else {
-      val headerBuilder = Seq.newBuilder[(String, String)]
-
-      /* http://www.w3.org/TR/cors/#resource-requests
-       * § 6.1.3
-       */
-      if (corsConfig.supportsCredentials) {
-        /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
-         * with the value of the Origin header as value, and add a single
-         * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
-         */
-        headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-        headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-        /* http://www.w3.org/TR/cors/#resource-implementation
-         * § 6.4
-         * Resources that wish to enable themselves to be shared with multiple Origins but do
-         * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
-         * header dynamically in response to every request they wish to allow. As a consequence,
-         * authors of such resources should send a Vary: Origin HTTP header or provide other
-         * appropriate control directives to prevent caching of such responses, which may be
-         * inaccurate if re-used across-origins.
-         */
-        headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
-      } else {
-        /* Otherwise, add a single Access-Control-Allow-Origin header,
-         * with either the value of the Origin header or the string "*" as value.
-         */
-        if (corsConfig.anyOriginAllowed) {
-          headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
-        } else {
-          headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-          /* http://www.w3.org/TR/cors/#resource-implementation
-           * § 6.4
-           */
-          headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
-        }
-      }
-
-      /* http://www.w3.org/TR/cors/#resource-requests
-       * § 6.1.4
-       * If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
-       * with as values the header field names given in the list of exposed headers.
-       */
-      if (corsConfig.exposedHeaders.nonEmpty) {
-        headerBuilder += HeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
-      }
-
       import play.core.Execution.Implicits.trampoline
 
       val taggedRequest = request
@@ -158,8 +112,60 @@ private[cors] trait AbstractCORSPolicy {
         case e: Throwable =>
           Accumulator.done(errorHandler.onServerError(taggedRequest, e))
       }
-      result.map(_.withHeaders(headerBuilder.result(): _*))
+      result.map(addCorsHeaders(_, origin))
     }
+  }
+
+  private def addCorsHeaders(result: Result, origin: String): Result = {
+    import HeaderNames._
+
+    val headerBuilder = Seq.newBuilder[(String, String)]
+
+    /* http://www.w3.org/TR/cors/#resource-requests
+     * § 6.1.3
+     */
+    if (corsConfig.supportsCredentials) {
+      /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
+       * with the value of the Origin header as value, and add a single
+       * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
+       */
+      headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
+      headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+      /* http://www.w3.org/TR/cors/#resource-implementation
+       * § 6.4
+       * Resources that wish to enable themselves to be shared with multiple Origins but do
+       * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
+       * header dynamically in response to every request they wish to allow. As a consequence,
+       * authors of such resources should send a Vary: Origin HTTP header or provide other
+       * appropriate control directives to prevent caching of such responses, which may be
+       * inaccurate if re-used across-origins.
+       */
+      headerBuilder += result.header.varyWith(ORIGIN)
+    } else {
+      /* Otherwise, add a single Access-Control-Allow-Origin header,
+       * with either the value of the Origin header or the string "*" as value.
+       */
+      if (corsConfig.anyOriginAllowed) {
+        headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
+      } else {
+        headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+        /* http://www.w3.org/TR/cors/#resource-implementation
+         * § 6.4
+         */
+        headerBuilder += result.header.varyWith(ORIGIN)
+      }
+    }
+
+    /* http://www.w3.org/TR/cors/#resource-requests
+     * § 6.1.4
+     * If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
+     * with as values the header field names given in the list of exposed headers.
+     */
+    if (corsConfig.exposedHeaders.nonEmpty) {
+      headerBuilder += ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
+    }
+
+    result.withHeaders(headerBuilder.result(): _*)
   }
 
   private def handlePreFlightCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
