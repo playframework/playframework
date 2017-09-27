@@ -142,7 +142,7 @@ final class CachedBuilder(
    * Compose the cache with an action
    */
   def build(action: EssentialAction): EssentialAction = EssentialAction { request =>
-    implicit val ec = materializer.executionContext
+    import play.core.Execution.Implicits.trampoline
 
     val resultKey = key(request)
     val etagKey = s"$resultKey-etag"
@@ -177,7 +177,7 @@ final class CachedBuilder(
             val accumulatorResult = action(request)
 
             // Add cache information to the response, so clients can cache its content
-            accumulatorResult.map(handleResult(_, etagKey, resultKey))
+            accumulatorResult.mapFuture(handleResult(_, etagKey, resultKey))
         }
     })
   }
@@ -195,7 +195,9 @@ final class CachedBuilder(
     }
   }
 
-  private def handleResult(result: Result, etagKey: String, resultKey: String): Result = {
+  private def handleResult(result: Result, etagKey: String, resultKey: String): Future[Result] = {
+    import play.core.Execution.Implicits.trampoline
+
     cachingWithEternity.andThen { duration =>
       // Format expiration date according to http standard
       val expirationDate = http.dateFormat.format(Instant.ofEpochMilli(System.currentTimeMillis() + duration.toMillis))
@@ -205,13 +207,14 @@ final class CachedBuilder(
 
       val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
 
-      // Cache the new ETAG of the resource
-      cache.set(etagKey, etag, duration)
-      // Cache the new Result of the resource
-      cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
+      for {
+        // Cache the new ETAG of the resource
+        _ <- cache.set(etagKey, etag, duration)
+        // Cache the new Result of the resource
+        _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
+      } yield resultWithHeaders
 
-      resultWithHeaders
-    }.applyOrElse(result.header, (_: ResponseHeader) => result)
+    }.applyOrElse(result.header, (_: ResponseHeader) => Future.successful(result))
   }
 
   /**
