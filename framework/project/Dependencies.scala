@@ -176,7 +176,7 @@ object Dependencies {
   }
 
   val runSupportDependencies = Seq(
-    "com.lightbend.play" %% "play-file-watch" % "1.0.0"
+    "com.lightbend.play" %% "play-file-watch" % "1.1.2"
   ) ++ specsBuild.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
