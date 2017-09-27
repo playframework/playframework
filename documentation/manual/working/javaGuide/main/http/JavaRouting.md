@@ -121,7 +121,20 @@ Then use the same type for the corresponding action method parameter in the cont
 
 @[clients-show-action](code/javaguide/http/routing/controllers/Clients.java)
 
-> **Note:** The parameter types are specified using a suffix syntax. Also, the generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`.
+The parameter types are specified using a suffix syntax. Also, the generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`. The syntax is `param[0]=a&param[1]=b&param[2]=c` to have orderered parameters or `param[]=a&param[]=b&param[]=c` which does not guarantee any parameter order.
+
+You can also populate inner objects like:
+```java
+public class Foo {
+    public String a;
+    public String b;
+}
+
+public class Bar {
+    public List<Foo> foos;
+}
+```
+And have parameters like `foos[0].a=somethingA&foos[0].b=somethingB`.
 
 ### Parameters with fixed values
 
