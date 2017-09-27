@@ -30,7 +30,7 @@ WebJars are automatically extracted into a `lib` folder relative to your public 
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
 ```
 
-Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar. To clarify, the `requirejs` webjar dependency is declared at your build file like:
+Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extracted WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar. To clarify, the `requirejs` webjar dependency is declared at your build file like:
 
 ```scala
 libraryDependencies += "org.webjars" % "requirejs" % "2.2.0"
