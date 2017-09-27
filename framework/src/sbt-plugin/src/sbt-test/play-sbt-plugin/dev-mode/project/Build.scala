@@ -32,7 +32,7 @@ object DevModeBuild {
       val url = new java.net.URL("http://localhost:9000" + path)
       val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
       conn.setConnectTimeout(ConnectTimeout)
-      conn.setReadTimeout(ReadTimeout)      
+      conn.setReadTimeout(ReadTimeout)
 
       if (status == conn.getResponseCode) {
         messages += s"Resource at $path returned $status as expected"
