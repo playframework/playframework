@@ -633,6 +633,26 @@ libraryDependencies += "com.typesafe.play" %%% "play-json" % version
 
 where `version` is the version you wish to use. The library should effectively work the same as it does on the JVM, except without support for JVM types.
 
+### Custom naming strategies for automated JSON mapping
+
+First support for customizing generated JSON mappings is available. It's possible to define the naming strategy of JSON properties.
+
+To use a custom naming strategy you need to define a implicit `JsonConfiguration` object and a `JsonNaming`.
+
+Two naming strategies are provided: the default one, using as-is the names of the class properties, and the `JsonNaming.SnakeCase` case one.
+
+A strategy other than the default one can be used as following:
+
+```scala
+import play.api.libs.json._
+
+implicit val config = JsonConfiguration(SnakeCase)
+
+implicit val userFormat: OFormat[PlayUser] = Json.format[PlayUser]
+```
+
+In addition, custom naming strategies can be implemented. 
+
 ## Testing Improvements
 
 Some utility classes have been added to the `play.api.test` package in 2.6.x to make functional testing easier with dependency injected components.
