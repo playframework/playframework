@@ -121,7 +121,21 @@ Then use the same type for the corresponding action method parameter in the cont
 
 @[clients-show-action](code/javaguide/http/routing/controllers/Clients.java)
 
-> **Note:** The parameter types are specified using a suffix syntax. Also, the generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`.
+> **Note:** The parameter types are specified using a suffix syntax. Also, the generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`. 
+
+The correct syntax for using generic type parameter to have orderered params is `param[0]=a&param[1]=b&param[2]=c`. You can also use `param[]=a&param[]=b&param[]=c` which does not guarantee any order.  Another case is of `List[object]`. Consider the example below-
+
+```
+public class Foo {
+    public String a;
+    public String b;
+}
+
+public class Bar {
+    public List<Foo> foos;
+}
+```
+The parameter for this would be `foos[0].a=somethingA&foos[0].b=somethingB`.
 
 ### Parameters with fixed values
 
