@@ -18,7 +18,7 @@ lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
 lazy val RunSupportProject = PlaySbtProject("Run-Support", "run-support")
     .settings(
       target := target.value / "run-support",
-      libraryDependencies ++= runSupportDependencies
+      libraryDependencies ++= runSupportDependencies((sbtVersion in pluginCrossBuild).value)
     ).dependsOn(BuildLinkProject)
 
 lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "routes-compiler")
