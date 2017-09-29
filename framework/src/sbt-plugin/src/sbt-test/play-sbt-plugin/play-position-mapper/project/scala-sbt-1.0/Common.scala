@@ -23,12 +23,8 @@ object Common {
     @volatile var messages = List.empty[String]
 
     override def append(event: Log4JLogEvent): Unit = {
-      println("event.getClass.getName => " + event.getClass.getName)
-      println("event.getMessage.getClass.getName => " + event.getMessage.getClass.getName)
-      println("event.getMessage.getParameters.mkString => " + event.getMessage.getParameters.mkString("|"))
-      if (event.getLevel == Level.ERROR) {
+      if (event.getLevel == Level.ERROR) synchronized {
         messages = event.getMessage.getFormattedMessage :: messages
-        println("getLayout().toSerializable(event) => " + getLayout().toSerializable(event))
       }
     }
   }
