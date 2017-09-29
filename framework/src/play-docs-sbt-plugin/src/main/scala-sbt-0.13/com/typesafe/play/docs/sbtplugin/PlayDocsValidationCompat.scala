@@ -5,7 +5,7 @@ package com.typesafe.play.docs.sbtplugin
 
 import sbt._
 
-class PlayDocsValidationCompat {
+private[sbtplugin] class PlayDocsValidationCompat {
 
   def getMarkdownFiles(base: java.io.File): Seq[(File, String)] = {
     (base / "manual" ** "*.md").get.pair(relativeTo(base))
