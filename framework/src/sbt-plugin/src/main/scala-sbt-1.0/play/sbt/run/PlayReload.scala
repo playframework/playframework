@@ -56,25 +56,14 @@ object PlayReload {
   }
 
   def sourceMap(analysis: sbt.internal.inc.Analysis): Map[String, Source] = {
-    analysis.apis.internal.foldLeft(Map.empty[String, Source]) {
-      case (sourceMap, (sourceClassName, analyzedClass)) =>
-        sourceMap // ++ { what? }
-      // TODO: sbt 1.0
-      // What is the new API now?
-      // - For sbt 0.13 analysis.api.internal is a Map[java.io.File, xsbti.api.Source] where
-      //   Source has api: xsbti.api.SourceAPI which has definitions: xsbti.api.Definition[]
-      //   and finally definition has a name. We can then use the java.io.File
-      // - For sbt 1.0 analysis.api.internal is a Map[String, xsbti.api.AnalyzedClass], so we
-      //   don't have a java.io.File and access to the definitions can (should?) be done
-      //   via:
-      //
-      //     analysis -> api -> internal -> analyzedClass -> companions -> classApi   -> structure ->  declared
-      //                                                              \                            `-> inherited
-      //                                                               `-> objectApi  -> structure ->  declared
-      //                                                                                           `-> inherited
-      //
-      // But it this the right path to access this information if there is any?
-    }
+    analysis
+      .relations
+      .classes
+      .reverseMap
+      .mapValues { files =>
+        val file = files.head // This is typically a set containing a single file, so we can use head here.
+        Source(file, originalSource(file))
+      }
   }
 
   def getProblems(incomplete: Incomplete, streams: Option[Streams]): Seq[xsbti.Problem] = {
