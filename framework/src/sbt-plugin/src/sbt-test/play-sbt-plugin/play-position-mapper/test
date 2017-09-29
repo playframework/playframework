@@ -9,5 +9,6 @@
 > checkLogContains Foo: @foo.bar
 
 # route errors
-> checkLogContains conf/routes:3: type Foo is not a member of package controllers
+> checkLogContains conf/routes:3
+> checkLogContains type Foo is not a member of package controllers
 > checkLogContains GET / controllers.Foo.index
