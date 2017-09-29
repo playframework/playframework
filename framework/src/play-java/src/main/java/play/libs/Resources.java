@@ -17,11 +17,7 @@ public class Resources {
     ) {
         try {
             CompletionStage<U> completionStage = body.apply(resource);
-            // Do not use whenCompleteAsync, because it happens in an async thread --
-            // if this gets an exception, it will return the exception and also run the
-            // thread, which can result in the test completing before the close() happens.
-            completionStage.whenComplete((u, throwable) -> tryCloseResource(resource));
-            return completionStage;
+            return completionStage.whenComplete((u, throwable) -> tryCloseResource(resource));
         } catch (RuntimeException e) {
             tryCloseResource(resource);
             throw e;
