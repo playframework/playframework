@@ -200,7 +200,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * This will generate an id for the exception, and in dev mode, will load the source code for the code that threw the
      * exception, making it possible to report on the location that the exception was thrown from.
      */
-    private UsefulException throwableToUsefulException(final Throwable throwable) {
+    protected final UsefulException throwableToUsefulException(final Throwable throwable) {
         return HttpErrorHandlerExceptions.throwableToUsefulException(sourceMapper.sourceMapper(), environment.isProd(), throwable);
     }
 
