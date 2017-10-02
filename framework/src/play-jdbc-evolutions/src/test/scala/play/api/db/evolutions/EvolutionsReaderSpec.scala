@@ -31,7 +31,7 @@ class EvolutionsReaderSpec extends Specification {
       reader.evolutions("commentsyntax") must_== Seq(
         Evolution(1, "select 1;", "select 2;"), // 1.sql should have MySQL-style comments
         Evolution(2, "select 3;", "select 4;"), // 2.sql should have SQL92-style comments
-        Evolution(3, "select 5;", "select 6;")  // 3.sql mixes styles with arbitrary text
+        Evolution(3, "select 5;", "select 6;") // 3.sql mixes styles with arbitrary text
       )
     }
 
