@@ -17,8 +17,4 @@ private[sbtplugin] trait PlayDocsPluginCompat {
   def evaluateConfigurations(sbtFile: java.io.File, imports: Seq[String], classLoader: ClassLoader, eval: () => Eval): Seq[Def.Setting[_]] = {
     sbt.internal.PlayEvaluateConfigurations.evaluateConfigurations(sbtFile, imports, classLoader, eval)
   }
-
-  def getRelativeFile(baseDirectory: java.io.File, sbtFile: java.io.File): String = {
-    relativeTo(baseDirectory)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
-  }
 }

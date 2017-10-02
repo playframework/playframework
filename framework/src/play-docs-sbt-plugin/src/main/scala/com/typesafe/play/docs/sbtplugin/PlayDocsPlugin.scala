@@ -152,7 +152,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
       val baseDir = baseDirectory.value
       val result = sbtFiles.map { sbtFile =>
-        val relativeFile = getRelativeFile(baseDir, sbtFile)
+        val relativeFile = sbt.Path.relativeTo(baseDir)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
         try {
           evaluateConfigurations(sbtFile, unit.imports, unit.loader, eval)
           log.info(s"  ${Colors.green("+")} $relativeFile")
