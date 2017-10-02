@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "assets-sample",
     version := "1.0-SNAPSHOT",
-    scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.3"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3"),
     includeFilter in (Assets, LessKeys.less) := "*.less",
     excludeFilter in (Assets, LessKeys.less) := "_*.less"
   )
