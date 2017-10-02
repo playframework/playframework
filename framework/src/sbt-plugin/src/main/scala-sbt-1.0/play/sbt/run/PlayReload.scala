@@ -44,15 +44,11 @@ object PlayReload {
   }
 
   def compile(reloadCompile: () => Result[sbt.internal.inc.Analysis], classpath: () => Result[Classpath], streams: () => Option[Streams]): CompileResult = {
-    reloadCompile().toEither
-      .left.map(compileFailure(streams()))
-      .right.map { analysis =>
-        classpath().toEither
-          .left.map(compileFailure(streams()))
-          .right.map { classpath =>
-            CompileSuccess(sourceMap(analysis), classpath.files)
-          }.fold(identity, identity)
-      }.fold(identity, identity)
+    val compileResult: Either[Incomplete, CompileSuccess] = for {
+      analysis <- reloadCompile().toEither.right
+      classpath <- classpath().toEither.right
+    } yield CompileSuccess(sourceMap(analysis), classpath.files)
+    compileResult.left.map(compileFailure(streams())).merge
   }
 
   def sourceMap(analysis: sbt.internal.inc.Analysis): Map[String, Source] = {
