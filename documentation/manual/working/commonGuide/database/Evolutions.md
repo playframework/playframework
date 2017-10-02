@@ -37,9 +37,9 @@ Each script contains two parts:
 For example, take a look at this first evolution script that bootstrap a basic application:
 
 ```
-# Users schema
+-- Users schema
 
-# --- !Ups
+-- !Ups
 
 CREATE TABLE User (
     id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -50,12 +50,12 @@ CREATE TABLE User (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 
 DROP TABLE User;
 ```
 
-As you see you have to delimit the both Ups and Downs section by using comments in your SQL script.
+As you see you have to delimit the both Ups and Downs section by using comments in your SQL script. Both SQL92 (`--`) and MySQL (`#`) comment styles are supported, but this guide will use SQL92 to prevent confusion.
 
 > Play splits your `.sql` files into a series of semicolon-delimited statements before executing them one-by-one against the database. So if you need to use a semicolon *within* a statement, escape it by entering `;;` instead of `;`. For example, `INSERT INTO punctuation(name, character) VALUES ('semicolon', ';;');`.
 
@@ -85,9 +85,9 @@ For example, to enable `autoApply` for all evolutions, you might set `play.evolu
 Now let’s imagine that we have two developers working on this project. Developer A will work on a feature that requires a new database table. So he will create the following `2.sql` evolution script:
 
 ```
-# Add Post
+-- Add Post
 
-# --- !Ups
+-- !Ups
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE Post (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 DROP TABLE Post;
 ```
 
@@ -107,12 +107,12 @@ Play will apply this evolution script to Developer A’s database.
 On the other hand, developer B will work on a feature that requires altering the User table. So he will also create the following `2.sql` evolution script:
 
 ```
-# Update User
+-- Update User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD age INT;
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP age;
 ```
 
@@ -128,9 +128,9 @@ Each developer has created a `2.sql` evolution script. So developer A needs to m
 
 ```
 <<<<<<< HEAD
-# Add Post
+-- Add Post
 
-# --- !Ups
+-- !Ups
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
@@ -141,15 +141,15 @@ CREATE TABLE Post (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 DROP TABLE Post;
 =======
-# Update User
+-- Update User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD age INT;
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP age;
 >>>>>>> devB
 ```
@@ -157,9 +157,9 @@ ALTER TABLE User DROP age;
 The merge is really easy to do:
 
 ```
-# Add Post and update User
+-- Add Post and update User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD age INT;
 
 CREATE TABLE Post (
@@ -172,7 +172,7 @@ CREATE TABLE Post (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP age;
 
 DROP TABLE Post;
@@ -189,12 +189,12 @@ Sometimes you will make a mistake in your evolution scripts, and they will fail.
 For example, the Ups script of this evolution has an error:
 
 ```
-# Add another column to User
+-- Add another column to User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE Userxxx ADD company varchar(255);
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP company;
 ```
 
@@ -213,12 +213,12 @@ ALTER TABLE User ADD company varchar(255);
 But because your evolution script has errors, you probably want to fix it. So you modify the `3.sql` script:
 
 ```
-# Add another column to User
+-- Add another column to User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD company varchar(255);
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP company;
 ```
 
