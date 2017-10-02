@@ -193,4 +193,3 @@ Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you 
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
 3. IntelliJ IDEA Scala Plugin: <https://blog.jetbrains.com/scala/>
 4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/ensime/ensime-emacs>
-(see below for ENSIME/Play instructions)
