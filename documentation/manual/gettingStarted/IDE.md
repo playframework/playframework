@@ -159,7 +159,7 @@ Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
 ```scala
-addSbtPlugin("org.ensime" % "ensime-sbt" % "2.0.1")
+addSbtPlugin("org.ensime" % "sbt-ensime" % "2.0.1")
 ```
 
 Start SBT:
