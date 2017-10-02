@@ -635,13 +635,13 @@ where `version` is the version you wish to use. The library should effectively w
 
 ### Custom naming strategies for automated JSON mapping
 
-First support for customizing generated JSON mappings is available. It's possible to define the naming strategy of JSON properties.
+First support for customizing the generated JSON mappings via macro is available. It is possible to define the naming strategy of JSON properties.
 
 To use a custom naming strategy you need to define a implicit `JsonConfiguration` object and a `JsonNaming`.
 
 Two naming strategies are provided: the default one, using as-is the names of the class properties, and the `JsonNaming.SnakeCase` case one.
 
-A strategy other than the default one can be used as following:
+A strategy other than the default one can be used by `Json#reads`, `Json#writes` and `Json#format`  as following:
 
 ```scala
 import play.api.libs.json._
@@ -651,7 +651,7 @@ implicit val config = JsonConfiguration(SnakeCase)
 implicit val userFormat: OFormat[PlayUser] = Json.format[PlayUser]
 ```
 
-In addition, custom naming strategies can be implemented. 
+In addition, custom naming strategies can be implemented by providing a `JsonNaming` implementation.
 
 ## Testing Improvements
 
