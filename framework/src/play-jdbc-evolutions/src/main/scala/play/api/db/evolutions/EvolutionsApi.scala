@@ -440,22 +440,22 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 
   def evolutions(db: String): Seq[Evolution] = {
 
-    val upsMarker = """^#.*!Ups.*$""".r
-    val downsMarker = """^#.*!Downs.*$""".r
+    val upsMarker = """^(#|--).*!Ups.*$""".r
+    val downsMarker = """^(#|--).*!Downs.*$""".r
 
     val UPS = "UPS"
     val DOWNS = "DOWNS"
     val UNKNOWN = "UNKNOWN"
 
     val mapUpsAndDowns: PartialFunction[String, String] = {
-      case upsMarker() => UPS
-      case downsMarker() => DOWNS
+      case upsMarker(_) => UPS
+      case downsMarker(_) => DOWNS
       case _ => UNKNOWN
     }
 
     val isMarker: PartialFunction[String, Boolean] = {
-      case upsMarker() => true
-      case downsMarker() => true
+      case upsMarker(_) => true
+      case downsMarker(_) => true
       case _ => false
     }
 
