@@ -13,6 +13,8 @@ See [our download page](https://playframework.com/download#starters) to get more
 
 If you have [sbt 0.13.13 or higher](http://www.scala-sbt.org) installed, you can create your own Play project using `sbt new` using a minimal [giter8](http://foundweekends.org/giter8) template (roughly like a maven archetype). This is a good choice if you already know Play and want to create a new project immediately.
 
+If running Windows, you may need to run sbt using `sbt.bat` instead of sbt. This documentation assumes the command is sbt.
+
 Note that the seed templates are already configured with [[CSRF|ScalaCsrf]] and [[security headers filters|SecurityHeaders]], whereas the other projects are not specifically set up for security out of the box.
 
 ### Play Java Seed
