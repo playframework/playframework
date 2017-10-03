@@ -31,10 +31,10 @@ The first script is named `1.sql`, the second script `2.sql`, and so on…
 
 Each script contains two parts:
 
-- The **Ups** part the describe the required transformations.
-- The **Downs** part that describe how to revert them.
+- The **Ups** part that describes the required transformations.
+- The **Downs** part that describes how to revert them.
 
-For example, take a look at this first evolution script that bootstrap a basic application:
+For example, take a look at this first evolution script that bootstraps a basic application:
 
 ```
 -- Users schema
@@ -55,7 +55,7 @@ CREATE TABLE User (
 DROP TABLE User;
 ```
 
-As you see you have to delimit the both Ups and Downs section by using comments in your SQL script. Both SQL92 (`--`) and MySQL (`#`) comment styles are supported, but this guide will use SQL92 to prevent confusion.
+The **Ups** and **Downs** parts are delimited by using a standard, single-line SQL comment in your script containing either `!Ups` or `!Downs`, respectively. Both SQL92 (`--`) and MySQL (`#`) comment styles are supported, but we recommend using SQL92 syntax because it is supported by more databases.
 
 > Play splits your `.sql` files into a series of semicolon-delimited statements before executing them one-by-one against the database. So if you need to use a semicolon *within* a statement, escape it by entering `;;` instead of `;`. For example, `INSERT INTO punctuation(name, character) VALUES ('semicolon', ';;');`.
 
