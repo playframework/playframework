@@ -18,7 +18,7 @@ There are two Play Seeds that are designed expressly for getting started with ne
 If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can create your own Play project using `sbt new`
  using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately. 
 
-If running Windows, you may need to run sbt using `sbt.bat` instead of sbt. This documentation assumes the command is sbt.
+> **Note**: If running Windows, you may need to run sbt using `sbt.bat` instead of `sbt`. This documentation assumes the command is `sbt`.
 
 Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form.
 
