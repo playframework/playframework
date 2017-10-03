@@ -22,7 +22,7 @@ object ApplicationSecretGenerator {
 
   def generateSecretTask = Def.task[String] {
     val secret = generateSecret
-    Keys.streams.value.log.info("Generated new secret: " + secret)
+    println("Generated new secret: " + secret)
     secret
   }
 
