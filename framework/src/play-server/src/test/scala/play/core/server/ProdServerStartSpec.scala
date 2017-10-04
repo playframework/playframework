@@ -62,6 +62,10 @@ class FakeServerProvider extends ServerProvider {
   override def createServer(context: ServerProvider.Context) = new FakeServer(context)
 }
 
+class StartupErrorServerProvider extends ServerProvider {
+  override def createServer(context: ServerProvider.Context) = throw new Exception("server fails to start")
+}
+
 class ProdServerStartSpec extends Specification {
 
   def withTempDir[T](block: File => T) = {
@@ -173,6 +177,21 @@ class ProdServerStartSpec extends Specification {
       exitResult {
         ProdServerStart.start(process)
       } must beLeft
+    }
+
+    "delete the pidfile if server fails to start" in withTempDir { tempDir =>
+      val process = new FakeServerProcess(
+        args = Seq(tempDir.getAbsolutePath),
+        propertyMap = Map("play.server.provider" -> classOf[StartupErrorServerProvider].getName),
+        pid = Some("999")
+      )
+      val pidFile = new File(tempDir, "RUNNING_PID")
+      pidFile.exists must beFalse
+
+      def startServer = { ProdServerStart.start(process) }
+      startServer must throwA[ExitException]
+
+      pidFile.exists must beFalse
     }
 
     "not have a race condition when creating a pid file" in withTempDir { tempDir =>
