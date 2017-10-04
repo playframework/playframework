@@ -42,24 +42,31 @@ object ProdServerStart {
       // Create a PID file before we do any real work
       val pidFile = createPidFile(process, config.configuration)
 
-      // Start the application
-      val application: Application = {
-        val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
-        val context = ApplicationLoader.createContext(environment)
-        val loader = ApplicationLoader(context)
-        loader.load(context)
-      }
-      Play.start(application)
+      try {
+        // Start the application
+        val application: Application = {
+          val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
+          val context = ApplicationLoader.createContext(environment)
+          val loader = ApplicationLoader(context)
+          loader.load(context)
+        }
+        Play.start(application)
 
-      // Start the server
-      val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
-      val server = serverProvider.createServer(config, application)
-      process.addShutdownHook {
-        server.stop()
-        pidFile.foreach(_.delete())
-        assert(!pidFile.exists(_.exists), "PID file should not exist!")
+        // Start the server
+        val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
+        val server = serverProvider.createServer(config, application)
+        process.addShutdownHook {
+          server.stop()
+          pidFile.foreach(_.delete())
+          assert(!pidFile.exists(_.exists), "PID file should not exist!")
+        }
+        server
+      } catch {
+        case NonFatal(e) =>
+          // Clean up pidfile when the server fails to start
+          pidFile.foreach(_.delete())
+          throw e
       }
-      server
     } catch {
       case ServerStartException(message, cause) =>
         process.exit(message, cause)
