@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd ${DOCUMENTATION}
+
+printMessage "RUNNING DOCUMENTATION TESTS"
+runSbtNoisy test
+runSbtNoisy evaluateSbtFiles
+runSbt validateDocs
+
+printMessage "ALL DOCUMENTATION TESTS PASSED"

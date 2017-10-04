@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd ${FRAMEWORK}
+
+printMessage "VALIDATE BINARY COMPATIBILITY"
+runSbt mimaReportBinaryIssues
+
+
+printMessage "VALIDATE CODE FORMATTING"
+runSbt scalariformFormat test:scalariformFormat
+git diff --exit-code || (
+  echo "ERROR: Scalariform check failed, see differences above."
+  echo "To fix, format your sources using sbt scalariformFormat test:scalariformFormat before submitting a pull request."
+  echo "Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."
+  false
+)
+
+
+printMessage "VALIDATE FILE LICENSE HEADERS"
+runSbt checkHeaders test:checkHeaders
+
+
+printMessage "RUNNING WHITESOURCE REPORT"
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    runSbt 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
+else
+    echo "[info]"
+    echo "[info] This is a pull request so Whitesource WILL NOT RUN."
+    echo "[info] It only runs when integrating the code and should not run for PRs. See the page below for details:"
+    echo "[info] https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions"
+    echo "[info]"
+fi
