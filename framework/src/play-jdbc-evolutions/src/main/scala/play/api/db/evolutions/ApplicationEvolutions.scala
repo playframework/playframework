@@ -352,8 +352,8 @@ class DynamicEvolutions {
 @Singleton
 class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: EvolutionsReader, config: EvolutionsConfig) extends HandleWebCommandSupport {
   def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.Result] = {
-    val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
-    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
+    val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_-]+)""".r
+    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_-]+)/([0-9]+)""".r
 
     lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_.head).getOrElse("/")
 
