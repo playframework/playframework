@@ -12,7 +12,6 @@ import sbt.Keys._
 import com.typesafe.sbt.web.incremental._
 import play.api.PlayException
 import sbt.plugins.JvmPlugin
-import xsbti.Position
 
 import scala.language.implicitConversions
 
@@ -49,7 +48,7 @@ object RoutesKeys {
   val StaticRoutesGenerator = play.routes.compiler.StaticRoutesGenerator
 }
 
-object RoutesCompiler extends AutoPlugin {
+object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
   import RoutesKeys._
 
   override def trigger = noTrigger
@@ -68,6 +67,11 @@ object RoutesCompiler extends AutoPlugin {
 
     routesCompilerTasks := Def.taskDyn {
 
+      val generateReverseRouterValue = generateReverseRouter.value
+      val namespaceReverseRouterValue = namespaceReverseRouter.value
+      val sourcesInRoutes = (sources in routes).value
+      val routesImportValue = routesImport.value
+
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value.map { agg =>
         routesCompilerTasks in (agg.project, configuration.value)
@@ -79,9 +83,9 @@ object RoutesCompiler extends AutoPlugin {
         }
 
         // Find the routes compile tasks for this project
-        val thisProjectTasks = (sources in routes).value.map { file =>
-          RoutesCompilerTask(file, routesImport.value, forwardsRouter = true,
-            reverseRouter = generateReverseRouter.value, namespaceReverseRouter = namespaceReverseRouter.value)
+        val thisProjectTasks = sourcesInRoutes.map { file =>
+          RoutesCompilerTask(file, routesImportValue, forwardsRouter = true,
+            reverseRouter = generateReverseRouterValue, namespaceReverseRouter = namespaceReverseRouterValue)
         }
 
         thisProjectTasks ++ reverseRouterTasks
@@ -188,29 +192,6 @@ object RoutesCompiler extends AutoPlugin {
     error
   }
 
-  val routesPositionMapper: Position => Option[Position] = position => {
-    position.sourceFile collect {
-      case GeneratedSource(generatedSource) => {
-        new xsbti.Position {
-          lazy val line = {
-            position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-          }
-          lazy val lineContent = {
-            line flatMap { lineNo =>
-              sourceFile.flatMap { file =>
-                IO.read(file).split('\n').lift(lineNo - 1)
-              }
-            } getOrElse ""
-          }
-          val offset = xsbti.Maybe.nothing[java.lang.Integer]
-          val pointer = xsbti.Maybe.nothing[java.lang.Integer]
-          val pointerSpace = xsbti.Maybe.nothing[String]
-          val sourceFile = xsbti.Maybe.just(generatedSource.source.get)
-          val sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
-        }
-      }
-    }
-  }
 }
 
 private case class RoutesCompilerOp(task: RoutesCompilerTask, generatorId: String, playVersion: String)

@@ -26,14 +26,30 @@ object Docs {
   lazy val settings = Seq(
     apiDocsInclude := false,
     apiDocsIncludeManaged := false,
-    apiDocsScalaSources := ((thisProjectRef, buildStructure) flatMap allSources(Compile, ".scala")).value,
-    apiDocsClasspath := ((thisProjectRef, buildStructure) flatMap allClasspaths).value,
-    apiDocsJavaSources := ((thisProjectRef, buildStructure) flatMap allSources(Compile, ".java")).value,
+    apiDocsScalaSources := Def.taskDyn {
+      val pr = thisProjectRef.value
+      val bs = buildStructure.value
+      Def.task(allSources(Compile, ".scala", pr, bs).value)
+    }.value,
+    apiDocsClasspath := Def.taskDyn {
+      val pr = thisProjectRef.value
+      val bs = buildStructure.value
+      Def.task(allClasspaths(pr, bs).value)
+    }.value,
+    apiDocsJavaSources := Def.taskDyn {
+      val pr = thisProjectRef.value
+      val bs = buildStructure.value
+      Def.task(allSources(Compile, ".java", pr, bs).value)
+    }.value,
+    allConfs in Global := Def.taskDyn {
+      val pr = thisProjectRef.value
+      val bs = buildStructure.value
+      Def.task(allConfsTask(pr, bs).value)
+    }.value,
     apiDocsUseCache := true,
     apiDocs := apiDocsTask.value,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
-    allConfs in Global := ((thisProjectRef, buildStructure) flatMap allConfsTask).value,
     mappings in (Compile, packageBin) ++= {
       val apiBase = apiDocs.value
       val webjars = extractWebjars.value
@@ -185,7 +201,7 @@ object Docs {
   }
 
   // Converts an artifact into a Javadoc URL.
-  def artifactToJavadoc(organization: String, name: String, apiVersion:String, jarBaseFile: String) = {
+  def artifactToJavadoc(organization: String, name: String, apiVersion:String, jarBaseFile: String): String = {
     val slashedOrg = organization.replace('.', '/')
     raw"""https://oss.sonatype.org/service/local/repositories/public/archive/$slashedOrg/$name/$apiVersion/$jarBaseFile-javadoc.jar/!/index.html"""
   }
@@ -223,7 +239,7 @@ object Docs {
     unmanagedResourcesTasks.join.map(_.flatten)
   }
 
-  def allSources(conf: Configuration, extension: String)(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
+  def allSources(conf: Configuration, extension: String, projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val sourceTasks = projects map { ref =>
       def taskFromProject[T](task: TaskKey[T]) = task in conf in ref get structure.data
@@ -264,7 +280,11 @@ object Docs {
   }
 
   // Note: webjars are extracted without versions
-  def extractWebjarContents: Def.Initialize[Task[File]] = (update, target, streams) map { (report, targetDir, s) =>
+  def extractWebjarContents: Def.Initialize[Task[File]] = Def.task {
+    val report = update.value
+    val targetDir = target.value
+    val s = streams.value
+
     val webjars = report.matching(configurationFilter(name = Webjars.name))
     val webjarsDir = targetDir / "webjars"
     val cache = new FileSystemCache(s.cacheDirectory / "webjars-cache")

@@ -27,7 +27,7 @@ import sbt.Keys._
 import Imports.PlayDocsKeys._
 
 // Test that all the docs are renderable and valid
-object PlayDocsValidation {
+object PlayDocsValidation extends PlayDocsValidationCompat {
 
   /**
    * A report of all references from all markdown files.
@@ -92,7 +92,7 @@ object PlayDocsValidation {
 
     val base = manualPath.value
 
-    val markdownFiles = (base / "manual" ** "*.md").get
+    val markdownFiles = getMarkdownFiles(base)
 
     val wikiLinks = mutable.ListBuffer[LinkRef]()
     val resourceLinks = mutable.ListBuffer[LinkRef]()
@@ -190,9 +190,9 @@ object PlayDocsValidation {
         .toHtml(astRoot)
     }
 
-    markdownFiles.foreach(parseMarkdownFile)
+    markdownFiles.map(_._1).foreach(parseMarkdownFile)
 
-    MarkdownRefReport(markdownFiles, wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
+    MarkdownRefReport(markdownFiles.map(_._1), wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
   }
 
   private def extractCodeSamples(filename: String, markdownSource: String): FileWithCodeSamples = {
@@ -261,7 +261,7 @@ object PlayDocsValidation {
   val generateMarkdownCodeSamplesTask = Def.task {
     val base = manualPath.value
 
-    val markdownFiles = (base / "manual" ** "*.md").get.pair(relativeTo(base))
+    val markdownFiles = getMarkdownFiles(base)
 
     CodeSamplesReport(markdownFiles.map {
       case (file, name) => extractCodeSamples("/" + name, IO.read(file))
@@ -309,9 +309,10 @@ object PlayDocsValidation {
 
   val cachedTranslationCodeSamplesReportTask = Def.task {
     val file = translationCodeSamplesReportFile.value
+    val stateValue = state.value
     if (!file.exists) {
       println("Generating report...")
-      Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.fold({ incomplete =>
+      Project.runTask(translationCodeSamplesReport, stateValue).get._2.toEither.fold({ incomplete =>
         throw incomplete.directCause.get
       }, result => result)
     } else {

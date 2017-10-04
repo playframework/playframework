@@ -168,16 +168,16 @@ object Dependencies {
     specsMatcherExtra % Test
   ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
 
-  private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
-    moduleId.extra(
-      "sbtVersion" -> CrossVersion.binarySbtVersion(sbtVersion),
-      "scalaVersion" -> CrossVersion.binaryScalaVersion(scalaVersion)
-    )
+  private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
+    Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
-  val runSupportDependencies = Seq(
-    "com.lightbend.play" %% "play-file-watch" % "1.1.2"
-  ) ++ specsBuild.map(_ % Test)
+  def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
+    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.2"
+    case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
+  }
+
+  def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = Seq(playFileWatch(sbtVersion)) ++ specsBuild.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
@@ -188,18 +188,16 @@ object Dependencies {
   val typesafeConfig = "com.typesafe" % "config" % "1.3.1"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
-    def sbtDep(moduleId: ModuleID) = sbtPluginDep(sbtVersion, scalaVersion, moduleId)
+    def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
 
     Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
       slf4jSimple,
-
+      playFileWatch(sbtVersion),
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
-
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4"),
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.2"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
     ) ++ specsBuild.map(_ % Test)
@@ -291,8 +289,8 @@ object Dependencies {
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.2", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.2", "2.11.11"),
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.3", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.3", "2.11.11"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka

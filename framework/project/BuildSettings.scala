@@ -283,7 +283,7 @@ object BuildSettings {
     scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
-      "-Dscala.version=" + sys.props.get("scripted.scala.version").getOrElse(sys.props.get("scala.version").getOrElse("2.12.2"))
+      "-Dscala.version=" + sys.props.get("scripted.scala.version").orElse(sys.props.get("scala.version")).getOrElse("2.12.3")
     )
   )
 
@@ -308,6 +308,9 @@ object BuildSettings {
         .enablePlugins(PlaySbtPlugin)
         .settings(playCommonSettings: _*)
         .settings(playScriptedSettings: _*)
+        .settings(
+          fork in Test := false
+        )
   }
 
 }
