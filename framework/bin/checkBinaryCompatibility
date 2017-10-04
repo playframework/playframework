@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Checks binary compatibility
-
-. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/build"
-
-cd $FRAMEWORK
-
-build mimaReportBinaryIssues

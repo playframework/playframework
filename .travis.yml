@@ -3,13 +3,19 @@ dist: trusty
 sudo: true
 group: beta
 jdk:
-- oraclejdk8
-scala:
-- 2.11.11
-- 2.12.2
+  - oraclejdk8
+env:
+  global:
+    secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
+  matrix:
+    - SCRIPT=test-scala-211
+    - SCRIPT=test-scala-212
+    - SCRIPT=test-docs
+    - SCRIPT=test-sbt-plugins
+    - SCRIPT=validate-code
+    - SCRIPT=validate-microbenchmarks
 script:
-- framework/bin/whitesource
-- framework/bin/travis
+  - framework/bin/$SCRIPT
 cache:
   directories:
   - $HOME/.ivy2/cache
@@ -28,6 +34,4 @@ notifications:
     on_failure: always
   slack:
     secure: LIYWP1YF6DEXh4gBQ0DlaQP+kenerp7Q1AC3y/+egJYUu1g2TWmBlkcpXOcdHzrgTIUX/LYnSlhowIpsW7/YwcyLn3rOJI6SJM00DrDPRm6X1586P9DcR4XiX7MChewzbnmebx6KISt6bFtfvcd67J2cinmShwXQh2AmwvuT3Tc=
-env:
-  global:
-    secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
+
