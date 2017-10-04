@@ -380,28 +380,28 @@ final case class AkkaHeadersWrapper(
       case lowerCased => hs.collect { case h if h.is(lowerCased) => h.value }
     }
 
-  override lazy val keys: immutable.Set[String] =
+  override lazy val keys: immutable.Set[String] = {
     hs.map(_.name).toSet ++
       Set(CONTENT_LENGTH_LOWER_CASE, TRANSFER_ENCODING_LOWER_CASE, CONTENT_TYPE_LOWER_CASE).filter(hasHeader)
+  }
 
   // note that these are rarely used, mostly just in tests
   override def add(headers: (String, String)*): AkkaHeadersWrapper =
     copy(hs = this.hs ++ raw(headers))
 
   override def remove(keys: String*): Headers =
-    copy(hs = hs.filterNot(keys.contains))
+    copy(hs = hs.filterNot(h => keys.exists { rm =>
+      h.is(rm.toLowerCase(Locale.ROOT))
+    }))
 
-  override def replace(headers: (String, String)*): Headers = {
-    val replaced = hs.filterNot(h => headers.exists(rm => h.is(rm._1))) ++ raw(headers)
-    copy(hs = replaced)
-  }
+  override def replace(headers: (String, String)*): Headers =
+    remove(headers.map(_._1): _*).add(headers: _*)
 
-  override def equals(other: Any): Boolean = {
+  override def equals(other: Any): Boolean =
     other match {
       case that: AkkaHeadersWrapper => that.request == this.request
       case _ => false
     }
-  }
 
   private def raw(headers: Seq[(String, String)]): Seq[RawHeader] =
     headers.map(t => RawHeader(t._1, t._2))
