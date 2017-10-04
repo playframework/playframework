@@ -11,7 +11,8 @@ env:
     - SCRIPT=test-scala-211
     - SCRIPT=test-scala-212
     - SCRIPT=test-docs
-    - SCRIPT=test-sbt-plugins
+    - SCRIPT=test-sbt-plugins-0_13
+    - SCRIPT=test-sbt-plugins-1_0
     - SCRIPT=validate-code
     - SCRIPT=validate-microbenchmarks
 script:

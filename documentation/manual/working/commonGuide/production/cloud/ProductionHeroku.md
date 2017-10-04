@@ -128,10 +128,10 @@ The Heroku sbt plugin utilizes an API to provide direct deployment of prepackage
 
 ### Adding the plugin
 
-To include the plugin in your project, add the following to your `project/plugins.sbt` file:
+To include the [Heroku sbt Plugin](https://github.com/heroku/sbt-heroku) in your project, add the following to your `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.heroku" % "sbt-heroku" % "0.5.1")
+addSbtPlugin("com.heroku" % "sbt-heroku" % "2.0.0")
 ```
 
 Next, we must configure the name of the Heroku application the plugin will deploy to. But first, create a new app. Install the Heroku Toolbelt and run the create command.

@@ -20,8 +20,8 @@ $ sleep 1100
 
 > playRoutes
 
--> newer target/routes/main/a/Routes.scala target/change1
--> newer target/routes/main/b/Routes.scala target/change1
+-$ newer target/routes/main/a/Routes.scala target/change1
+-$ newer target/routes/main/b/Routes.scala target/change1
 
 # Modify a, ensure only a gets recompiled
 
@@ -31,8 +31,8 @@ $ sleep 1100
 
 > playRoutes
 
-> newer target/routes/main/a/Routes.scala target/change2
--> newer target/routes/main/b/Routes.scala target/change2
+$ newer target/routes/main/a/Routes.scala target/change2
+-$ newer target/routes/main/b/Routes.scala target/change2
 
 # Modify b, change the package it produces routes in, ensure the old routes is deleted and the new is produced
 
@@ -62,5 +62,5 @@ $ sleep 1100
 
 > playRoutes
 
-> newer target/routes/main/a/Routes.scala target/change3
-> newer target/routes/main/b/Routes.scala target/change3
+$ newer target/routes/main/a/Routes.scala target/change3
+$ newer target/routes/main/b/Routes.scala target/change3
