@@ -25,7 +25,9 @@ One use case for a custom request handler may be that you want to delegate to a 
 
 ## Configuring the http request handler
 
-A custom http handler can be supplied by creating a class in the root package called `RequestHandler` that implements `HttpRequestHandler`.
+If you're using [`BuiltInComponents`](api/scala/play/api/BuiltInComponents.html) to construct your app, override the `httpRequestHandler` method to return an instance of your custom handler.
+
+If you're using runtime dependency injection (e.g. Guice), the request handler can be dynamically loaded at runtime. The simplest way is to create a class in the root package called `RequestHandler` that implements `HttpRequestHandler`.
 
 If you don’t want to place your request handler in the root package, or if you want to be able to configure different request handlers for different environments, you can do this by configuring the `play.http.requestHandler` configuration property in `application.conf`:
 
