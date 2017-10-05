@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+
+# Lib for CI scripts
+
+set -e
+set -o pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASEDIR=${DIR}/../..
+FRAMEWORK=${BASEDIR}/framework
+DOCUMENTATION=${BASEDIR}/documentation
+
+printMessage() {
+  echo "[info]"
+  echo "[info] ---- $1"
+  echo "[info]"
+}
+
+runSbt() {
+  sbt --warn -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+}
+
+runSbtNoisy() {
+  sbt -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+}

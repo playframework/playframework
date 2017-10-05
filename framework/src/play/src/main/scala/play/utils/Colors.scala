@@ -8,8 +8,8 @@ object Colors {
   import scala.Console._
 
   lazy val isANSISupported = {
-    Option(System.getProperty("sbt.log.noformat")).map(_ != "true").orElse {
-      Option(System.getProperty("os.name"))
+    sys.props.get("sbt.log.noformat").map(_ != "true").orElse {
+      sys.props.get("os.name")
         .map(_.toLowerCase(java.util.Locale.ENGLISH))
         .filter(_.contains("windows"))
         .map(_ => false)

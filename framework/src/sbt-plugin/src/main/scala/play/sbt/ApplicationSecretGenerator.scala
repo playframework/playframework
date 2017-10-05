@@ -22,7 +22,7 @@ object ApplicationSecretGenerator {
 
   def generateSecretTask = Def.task[String] {
     val secret = generateSecret
-    Keys.streams.value.log.info("Generated new secret: " + secret)
+    println("Generated new secret: " + secret)
     secret
   }
 
@@ -33,7 +33,7 @@ object ApplicationSecretGenerator {
     val baseDir: File = Keys.baseDirectory.value
     val log = Keys.streams.value.log
 
-    val appConfFile = Option(System.getProperty("config.file")) match {
+    val appConfFile = sys.props.get("config.file") match {
       case Some(applicationConf) => new File(baseDir, applicationConf)
       case None => (Keys.resourceDirectory in Compile).value / "application.conf"
     }

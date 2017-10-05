@@ -16,7 +16,9 @@ This section covers the core tutorials and examples from Play.  These are mainta
 There are two Play Seeds that are designed expressly for getting started with new Play applications.  They contain a hello world controller and view template, filters, and nothing else.
 
 If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can create your own Play project using `sbt new`
- using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately.
+ using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately. 
+
+> **Note**: If running Windows, you may need to run sbt using `sbt.bat` instead of `sbt`. This documentation assumes the command is `sbt`.
 
 Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form.
 
@@ -129,6 +131,11 @@ This is an incomplete list of several helpful blog posts, and because some of th
 #### Database
 
 * [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an example project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
+
+#### Forms and Validators
+
+* [Controller Forms](http://queirozf.com/entries/play2-scala-forms-and-validations): This provides examples of using forms and custom validators within a controller.
+* [Json Validators](http://queirozf.com/entries/fully-customized-json-validator-for-play-framework-2): This guide lists methods of validating json against a customized case class or trait. 
 
 #### REST APIs
 
