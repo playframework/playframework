@@ -1,0 +1,8 @@
+@* #relative-hello-view *@
+@(name: String)(implicit request: RequestHeader)
+
+@main(name) {
+    <a href="@controllers.routes.Relative.hello(name)">Absolute Link</a>
+    <a href="@controllers.routes.Relative.hello(name).relative">Relative Link</a>
+}
+@* #relative-hello-view *@
