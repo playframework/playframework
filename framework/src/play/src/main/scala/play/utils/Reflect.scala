@@ -158,7 +158,7 @@ object Reflect {
   }
 
   def createInstance[T: ClassTag](clazz: Class[_]): T = {
-    val o = clazz.newInstance
+    val o = clazz.getDeclaredConstructor().newInstance()
     val t = implicitly[ClassTag[T]].runtimeClass
     if (t.isInstance(o)) o.asInstanceOf[T]
     else throw new ClassCastException(clazz.getName + " is not an instance of " + t)

@@ -103,7 +103,7 @@ public class Form<T> {
 
     protected T blankInstance() {
         try {
-            return backedType.newInstance();
+            return backedType.getDeclaredConstructor().newInstance();
         } catch(Exception e) {
             throw new RuntimeException("Cannot instantiate " + backedType + ". It must have a default constructor", e);
         }
