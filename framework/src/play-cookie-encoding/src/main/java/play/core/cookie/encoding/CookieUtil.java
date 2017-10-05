@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package play.core.netty.utils;
+package play.core.cookie.encoding;
 
 import java.util.BitSet;
 

@@ -41,10 +41,10 @@ lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
-lazy val PlayNettyUtilsProject = PlayNonCrossBuiltProject("Play-Netty-Utils", "play-netty-utils")
+lazy val PlayCookieEncodingProject = PlayNonCrossBuiltProject("Play-Cookie-Encoding", "play-cookie-encoding")
     .settings(
       javacOptions in(Compile, doc) += "-Xdoclint:none",
-      libraryDependencies ++= nettyUtilsDependencies
+      libraryDependencies ++= cookieEncodingDependencies
     )
 
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-joda-forms")
@@ -84,7 +84,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     ).settings(Docs.playdocSettings: _*)
     .dependsOn(
       BuildLinkProject,
-      PlayNettyUtilsProject,
+      PlayCookieEncodingProject,
       StreamsProject
     )
 
@@ -322,6 +322,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
+  PlayCookieEncodingProject,
   PlayEhcacheProject,
   PlayJCacheProject,
   PlayJdbcApiProject,
@@ -332,7 +333,6 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayJodaFormsProject,
   PlayJavaJdbcProject,
   PlayJpaProject,
-  PlayNettyUtilsProject,
   PlayNettyServerProject,
   PlayServerProject,
   PlayLogback,

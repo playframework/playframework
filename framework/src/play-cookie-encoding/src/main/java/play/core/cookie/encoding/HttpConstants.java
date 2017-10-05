@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Netty Project
+ * Copyright 2012 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -13,8 +13,31 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
+package play.core.cookie.encoding;
 
-/**
- * This package contains Cookie related classes.
- */
-package play.core.netty.utils;
+final class HttpConstants {
+
+    /**
+     * Horizontal space
+     */
+    public static final byte SP = 32;
+
+    /**
+     * Equals '='
+     */
+    public static final byte EQUALS = 61;
+
+    /**
+     * Semicolon ';'
+     */
+    public static final byte SEMICOLON = 59;
+
+    /**
+     * Double quote '"'
+     */
+    public static final byte DOUBLE_QUOTE = '"';
+
+    private HttpConstants() {
+        // Unused
+    }
+}

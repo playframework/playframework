@@ -154,6 +154,8 @@ object Cookies extends CookieHeaderEncoding {
  */
 trait CookieHeaderEncoding {
 
+  import play.core.cookie.encoding.DefaultCookie
+
   private implicit val markerContext = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
@@ -170,7 +172,6 @@ trait CookieHeaderEncoding {
   import scala.collection.JavaConverters._
 
   // We use netty here but just as an API to handle cookies encoding
-  import play.core.netty.utils.DefaultCookie
 
   private val logger = Logger(this.getClass)
 

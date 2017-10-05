@@ -43,7 +43,7 @@ object BuildSettings {
    * File header settings
    */
   val fileHeaderSettings = Seq(
-    excludes := Seq("*/netty/utils/*", "*/inject/SourceProvider.java"),
+    excludes := Seq("*/cookie/encoding/*", "*/inject/SourceProvider.java"),
     headers := Map(
       "scala" -> (HeaderPattern.cStyleBlockComment,
         """|/*

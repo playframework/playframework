@@ -3,13 +3,13 @@
  */
 package play.api.http
 
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.{Inject, Provider, Singleton}
 
 import com.typesafe.config.ConfigMemorySize
 import org.apache.commons.codec.digest.DigestUtils
 import play.api._
 import play.api.mvc.Cookie.SameSite
-import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
+import play.core.cookie.encoding.{ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder}
 
 import scala.concurrent.duration._
 
