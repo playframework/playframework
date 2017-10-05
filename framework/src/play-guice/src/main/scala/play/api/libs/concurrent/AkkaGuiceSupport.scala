@@ -105,7 +105,7 @@ trait AkkaGuiceSupport {
    *
    *   def receive {
    *     case CreateChildActor(id) =>
-   *       val child: ActorRef = injectedChild(myChildActoryFactory(id), id)
+   *       val child: ActorRef = injectedChild(myChildActorFactory(id), id)
    *       sender() ! child
    *   }
    * }
