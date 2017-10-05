@@ -179,7 +179,7 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
     expiration match {
-      case infinite: Duration.Infinite => element.setEternal(true)
+      case infinite: Duration.Infinite if infinite != Duration.Undefined => element.setEternal(true)
       case finite: FiniteDuration =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {

@@ -26,7 +26,7 @@ trait AsyncCacheApi {
    * @param value Item value.
    * @param expiration Expiration time.
    */
-  def set(key: String, value: Any, expiration: Duration = Duration.Inf): Future[Done]
+  def set(key: String, value: Any, expiration: Duration = Duration.Undefined): Future[Done]
 
   /**
    * Remove a value from the cache
@@ -40,7 +40,7 @@ trait AsyncCacheApi {
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was not found in cache.
    */
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => Future[A]): Future[A]
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Undefined)(orElse: => Future[A]): Future[A]
 
   /**
    * Retrieve a value from the cache for the given type

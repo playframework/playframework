@@ -21,7 +21,7 @@ trait SyncCacheApi {
    * @param value Item value.
    * @param expiration Expiration time.
    */
-  def set(key: String, value: Any, expiration: Duration = Duration.Inf): Unit
+  def set(key: String, value: Any, expiration: Duration = Duration.Undefined): Unit
 
   /**
    * Remove a value from the cache
@@ -35,7 +35,7 @@ trait SyncCacheApi {
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was not found in cache.
    */
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => A): A
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Undefined)(orElse: => A): A
 
   /**
    * Retrieve a value from the cache for the given type
@@ -59,7 +59,7 @@ trait CacheApi {
    * @param value Item value.
    * @param expiration Expiration time.
    */
-  def set(key: String, value: Any, expiration: Duration = Duration.Inf): Unit
+  def set(key: String, value: Any, expiration: Duration = Duration.Undefined): Unit
 
   /**
    * Remove a value from the cache
@@ -73,7 +73,7 @@ trait CacheApi {
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was not found in cache.
    */
-  def getOrElse[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => A): A
+  def getOrElse[A: ClassTag](key: String, expiration: Duration = Duration.Undefined)(orElse: => A): A
 
   /**
    * Retrieve a value from the cache for the given type
