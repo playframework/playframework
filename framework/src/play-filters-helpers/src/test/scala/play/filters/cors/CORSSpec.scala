@@ -12,6 +12,8 @@ import play.api.routing.Router
 import play.api.routing.sird._
 import play.api.test.{FakeRequest, PlaySpecification}
 import play.api.{Application, Configuration}
+import play.filters.cors.CORSFilterSpec.VARY
+import play.filters.cors.CORSWithCSRFSpec.{VARY, action}
 import play.filters.csrf.{CSRFCheck, CSRFFilter}
 
 import scala.concurrent.Future
@@ -26,6 +28,7 @@ object CORSFilterSpec extends CORSCommonSpec {
     running(_.configure(conf).overrides(
       bind[Router].to(Router.from {
         case p"/error" => Action { req => throw sys.error("error") }
+        case p"/vary" => Action { req => Results.Ok("Hello").withHeaders(VARY -> ACCEPT_ENCODING) }
         case _ => Action(Results.Ok)
       }),
       bind[HttpFilters].to[Filters]
@@ -41,6 +44,13 @@ object CORSFilterSpec extends CORSCommonSpec {
 
       status(result) must_== OK
       mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    "merge vary header" in withApplication() { app =>
+      val result = route(app, fakeRequest("GET", "/vary").withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== OK
+      header(VARY, result) must beSome(s"$ACCEPT_ENCODING,$ORIGIN")
     }
 
     commonTests
@@ -174,6 +184,7 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
       "without a port number" in withApplication() { app =>
@@ -183,6 +194,7 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
     }
@@ -198,6 +210,7 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
       "forbidden" in withApplication(conf = serveForbidden) { app =>
@@ -206,6 +219,7 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
     }
@@ -218,6 +232,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "not consider different ports to be the same origin" in withApplication() { app =>
@@ -228,6 +243,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com:9000")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "not consider different protocols to be the same origin" in withApplication() { app =>
@@ -238,6 +254,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("https://www.example.com:9000")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "forbid an empty origin header" in withApplication() { app =>
