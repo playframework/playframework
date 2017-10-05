@@ -60,7 +60,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
 
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
-      val header = result.header.copy(headers = setupHeader(result.header.headers))
+      val header = result.header.copy(headers = setupHeader(result.header))
 
       result.body match {
 
@@ -155,19 +155,8 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
    */
   private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(CONTENT_ENCODING).isEmpty
 
-  private def setupHeader(header: Map[String, String]): Map[String, String] = {
-    header + (CONTENT_ENCODING -> "gzip") + addToVaryHeader(header, VARY, ACCEPT_ENCODING)
-  }
-
-  /**
-   * There may be an existing Vary value, which we must add to (comma separated)
-   */
-  private def addToVaryHeader(existingHeaders: Map[String, String], headerName: String, headerValue: String): (String, String) = {
-    existingHeaders.get(headerName) match {
-      case None => (headerName, headerValue)
-      case Some(existing) if existing.split(",").exists(_.trim.equalsIgnoreCase(headerValue)) => (headerName, existing)
-      case Some(existing) => (headerName, s"$existing,$headerValue")
-    }
+  private def setupHeader(rh: ResponseHeader): Map[String, String] = {
+    rh.headers + (CONTENT_ENCODING -> "gzip") + rh.varyWith(ACCEPT_ENCODING)
   }
 }
 

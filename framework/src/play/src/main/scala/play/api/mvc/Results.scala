@@ -50,7 +50,25 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
     case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _ => false
   }
+
+  /**
+   * INTERNAL API
+   *
+   * Appends to the comma-separated `Vary` header of this request
+   */
+  private[play] def varyWith(headerValues: String*): (String, String) = {
+    val newValue = headers.get(VARY) match {
+      case Some(existing) if existing.nonEmpty =>
+        val existingSet: Set[String] = existing.split(",").map(_.trim.toLowerCase)(collection.breakOut)
+        val newValuesToAdd = headerValues.filterNot(v => existingSet.contains(v.trim.toLowerCase))
+        s"$existing${newValuesToAdd.map(v => s",$v").mkString}"
+      case _ =>
+        headerValues.mkString(",")
+    }
+    VARY -> newValue
+  }
 }
+
 object ResponseHeader {
   val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
   val httpDateFormat: DateTimeFormatter =
