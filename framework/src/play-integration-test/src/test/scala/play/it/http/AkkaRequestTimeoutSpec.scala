@@ -29,7 +29,7 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         case Duration(t, u) => s"${u.toMillis(t)}ms"
       }
       val props = new Properties(System.getProperties)
-      props.putAll(Map(
+      (props: java.util.Map[Object, Object]).putAll(Map(
         "play.server.akka.requestTimeout" -> getTimeout(httpTimeout)
       ).asJava)
       val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)
