@@ -7,10 +7,9 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
-import play.api.{Configuration, Environment, Mode, PlayException}
+import play.api.{ Configuration, Environment, Mode, PlayException }
 import play.api.mvc.Cookie.SameSite
 import play.core.cookie.encoding.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
-import play.core.cookie.encoding.{ ClientCookieDecoder, ServerCookieDecoder, ServerCookieEncoder }
 
 class HttpConfigurationSpec extends Specification {
 

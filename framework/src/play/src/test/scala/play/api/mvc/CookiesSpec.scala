@@ -3,10 +3,10 @@
  */
 package play.api.mvc
 
-import java.time.{Instant, ZoneId}
+import java.time.{ Instant, ZoneId }
 
 import org.specs2.mutable._
-import play.api.http.{JWTConfiguration, SecretConfiguration, SessionConfiguration}
+import play.api.http.{ JWTConfiguration, SecretConfiguration, SessionConfiguration }
 import play.api.mvc.Cookie.SameSite
 import play.core.cookie.encoding.ServerCookieEncoder
 import play.core.test._
