@@ -3,9 +3,9 @@
  */
 //#relative-controller
 //###replace: package controllers;
-package javaguide.http.routing.reverse.controllers;
+package javaguide.http.routing.relative.controllers;
 
-import play.*
+import play.*;
 import play.mvc.*;
 
 public class Relative extends Controller {

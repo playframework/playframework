@@ -3,7 +3,7 @@
  */
 //#relative-controller
 //###replace: package controllers
-package scalaguide.http.routing.reverse.controllers
+package scalaguide.http.routing.relative.controllers
 
 import javax.inject._
 import play.api.mvc._
