@@ -159,7 +159,7 @@ object Dependencies {
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64"
   ) ++ specsBuild.map(_ % Test)
 
-  val nettyUtilsDependencies = slf4j
+  val cookieEncodingDependencies = slf4j
 
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.0"
 

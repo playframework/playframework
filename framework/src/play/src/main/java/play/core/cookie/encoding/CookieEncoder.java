@@ -13,11 +13,9 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package play.core.netty.utils;
+package play.core.cookie.encoding;
 
-import static play.core.netty.utils.CookieUtil.firstInvalidCookieNameOctet;
-import static play.core.netty.utils.CookieUtil.firstInvalidCookieValueOctet;
-import static play.core.netty.utils.CookieUtil.unwrapValue;
+import static play.core.cookie.encoding.CookieUtil.*;
 
 /**
  * Parent of Client and Server side cookie encoders

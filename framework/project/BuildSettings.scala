@@ -43,7 +43,7 @@ object BuildSettings {
    * File header settings
    */
   val fileHeaderSettings = Seq(
-    excludes := Seq("*/netty/utils/*", "*/inject/SourceProvider.java"),
+    excludes := Seq("*/cookie/encoding/*", "*/inject/SourceProvider.java"),
     headers := Map(
       "scala" -> (HeaderPattern.cStyleBlockComment,
         """|/*
@@ -181,6 +181,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.ApplicationLoader#Context.copy$default$5"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.ObjectMapperComponents.applicationLifecycle"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.NettyServerComponents.applicationLifecycle"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.CookiesConfiguration.serverEncoder"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.CookiesConfiguration.serverDecoder"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.CookiesConfiguration.clientEncoder"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.CookiesConfiguration.clientDecoder"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.ApplicationLoader.createContext"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.ApplicationLoader#Context.apply"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.ApplicationLoader#Context.copy"),

@@ -13,11 +13,12 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package play.core.netty.utils;
-
-import static play.core.netty.utils.CookieUtil.*;
+package play.core.cookie.encoding;
 
 import java.util.Iterator;
+
+import static play.core.cookie.encoding.CookieUtil.*;
+
 
 /**
  * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used client side,

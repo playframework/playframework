@@ -13,9 +13,9 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package play.core.netty.utils;
+package play.core.cookie.encoding;
 
-import static play.core.netty.utils.CookieUtil.validateAttributeValue;
+import static play.core.cookie.encoding.CookieUtil.validateAttributeValue;
 
 /**
  * The default {@link Cookie} implementation.
@@ -208,7 +208,7 @@ public class DefaultCookie implements Cookie {
 
     /**
      * Validate a cookie attribute value, throws a {@link IllegalArgumentException} otherwise.
-     * Only intended to be used by {@link play.core.netty.utils.DefaultCookie}.
+     * Only intended to be used by {@link DefaultCookie}.
      * @param name attribute name
      * @param value attribute value
      * @return the trimmed, validated attribute value
