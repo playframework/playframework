@@ -9,7 +9,9 @@ The interface through which Play handles these errors is [`HttpErrorHandler`](ap
 
 ## Supplying a custom error handler
 
-A custom error handler can be supplied by creating a class in the root package called `ErrorHandler` that implements [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), for example:
+If you're using [`BuiltInComponents`](api/java/play/BuiltInComponents.html) to construct your app, override the `httpRequestHandler` method to return an instance of your custom handler.
+
+If you're using runtime dependency injection (e.g. Guice), the error handler can be dynamically loaded at runtime. The simplest way is to create a class in the root package called `ErrorHandler` that implements [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), for example:
 
 @[root](code/javaguide/application/root/ErrorHandler.java)
 

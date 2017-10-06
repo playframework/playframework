@@ -41,12 +41,6 @@ lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
-lazy val PlayCookieEncodingProject = PlayNonCrossBuiltProject("Play-Cookie-Encoding", "play-cookie-encoding")
-    .settings(
-      javacOptions in(Compile, doc) += "-Xdoclint:none",
-      libraryDependencies ++= cookieEncodingDependencies
-    )
-
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-joda-forms")
     .settings(
       libraryDependencies ++= joda
@@ -56,7 +50,7 @@ lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-j
 lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
-      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
+      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies,
 
       sourceGenerators in Compile += Def.task(PlayVersion(
         version.value,
@@ -84,7 +78,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     ).settings(Docs.playdocSettings: _*)
     .dependsOn(
       BuildLinkProject,
-      PlayCookieEncodingProject,
       StreamsProject
     )
 
@@ -322,7 +315,6 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
-  PlayCookieEncodingProject,
   PlayEhcacheProject,
   PlayJCacheProject,
   PlayJdbcApiProject,

@@ -18,11 +18,9 @@ package play.core.cookie.encoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static play.core.cookie.encoding.CookieUtil.firstInvalidCookieNameOctet;
-import static play.core.cookie.encoding.CookieUtil.firstInvalidCookieValueOctet;
-import static play.core.cookie.encoding.CookieUtil.unwrapValue;
-
 import java.nio.CharBuffer;
+
+import static play.core.cookie.encoding.CookieUtil.*;
 
 /**
  * Parent of Client and Server side cookie decoders

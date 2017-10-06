@@ -15,13 +15,9 @@
  */
 package play.core.cookie.encoding;
 
-import static play.core.cookie.encoding.CookieUtil.*;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import static play.core.cookie.encoding.CookieUtil.*;
 
 /**
  * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used server side,

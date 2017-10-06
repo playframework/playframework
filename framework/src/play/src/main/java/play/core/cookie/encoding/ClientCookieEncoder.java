@@ -15,9 +15,9 @@
  */
 package play.core.cookie.encoding;
 
-import static play.core.cookie.encoding.CookieUtil.*;
-
 import java.util.Iterator;
+
+import static play.core.cookie.encoding.CookieUtil.*;
 
 
 /**
