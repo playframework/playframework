@@ -541,7 +541,11 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig"),
 
       // Add play.Application environmnent() method
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.Application.environment")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.Application.environment"),
+
+      // Added getOptional to Java (async)cacheApi
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOptional"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOptional")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

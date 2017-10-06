@@ -6,10 +6,13 @@ package play.cache;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 import scala.concurrent.duration.Duration;
 
 import play.libs.Scala;
+
+import static scala.compat.java8.OptionConverters.toJava;
 
 /**
  * Adapts a Scala SyncCacheApi to a Java SyncCacheApi
@@ -23,6 +26,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi {
   }
 
   @Override
+  @Deprecated
   public <T> T get(String key) {
     scala.Option<T> opt = scalaApi.get(key, Scala.classTag());
     if (opt.isDefined()) {
@@ -30,6 +34,11 @@ public class SyncCacheApiAdapter implements SyncCacheApi {
     } else {
       return null;
     }
+  }
+
+  @Override
+  public <T> Optional<T> getOptional(String key) {
+    return toJava(scalaApi.get(key, Scala.classTag()));
   }
 
   @Override

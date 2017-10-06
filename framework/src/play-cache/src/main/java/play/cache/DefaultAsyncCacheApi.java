@@ -7,6 +7,7 @@ package play.cache;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -15,6 +16,7 @@ import akka.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.Duration;
 
+import scala.compat.java8.OptionConverters;
 import static scala.compat.java8.FutureConverters.toJava;
 
 /**
@@ -35,8 +37,13 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
         return new SyncCacheApiAdapter(asyncCacheApi.sync());
     }
 
+	@Deprecated
     public <T> CompletionStage<T> get(String key) {
         return toJava(asyncCacheApi.get(key, Scala.<T>classTag())).thenApply(Scala::orNull);
+    }
+
+    public <T> CompletionStage<Optional<T>> getOptional(String key) {
+        return toJava(asyncCacheApi.get(key, Scala.<T>classTag())).thenApply(OptionConverters::toJava);
     }
 
     public <T> CompletionStage<T> getOrElseUpdate(String key, Callable<CompletionStage<T>> block, int expiration) {
