@@ -4,15 +4,15 @@
 package play.api.mvc
 
 import org.specs2.mutable._
-
 import play.core.test._
 
-class HttpSpec extends Specification {
+class HttpHeaderSpec extends Specification {
   "HTTP" title
 
-  val headers = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
+  "Headers should" in { commonTests(Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")) }
 
-  "Headers" should {
+  def commonTests(headers: Headers) = {
+
     "return its headers as a sequence of name-value pairs" in {
       // Wrap sequence in a new Headers object so we can compare with Headers.equals
       new Headers(headers.headers) must_== headers

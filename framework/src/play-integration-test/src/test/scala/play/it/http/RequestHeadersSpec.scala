@@ -65,5 +65,16 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       )
       response.body.left.toOption must beSome("https://bar.com")
     }
+
+    "pass http header common tests" in withServer((Action, _) => Action { rh =>
+      val akkaHeaders = rh.headers
+      (new HttpHeaderSpec).commonTests(akkaHeaders)
+      Results.Ok(akkaHeaders.getAll("a").mkString(","))
+    }) { port =>
+      val Seq(response) = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1"), "")
+      )
+      response.body.left.toOption must beSome("a2")
+    }
   }
 }
