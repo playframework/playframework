@@ -27,7 +27,7 @@ trait WebSocket extends Handler {
    * The return value is either a result to reject the WebSocket with (or otherwise respond in a different way), or
    * a flow to handle the WebSocket messages.
    */
-  def apply(request: RequestHeader): Future[Either[Result, Flow[Message, Message, _]]]
+  def apply(request: RequestHeader): Future[Either[Result, WebSocketFlowResponse]]
 }
 
 /**
@@ -35,7 +35,7 @@ trait WebSocket extends Handler {
  */
 object WebSocket {
 
-  def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, _]]]): WebSocket = {
+  def apply(f: RequestHeader => Future[Either[Result, WebSocketFlowResponse]]): WebSocket = {
     new WebSocket {
       def apply(request: RequestHeader) = f(request)
     }

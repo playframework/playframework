@@ -261,8 +261,8 @@ class AkkaHttpServer(
         websocket(taggedRequestHeader).flatMap {
           case Left(result) =>
             modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
-          case Right(flow) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
+          case Right(wsf) =>
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, wsf.flow, bufferLimit, wsf.subprotocol))
         }
 
       case (websocket: WebSocket, None) =>
