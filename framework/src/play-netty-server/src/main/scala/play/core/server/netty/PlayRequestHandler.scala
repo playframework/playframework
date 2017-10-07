@@ -133,9 +133,9 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
             // WebSocket was rejected, send result
             val action = EssentialAction(_ => Accumulator.done(result))
             handleAction(action, requestHeader, request, Some(app))
-          case Right(wsf) =>
+          case Right(flow) =>
             import app.materializer
-            val processor = WebSocketHandler.messageFlowToFrameProcessor(wsf.flow, bufferLimit)
+            val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
             Future.successful(new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK,
               processor, factory))
 

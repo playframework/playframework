@@ -9,9 +9,9 @@ import javax.net.ssl._
 
 import akka.actor.ActorSystem
 import akka.http.play.WebSocketHandler
-import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
 import akka.http.scaladsl.{ ConnectionContext, Http }
@@ -24,10 +24,10 @@ import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
+import play.core.ApplicationProvider
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
-import play.core.ApplicationProvider
 import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
@@ -179,6 +179,7 @@ class AkkaHttpServer(
 
   private def resultUtils: ServerResultUtils =
     reloadCache.cachedFrom(applicationProvider.get).resultUtils
+
   private def modelConversion: AkkaModelConversion =
     reloadCache.cachedFrom(applicationProvider.get).modelConversion
 
@@ -261,8 +262,8 @@ class AkkaHttpServer(
         websocket(taggedRequestHeader).flatMap {
           case Left(result) =>
             modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
-          case Right(wsf) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, wsf.flow, bufferLimit, wsf.subprotocol))
+          case Right(flow) =>
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit, websocket.subprotocol))
         }
 
       case (websocket: WebSocket, None) =>
@@ -325,6 +326,7 @@ class AkkaHttpServer(
 
     // First, stop listening
     def unbind(binding: Http.ServerBinding) = Await.result(binding.unbind(), Duration.Inf)
+
     httpServerBinding.foreach(unbind)
     httpsServerBinding.foreach(unbind)
     applicationProvider.current.foreach(Play.stop)
@@ -361,12 +363,17 @@ class AkkaHttpServer(
   private def mockSslContext(sslEngineProvider: SSLEngineProvider): SSLContext = {
     new SSLContext(new SSLContextSpi() {
       def engineCreateSSLEngine() = sslEngineProvider.createSSLEngine()
+
       def engineCreateSSLEngine(s: String, i: Int) = engineCreateSSLEngine()
 
       def engineInit(keyManagers: Array[KeyManager], trustManagers: Array[TrustManager], secureRandom: SecureRandom) = ()
+
       def engineGetClientSessionContext() = SSLContext.getDefault.getClientSessionContext
+
       def engineGetServerSessionContext() = SSLContext.getDefault.getServerSessionContext
+
       def engineGetSocketFactory() = SSLSocketFactory.getDefault.asInstanceOf[SSLSocketFactory]
+
       def engineGetServerSocketFactory() = SSLServerSocketFactory.getDefault.asInstanceOf[SSLServerSocketFactory]
     }, new Provider("Play SSlEngineProvider delegate", 1d,
       "A provider that only implements the creation of SSL engines, and delegates to Play's SSLEngineProvider") {},
@@ -416,7 +423,7 @@ object AkkaHttpServer extends ServerFromRouter {
    * Create a Netty server from the given application and server configuration.
    *
    * @param application The application.
-   * @param config The server configuration.
+   * @param config      The server configuration.
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): AkkaHttpServer = {
@@ -427,6 +434,7 @@ object AkkaHttpServer extends ServerFromRouter {
   override protected def createServerFromRouter(serverConf: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server = {
     new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = serverConf
+
       override def router: Router = routes(this)
     }.server
   }
