@@ -6,33 +6,32 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{Actor, Props, Status}
+import akka.actor.{ Actor, Props, Status }
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import org.specs2.execute.{AsResult, EventuallyResults}
+import org.specs2.execute.{ AsResult, EventuallyResults }
 import org.specs2.matcher.Matcher
+import org.specs2.specification.AroundEach
 import play.api.Application
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
 import play.api.libs.ws.WSClient
-import play.api.mvc.{Handler, Results, WebSocket}
+import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.routing.HandlerDef
 import play.api.test._
 import play.it._
-import play.it.http.websocket.WebSocketClient.{ContinuationMessage, ExtendedMessage, SimpleMessage}
+import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.reflect.ClassTag
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
-
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
 class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
-
 class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with AkkaHttpIntegrationSpecification
 
 trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with WebSocketSpecMethods {
@@ -77,10 +76,10 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerI
 }
 
 trait WebSocketSpec extends PlaySpecification
-  with WsTestClient
-  with ServerIntegrationSpecification
-  with WebSocketSpecMethods
-  with PingWebSocketSpec {
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with WebSocketSpecMethods
+    with PingWebSocketSpec {
 
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
@@ -94,20 +93,18 @@ trait WebSocketSpec extends PlaySpecification
 
   "Plays WebSockets" should {
     "allow handling WebSockets using Akka streams" in {
-      "allow consuming messages" in allowConsumingMessages { _ =>
-        consumed =>
-          WebSocket.accept[String, String] { req =>
-            Flow.fromSinkAndSource(
-              onFramesConsumed[String](consumed.success(_)),
-              Source.maybe[String])
-          }
+      "allow consuming messages" in allowConsumingMessages { _ => consumed =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(
+            onFramesConsumed[String](consumed.success(_)),
+            Source.maybe[String])
+        }
       }
 
-      "allow sending messages" in allowSendingMessages { _ =>
-        messages =>
-          WebSocket.accept[String, String] { req =>
-            Flow.fromSinkAndSource(Sink.ignore, Source(messages))
-          }
+      "allow sending messages" in allowSendingMessages { _ => messages =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source(messages))
+        }
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
@@ -116,11 +113,10 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
-        statusCode =>
-          WebSocket.acceptOrResult[String, String] { req =>
-            Future.successful(Left(Results.Status(statusCode)))
-          }
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
+        WebSocket.acceptOrResult[String, String] { req =>
+          Future.successful(Left(Results.Status(statusCode)))
+        }
       }
 
       "aggregate text frames" in {
@@ -228,44 +224,39 @@ trait WebSocketSpec extends PlaySpecification
 
     "allow handling a WebSocket with an actor" in {
 
-      "allow consuming messages" in allowConsumingMessages { implicit app =>
-        consumed =>
-          import app.materializer
-          implicit val system = app.actorSystem
-          WebSocket.accept[String, String] { req =>
-            ActorFlow.actorRef({ out =>
-              Props(new Actor() {
-                var messages = List.empty[String]
-
-                def receive = {
-                  case msg: String =>
-                    messages = msg :: messages
-                }
-
-                override def postStop() = {
-                  consumed.success(messages.reverse)
-                }
-              })
+      "allow consuming messages" in allowConsumingMessages { implicit app => consumed =>
+        import app.materializer
+        implicit val system = app.actorSystem
+        WebSocket.accept[String, String] { req =>
+          ActorFlow.actorRef({ out =>
+            Props(new Actor() {
+              var messages = List.empty[String]
+              def receive = {
+                case msg: String =>
+                  messages = msg :: messages
+              }
+              override def postStop() = {
+                consumed.success(messages.reverse)
+              }
             })
-          }
+          })
+        }
       }
 
-      "allow sending messages" in allowSendingMessages { implicit app =>
-        messages =>
-          import app.materializer
-          implicit val system = app.actorSystem
-          WebSocket.accept[String, String] { req =>
-            ActorFlow.actorRef({ out =>
-              Props(new Actor() {
-                messages.foreach { msg =>
-                  out ! msg
-                }
-                out ! Status.Success(())
-
-                def receive = PartialFunction.empty
-              })
+      "allow sending messages" in allowSendingMessages { implicit app => messages =>
+        import app.materializer
+        implicit val system = app.actorSystem
+        WebSocket.accept[String, String] { req =>
+          ActorFlow.actorRef({ out =>
+            Props(new Actor() {
+              messages.foreach { msg =>
+                out ! msg
+              }
+              out ! Status.Success(())
+              def receive = PartialFunction.empty
             })
-          }
+          })
+        }
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
@@ -275,7 +266,6 @@ trait WebSocketSpec extends PlaySpecification
           ActorFlow.actorRef({ out =>
             Props(new Actor() {
               system.scheduler.scheduleOnce(10.millis, out, Status.Success(()))
-
               def receive = PartialFunction.empty
             })
           })
@@ -296,36 +286,33 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
-      "clean up when closed" in cleanUpWhenClosed { implicit app =>
-        cleanedUp =>
-          import app.materializer
-          implicit val system = app.actorSystem
-          WebSocket.accept[String, String] { req =>
-            ActorFlow.actorRef({ out =>
-              Props(new Actor() {
-                def receive = PartialFunction.empty
-
-                override def postStop() = {
-                  cleanedUp.success(true)
-                }
-              })
+      "clean up when closed" in cleanUpWhenClosed { implicit app => cleanedUp =>
+        import app.materializer
+        implicit val system = app.actorSystem
+        WebSocket.accept[String, String] { req =>
+          ActorFlow.actorRef({ out =>
+            Props(new Actor() {
+              def receive = PartialFunction.empty
+              override def postStop() = {
+                cleanedUp.success(true)
+              }
             })
-          }
+          })
+        }
       }
 
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
-        statusCode =>
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app => statusCode =>
 
-          WebSocket.acceptOrResult[String, String] { req =>
-            Future.successful(Left(Results.Status(statusCode)))
-          }
+        WebSocket.acceptOrResult[String, String] { req =>
+          Future.successful(Left(Results.Status(statusCode)))
+        }
       }
 
     }
 
     "allow handling a WebSocket in java" in {
 
-      import java.util.{List => JList}
+      import java.util.{ List => JList }
 
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
@@ -340,25 +327,22 @@ trait WebSocketSpec extends PlaySpecification
         invoker.call(javaHandler)
       }
 
-      "allow consuming messages" in allowConsumingMessages { _ =>
-        consumed =>
-          val javaConsumed = Promise[JList[String]]()
-          consumed.completeWith(javaConsumed.future.map(_.asScala.toList))
-          WebSocketSpecJavaActions.allowConsumingMessages(javaConsumed)
+      "allow consuming messages" in allowConsumingMessages { _ => consumed =>
+        val javaConsumed = Promise[JList[String]]()
+        consumed.completeWith(javaConsumed.future.map(_.asScala.toList))
+        WebSocketSpecJavaActions.allowConsumingMessages(javaConsumed)
       }
 
-      "allow sending messages" in allowSendingMessages { _ =>
-        messages =>
-          WebSocketSpecJavaActions.allowSendingMessages(messages.asJava)
+      "allow sending messages" in allowSendingMessages { _ => messages =>
+        WebSocketSpecJavaActions.allowSendingMessages(messages.asJava)
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
         WebSocketSpecJavaActions.closeWhenTheConsumerIsDone()
       }
 
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
-        statusCode =>
-          WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
+        WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
       }
 
     }
@@ -486,5 +470,4 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       ).get()).status must_== FORBIDDEN
     }
   }
-
 }
