@@ -19,7 +19,14 @@ Creating a Play module is simple:
 
 @[module-definition](code/ScalaExtendingPlay.scala)
 
-For more information, see the "Create a Module class" section of [[Plugins to Modules|PluginsToModules#Create-a-Module-class]].
+To create a `Module` class, start by creating a class that inherits from `play.api.inject.Module`, and provide an implementation for the bindings method. In this method you should wire types to concrete implementation so that components provided by your module can be injected in users’ code, or in other modules. Next follows an example. 
+
+@[module-decl](code/MyModule.scala)
+
+Next follows an example of a component named `MyComponentImpl` requiring the `ApplicationLifecycle` component.
+
+@[components-decl](code/MyComponent.scala)
+
 
 ## Module Registration
 

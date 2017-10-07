@@ -17,6 +17,8 @@ At its core, Play is agnostic to any particular form of dependency injection, ho
 
 You can read more about dependency injection in [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]].
 
+To create your own public module or to migrate from a `play.api.Plugin`, please see [[ScalaPlayModules|ScalaPlayModules]]ScalaPlayModules or [[JavaPlayModules|JavaPlayModules]].
+
 ## Community modules
 
 Play has a list of [[community-developed modules|ModuleDirectory]] that may provide functionality you need or serve as examples of how to write a module.
