@@ -11,6 +11,27 @@ libraryDependencies += guice
 
 The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
 
+Jump down to:
+* [Motivation](#Motivation)
+* [How it works](#How-it-works)
+* [Declaring dependencies](#Declaring-dependencies)
+* [Dependency injecting controllers](#Dependency-injecting-controllers)
+  * [Injected routes generator](#Injected-routes-generator)
+  * [Static routes generator](#Static-routes-generator)
+* [Component lifecycle](#Component-lifecycle)
+* [Singletons](#Singletons)
+* [Stopping/cleaning up](#Stopping/cleaning-up)
+* [Providing custom bindings](#Providing-custom-bindings)
+  * [Play applications](#Play-applications)
+    * [Binding annotations](#Binding-annotations)
+    * [Programmatic bindings](#Programmatic-bindings)
+    * [Configurable bindings](#Configurable-bindings)
+    * [Eager bindings](#Eager-bindings)
+  * [Play libraries](#Play-libraries)
+  * [Excluding modules](#Excluding-modules)
+* [Managing circular dependencies](#Managing-circular-dependencies)
+* [Advanced: Extending the GuiceApplicationLoader](#Advanced:-Extending-the-GuiceApplicationLoader)
+
 ## Motivation
 
 Dependency injection achieves several goals:
@@ -143,9 +164,17 @@ In the example below, the `Hello` binding for each language is read from a confi
 
 #### Eager bindings
 
-In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the `@Singleton` annotation as [described above](#Singletons). If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can use [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
+In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the [`@Singleton`](#Singletons) annotation. If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can use [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
 
 @[eager-guice-module](code/javaguide/di/guice/eager/Module.java)
+
+Eager singletons can be used to start up a service when an application starts. They are often combined with a [shutdown hook](#Stopping/cleaning-up) so that the service can clean up its resources when the application stops.
+
+@[eager-guice-module](code/javaguide/di/guice/eager/ApplicationStart.java)
+
+@[eager-guice-module](code/javaguide/di/guice/eager/StartModule.java)
+
+> **Note:** Prior to 2.5.x, performing tasks upon startup/shutdown was achieved using GlobalSettings. We recommend using dependency injection instead of GlobalSettings, as GlobalSettings has since been removed.
 
 ### Play libraries
 
