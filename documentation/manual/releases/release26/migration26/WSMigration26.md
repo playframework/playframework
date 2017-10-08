@@ -20,9 +20,9 @@ libraryDependencies += ehcache
 If you want to use it in a non Play project, it can be added to an SBT project with:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.1"
-libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.0.1"
-libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.1"
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.1.2"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.1.2"
 ```
 
 ## Package changes
