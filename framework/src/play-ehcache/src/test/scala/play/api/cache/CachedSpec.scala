@@ -33,7 +33,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
-      Thread.sleep(1000) // give cache time to set the value because that happens asynchronously
       val result2 = controller.action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
       controller.invoked.get() must_== 1
@@ -50,7 +49,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
-      Thread.sleep(1000) // give cache time to set the value because that happens asynchronously
       val result2 = controller.action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
       controller.invoked.get() must_== 1
@@ -88,7 +86,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
-      Thread.sleep(1000) // give ehcache time to set the value because that happens asynchronously
       val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 
@@ -108,7 +105,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
-      Thread.sleep(1000) // give cache time to set the value because that happens asynchronously
       val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 
