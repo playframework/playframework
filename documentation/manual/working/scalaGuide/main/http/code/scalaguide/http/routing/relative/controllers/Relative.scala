@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
+package scalaguide.http.routing.relative
 //#relative-controller
-//###replace: package controllers
-package scalaguide.http.routing.relative.controllers
+package controllers
 
 import javax.inject._
 import play.api.mvc._
