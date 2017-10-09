@@ -1,8 +1,0 @@
-@* #relative-hello-view *@
-@(name: String, request: Http.RequestHeader)
-
-@main(name) {
-  <a href="@controllers.routes.Relative.hello(name)">Absolute Link</a>
-  <a href="@controllers.routes.Relative.hello(name).relativeTo(request)">Relative Link</a>
-}
-@* #relative-hello-view *@

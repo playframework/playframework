@@ -1,0 +1,11 @@
+@import scalaguide.http.routing.relative.controllers.routes
+
+@* #relative-hello-view *@
+@(name: String)(implicit request: RequestHeader)
+
+<h1>Hello @name</h1>
+
+<a href="@routes.Relative.hello(name)">Absolute Link</a>
+<a href="@routes.Relative.hello(name).relative">Relative Link</a>
+
+@* #relative-hello-view *@
