@@ -8,30 +8,34 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.stream.scaladsl._
 import akka.stream.stage._
-import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import akka.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.streams.AkkaStreams
 import play.core.server.common.WebSocketFlowHandler
-import play.core.server.common.WebSocketFlowHandler.{ MessageType, RawMessage }
+import play.core.server.common.WebSocketFlowHandler.{MessageType, RawMessage}
 
 object WebSocketHandler {
 
   /**
-   * Handle a WebSocket
-   */
-  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse = upgrade match {
+    * Handle a WebSocket
+    */
+  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse =
+    handleWebSocket(upgrade, flow, bufferLimit, None)
+
+
+  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int, subprotocol: Option[String]): HttpResponse = upgrade match {
     case lowLevel: UpgradeToWebSocketLowLevel =>
-      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit))
+      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit), subprotocol)
     case other => throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
   }
 
   /**
-   * Convert a flow of messages to a flow of frame events.
-   *
-   * This implements the WebSocket control logic, including handling ping frames and closing the connection in a spec
-   * compliant manner.
-   */
+    * Convert a flow of messages to a flow of frame events.
+    *
+    * This implements the WebSocket control logic, including handling ping frames and closing the connection in a spec
+    * compliant manner.
+    */
   def messageFlowToFrameFlow(flow: Flow[Message, Message, _], bufferLimit: Int): Flow[FrameEvent, FrameEvent, _] = {
     // Each of the stages here transforms frames to an Either[Message, ?], where Message is a close message indicating
     // some sort of protocol failure. The handleProtocolFailures function then ensures that these messages skip the
@@ -43,12 +47,12 @@ object WebSocketHandler {
   }
 
   /**
-   * Akka HTTP potentially splits frames into multiple frame events.
-   *
-   * This stage aggregates them so each frame is a full frame.
-   *
-   * @param bufferLimit The maximum size of frame data that should be buffered.
-   */
+    * Akka HTTP potentially splits frames into multiple frame events.
+    *
+    * This stage aggregates them so each frame is a full frame.
+    *
+    * @param bufferLimit The maximum size of frame data that should be buffered.
+    */
   private def aggregateFrames(bufferLimit: Int): GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] = {
     new GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] {
 
@@ -96,7 +100,7 @@ object WebSocketHandler {
               push(out, close(Protocol.CloseCodes.ProtocolError, "Unmasked client frame"))
 
             // Frame start
-            case fs @ FrameStart(header, data) if fs.lastPart =>
+            case fs@FrameStart(header, data) if fs.lastPart =>
               push(out, Right(frameToRawMessage(header, data)))
 
             case FrameStart(header, data) =>
@@ -121,8 +125,8 @@ object WebSocketHandler {
   }
 
   /**
-   * Converts frames to Play messages.
-   */
+    * Converts frames to Play messages.
+    */
   private def frameOpCodeToMessageType(opcode: Protocol.Opcode): MessageType.Type = opcode match {
     case Protocol.Opcode.Binary =>
       MessageType.Binary
@@ -139,11 +143,12 @@ object WebSocketHandler {
   }
 
   /**
-   * Converts Play messages to Akka HTTP frame events.
-   */
+    * Converts Play messages to Akka HTTP frame events.
+    */
   private def messageToFrameEvent(message: Message): FrameEvent = {
     def frameEvent(opcode: Protocol.Opcode, data: ByteString) =
       FrameEvent.fullFrame(opcode, None, data, fin = true)
+
     message match {
       case TextMessage(data) => frameEvent(Protocol.Opcode.Text, ByteString(data))
       case BinaryMessage(data) => frameEvent(Protocol.Opcode.Binary, data)
@@ -155,8 +160,8 @@ object WebSocketHandler {
   }
 
   /**
-   * Handles the protocol failures by gracefully closing the connection.
-   */
+    * Handles the protocol failures by gracefully closing the connection.
+    */
   private def handleProtocolFailures: Flow[WebSocketFlowHandler.RawMessage, Message, _] => Flow[Either[Message, RawMessage], Message, _] = {
     AkkaStreams.bypassWith(Flow[Either[Message, RawMessage]].via(
       new GraphStage[FlowShape[Either[Message, RawMessage], Either[RawMessage, Message]]] {

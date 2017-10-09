@@ -3,6 +3,7 @@
  */
 package play.api.mvc
 
+import akka.actor.{ ActorRef, Props }
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import play.api.http.websocket._
@@ -11,15 +12,28 @@ import play.api.libs.streams.AkkaStreams
 import play.core.Execution.Implicits.trampoline
 
 import scala.concurrent.Future
-
-import akka.actor.{ Props, ActorRef }
-
 import scala.util.control.NonFatal
 
 /**
  * A WebSocket handler.
  */
 trait WebSocket extends Handler {
+  self =>
+  /**
+   * Optional value for Sec-WebSocket-Protocol header.
+   * By default the return value is None, meaning the handshake response will not include Sec-WebSocket-Protocol header.
+   */
+  def subprotocol: Option[String] = None
+
+  /**
+   * Create and return a new copy of Websocket instance when subprotocol method return @param protocol value
+   */
+  def withSubprotocol(protocol: String) = new WebSocket {
+
+    override def subprotocol = Some(protocol)
+
+    override def apply(request: RequestHeader) = self(request)
+  }
 
   /**
    * Execute the WebSocket.
@@ -47,7 +61,8 @@ object WebSocket {
    * The transformation may be more than just converting from one message to another, it may also produce messages, such
    * as close messages with an appropriate error code if the message can't be consumed.
    */
-  trait MessageFlowTransformer[+In, -Out] { self =>
+  trait MessageFlowTransformer[+In, -Out] {
+    self =>
 
     /**
      * Transform the flow of In/Out messages into a flow of WebSocket messages.

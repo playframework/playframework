@@ -202,6 +202,24 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
+      "allow to set the subprotocol" in {
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+        }.withSubprotocol("play-test-protocol")) { implicit app =>
+          val ws = app.injector.instanceOf[WSClient]
+          val response = await(ws.url(s"http://localhost:$testServerPort/stream").addHttpHeaders(
+            "Upgrade" -> "websocket",
+            "Connection" -> "upgrade",
+            "Sec-WebSocket-Version" -> "13",
+            "Sec-WebSocket-Key" -> "x3JJHMbDL1EzLkh9GBhXDw==",
+            "Sec-WebSocket-Protocol" -> "play-test-protocol",
+            "Origin" -> "http://example.com"
+          ).get())
+
+          response.header("Sec-WebSocket-Protocol") must beSome("play-test-protocol")
+        }
+      }
+
     }
 
     "allow handling a WebSocket with an actor" in {
