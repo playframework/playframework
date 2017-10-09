@@ -165,8 +165,6 @@ Eager singletons can be used to start up a service when an application starts. T
 
 @[eager-guice-module-startup](code/RuntimeDependencyInjection.scala)
 
-> **Note:** Prior to 2.5.x, performing tasks upon startup/shutdown was achieved using GlobalSettings. We recommend using dependency injection instead of GlobalSettings, as GlobalSettings has since been removed.
-
 ### Play libraries
 
 If you're implementing a library for Play, then you probably want it to be DI framework agnostic, so that your library will work out of the box regardless of which DI framework is being used in an application.  For this reason, Play provides a lightweight binding API for providing bindings in a DI framework agnostic way.

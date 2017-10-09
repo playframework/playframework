@@ -9,7 +9,7 @@ import javaguide.di.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
-// A Module is needed to register binding
+// A Module is needed to register bindings
 public class Module extends AbstractModule {
     protected void configure() {
 
