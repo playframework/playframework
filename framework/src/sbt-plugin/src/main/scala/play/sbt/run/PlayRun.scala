@@ -150,6 +150,7 @@ object PlayRun extends PlayRunCompat {
         case e: Exception =>
           val log = state.log
           log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
+          log.trace(e)
           (false, watchState, state.fail)
       }
 
