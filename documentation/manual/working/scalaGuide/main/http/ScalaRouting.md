@@ -183,7 +183,7 @@ To be able to generate a relative route you need to know what to make the target
 
 For example, given controller endpoints like:
 
-@[relative-controller](code/scalaguide/http/routing/controllers/Relative.scala)
+@[relative-controller](code/scalaguide/http/routing/relative/controllers/Relative.scala)
 
 > **Note:** The current request is passed to the view template implicitly by declaring an `implicit request`
 
@@ -193,13 +193,13 @@ And if you map it in the `conf/routes` file:
 
 You can then define relative routes using the reverse router as before and include an additional call to `relative`:
 
-@[relative-hello-view](code/scalaguide/http/routing/views/hello.scala.html)
+@[relative-hello-view](code/scalaguide/http/routing/relative/views/hello.scala.html)
 
 > **Note:** The `Request` passed from the controller is cast to a `RequestHeader` and is marked `implicit` in the view parameters.  It is then passed implicitly to the call to `relative`
 
 When requesting `/foo/bar/hello` the generated HTML will look like so:
 
-@[relative-hello-html](code/scalaguide/http/routing/views/hello.html)
+@[relative-hello-html](code/scalaguide/http/routing/relative/views/hello.html)
 
 ## The Default Controller
 

@@ -180,7 +180,7 @@ To be able to generate a relative route you need to know what to make the target
 
 For example, given controller endpoints like:
 
-@[relative-controller](code/javaguide/http/routing/reverse/controllers/Relative.java)
+@[relative-controller](code/javaguide/http/routing/relative/controllers/Relative.java)
 
 > **Note:** The current request is passed to the view template by calling `request()`
 
@@ -190,13 +190,13 @@ And if you map it in the `conf/routes` file:
 
 You can then define relative routes using the reverse router as before and include an additional call to `relativeTo(play.mvc.RequestHeader requestHeader)`:
 
-@[relative-hello-view](code/javaguide/http/routing/views/hello.scala.html)
+@[relative-hello-view](code/javaguide/http/routing/relative/views/hello.scala.html)
 
 > **Note:** The `Http.Request` passed from the controller is cast to a `Http.RequestHeader` in the view parameters.
 
 When requesting `/foo/bar/hello` the generated HTML will look like so:
 
-@[relative-hello-html](code/javaguide/http/routing/views/hello.html)
+@[relative-hello-html](code/javaguide/http/routing/relative/views/hello.html)
 
 ## The Default Controller
 
