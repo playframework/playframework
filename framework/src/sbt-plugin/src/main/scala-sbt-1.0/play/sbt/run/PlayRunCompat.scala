@@ -23,9 +23,9 @@ private[run] trait PlayRunCompat {
     watched.watchSources(state)
       .map(source => new PlaySource(source))
       .flatMap(_.getFiles)
-      .filter(_.exists)
-      .map(f => better.files.File(f.toPath))
-      .toIterator
+      .collect {
+        case f if f.exists() => better.files.File(f.toPath)
+      }(scala.collection.breakOut)
   }
 
   def kill(pid: String) = s"kill $pid".!
