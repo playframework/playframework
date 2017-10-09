@@ -1,17 +1,16 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package play.api.mvc
+package play.it.http
 
-import org.specs2.mutable._
-import play.core.test._
+import play.api.mvc.Headers
+import play.api.test.PlaySpecification
 
-class HttpHeaderSpec extends Specification {
-  "HTTP" title
+trait HttpHeadersCommonSpec extends PlaySpecification {
 
-  "Headers should" in { commonTests(Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")) }
+  val headersDefault = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
 
-  def commonTests(headers: Headers) = {
+  def commonTests(headers: Headers = headersDefault) = {
 
     "return its headers as a sequence of name-value pairs" in {
       // Wrap sequence in a new Headers object so we can compare with Headers.equals
@@ -97,36 +96,6 @@ class HttpHeaderSpec extends Specification {
 
     "not equal other Headers with different relative order" in {
       headers must_!= Headers("a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "C1")
-    }
-  }
-
-  "Cookies" should {
-
-    lazy val cookieHeaderEncoding = new DefaultCookieHeaderEncoding()
-
-    "merge two cookies" in withApplication {
-      val cookies = Seq(
-        Cookie("foo", "bar"),
-        Cookie("bar", "qux"))
-
-      cookieHeaderEncoding.mergeSetCookieHeader("", cookies) must ===("foo=bar; Path=/; HTTPOnly;;bar=qux; Path=/; HTTPOnly")
-    }
-    "merge and remove duplicates" in withApplication {
-      val cookies = Seq(
-        Cookie("foo", "bar"),
-        Cookie("foo", "baz"),
-        Cookie("foo", "bar", domain = Some("Foo")),
-        Cookie("foo", "baz", domain = Some("FoO")),
-        Cookie("foo", "baz", secure = true),
-        Cookie("foo", "baz", httpOnly = false),
-        Cookie("foo", "bar", path = "/blah"),
-        Cookie("foo", "baz", path = "/blah"))
-
-      cookieHeaderEncoding.mergeSetCookieHeader("", cookies) must ===(
-        "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))
-          "foo=baz; Path=/" + ";;" + // Cookie("foo", "baz", httpOnly=false)
-          "foo=baz; Path=/blah; HTTPOnly" // Cookie("foo", "baz", path="/blah")
-      )
     }
   }
 }
