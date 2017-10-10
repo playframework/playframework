@@ -13,7 +13,7 @@ import play.it._
 class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification
 
-trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification {
+trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification with HttpHeadersCommonSpec {
 
   sequential
 
@@ -29,7 +29,9 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       running(play.api.test.TestServer(serverConfig, GuiceApplicationBuilder().appRoutes { app =>
         val Action = app.injector.instanceOf[DefaultActionBuilder]
         val parse = app.injector.instanceOf[PlayBodyParsers]
-        ({ case _ => action(Action, parse) })
+        ({
+          case _ => action(Action, parse)
+        })
       }.build(), Some(integrationServerProvider))) {
         block(port)
       }
@@ -64,6 +66,16 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
         BasicRequest("GET", "/", "HTTP/1.1", Map("origin" -> "http://foo"), "")
       )
       response.body.left.toOption must beSome("https://bar.com")
+    }
+
+    "pass common tests for headers" in withServer((Action, _) => Action { rh =>
+      commonTests(rh.headers)
+      Results.Ok("Done")
+    }) { port =>
+      val Seq(response) = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map("a" -> "a2", "a" -> "a1", "b" -> "b3", "b" -> "b2", "B" -> "b1", "c" -> "c1"), "")
+      )
+      response.status must_== 200
     }
   }
 }
