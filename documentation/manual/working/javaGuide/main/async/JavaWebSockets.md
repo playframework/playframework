@@ -42,7 +42,7 @@ Play will automatically close the WebSocket when your actor that handles the Web
 
 Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides a `reject` WebSocket builder for this purpose:
 
-@[actor-reject](code/javaguide/async/JavaWebSockets.java)
+@[actor-reject] @Deprecated(code/javaguide/async/JavaWebSockets.java)
 
 > **Note**: the WebSocket protocol does not implement [Same Origin Policy](https://en.wikipedia.org/wiki/Same-origin_policy), and so does not protect against [Cross-Site WebSocket Hijacking](http://www.christian-schneider.net/CrossSiteWebSocketHijacking.html).  To secure a websocket against hijacking, the `Origin` header in the request must be checked against the server's origin, and manual authentication (including CSRF tokens) should be implemented.  If a WebSocket request does not pass the security checks, then `acceptOrResult` should reject the request by returning a Forbidden result.
 
