@@ -17,7 +17,12 @@ private[run] trait PlayRunCompat {
 
   def getPollInterval(watched: Watched): Int = watched.pollInterval
 
-  def getSourcesFinder(watched: Watched, state: State): PlaySourceModificationWatch.PathFinder = () => watched.watchPaths(state).map(f => better.files.File(f.toURI)).toIterator
+  def getSourcesFinder(watched: Watched, state: State): PlaySourceModificationWatch.PathFinder = {
+    () =>
+      watched.watchPaths(state).collect {
+        case f if f.exists() => better.files.File(f.toURI)
+      }(scala.collection.breakOut)
+  }
 
   def kill(pid: String) = s"kill $pid".!
 
