@@ -64,6 +64,10 @@ public class JavaActions extends WithApplication {
             //#simple-result
             public Result index() {
                 return ok("Hello world!");
+                //or
+                public Result index()
+           {
+                return internalServerError("Oops");//Gives the result as Oops in this case
             }
             //#simple-result
         }, fakeRequest(), mat).status(), equalTo(200));
