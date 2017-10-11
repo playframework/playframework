@@ -52,8 +52,8 @@ Play is non-opinionated about database access, and integrates with many object r
 [Slick](http://slick.lightbend.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
 
 * [play-isolated-slick](https://github.com/playframework/play-isolated-slick): This template uses a multi-module that hides Slick 3.x behind an API layer, and does not use Play-Slick integration.  It also contains sbt-flyways and use Slick's code generator to create the Slick binding from SQL tables.
-* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.6.x/PlaySlick) as part of a single Play project.
-* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [PlaySlick](https://www.playframework.com/documentation/2.6.x/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
+* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [[Play Slick|PlaySlickMigrationGuide]] as part of a single Play project.
+* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [[Play Slick|PlaySlickMigrationGuide]].  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
 
 #### JPA
 
@@ -101,7 +101,7 @@ There are two examples shown here, but there are other compile time DI framework
 
 #### Manual Compile Time Dependency Injection
 
-This is an example template showing how to use manual compile time dependency injection and manual routing with the [SIRD router](https://www.playframework.com/documentation/2.6.x/ScalaSirdRouter), useful for minimal REST APIs and people used to Spray style routing:
+This is an example template showing how to use manual compile time dependency injection and manual routing with the [[SIRD router|ScalaSirdRouter]], useful for minimal REST APIs and people used to Spray style routing:
 
 * [playframework/play-scala-compile-di-with-tests](https://github.com/playframework/play-scala-compile-di-with-tests)
 
