@@ -25,6 +25,8 @@ By default an action uses an **any content** body parser, which you can use to r
 
 @[json-request-as-anycontent](code/javaguide/json/JavaJsonActions.java)
 
+@[json-request-as-anyclazz](code/javaguide/json/JavaJsonActions.java)
+
 Of course it’s way better (and simpler) to specify our own `BodyParser` to ask Play to parse the content body directly as JSON:
 
 @[json-request-as-json](code/javaguide/json/JavaJsonActions.java)
@@ -75,7 +77,7 @@ You can also return a Java object and have it automatically serialized to JSON b
 Because Play uses Jackson, you can use your own `ObjectMapper` to create `JsonNode`s. The [documentation for jackson-databind](https://github.com/FasterXML/jackson-databind/blob/master/README.md) explains how you can further customize JSON conversion process.
 
 If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you first need to disable the default `ObjectMapper` in your `application.conf`:
- 
+
 ```
 play.modules.disabled += "play.core.ObjectMapperModule"
 ```
@@ -93,4 +95,3 @@ Afterwards enable the Module:
 ```
 play.modules.enabled += "path.to.JavaJsonCustomObjectMapperModule"
 ```
-

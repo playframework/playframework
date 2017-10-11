@@ -113,6 +113,25 @@ public class JavaJsonActions extends WithApplication {
         //#json-request-as-anycontent
     }
 
+    static class JsonRequestAsAnyClazzAction extends MockJavaAction {
+
+        JsonRequestAsAnyClazzAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        //#json-request-as-anyclazz
+        public Result sayHello() {
+            Person person = request().body().parseJson(Person.class);
+            if(person == null) {
+                return badRequest("Expecting Json data");
+            } else {
+                String name = person.firstName + " " + person.lastName;
+                return ok("Hello " + name);
+            }
+        }
+        //#json-request-as-anyclazz
+    }
+
     static class JsonRequestAsJsonAction extends MockJavaAction {
 
         JsonRequestAsJsonAction(JavaHandlerComponents javaHandlerComponents) {
@@ -177,5 +196,3 @@ public class JavaJsonActions extends WithApplication {
         //#json-response-dao
     }
 }
-
-
