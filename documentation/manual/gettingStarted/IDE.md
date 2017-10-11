@@ -9,7 +9,7 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases).
+Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases).Add the below code to the plugin.sbt file.
 
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.2")
