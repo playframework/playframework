@@ -1875,25 +1875,13 @@ public class Http {
         }
 
         /**
-         * Parses the request to the expected class.
+         * Parses the request body to the expected class.
          *
          * @param <A> the type of the return value.
          * @param clazz Expected Java value type.
          * @return the return value.
          */
-        public <A> A parseJson(Class<A> clazz) {
-            JsonNode asJson = asJson();
-            if (asJson == null) {
-                return null;
-
-            } else {
-                try {
-                    return Json.fromJson(asJson, clazz);
-                } catch(Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+        public <A> A parseJson(Class<A> clazz) { return Json.fromJson(asJson(), clazz); }
 
         /**
          * The request content as a ByteString.
