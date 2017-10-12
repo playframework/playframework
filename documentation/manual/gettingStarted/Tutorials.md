@@ -52,8 +52,8 @@ Play is non-opinionated about database access, and integrates with many object r
 [Slick](http://slick.lightbend.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
 
 * [play-isolated-slick](https://github.com/playframework/play-isolated-slick): This template uses a multi-module that hides Slick 3.x behind an API layer, and does not use Play-Slick integration.  It also contains sbt-flyways and use Slick's code generator to create the Slick binding from SQL tables.
-* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [[Play Slick|PlaySlickMigrationGuide]] as part of a single Play project.
-* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [[Play Slick|PlaySlickMigrationGuide]].  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
+* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [Play Slick](https://www.playframework.com/documentation/%PLAY_VERSION%/PlaySlick) as part of a single Play project.
+* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [Play Slick](https://www.playframework.com/documentation/%PLAY_VERSION%/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
 
 #### JPA
 
@@ -69,7 +69,7 @@ This is an example template showing Play with [Anorm](https://github.com/playfra
 
 #### Ebean
 
-This is an example template that uses [Ebean](https://ebean-orm.github.io/) using Play's [Ebean integration](https://www.playframework.com/documentation/2.6.x/JavaEbean). It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
+This is an example template that uses [Ebean](https://ebean-orm.github.io/) using Play's [Ebean integration](https://www.playframework.com/documentation/%PLAY_VERSION%/JavaEbean). It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
 
 * [playframework/play-ebean-example](https://github.com/playframework/play-ebean-example)
 
