@@ -6,7 +6,7 @@ package play.api.libs.iteratee
 import java.nio.file.Files
 
 import org.specs2.mutable._
-import java.io.{ ByteArrayInputStream, File, FileOutputStream, OutputStream }
+import java.io.{ ByteArrayInputStream, File, OutputStream }
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
 import java.util.concurrent.atomic.AtomicInteger
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
@@ -296,7 +296,7 @@ object EnumeratorsSpec extends Specification
         val f = File.createTempFile("EnumeratorSpec", "fromFile")
         try {
           val s = "hello"
-          val out = new FileOutputStream(f)
+          val out = Files.newOutputStream(f.toPath)
           out.write(s.getBytes)
           out.close()
           val enumerator = Enumerator.fromFile(f)(fromFileEC).map(new String(_))

@@ -4,22 +4,18 @@
 package scalaguide.upload.fileupload {
 
   import play.api.inject.guice.GuiceApplicationBuilder
-  import play.api.mvc._
   import play.api.test._
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import java.io.{FileWriter, FileOutputStream, File}
+  import java.io.FileWriter
 
   import controllers._
   import play.api.libs.Files.TemporaryFile
-  import play.api.mvc.MultipartFormData.FilePart
 
   import java.io.File
   import java.nio.file.attribute.PosixFilePermission._
   import java.nio.file.attribute.PosixFilePermissions
-  import java.nio.file.{Files, Path}
-  import java.util
-  import javax.inject._
+  import java.nio.file.Files
 
   import akka.stream.IOResult
   import akka.stream.scaladsl._
@@ -29,9 +25,6 @@ package scalaguide.upload.fileupload {
   import play.api.mvc.MultipartFormData.FilePart
   import play.api.mvc._
   import play.core.parsers.Multipart.FileInfo
-
-  import scala.concurrent.Future
-
 
   @RunWith(classOf[JUnitRunner])
   class ScalaFileUploadSpec extends PlaySpecification with Controller {

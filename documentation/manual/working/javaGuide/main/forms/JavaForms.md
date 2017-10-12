@@ -39,7 +39,7 @@ The message returned in the above example will become a global error.
 
 The `validate`-method can return the following types: `String`, `List<ValidationError>` or `Map<String,List<ValidationError>>`
 
-`validate` method is called after checking annotation-based constraints and only if they pass.  If validation passes you must return `null` . Returning any non-`null` value (empty string or empty list) is treated as failed validation.
+`validate` method is called after checking annotation-based constraints and only if they pass.  If validation passes you must return `null` or an empty list. Returning any other non-`null` value (including empty string) is treated as failed validation.
 
 `List<ValidationError>` may be useful when you have additional validations for fields. For example:
 

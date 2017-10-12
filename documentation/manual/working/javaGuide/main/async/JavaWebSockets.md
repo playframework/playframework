@@ -75,3 +75,13 @@ It this example, we print each message to console and we send a single **Hello!*
 Let’s write another example that totally discards the input data and closes the socket just after sending the **Hello!** message:
 
 @[discard-input](code/javaguide/async/JavaWebSockets.java)
+
+## Configuring WebSocket Frame Length
+
+You can configure the max length for [WebSocket data frames](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Format) using `play.websocket.buffer.limit` or passing `-Dwebsocket.buffer.limit` system property when running your application. For example:
+
+```
+sbt -Dwebsocket.buffer.limit=64k run
+```
+
+This configuration gives you more control of WebSocket frame length and can be adjusted to your application requirements. It may also reduce denial of service attacks using long data frames.

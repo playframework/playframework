@@ -17,8 +17,7 @@ public class Resources {
     ) {
         try {
             CompletionStage<U> completionStage = body.apply(resource);
-            completionStage.whenCompleteAsync((u, throwable) -> tryCloseResource(resource));
-            return completionStage;
+            return completionStage.whenComplete((u, throwable) -> tryCloseResource(resource));
         } catch (RuntimeException e) {
             tryCloseResource(resource);
             throw e;

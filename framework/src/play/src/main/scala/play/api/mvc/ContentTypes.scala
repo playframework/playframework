@@ -4,6 +4,7 @@
 package play.api.mvc
 
 import java.io._
+import java.nio.file.Files
 import java.util.Locale
 
 import akka.stream._
@@ -209,7 +210,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.
 
   private[play] def backToTemporaryFile() {
     backedByTemporaryFile = TemporaryFile("requestBody", "asRaw")
-    outStream = new FileOutputStream(backedByTemporaryFile.file)
+    outStream = Files.newOutputStream(backedByTemporaryFile.file.toPath)
     outStream.write(inMemory.toArray)
     inMemory = null
   }
@@ -530,7 +531,7 @@ trait BodyParsers {
      */
     def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Accumulator(StreamConverters.fromOutputStream(() => new FileOutputStream(to))).map(_ => Right(to))
+      Accumulator(StreamConverters.fromOutputStream(() => Files.newOutputStream(to.toPath))).map(_ => Right(to))
     }
 
     /**

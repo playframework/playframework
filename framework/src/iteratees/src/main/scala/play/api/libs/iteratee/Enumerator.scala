@@ -582,7 +582,7 @@ object Enumerator {
    * @param chunkSize The size of chunks to read from the file.
    */
   def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
-    fromStream(new java.io.FileInputStream(file), chunkSize)(ec)
+    fromStream(Files.newInputStream(file.toPath), chunkSize)(ec)
   }
 
   /**

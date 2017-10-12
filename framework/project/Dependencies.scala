@@ -6,8 +6,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.4.14"
-  val akkaHttpVersion = "10.0.0"
+  val akkaVersion = "2.4.20"
+  val akkaHttpVersion = "10.0.10"
 
   val specsVersion = "3.6.6"
   val specsBuild = Seq(
@@ -29,7 +29,7 @@ object Dependencies {
   ).map(_ % "2.7.8")
 
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.21")
-  val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
   val guava = "com.google.guava" % "guava" % "19.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.1" // Needed by guava
@@ -148,7 +148,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.0.41.Final"
+  val nettyVersion = "4.0.51.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8",
@@ -299,7 +299,7 @@ object Dependencies {
     ) ++ specsBuild.map(_ % Test)
 
 
-  val asyncHttpClientVersion = "2.0.24"
+  val asyncHttpClientVersion = "2.0.36"
   val playWsDeps = Seq(
     guava,
     "org.asynchttpclient" % "async-http-client" % asyncHttpClientVersion,

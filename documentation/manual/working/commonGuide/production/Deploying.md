@@ -100,7 +100,7 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager plugin for more information.
+Please consult the [documentation](http://sbt-native-packager.readthedocs.io/en/v1.1.5/) on the native packager plugin for more information.
 
 ### Build a server distribution
 

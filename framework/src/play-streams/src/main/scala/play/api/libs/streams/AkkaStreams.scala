@@ -78,17 +78,34 @@ object AkkaStreams {
   /**
    * A flow that will ignore upstream finishes.
    */
-  def ignoreAfterFinish[T]: Flow[T, T, _] = Flow[T].transform(() => new PushPullStage[T, T] {
-    override def onPush(elem: T, ctx: Context[T]) = ctx.push(elem)
-    override def onUpstreamFinish(ctx: Context[T]) = ctx.absorbTermination()
-    override def onUpstreamFailure(cause: Throwable, ctx: Context[T]) = ctx.absorbTermination()
-    override def onPull(ctx: Context[T]) = {
-      if (!ctx.isFinishing) {
-        ctx.pull()
-      } else {
-        null
+  def ignoreAfterFinish[T]: Flow[T, T, _] = Flow[T].via(new GraphStage[FlowShape[T, T]] {
+
+    val in = Inlet[T]("in")
+    val out = Outlet[T]("out")
+
+    override def shape: FlowShape[T, T] = FlowShape.of(in, out)
+
+    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+      new GraphStageLogic(shape) with OutHandler with InHandler {
+
+        override def onPush(): Unit = push(out, grab(in))
+
+        override def onPull(): Unit = {
+          if (!isClosed(in)) {
+            pull(in)
+          }
+        }
+
+        override def onUpstreamFinish() = {
+          if (isAvailable(out)) onPull()
+        }
+
+        override def onUpstreamFailure(cause: Throwable) = {
+          if (isAvailable(out)) onPull()
+        }
+
+        setHandlers(in, out, this)
       }
-    }
   })
 
   /**

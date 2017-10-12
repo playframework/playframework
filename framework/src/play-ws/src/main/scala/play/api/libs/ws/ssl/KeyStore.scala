@@ -6,8 +6,8 @@
 package play.api.libs.ws.ssl
 
 import java.security.KeyStore
-
 import java.io._
+import java.nio.file.Files
 import java.security.cert._
 
 trait KeyStoreBuilder {
@@ -90,7 +90,7 @@ class FileBasedKeyStoreBuilder(keyStoreType: String,
   }
 
   def buildFromKeystoreFile(storeType: String, file: File): KeyStore = {
-    val inputStream = new BufferedInputStream(new FileInputStream(file))
+    val inputStream = new BufferedInputStream(Files.newInputStream(file.toPath))
     try {
       val storeType = keyStoreType
       val store = KeyStore.getInstance(storeType)
@@ -104,8 +104,7 @@ class FileBasedKeyStoreBuilder(keyStoreType: String,
   def readCertificates(file: File): Iterable[Certificate] = {
     import scala.collection.JavaConverters._
     val cf = CertificateFactory.getInstance("X.509")
-    val fis = new FileInputStream(file)
-    val bis = new BufferedInputStream(fis)
+    val bis = new BufferedInputStream(Files.newInputStream(file.toPath))
 
     cf.generateCertificates(bis).asScala
   }

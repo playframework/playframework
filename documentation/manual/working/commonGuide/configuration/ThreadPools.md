@@ -166,7 +166,7 @@ Note that you must have Akka logging set to a debug level to see output, so you 
 <logger name="akka" level="DEBUG" />
 ```
 
-Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should se your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
+Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should see your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
 
 ```
 {

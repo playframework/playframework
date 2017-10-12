@@ -82,7 +82,7 @@ When constructing a `WebSocket` this way, we must return both `in` and `out` cha
 - The `in` channel is an `Iteratee[A,Unit]` (where `A` is the message type - here we are using `String`) that will be notified for each message, and will receive `EOF` when the socket is closed on the client side.
 - The `out` channel is an `Enumerator[A]` that will generate the messages to be sent to the Web client. It can close the connection on the server side by sending `EOF`.
 
-It this example we are creating a simple iteratee that prints each message to console. To send messages, we create a simple dummy enumerator that will send a single **Hello!** message.
+In this example we are creating a simple iteratee that prints each message to console. To send messages, we create a simple dummy enumerator that will send a single **Hello!** message.
 
 > **Tip:** You can test WebSockets on <https://www.websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
 
@@ -93,3 +93,13 @@ Let’s write another example that discards the input data and closes the socket
 Here is another example in which the input data is logged to standard out and broadcast to the client utilizing `Concurrent.broadcast`.
 
 @[iteratee3](code/ScalaWebSockets.scala)
+
+## Configuring WebSocket Frame Length
+
+You can configure the max length for [WebSocket data frames](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Format) using `play.websocket.buffer.limit` or passing `-Dwebsocket.buffer.limit` system property when running your application. For example:
+
+```
+sbt -Dwebsocket.buffer.limit=64k run
+```
+
+This configuration gives you more control of WebSocket frame length and can be adjusted to your application requirements. It may also reduce denial of service attacks using long data frames.

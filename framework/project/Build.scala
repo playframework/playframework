@@ -261,9 +261,17 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies ++= streamsDependencies,
       binaryIssueFilters := Seq(
-        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.streams.SinkAccumulator.this")
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.streams.SinkAccumulator.this"),
+        // private api
+        ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.streams.GzipFlow$GzipStage"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.streams.GzipFlow#GzipStage.builder"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.streams.GzipFlow#GzipStage.onPush"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.streams.GzipFlow#GzipStage.onUpstreamFinish"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.streams.GzipFlow#GzipStage.onPull"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.streams.GzipFlow#GzipStage.gzipOs"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.streams.GzipFlow#GzipStage.postStop")
       )
-    )
+  )
     .dependsOn(IterateesProject)
 
   lazy val FunctionalProject = PlayCrossBuiltProject("Play-Functional", "play-functional")
@@ -336,8 +344,34 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.SatisfiableRangeSet.this"),
         ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.copy"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.NoHeaderRangeSet.entityLength"),
-        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.this")
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.NoHeaderRangeSet.this"),
 
+        // private
+        ProblemFilters.exclude[MissingTypesProblem]("play.core.parsers.Multipart$BodyPartParser"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.terminate"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.handleFilePart"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.onPush"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.parseHeader"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.handleDataPart"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.dequeue"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.boundary"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.done"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.crlf"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.onUpstreamFinish"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.onPull"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser" +
+          ".tryParseInitialBoundary"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.emit"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.emit"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.parsePreamble"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.doubleDash"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.handleFileData"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.fail"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.handleBadPart"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.bufferExceeded"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.continue"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.continue"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.parsers.Multipart#BodyPartParser.boundaryLength")
       )
     ).settings(Docs.playdocSettings: _*)
      .dependsOn(
@@ -532,7 +566,19 @@ object PlayBuild extends Build {
       binaryIssueFilters := Seq(
         // We needed to change this since the method names did not line up with BuiltInComponents
         ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.tokenSigner"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.csrfTokenSigner")
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFComponents.csrfTokenSigner"),
+
+        // private
+        ProblemFilters.exclude[MissingTypesProblem]("play.filters.csrf.BodyHandler"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.next"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.next_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.onPush"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.onUpstreamFinish"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.buffer"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.onPull"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.buffer_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.continue_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.BodyHandler.continue")
       )
     ).dependsOn(PlayProject, PlayJavaProject % "test", PlaySpecs2Project % "test", PlayWsProject % "test")
 
@@ -609,6 +655,7 @@ object PlayBuild extends Build {
     "Play-Framework",
     file("."))
     .enablePlugins(PlayRootProject)
+    .enablePlugins(PlayWhitesourcePlugin)
     .enablePlugins(CrossPerProjectPlugin)
     .settings(playCommonSettings: _*)
     .settings(

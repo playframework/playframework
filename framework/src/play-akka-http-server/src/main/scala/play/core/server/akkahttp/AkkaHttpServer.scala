@@ -68,13 +68,14 @@ class AkkaHttpServer(
       Duration.apply(timeoutMS, TimeUnit.MILLISECONDS)
     }.getOrElse(initialSettings.timeouts.idleTimeout)
     val serverSettings = initialSettings.withTimeouts(initialSettings.timeouts.withIdleTimeout(idleTimeout))
+      .withTransparentHeadRequests(false) // since play already handle this for both Akka and Netty servers
 
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
       Http().bind(interface = config.address, port = port, connectionContext = connectionContext, settings = serverSettings)
 
     val connectionSink: Sink[Http.IncomingConnection, _] = Sink.foreach { connection: Http.IncomingConnection =>
-      connection.handleWithAsyncHandler(handleRequest(connection.remoteAddress, _, connectionContext.isSecure))
+      connection.handleWithAsyncHandler(req => handleRequest(connection.remoteAddress, req, connectionContext.isSecure))
     }
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
@@ -180,11 +181,12 @@ class AkkaHttpServer(
       case (websocket: WebSocket, Some(upgrade)) =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+        val bufferLimit = config.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L).asInstanceOf[Int]
         websocket(taggedRequestHeader).flatMap {
           case Left(result) =>
             modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, 16384))
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
         }
 
       case (websocket: WebSocket, None) =>

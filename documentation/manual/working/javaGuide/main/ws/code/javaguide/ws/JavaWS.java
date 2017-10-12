@@ -182,7 +182,7 @@ public class JavaWS {
             String url = "http://example.com";
             //#stream-to-file
             File file = File.createTempFile("stream-to-file-", ".txt");
-            FileOutputStream outputStream = new FileOutputStream(file);
+            OutputStream outputStream = java.nio.file.Files.newOutputStream(file.toPath());
 
             // Make the request
             CompletionStage<StreamedResponse> futureResponse =

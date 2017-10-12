@@ -84,3 +84,7 @@ Now you have to generate as many inputs for the `emails` field as the form conta
 @[repeat](code/javaguide/forms/helpers.scala.html)
 
 Use the `min` parameter to display a minimum number of fields, even if the corresponding form data are empty.
+
+If you want to access the index of the fields you can use the `repeatWithIndex` helper instead:
+
+@[repeat-with-index](code/javaguide/forms/helpers.scala.html)
