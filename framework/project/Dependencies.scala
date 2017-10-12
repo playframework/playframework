@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.4"
+  val akkaVersion = "2.5.6"
   val akkaHttpVersion = "10.0.10"
   val playJsonVersion = "2.6.6"
 
@@ -56,7 +56,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.7.1",
+    "com.zaxxer" % "HikariCP" % "2.7.2",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -64,7 +64,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "5.2.10.Final" % "test"
+    "org.hibernate" % "hibernate-entitymanager" % "5.2.11.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
@@ -73,7 +73,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.10.RELEASE"
+  val springFrameworkVersion = "4.3.11.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -152,7 +152,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.15.Final"
+  val nettyVersion = "4.1.16.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -198,7 +198,7 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.2"),
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.3"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
     ) ++ specsBuild.map(_ % Test)
   }
