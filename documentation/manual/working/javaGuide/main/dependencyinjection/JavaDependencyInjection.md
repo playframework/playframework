@@ -11,27 +11,6 @@ libraryDependencies += guice
 
 The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
 
-Jump down to:
-* [Motivation](#Motivation)
-* [How it works](#How-it-works)
-* [Declaring dependencies](#Declaring-dependencies)
-* [Dependency injecting controllers](#Dependency-injecting-controllers)
-  * [Injected routes generator](#Injected-routes-generator)
-  * [Static routes generator](#Static-routes-generator)
-* [Component lifecycle](#Component-lifecycle)
-* [Singletons](#Singletons)
-* [Stopping/cleaning up](#Stopping/cleaning-up)
-* [Providing custom bindings](#Providing-custom-bindings)
-  * [Play applications](#Play-applications)
-    * [Binding annotations](#Binding-annotations)
-    * [Programmatic bindings](#Programmatic-bindings)
-    * [Configurable bindings](#Configurable-bindings)
-    * [Eager bindings](#Eager-bindings)
-  * [Play libraries](#Play-libraries)
-  * [Excluding modules](#Excluding-modules)
-* [Managing circular dependencies](#Managing-circular-dependencies)
-* [Advanced: Extending the GuiceApplicationLoader](#Advanced:-Extending-the-GuiceApplicationLoader)
-
 ## Motivation
 
 Dependency injection achieves several goals:
