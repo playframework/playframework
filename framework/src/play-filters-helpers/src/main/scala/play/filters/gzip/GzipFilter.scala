@@ -257,14 +257,14 @@ object GzipFilterConfig {
           // The blacklist is defined, so we gzip the result if it's not blacklisted.
           res.body.contentType match {
             case Some(MediaType.parse(outgoing)) => blackList.forall(mask => !matches(outgoing, mask))
-            case None => true // Fail open (to gziping), since blacklists have a tendency to fail open.
+            case _ => true // Fail open (to gziping), since blacklists have a tendency to fail open.
           }
         }
       } else {
         // The whitelist is defined. We gzip the result IFF there is a matching whitelist entry.
         res.body.contentType match {
           case Some(MediaType.parse(outgoing)) => whiteList.exists(mask => matches(outgoing, mask))
-          case None => false // Fail closed (to not gziping), since whitelists are intentionally strict.
+          case _ => false // Fail closed (to not gziping), since whitelists are intentionally strict.
         }
       }
     )
