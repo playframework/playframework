@@ -14,7 +14,7 @@ import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test._
-import play.api.mvc.{ Cookie, DefaultActionBuilder, Result }
+import play.api.mvc.{ AnyContentAsEmpty, Cookie, DefaultActionBuilder, Result }
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
@@ -23,7 +23,7 @@ import org.apache.commons.io.IOUtils
 
 import scala.concurrent.Future
 import scala.util.Random
-import org.specs2.matcher.DataTables
+import org.specs2.matcher.{ DataTables, MatchResult }
 
 object GzipFilterSpec {
   class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result) extends SimpleRouterImpl({ case _ => action(result) })
@@ -87,7 +87,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         "" !! plain |> {
 
           (codings, expectedEncoding) =>
-            header(CONTENT_ENCODING, requestAccepting(app, codings)) must be equalTo (expectedEncoding)
+            header(CONTENT_ENCODING, requestAccepting(app, codings)) must be equalTo expectedEncoding
         }
     }
 
@@ -154,11 +154,29 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     "ignore blackList if there is a whiteList" in withApplication(Ok("hello").as("text/css; charset=utf-8"), whiteList = contentTypes, blackList = contentTypes) { implicit app =>
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
+
     "gzip 'text/html' content type when using media range 'text/*' in the whiteList" in withApplication(Ok("hello").as("text/css"), whiteList = List("text/*")) { implicit app =>
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
+
     "don't gzip 'application/javascript' content type when using media range 'text/*' in the whiteList" in withApplication(Ok("hello").as("application/javascript"), whiteList = List("text/*")) { implicit app =>
       checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "fail closed to not gziping an invalid contentType if there is a whiteList and no blacklist" in withApplication(Ok("hello").as("aA(\\A@*- 1  a-"), whiteList = List("text/*")) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "fail closed to not gziping an invalid contentType if there is a whiteList and a blacklist" in withApplication(Ok("hello").as("aA(\\A@*- 1  a-"), whiteList = List("text/*"), blackList = List("text/*")) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "fail opened to gziping an invalid contentType if there is a blacklist and no whitelist" in withApplication(Ok("hello").as("aA(\\A@*- 1  a-"), blackList = List("text/*")) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
+    }
+
+    "gzip an invalid contentType if there is neither a blacklist nor a whitelist" in withApplication(Ok("hello").as("aA(\\A@*- 1  a-")) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
 
     "gzip chunked responses" in withApplication(Ok.chunked(Source(List("foo", "bar")))) { implicit app =>
@@ -300,17 +318,17 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           bind[Result].to(result),
           bind[Router].to[ResultRouter],
           bind[HttpFilters].to[Filters]
-        ).build
+        ).build()
     running(application)(block(application))
   }
 
   val contentTypes = List("text/html", "text/css", "application/javascript")
 
-  def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
+  def gzipRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
 
-  def makeGzipRequest(app: Application) = route(app, gzipRequest).get
+  def makeGzipRequest(app: Application): Future[Result] = route(app, gzipRequest).get
 
-  def requestAccepting(app: Application, codings: String) = route(app, FakeRequest().withHeaders(ACCEPT_ENCODING -> codings)).get
+  def requestAccepting(app: Application, codings: String): Future[Result] = route(app, FakeRequest().withHeaders(ACCEPT_ENCODING -> codings)).get
 
   def gunzip(bytes: ByteString): String = {
     val is = new GZIPInputStream(new ByteArrayInputStream(bytes.toArray))
@@ -319,11 +337,11 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     result
   }
 
-  def checkGzipped(result: Future[Result]) = {
+  def checkGzipped(result: Future[Result]): MatchResult[Option[String]] = {
     header(CONTENT_ENCODING, result) aka "Content encoding header" must beSome("gzip")
   }
 
-  def checkGzippedBody(result: Future[Result], body: String)(implicit mat: Materializer) = {
+  def checkGzippedBody(result: Future[Result], body: String)(implicit mat: Materializer): MatchResult[Any] = {
     checkGzipped(result)
     val resultBody = contentAsBytes(result)
     await(result).body.contentLength.foreach { cl =>
@@ -332,7 +350,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     gunzip(resultBody) must_== body
   }
 
-  def checkNotGzipped(result: Future[Result], body: String)(implicit mat: Materializer) = {
+  def checkNotGzipped(result: Future[Result], body: String)(implicit mat: Materializer): MatchResult[Any] = {
     header(CONTENT_ENCODING, result) must beNone
     contentAsString(result) must_== body
   }
