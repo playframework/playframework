@@ -122,6 +122,14 @@ Looks good. We can now visit the app by running:
 $ heroku open
 ```
 
+## Deploying Java 9 application
+
+Heroku uses OpenJDK 8 to run play application by default. It can not automatically determine if another version is needed, so deploying application that uses Java will lead to compilation error on server. If you use newer version, you should declare it in `system.properties` file. 
+```txt
+java.runtime.version=9
+```
+This file should be located in project root directory to be processed by Heroku.
+
 ## Deploying with the sbt-heroku plugin
 
 The Heroku sbt plugin utilizes an API to provide direct deployment of prepackaged standalone web applications to Heroku. This may be a preferred approach for applications that take a long time to compile, or that need to be deployed from a Continuous Integration server such as Travis CI or Jenkins.
