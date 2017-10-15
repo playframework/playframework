@@ -150,13 +150,13 @@ Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done b
 
 ### Processing a response as JSON
 
-You can process the response as a `JsonNode` by calling `response.asJson()`.
+You can process the response as a `JsonNode` by calling `r.getBody(json())`, using the default method from `play.libs.ws.WSBodyReadables.json()`.
 
 @[ws-response-json](code/javaguide/ws/JavaWS.java)
 
 ### Processing a response as XML
 
-Similarly, you can process the response as XML by calling `response.asXml()`.
+Similarly, you can process the response as XML by calling `r.getBody(xml())`, using the default method from `play.libs.ws.WSBodyReadables.xml()`.
 
 @[ws-response-xml](code/javaguide/ws/JavaWS.java)
 
