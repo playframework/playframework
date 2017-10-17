@@ -426,7 +426,7 @@ class DefaultMessagesApi @Inject() (
     langs: Langs = new DefaultLangs(),
     val langCookieName: String = "PLAY_LANG",
     val langCookieSecure: Boolean = false,
-    val langCookieHttpOnly: Boolean = false,
+    val langCookieHttpOnly: Boolean = true,
     val httpConfiguration: HttpConfiguration = HttpConfiguration()) extends MessagesApi {
 
   // Java API
@@ -436,7 +436,7 @@ class DefaultMessagesApi @Inject() (
       langs.asScala(),
       "PLAY_LANG",
       false,
-      false,
+      true,
       HttpConfiguration()
     )
   }
