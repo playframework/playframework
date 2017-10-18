@@ -26,10 +26,12 @@ trait ApplicationFactories {
   def withComponents(components: => BuiltInComponents): ApplicationFactory = new ApplicationFactory {
     override def create(): Application = components.application
   }
-  def withRouter(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
+  def withRouter(createRouter: BuiltInComponents => Router): ApplicationFactory =
+    withConfigAndRouter(Map.empty)(createRouter)
+  def withConfigAndRouter(extraConfig: Map[String, Any])(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
     val context = ApplicationLoader.createContext(
       environment = Environment.simple(),
-      initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE)
+      initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig.asInstanceOf[Map[String, AnyRef]]
     )
     new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
       override lazy val router: Router = createRouter(this)

@@ -28,6 +28,11 @@ trait ServerEndpoints {
     def expectedHttpVersions: Set[String]
     def expectedServerAttr: Option[String]
     final override def toString = description
+
+    /**
+     * Given a path create the URL to access that path at this endpoint.
+     */
+    final def pathUrl(path: String): String = s"$scheme://localhost:$port$path"
   }
   /** Represents an HTTP connection to a server. */
   trait HttpEndpoint extends ServerEndpoint {
