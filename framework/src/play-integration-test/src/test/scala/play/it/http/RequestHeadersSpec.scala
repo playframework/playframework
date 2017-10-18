@@ -77,5 +77,28 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       )
       response.status must_== 200
     }
+
+    "get request headers properly when Content-Encoding is set" in {
+      withServer((Action, _) => Action { rh =>
+        Results.Ok(
+          Seq("Content-Encoding", "Authorization", "X-Custom-Header").map { headerName =>
+            s"$headerName -> ${rh.headers.get(headerName)}"
+          }.mkString(", ")
+        )
+      }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(
+            "Content-Encoding" -> "gzip",
+            "Authorization" -> "Bearer 123",
+            "X-Custom-Header" -> "123"
+          ), "")
+        )
+        response.body must beLeft(
+          "Content-Encoding -> None, " +
+            "Authorization -> Some(Bearer 123), " +
+            "X-Custom-Header -> Some(123)"
+        )
+      }
+    }
   }
 }

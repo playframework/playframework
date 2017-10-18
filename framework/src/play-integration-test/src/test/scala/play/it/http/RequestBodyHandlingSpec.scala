@@ -53,7 +53,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       val bodyString = "Hello World"
 
       // Compress the bytes
-      var output = new Array[Byte](100)
+      val output = new Array[Byte](100)
       val compressor = new Deflater()
       compressor.setInput(bodyString.getBytes("UTF-8"))
       compressor.finish()
