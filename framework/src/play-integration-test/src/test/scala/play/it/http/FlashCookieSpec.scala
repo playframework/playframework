@@ -55,15 +55,14 @@ class FlashCookieSpec extends PlaySpecification
     def withAllCookieEndpoints[A: AsResult](block: CookieEndpoint => A): Fragment = {
       appFactory.withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
         block(new CookieEndpoint {
+          import JavaConverters._
           def call(path: String, cookies: List[okhttp3.Cookie]): (okhttp3.Response, List[okhttp3.Cookie]) = {
             var responseCookies: List[okhttp3.Cookie] = null
             val cookieJar = new CookieJar {
-              override def loadForRequest(url: HttpUrl): util.List[okhttp3.Cookie] = {
-                JavaConverters.seqAsJavaList(cookies)
-              }
+              override def loadForRequest(url: HttpUrl): util.List[okhttp3.Cookie] = cookies.asJava
               override def saveFromResponse(url: HttpUrl, cookies: util.List[okhttp3.Cookie]): Unit = {
                 assert(responseCookies == null, "This CookieJar only handles a single response")
-                responseCookies = JavaConverters.collectionAsScalaIterable(cookies).toList
+                responseCookies = cookies.asScala.toList
               }
             }
             val client = okEndpoint.clientBuilder.followRedirects(false).cookieJar(cookieJar).build()
