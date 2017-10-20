@@ -1,0 +1,4 @@
+#relative-hello
+GET     /foo/bar/hello              controllers.Relative.helloview
+GET     /hello/:name                controllers.Relative.hello(name)
+#relative-hello

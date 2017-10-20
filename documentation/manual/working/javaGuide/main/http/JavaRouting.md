@@ -169,6 +169,35 @@ You can then reverse the URL to the `hello` action method, by using the `control
 
 The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
 
+## Relative routes
+
+There are instances where returning a relative route instead of an absolute may be useful.  The routes returned by `play.mvc.Call` are always absolute (they lead with a `/`), which can lead to problems when requests to your web application are rewritten by HTTP proxies, load balancers, and API gateways.  Some examples where using a relative route would be useful include:
+
+* Hosting an app behind a web gateway that prefixes all routes with something other than what is configured in your `conf/routes` file, and roots your application at a route it's not expecting.
+* When dynamically rendering stylesheets, you need asset links to be relative because they may end up getting served from different URLs by a CDN.
+
+To be able to generate a relative route you need to know what to make the target route relative to (the start route).  The start route can be retrieved from the current `RequestHeader`.  Therefore, to generate a relative route it's required that you pass in your current `RequestHeader` or the start route as a `String` parameter.
+
+For example, given controller endpoints like:
+
+@[relative-controller](code/javaguide/http/routing/relative/controllers/Relative.java)
+
+> **Note:** The current request is passed to the view template by calling `request()`
+
+And if you map it in the `conf/routes` file:
+
+@[relative-hello](code/javaguide.http.routing.relative.routes)
+
+You can then define relative routes using the reverse router as before and include an additional call to `relativeTo(play.mvc.RequestHeader requestHeader)`:
+
+@[relative-hello-view](code/javaguide/http/routing/relative/views/hello.scala.html)
+
+> **Note:** The `Http.Request` passed from the controller is cast to a `Http.RequestHeader` in the view parameters.
+
+When requesting `/foo/bar/hello` the generated HTML will look like so:
+
+@[relative-hello-html](code/javaguide/http/routing/relative/views/hello.html)
+
 ## The Default Controller
 
 Play includes a [`Default` controller](api/scala/controllers/Default.html) which provides a handful of useful actions. These can be invoked directly from the routes file:
