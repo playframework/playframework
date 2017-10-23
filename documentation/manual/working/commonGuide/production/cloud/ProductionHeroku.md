@@ -129,7 +129,7 @@ Heroku uses OpenJDK 8 to run play application by default. It can not automatical
 java.runtime.version=9
 ```
 This file should be located in project root directory to be processed by Heroku.
-For more information about specifying java version, [see](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version).
+For more information about specifying java version, [see heroku instructions](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version).
 
 ## Deploying with the sbt-heroku plugin
 
