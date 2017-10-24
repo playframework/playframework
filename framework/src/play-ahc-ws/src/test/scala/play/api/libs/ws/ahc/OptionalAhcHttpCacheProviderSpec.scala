@@ -31,7 +31,7 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
       val settings = Map(
         "play.ws.cache.enabled" -> "true",
         "play.ws.cache.cachingProviderName" -> classOf[JCacheCachingProvider].getName,
-        "play.ws.cache.cacheManagerURI" -> env.classLoader.getResource("ehcache-play-ws-cache.xml").toURI.toString
+        "play.ws.cache.cacheManagerResource" -> "ehcache-play-ws-cache.xml"
       )
       Configuration.load(env, settings)
     }).build()) {
@@ -46,7 +46,7 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
       val settings = Map(
         "play.ws.cache.enabled" -> "true",
         "play.ws.cache.cachingProviderName" -> classOf[CaffeineCachingProvider].getName,
-        "play.ws.cache.cacheManagerURI" -> "caffeine.conf"
+        "play.ws.cache.cacheManagerResource" -> "caffeine.conf"
       )
       Configuration.load(env, settings)
     }).build()) {
