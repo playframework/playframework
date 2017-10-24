@@ -134,11 +134,15 @@ In the example below, the `Hello` binding for each language is read from a confi
 
 #### Eager bindings
 
-In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the `@Singleton` annotation as [described above](#Singletons). If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
+In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the [`@Singleton`](#Singletons) annotation. If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
 
 @[eager-guice-module](code/RuntimeDependencyInjection.scala)
 
 Eager singletons can be used to start up a service when an application starts. They are often combined with a [shutdown hook](#Stopping/cleaning-up) so that the service can clean up its resources when the application stops.
+
+@[eager-guice-startup](code/RuntimeDependencyInjection.scala)
+
+@[eager-guice-module-startup](code/RuntimeDependencyInjection.scala)
 
 ### Play libraries
 
