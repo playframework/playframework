@@ -12,7 +12,7 @@ import play.api.routing.sird
 import play.api.test.PlaySpecification
 import play.it.test._
 
-class UriHandlingSpec extends PlaySpecification with AllEndpointsIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+class UriHandlingSpec extends PlaySpecification with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
   private def makeRequest[T: AsResult](path: String)(block: (ServerEndpoint, okhttp3.Response) => T): Fragment = withRouter { components: BuiltInComponents =>
     import components.{ defaultActionBuilder => Action }
@@ -22,7 +22,7 @@ class UriHandlingSpec extends PlaySpecification with AllEndpointsIntegrationSpec
       case _ => Action { request: Request[_] => Results.Ok(request.path + queryToString(request.queryString)) }
     }
   }.withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
-    val response: okhttp3.Response = okEndpoint.makeRequest(path)
+    val response: okhttp3.Response = okEndpoint.call(path)
     block(okEndpoint.endpoint, response)
   }
 

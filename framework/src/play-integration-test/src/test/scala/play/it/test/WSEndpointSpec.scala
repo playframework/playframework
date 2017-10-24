@@ -10,7 +10,7 @@ import play.api.test.PlaySpecification
 /**
  * Tests that [[OkHttpEndpointSupport]] works properly.
  */
-class WSEndpointSpec extends PlaySpecification with AllEndpointsIntegrationSpecification with WSEndpointSupport {
+class WSEndpointSpec extends PlaySpecification with EndpointIntegrationSpecification with WSEndpointSupport {
 
   "WSEndpoint" should {
     "make a request and get a response" in {
