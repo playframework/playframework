@@ -163,9 +163,11 @@ import implemented._
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
+// A Module is needed to register bindings
 class Module extends AbstractModule {
-  def configure() = {
+  override def configure() = {
 
+    // Bind the `Hello` interface to the `EnglishHello` implementation as eager singleton.
     bind(classOf[Hello])
       .annotatedWith(Names.named("en"))
       .to(classOf[EnglishHello]).asEagerSingleton()
@@ -176,6 +178,39 @@ class Module extends AbstractModule {
   }
 }
 //#eager-guice-module
+}
+
+package eagerguicestartup {
+
+//#eager-guice-startup
+import scala.concurrent.Future
+import javax.inject._
+import play.api.inject.ApplicationLifecycle
+
+// This creates an `ApplicationStart` object once at start-up and registers hook for shut-down.
+@Singleton
+class ApplicationStart @Inject() (lifecycle: ApplicationLifecycle) {
+  // Shut-down hook
+  lifecycle.addStopHook { () =>
+    Future.successful(())
+  }
+  //...
+}
+//#eager-guice-startup
+}
+
+package eagerguicemodulestartup {
+
+import eagerguicestartup._
+//#eager-guice-module-startup
+import com.google.inject.AbstractModule
+
+class StartModule extends AbstractModule {
+  override def configure() = {
+    bind(classOf[ApplicationStart]).asEagerSingleton()
+  }
+}
+//#eager-guice-module-startup
 }
 
 package playmodule {
