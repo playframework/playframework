@@ -35,10 +35,10 @@ Cache size is limited by the underlying cache implementation.  Play WS will crea
 
 > **NOTE**: If you do not limit the HTTP cache or expire elements in the cache, then you may cause the JVM to run out of memory.
 
-In ehcache, you can specify an existing cache by specifying [CacheManager](https://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/CacheManager.html) URI explicitly, which is used in `cachingProvider.getCacheManager(uri, environment.classLoader)`:
+In ehcache, you can specify an existing cache by specifying [CacheManager](https://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/CacheManager.html) resource explicitly, which is used in `cachingProvider.getCacheManager(uri, environment.classLoader)`:
 
 ```
-play.ws.cache.cacheManagerURI="file:./conf/ehcache-play-ws-cache.xml"
+play.ws.cache.cacheManagerResource="ehcache-play-ws-cache.xml"
 ```
 
 and then adding a cache such as following into the `conf` directory:
@@ -56,6 +56,8 @@ and then adding a cache such as following into the `conf` directory:
 
 </ehcache>
 ```
+
+> **NOTE**: `play.ws.cache.cacheManagerURI` is deprecated, use `play.ws.cache.cacheManagerResource` with a path on the classpath instead.
 
 ## Debugging the Cache
 
