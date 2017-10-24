@@ -114,9 +114,7 @@ object Multipart {
 
       }
 
-      multipartAccumulator.through(handleFileParts).recoverWith {
-        case t => errorHandler.onServerError(request, t).map(Left(_))
-      }
+      multipartAccumulator.through(handleFileParts)
     }.apply(request)
   }
 
@@ -125,10 +123,9 @@ object Multipart {
   def handleFilePartAsTemporaryFile(temporaryFileCreator: TemporaryFileCreator): FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
-
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
         case IOResult(_, Failure(error)) => Future.failed(error)
-        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile))
+        case _                           => Future.successful(FilePart(partName, filename, contentType, tempFile))
       }
   }
 
