@@ -22,17 +22,22 @@ trait OkHttpEndpointSupport {
   trait OkHttpEndpoint {
     /** The endpoint to connect to. */
     def endpoint: ServerEndpoint
+
+    /** A partly-built client to connect with. */
+    def clientBuilder: OkHttpClient.Builder
+
     /** The client to connect with. */
-    def client: OkHttpClient
-    /**
-     * Make a request to the endpoint using the given path.
-     */
-    def makeRequest(path: String): Response = {
-      val request = new Request.Builder()
-        .url(s"${endpoint.scheme}://localhost:${endpoint.port}$path")
-        .build()
-      client.newCall(request).execute()
-    }
+    def client: OkHttpClient = clientBuilder.build()
+
+    /** Make a request to the endpoint using the given path. */
+    def requestBuilder(path: String): Request.Builder =
+      new Request.Builder().url(endpoint.pathUrl(path))
+
+    /** Create a request that can be called to connect to the endpoint. */
+    def request(path: String): Request = requestBuilder(path).build()
+
+    /** Make a request to the endpoint using the given path. */
+    def call(path: String): Response = client.newCall(request(path)).execute()
   }
 
   /**
@@ -46,14 +51,12 @@ trait OkHttpEndpointSupport {
     val e = endpoint // Avoid a name clash
     val serverClient = new OkHttpEndpoint {
       override val endpoint = e
-      override val client: OkHttpClient = {
+      override val clientBuilder: OkHttpClient.Builder = {
+        val b = new OkHttpClient.Builder()
         endpoint match {
           case e: HttpsEndpoint =>
-            // Create a client that trusts the server's certificate
-            new OkHttpClient.Builder()
-              .sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
-              .build()
-          case _ => new OkHttpClient()
+            b.sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
+          case _ => b
         }
       }
     }

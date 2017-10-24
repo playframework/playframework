@@ -19,19 +19,32 @@ trait EndpointIntegrationSpecification
     extends SpecificationLike with PendingUntilFixed
     with ServerEndpoints with ApplicationFactories {
 
+  private def http2Conf(enabled: Boolean): Configuration = Configuration("play.server.akka.http2.enabled" -> enabled)
+
+  private val Netty11Plaintext = new HttpServerEndpointRecipe("Netty HTTP/1.1 (plaintext)", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty"))
+  private val Netty11Encrypted = new HttpsServerEndpointRecipe("Netty HTTP/1.1 (encrypted)", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty"))
+  private val AkkaHttp11Plaintext = new HttpServerEndpointRecipe("Akka HTTP HTTP/1.1 (plaintext)", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None)
+  private val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe("Akka HTTP HTTP/1.1 (encrypted)", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None)
+  private val AkkaHttp20Encrypted = new HttpsServerEndpointRecipe("Akka HTTP HTTP/2 (encrypted)", AkkaHttpServer.provider, http2Conf(true), Set("1.0", "1.1", "2"), None)
+
   /**
    * The list of server endpoints supported by this specification.
-   * @return
    */
-  def allEndpointRecipes: Seq[ServerEndpointRecipe]
+  private val allEndpointRecipes: Seq[ServerEndpointRecipe] = Seq(
+    Netty11Plaintext,
+    Netty11Encrypted,
+    AkkaHttp11Plaintext,
+    AkkaHttp11Encrypted,
+    AkkaHttp20Encrypted
+  )
 
   /**
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllEndpoints()]] method.
    */
   implicit class ApplicationFactoryEndpointBaker(val appFactory: ApplicationFactory) {
     /**
-     * Helper that creates a specs2 fragment for the server endpoints given in
-     * [[allEndpointRecipes]]. Each fragment creates an application, starts a server
+     * Helper that creates a specs2 fragment for the given server endpoints.
+     * Each fragment creates an application, starts a server
      * and runs the given block of code.
      *
      * {{{
@@ -41,13 +54,28 @@ trait EndpointIntegrationSpecification
      * }
      * }}}
      */
-    def withAllEndpoints[A: AsResult](block: ServerEndpoint => A): Fragment = {
-      allEndpointRecipes.map { endpointRecipe: ServerEndpointRecipe =>
+    def withEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: ServerEndpoint => A): Fragment = {
+      endpoints.map { endpointRecipe: ServerEndpointRecipe =>
         s"with ${endpointRecipe.description}" >> {
           withEndpoint(endpointRecipe, appFactory)(block)
         }
       }.last
     }
+
+    /**
+     * Helper that creates a specs2 fragment for all the server endpoints supported
+     * by Play. Each fragment creates an application, starts a server
+     * and runs the given block of code.
+     *
+     * {{{
+     * withResult(Results.Ok("Hello")) withAllEndpoints { endpoint: ServerEndpoint =>
+     *   val response = ... connect to endpoint.port ...
+     *   response.status must_== 200
+     * }
+     * }}}
+     */
+    def withAllEndpoints[A: AsResult](block: ServerEndpoint => A): Fragment =
+      withEndpoints(allEndpointRecipes)(block)
   }
 
   /**
@@ -77,20 +105,3 @@ trait EndpointIntegrationSpecification
   }
 
 }
-
-/**
- * Mixin for an integration test that wants to test against supported servers and protocols.
- */
-trait AllEndpointsIntegrationSpecification extends EndpointIntegrationSpecification {
-  override val allEndpointRecipes: Seq[ServerEndpointRecipe] = {
-    def http2Conf(enabled: Boolean): Configuration = Configuration("play.server.akka.http2.enabled" -> enabled)
-    Seq(
-      new HttpServerEndpointRecipe("Netty HTTP/1.1 via HTTP", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty")),
-      new HttpsServerEndpointRecipe("Netty HTTP/1.1 via HTTPS", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty")),
-      new HttpServerEndpointRecipe("akka-http HTTP/1.1 via HTTP", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None),
-      new HttpsServerEndpointRecipe("akka-http HTTP/1.1 via HTTPS", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None),
-      new HttpsServerEndpointRecipe("akka-http HTTP/2 via HTTPS", AkkaHttpServer.provider, http2Conf(true), Set("1.0", "1.1", "2"), None)
-    )
-  }
-}
-
