@@ -161,6 +161,8 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
+  val ephemeralfs = "com.github.sbridges" % "ephemeralfs" % "1.0.1.0"
+
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.0"
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
