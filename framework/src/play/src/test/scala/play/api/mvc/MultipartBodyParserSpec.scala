@@ -26,17 +26,8 @@ class MultipartBodyParserSpec extends Specification {
     implicit val executionContext = system.dispatcher
     implicit val materializer = ActorMaterializer()
 
-    class CustomHttpErrorHandler extends HttpErrorHandler {
-      def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-      def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-        val responseHeader = new ResponseHeader(status = 500, reasonPhrase = Some(exception.getMessage))
-        Future.successful(Result(header = responseHeader, body = HttpEntity.NoEntity))
-      }
-    }
-
     val playBodyParsers = PlayBodyParsers(
-      tfc = new InMemoryTemporaryFileCreator(10),
-      eh = new CustomHttpErrorHandler)
+      tfc = new InMemoryTemporaryFileCreator(10))
 
     "return an error if temporary file creation fails" in {
 
@@ -70,11 +61,7 @@ class MultipartBodyParserSpec extends Specification {
         body = body)
 
       val response = playBodyParsers.multipartFormData.apply(request).run(body)
-      Await.result(response, Duration.Inf) must beLeft.like {
-        case result =>
-          result.header.status must_=== 500
-          result.header.reasonPhrase must beSome("Out of disk space")
-      }
+      Await.result(response, Duration.Inf) must throwA[IOException]
     }
   }
 }

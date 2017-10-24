@@ -125,7 +125,7 @@ object Multipart {
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
         case IOResult(_, Failure(error)) => Future.failed(error)
-        case _                           => Future.successful(FilePart(partName, filename, contentType, tempFile))
+        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile))
       }
   }
 
