@@ -173,7 +173,7 @@ object Dependencies {
   }
 
   def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
-    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.2"
+    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.3"
     case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
   }
 
