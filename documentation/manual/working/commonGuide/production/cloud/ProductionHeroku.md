@@ -124,12 +124,12 @@ $ heroku open
 
 ## Deploying Java 9 application
 
-Heroku uses OpenJDK 8 to run play application by default. It can not automatically determine if another version is needed, so deploying application that uses Java will lead to compilation error on server. If you use newer version, you should declare it in `system.properties` file. 
+Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying a Java 9 applicaiton will lead to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your system.properties file in the project root directory:
 ```txt
 java.runtime.version=9
 ```
-This file should be located in project root directory to be processed by Heroku.
-For more information about specifying java version, [see heroku instructions](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version).
+
+See the [heroku documentation](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version) for more details.
 
 ## Deploying with the sbt-heroku plugin
 
