@@ -3,64 +3,49 @@
  */
 package play.it.http
 
-import play.api.inject.guice.GuiceApplicationBuilder
-
-import scala.concurrent.duration._
-
 import play.api.mvc._
 import play.api.test._
-import play.api.libs.ws._
-import play.it._
+import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
-class NettyFormFieldOrderSpec extends FormFieldOrderSpec with NettyIntegrationSpecification
-class AkkaHttpFormFieldOrderSpec extends FormFieldOrderSpec with AkkaHttpIntegrationSpecification
+class FormFieldOrderSpec extends PlaySpecification
+    with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
-trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecification {
-
-  "Play' form URL Decoding " should {
+  "Form URL Decoding " should {
 
     val urlEncoded = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 
-    val fakeApp = GuiceApplicationBuilder().appRoutes { implicit app =>
-      val Action = app.injector.instanceOf[DefaultActionBuilder]
-      ({
-        case ("POST", "/") => Action {
-          request: Request[AnyContent] =>
-            // Check precondition. This needs to be an x-www-form-urlencoded request body
-            request.contentType must beSome(contentType)
-            // The following just ingests the request body and converts it to a sequence of strings of the form name=value
-            val pairs: Seq[String] = {
-              request.body.asFormUrlEncoded map {
-                params: Map[String, Seq[String]] =>
-                  {
-                    for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
-                  }.toSeq
-              }
-            }.getOrElse(Seq.empty[String])
-            // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the
-            // original url_encoded string
-            val reencoded = pairs.mkString("&")
-            // Return the re-encoded body as the result body for comparison below
-            Results.Ok(reencoded)
-        }
-      })
-    }.build()
+    val fakeAppFactory: ApplicationFactory = withAction { actionBuilder =>
+      actionBuilder { request: Request[AnyContent] =>
+        // Check precondition. This needs to be an x-www-form-urlencoded request body
+        request.contentType must beSome(contentType)
+        // The following just ingests the request body and converts it to a sequence of strings of the form name=value
+        val pairs: Seq[String] = {
+          request.body.asFormUrlEncoded map {
+            params: Map[String, Seq[String]] =>
+              {
+                for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
+              }.toSeq
+          }
+        }.getOrElse(Seq.empty[String])
+        // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the
+        // original url_encoded string
+        val reencoded = pairs.mkString("&")
+        // Return the re-encoded body as the result body for comparison below
+        Results.Ok(reencoded)
+      }
+    }
 
-    "preserve form field order" in new WithServer(fakeApp) {
-
-      import scala.concurrent.Future
-
-      val ws = app.injector.instanceOf[WSClient]
-      val future: Future[WSResponse] = ws.url("http://localhost:" + port + "/").
-        addHttpHeaders("Content-Type" -> contentType).
-        withRequestTimeout(10000.millis).post(urlEncoded)
-
-      val response = await(future)
-      response.status must equalTo(OK)
+    "preserve form field order" in fakeAppFactory.withAllOkHttpEndpoints { okep: OkHttpEndpoint =>
+      val request = new okhttp3.Request.Builder()
+        .url(okep.endpoint.pathUrl("/"))
+        .post(okhttp3.RequestBody.create(okhttp3.MediaType.parse(contentType), urlEncoded))
+        .build()
+      val response = okep.client.newCall(request).execute()
+      response.code must equalTo(OK)
       // Above the response to the request caused the body to be reconstituted as the url_encoded string.
       // Validate that this is in fact the case, which is the point of this test.
-      response.body must equalTo(urlEncoded)
+      response.body.string must equalTo(urlEncoded)
     }
   }
 }
