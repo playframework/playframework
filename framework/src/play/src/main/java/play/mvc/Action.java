@@ -18,6 +18,11 @@ public abstract class Action<T> extends Results {
     public T configuration;
 
     /**
+     * The precursor action.
+     */
+    public Action<?> precursor;
+
+    /**
      * The wrapped action.
      */
     public Action<?> delegate;

@@ -86,6 +86,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       rootAction
     } else {
       baseAction.delegate = rootAction
+      rootAction.precursor = baseAction
       baseAction
     }
 
@@ -94,11 +95,13 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         val action = handlerComponents.getAction(actionClass).asInstanceOf[play.mvc.Action[Object]]
         action.configuration = annotation
         action.delegate = delegate
+        delegate.precursor = action
         action
     }
 
     val finalAction = if (config.executeActionCreatorActionFirst) {
       baseAction.delegate = finalUserDeclaredAction
+      finalUserDeclaredAction.precursor = baseAction
       baseAction
     } else {
       finalUserDeclaredAction
