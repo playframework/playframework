@@ -41,7 +41,7 @@ class FlashCookieSpec extends PlaySpecification
   }
 
   /**
-   * Handles the details of calling a [[ServerEndpoint]] with a cookie and
+   * Handles the details of calling a [[play.it.test.ServerEndpoint]] with a cookie and
    * receiving the response and its cookies.
    */
   trait CookieEndpoint {

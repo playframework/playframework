@@ -23,7 +23,7 @@ import scala.concurrent.{ Await, Future }
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but
- * connects to an integration test's [[ServerEndpoints.ServerEndpoint]] instead of an
+ * connects to an integration test's [[ServerEndpoint]] instead of an
  * arbitrary scheme and port.
  */
 trait WSEndpointSupport {
