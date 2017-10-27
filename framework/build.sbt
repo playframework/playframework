@@ -7,9 +7,12 @@ import Generators._
 import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
 import interplay.PlayBuildBase.autoImport._
 import sbt.Keys.parallelExecution
-import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
+import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.{javaAgents, resolvedJavaAgents}
+import com.lightbend.sbt.javaagent.JavaAgent.ResolvedAgent
+import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.ScriptedPlugin._
 import sbt._
+import sbt.complete.Parser
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
     .dependsOn(PlayExceptionsProject)
@@ -260,15 +263,46 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
 // This project is just for microbenchmarking Play. Not published.
 // NOTE: this project depends on JMH, which is GPLv2.
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
-    .enablePlugins(JmhPlugin)
+    .enablePlugins(JmhPlugin, JavaAgent)
     .settings(
+      // Change settings so that IntelliJ can handle dependencies
+      // from JMH to the integration tests. We can't use "compile->test"
+      // when we depend on the integration test project, we have to use
+      // "test->test" so that IntelliJ can handle it. This means that
+      // we need to put our JMH sources into src/test so they can pick
+      // up the integration test files.
+      // See: https://github.com/ktoso/sbt-jmh/pull/73#issue-163891528
+
+      classDirectory in Jmh := (classDirectory in Test).value,
+      dependencyClasspath in Jmh := (dependencyClasspath in Test).value,
+      generateJmhSourcesAndResources in Jmh := ((generateJmhSourcesAndResources in Jmh) dependsOn(compile in Test)).value,
+
+      // Add the Jetty ALPN agent to the list of agents. This will cause the JAR to
+      // be downloaded and available. We need to tell JMH to use this agent when it
+      // forks its benchmark processes. We use a custom runner to read a system
+      // property and add the agent JAR to JMH's forked process JVM arguments.
+      javaAgents += jettyAlpnAgent,
+      javaOptions in (Jmh, run) += {
+        val javaAgents = (resolvedJavaAgents in Jmh).value
+        assert(javaAgents.length == 1)
+        val jettyAgentPath = javaAgents.head.artifact.absString
+        s"-Djetty.anlp.agent.jar=$jettyAgentPath"
+      },
+      mainClass in (Jmh, run) := Some("play.microbenchmark.PlayJmhRunner"),
+
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty
     )
-    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject, PlaySpecs2Project)
-    .dependsOn(PlayFiltersHelpersProject)
-    .dependsOn(PlayJavaProject)
-    .dependsOn(PlayNettyServerProject)
+    .dependsOn(
+      PlayProject % "test->test",
+      PlayLogback % "test->test",
+      PlayIntegrationTestProject % "test->test",
+      PlayAhcWsProject,
+      PlaySpecs2Project,
+      PlayFiltersHelpersProject,
+      PlayJavaProject,
+      PlayNettyServerProject
+    )
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     .settings(
