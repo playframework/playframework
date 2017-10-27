@@ -18,6 +18,11 @@ public abstract class Action<T> extends Results {
     public T configuration;
 
     /**
+     * Where an action was defined.
+     */
+    public Origin origin;
+
+    /**
      * The precursor action.
      *
      * If this action was called in a chain then this will contain the value of the action
@@ -45,5 +50,12 @@ public abstract class Action<T> extends Results {
      * A simple action with no configuration.
      */
     public static abstract class Simple extends Action<Void> {}
+
+    public static enum Origin {
+        ROOT, // The root action which starts the whole composition chain
+        ACTION_CREATOR, // The action created by the action creator
+        CONTROLLER_ANNOTATION, // Action composition annotation on controller class
+        ACTION_ANNOTATION // Action composition annotation on action method
+    }
 
 }

@@ -23,7 +23,7 @@ public class ActionCompositionOrderTest {
         @Override
         public CompletionStage<Result> call(Http.Context ctx) {
             return delegate.call(ctx).thenApply(result -> {
-                String newContent = "controller" + Helpers.contentAsString(result);
+                String newContent = this.origin + "controller" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
         }
@@ -38,7 +38,7 @@ public class ActionCompositionOrderTest {
         @Override
         public CompletionStage<Result> call(Http.Context ctx) {
             return delegate.call(ctx).thenApply(result -> {
-                String newContent = "action" + Helpers.contentAsString(result);
+                String newContent = this.origin + "action" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
         }
