@@ -17,12 +17,23 @@ import scala.util.control.NonFatal
  */
 object ProdServerStart {
 
+  private var server: ReloadableServer = _
+
   /**
    * Start a prod mode server from the command line.
    */
   def main(args: Array[String]) {
     val process = new RealServerProcess(args)
-    start(process)
+    server = start(process)
+  }
+
+  /**
+   * Stop method for Daemon Managers
+   */
+  def stop(args: Array[String]): Unit = {
+    if (server != null) {
+      server.stop()
+    }
   }
 
   /**
