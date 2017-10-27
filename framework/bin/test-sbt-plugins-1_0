@@ -4,8 +4,8 @@
 
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-SCALA_VERSION="2.12.3"
-SBT_VERSION="1.0"
+SCALA_VERSION="2.12.4"
+SBT_VERSION="1.0.3"
 
 cd ${FRAMEWORK}
 
