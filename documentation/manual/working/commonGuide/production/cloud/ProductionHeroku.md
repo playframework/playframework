@@ -124,7 +124,7 @@ $ heroku open
 
 ## Deploying Java 9 application
 
-Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying a Java 9 applicaiton will lead to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your system.properties file in the project root directory:
+Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying a Java 9 application will lead to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory:
 ```txt
 java.runtime.version=9
 ```
