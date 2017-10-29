@@ -10,7 +10,7 @@ object Dependencies {
 
   val akkaVersion = "2.5.6"
   val akkaHttpVersion = "10.0.10"
-  val playJsonVersion = "2.6.6"
+  val playJsonVersion = "2.6.7"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -173,7 +173,7 @@ object Dependencies {
   }
 
   def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
-    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.2"
+    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.5"
     case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
   }
 
@@ -289,8 +289,8 @@ object Dependencies {
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.3", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.4", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.4", "2.11.11"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka

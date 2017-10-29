@@ -11,12 +11,12 @@ import play.api.test.PlaySpecification
 /**
  * Tests that the [[EndpointIntegrationSpecification]] works properly.
  */
-class EndpointIntegrationSpecificationSpec extends PlaySpecification with AllEndpointsIntegrationSpecification with OkHttpEndpointSupport {
+class EndpointIntegrationSpecificationSpec extends PlaySpecification with EndpointIntegrationSpecification with OkHttpEndpointSupport {
 
   "Endpoints" should {
     "respond with the highest supported HTTP protocol" in {
       withResult(Results.Ok("Hello")) withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
-        val response: Response = okEndpoint.makeRequest("/")
+        val response: Response = okEndpoint.call("/")
         val protocol = response.protocol
         if (okEndpoint.endpoint.expectedHttpVersions.contains("2")) {
           protocol must_== Protocol.HTTP_2
@@ -33,7 +33,7 @@ class EndpointIntegrationSpecificationSpec extends PlaySpecification with AllEnd
         Results.Ok(request.attrs.get(RequestAttrKey.Server).toString)
       }
     }.withAllOkHttpEndpoints { okHttpEndpoint: OkHttpEndpoint =>
-      val response: Response = okHttpEndpoint.makeRequest("/")
+      val response: Response = okHttpEndpoint.call("/")
       response.body.string must_== okHttpEndpoint.endpoint.expectedServerAttr.toString
     }
   }

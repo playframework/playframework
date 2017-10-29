@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4")
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"
