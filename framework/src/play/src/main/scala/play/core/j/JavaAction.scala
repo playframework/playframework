@@ -91,6 +91,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val endOfChainAction = if (config.executeActionCreatorActionFirst) {
       rootAction
     } else {
+      rootAction.precursor = baseAction
       baseAction.delegate = rootAction
       baseAction
     }
@@ -99,12 +100,14 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       case (delegate, (annotation, actionClass, annotatedElement)) =>
         val action = handlerComponents.getAction(actionClass).asInstanceOf[play.mvc.Action[Object]]
         action.configuration = annotation
+        delegate.precursor = action
         action.delegate = delegate
         action.annotatedElement = annotatedElement
         action
     }
 
     val firstAction = if (config.executeActionCreatorActionFirst) {
+      firstUserDeclaredAction.precursor = baseAction
       baseAction.delegate = firstUserDeclaredAction
       baseAction
     } else {
