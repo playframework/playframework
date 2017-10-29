@@ -1881,7 +1881,9 @@ public class Http {
          * @param clazz Expected Java value type.
          * @return the return value.
          */
-        public <A> A parseJson(Class<A> clazz) { return Json.fromJson(asJson(), clazz); }
+        public <A> Optional<A> parseJson(Class<A> clazz) {
+            return (body instanceof JsonNode) ? Optional.of(Json.fromJson(asJson(), clazz)) : Optional.empty();
+        }
 
         /**
          * The request content as a ByteString.

@@ -5,6 +5,7 @@ package javaguide.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -121,11 +122,11 @@ public class JavaJsonActions extends WithApplication {
 
         //#json-request-as-anyclazz
         public Result sayHello() {
-            Person person = request().body().parseJson(Person.class);
-            if(person == null) {
+            Optional<Person> person = request().body().parseJson(Person.class);
+            if (!person.isPresent()) {
                 return badRequest("Expecting Json data");
             } else {
-                String name = person.firstName + " " + person.lastName;
+                String name = person.get().firstName;
                 return ok("Hello " + name);
             }
         }
@@ -143,7 +144,7 @@ public class JavaJsonActions extends WithApplication {
         public Result sayHello() {
             JsonNode json = request().body().asJson();
             String name = json.findPath("name").textValue();
-            if(name == null) {
+            if (name == null) {
                 return badRequest("Missing parameter [name]");
             } else {
                 return ok("Hello " + name);
