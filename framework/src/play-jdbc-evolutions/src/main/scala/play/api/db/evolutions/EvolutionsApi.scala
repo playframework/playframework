@@ -225,7 +225,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
           connection.rollback()
 
-          val humanScript = "# --- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down)
+          val humanScript = "-- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down)
 
           throw InconsistentDatabase(database.name, humanScript, message, lastScript.evolution.revision, autocommit)
         } else {
@@ -280,7 +280,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
             logger.error(error)
 
-            val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
+            val humanScript = "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
 
             throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
           }
@@ -440,22 +440,22 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 
   def evolutions(db: String): Seq[Evolution] = {
 
-    val upsMarker = """^#.*!Ups.*$""".r
-    val downsMarker = """^#.*!Downs.*$""".r
+    val upsMarker = """^(#|--).*!Ups.*$""".r
+    val downsMarker = """^(#|--).*!Downs.*$""".r
 
     val UPS = "UPS"
     val DOWNS = "DOWNS"
     val UNKNOWN = "UNKNOWN"
 
     val mapUpsAndDowns: PartialFunction[String, String] = {
-      case upsMarker() => UPS
-      case downsMarker() => DOWNS
+      case upsMarker(_) => UPS
+      case downsMarker(_) => DOWNS
       case _ => UNKNOWN
     }
 
     val isMarker: PartialFunction[String, Boolean] = {
-      case upsMarker() => true
-      case downsMarker() => true
+      case upsMarker(_) => true
+      case downsMarker(_) => true
       case _ => false
     }
 
