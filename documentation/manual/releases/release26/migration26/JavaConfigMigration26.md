@@ -2,7 +2,7 @@
 
 # Java Configuration API Migration
 
-The class `play.Configuration` was deprecated in favor of using [Typesafe Config](https://github.com/typesafehub/config) directly. So, instead of using `play.Configuration` you must now use [`com.typesafe.config.Config`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html). For example:
+The class `play.Configuration` was deprecated in favor of using [Typesafe Config](https://github.com/typesafehub/config) directly. So, instead of using `play.Configuration` you must now use [`com.typesafe.config.Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html). For example:
 
 Before:
 ```java
@@ -66,7 +66,7 @@ where `config` is your `com.typesafe.config.Config` instance.
 
 ## Manually checking values
 
-If you don't want or if you cannot have default values for some reason, you can use [`Config.hasPath`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPath-java.lang.String-) or [`Config.hasPathOrNull`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#hasPathOrNull-java.lang.String-) to check if the value is configured before accessing it. This is a better option if the configuration is required but you can't provide a reference (default) value:
+If you don't want or if you cannot have default values for some reason, you can use [`Config.hasPath`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html#hasPath-java.lang.String-) or [`Config.hasPathOrNull`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html#hasPathOrNull-java.lang.String-) to check if the value is configured before accessing it. This is a better option if the configuration is required but you can't provide a reference (default) value:
 
 ```java
 import com.typesafe.config.Config;
