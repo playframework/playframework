@@ -3,7 +3,7 @@
 enablePlugins(BuildInfoPlugin)
 
 val Versions = new {
-  val sbtNativePackager = "1.2.2"
+  val sbtNativePackager = "1.3.1"
   val mima = "0.1.18"
   val sbtScalariform = "1.6.0"
   val sbtJavaAgent = "0.1.4"
