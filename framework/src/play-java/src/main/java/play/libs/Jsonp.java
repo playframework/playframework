@@ -4,6 +4,7 @@
 package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import play.mvc.Http.MimeTypes;
 import play.twirl.api.Content;
 
 /**
@@ -42,7 +43,7 @@ public class Jsonp implements Content {
 
     @Override
     public String contentType() {
-        return "text/javascript";
+        return MimeTypes.JAVASCRIPT;
     }
 
     private final String padding;
