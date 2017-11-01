@@ -492,8 +492,10 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
 
   def loadResource(db: String, revision: Int) = {
-    environment.getExistingFile(Evolutions.fileName(db, revision)).map(f => java.nio.file.Files.newInputStream(f.toPath)).orElse {
-      environment.resourceAsStream(Evolutions.resourceName(db, revision))
+    val revisionPadded = List.tabulate(15)(s"${revision}".reverse.padTo(_, "0").reverse.mkString).distinct // 1, 01, 001, ... 000000000001
+
+    revisionPadded.flatMap(revision => environment.getExistingFile(Evolutions.fileName(db, revision))).find(_ != None).map(f => java.nio.file.Files.newInputStream(f.toPath)).orElse {
+      revisionPadded.flatMap(revision => environment.resource(Evolutions.resourceName(db, revision))).find(_ != None).map(_.openStream())
     }
   }
 }
