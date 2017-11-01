@@ -3,6 +3,8 @@
 enablePlugins(BuildInfoPlugin)
 
 val Versions = new {
+  // when updating sbtNativePackager version, be sure to also update the documentation links in
+  // documentation/manual/working/commonGuide/production/Deploying.md
   val sbtNativePackager = "1.3.1"
   val mima = "0.1.18"
   val sbtScalariform = "1.6.0"
