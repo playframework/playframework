@@ -99,10 +99,7 @@ object Filter {
  * Compose the action and the Filters to create a new Action
  */
 object Filters {
-  def apply(h: EssentialAction, filters: EssentialFilter*) = h match {
-    case a: EssentialAction => FilterChain(a, filters.toList)
-    case h => h
-  }
+  def apply(h: EssentialAction, filters: EssentialFilter*): EssentialAction = FilterChain(h, filters.toList)
 }
 
 /**
