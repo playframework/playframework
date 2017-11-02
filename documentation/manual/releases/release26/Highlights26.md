@@ -630,7 +630,7 @@ Now, tuples are able to be serialized by play-json, and there are `Reads` and `W
 Play JSON 2.6.0 now supports Scala.js. You can add the dependency with:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %%% "play-json" % version
+libraryDependencies += "com.typesafe.play" %% "play-json" % version
 ```
 
 where `version` is the version you wish to use. The library should effectively work the same as it does on the JVM, except without support for JVM types.
