@@ -4,6 +4,7 @@
 package play.api.test
 
 import java.nio.file.Path
+import java.util.concurrent.locks.{ Lock, ReentrantLock }
 
 import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
@@ -45,10 +46,12 @@ trait PlayRunners extends HttpVerbs {
   protected def shouldRunSequentially(app: Application): Boolean = app.globalApplicationEnabled
 
   private[play] def runSynchronized[T](app: Application)(block: => T): T = {
-    if (shouldRunSequentially(app)) {
-      PlayRunners.mutex.synchronized(block)
-    } else {
+    val needsLock = shouldRunSequentially(app)
+    if (needsLock) { PlayRunners.mutex.lock() }
+    try {
       block
+    } finally {
+      if (needsLock) { PlayRunners.mutex.unlock() }
     }
   }
 
@@ -145,7 +148,7 @@ object PlayRunners {
   /**
    * This mutex is used to ensure that no two tests that set the global application can run at the same time.
    */
-  private[play] val mutex: AnyRef = new AnyRef()
+  private[play] val mutex: Lock = new ReentrantLock()
 }
 
 trait Writeables {
