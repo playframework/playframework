@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
+import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 
 import scala.annotation.{ implicitNotFound, tailrec }
