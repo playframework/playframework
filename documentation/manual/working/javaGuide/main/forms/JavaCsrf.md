@@ -46,7 +46,7 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.filters.enabled += play.filters.csrf.CsrfFilter
+play.filters.enabled += "play.filters.csrf.CSRFFilter"
 ```
 
 It is also possible to disable the CSRF filter for a specific route in the routes file. To do this, add the `nocsrf` modifier tag before your route:
