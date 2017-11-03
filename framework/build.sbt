@@ -51,7 +51,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
-        ephemeralfs % Test,
+        jimfs % Test,
 
       sourceGenerators in Compile += Def.task(PlayVersion(
         version.value,

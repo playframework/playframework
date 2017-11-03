@@ -6,7 +6,7 @@ package play.api.mvc
 import java.io.File
 import java.nio.file.{ FileSystem, Path, Files => JFiles }
 
-import com.github.sbridges.ephemeralfs.EphemeralFsFileSystemBuilder
+import com.google.common.jimfs.{ Configuration, Jimfs }
 import play.api.libs.Files.{ TemporaryFile, TemporaryFileCreator }
 
 import scala.util.Try
@@ -16,10 +16,11 @@ class InMemoryTemporaryFile(val path: Path, val temporaryFileCreator: TemporaryF
 }
 
 class InMemoryTemporaryFileCreator(totalSpace: Long) extends TemporaryFileCreator {
-  val fs: FileSystem = EphemeralFsFileSystemBuilder
-    .unixFs()
-    .setTotalSpace(totalSpace)
+  private val fsConfig: Configuration = Configuration.unix
+    .toBuilder
+    .setMaxSize(totalSpace)
     .build()
+  private val fs: FileSystem = Jimfs.newFileSystem(fsConfig)
   private val playTempFolder: Path = fs.getPath("/tmp")
 
   def create(prefix: String = "", suffix: String = ""): TemporaryFile = {
