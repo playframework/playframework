@@ -326,8 +326,6 @@ package controllers {
     @Inject
     def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) = this(config, env.resource _, fileMimeTypes)
 
-    import HeaderNames._
-
     lazy val finder: AssetsFinder = new AssetsFinder {
       val assetsBasePath = config.path
       val assetsUrlPrefix = config.urlPrefix
