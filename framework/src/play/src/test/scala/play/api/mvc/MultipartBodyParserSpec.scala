@@ -21,7 +21,7 @@ import scala.util.Random
 
 class MultipartBodyParserSpec extends Specification {
 
-  "Multipar body parser" should {
+  "Multipart body parser" should {
     implicit val system = ActorSystem()
     implicit val executionContext = system.dispatcher
     implicit val materializer = ActorMaterializer()
