@@ -4,20 +4,16 @@
 package play.api.mvc
 
 import java.io.IOException
-import java.nio.file.{ Files, Paths }
 
-import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ FileIO, Source }
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
-import play.api.http.{ HttpEntity, HttpErrorHandler }
 import play.core.test.{ FakeHeaders, FakeRequest }
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.Random
 
 class MultipartBodyParserSpec extends Specification {
 
