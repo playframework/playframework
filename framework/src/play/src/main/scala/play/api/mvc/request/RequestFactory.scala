@@ -5,7 +5,7 @@ package play.api.mvc.request
 
 import javax.inject.Inject
 
-import play.api.http.{ HttpConfiguration, SecretConfiguration }
+import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
