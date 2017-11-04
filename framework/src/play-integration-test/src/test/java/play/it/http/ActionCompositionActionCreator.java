@@ -19,7 +19,7 @@ public class ActionCompositionActionCreator implements ActionCreator {
             @Override
             public CompletionStage<Result> call(Http.Context ctx) {
                 return delegate.call(ctx).thenApply(result -> {
-                    String newContent = this.origin + "actioncreator" + Helpers.contentAsString(result);
+                    String newContent = "actioncreator" + Helpers.contentAsString(result);
                     return Results.ok(newContent);
                 });
             }

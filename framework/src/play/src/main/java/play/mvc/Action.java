@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage;
 
 import play.mvc.Http.Context;
@@ -20,7 +21,7 @@ public abstract class Action<T> extends Results {
     /**
      * Where an action was defined.
      */
-    public Origin origin;
+    public AnnotatedElement annotatedElement;
 
     /**
      * The precursor action.
@@ -50,12 +51,5 @@ public abstract class Action<T> extends Results {
      * A simple action with no configuration.
      */
     public static abstract class Simple extends Action<Void> {}
-
-    public static enum Origin {
-        ROOT, // The root action which starts the whole composition chain
-        ACTION_CREATOR, // The action created by the action creator
-        CONTROLLER_ANNOTATION, // Action composition annotation on controller class
-        ACTION_ANNOTATION // Action composition annotation on action method
-    }
 
 }
