@@ -96,7 +96,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       baseAction
     }
 
-    val finalUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](endOfChainAction) {
+    val firstUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](endOfChainAction) {
       case (delegate, (annotation, actionClass, annotatedElement)) =>
         val action = handlerComponents.getAction(actionClass).asInstanceOf[play.mvc.Action[Object]]
         action.configuration = annotation
@@ -106,12 +106,12 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         action
     }
 
-    val finalAction = if (config.executeActionCreatorActionFirst) {
-      finalUserDeclaredAction.precursor = baseAction
-      baseAction.delegate = finalUserDeclaredAction
+    val firstAction = if (config.executeActionCreatorActionFirst) {
+      firstUserDeclaredAction.precursor = baseAction
+      baseAction.delegate = firstUserDeclaredAction
       baseAction
     } else {
-      finalUserDeclaredAction
+      firstUserDeclaredAction
     }
 
     val trampolineWithContext: ExecutionContext = {
@@ -119,7 +119,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
     }
     if (logger.isDebugEnabled) {
-      val actionChain = play.api.libs.Collections.unfoldLeft[JAction[_], Option[JAction[_]]](Option(finalAction)) { action =>
+      val actionChain = play.api.libs.Collections.unfoldLeft[JAction[_], Option[JAction[_]]](Option(firstAction)) { action =>
         action.map(a => (Option(a.delegate), a))
       }.reverse
       logger.debug("### Start of action order")
@@ -129,7 +129,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       })
       logger.debug("### End of action order")
     }
-    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(finalAction.call(javaContext)) }(trampolineWithContext)
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext)) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture
