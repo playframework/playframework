@@ -10,6 +10,7 @@ import javax.inject.Inject
 
 import play.api.http.{ ActionCompositionConfiguration, HttpConfiguration }
 import play.api.inject.Injector
+import play.api.Logger
 
 import scala.compat.java8.FutureConverters
 import scala.language.existentials
@@ -58,6 +59,9 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
  */
 abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+
+  private val logger = Logger(classOf[JAction[_]])
+
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
 
   def invocation: CompletionStage[JResult]
@@ -113,6 +117,17 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
       new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
+    }
+    if (logger.isDebugEnabled) {
+      val actionChain = play.api.libs.Collections.unfoldLeft[JAction[_], Option[JAction[_]]](Option(finalAction)) { action =>
+        action.map(a => (Option(a.delegate), a))
+      }.reverse
+      logger.debug("### Start of action order")
+      actionChain.zip(Stream from 1).foreach({
+        case (action, index) => logger.debug(s"${index}. ${action.getClass.getName}" +
+          (if (action.annotatedElement != null) { s" defined on ${action.annotatedElement}" }))
+      })
+      logger.debug("### End of action order")
     }
     val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(finalAction.call(javaContext)) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
