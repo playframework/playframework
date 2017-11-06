@@ -61,7 +61,7 @@ Finally, here are the options themselves.
 > * [[Generating X.509 Certificates|CertificateGeneration]] lists a number of GUI applications that will generate certificates for you.
 > * [[Example Configurations|ExampleSSLConfig]] shows complete configuration of TLS using self signed certificates.
 > * If you want to view your application through HTTPS, you can use [ngrok](https://ngrok.com/) to proxy your application.
-> * If you need a certificate authority but don't want to pay money, [StartSSL](https://www.startssl.com/Support?v=1) or [CACert](http://www.cacert.org/) will give you a free certificate.
+> * If you need a certificate authority but don't want to pay money [Let’s Encrypt](https://letsencrypt.org/) will give you a free certificate.
 * If you want a self signed certificate and private key without typing on the command line, you can use [selfsignedcertificate.com](http://www.selfsignedcertificate.com/).
 
 If you've read the above and you still want to completely disable certificate verification, set the following;
