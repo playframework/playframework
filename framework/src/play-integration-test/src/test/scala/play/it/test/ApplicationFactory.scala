@@ -29,7 +29,7 @@ trait ApplicationFactories {
   def withRouter(createRouter: BuiltInComponents => Router): ApplicationFactory =
     withConfigAndRouter(Map.empty)(createRouter)
   def withConfigAndRouter(extraConfig: Map[String, Any])(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
-    val context = ApplicationLoader.createContext(
+    val context = ApplicationLoader.Context.create(
       environment = Environment.simple(),
       initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig.asInstanceOf[Map[String, AnyRef]]
     )

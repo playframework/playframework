@@ -4,12 +4,11 @@
 package play.api
 
 import java.io._
-import javax.inject.Inject
+import javax.inject.{ Inject, Singleton }
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
-import javax.inject.Singleton
-
+import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject._
@@ -20,7 +19,7 @@ import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
 import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.core.{ SourceMapper, WebCommands }
+import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils._
 
 import scala.annotation.implicitNotFound
@@ -229,8 +228,6 @@ object Application {
     new InlineCache((app: Application) => app.injector.instanceOf[T])
 }
 
-class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
-
 @Singleton
 class DefaultApplication @Inject() (
     override val environment: Environment,
@@ -254,12 +251,24 @@ class DefaultApplication @Inject() (
  * Helper to provide the Play built in components.
  */
 trait BuiltInComponents extends I18nComponents {
+  /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
-  def sourceMapper: Option[SourceMapper]
-  def webCommands: WebCommands
-  def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
+  /** Helper to locate the source code for the application. Only available in dev mode. */
+  @deprecated("Use devContext.map(_.sourceMapper) instead", "2.7.0")
+  def sourceMapper: Option[SourceMapper] = devContext.map(_.sourceMapper)
+  /** Helper to interact with the Play build environment. Only available in dev mode. */
+  def devContext: Option[DevContext] = None
 
+  // Define a private val so that webCommands can remain a `def` instead of a `val`
+  private val defaultWebCommands: WebCommands = new DefaultWebCommands
+  /** Commands that intercept requests before the rest of the application handles them. Used by Evolutions. */
+  def webCommands: WebCommands = defaultWebCommands
+
+  /** The application's configuration. */
+  def configuration: Configuration
+  /** A registry to receive application lifecycle events, e.g. to close resources when the application stops. */
+  def applicationLifecycle: ApplicationLifecycle
+  /** The router that's used to pass requests to the correct handler. */
   def router: Router
 
   /**
@@ -283,8 +292,8 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
-  lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
-    Some(router))
+  lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(
+    environment, configuration, devContext.map(_.sourceMapper), Some(router))
 
   /**
    * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
@@ -318,7 +327,13 @@ trait BuiltInComponents extends I18nComponents {
    */
   def httpFilters: Seq[EssentialFilter]
 
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(
+    webCommands,
+    devContext,
+    router,
+    httpErrorHandler,
+    httpConfiguration,
+    httpFilters)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
     configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)

@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import com.typesafe.config.Config;
 import play.api.inject.DefaultApplicationLifecycle;
+import play.core.BuildLink;
 import play.core.SourceMapper;
 import play.core.DefaultWebCommands;
 import play.inject.ApplicationLifecycle;
@@ -89,11 +90,10 @@ public interface ApplicationLoader {
         public Context(Environment environment, Map<String, Object> initialSettings) {
             this.underlying = new play.api.ApplicationLoader.Context(
                     environment.asScala(),
-                    scala.Option.empty(),
-                    new play.core.DefaultWebCommands(),
                     play.api.Configuration.load(environment.asScala(),
                     play.libs.Scala.asScala(initialSettings)),
-                    new DefaultApplicationLifecycle());
+                    new DefaultApplicationLifecycle(),
+                    scala.Option.empty());
         }
 
         /**
@@ -176,10 +176,9 @@ public interface ApplicationLoader {
         public Context withEnvironment(Environment environment) {
             play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
                     environment.asScala(),
-                    underlying.sourceMapper(),
-                    underlying.webCommands(),
                     underlying.initialConfiguration(),
-                    new DefaultApplicationLifecycle());
+                    new DefaultApplicationLifecycle(),
+                    underlying.devContext());
             return new Context(scalaContext);
         }
 
@@ -193,10 +192,9 @@ public interface ApplicationLoader {
         public Context withConfiguration(Configuration initialConfiguration) {
             play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
                     underlying.environment(),
-                    underlying.sourceMapper(),
-                    underlying.webCommands(),
                     initialConfiguration.getWrappedConfiguration(),
-                    new DefaultApplicationLifecycle());
+                    new DefaultApplicationLifecycle(),
+                    underlying.devContext());
             return new Context(scalaContext);
         }
 
@@ -209,10 +207,9 @@ public interface ApplicationLoader {
         public Context withConfig(Config initialConfiguration) {
             play.api.ApplicationLoader.Context scalaContext = new play.api.ApplicationLoader.Context(
                     underlying.environment(),
-                    underlying.sourceMapper(),
-                    underlying.webCommands(),
                     new play.api.Configuration(initialConfiguration),
-                    new DefaultApplicationLifecycle());
+                    new DefaultApplicationLifecycle(),
+                    underlying.devContext());
             return new Context(scalaContext);
         }
 
@@ -268,12 +265,11 @@ public interface ApplicationLoader {
      * @return the created context
      */
     static Context create(Environment environment, Map<String, Object> initialSettings) {
-        play.api.ApplicationLoader.Context scalaContext = play.api.ApplicationLoader$.MODULE$.createContext(
+        play.api.ApplicationLoader.Context scalaContext = play.api.ApplicationLoader.Context$.MODULE$.create(
                 environment.asScala(),
                 Scala.asScala(initialSettings),
-                Scala.<SourceMapper>None(),
-                new DefaultWebCommands(),
-                new DefaultApplicationLifecycle());
+                new DefaultApplicationLifecycle(),
+                Scala.<play.api.ApplicationLoader.DevContext>None());
         return new Context(scalaContext);
     }
 

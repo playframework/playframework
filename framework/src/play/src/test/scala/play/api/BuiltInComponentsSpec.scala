@@ -10,7 +10,6 @@ import org.specs2.mutable.Specification
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
-import play.core.{ SourceMapper, WebCommands }
 
 class BuiltInComponentsSpec extends Specification {
   "BuiltinComponents" should {
@@ -21,8 +20,6 @@ class BuiltInComponentsSpec extends Specification {
         override def configuration: Configuration = Configuration.load(environment)
         override def applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
         override def router: Router = ???
-        override def webCommands: WebCommands = ???
-        override def sourceMapper: Option[SourceMapper] = ???
         override def httpFilters: Seq[EssentialFilter] = ???
       }
       components.environment.classLoader must_== classLoader

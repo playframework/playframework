@@ -5,13 +5,15 @@ package play.api.http
 
 import javax.inject.Inject
 
+import play.api.ApplicationLoader.DevContext
 import play.api.http.Status._
 import play.api.inject.{ Binding, BindingKey }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.{ Configuration, Environment }
+import play.api.{ Configuration, Environment, OptionalDevContext }
 import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
+import play.core.{ DefaultWebCommands, WebCommands }
 import play.utils.Reflect
 
 /**
@@ -84,15 +86,38 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
  * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
  * is the default one, in order to provide support for Java actions.
  */
-class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: EssentialFilter*) extends HttpRequestHandler {
+class DefaultHttpRequestHandler(
+    webCommands: WebCommands,
+    optDevContext: Option[DevContext],
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: Seq[EssentialFilter]) extends HttpRequestHandler {
 
   @Inject
+  def this(
+    webCommands: WebCommands,
+    optDevContext: OptionalDevContext,
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: HttpFilters) = {
+    this(webCommands, optDevContext.devContext, router, errorHandler, configuration, filters.filters)
+  }
+
+  @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.7.0")
   def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) = {
-    this(router, errorHandler, configuration, filters.filters: _*)
+    this(new DefaultWebCommands, None, router, errorHandler, configuration, filters.filters)
+  }
+
+  @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.7.0")
+  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: EssentialFilter*) = {
+    this(new DefaultWebCommands, None, router, errorHandler, configuration, filters)
   }
 
   private val context = configuration.context.stripSuffix("/")
 
+  /** Work out whether a path is handled by this application. */
   private def inContext(path: String): Boolean = {
     // Assume context is a string without a trailing '/'.
     // Handle four cases:
@@ -149,15 +174,33 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
       }
     }
 
-    // 1. Query the router to get a handler
-    // 2. Resolve handlers that preprocess the request
-    // 3. Modify the handler to do filtering, if necessary
-    // 4. Again resolve any handlers that do preprocessing
-    val routedHandler = routeWithFallback(request)
-    val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
-    val filteredHandler = filterHandler(preprocessedRequest, preprocessedHandler)
-    val (preprocessedPreprocessedRequest, preprocessedFilteredHandler) = Handler.applyStages(preprocessedRequest, filteredHandler)
-    (preprocessedPreprocessedRequest, preprocessedFilteredHandler)
+    // If we've got a BuildLink (i.e. if we're running in dev mode) then run the WebCommands.
+    // The WebCommands will have a chance to intercept the request and override the result.
+    // This is used by, for example, the evolutions code to present an evolutions UI to the
+    // user when the access the web page through a browser.
+    //
+    // In prod mode this code will not be run.
+    val webCommandResult: Option[Result] = optDevContext.flatMap { devContext: DevContext =>
+      webCommands.handleWebCommand(request, devContext.buildLink, devContext.buildLink.projectPath)
+    }
+
+    // Look at the result of the WebCommand and either short-circuit the result or apply
+    // the routes, filters, actions, etc.
+    webCommandResult match {
+      case Some(r) =>
+        // A WebCommand returned a result
+        (request, ActionBuilder.ignoringBody { r })
+      case None =>
+        // 1. Query the router to get a handler
+        // 2. Resolve handlers that preprocess the request
+        // 3. Modify the handler to do filtering, if necessary
+        // 4. Again resolve any handlers that do preprocessing
+        val routedHandler = routeWithFallback(request)
+        val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
+        val filteredHandler = filterHandler(preprocessedRequest, preprocessedHandler)
+        val (preprocessedPreprocessedRequest, preprocessedFilteredHandler) = Handler.applyStages(preprocessedRequest, filteredHandler)
+        (preprocessedPreprocessedRequest, preprocessedFilteredHandler)
+    }
   }
 
   /**
@@ -218,9 +261,33 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
-class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents)
-    extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
+class JavaCompatibleHttpRequestHandler(
+  webCommands: WebCommands,
+  optDevContext: Option[DevContext],
+  router: Router,
+  errorHandler: HttpErrorHandler,
+  configuration: HttpConfiguration,
+  filters: Seq[EssentialFilter],
+  handlerComponents: JavaHandlerComponents)
+    extends DefaultHttpRequestHandler(webCommands, optDevContext, router, errorHandler, configuration, filters) {
+
+  @Inject
+  def this(
+    webCommands: WebCommands,
+    optDevContext: OptionalDevContext,
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: HttpFilters,
+    handlerComponents: JavaHandlerComponents) = {
+    this(webCommands, optDevContext.devContext, router, errorHandler, configuration, filters.filters, handlerComponents)
+  }
+
+  @deprecated("Use the main JavaCompatibleHttpRequestHandler constructor", "2.7.0")
+  def this(router: Router, errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents) = {
+    this(new DefaultWebCommands, new OptionalDevContext(None), router, errorHandler, configuration, filters, handlerComponents)
+  }
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
   // another handler.
