@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
@@ -27,9 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import play.core.utils.HttpHeaderParameterEncoding;
 import play.http.HttpEntity;
 import play.libs.Json;
-import play.utils.UriEncoding;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import play.mvc.Http.MimeTypes;
 
 /**
  * A status with no body
@@ -353,7 +350,7 @@ public class StatusHeader extends Result {
             JsonGenerator jgen = mapper.getFactory().createGenerator(builder.asOutputStream(), encoding);
 
             mapper.writeValue(jgen, json);
-            String contentType = "application/json; charset=" + encoding.getJavaName();
+            String contentType = MimeTypes.JSON;
             return new Result(status(), new HttpEntity.Strict(builder.result(), Optional.of(contentType)));
         } catch (IOException e) {
             throw new RuntimeException(e);
