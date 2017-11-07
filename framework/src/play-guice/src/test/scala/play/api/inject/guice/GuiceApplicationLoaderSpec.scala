@@ -61,14 +61,14 @@ class GuiceApplicationLoaderSpec extends Specification {
       var hooksCalled = false
       lifecycle.addStopHook(() => Future.successful(hooksCalled = true))
       val loader = new GuiceApplicationLoader()
-      val app = loader.load(ApplicationLoader.createContext(Environment.simple()).copy(lifecycle = lifecycle))
+      val app = loader.load(ApplicationLoader.Context.create(Environment.simple(), lifecycle = lifecycle))
       Await.ready(app.stop(), 5.minutes)
       hooksCalled must_== true
     }
 
   }
 
-  def fakeContext = ApplicationLoader.createContext(Environment.simple())
+  def fakeContext = ApplicationLoader.Context.create(Environment.simple())
   def fakeContextWithModule(module: Class[_ <: AbstractModule]) = {
     val f = fakeContext
     val c = f.initialConfiguration

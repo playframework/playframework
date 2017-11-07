@@ -36,7 +36,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
   // `withServer` method that allows filters to be constructed with a Materializer
   def withFlexibleServer[T](settings: Map[String, String], errorHandler: Option[HttpErrorHandler], makeFilters: Materializer => Seq[EssentialFilter])(block: WSClient => T) = {
 
-    val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
+    val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(
       environment = Environment.simple(),
       initialSettings = settings
     )) with HttpFiltersComponents {

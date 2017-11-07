@@ -130,10 +130,6 @@ object DevServerStart {
 
           }
 
-          override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-            currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
-          }
-
           def reload(projectClassloader: ClassLoader): Try[Application] = {
             try {
               if (lastState.isSuccess) {
@@ -163,13 +159,16 @@ object DevServerStart {
                 }
               }
 
-              val webCommands = new DefaultWebCommands
-              currentWebCommands = Some(webCommands)
               val lifecycle = new DefaultApplicationLifecycle()
               lastLifecycle = Some(lifecycle)
 
               val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands, lifecycle)
+                val context = ApplicationLoader.Context.create(
+                  environment,
+                  initialSettings = dirAndDevSettings,
+                  lifecycle = lifecycle,
+                  devContext = Some(ApplicationLoader.DevContext(sourceMapper, buildLink))
+                )
                 val loader = ApplicationLoader(context)
                 loader.load(context)
               }

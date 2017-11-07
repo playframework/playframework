@@ -32,7 +32,7 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
   )
 
   def application: Application = {
-    val context = ApplicationLoader.createContext(Environment.simple())
+    val context = ApplicationLoader.Context.create(Environment.simple())
     new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
 
       import play.api.routing.sird.{ POST => SirdPost, _ }

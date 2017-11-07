@@ -227,7 +227,23 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.ehcache.EhCacheComponents.actorSystem"),
 
       // Changed this private[play] type to a Lock to allow explicit locking
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.PlayRunners.mutex")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.PlayRunners.mutex"),
+
+      // Deprecate ApplicationProvider.handleWebCommands and pass BuildLink through ApplicationLoader.Context
+      ProblemFilters.exclude[FinalClassProblem]("play.api.OptionalSourceMapper"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.ApplicationLoader$Context$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ApplicationLoader#Context.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.ApplicationLoader#Context.copy$default$4"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.ApplicationLoader#Context.copy$default$3"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ApplicationLoader#Context.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServerComponents.sourceMapper"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServerComponents.webCommands"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.play$api$BuiltInComponents$$defaultWebCommands"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.play$api$BuiltInComponents$_setter_$play$api$BuiltInComponents$$defaultWebCommands_="),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.ApplicationLoader#Context.copy$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ApplicationLoader#Context.copy$default$5"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.sourceMapper"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.webCommands")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

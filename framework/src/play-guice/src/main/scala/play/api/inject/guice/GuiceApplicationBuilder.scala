@@ -105,7 +105,8 @@ final case class GuiceApplicationBuilder(
       .bindings(loadedModules: _*)
       .bindings(
         bind[ILoggerFactory] to loggerFactory,
-        bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
+        bind[OptionalDevContext] to new OptionalDevContext(None),
+        bind[OptionalSourceMapper].toProvider[OptionalSourceMapperProvider],
         bind[WebCommands] to new DefaultWebCommands
       ).createModule()
   }
