@@ -48,7 +48,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
@@ -60,7 +60,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
@@ -99,7 +99,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
@@ -125,7 +125,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
