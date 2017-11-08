@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
 import com.typesafe.config.impl.ConfigImpl
+import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
 import scala.collection.JavaConverters._
@@ -1091,7 +1092,9 @@ object ConfigLoader {
       val conf = obj.toConfig
 
       obj.keySet().asScala.map { key =>
-        key -> valueLoader.load(conf, key)
+        // quote and escape the key in case it contains dots or special characters
+        val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
+        key -> valueLoader.load(conf, path)
       }(scala.collection.breakOut)
     }
   }
