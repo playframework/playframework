@@ -5,7 +5,7 @@ package play.api
 
 import java.io._
 
-import com.typesafe.config.ConfigException
+import com.typesafe.config.{ ConfigException, ConfigFactory }
 import org.specs2.mutable.Specification
 
 import scala.util.control.NonFatal
@@ -110,6 +110,48 @@ class ConfigurationSpec extends Specification {
     "handle invalid and null configuration values" in {
       exampleConfig.get[Seq[Boolean]]("foo.bar1") must throwA[com.typesafe.config.ConfigException]
       exampleConfig.get[Boolean]("foo.bar3") must throwA[com.typesafe.config.ConfigException]
+    }
+
+    "query maps" in {
+      "objects with simple keys" in {
+        val configuration = Configuration(ConfigFactory.parseString(
+          """
+            |foo.bar {
+            |  one = 1
+            |  two = 2
+            |}
+          """.stripMargin))
+
+        configuration.get[Map[String, Int]]("foo.bar") must_== Map("one" -> 1, "two" -> 2)
+      }
+      "objects with complex keys" in {
+        val configuration = Configuration(ConfigFactory.parseString(
+          """
+            |test.files {
+            |  "/public/index.html" = "html"
+            |  "/public/stylesheets/\"foo\".css" = "css"
+            |  "/public/javascripts/\"bar\".js" = "js"
+            |}
+          """.stripMargin))
+        configuration.get[Map[String, String]]("test.files") must_== Map(
+          "/public/index.html" -> "html",
+          """/public/stylesheets/"foo".css""" -> "css",
+          """/public/javascripts/"bar".js""" -> "js"
+        )
+      }
+      "nested objects" in {
+        val configuration = Configuration(ConfigFactory.parseString(
+          """
+            |objects.a {
+            |  "b.c" = { "D.E" = F }
+            |  "d.e" = { "F.G" = H, "I.J" = K }
+            |}
+          """.stripMargin))
+        configuration.get[Map[String, Map[String, String]]]("objects.a") must_== Map(
+          "b.c" -> Map("D.E" -> "F"),
+          "d.e" -> Map("F.G" -> "H", "I.J" -> "K")
+        )
+      }
     }
 
     "throw serializable exceptions" in {
