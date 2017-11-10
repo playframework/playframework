@@ -101,8 +101,8 @@ private[server] class AkkaModelConversion(
           override def secure: Boolean = secureProtocol
           override def clientCertificateChain: Option[Seq[X509Certificate]] = {
             try {
-              request.header[`Tls-Session-Info`].map { tslSessionInfo =>
-                tslSessionInfo
+              request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
+                tlsSessionInfo
                   .getSession
                   .getPeerCertificates
                   .collect { case x509: X509Certificate => x509 }
