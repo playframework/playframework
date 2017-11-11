@@ -230,6 +230,47 @@ Using Etag is usually enough for the purposes of caching. However if you want to
 "play.assets.cache./public/stylesheets/bootstrap.min.css"="max-age=3600"
 ```
 
+You can also use partial paths to specify a custom `Cache-Control` for all the assets that are under that path, for example:
+
+```
+# Assets configuration
+# ~~~~~
+"play.assets.cache./public/stylesheets"="max-age=100"
+"play.assets.cache./public/javascripts"="max-age=200"
+```
+
+And Play will use `max-age=200` for all assets under `/public/javascripts` (like `/public/javascripts/main.js`) and `max-age=100` to all assets under `/public/stylesheets` (like `/public/stylesheets/main.css`).
+
+### How the additional directives are applied
+
+Play sorts the `Cache-Control` directives lexicographically and later from more specific to less specific. For example, given the following configuration: 
+
+```
+# Assets configuration
+# ~~~~~
+"play.assets.cache./public/stylesheets"="max-age=101"
+"play.assets.cache./public/stylesheets/layout"="max-age=102"
+"play.assets.cache./public/stylesheets/app"="max-age=103"
+"play.assets.cache./public/stylesheets/layout/main.css"="max-age=103"
+
+"play.assets.cache./public/javascripts"="max-age=201"
+"play.assets.cache./public/javascripts/app"="max-age=202"
+"play.assets.cache./public/javascripts/app/main.js"="max-age=203"
+```
+
+The directives will be sorted and applied in the following order:
+
+```
+"play.assets.cache./public/javascripts/app/main.js"="max-age=203"
+"play.assets.cache./public/javascripts/app"="max-age=202"
+"play.assets.cache./public/javascripts"="max-age=201"
+
+"play.assets.cache./public/stylesheets/app"="max-age=103"
+"play.assets.cache./public/stylesheets/layout/main.css"="max-age=103"
+"play.assets.cache./public/stylesheets/layout"="max-age=102"
+"play.assets.cache./public/stylesheets"="max-age=101"
+```
+
 ## Managed assets
 
 Starting with Play 2.3 managed assets are processed by [sbt-web](https://github.com/sbt/sbt-web#sbt-web) based plugins. Prior to 2.3 Play bundled managed asset processing in the form of CoffeeScript, LESS, JavaScript linting (ClosureCompiler) and RequireJS optimization. The following sections describe sbt-web and how the equivalent 2.2 functionality can be achieved. Note though that Play is not limited to this asset processing technology as many plugins should become available to sbt-web over time. Please check-in with the [sbt-web](https://github.com/sbt/sbt-web#sbt-web) project to learn more about what plugins are available.
