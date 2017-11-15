@@ -249,7 +249,10 @@ object BuildSettings {
 
       // Made InlineCache.cache private and changed the type (class is private[play])
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache_=")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache_="),
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.inject.guice.FakeRoutes.handlerFor"),
+      ProblemFilters.exclude[FinalMethodProblem]("play.core.routing.GeneratedRouter.handlerFor"),
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.routing.SimpleRouterImpl.handlerFor")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
