@@ -103,7 +103,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         action.annotatedElement = annotatedElement
         action
     }
-    
+
     val firstAction = if (config.executeActionCreatorActionFirst) {
       baseAction.delegate = firstUserDeclaredAction
       baseAction
