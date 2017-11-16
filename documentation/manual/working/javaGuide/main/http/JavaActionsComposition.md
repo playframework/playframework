@@ -59,6 +59,23 @@ Then in an action you can get the arg like this:
 
 @[pass-arg-action-index](code/javaguide/http/JavaActionsComposition.java)
 
+## Debugging the action composition order
+
+To see in which order the actions of the action composition chain will be executed, please add the following to `logback.xml`:
+
+```
+<logger name="play.mvc.Action" level="DEBUG" />
+```
+
+You will now see the whole action composition chain with the according annotations (and their associated method/controller) in the logs:
+
+```
+[debug] play.mvc.Action - ### Start of action order
+[debug] play.mvc.Action - 1. ...
+[debug] play.mvc.Action - 2. ...
+[debug] play.mvc.Action - ### End of action order
+```
+
 ## Using Dependency Injection
 
 You can use [[runtime Dependency Injection|JavaDependencyInjection]] or [[compile-time Dependency Injection|JavaCompileTimeDependencyInjection]]together with action composition. 
