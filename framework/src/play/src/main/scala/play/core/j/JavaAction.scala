@@ -4,11 +4,13 @@
 package play.core.j
 
 import java.lang.annotation.Annotation
+import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage
 import javax.inject.Inject
 
 import play.api.http.{ ActionCompositionConfiguration, HttpConfiguration }
 import play.api.inject.Injector
+import play.api.Logger
 
 import scala.compat.java8.FutureConverters
 import scala.language.existentials
@@ -32,20 +34,21 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
       .filterNot(_ == null)
       .headOption.map(_.value).getOrElse(classOf[JBodyParser.Default])
 
-  val controllerAnnotations: Seq[Annotation] = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
-    clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
+  val controllerAnnotations: Seq[(Annotation, AnnotatedElement)] = play.api.libs.Collections.unfoldLeft[Seq[(Annotation, AnnotatedElement)], Option[Class[_]]](Option(controller)) { clazz =>
+    clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.map((_, c)).toSeq))
   }.flatten
 
-  val actionMixins: Seq[(Annotation, Class[_ <: JAction[_]])] = {
-    val allDeclaredAnnotations: Seq[java.lang.annotation.Annotation] = if (config.controllerAnnotationsFirst) {
-      controllerAnnotations ++ method.getDeclaredAnnotations
+  val actionMixins: Seq[(Annotation, Class[_ <: JAction[_]], AnnotatedElement)] = {
+    val methodAnnotations = method.getDeclaredAnnotations.map((_, method))
+    val allDeclaredAnnotations: Seq[(java.lang.annotation.Annotation, AnnotatedElement)] = if (config.controllerAnnotationsFirst) {
+      controllerAnnotations ++ methodAnnotations
     } else {
-      method.getDeclaredAnnotations ++ controllerAnnotations
+      methodAnnotations ++ controllerAnnotations
     }
     allDeclaredAnnotations.collect {
-      case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
-      case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
-        a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
+      case (a: play.mvc.With, ae) => a.value.map(c => (a, c, ae)).toSeq
+      case (a, ae) if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
+        a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c, ae)).toSeq
     }.flatten.reverse
   }
 
@@ -56,6 +59,9 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
  */
 abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+
+  private val logger = Logger(classOf[JAction[_]])
+
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
 
   def invocation: CompletionStage[JResult]
@@ -90,28 +96,40 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       baseAction
     }
 
-    val finalUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](endOfChainAction) {
-      case (delegate, (annotation, actionClass)) =>
+    val firstUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](endOfChainAction) {
+      case (delegate, (annotation, actionClass, annotatedElement)) =>
         val action = handlerComponents.getAction(actionClass).asInstanceOf[play.mvc.Action[Object]]
         action.configuration = annotation
         delegate.precursor = action
         action.delegate = delegate
+        action.annotatedElement = annotatedElement
         action
     }
 
-    val finalAction = if (config.executeActionCreatorActionFirst) {
-      finalUserDeclaredAction.precursor = baseAction
-      baseAction.delegate = finalUserDeclaredAction
+    val firstAction = if (config.executeActionCreatorActionFirst) {
+      firstUserDeclaredAction.precursor = baseAction
+      baseAction.delegate = firstUserDeclaredAction
       baseAction
     } else {
-      finalUserDeclaredAction
+      firstUserDeclaredAction
     }
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
       new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
     }
-    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(finalAction.call(javaContext)) }(trampolineWithContext)
+    if (logger.isDebugEnabled) {
+      val actionChain = play.api.libs.Collections.unfoldLeft[JAction[_], Option[JAction[_]]](Option(firstAction)) { action =>
+        action.map(a => (Option(a.delegate), a))
+      }.reverse
+      logger.debug("### Start of action order")
+      actionChain.zip(Stream from 1).foreach({
+        case (action, index) => logger.debug(s"${index}. ${action.getClass.getName}" +
+          (if (action.annotatedElement != null) { s" defined on ${action.annotatedElement}" }))
+      })
+      logger.debug("### End of action order")
+    }
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext)) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture
