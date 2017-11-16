@@ -63,8 +63,13 @@ import static play.libs.F.Tuple;
  */
 public class Form<T> {
 
-    /** Statically compiled Pattern for replacing ".<collection element>" to get the field from a violation.  */
-    private static final Pattern REPLACE_COLLECTION_ELEMENT = Pattern.compile(".<collection element>", Pattern.LITERAL);
+    /**
+     * Statically compiled Pattern for replacing pairs of "<" and ">" with an optional content and optionally prefixed with a dot. Needed to get the field from a violation.
+     * This takes care of occurrences like "field.<list element>", "field<K>[somekey]", "field[somekey].<map value>", "field<K>[somekey].<map key>", etc.
+     * We always want to end up with just "field" or "field[0]" in case of lists or "field[somekey]" in case of maps.
+     * Also see https://github.com/hibernate/hibernate-validator/blob/6.0.5.Final/engine/src/main/java/org/hibernate/validator/internal/engine/path/NodeImpl.java#L51-L56
+     */
+    private static final Pattern REPLACE_COLLECTION_ELEMENT = Pattern.compile("\\.?<[^<]*>");
 
     /** Statically compiled Pattern for replacing "typeMismatch" in Form errors. */
     private static final Pattern REPLACE_TYPEMISMATCH = Pattern.compile("typeMismatch", Pattern.LITERAL);
