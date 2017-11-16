@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage;
 
 import play.mvc.Http.Context;
@@ -16,6 +17,11 @@ public abstract class Action<T> extends Results {
      * The action configuration - typically the annotation used to decorate the action method.
      */
     public T configuration;
+
+    /**
+     * Where an action was defined.
+     */
+    public AnnotatedElement annotatedElement;
 
     /**
      * The wrapped action.
