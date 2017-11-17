@@ -73,7 +73,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.11.RELEASE"
+  val springFrameworkVersion = "5.0.1.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -104,6 +104,7 @@ object Dependencies {
 
     ("org.springframework" % "spring-core" % springFrameworkVersion)
       .exclude("org.springframework", "spring-asm")
+      .exclude("org.springframework", "spring-jcl")
       .exclude("commons-logging", "commons-logging"),
 
     ("org.springframework" % "spring-beans" % springFrameworkVersion)
