@@ -57,6 +57,7 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       playProject("Play-Java-JPA") % "test",
       playProject("Play-Guice") % "test",
       playProject("Play-Ehcache") % "test",
+      playProject("Play-Caffeine-Cache") % "test",
       playProject("Play-AHC-WS") % "test",
       playProject("Play-OpenID") % "test",
       playProject("Filters-Helpers") % "test",
