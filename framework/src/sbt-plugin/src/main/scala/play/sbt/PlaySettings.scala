@@ -57,6 +57,8 @@ object PlaySettings extends PlaySettingsCompat {
 
     externalizeResources := true,
 
+    externalizeResourcesExcludes := Nil,
+
     includeDocumentationInBinary := true,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
@@ -263,7 +265,8 @@ object PlaySettings extends PlaySettingsCompat {
     Defaults.packageTaskSettings(playJarSansExternalized, mappings in playJarSansExternalized) ++ Seq(
       playExternalizedResources := getPlayExternalizedResources(
         unmanagedResourceDirectories.value,
-        unmanagedResources.value
+        unmanagedResources.value,
+        externalizeResourcesExcludes.value
       ),
       mappings in playJarSansExternalized := {
         // packageBin mappings have all the copied resources from the classes directory
