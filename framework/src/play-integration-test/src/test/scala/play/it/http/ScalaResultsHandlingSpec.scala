@@ -3,24 +3,22 @@
  */
 package play.it.http
 
-import java.nio.file.{ Path, Files => JFiles }
+import java.nio.file.{ Files => JFiles }
 import java.util.Locale.ENGLISH
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.http._
+import play.api.http.{ HttpChunk, HttpEntity, _ }
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.test._
-import play.api.libs.ws._
-import play.api.libs.EventSource
 import play.core.server.common.ServerResultException
 import play.it._
 
-import scala.util.Try
 import scala.concurrent.Future
-import play.api.http.{ HttpChunk, HttpEntity }
+import scala.util.Try
 
 class NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -50,113 +48,6 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         block(port)
       }
     }
-
-    "add Date header" in makeRequest(Results.Ok("Hello world")) { response =>
-      response.header(DATE) must beSome
-    }
-
-    "work with non-standard HTTP response codes" in makeRequest(Result(ResponseHeader(498), HttpEntity.NoEntity)) { response =>
-      response.status must_== 498
-      response.body must beEmpty
-    }
-
-    "add Content-Length for strict results" in makeRequest(Results.Ok("Hello world")) { response =>
-      response.header(CONTENT_LENGTH) must beSome("11")
-      response.body must_== "Hello world"
-    }
-
-    def emptyStreamedEntity = Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))
-
-    "not fail when sending an empty entity with a known size zero" in makeRequest(emptyStreamedEntity) {
-      response =>
-        response.status must_== 200
-        response.header(CONTENT_LENGTH) must beSome("0") or beNone
-    }
-
-    "not fail when sending an empty file" in {
-      val emptyPath = JFiles.createTempFile("empty", ".txt")
-      // todo fix the ExecutionContext. Not sure where to get it from nicely
-      // maybe the test is in the wrong place
-      import scala.concurrent.ExecutionContext.Implicits.global
-      // todo not sure where to get this one from in this context, either
-      implicit val fileMimeTypes = new FileMimeTypes {
-        override def forFileName(name: String): Option[String] = Some("text/plain")
-      }
-      try makeRequest(
-        Results.Ok.sendPath(emptyPath)
-      ) {
-          response =>
-            response.status must_== 200
-            response.header(CONTENT_LENGTH) must beSome("0")
-        } finally JFiles.delete(emptyPath)
-    }
-
-    "not add a content length header when none is supplied" in makeRequest(
-      Results.Ok.sendEntity(HttpEntity.Streamed(Source(List("abc", "def", "ghi")).map(ByteString.apply), None, None))
-    ) { response =>
-        response.header(CONTENT_LENGTH) must beNone
-        response.header(TRANSFER_ENCODING) must beNone
-        response.body must_== "abcdefghi"
-      }
-
-    "support responses with custom Content-Types" in {
-      makeRequest(
-        Results.Ok.sendEntity(HttpEntity.Strict(ByteString(0xff.toByte), Some("schmitch/foo; bar=bax")))
-      ) { response =>
-          response.header(CONTENT_TYPE) must beSome("schmitch/foo; bar=bax")
-          response.header(CONTENT_LENGTH) must beSome("1")
-          response.header(TRANSFER_ENCODING) must beNone
-          response.bodyAsBytes must_== ByteString(0xff.toByte)
-        }
-    }
-
-    "support multipart/mixed responses" in {
-      // Example taken from https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
-      val contentType = "multipart/mixed; boundary=\"simple boundary\""
-      val body: String =
-        """|This is the preamble.  It is to be ignored, though it
-           |is a handy place for mail composers to include an
-           |explanatory note to non-MIME compliant readers.
-           |--simple boundary
-           |
-           |This is implicitly typed plain ASCII text.
-           |It does NOT end with a linebreak.
-           |--simple boundary
-           |Content-type: text/plain; charset=us-ascii
-           |
-           |This is explicitly typed plain ASCII text.
-           |It DOES end with a linebreak.
-           |
-           |--simple boundary--
-           |This is the epilogue.  It is also to be ignored.""".stripMargin
-      makeRequest(
-        Results.Ok.sendEntity(HttpEntity.Strict(ByteString(body), Some(contentType)))
-      ) { response =>
-          response.header(CONTENT_TYPE) must beSome(contentType)
-          response.header(CONTENT_LENGTH) must beSome(body.length.toString)
-          response.header(TRANSFER_ENCODING) must beNone
-          response.body must_== body
-        }
-    }
-
-    "chunk results for chunked streaming strategy" in makeRequest(
-      Results.Ok.chunked(Source(List("a", "b", "c")))
-    ) { response =>
-        response.header(TRANSFER_ENCODING) must beSome("chunked")
-        response.header(CONTENT_LENGTH) must beNone
-        response.body must_== "abc"
-      }
-
-    "chunk results for event source strategy" in makeRequest(
-      Results.Ok.chunked(Source(List("a", "b")) via EventSource.flow).as("text/event-stream")
-    ) { response =>
-        response.header(CONTENT_TYPE) must beSome.like {
-          case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
-        }
-        response.header(TRANSFER_ENCODING) must beSome("chunked")
-        response.header(CONTENT_LENGTH) must beNone
-        response.body must_== "data: a\n\ndata: b\n\n"
-      }
 
     "close the connection when no content length is sent" in withServer(
       Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("abc")), None, None))
@@ -207,7 +98,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       )(0).status must_== 200
     }
 
-    "honour the keep alive header for HTTP 1.0" in withServer(
+    "honor the keep alive header for HTTP 1.0" in withServer(
       Results.Ok
     ) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
@@ -281,91 +172,6 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         responses(0).status must_== 200
         responses(1).status must_== 200
       }
-
-    "Strip malformed cookies" in withServer(
-      Results.Ok
-    ) { port =>
-      val response = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/", "HTTP/1.1", Map("Cookie" -> """£"""), "")
-      )(0)
-
-      response.status must_== 200
-      response.body must beLeft
-    }
-
-    "reject HTTP 1.0 requests for chunked results" in withServer(
-      Results.Ok.chunked(Source(List("a", "b", "c"))),
-      errorHandler = new HttpErrorHandler {
-        override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-          request.path must_== "/"
-          exception must beLike {
-            case e: ServerResultException =>
-              // Check original result
-              e.result.header.status must_== 200
-          }
-          Future.successful(Results.Status(500))
-        }
-      }
-    ) { port =>
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
-        ).head
-        response.status must_== 505
-      }
-
-    "return a 500 error on response with null header" in withServer(
-      Results.Ok("some body").withHeaders("X-Null" -> null)
-    ) { port =>
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).head
-
-        response.status must_== 500
-        response.body must beLeft
-      }
-
-    "return a 400 error on Header value contains a prohibited character" in withServer(
-      Results.Ok
-    ) { port =>
-
-      forall(List(
-        "aaa" -> "bbb\fccc",
-        "ddd" -> "eee\u000bfff"
-      )) { header =>
-
-        val response = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(header), "")
-        ).head
-
-        response.status must_== 400
-        response.body must beLeft
-      }
-    }
-
-    "support UTF-8 encoded filenames in Content-Disposition headers" in {
-      val tempFile: Path = JFiles.createTempFile("ScalaResultsHandlingSpec", "txt")
-      try {
-        withServer {
-          import scala.concurrent.ExecutionContext.Implicits.global
-          implicit val mimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration())
-          Results.Ok.sendFile(
-            tempFile.toFile,
-            fileName = _ => "测 试.tmp"
-          )
-        } { port =>
-          val response = BasicHttpClient.makeRequests(port)(
-            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-          ).head
-
-          response.status must_== 200
-          response.body must beLeft("")
-          response.headers.get(CONTENT_DISPOSITION) must beSome(s"""inline; filename="? ?.tmp"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp""")
-        }
-      } finally {
-        tempFile.toFile.delete()
-      }
-    }
 
     "split Set-Cookie headers" in {
       import play.api.mvc.Cookie

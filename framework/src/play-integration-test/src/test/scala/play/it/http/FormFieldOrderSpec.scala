@@ -5,18 +5,18 @@ package play.it.http
 
 import play.api.mvc._
 import play.api.test._
-import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.it.test.{ ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpoint, OkHttpEndpointSupport }
 
 class FormFieldOrderSpec extends PlaySpecification
-    with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+    with EndpointIntegrationSpecification with OkHttpEndpointSupport {
 
   "Form URL Decoding " should {
 
     val urlEncoded = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 
-    val fakeAppFactory: ApplicationFactory = withAction { actionBuilder =>
-      actionBuilder { request: Request[AnyContent] =>
+    val fakeAppFactory: ApplicationFactory = serveAction { components =>
+      components.defaultActionBuilder { request: Request[AnyContent] =>
         // Check precondition. This needs to be an x-www-form-urlencoded request body
         request.contentType must beSome(contentType)
         // The following just ingests the request body and converts it to a sequence of strings of the form name=value
@@ -36,7 +36,7 @@ class FormFieldOrderSpec extends PlaySpecification
       }
     }
 
-    "preserve form field order" in fakeAppFactory.withAllOkHttpEndpoints { okep: OkHttpEndpoint =>
+    "preserve form field order" in fakeAppFactory.useOkHttp.forEndpoints { okep: OkHttpEndpoint =>
       val request = new okhttp3.Request.Builder()
         .url(okep.endpoint.pathUrl("/"))
         .post(okhttp3.RequestBody.create(okhttp3.MediaType.parse(contentType), urlEncoded))

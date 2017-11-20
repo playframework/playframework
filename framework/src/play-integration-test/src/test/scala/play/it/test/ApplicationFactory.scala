@@ -3,10 +3,10 @@
  */
 package play.it.test
 
-import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.routing.Router
+import play.api.{ BuiltInComponents, _ }
 
 /**
  * Creates an [[Application]]. Usually created by a helper in [[ApplicationFactories]].
@@ -20,30 +20,39 @@ trait ApplicationFactory {
  * Mixin with helpers for creating [[ApplicationFactory]] objects.
  */
 trait ApplicationFactories {
-  def withGuiceApp(builder: GuiceApplicationBuilder): ApplicationFactory = new ApplicationFactory {
+
+  /**
+   * Used to create `Application`s with a `GuiceApplicationBuilder`.
+   */
+  def serveFromGuice(builder: GuiceApplicationBuilder): ApplicationFactory = new ApplicationFactory {
     override def create(): Application = builder.build()
   }
-  def withComponents(components: => BuiltInComponents): ApplicationFactory = new ApplicationFactory {
+
+  /**
+   * Used to create `Application`s from `BuiltinComponents`.
+   */
+  def serveComponents(components: => BuiltInComponents): ApplicationFactory = new ApplicationFactory {
     override def create(): Application = components.application
   }
-  def withRouter(createRouter: BuiltInComponents => Router): ApplicationFactory =
-    withConfigAndRouter(Map.empty)(createRouter)
-  def withConfigAndRouter(extraConfig: Map[String, Any])(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
-    val context = ApplicationLoader.Context.create(
-      environment = Environment.simple(),
-      initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig.asInstanceOf[Map[String, AnyRef]]
-    )
-    new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-      override lazy val router: Router = createRouter(this)
-    }
-  }
-  def withAction(createAction: DefaultActionBuilder => Action[_]): ApplicationFactory = withRouter { components: BuiltInComponents =>
-    val action = createAction(components.defaultActionBuilder)
-    Router.from { case _ => action }
-  }
-  def withResult(result: Result): ApplicationFactory = withAction { Action: DefaultActionBuilder =>
-    Action { result }
-  }
+
+  /**
+   * Used to create `Application`s from `BuiltinComponents` via a `ComponentsBuilderApplicationFactory`.
+   */
+  def serveComponents: ComponentsBuilderApplicationFactory = ComponentsBuilderApplicationFactory.Default
+
+  def serveRouter(createRouter: BuiltInComponents => Router): ComponentsBuilderApplicationFactory =
+    serveComponents.withRouter(createRouter)
+  def serveExtraConfig(extraConfig: Map[String, Any]): ComponentsBuilderApplicationFactory =
+    serveComponents.withExtraConfig(extraConfig = extraConfig)
+  def serveAction(createAction: BuiltInComponents => Action[_]): ComponentsBuilderApplicationFactory =
+    serveComponents.withAction(createAction)
+  def serveResult(createResult: BuiltInComponents => Result): ComponentsBuilderApplicationFactory =
+    serveComponents.withResult(createResult)
+  def serveResult(result: => Result): ComponentsBuilderApplicationFactory =
+    serveComponents.withResult(result)
+  def serveOk(message: String): ComponentsBuilderApplicationFactory = serveComponents.withOk(message)
+  def serveOk: ComponentsBuilderApplicationFactory = serveComponents.withOk
 }
 
 final object ApplicationFactory extends ApplicationFactories
+

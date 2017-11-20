@@ -4,6 +4,7 @@
 package play.it.test
 
 import okhttp3.{ Protocol, Response }
+import play.api.BuiltInComponents
 import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
 import play.api.test.PlaySpecification
@@ -15,12 +16,12 @@ class EndpointIntegrationSpecificationSpec extends PlaySpecification with Endpoi
 
   "Endpoints" should {
     "respond with the highest supported HTTP protocol" in {
-      withResult(Results.Ok("Hello")) withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+      serveOk("Hello").useOkHttp.forEndpoints { okEndpoint: OkHttpEndpoint =>
         val response: Response = okEndpoint.call("/")
         val protocol = response.protocol
-        if (okEndpoint.endpoint.expectedHttpVersions.contains("2")) {
+        if (okEndpoint.endpoint.recipe.supportsHttp2) {
           protocol must_== Protocol.HTTP_2
-        } else if (okEndpoint.endpoint.expectedHttpVersions.contains("1.1")) {
+        } else if (okEndpoint.endpoint.recipe.supportsHttp11) {
           protocol must_== Protocol.HTTP_1_1
         } else {
           ko("All endpoints should support at least HTTP/1.1")
@@ -28,13 +29,13 @@ class EndpointIntegrationSpecificationSpec extends PlaySpecification with Endpoi
         response.body.string must_== "Hello"
       }
     }
-    "respond with the correct server attribute" in withAction { Action: DefaultActionBuilder =>
-      Action { request: Request[_] =>
+    "respond with the correct server attribute" in serveAction { components: BuiltInComponents =>
+      components.defaultActionBuilder { request: Request[_] =>
         Results.Ok(request.attrs.get(RequestAttrKey.Server).toString)
       }
-    }.withAllOkHttpEndpoints { okHttpEndpoint: OkHttpEndpoint =>
+    }.useOkHttp.forEndpoints { okHttpEndpoint: OkHttpEndpoint =>
       val response: Response = okHttpEndpoint.call("/")
-      response.body.string must_== okHttpEndpoint.endpoint.expectedServerAttr.toString
+      response.body.string must_== okHttpEndpoint.endpoint.recipe.serverAttr.toString
     }
   }
 }

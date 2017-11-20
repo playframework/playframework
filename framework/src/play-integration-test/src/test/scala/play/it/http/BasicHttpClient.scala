@@ -112,6 +112,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
    * Send a request
    *
    * @param request The request to send
+   * @param requestDesc Description of the request, for error reporting
    * @param waitForResponses Whether we should wait for responses
    * @param trickleFeed Whether bodies should be trickle fed.  Trickle feeding will simulate a more realistic network
    *                    environment.

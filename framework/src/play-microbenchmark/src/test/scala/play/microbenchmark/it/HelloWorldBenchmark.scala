@@ -5,10 +5,10 @@ package play.microbenchmark.it
 
 import java.util.concurrent.TimeUnit
 
-import okhttp3.{ OkHttpClient, Protocol, Request, Response }
+import okhttp3.{OkHttpClient, Protocol, Request, Response}
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
-import play.it.test.{ ApplicationFactory, HttpsEndpoint, ServerEndpoint, ServerEndpointRecipe }
+import play.it.test._
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
 import scala.util.Random
@@ -38,7 +38,7 @@ class HelloWorldBenchmark {
 
   @Setup(Level.Trial)
   def setup(): Unit = {
-    val appFactory = ApplicationFactory.withResult(Results.Ok("Hello world"))
+    val appFactory = ApplicationFactory.serveOk("Hello world")
     val endpointRecipe = endpoint match {
       case "nt-11-pln" => ServerEndpointRecipe.Netty11Plaintext
       case "nt-11-enc" => ServerEndpointRecipe.Netty11Plaintext
@@ -96,24 +96,18 @@ object HelloWorldBenchmark {
       // Build the client
       client = {
         val Timeout = 5
-        val b1 = new OkHttpClient.Builder()
+        OkHttpEndpoint.getOkHttpEndpoint(bench.serverEndpoint).clientBuilder
           .connectTimeout(Timeout, TimeUnit.SECONDS)
           .readTimeout(Timeout, TimeUnit.SECONDS)
           .writeTimeout(Timeout, TimeUnit.SECONDS)
-        // Add SSL options if we need to
-        val b2 = bench.serverEndpoint match {
-          case e: HttpsEndpoint =>
-            b1.sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
-          case _ => b1
-        }
-        b2.build()
+          .build()
       }
       // Pre-build the request
       request = new Request.Builder().url(bench.serverEndpoint.pathUrl("/")).build()
       // Store the expected protocol so we can verify we're testing the correct HTTP version
-      expectedProtocol = if (bench.serverEndpoint.expectedHttpVersions.contains("2")) {
+      expectedProtocol = if (bench.serverEndpoint.recipe.httpVersions.contains("2")) {
         Protocol.HTTP_2
-      } else if (bench.serverEndpoint.expectedHttpVersions.contains("1.1")) {
+      } else if (bench.serverEndpoint.recipe.httpVersions.contains("1.1")) {
         Protocol.HTTP_1_1
       } else {
         throw new IllegalArgumentException("Server endpoint must support either HTTP version 1.1 or 2")
