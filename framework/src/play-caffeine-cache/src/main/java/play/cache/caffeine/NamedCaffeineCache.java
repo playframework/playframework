@@ -1,17 +1,12 @@
 package play.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.cache.configuration.Configuration;
 import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 

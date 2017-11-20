@@ -48,7 +48,7 @@ public interface CaffeineCacheComponents extends ConfigurationComponents, AkkaCo
     ApplicationLifecycle applicationLifecycle();
 
     default AsyncCacheApi cacheApi(String name) {
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager(config().getString("play.cache.caffeine.spec"));
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager(config().getConfig("play.cache.caffeine.spec"));
 
         play.api.cache.AsyncCacheApi scalaAsyncCacheApi = new CaffeineCacheApi(
             NamedCaffeineCacheProvider$.MODULE$.getNamedCache(name, caffeineCacheManager, configuration()),

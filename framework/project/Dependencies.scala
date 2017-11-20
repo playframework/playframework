@@ -255,7 +255,7 @@ object Dependencies {
     "javax.cache" % "cache-api" % "1.0.0"
   )
 
-  val caffeineVersion = "2.5.6"
+  val caffeineVersion = "2.6.0"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion

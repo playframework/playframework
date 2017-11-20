@@ -10,12 +10,8 @@ import javax.cache.CacheException
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider
 import com.google.common.primitives.Primitives
-import play.cache.caffeine.CaffeineCacheManager
-import play.cache.caffeine.NamedCaffeineCache
-import com.github.benmanes.caffeine.cache.Cache
-import com.github.benmanes.caffeine.jcache.CacheManagerImpl
+import play.cache.caffeine.{ CaffeineCacheManager, CaffeineConfigConstants, NamedCaffeineCache }
 import play.api.cache._
 import play.api.inject._
 import play.api.{ Configuration, Environment }
@@ -35,13 +31,13 @@ trait CaffeineCacheComponents {
   def actorSystem: ActorSystem
   implicit def executionContext: ExecutionContext
 
-  lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getString("play.cache.caffeine.spec"))
+  lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getConfig(CaffeineConfigConstants.PLAY_CACHE_CAFFEINE_SPEC))
 
   /**
    * Use this to create with the given name.
    */
   def cacheApi(name: String, create: Boolean = true): AsyncCacheApi = {
-    val ec = configuration.get[Option[String]]("play.cache.dispatcher")
+    val ec = configuration.get[Option[String]](CaffeineConfigConstants.PLAY_CACHE_DISPATCHER)
       .fold(executionContext)(actorSystem.dispatchers.lookup(_))
     new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))(ec)
   }
@@ -56,8 +52,8 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
 
   import scala.collection.JavaConverters._
 
-  val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
-  val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").asScala
+  val defaultCacheName = configuration.underlying.getString(CaffeineConfigConstants.PLAY_CACHE_DEFAULT_CACHE)
+  val bindCaches = configuration.underlying.getStringList(CaffeineConfigConstants.PLAY_CACHE_BIND_CACHES).asScala
 
   // Creates a named cache qualifier
   def named(name: String): NamedCache = {
@@ -104,7 +100,7 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
 @Singleton
 class CacheManagerProvider @Inject() (configuration: Configuration) extends Provider[CaffeineCacheManager] {
   lazy val get: CaffeineCacheManager = {
-    val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getString("play.cache.caffeine.spec"))
+    val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getConfig(CaffeineConfigConstants.PLAY_CACHE_CAFFEINE_SPEC))
     cacheManager
   }
 }
@@ -132,7 +128,7 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCach
   @Inject private var defaultEc: ExecutionContext = _
   @Inject private var configuration: Configuration = _
   @Inject private var actorSystem: ActorSystem = _
-  private lazy val ec: ExecutionContext = configuration.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
+  private lazy val ec: ExecutionContext = configuration.get[Option[String]](CaffeineConfigConstants.PLAY_CACHE_DISPATCHER).map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
     new CaffeineCacheApi(injector.instanceOf(key))(ec)
 }
