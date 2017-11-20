@@ -173,18 +173,16 @@ private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwa
 class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi with CacheApi {
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    cache.put(key, value)
-
     expiration match {
-      case infinite: Duration.Infinite => cache.policy().expireVariably().get().setExpiresAfter(key, Long.MaxValue, TimeUnit.DAYS)
+      case infinite: Duration.Infinite => cache.policy().expireVariably().get().put(key, value, Long.MaxValue, TimeUnit.DAYS)
       case finite: FiniteDuration =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {
-          cache.policy().expireVariably().get().setExpiresAfter(key, 1, TimeUnit.SECONDS)
+          cache.policy().expireVariably().get().put(key, value, 1, TimeUnit.SECONDS)
         } else if (seconds > Int.MaxValue) {
-          cache.policy().expireVariably().get().setExpiresAfter(key, Int.MaxValue, TimeUnit.SECONDS)
+          cache.policy().expireVariably().get().put(key, value, Int.MaxValue, TimeUnit.SECONDS)
         } else {
-          cache.policy().expireVariably().get().setExpiresAfter(key, seconds.toInt, TimeUnit.SECONDS)
+          cache.policy().expireVariably().get().put(key, value, seconds.toInt, TimeUnit.SECONDS)
         }
     }
 
