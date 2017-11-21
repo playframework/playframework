@@ -93,7 +93,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate" % "hibernate-validator" % "5.4.1.Final",
+    "org.hibernate" % "hibernate-validator" % "6.0.5.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
