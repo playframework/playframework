@@ -81,7 +81,7 @@ object Comet {
 
   private def formatted(callbackName: ByteString, javascriptMessage: ByteString): ByteString = {
     val b: ByteStringBuilder = new ByteStringBuilder
-    b.append(ByteString.fromString("""<script type="text/javascript">"""))
+    b.append(ByteString.fromString("""<script type="application/javascript">"""))
     b.append(callbackName)
     b.append(ByteString.fromString("("))
     b.append(javascriptMessage)
@@ -98,7 +98,7 @@ object Comet {
       case other =>
         throw new IllegalStateException("Illegal type found: only String or JsValue elements are valid")
     }
-    Html(s"""<script type="text/javascript">${callbackName}(${javascriptMessage});</script>""")
+    Html(s"""<script type="application/javascript">${callbackName}(${javascriptMessage});</script>""")
   }
 
 }

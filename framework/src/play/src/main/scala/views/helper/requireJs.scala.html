@@ -15,4 +15,4 @@
 
 @(module: String, core: String, isProd: Boolean, productionFolderPrefix: String = "-min", folder: String = "javascripts")
 
-<script type="text/javascript" data-main="@{if(isProd) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>
+<script type="application/javascript" data-main="@{if(isProd) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>

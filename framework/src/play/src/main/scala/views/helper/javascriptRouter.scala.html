@@ -23,6 +23,6 @@
  *@
 @(name:String = "Router")(routes: play.api.routing.JavaScriptReverseRoute*)(implicit request: play.api.mvc.RequestHeader)
 
-<script type="text/javascript">
+<script type="application/javascript">
     @Html(play.api.routing.JavaScriptReverseRouter(name)(routes: _*).body.replace("/", "\\/"))
 </script>
