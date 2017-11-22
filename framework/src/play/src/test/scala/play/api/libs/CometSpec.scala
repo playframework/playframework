@@ -52,7 +52,7 @@ class CometSpec extends Specification {
         implicit val m = app.materializer
         val controller = new MockController(m, ActionBuilder.ignoringBody)
         val result = controller.cometString.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script type=\"application/javascript\">parent.cometMessage('kiki');</script><script type=\"application/javascript\">parent.cometMessage('foo');</script><script type=\"application/javascript\">parent.cometMessage('bar');</script>")
+        contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage('kiki');</script><script type=\"text/javascript\">parent.cometMessage('foo');</script><script type=\"text/javascript\">parent.cometMessage('bar');</script>")
       } finally {
         app.stop()
       }
@@ -64,7 +64,7 @@ class CometSpec extends Specification {
         implicit val m = app.materializer
         val controller = new MockController(m, ActionBuilder.ignoringBody)
         val result = controller.cometJson.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script type=\"application/javascript\">parent.cometMessage(\"jsonString\");</script>")
+        contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage(\"jsonString\");</script>")
       } finally {
         app.stop()
       }
