@@ -34,7 +34,7 @@ public class CaffeineCacheManager {
         Caffeine cacheBuilder;
 
         // we create the cache builder
-        // depending on weather the config for
+        // depending on whether the config for
         // the cache name was there or not
         if (config != null && config.hasPath(cacheName)) {
             cacheBuilder = CaffeineParser.from(config.getConfig(cacheName)).expireAfter(new CaffeineDefaultExpiry());
