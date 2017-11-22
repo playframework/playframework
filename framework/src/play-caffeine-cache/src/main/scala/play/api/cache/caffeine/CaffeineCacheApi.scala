@@ -179,8 +179,6 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
         val seconds = finite.toSeconds
         if (seconds <= 0) {
           cache.policy().expireVariably().get().put(key, value, 1, TimeUnit.SECONDS)
-        } else if (seconds > Int.MaxValue) {
-          cache.policy().expireVariably().get().put(key, value, Int.MaxValue, TimeUnit.SECONDS)
         } else {
           cache.policy().expireVariably().get().put(key, value, seconds.toInt, TimeUnit.SECONDS)
         }

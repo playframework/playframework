@@ -314,6 +314,16 @@ lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     )
 
 
+lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcache")
+    .settings(
+      libraryDependencies ++= playEhcacheDeps
+    )
+    .dependsOn(
+      PlayProject,
+      PlayCacheProject,
+      PlaySpecs2Project % "test"
+    )
+
 lazy val PlayCaffeineCacheProject = PlayCrossBuiltProject("Play-Caffeine-Cache", "play-caffeine-cache")
     .settings(
       libraryDependencies ++= playCaffeineDeps
@@ -350,6 +360,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
+  PlayEhcacheProject,
   PlayCaffeineCacheProject,
   PlayJCacheProject,
   PlayJdbcApiProject,

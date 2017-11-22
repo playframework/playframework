@@ -60,43 +60,24 @@ public final class CaffeineParser {
     private void parse(String key) {
         switch (key) {
             case "initial-capacity":
-                System.out.println("initial-capacity:" + config.getInt(key));
                 cacheBuilder.initialCapacity(config.getInt(key));
                 break;
             case "maximum-size":
-                System.out.println("maximum-size:" + config.getLong(key));
                 cacheBuilder.maximumSize(config.getLong(key));
                 break;
             case "maximum-weight":
-                System.out.println("maximum-weight:" + config.getMemorySize(key));
                 cacheBuilder.maximumWeight(config.getMemorySize(key).toBytes());
                 break;
-            case "expire-after-access":
-                System.out.println("expire-after-access:" + getNanos(key));
-                cacheBuilder.expireAfterAccess(getNanos(key), TimeUnit.NANOSECONDS);
-                break;
-            case "expire-after-write":
-                System.out.println("xpire-after-write:" + getNanos(key));
-                cacheBuilder.expireAfterWrite(getNanos(key), TimeUnit.NANOSECONDS);
-                break;
-            case "refreshAfterWrite":
-                System.out.println("refreshAfterWrite:" + getNanos(key));
-                cacheBuilder.refreshAfterWrite(getNanos(key), TimeUnit.NANOSECONDS);
-                break;
             case "weak-keys":
-                System.out.println("weak-keys:" + config.getBoolean(key));
                 conditionally(key, cacheBuilder::weakKeys);
                 break;
             case "weak-values":
-                System.out.println("weak-values:" + config.getBoolean(key));
                 conditionally(key, cacheBuilder::weakValues);
                 break;
             case "soft-values":
-                System.out.println("soft-values:" + config.getBoolean(key));
                 conditionally(key, cacheBuilder::softValues);
                 break;
             case "record-stats":
-                System.out.println("record-stats:" + config.getBoolean(key));
                 conditionally(key, cacheBuilder::recordStats);
                 break;
             default:
