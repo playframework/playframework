@@ -243,7 +243,11 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.ApplicationLoader#Context.copy$default$2"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ApplicationLoader#Context.copy$default$5"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.sourceMapper"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.webCommands")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.webCommands"),
+
+      // Pass a default server header to netty
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler.this")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
