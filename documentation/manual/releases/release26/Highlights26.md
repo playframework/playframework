@@ -20,9 +20,29 @@ For Scala 2.11:
 scalaVersion := "2.11.11"
 ```
 
+## PlayService sbt plugin (experimental)
+
+As of Play 2.6.8, Play also offers a `PlayService` plugin. This is a much more minimal Play configuration oriented towards microservices. It uses the standard Maven layout instead of the traditional Play layout, and does not include twirl templates or the sbt-web functionality. For example:
+
+```scala
+lazy val root = (project in file("."))
+  .enablePlugins(PlayService)
+  .enablePlugins(RoutesCompiler) // place routes in src/main/resources, or remove if using SIRD/RoutingDsl
+  .settings(
+    scalaVersion := "2.12.4",
+    libraryDependencies ++= Seq(
+      guice, // remove if not using Play's Guice loader
+      akkaHttpServer, // or use nettyServer for Netty
+      logback // add Play logging support
+    )
+  )
+```
+
+**Note**: this plugin is considered *experimental*, which means the API may change. We expect it to be stable in Play 2.7.0.
+
 ## "Global-State-Free" Applications
 
-The biggest under the hood change is that Play no longer relies on global state under the hood.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all. 
+The biggest under the hood change is that Play no longer relies on global state under the hood.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all.
 
 You can disable access to global application entirely by setting the following configuration value:
 
@@ -90,7 +110,7 @@ Request tags have now been deprecated and you should migrate to use attributes i
 The routes file syntax now allows you to add "modifiers" to each route that provide custom behavior. We have implemented one such tag in the CSRF filter, the "nocsrf" tag. By default, the following route will not have the CSRF filter applied.
 
 ```
-+ nocsrf # Don't CSRF protect this route 
++ nocsrf # Don't CSRF protect this route
 POST /api/foo/bar ApiController.foobar
 ```
 
@@ -697,9 +717,9 @@ val stubParser = stubBodyParser(AnyContent("hello"))
 
 ## File Upload Improvements
 
-Uploading files uses a `TemporaryFile` API which relies on storing files in a temporary filesystem, as specified in [[ScalaFileUpload]] / [[JavaFileUpload]], accessible through the `ref` attribute.  
+Uploading files uses a `TemporaryFile` API which relies on storing files in a temporary filesystem, as specified in [[ScalaFileUpload]] / [[JavaFileUpload]], accessible through the `ref` attribute.
 
-Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind `TemporaryFile` is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted. 
+Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind `TemporaryFile` is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted.
 
 In 2.5.x, TemporaryFile were deleted as the file references were garbage collected, using `finalize`.   However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection did not occur in a timely fashion.  The background cleanup has been moved to use [FinalizableReferenceQueue](https://google.github.io/guava/releases/20.0/api/docs/com/google/common/base/FinalizableReferenceQueue.html) and PhantomReferences rather than use `finalize`.
 

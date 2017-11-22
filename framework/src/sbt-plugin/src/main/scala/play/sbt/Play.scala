@@ -12,6 +12,25 @@ import sbt.Keys._
 import sbt._
 
 /**
+ * Base plugin for Play services (microservices).
+ *
+ * NOTE: This plugin is considered experimental and the API may change without notice.
+ */
+object PlayService extends AutoPlugin {
+
+  override def requires = JavaServerAppPackaging
+
+  val autoImport = PlayImport
+
+  override def projectSettings =
+    PlaySettings.serviceSettings ++
+      Seq(
+        scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
+        javacOptions in Compile ++= Seq("-encoding", "utf8", "-g")
+      )
+}
+
+/**
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
  */
 object Play extends AutoPlugin {
