@@ -294,6 +294,7 @@ object BuildSettings {
         .enablePlugins(PlayLibrary)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
+        .settings(javaVersionSettings("1.8"))
   }
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
