@@ -233,8 +233,12 @@ object PlaySettings extends PlaySettingsCompat {
 
   ) ++ inConfig(Compile)(externalizedSettings)
 
-  @deprecated("Use webSettings instead for a web project, serviceSettings for a Play service", "2.7.0")
-  lazy val defaultSettings = webSettings
+  /**
+   * All default settings for a Play project. Normally these are enabled by the PlayWeb and PlayService plugin and
+   * will be added separately.
+   */
+  @deprecated("Use serviceSettings for a Play app or service, and add webSettings for a web app", "2.7.0")
+  lazy val defaultSettings = serviceSettings ++ webSettings
 
   lazy val webSettings = Seq[Setting[_]](
     TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
