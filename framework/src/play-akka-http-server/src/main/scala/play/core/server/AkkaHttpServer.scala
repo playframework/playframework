@@ -335,8 +335,6 @@ class AkkaHttpServer(
       case NonFatal(e) => logger.error("Error while stopping logger", e)
     }
 
-    system.terminate()
-
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
