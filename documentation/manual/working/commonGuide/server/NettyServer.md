@@ -25,11 +25,11 @@ run -Dplay.server.provider=play.core.server.NettyServerProvider
 
 ## Verifying that the Netty server is running
 
-When the Netty server is running it will tag all requests with a tag called `HTTP_SERVER` with a value of `netty`. The Netty backend will not have a value for this tag.
+When the Netty server is running it will tag all requests with a tag called `HTTP_SERVER` with a value of `netty`. The Akka HTTP backend will not have a value for this tag.
 
 ```scala
 Action { request =>
-  assert(request.tags.get("HTTP_SERVER") == Some("netty"))
+  assert(request.tags.get("HTTP_SERVER") == "netty")
   ...
 }
 ```
