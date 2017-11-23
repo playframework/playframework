@@ -32,6 +32,11 @@ final class TypedKey[A] private (val displayName: Option[String]) {
   def -> (value: A): TypedEntry[A] = bindValue(value)
 
   override def toString: String = displayName.getOrElse(super.toString)
+
+  /**
+   * @return The Java version for this key.
+   */
+  def asJava: play.libs.typedmap.TypedKey[A] = new play.libs.typedmap.TypedKey[A](this)
 }
 
 /**
