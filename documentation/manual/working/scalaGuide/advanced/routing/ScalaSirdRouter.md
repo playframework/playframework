@@ -61,7 +61,7 @@ Configuring an application to use a sird Router can be achieved in many ways, de
 
 To use the routing DSL in conjunction with a regular Play project that uses [[a routes file|ScalaRouting]] and [[controllers|ScalaActions]], extend the [`SimpleRouter`](api/scala/play/api/routing/SimpleRouter.html):
 
-@[inject-sird-router](code/ApiRouter.scala)
+@[api-sird-router](code/ApiRouter.scala)
 
 Add the following line to conf/routes:
 
@@ -71,11 +71,13 @@ Add the following line to conf/routes:
 
 ### Composing SIRD routers
 
-You can compose multiple routers together, because Routes are partial functions:
+You can compose multiple routers together, because Routes are partial functions. So you can split your routes in smaller and more focused routers and later compose them in an application router. For example, considering the `ApiRouter` above and a new `SinglePageApplicationRouter` like:
 
-``` scala
-mainRouter.routes.orElse(injectedOtherRouter.withPrefix("/prefix").routes)
-```
+@[spa-sird-router](code/ApiRouter.scala)
+
+You can then compose both to have a complete router for you application:
+
+@[composed-sird-router](code/ApiRouter.scala)
 
 ### Embedding play
 
