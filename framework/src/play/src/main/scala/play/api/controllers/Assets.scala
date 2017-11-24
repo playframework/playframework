@@ -148,24 +148,88 @@ package controllers {
   }
 
   case class AssetsConfiguration(
-    path: String = "/public",
-    urlPrefix: String = "/assets",
-    defaultCharSet: String = "utf-8",
-    enableCaching: Boolean = true,
-    enableCacheControl: Boolean = false,
-    configuredCacheControl: Map[String, Option[String]] = Map.empty,
-    defaultCacheControl: String = "public, max-age=3600",
-    aggressiveCacheControl: String = "public, max-age=31536000, immutable",
-    digestAlgorithm: String = "md5",
-    checkForMinified: Boolean = true,
-    textContentTypes: Set[String] = Set("application/json", "application/javascript"),
-    encodings: Seq[AssetEncoding] = Seq(
-      AssetEncoding.Brotli,
-      AssetEncoding.Gzip,
-      AssetEncoding.Xz,
-      AssetEncoding.Bzip2
-    )
-  )
+      path: String = "/public",
+      urlPrefix: String = "/assets",
+      defaultCharSet: String = "utf-8",
+      enableCaching: Boolean = true,
+      enableCacheControl: Boolean = false,
+      configuredCacheControl: Map[String, Option[String]] = Map.empty,
+      defaultCacheControl: String = "public, max-age=3600",
+      aggressiveCacheControl: String = "public, max-age=31536000, immutable",
+      digestAlgorithm: String = "md5",
+      checkForMinified: Boolean = true,
+      textContentTypes: Set[String] = Set("application/json", "application/javascript"),
+      encodings: Seq[AssetEncoding] = Seq(
+        AssetEncoding.Brotli,
+        AssetEncoding.Gzip,
+        AssetEncoding.Xz,
+        AssetEncoding.Bzip2
+      )
+  ) {
+
+    // Sorts configured cache-control by keys so that we can have from more
+    // specific configuration to less specific, where the overall sorting is
+    // done lexicographically. For example, given the following keys:
+    // - /a
+    // - /a/b/c.txt
+    // - /a/b
+    // - /a/z
+    // - /d/e/f.txt
+    // - /d
+    // - /d/f
+    //
+    // They will be sorted to:
+    // - /a/b/c.txt
+    // - /a/b
+    // - /a/z
+    // - /a
+    // - /d/e/f.txt
+    // - /d/f
+    // - /d
+    private lazy val configuredCacheControlDirectivesOrdering = new Ordering[(String, Option[String])] {
+      override def compare(first: (String, Option[String]), second: (String, Option[String])) = {
+        val firstKey = first._1
+        val secondKey = second._1
+
+        if (firstKey.startsWith(secondKey)) -1
+        else if (secondKey.startsWith(firstKey)) 1
+        else firstKey.compareTo(secondKey)
+      }
+    }
+
+    private lazy val configuredCacheControlDirectives: List[(String, Option[String])] = {
+      configuredCacheControl.toList.sorted(configuredCacheControlDirectivesOrdering)
+    }
+
+    /**
+     * Finds the configured Cache-Control directive that needs to be applied to the asset
+     * with the given name.
+     *
+     * This will try to find the most specific directive configured for the asset. For example,
+     * given the following configuration:
+     *
+     * {{{
+     *   "play.assets.cache./public/css"="max-age=100"
+     *   "play.assets.cache./public/javascript"="max-age=200"
+     *   "play.assets.cache./public/javascript/main.js"="max-age=300"
+     * }}}
+     *
+     * Given asset name "/public/css/main.css", it will find "max-age=100".
+     *
+     * Given asset name "/public/javascript/other.js" it will find "max-age=200".
+     *
+     * Given asset name "/public/javascript/main.js" it will find "max-age=300".
+     *
+     * Given asset name "/public/images/img.png" it will use the [[defaultCacheControl]] since
+     * there is no specific directive configured for this asset.
+     *
+     * @param assetName the asset name
+     * @return the optional configured cache-control directive.
+     */
+    final def findConfiguredCacheControl(assetName: String): Option[String] = {
+      configuredCacheControlDirectives.find(c => assetName.startsWith(c._1)).flatMap(_._2)
+    }
+  }
 
   case class AssetEncoding(acceptEncoding: String, extension: String) {
     def forFilename(filename: String): String = if (extension != "") s"$filename.$extension" else filename
@@ -180,7 +244,7 @@ package controllers {
 
   object AssetsConfiguration {
     def fromConfiguration(c: Configuration, mode: Mode = Mode.Test): AssetsConfiguration = {
-      AssetsConfiguration(
+      val assetsConfiguration = AssetsConfiguration(
         path = c.get[String]("play.assets.path"),
         urlPrefix = c.get[String]("play.assets.urlPrefix"),
         defaultCharSet = c.getDeprecated[String]("play.assets.default.charset", "default.charset"),
@@ -195,6 +259,20 @@ package controllers {
         textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet,
         encodings = getAssetEncodings(c)
       )
+      logAssetsConfiguration(assetsConfiguration)
+      assetsConfiguration
+    }
+
+    private def logAssetsConfiguration(assetsConfiguration: AssetsConfiguration): Unit = {
+      val msg = new StringBuffer()
+      msg.append("Using the following cache for assets configuration:\n")
+      msg.append(s"\t enabledCaching = ${assetsConfiguration.enableCaching}\n")
+      msg.append(s"\t enabledCacheControl = ${assetsConfiguration.enableCacheControl}\n")
+      msg.append(s"\t defaultCacheControl = ${assetsConfiguration.defaultCacheControl}\n")
+      msg.append(s"\t aggressiveCacheControl = ${assetsConfiguration.aggressiveCacheControl}\n")
+      msg.append(s"\t configuredCacheControl:")
+      msg.append(assetsConfiguration.configuredCacheControl.map(c => s"\t\t ${c._1} = ${c._2}").mkString("\n", "\n", "\n"))
+      Logger.warn(msg.toString)
     }
 
     private def getAssetEncodings(c: Configuration): Seq[AssetEncoding] = {
@@ -445,7 +523,7 @@ package controllers {
     def addCharsetIfNeeded(mimeType: String): String =
       if (isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
-    val configuredCacheControl = config.configuredCacheControl.get(name).flatten
+    val configuredCacheControl: Option[String] = config.findConfiguredCacheControl(name)
 
     def cacheControl(aggressiveCaching: Boolean): String = {
       configuredCacheControl.getOrElse {
