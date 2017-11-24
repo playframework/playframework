@@ -292,7 +292,7 @@ object Dependencies {
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
  * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.4", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.4", "2.11.11"),
+ *    crossScalaVersions := Seq("2.12.4", "2.11.12"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka

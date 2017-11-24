@@ -17,7 +17,7 @@ scalaVersion := "2.12.4"
 For Scala 2.11:
 
 ```scala
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
 ```
 
 ## PlayService sbt plugin (experimental)
