@@ -224,33 +224,67 @@ class NettyServer(
     }
     serverChannel
   }
-
   override def stop() {
+    // stop() is now a noop. Using CoordinatedShutdown requires registering
+    // stop tasks as soon as possible. Then, invoking a stop() makes no sense
+    // since an external trigger like a JVM shutdownHook will be in charge of
+    // invoking CoordinatedShutdown.run which executes all registered tasks.
+  }
 
-    // First, close all opened sockets
-    allChannels.close().awaitUninterruptibly()
+  // register all Shutdown tasks as soon as the AkkaHttpServer is created.
+  // Note that order of task registration is irrelevant but maintaining
+  // an order similar to how the tasks will be run on makes code more readable.
+  {
+    import akka.actor.{ CoordinatedShutdown => AkkaCS }
+    import play.api.{ PlayCoordinatedShutdown => PlayCS }
+    val cs = AkkaCS(actorSystem)
+    implicit val exCtx = actorSystem.dispatcher
 
-    // Now shutdown the event loop
-    eventLoop.shutdownGracefully()
-
-    // Now shut the application down
-    applicationProvider.current.foreach(Play.stop)
-
-    try {
-      super.stop()
-    } catch {
-      case NonFatal(e) => logger.error("Error while stopping logger", e)
-    }
-
+    // Trace the server shutdown event
     mode match {
       case Mode.Test =>
-      case _ => logger.info("Stopping server...")
+      case _ =>
+        cs.addTask(AkkaCS.PhaseBeforeServiceUnbind, "log-shutdown-in-progress") { () =>
+          logger.info("Stopping server...")
+          Future.successful(Done)
+        }
+    }
+
+    // First, close all opened sockets
+    cs.addTask(AkkaCS.PhaseServiceUnbind, "close-netty-channels") { () =>
+      allChannels.close().awaitUninterruptibly()
+      Future.successful(Done)
+    }
+
+    // Now shutdown the event loop
+    cs.addTask(AkkaCS.PhaseServiceStop, "shutdown-netty-eventloop") { () =>
+      eventLoop.shutdownGracefully()
+      Future.successful(Done)
+    }
+
+    // Stop the application
+    cs.addTask(PlayCS.PhaseApplicationStopHooks, "play-application-stop") { () =>
+      applicationProvider.current.foreach(Play.stop)
+      Future.successful(Done)
+    }
+
+    // Final Server stop
+    val serverStop = super.stop _
+    cs.addTask(PlayCS.PhasePlayServerStop, "play-server-loggers") { () =>
+      try {
+        serverStop()
+      } catch {
+        case NonFatal(e) => logger.error("Error while stopping logger", e)
+      }
+      Future.successful(Done)
     }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(stopHook(), Duration.Inf)
+    cs.addTask(PlayCS.PhaseAfterPlayServerStop, "custom-server-stop-hook") { () =>
+      stopHook().map(_ => Done)
+    }
   }
 
   override lazy val mainAddress: InetSocketAddress = {

@@ -6,8 +6,10 @@ package play.core.server
 import java.io._
 import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
 
+import akka.Done
 import play.api._
 
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
@@ -30,8 +32,9 @@ object ProdServerStart {
    * for the server are based on values passed on the command line and in
    * various system properties. Crash out by exiting the given process if there
    * are any problems.
+   *
    * @param process The process (real or abstract) to use for starting the
-   * server.
+   *                server.
    */
   def start(process: ServerProcess): ReloadableServer = {
     try {
@@ -55,11 +58,16 @@ object ProdServerStart {
         // Start the server
         val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
         val server = serverProvider.createServer(config, application)
-        process.addShutdownHook {
-          server.stop()
-          pidFile.foreach(_.delete())
-          assert(!pidFile.exists(_.exists), "PID file should not exist!")
+
+        // Cleanup on JVM Shutdown
+        import akka.actor.{ CoordinatedShutdown => AkkaCS }
+        val akkaCS = AkkaCS(application.actorSystem)
+        akkaCS.addTask(AkkaCS.PhaseBeforeActorSystemTerminate, "remove-pid-file") {
+          () =>
+            pidFile.foreach(_.delete())
+            Future.successful(Done)
         }
+
         server
       } catch {
         case NonFatal(e) =>
