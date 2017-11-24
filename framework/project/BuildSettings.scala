@@ -294,7 +294,10 @@ object BuildSettings {
         .enablePlugins(PlayLibrary)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
-        .settings(javaVersionSettings("1.8"))
+        .settings(
+          // Need to add this after updating to Scala 2.11.12
+          scalacOptions += "-target:jvm-1.8"
+        )
   }
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
