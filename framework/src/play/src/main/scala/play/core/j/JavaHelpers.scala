@@ -131,6 +131,7 @@ trait JavaHelpers {
    * @param javaResult the Java Result
    */
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
+    require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
     val scalaResult = javaResult.asScala
     val wResult = scalaResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
