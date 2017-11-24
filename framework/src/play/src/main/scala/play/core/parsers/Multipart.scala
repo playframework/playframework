@@ -7,10 +7,11 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.collection.breakOut
 import scala.concurrent.Future
+import scala.util.{ Failure, Success }
 
 import akka.stream.Materializer
 import akka.stream.scaladsl._
-import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import akka.stream.{ Attributes, FlowShape, Inlet, IOResult, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
 
@@ -122,8 +123,9 @@ object Multipart {
   def handleFilePartAsTemporaryFile(temporaryFileCreator: TemporaryFileCreator): FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
-      Accumulator(FileIO.toPath(tempFile.path)).map { _ =>
-        FilePart(partName, filename, contentType, tempFile)
+      Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
+        case IOResult(_, Failure(error)) => Future.failed(error)
+        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile))
       }
   }
 
