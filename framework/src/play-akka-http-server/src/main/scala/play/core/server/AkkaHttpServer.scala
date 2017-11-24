@@ -76,6 +76,7 @@ class AkkaHttpServer(
 
     val parserSettings = ParserSettings(initialConfig)
       .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+      .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
 
     val initialSettings = ServerSettings(initialConfig)
 
