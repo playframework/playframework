@@ -59,7 +59,7 @@ lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-j
 lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
-      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
+      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies :+ jimfs % Test,
 
       sourceGenerators in Compile += Def.task(PlayVersion(
         version.value,

@@ -161,6 +161,8 @@ object Dependencies {
 
   val nettyUtilsDependencies = slf4j
 
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
+
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.0"
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
