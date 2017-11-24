@@ -71,7 +71,7 @@ Add the following line to conf/routes:
 
 ### Composing SIRD routers
 
-You can compose multiple routers together, because Routes are partial functions. So you can split your routes in smaller and more focused routers and later compose then in an application router. For example, considering the `ApiRouter` above and a new `SinglePageApplicationRouter` like:
+You can compose multiple routers together, because Routes are partial functions. So you can split your routes in smaller and more focused routers and later compose them in an application router. For example, considering the `ApiRouter` above and a new `SinglePageApplicationRouter` like:
 
 @[spa-sird-router](code/ApiRouter.scala)
 
