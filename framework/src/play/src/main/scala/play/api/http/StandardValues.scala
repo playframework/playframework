@@ -132,7 +132,7 @@ trait MimeTypes {
   /**
    * Content-Type of javascript.
    */
-  val JAVASCRIPT = "text/javascript"
+  val JAVASCRIPT = "application/javascript"
 
   /**
    * Content-Type of form-urlencoded.

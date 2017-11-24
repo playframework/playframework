@@ -25,7 +25,7 @@ import play.api.mvc.Codec
  * {{{
  *   GET /my-service?callback=foo
  * }}}
- * The response will have content type “text/javascript” and will look like the following:
+ * The response will have content type “application/javascript” and will look like the following:
  * {{{
  *   foo({...});
  * }}}

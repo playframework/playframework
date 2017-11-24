@@ -2641,7 +2641,7 @@ public class Http {
         /**
          * Content-Type of javascript.
          */
-        String JAVASCRIPT = "text/javascript";
+        String JAVASCRIPT = "application/javascript";
 
         /**
          * Content-Type of form-urlencoded.
