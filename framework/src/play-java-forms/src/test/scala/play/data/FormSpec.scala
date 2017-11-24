@@ -372,12 +372,32 @@ trait FormSpec extends Specification {
     }
 
     "support type arguments constraints" in {
-      val listForm = formFactory.form(classOf[ListForm]).bindFromRequest(FormSpec.dummyRequest(Map("values[0]" -> Array("4"), "values[1]" -> Array("-3"), "values[2]" -> Array("6"))))
+      val listForm = formFactory.form(classOf[TypeArgumentForm]).bindFromRequest(FormSpec.dummyRequest(Map(
+        "list[0]" -> Array("4"), "list[1]" -> Array("-3"), "list[2]" -> Array("6"),
+        "map['ab']" -> Array("28"), "map['something']" -> Array("2"), "map['worksperfect']" -> Array("87"),
+        "optional" -> Array("Acme")
+      )))
 
       listForm.hasErrors must beEqualTo(true)
-      listForm.allErrors().size() must beEqualTo(1)
-      listForm.errors("values[1]").get(0).messages().size() must beEqualTo(1)
-      listForm.errors("values[1]").get(0).messages().get(0) must beEqualTo("error.min")
+      listForm.allErrors().size() must beEqualTo(4)
+      listForm.errors("list[1]").get(0).messages().size() must beEqualTo(1)
+      listForm.errors("list[1]").get(0).messages().get(0) must beEqualTo("error.min")
+      listForm.value().get().getList.get(0) must beEqualTo(4)
+      listForm.value().get().getList.get(1) must beEqualTo(-3)
+      listForm.value().get().getList.get(2) must beEqualTo(6)
+      listForm.errors("map[ab]").get(0).messages().get(0) must beEqualTo("error.minLength")
+      listForm.value().get().getMap.get("ab") must beEqualTo(28)
+      listForm.errors("map[something]").get(0).messages().get(0) must beEqualTo("error.min")
+      listForm.value().get().getMap.get("something") must beEqualTo(2)
+      listForm.value().get().getMap.get("worksperfect") must beEqualTo(87)
+      listForm.errors("optional").get(0).messages().get(0) must beEqualTo("error.minLength")
+      listForm.value().get().getOptional.get must beEqualTo("Acme")
+      // Also test an Optional that binds a value but doesn't cause a validation error:
+      val optForm = formFactory.form(classOf[TypeArgumentForm]).bindFromRequest(FormSpec.dummyRequest(Map(
+        "optional" -> Array("Microsoft Corporation")
+      )))
+      optForm.allErrors().size() must beEqualTo(0)
+      optForm.get().getOptional.get must beEqualTo("Microsoft Corporation")
     }
 
     "work with the @repeat helper" in {

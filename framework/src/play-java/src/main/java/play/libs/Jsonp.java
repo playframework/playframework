@@ -4,6 +4,7 @@
 package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import play.mvc.Http.MimeTypes;
 import play.twirl.api.Content;
 
 /**
@@ -23,7 +24,7 @@ import play.twirl.api.Content;
  * <pre>
  *   GET  /my-service?callback=foo
  * </pre>
- * The response will have content type "text/javascript" and will look like the following:
+ * The response will have content type "application/javascript" and will look like the following:
  * <pre>
  *   foo({...});
  * </pre>
@@ -42,7 +43,7 @@ public class Jsonp implements Content {
 
     @Override
     public String contentType() {
-        return "text/javascript";
+        return MimeTypes.JAVASCRIPT;
     }
 
     private final String padding;

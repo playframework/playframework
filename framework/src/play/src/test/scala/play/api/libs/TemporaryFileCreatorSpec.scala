@@ -146,7 +146,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "works when using compile time dependency injection" in {
-      val context = ApplicationLoader.createContext(
+      val context = ApplicationLoader.Context.create(
         new Environment(new File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
       val appLoader = new ApplicationLoader {
         def load(context: Context) = {

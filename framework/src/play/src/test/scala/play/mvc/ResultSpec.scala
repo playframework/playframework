@@ -22,7 +22,7 @@ class ResultSpec extends Specification {
       val node = play.libs.Json.newObject()
       node.put("foo", 1)
       val javaResult = play.mvc.Results.ok(node, charset)
-      javaResult.charset().get().toLowerCase must_== charset
+      javaResult.charset must beEqualTo(Optional.empty)
     }
 
     "not allow sending JSON as ISO-8859-1" in {

@@ -42,6 +42,7 @@ trait ApplicationProvider {
   /**
    * Handle a request directly, without using the application.
    */
+  @deprecated("This method is no longer called; WebCommands are now handled by the DefaultHttpRequestHandler", "2.7.0")
   def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 

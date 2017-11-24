@@ -76,6 +76,7 @@ class AkkaHttpServer(
 
     val parserSettings = ParserSettings(initialConfig)
       .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+      .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
 
     val initialSettings = ServerSettings(initialConfig)
 
@@ -334,8 +335,6 @@ class AkkaHttpServer(
     } catch {
       case NonFatal(e) => logger.error("Error while stopping logger", e)
     }
-
-    system.terminate()
 
     // Call provided hook
     // Do this last because the hooks were created before the server,

@@ -60,7 +60,7 @@ Most of the built in body parsers buffer the body in memory, and some buffer it 
 
 The memory buffer limit is configured using `play.http.parser.maxMemoryBuffer`, and defaults to 100KB, while the disk buffer limit is configured using `play.http.parser.maxDiskBuffer`, and defaults to 10MB.  These can both be configured in `application.conf`, for example, to increase the memory buffer limit to 256KB:
 
-    play.http.parser.maxMemoryBuffer = 256kb
+    play.http.parser.maxMemoryBuffer = 256K
 
 You can also limit the amount of memory used on a per action basis by writing a custom body parser, see [below](#Writing-a-custom-max-length-body-parser) for details.
 

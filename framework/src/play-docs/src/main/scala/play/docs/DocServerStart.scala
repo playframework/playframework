@@ -26,7 +26,7 @@ class DocServerStart {
 
     val components = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)
-      val context = ApplicationLoader.createContext(environment)
+      val context = ApplicationLoader.Context.create(environment)
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
         lazy val router = Router.empty
       }

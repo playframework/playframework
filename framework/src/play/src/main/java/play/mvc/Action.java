@@ -3,6 +3,7 @@
  */
 package play.mvc;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage;
 
 import play.mvc.Http.Context;
@@ -18,7 +19,23 @@ public abstract class Action<T> extends Results {
     public T configuration;
 
     /**
+     * Where an action was defined.
+     */
+    public AnnotatedElement annotatedElement;
+
+    /**
+     * The precursor action.
+     *
+     * If this action was called in a chain then this will contain the value of the action
+     * that is called before this action. If no action was called first, then this value will be null.
+     */
+    public Action<?> precursor;
+
+    /**
      * The wrapped action.
+     *
+     * If this action was called in a chain then this will contain the value of the action
+     * that is called after this action. If there is no action left to be called, then this value will be null.
      */
     public Action<?> delegate;
 
