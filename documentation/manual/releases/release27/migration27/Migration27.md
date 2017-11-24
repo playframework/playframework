@@ -18,3 +18,6 @@ Each logger should have a unique name matching the name of the class it is in. I
 ### Evolutions comment syntax changes
 
 Play Evolutions now properly supports SQL92 comment syntax. This means you can write evolutions using `--` at the beginning of a line instead of `#` wherever you choose. Newly generated evolutions using the Evolutions API will now also use SQL92-style comment syntax in all areas. Documentation has also been updated accordingly to prefer the SQL92 style, though the older comment style is still fully supported.
+
+### `application/javascript` as default content type
+`application/javascript` is now the default content-type returned for Javascript instead of `text/javascript`. 
