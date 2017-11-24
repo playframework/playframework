@@ -4,7 +4,9 @@
 package play.core.server.akkahttp
 
 import java.net.{ InetAddress, InetSocketAddress, URI }
+import java.security.cert.X509Certificate
 import java.util.Locale
+import javax.net.ssl.SSLPeerUnverifiedException
 
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
@@ -97,8 +99,18 @@ private[server] class AkkaModelConversion(
         new RemoteConnection {
           override def remoteAddress: InetAddress = remoteAddressArg.getAddress
           override def secure: Boolean = secureProtocol
-          // TODO - Akka does not yet expose the SSLEngine used for the request
-          override lazy val clientCertificateChain = None
+          override def clientCertificateChain: Option[Seq[X509Certificate]] = {
+            try {
+              request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
+                tlsSessionInfo
+                  .getSession
+                  .getPeerCertificates
+                  .collect { case x509: X509Certificate => x509 }
+              }
+            } catch {
+              case _: SSLPeerUnverifiedException => None
+            }
+          }
         },
         headers),
       request.method.name,
