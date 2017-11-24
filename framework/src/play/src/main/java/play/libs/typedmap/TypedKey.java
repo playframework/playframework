@@ -26,6 +26,13 @@ public final class TypedKey<A> {
     }
 
     /**
+     * @return the underlying Scala TypedKey which this instance wraps.
+     */
+    public play.api.libs.typedmap.TypedKey<A> asScala() {
+        return underlying;
+    }
+
+    /**
      * Bind this key to a value.
      *
      * @param value The value to bind this key to.
