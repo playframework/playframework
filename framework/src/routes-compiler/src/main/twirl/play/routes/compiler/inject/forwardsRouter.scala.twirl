@@ -30,7 +30,8 @@ class Routes(
     @dep.ident: @dep.clazz}
   ) = this(errorHandler, @for(dep <- deps){@dep.ident, }"/")
 
-  def withPrefix(prefix: String): Routes = @ob
+  def withPrefix(addPrefix: String): Routes = @ob
+    val prefix = play.api.routing.Router.prefixPath(addPrefix, this.prefix)
     @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
     new Routes(errorHandler, @for(dep <- deps){@dep.ident, }prefix)
   @cb

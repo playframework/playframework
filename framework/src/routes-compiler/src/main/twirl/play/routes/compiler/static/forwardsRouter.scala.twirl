@@ -23,12 +23,12 @@ class Routes extends GeneratedRouter {
 
   private var _prefix = "/"
 
-  def withPrefix(prefix: String): Routes = @ob
-    _prefix = prefix
+  def withPrefix(addPrefix: String): Routes = @ob
+    _prefix = Router.prefixPath(addPrefix, _prefix)
     @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
     @for((include @ Include(path, router), index) <- rules.zipWithIndex.collect({ case (i: Include, index) => (i, index) })) {
     @markLines(include)
-    @routerIdentifier(include, index) = Include(@(router).withPrefix(prefix + (if (prefix.endsWith("/")) "" else "/") + "@path"))}
+    @routerIdentifier(include, index) = Include(@(router).withPrefix(Router.prefixPath(prefix, "@path")))}
     this
   @cb
 
