@@ -29,6 +29,10 @@ It is often useful to mark the `request` parameter as `implicit` so it can be im
 
 @[implicit-request-action](code/ScalaActions.scala)
 
+If you have broken up your code into methods, then you can pass through the implicit request from the action:
+
+@[implicit-request-action-with-more-methods](code/ScalaActions.scala)
+
 The last way of creating an Action value is to specify an additional `BodyParser` argument:
 
 @[json-parser-action](code/ScalaActions.scala)
