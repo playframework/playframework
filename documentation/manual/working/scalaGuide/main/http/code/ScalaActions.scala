@@ -55,6 +55,20 @@ class ScalaActionsSpec extends AbstractController(Helpers.stubControllerComponen
       )
     }
 
+    "pass the request implicitly to the action with more methods" in {
+       //#implicit-request-action-with-more-methods
+       def action = Action { implicit request =>
+          anotherMethod("Some para value")
+          Ok("Got request [" + request + "]")
+        }
+
+       def anotherMethod(p: String)(implicit request: Request[_]) = {
+        // do something that needs access to the request
+        }
+       //#implicit-request-action-with-more-methods
+       testAction(action)
+    }
+
     "allow specifying a parser" in {
       testAction(action =
         //#json-parser-action
