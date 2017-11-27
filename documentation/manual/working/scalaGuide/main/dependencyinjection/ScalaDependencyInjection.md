@@ -41,30 +41,9 @@ Guice is able to automatically instantiate any class with an `@Inject` on its co
 
 ## Dependency injecting controllers
 
-There are two ways to make Play use dependency injected controllers.
+Play's routes compiler generates a router class that declares your controllers as dependencies in the constructor. This allows your controllers to be injected into the router.
 
-### Injected routes generator
-
-By default (since 2.5.0), Play will generate a router that will declare all the controllers that it routes to as dependencies, allowing your controllers to be dependency injected themselves.
-
-
-To enable the injected routes generator specifically, add the following to your build settings in `build.sbt`:
-
-@[content](code/injected.sbt)
-
-When using the injected routes generator, prefixing the action with an `@` symbol takes on a special meaning, it means instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
-
-### Static routes generator
-
-You can configure Play to use the legacy (pre 2.5.0) static routes generator, that assumes that all actions are static methods.  To configure the project, add the following to build.sbt:
-
-@[content](code/static.sbt)
-
-We recommend always using the injected routes generator.  The static routes generator exists primarily as a tool to aid migration so that existing projects don't have to make all their controllers non static at once.
-
-If using the static routes generator, you can indicate that an action has an injected controller by prefixing the action with `@`, like so:
-
-@[injected](code/scalaguide.dependencyinjection.injected.routes)
+Prefixing the controller name with an `@` symbol takes on a special meaning: instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
 
 ## Component lifecycle
 
