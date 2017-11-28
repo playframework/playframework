@@ -9,7 +9,7 @@ A `play.api.mvc.Action` is basically a `(play.api.mvc.Request => play.api.mvc.Re
 
 @[echo-action](code/ScalaActions.scala)
 
-An action returns a `play.api.mvc.Result` value, representing the HTTP response to send to the web client. In this example `Ok` constructs a **200 OK** response containing a **text/plain** response body.
+An action returns a `play.api.mvc.Result` value, representing the HTTP response to send to the web client. In this example `Ok` constructs a **200 OK** response containing a **text/plain** response body. For more examples of HTTP responses see [`play.api.mvc.Result` methods](api/scala/play/api/mvc/Results.html#values).
 
 ## Building an Action
 
