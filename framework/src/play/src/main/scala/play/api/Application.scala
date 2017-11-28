@@ -6,7 +6,8 @@ package play.api
 import java.io._
 import javax.inject.{ Inject, Singleton }
 
-import akka.actor.ActorSystem
+import akka.Done
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.{ ActorMaterializer, Materializer }
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
@@ -199,6 +200,13 @@ trait Application {
   lazy val globalApplicationEnabled: Boolean = {
     configuration.getOptional[Boolean](Play.GlobalAppConfigKey).getOrElse(true)
   }
+
+  // Stop the application
+  CoordinatedShutdown(actorSystem).addTask(PlayCoordinatedShutdown.PhaseApplicationStopHooks, "play-application-stop") { () =>
+    stop()
+    Future.successful(Done)
+  }
+
 }
 
 object Application {

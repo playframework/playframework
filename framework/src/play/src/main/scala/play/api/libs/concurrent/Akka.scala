@@ -140,9 +140,16 @@ object ActorSystemProvider {
     val system = ActorSystem(name, akkaConfig, classLoader)
     logger.debug(s"Starting application default Akka system: $name")
 
-    // The actor system is no longer terminated during Play's ApplicationLifecycle stop sequence.
+    // The actor system will only be terminated from a stopHook if no other CoordinatedShutdown
+    // invocation happened previously. If a CoordinatedShutdown is already in progress, then
+    // this call will be a noop.
     val stopHook = { () =>
-      Future.successful(())
+      config.get[Duration]("play.akka.shutdown-timeout") match {
+        case _: FiniteDuration =>
+          logger.info(s""" "play.akka.shutdown-timeout" is deprecated, configure the timeout of the 'actor-system-terminate' phase of Akka's CoordinatedShutdown.""")
+        case _ =>
+      }
+      CoordinatedShutdown(system).run(Some(CoordinatedShutdown.PhaseActorSystemTerminate))
     }
 
     (system, stopHook)

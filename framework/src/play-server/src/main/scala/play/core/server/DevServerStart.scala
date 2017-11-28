@@ -149,7 +149,7 @@ object DevServerStart {
 
               // First, stop the old application if it exists
               unexpectedApplicationShutdown.set(false)
-              lastState.foreach(app => Await.result(CoordinatedShutdown(app.actorSystem).run(), 10.minutes))
+              lastState.foreach(Play.stop)
 
               // Basically no matter if the last state was a Success, we need to
               // call all remaining hooks
@@ -242,7 +242,7 @@ object DevServerStart {
           ActorMaterializer()(serverActorSystem),
           () => Future.successful(()))
 
-        CoordinatedShutdown(serverActorSystem).addTask(PhaseActorSystemTerminate, "devmode-server-actor-system-shutdown") {
+        CoordinatedShutdown(serverActorSystem).addTask(PlayCoordinatedShutdown.PhaseApplicationStopHooks, "devmode-server-actor-system-shutdown") {
           () =>
             appProvider.current.map {
               app =>

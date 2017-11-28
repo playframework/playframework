@@ -6,7 +6,7 @@ package play.core.server
 import java.net.InetSocketAddress
 
 import akka.Done
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.typesafe.config.{ Config, ConfigValue }
@@ -225,10 +225,13 @@ class NettyServer(
     serverChannel
   }
   override def stop() {
-    // stop() is now a noop. Using CoordinatedShutdown requires registering
-    // stop tasks as soon as possible. Then, invoking a stop() makes no sense
-    // since an external trigger like a JVM shutdownHook will be in charge of
-    // invoking CoordinatedShutdown.run which executes all registered tasks.
+    // CoordinatedShutdown only runs the first time it is invoked for a given actor system. Further
+    // attempts to run it result in noop.
+    // This method is in charge of stopping the server and it may be part of a Play application or it may be
+    // be an embedded server. When in a Play application the following CS.run will, very likely, be a noop
+    // since the trigger to stop a Play application is usually SIGTERM.
+    // When the server is embedded, this CS.run will actually run all the stopping phases and stop the actor system.
+    CoordinatedShutdown(actorSystem).run()
   }
 
   // register all Shutdown tasks as soon as the AkkaHttpServer is created.
@@ -259,12 +262,6 @@ class NettyServer(
     // Now shutdown the event loop
     cs.addTask(AkkaCS.PhaseServiceStop, "shutdown-netty-eventloop") { () =>
       eventLoop.shutdownGracefully()
-      Future.successful(Done)
-    }
-
-    // Stop the application
-    cs.addTask(PlayCS.PhaseApplicationStopHooks, "play-application-stop") { () =>
-      applicationProvider.current.foreach(Play.stop)
       Future.successful(Done)
     }
 
