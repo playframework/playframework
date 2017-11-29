@@ -140,25 +140,13 @@ object ActorSystemProvider {
     val system = ActorSystem(name, akkaConfig, classLoader)
     logger.debug(s"Starting application default Akka system: $name")
 
+
     val stopHook = { () =>
       logger.debug(s"Shutdown application default Akka system: $name")
-      system.terminate()
-
-      config.get[Duration]("play.akka.shutdown-timeout") match {
-        case timeout: FiniteDuration =>
-          try {
-            Await.result(system.whenTerminated, timeout)
-          } catch {
-            case te: TimeoutException =>
-              // oh well.  We tried to be nice.
-              logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
-          }
-        case _ =>
-          // wait until it is shutdown
-          Await.result(system.whenTerminated, Duration.Inf)
-      }
-
-      Future.successful(())
+      // Play's "play.akka.shutdown-timeout" is used to configure the timeout of
+      // the 'actor-system-terminate' phase of Akka's CoordinatedShutdown
+      // in reference-overrides.conf
+      CoordinatedShutdown(system).run()
     }
 
     (system, stopHook)
