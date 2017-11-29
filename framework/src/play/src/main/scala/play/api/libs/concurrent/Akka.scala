@@ -3,7 +3,6 @@
  */
 package play.api.libs.concurrent
 
-import java.util.concurrent.TimeoutException
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor._
@@ -13,8 +12,7 @@ import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
 
 /**
@@ -142,11 +140,16 @@ object ActorSystemProvider {
 
 
     val stopHook = { () =>
+      val akkaRunCSFromPhase = config.get[String]("play.akka.run-cs-from-phase")
       logger.debug(s"Shutdown application default Akka system: $name")
       // Play's "play.akka.shutdown-timeout" is used to configure the timeout of
       // the 'actor-system-terminate' phase of Akka's CoordinatedShutdown
-      // in reference-overrides.conf
-      CoordinatedShutdown(system).run(Some(CoordinatedShutdown.PhaseActorSystemTerminate))
+      // in reference-overrides.conf.
+      //
+      // The phases that should be run is a configurable setting so Play users
+      // that embed an Akka Cluster node can opt-in to using Akka's CS or continue
+      // to use their own shutdown code.
+      CoordinatedShutdown(system).run(Some(akkaRunCSFromPhase))
     }
 
     (system, stopHook)
