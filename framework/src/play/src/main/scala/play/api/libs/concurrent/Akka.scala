@@ -146,7 +146,7 @@ object ActorSystemProvider {
       // Play's "play.akka.shutdown-timeout" is used to configure the timeout of
       // the 'actor-system-terminate' phase of Akka's CoordinatedShutdown
       // in reference-overrides.conf
-      CoordinatedShutdown(system).run()
+      CoordinatedShutdown(system).run(Some(CoordinatedShutdown.PhaseActorSystemTerminate))
     }
 
     (system, stopHook)
