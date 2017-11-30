@@ -7,13 +7,14 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor._
 import akka.stream.{ ActorMaterializer, Materializer }
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigValueFactory }
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
+import scala.util.{ Success, Try }
 
 /**
  * Helper to access the application defined Akka Actor system.
@@ -130,8 +131,27 @@ object ActorSystemProvider {
   def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
-      // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
-      config.get[Config](akkaConfigRoot).withFallback(config.underlying)
+
+      // merge timeout values.
+      val playTimeoutKey = "play.akka.shutdown-timeout"
+      val akkaTimeoutKey = "play.akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
+      val playValue = Try(config.getMillis(playTimeoutKey))
+      val akkaValue = Try(config.getMillis(akkaTimeoutKey))
+
+      val durationWithFallback: Long = (playValue, akkaValue) match {
+        case (_, Success(timeout)) => timeout
+        case (Success(timeout), _) => timeout
+        case _ => Long.MaxValue // effectively equivalent to Duration.Inf but serializable.
+      }
+
+      config.get[Config](akkaConfigRoot)
+        // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
+        .withFallback(config.underlying)
+        // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
+        .withValue(
+          akkaTimeoutKey,
+          ConfigValueFactory.fromAnyRef(durationWithFallback)
+        )
     }
 
     val name = config.get[String]("play.akka.actor-system")
