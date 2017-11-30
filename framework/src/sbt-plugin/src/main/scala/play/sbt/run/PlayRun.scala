@@ -61,7 +61,8 @@ object PlayRun extends PlayRunCompat {
     runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath],
     reloaderClasspath: TaskKey[Classpath],
-    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
+    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
+  ): Def.Initialize[InputTask[Unit]] = Def.inputTask {
 
     val args = Def.spaceDelimited().parsed
 
