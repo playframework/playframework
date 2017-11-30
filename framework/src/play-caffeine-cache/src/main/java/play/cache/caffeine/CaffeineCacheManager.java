@@ -42,7 +42,7 @@ public class CaffeineCacheManager {
         // if not we look for default config
         if (config != null) {
             String pathKey = "caches." + cacheName;
-            System.out.println(pathKey);
+
             if (config.hasPath(pathKey)) {
                 cacheBuilder = CaffeineParser.from(config.getConfig(pathKey)).expireAfter(defaultExpiry);
             } else if (config.hasPath(PLAY_CACHE_CAFFEINE_DEFAULTS)) {
