@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentMap;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.typesafe.config.Config;
 
+import static play.cache.caffeine.CaffeineConfigConstants.*;
+
 public class CaffeineCacheManager {
     private final ConcurrentMap<String, NamedCaffeineCache> cacheMap = new ConcurrentHashMap<>(16);
     private Config config;
@@ -32,14 +34,24 @@ public class CaffeineCacheManager {
 
     private Caffeine getCacheBuilder(String cacheName) {
         Caffeine cacheBuilder;
+        CaffeineDefaultExpiry defaultExpiry = new CaffeineDefaultExpiry();
 
         // we create the cache builder
         // depending on whether the config for
         // the cache name was there or not
-        if (config != null && config.hasPath(cacheName)) {
-            cacheBuilder = CaffeineParser.from(config.getConfig(cacheName)).expireAfter(new CaffeineDefaultExpiry());
+        // if not we look for default config
+        if (config != null) {
+            String pathKey = "caches." + cacheName;
+            System.out.println(pathKey);
+            if (config.hasPath(pathKey)) {
+                cacheBuilder = CaffeineParser.from(config.getConfig(pathKey)).expireAfter(defaultExpiry);
+            } else if (config.hasPath(PLAY_CACHE_CAFFEINE_DEFAULTS)) {
+                cacheBuilder = CaffeineParser.from(config.getConfig(PLAY_CACHE_CAFFEINE_DEFAULTS)).expireAfter(defaultExpiry);
+            } else {
+                cacheBuilder = Caffeine.newBuilder().expireAfter(defaultExpiry);
+            }
         } else {
-            cacheBuilder = Caffeine.newBuilder().expireAfter(new CaffeineDefaultExpiry());
+            cacheBuilder = Caffeine.newBuilder().expireAfter(defaultExpiry);
         }
 
         return cacheBuilder;

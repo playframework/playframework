@@ -58,11 +58,13 @@ public final class CaffeineParser {
 
     @SuppressWarnings("fallthrough")
     private void parse(String key) {
+        System.out.println("PARSE " +key);
         switch (key) {
             case "initial-capacity":
                 cacheBuilder.initialCapacity(config.getInt(key));
                 break;
             case "maximum-size":
+                System.out.println(config.getLong(key));
                 cacheBuilder.maximumSize(config.getLong(key));
                 break;
             case "maximum-weight":

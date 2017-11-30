@@ -21,6 +21,8 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
+import play.cache.caffeine.CaffeineConfigConstants._
+
 /**
  * CaffeineCache components for compile time injection
  */
@@ -42,7 +44,7 @@ trait CaffeineCacheComponents {
     new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))(ec)
   }
 
-  lazy val defaultCacheApi: AsyncCacheApi = cacheApi("play")
+  lazy val defaultCacheApi: AsyncCacheApi = cacheApi(PLAY_CACHE_CAFFEINE_DEFAULT_NAME)
 }
 
 /**
