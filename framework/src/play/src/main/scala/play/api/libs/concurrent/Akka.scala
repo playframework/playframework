@@ -138,7 +138,6 @@ object ActorSystemProvider {
     val system = ActorSystem(name, akkaConfig, classLoader)
     logger.debug(s"Starting application default Akka system: $name")
 
-
     val stopHook = { () =>
       val akkaRunCSFromPhase = config.get[String]("play.akka.run-cs-from-phase")
       logger.debug(s"Shutdown application default Akka system: $name")
