@@ -30,7 +30,7 @@ GET   /:page                controllers.Application.show(page)
 # #optional
 # The version parameter is optional. E.g. /api/list-all?version=3.0
 GET   /api/list-all         controllers.Api.list(version ?= null)
-or
+# or
 GET   /api/list-all         controllers.Api.list(version: java.util.Optional[String])
 # #optional
 
