@@ -42,7 +42,7 @@ lazy val root = (project in file("."))
 
 ## "Global-State-Free" Applications
 
-The biggest under the hood change is that Play no longer relies on global state under the hood.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all.
+The biggest under the hood change is that Play no longer relies on global state.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all.
 
 You can disable access to global application entirely by setting the following configuration value:
 
