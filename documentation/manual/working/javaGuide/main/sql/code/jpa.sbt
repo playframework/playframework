@@ -10,5 +10,5 @@ libraryDependencies ++= Seq(
 //#jpa-sbt-dependencies
 
 //#jpa-externalize-resources
-PlayKeys.externalizeResources := false
+PlayKeys.externalizeResourcesExcludes += "META-INF/persistence.xml"
 //#jpa-externalize-resources
