@@ -109,11 +109,21 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = RequiredValidator.class)
+    @Repeatable(play.data.validation.Constraints.Required.List.class)
     @play.data.Form.Display(name="constraint.required")
     public @interface Required {
         String message() default RequiredValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
+
+        /**
+         * Defines several {@code @Required} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            Required[] value();
+        }
     }
 
     /**
@@ -163,12 +173,22 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinValidator.class)
+    @Repeatable(play.data.validation.Constraints.Min.List.class)
     @play.data.Form.Display(name="constraint.min", attributes={"value"})
     public @interface Min {
         String message() default MinValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         long value();
+
+        /**
+         * Defines several {@code @Min} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            Min[] value();
+        }
     }
 
     /**
@@ -221,12 +241,22 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxValidator.class)
+    @Repeatable(play.data.validation.Constraints.Max.List.class)
     @play.data.Form.Display(name="constraint.max", attributes={"value"})
     public @interface Max {
         String message() default MaxValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         long value();
+
+        /**
+         * Defines several {@code @Max} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            Max[] value();
+        }
     }
 
     /**
@@ -279,12 +309,22 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinLengthValidator.class)
+    @Repeatable(play.data.validation.Constraints.MinLength.List.class)
     @play.data.Form.Display(name="constraint.minLength", attributes={"value"})
     public @interface MinLength {
         String message() default MinLengthValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         long value();
+
+        /**
+         * Defines several {@code @MinLength} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            MinLength[] value();
+        }
     }
 
     /**
@@ -336,12 +376,22 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxLengthValidator.class)
+    @Repeatable(play.data.validation.Constraints.MaxLength.List.class)
     @play.data.Form.Display(name="constraint.maxLength", attributes={"value"})
     public @interface MaxLength {
         String message() default MaxLengthValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         long value();
+
+        /**
+         * Defines several {@code @MaxLength} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            MaxLength[] value();
+        }
     }
 
     /**
@@ -393,11 +443,21 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = EmailValidator.class)
+    @Repeatable(play.data.validation.Constraints.Email.List.class)
     @play.data.Form.Display(name="constraint.email", attributes={})
     public @interface Email {
         String message() default EmailValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
+
+        /**
+         * Defines several {@code @Email} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            Email[] value();
+        }
     }
 
     /**
@@ -447,12 +507,22 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = PatternValidator.class)
+    @Repeatable(play.data.validation.Constraints.Pattern.List.class)
     @play.data.Form.Display(name="constraint.pattern", attributes={"value"})
     public @interface Pattern {
         String message() default PatternValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         String value();
+
+        /**
+         * Defines several {@code @Pattern} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            Pattern[] value();
+        }
     }
 
     /**
@@ -507,12 +577,22 @@ public class Constraints {
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = ValidateWithValidator.class)
+    @Repeatable(play.data.validation.Constraints.ValidateWith.List.class)
     @play.data.Form.Display(name="constraint.validatewith", attributes={})
     public @interface ValidateWith {
         String message() default ValidateWithValidator.defaultMessage;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         Class<? extends Validator> value();
+
+        /**
+         * Defines several {@code @ValidateWith} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            ValidateWith[] value();
+        }
     }
 
     /**
@@ -569,10 +649,20 @@ public class Constraints {
     @Target({TYPE, ANNOTATION_TYPE})
     @Retention(RUNTIME)
     @Constraint(validatedBy = ValidateValidator.class)
+    @Repeatable(play.data.validation.Constraints.Validate.List.class)
     public @interface Validate {
         String message() default "error.invalid";
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
+
+        /**
+         * Defines several {@code @Validate} annotations on the same element.
+         */
+        @Target({TYPE, ANNOTATION_TYPE})
+        @Retention(RUNTIME)
+        public @interface List {
+            Validate[] value();
+        }
     }
 
     public interface Validatable<T> {

@@ -400,6 +400,20 @@ trait FormSpec extends Specification {
       optForm.get().getOptional.get must beEqualTo("Microsoft Corporation")
     }
 
+    "support @repeatable constraints" in {
+      val form = formFactory.form(classOf[RepeatableConstraintsForm]).bind(Map("name" -> "xyz").asJava)
+      form.hasErrors must beEqualTo(true)
+      form.hasGlobalErrors() must beEqualTo(false)
+      form.allErrors().size() must beEqualTo(4)
+      form.errors("name").size() must beEqualTo(4)
+      val nameErrorMessages = form.errors("name").asScala.flatMap(_.messages().asScala)
+      nameErrorMessages.size must beEqualTo(4)
+      nameErrorMessages must contain("Should be a - c")
+      nameErrorMessages must contain("Should be c - h")
+      nameErrorMessages must contain("notgreen")
+      nameErrorMessages must contain("notblue")
+    }
+
     "work with the @repeat helper" in {
       val form = formFactory.form(classOf[JavaForm])
 
