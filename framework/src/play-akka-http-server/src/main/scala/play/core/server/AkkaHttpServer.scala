@@ -95,7 +95,7 @@ class AkkaHttpServer(
       .withRemoteAddressHeader(true)
       // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
       .withTransparentHeadRequests(akkaServerConfig.get[Boolean]("transparent-head-requests"))
-      .withServerHeader(akkaServerConfig.getOptional[String]("server-header").filterNot(_ == "").map(headers.Server(_)))
+      .withServerHeader(akkaServerConfig.getOptional[String]("server-header").map(headers.Server(_)))
       .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
       .withParserSettings(parserSettings)
 

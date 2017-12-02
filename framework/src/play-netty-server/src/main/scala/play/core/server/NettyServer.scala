@@ -49,7 +49,7 @@ class NettyServer(
 
   private val serverConfig = config.configuration.get[Configuration]("play.server")
   private val nettyConfig = serverConfig.get[Configuration]("netty")
-  private val serverHeader = nettyConfig.getOptional[String]("server-header").filterNot(_ == "")
+  private val serverHeader = nettyConfig.getOptional[String]("server-header")
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize = nettyConfig.get[Int]("maxHeaderSize")
   private val maxChunkSize = nettyConfig.get[Int]("maxChunkSize")
