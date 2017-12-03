@@ -3,6 +3,7 @@
  */
 package play.db.jpa;
 
+import play.Logger;
 import play.db.DBApi;
 import play.inject.ApplicationLifecycle;
 
@@ -20,6 +21,8 @@ import javax.persistence.*;
  * Default implementation of the JPA API.
  */
 public class DefaultJPAApi implements JPAApi {
+
+    private static final Logger.ALogger logger = Logger.of(DefaultJPAApi.class);
 
     private final JPAConfig jpaConfig;
 
@@ -148,8 +151,12 @@ public class DefaultJPAApi implements JPAApi {
             return result;
 
         } catch (Throwable t) {
-            if (tx != null) {
-                try { tx.rollback(); } catch (Throwable e) {}
+            if (tx != null && tx.isActive()) {
+                try {
+                    tx.rollback();
+                } catch (PersistenceException e) {
+                    logger.error("Could not rollback transaction", e);
+                }
             }
             throw t;
         } finally {
