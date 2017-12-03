@@ -54,7 +54,7 @@ class ConfigurationSpec extends Specification {
 
     }
 
-    "support getting optional values" in {
+    "support getting optional values via get[Option[...]]" in {
       "when null" in {
         config("foo.bar" -> null).get[Option[String]]("foo.bar") must beNone
       }
@@ -63,6 +63,17 @@ class ConfigurationSpec extends Specification {
       }
       "when undefined" in {
         config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
+      }
+    }
+    "support getting optional values via getOptional" in {
+      "when null" in {
+        config("foo.bar" -> null).getOptional[String]("foo.bar") must beNone
+      }
+      "when set" in {
+        config("foo.bar" -> "bar").getOptional[String]("foo.bar") must beSome("bar")
+      }
+      "when undefined" in {
+        config().getOptional[String]("foo.bar") must beNone
       }
     }
     "support getting prototyped seqs" in {
