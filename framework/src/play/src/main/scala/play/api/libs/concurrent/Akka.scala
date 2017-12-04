@@ -12,6 +12,7 @@ import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
 import scala.util.{ Success, Try }
@@ -30,7 +31,8 @@ object Akka {
    * Typically, you will want to use this in combination with a named qualifier, so that multiple ActorRefs can be
    * bound, and the scope should be set to singleton or eager singleton.
    * *
-   * @param name The name of the actor.
+   *
+   * @param name  The name of the actor.
    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
    *              actor, this function can be used to provide additional configuration such as router and dispatcher
    *              configuration.
@@ -63,7 +65,7 @@ object Akka {
    *   }
    * }}}
    *
-   * @param name The name of the actor.
+   * @param name  The name of the actor.
    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
    *              actor, this function can be used to provide additional configuration such as router and dispatcher
    *              configuration.
@@ -80,7 +82,9 @@ object Akka {
 trait AkkaComponents {
 
   def environment: Environment
+
   def configuration: Configuration
+
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
@@ -126,31 +130,34 @@ object ActorSystemProvider {
 
   /**
    * Start an ActorSystem, using the given configuration and ClassLoader.
+   *
    * @return The ActorSystem and a function that can be used to stop it.
    */
   def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 
-      // merge timeout values.
+      // normalize timeout values for Akka's use
       val playTimeoutKey = "play.akka.shutdown-timeout"
-      val akkaTimeoutKey = "play.akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
-      val playValue = Try(config.getMillis(playTimeoutKey))
-      val akkaValue = Try(config.getMillis(akkaTimeoutKey))
-
-      val durationWithFallback: Long = (playValue, akkaValue) match {
-        case (_, Success(timeout)) => timeout
-        case (Success(timeout), _) => timeout
-        case _ => Long.MaxValue // effectively equivalent to Duration.Inf but serializable.
+      val playTimeoutDuration = Try(config.get[Duration](playTimeoutKey)).getOrElse(Duration.Inf)
+      val durationString = playTimeoutDuration match {
+        case Duration.Inf =>
+          // Typesafe config used internally by Akka doesn't support "infinite".
+          // Also, the value expected is an integer so can't use Long.MaxValue.
+          // Finally, Akka requires the delay to be less than a certain threshold.
+          val akkaMaxDelay = Int.MaxValue / 1000
+          s"$akkaMaxDelay s"
+        case x => s"${x.toMillis / 1000} s"
       }
 
+      val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
       config.get[Config](akkaConfigRoot)
         // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
         .withFallback(config.underlying)
         // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
         .withValue(
           akkaTimeoutKey,
-          ConfigValueFactory.fromAnyRef(durationWithFallback)
+          ConfigValueFactory.fromAnyRef(durationString)
         )
     }
 
@@ -181,6 +188,7 @@ object ActorSystemProvider {
   def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
     new ClosableLazy[ActorSystem, Future[_]] {
       protected def create() = start(classLoader, configuration)
+
       protected def closeNotNeeded = Future.successful(())
     }
   }
@@ -195,11 +203,11 @@ trait InjectedActorSupport {
   /**
    * Create an injected child actor.
    *
-   * @param create A function to create the actor.
-   * @param name The name of the actor.
-   * @param props A function to provide props for the actor. The props passed in will just describe how to create the
-   *              actor, this function can be used to provide additional configuration such as router and dispatcher
-   *              configuration.
+   * @param create  A function to create the actor.
+   * @param name    The name of the actor.
+   * @param props   A function to provide props for the actor. The props passed in will just describe how to create the
+   *                actor, this function can be used to provide additional configuration such as router and dispatcher
+   *                configuration.
    * @param context The context to create the actor from.
    * @return An ActorRef for the created actor.
    */
