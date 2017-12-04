@@ -105,8 +105,7 @@ class RouterSpec extends Specification {
 
     "add prefix multiple times" in {
       import play.api.http.HttpVerbs._
-      val v1Router = router.withPrefix("/v1")
-      val apiV1Router = v1Router.withPrefix("/api/")
+      val apiV1Router = "/api" /: "v1" /: router
       apiV1Router.handlerFor(FakeRequest(GET, "/")) must beNone
       apiV1Router.handlerFor(FakeRequest(GET, "/api/")) must beNone
       apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/")) must beSome(Root)
