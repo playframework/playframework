@@ -140,15 +140,14 @@ object ActorSystemProvider {
       // normalize timeout values for Akka's use
       val playTimeoutKey = "play.akka.shutdown-timeout"
       val playTimeoutDuration = Try(config.get[Duration](playTimeoutKey)).getOrElse(Duration.Inf)
-      val durationString = playTimeoutDuration match {
-        case Duration.Inf =>
-          // Typesafe config used internally by Akka doesn't support "infinite".
-          // Also, the value expected is an integer so can't use Long.MaxValue.
-          // Finally, Akka requires the delay to be less than a certain threshold.
-          val akkaMaxDelay = Int.MaxValue / 1000
-          s"$akkaMaxDelay s"
-        case x => s"${x.toMillis / 1000} s"
-      }
+
+      // Typesafe config used internally by Akka doesn't support "infinite".
+      // Also, the value expected is an integer so can't use Long.MaxValue.
+      // Finally, Akka requires the delay to be less than a certain threshold.
+      val akkaMaxDelay = Int.MaxValue / 1000
+      val akkaMaxDuration = Duration(akkaMaxDelay, "seconds")
+      val normalisedDuration =
+        if (playTimeoutDuration > akkaMaxDuration) akkaMaxDuration else playTimeoutDuration
 
       val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
       config.get[Config](akkaConfigRoot)
@@ -157,7 +156,7 @@ object ActorSystemProvider {
         // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
         .withValue(
           akkaTimeoutKey,
-          ConfigValueFactory.fromAnyRef(durationString)
+          ConfigValueFactory.fromAnyRef(java.time.Duration.ofMillis(normalisedDuration.toMillis))
         )
     }
 
