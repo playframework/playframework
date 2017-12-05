@@ -19,21 +19,20 @@ lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
 
 // run-support project is only compiled against sbt scala version
 lazy val RunSupportProject = PlaySbtProject("Run-Support", "run-support")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(
       target := target.value / "run-support",
       libraryDependencies ++= runSupportDependencies((sbtVersion in pluginCrossBuild).value)
     ).dependsOn(BuildLinkProject)
 
 lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "routes-compiler")
-    .enablePlugins(AutomateHeaderPlugin, SbtTwirl)
+    .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
 lazy val SbtRoutesCompilerProject = PlaySbtProject("SBT-Routes-Compiler", "routes-compiler")
-    .enablePlugins(AutomateHeaderPlugin, SbtTwirl)
+    .enablePlugins(SbtTwirl)
     .settings(
       target := target.value / "sbt-routes-compiler",
       libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
@@ -44,17 +43,15 @@ lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
     .settings(libraryDependencies ++= streamsDependencies)
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
-  .enablePlugins(AutomateHeaderPlugin)
 
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-joda-forms")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= joda
     )
     .dependsOn(PlayProject, PlaySpecs2Project % "test")
 
 lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
-    .enablePlugins(SbtTwirl, AutomateHeaderPlugin)
+    .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
         jimfs % Test,
@@ -90,41 +87,35 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
 
 lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
     .settings(libraryDependencies ++= playServerDependencies)
-    .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(
       PlayProject,
       PlayGuiceProject % "test"
     )
 
 lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "play-netty-server")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(libraryDependencies ++= netty)
     .dependsOn(PlayServerProject)
 
 import AkkaDependency._
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
-    .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
-    .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(PlayAkkaHttpServerProject)
     .addAkkaModuleDependency("akka-http2-support")
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "play-jdbc-api")
-  .enablePlugins(AutomateHeaderPlugin)
+
     .dependsOn(PlayProject)
 
 lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "play-jdbc")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(libraryDependencies ++= jdbcDeps)
     .dependsOn(PlayJdbcApiProject)
     .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions", "play-jdbc-evolutions")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(libraryDependencies += derbyDatabase % Test)
     .dependsOn(PlayJdbcApiProject)
     .dependsOn(PlaySpecs2Project % "test")
@@ -132,19 +123,16 @@ lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions
     .dependsOn(PlayJavaJdbcProject % "test")
 
 lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc")
-    .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(PlayJdbcProject % "compile->compile;test->test", PlayJavaProject)
     .dependsOn(PlaySpecs2Project % "test", PlayGuiceProject % "test")
 
 lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "play-java-jpa")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(libraryDependencies ++= jpaDeps)
     .dependsOn(PlayJavaJdbcProject % "compile->compile;test->test")
     .dependsOn(PlayJdbcEvolutionsProject % "test")
     .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= testDependencies ++ Seq(h2database % "test"),
       parallelExecution in Test := false
@@ -154,14 +142,13 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
 )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
-    .enablePlugins(AutomateHeaderPlugin)
+
     .settings(
       libraryDependencies ++= specsBuild,
       parallelExecution in Test := false
     ).dependsOn(PlayTestProject)
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
     .dependsOn(
       PlayProject % "compile;test->test",
@@ -171,7 +158,6 @@ lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
     )
 
 lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "play-java-forms")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps,
       compileOrder in Test := CompileOrder.JavaThenScala // work around SI-9853 - can be removed when dropping Scala 2.11 support
@@ -186,14 +172,13 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     ).dependsOn(PlayAkkaHttpServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
-  .enablePlugins(AutomateHeaderPlugin)
+
     .settings(libraryDependencies ++= guiceDeps ++ specsBuild.map(_ % "test"))
     .dependsOn(
       PlayProject % "compile;test->test"
     )
 
 lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
-  .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
       sourceGenerators in Compile += Def.task(PlayVersion(
@@ -213,7 +198,6 @@ lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     ).dependsOn(SbtRoutesCompilerProject, RunSupportProject)
 
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
-  .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies += logback,
       parallelExecution in Test := false,
@@ -224,7 +208,6 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "play-logback")
     .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "play-ws")
-  .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= playWsDeps,
       parallelExecution in Test := false,
@@ -234,7 +217,6 @@ lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "play-ws")
   .dependsOn(PlayTestProject % "test")
 
 lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(
     libraryDependencies ++= playAhcWsDeps,
     parallelExecution in Test := false,
@@ -245,7 +227,6 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
   .dependsOn(PlayTestProject % "test->test")
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(
     parallelExecution in Test := false,
     // quieten deprecation warnings in tests
@@ -254,7 +235,6 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
   .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
-  .enablePlugins(AutomateHeaderPlugin)
     .settings(
       parallelExecution in Test := false
     ).dependsOn(PlayProject, PlayTestProject % "test",
@@ -262,7 +242,6 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "p
 
 // This project is just for testing Play, not really a public artifact
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
-  .enablePlugins(AutomateHeaderPlugin)
     .enablePlugins(JavaAgent)
     .settings(
       libraryDependencies += okHttp % Test,
@@ -288,7 +267,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
 // This project is just for microbenchmarking Play. Not published.
 // NOTE: this project depends on JMH, which is GPLv2.
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
-    .enablePlugins(JmhPlugin, JavaAgent, AutomateHeaderPlugin)
+    .enablePlugins(JmhPlugin, JavaAgent)
     .settings(
       // Change settings so that IntelliJ can handle dependencies
       // from JMH to the integration tests. We can't use "compile->test"
@@ -330,7 +309,6 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     )
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= playCacheDeps
     )
@@ -340,7 +318,6 @@ lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     )
 
 lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcache")
-  .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= playEhcacheDeps
     )
@@ -352,7 +329,6 @@ lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcach
 
 // JSR 107 cache bindings (note this does not depend on ehcache)
 lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "play-jcache")
-    .enablePlugins(AutomateHeaderPlugin)
     .settings(
       libraryDependencies ++= jcacheApi
     )
@@ -363,7 +339,6 @@ lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "play-jcache")
     )
 
 lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
-    .enablePlugins(AutomateHeaderPlugin)
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= playDocsSbtPluginDependencies
