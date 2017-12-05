@@ -18,7 +18,7 @@ The first way is to implement this functionality in the `invokeBlock` method, wh
 Now we can use [[Dependency Injection|ScalaDependencyInjection]] in your controller to get an instance of the `LoggingAction` and use it the same way we use `Action`:
 
 @[basic-logging-index](code/ScalaActionsComposition.scala)
- 
+
 Since `ActionBuilder` provides all the different methods of building actions, this also works with, for example, declaring a custom body parser:
 
 @[basic-logging-parse](code/ScalaActionsComposition.scala)
@@ -86,7 +86,7 @@ Play also provides a built in authentication action builder.  Information on thi
 
 > **Note:** The built in authentication action builder is just a convenience helper to minimise the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
 >
-> If you have more complex requirements than can be met by the built in authentication action, then implementing your own is not only simple, it is recommended.
+> Since it is simple to write your own authentication helper, we recommend doing so if the built-in helper does not suit your needs.
 
 ### Adding information to requests
 
