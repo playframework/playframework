@@ -23,6 +23,7 @@ import play.data.validation.Constraints.Validatable;
 import play.data.validation.ValidationError;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.libs.AnnotationUtils;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
 
@@ -1029,7 +1030,7 @@ public class Form<T> {
                             continue;
                         }
                         // getDeclaredAnnotations also looks for private fields; also it provides the annotations in a guaranteed order
-                        orderedAnnotations = field.getDeclaredAnnotations();
+                        orderedAnnotations = AnnotationUtils.unwrapContainerAnnotations(field.getDeclaredAnnotations());
                         break;
                     }
                     constraints = Constraints.displayableConstraint(

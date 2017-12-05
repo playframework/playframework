@@ -402,6 +402,11 @@ trait FormSpec extends Specification {
 
     "support @repeatable constraints" in {
       val form = formFactory.form(classOf[RepeatableConstraintsForm]).bind(Map("name" -> "xyz").asJava)
+      form.field("name").constraints().size() must beEqualTo(4)
+      form.field("name").constraints().get(0)._1 must beEqualTo("constraint.validatewith")
+      form.field("name").constraints().get(1)._1 must beEqualTo("constraint.validatewith")
+      form.field("name").constraints().get(2)._1 must beEqualTo("constraint.pattern")
+      form.field("name").constraints().get(3)._1 must beEqualTo("constraint.pattern")
       form.hasErrors must beEqualTo(true)
       form.hasGlobalErrors() must beEqualTo(false)
       form.allErrors().size() must beEqualTo(4)
