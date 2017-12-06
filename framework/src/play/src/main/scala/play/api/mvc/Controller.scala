@@ -210,13 +210,13 @@ trait ControllerComponents {
 }
 
 case class DefaultControllerComponents @Inject() (
-  actionBuilder: DefaultActionBuilder,
-  parsers: PlayBodyParsers,
-  messagesApi: MessagesApi,
-  langs: Langs,
-  fileMimeTypes: FileMimeTypes,
-  executionContext: scala.concurrent.ExecutionContext)
-    extends ControllerComponents
+    actionBuilder: DefaultActionBuilder,
+    parsers: PlayBodyParsers,
+    messagesApi: MessagesApi,
+    langs: Langs,
+    fileMimeTypes: FileMimeTypes,
+    executionContext: scala.concurrent.ExecutionContext)
+  extends ControllerComponents
 
 /**
  * Implements deprecated controller functionality. We recommend moving away from this and using one of the classes or

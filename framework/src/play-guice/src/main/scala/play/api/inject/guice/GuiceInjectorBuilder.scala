@@ -230,13 +230,13 @@ abstract class GuiceBuilder[Self] protected (
  * Default empty builder for creating Guice-backed Injectors.
  */
 final class GuiceInjectorBuilder(
-  environment: Environment = Environment.simple(),
-  configuration: Configuration = Configuration.empty,
-  modules: Seq[GuiceableModule] = Seq.empty,
-  overrides: Seq[GuiceableModule] = Seq.empty,
-  disabled: Seq[Class[_]] = Seq.empty,
-  binderOptions: Set[BinderOption] = BinderOption.defaults,
-  eagerly: Boolean = false) extends GuiceBuilder[GuiceInjectorBuilder](
+    environment: Environment = Environment.simple(),
+    configuration: Configuration = Configuration.empty,
+    modules: Seq[GuiceableModule] = Seq.empty,
+    overrides: Seq[GuiceableModule] = Seq.empty,
+    disabled: Seq[Class[_]] = Seq.empty,
+    binderOptions: Set[BinderOption] = BinderOption.defaults,
+    eagerly: Boolean = false) extends GuiceBuilder[GuiceInjectorBuilder](
   environment, configuration, modules, overrides, disabled, binderOptions, eagerly
 ) {
 

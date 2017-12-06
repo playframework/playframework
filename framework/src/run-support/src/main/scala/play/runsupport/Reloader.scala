@@ -284,8 +284,8 @@ object Reloader {
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
       parentClassLoader,
       Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
-      def get: ClassLoader = { applicationLoader }
-    })
+        def get: ClassLoader = { applicationLoader }
+      })
 
     lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath),
       delegatingLoader)

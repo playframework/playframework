@@ -366,9 +366,9 @@ object RequestHeader {
  * A standard implementation of a RequestHeader.
  */
 private[play] class RequestHeaderImpl(
-  override val connection: RemoteConnection,
-  override val method: String,
-  override val target: RequestTarget,
-  override val version: String,
-  override val headers: Headers,
-  override val attrs: TypedMap) extends RequestHeader
+    override val connection: RemoteConnection,
+    override val method: String,
+    override val target: RequestTarget,
+    override val version: String,
+    override val headers: Headers,
+    override val attrs: TypedMap) extends RequestHeader

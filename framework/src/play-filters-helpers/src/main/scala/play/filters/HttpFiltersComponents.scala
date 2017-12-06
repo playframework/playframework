@@ -20,9 +20,9 @@ import play.filters.hosts.AllowedHostsComponents
  * }}}
  */
 trait HttpFiltersComponents
-    extends CSRFComponents
-    with SecurityHeadersComponents
-    with AllowedHostsComponents {
+  extends CSRFComponents
+  with SecurityHeadersComponents
+  with AllowedHostsComponents {
 
   def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }

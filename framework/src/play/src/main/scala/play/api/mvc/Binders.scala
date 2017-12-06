@@ -318,7 +318,7 @@ object QueryStringBindable {
    * @tparam A the type being parsed
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
-      extends QueryStringBindable[A] {
+    extends QueryStringBindable[A] {
 
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { p =>
       try {
@@ -567,7 +567,7 @@ object PathBindable {
    * @tparam A the type being parsed
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
-      extends PathBindable[A] {
+    extends PathBindable[A] {
 
     // added for bincompat
     @deprecated("Use constructor without codec", "2.6.2")

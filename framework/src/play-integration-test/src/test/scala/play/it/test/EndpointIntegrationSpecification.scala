@@ -16,8 +16,8 @@ import play.core.server._
  * @see [[ServerEndpoint]]
  */
 trait EndpointIntegrationSpecification
-    extends SpecificationLike with PendingUntilFixed
-    with ApplicationFactories {
+  extends SpecificationLike with PendingUntilFixed
+  with ApplicationFactories {
 
   /**
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllEndpoints()]] method.

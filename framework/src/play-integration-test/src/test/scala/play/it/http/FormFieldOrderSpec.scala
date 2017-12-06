@@ -8,7 +8,7 @@ import play.api.test._
 import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
 class FormFieldOrderSpec extends PlaySpecification
-    with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+  with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
   "Form URL Decoding " should {
 
