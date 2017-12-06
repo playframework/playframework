@@ -65,11 +65,6 @@ public final class CaffeineParser {
                     cacheBuilder.maximumSize(config.getLong(key));
                 }
                 break;
-            case "maximum-weight":
-                if (!config.getIsNull(key)) {
-                    cacheBuilder.maximumWeight(config.getMemorySize(key).toBytes());
-                }
-                break;
             case "weak-keys":
                 conditionally(key, cacheBuilder::weakKeys);
                 break;
