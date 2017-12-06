@@ -8,7 +8,6 @@ import com.typesafe.config.Config;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A configuration parser for the {@link Caffeine} builder.
@@ -50,23 +49,26 @@ public final class CaffeineParser {
     /** Returns a configured {@link Caffeine} cache builder. */
     public static Caffeine<Object, Object> from(Config config) {
         CaffeineParser parser = new CaffeineParser(config);
-
         config.entrySet().stream().map(Map.Entry::getKey).forEach(parser::parse);
-
         return parser.cacheBuilder;
     }
 
-    @SuppressWarnings("fallthrough")
     private void parse(String key) {
         switch (key) {
             case "initial-capacity":
-                cacheBuilder.initialCapacity(config.getInt(key));
+                if (!config.getIsNull(key)) {
+                    cacheBuilder.initialCapacity(config.getInt(key));
+                }
                 break;
             case "maximum-size":
-                cacheBuilder.maximumSize(config.getLong(key));
+                if (!config.getIsNull(key)) {
+                    cacheBuilder.maximumSize(config.getLong(key));
+                }
                 break;
             case "maximum-weight":
-                cacheBuilder.maximumWeight(config.getMemorySize(key).toBytes());
+                if (!config.getIsNull(key)) {
+                    cacheBuilder.maximumWeight(config.getMemorySize(key).toBytes());
+                }
                 break;
             case "weak-keys":
                 conditionally(key, cacheBuilder::weakKeys);
@@ -84,11 +86,6 @@ public final class CaffeineParser {
                 break;
         }
     }
-
-    private long getNanos(String key) {
-        return config.getDuration(key, TimeUnit.NANOSECONDS);
-    }
-
     private void conditionally(String key, Runnable action) {
         if (config.getBoolean(key)) {
             action.run();

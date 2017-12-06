@@ -11,40 +11,36 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.google.common.primitives.Primitives
-import play.cache.caffeine.{ CaffeineCacheManager, CaffeineConfigConstants, NamedCaffeineCache }
+import play.cache.caffeine.{ CaffeineCacheManager, NamedCaffeineCache }
 import play.api.cache._
 import play.api.inject._
-import play.api.{ Configuration, Environment }
+import play.api.{ Configuration }
 import play.cache.{ NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, CacheApi => JavaCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
-import play.cache.caffeine.CaffeineConfigConstants._
-
 /**
  * CaffeineCache components for compile time injection
  */
 trait CaffeineCacheComponents {
-  def environment: Environment
   def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
   def actorSystem: ActorSystem
   implicit def executionContext: ExecutionContext
 
-  lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getConfig(CaffeineConfigConstants.PLAY_CACHE_CAFFEINE_SPEC))
+  lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getConfig("play.cache.caffeine"))
 
   /**
    * Use this to create with the given name.
    */
-  def cacheApi(name: String, create: Boolean = true): AsyncCacheApi = {
-    val ec = configuration.get[Option[String]](CaffeineConfigConstants.PLAY_CACHE_DISPATCHER)
+  def cacheApi(name: String): AsyncCacheApi = {
+    val ec = configuration.get[Option[String]]("play.cache.dispatcher")
       .fold(executionContext)(actorSystem.dispatchers.lookup(_))
     new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))(ec)
   }
 
-  lazy val defaultCacheApi: AsyncCacheApi = cacheApi(PLAY_CACHE_CAFFEINE_DEFAULT_NAME)
+  lazy val defaultCacheApi: AsyncCacheApi = cacheApi(configuration.underlying.getString("play.cache.defaultCache"))
 }
 
 /**
@@ -54,8 +50,8 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
 
   import scala.collection.JavaConverters._
 
-  val defaultCacheName = configuration.underlying.getString(CaffeineConfigConstants.PLAY_CACHE_DEFAULT_CACHE)
-  val bindCaches = configuration.underlying.getStringList(CaffeineConfigConstants.PLAY_CACHE_BIND_CACHES).asScala
+  val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
+  val bindCaches = configuration.underlying.getStringList("play.cache.bindCaches").asScala
 
   // Creates a named cache qualifier
   def named(name: String): NamedCache = {
@@ -102,7 +98,7 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
 @Singleton
 class CacheManagerProvider @Inject() (configuration: Configuration) extends Provider[CaffeineCacheManager] {
   lazy val get: CaffeineCacheManager = {
-    val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getConfig(CaffeineConfigConstants.PLAY_CACHE_CAFFEINE_SPEC))
+    val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(configuration.underlying.getConfig("play.cache.caffeine"))
     cacheManager
   }
 }
@@ -130,7 +126,7 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCach
   @Inject private var defaultEc: ExecutionContext = _
   @Inject private var configuration: Configuration = _
   @Inject private var actorSystem: ActorSystem = _
-  private lazy val ec: ExecutionContext = configuration.get[Option[String]](CaffeineConfigConstants.PLAY_CACHE_DISPATCHER).map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
+  private lazy val ec: ExecutionContext = configuration.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
     new CaffeineCacheApi(injector.instanceOf(key))(ec)
 }
