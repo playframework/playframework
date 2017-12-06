@@ -262,14 +262,14 @@ class DefaultHttpRequestHandler(
  * the base class for your custom [[HttpRequestHandler]].
  */
 class JavaCompatibleHttpRequestHandler(
-  webCommands: WebCommands,
-  optDevContext: Option[DevContext],
-  router: Router,
-  errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration,
-  filters: Seq[EssentialFilter],
-  handlerComponents: JavaHandlerComponents)
-    extends DefaultHttpRequestHandler(webCommands, optDevContext, router, errorHandler, configuration, filters) {
+    webCommands: WebCommands,
+    optDevContext: Option[DevContext],
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: Seq[EssentialFilter],
+    handlerComponents: JavaHandlerComponents)
+  extends DefaultHttpRequestHandler(webCommands, optDevContext, router, errorHandler, configuration, filters) {
 
   @Inject
   def this(

@@ -130,14 +130,14 @@ object Multipart {
   }
 
   case class FileInfo(
-    /** Name of the part in HTTP request (e.g. field name) */
-    partName: String,
+      /** Name of the part in HTTP request (e.g. field name) */
+      partName: String,
 
-    /** Name of the file */
-    fileName: String,
+      /** Name of the file */
+      fileName: String,
 
-    /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
-    contentType: Option[String])
+      /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
+      contentType: Option[String])
 
   private[play] object FileInfoMatcher {
 
@@ -240,7 +240,7 @@ object Multipart {
    * see: http://tools.ietf.org/html/rfc2046#section-5.1.1
    */
   private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Int, maxHeaderSize: Int)
-      extends GraphStage[FlowShape[ByteString, RawPart]] {
+    extends GraphStage[FlowShape[ByteString, RawPart]] {
 
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
     require(boundary.charAt(boundary.length - 1) != ' ', "'boundary' parameter of multipart Content-Type must not end with a space char")

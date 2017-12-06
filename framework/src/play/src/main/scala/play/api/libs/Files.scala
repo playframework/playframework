@@ -140,9 +140,9 @@ object Files {
    */
   @Singleton
   class DefaultTemporaryFileCreator @Inject() (
-    applicationLifecycle: ApplicationLifecycle,
-    temporaryFileReaper: TemporaryFileReaper)
-      extends TemporaryFileCreator {
+      applicationLifecycle: ApplicationLifecycle,
+      temporaryFileReaper: TemporaryFileReaper)
+    extends TemporaryFileCreator {
 
     private val logger = play.api.Logger(this.getClass)
     private val frq = new FinalizableReferenceQueue()
@@ -231,9 +231,9 @@ object Files {
 
   @Singleton
   class DefaultTemporaryFileReaper @Inject() (
-    actorSystem: ActorSystem,
-    config: TemporaryFileReaperConfiguration)
-      extends TemporaryFileReaper {
+      actorSystem: ActorSystem,
+      config: TemporaryFileReaperConfiguration)
+    extends TemporaryFileReaper {
 
     private val logger = play.api.Logger(this.getClass)
     private val blockingDispatcherName = "play.akka.blockingIoDispatcher"
@@ -314,10 +314,10 @@ object Files {
    * @param interval the duration after the initial run during which the reaper will scan for files it can remove.  Default 5 minutes.
    */
   case class TemporaryFileReaperConfiguration(
-    enabled: Boolean = false,
-    olderThan: FiniteDuration = 5.minutes,
-    initialDelay: FiniteDuration = 5.minutes,
-    interval: FiniteDuration = 5.minutes)
+      enabled: Boolean = false,
+      olderThan: FiniteDuration = 5.minutes,
+      initialDelay: FiniteDuration = 5.minutes,
+      interval: FiniteDuration = 5.minutes)
 
   object TemporaryFileReaperConfiguration {
     def fromConfiguration(config: Configuration): TemporaryFileReaperConfiguration = {

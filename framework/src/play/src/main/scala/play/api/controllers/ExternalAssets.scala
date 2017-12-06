@@ -30,7 +30,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  *
  */
 class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
-    extends ControllerHelpers {
+  extends ControllerHelpers {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 

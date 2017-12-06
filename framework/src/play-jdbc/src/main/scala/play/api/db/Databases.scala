@@ -191,7 +191,7 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
  * Default implementation of the database API using a connection pool.
  */
 class PooledDatabase(name: String, configuration: Config, environment: Environment, pool: ConnectionPool)
-    extends DefaultDatabase(name, configuration, environment) {
+  extends DefaultDatabase(name, configuration, environment) {
 
   def this(name: String, configuration: Configuration) = this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 

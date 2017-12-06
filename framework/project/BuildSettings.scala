@@ -13,8 +13,7 @@ import de.heikoseeberger.sbtheader.HeaderKey._
 import de.heikoseeberger.sbtheader.HeaderPattern
 
 import scalariform.formatter.preferences._
-import com.typesafe.sbt.SbtScalariform.scalariformSettings
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import com.typesafe.sbt.SbtScalariform.autoImport._
 import bintray.BintrayPlugin.autoImport._
 import interplay._
 import interplay.Omnidoc.autoImport._
@@ -74,13 +73,14 @@ object BuildSettings {
    */
   def playCommonSettings: Seq[Setting[_]] = {
 
-    scalariformSettings ++ fileHeaderSettings ++ Seq(
-      ScalariformKeys.preferences := ScalariformKeys.preferences.value
+    fileHeaderSettings ++ Seq(
+      scalariformAutoformat := true,
+      scalariformPreferences := scalariformPreferences.value
           .setPreference(SpacesAroundMultiImports, true)
           .setPreference(SpaceInsideParentheses, false)
           .setPreference(DanglingCloseParenthesis, Preserve)
           .setPreference(PreserveSpaceBeforeArguments, true)
-          .setPreference(DoubleIndentClassDeclaration, true)
+          .setPreference(DoubleIndentConstructorArguments, true)
     ) ++ Seq(
       homepage := Some(url("https://playframework.com")),
       ivyLoggingLevel := UpdateLogging.DownloadOnly,
