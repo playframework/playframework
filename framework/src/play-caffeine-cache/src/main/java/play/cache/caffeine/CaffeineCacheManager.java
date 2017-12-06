@@ -47,8 +47,6 @@ public class CaffeineCacheManager {
             cacheConfig = defaults;
         }
 
-        cacheConfig.entrySet().stream().forEach(e -> System.out.println(e.getKey()));
-
         cacheBuilder = CaffeineParser.from(cacheConfig).expireAfter(defaultExpiry);
 
         return cacheBuilder;
