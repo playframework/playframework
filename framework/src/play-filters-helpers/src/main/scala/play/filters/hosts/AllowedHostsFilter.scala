@@ -17,7 +17,7 @@ import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
  * A filter that denies requests by hosts that do not match a configured list of allowed hosts.
  */
 case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandler: HttpErrorHandler)
-    extends EssentialFilter {
+  extends EssentialFilter {
 
   private val logger = Logger(this.getClass)
 

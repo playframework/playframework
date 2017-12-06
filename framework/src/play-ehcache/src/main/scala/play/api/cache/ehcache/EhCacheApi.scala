@@ -140,7 +140,7 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
-    extends Provider[SyncCacheApi with CacheApi] {
+  extends Provider[SyncCacheApi with CacheApi] {
   @Inject private var injector: Injector = _
 
   // TODO: remove "with CacheApi" hacks for 2.7.0
@@ -160,7 +160,7 @@ private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi
 }
 
 private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
-    extends Provider[JavaSyncCacheApi with JavaCacheApi] {
+  extends Provider[JavaSyncCacheApi with JavaCacheApi] {
   @Inject private var injector: Injector = _
   lazy val get: JavaSyncCacheApi with JavaCacheApi =
     new SyncCacheApiAdapter(injector.instanceOf(key).sync)

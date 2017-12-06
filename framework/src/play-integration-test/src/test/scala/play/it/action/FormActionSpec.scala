@@ -18,9 +18,9 @@ import play.api.routing.Router
 class FormActionSpec extends PlaySpecification with WsTestClient {
 
   case class User(
-    name: String,
-    email: String,
-    age: Int
+      name: String,
+      email: String,
+      age: Int
   )
 
   val userForm = Form(

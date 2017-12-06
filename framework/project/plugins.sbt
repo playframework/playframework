@@ -7,7 +7,7 @@ val Versions = new {
   // documentation/manual/working/commonGuide/production/Deploying.md
   val sbtNativePackager = "1.3.2"
   val mima = "0.1.18"
-  val sbtScalariform = "1.6.0"
+  val sbtScalariform = "1.8.2"
   val sbtJavaAgent = "0.1.4"
   val sbtJmh = "0.2.27"
   val sbtDoge = "0.1.5"

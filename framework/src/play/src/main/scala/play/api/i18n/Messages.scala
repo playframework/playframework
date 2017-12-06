@@ -512,11 +512,11 @@ class DefaultMessagesApi @Inject() (
 
 @Singleton
 class DefaultMessagesApiProvider @Inject() (
-  environment: Environment,
-  config: Configuration,
-  langs: Langs,
-  httpConfiguration: HttpConfiguration)
-    extends Provider[MessagesApi] {
+    environment: Environment,
+    config: Configuration,
+    langs: Langs,
+    httpConfiguration: HttpConfiguration)
+  extends Provider[MessagesApi] {
 
   override lazy val get: MessagesApi = {
     new DefaultMessagesApi(

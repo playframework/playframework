@@ -176,11 +176,11 @@ class OptionalAhcHttpCacheProvider @Inject() (
   }
 
   case class AhcHttpCacheConfiguration(
-    enabled: Boolean,
-    cacheName: String,
-    heuristicsEnabled: Boolean,
-    cacheManagerURI: String,
-    cachingProviderName: String)
+      enabled: Boolean,
+      cacheName: String,
+      heuristicsEnabled: Boolean,
+      cacheManagerURI: String,
+      cachingProviderName: String)
 
   object AhcHttpCacheParser {
     // For the sake of compatibility, parse both cacheManagerResource and cacheManagerURI, use cacheManagerURI first.
@@ -214,7 +214,7 @@ class OptionalAhcHttpCacheProvider @Inject() (
  */
 @Singleton
 class AhcWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
-    extends Provider[WSClient] {
+  extends Provider[WSClient] {
 
   lazy val get: WSClient = {
     new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))

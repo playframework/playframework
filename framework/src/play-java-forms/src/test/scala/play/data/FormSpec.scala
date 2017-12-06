@@ -44,7 +44,7 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
   class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty) extends BuiltInComponentsFromContext(context)
-      with FormFactoryComponents {
+    with FormFactoryComponents {
     override def router(): Router = Router.empty()
 
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()

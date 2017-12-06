@@ -83,8 +83,8 @@ object ApplicationLoader {
    * @param buildLink An interface that can be used to interact with the build system.
    */
   final case class DevContext(
-    sourceMapper: SourceMapper,
-    buildLink: BuildLink
+      sourceMapper: SourceMapper,
+      buildLink: BuildLink
   )
 
   object Context {
@@ -145,23 +145,23 @@ object ApplicationLoader {
     Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, NoApplicationLoader](
       context.environment, context.initialConfiguration, LoaderKey, classOf[NoApplicationLoader].getName
     ) match {
-      case None =>
-        loaderNotFound()
-      case Some(Left(scalaClass)) =>
-        scalaClass.newInstance
-      case Some(Right(javaClass)) =>
-        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
-        // Create an adapter from a Java to a Scala ApplicationLoader. This class is
-        // effectively anonymous, but let's give it a name to make debugging easier.
-        class JavaApplicationLoaderAdapter extends ApplicationLoader {
-          override def load(context: ApplicationLoader.Context): Application = {
-            val javaContext = new play.ApplicationLoader.Context(context)
-            val javaApplication = javaApplicationLoader.load(javaContext)
-            javaApplication.asScala()
+        case None =>
+          loaderNotFound()
+        case Some(Left(scalaClass)) =>
+          scalaClass.newInstance
+        case Some(Right(javaClass)) =>
+          val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+          // Create an adapter from a Java to a Scala ApplicationLoader. This class is
+          // effectively anonymous, but let's give it a name to make debugging easier.
+          class JavaApplicationLoaderAdapter extends ApplicationLoader {
+            override def load(context: ApplicationLoader.Context): Application = {
+              val javaContext = new play.ApplicationLoader.Context(context)
+              val javaApplication = javaApplicationLoader.load(javaContext)
+              javaApplication.asScala()
+            }
           }
-        }
-        new JavaApplicationLoaderAdapter
-    }
+          new JavaApplicationLoaderAdapter
+      }
   }
 
   /**

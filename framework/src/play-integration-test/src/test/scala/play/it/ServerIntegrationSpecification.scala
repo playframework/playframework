@@ -83,11 +83,11 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Override the standard WithServer class.
    */
   abstract class WithServer(
-    app: play.api.Application = GuiceApplicationBuilder().build(),
-    port: Int = play.api.test.Helpers.testServerPort)
-      extends play.api.test.WithServer(
-        app, port, serverProvider = Some(integrationServerProvider)
-      )
+      app: play.api.Application = GuiceApplicationBuilder().build(),
+      port: Int = play.api.test.Helpers.testServerPort)
+    extends play.api.test.WithServer(
+      app, port, serverProvider = Some(integrationServerProvider)
+    )
 
 }
 
