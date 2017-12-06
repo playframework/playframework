@@ -18,9 +18,9 @@ public class AnnotationUtils {
 
     /**
      * Returns a new array whose entries do not contain container annotations anymore but the indirectly present annotations a container annotation
-     * was wrapping instead.
+     * was wrapping instead. Annotations inside the given array which are not container annotations will be returned untouched.
      * 
-     * @param annotations An array of annotations to unwrap.
+     * @param annotations An array of annotations to unwrap. Can contain both container and non container annotations.
      * @return A new array without container annotations but the container annotations' indirectly defined annotations.
      */
     public static <A extends Annotation> Annotation[] unwrapContainerAnnotations(final A[] annotations) {
@@ -47,9 +47,6 @@ public class AnnotationUtils {
     public static <A extends Annotation> List<Annotation> getIndirectlyPresentAnnotations(final A annotation) {
         try {
             final Method method = annotation.getClass().getMethod("value");
-            if (!method.isAccessible()) {
-                method.setAccessible(true);
-            }
             final Object o = method.invoke(annotation);
             if (Annotation[].class.isAssignableFrom(o.getClass())) {
                 return Arrays.asList((Annotation[])o);
