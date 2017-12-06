@@ -54,7 +54,7 @@ class ObjectMapping$times[R, $aParams](apply: Function$times[$aParams, R], unapp
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(prefix: String): ObjectMapping$times[R, $aParams] = addPrefix(prefix).map(newKey => 
+  def withPrefix(prefix: String): ObjectMapping$times[R, $aParams] = addPrefix(prefix).map(newKey =>
     new ObjectMapping$times(apply, unapply, ${g("f%", ", ")}, newKey, constraints)
   ).getOrElse(this)
 

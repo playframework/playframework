@@ -281,7 +281,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
  *             trailers
  */
 case class BasicResponse(version: String, status: Int, reasonPhrase: String, headers: Map[String, String],
-  body: Either[String, (Seq[String], Map[String, String])])
+    body: Either[String, (Seq[String], Map[String, String])])
 
 /**
  * A basic request

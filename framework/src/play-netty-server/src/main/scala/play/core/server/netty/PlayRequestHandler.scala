@@ -45,8 +45,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
    * Values that are cached based on the current application.
    */
   private case class ReloadCacheValues(
-    resultUtils: ServerResultUtils,
-    modelConversion: NettyModelConversion
+      resultUtils: ServerResultUtils,
+      modelConversion: NettyModelConversion
   )
 
   /**

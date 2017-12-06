@@ -76,7 +76,7 @@ private object RedirectHttpsKeys {
 
 @Singleton
 class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
-    extends Provider[RedirectHttpsConfiguration] {
+  extends Provider[RedirectHttpsConfiguration] {
   import RedirectHttpsKeys._
 
   private val logger = Logger(getClass)

@@ -21,7 +21,7 @@ sealed trait Rule extends Positional
  * @param comments The comments above the route
  */
 case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall,
-  comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
+    comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
 
 /**
  * An include for another router

@@ -158,8 +158,8 @@ class AkkaHttpServer(
    * Values that are cached based on the current application.
    */
   private case class ReloadCacheValues(
-    resultUtils: ServerResultUtils,
-    modelConversion: AkkaModelConversion
+      resultUtils: ServerResultUtils,
+      modelConversion: AkkaModelConversion
   )
 
   /**

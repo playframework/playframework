@@ -13,14 +13,14 @@ import play.api.http.{ HeaderNames, HttpProtocol, HttpVerbs, Status }
  * methods.  It also mixes in the Play test helpers and types for convenience.
  */
 trait PlaySpecification extends SpecificationLike
-    with PlayRunners
-    with HeaderNames
-    with Status
-    with HttpProtocol
-    with DefaultAwaitTimeout
-    with ResultExtractors
-    with Writeables
-    with RouteInvokers
-    with FutureAwaits
-    with HttpVerbs {
+  with PlayRunners
+  with HeaderNames
+  with Status
+  with HttpProtocol
+  with DefaultAwaitTimeout
+  with ResultExtractors
+  with Writeables
+  with RouteInvokers
+  with FutureAwaits
+  with HttpVerbs {
 }

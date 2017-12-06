@@ -219,8 +219,8 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * the base class for your custom [[HttpRequestHandler]].
  */
 class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents)
-    extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
+    configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents)
+  extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
   // another handler.

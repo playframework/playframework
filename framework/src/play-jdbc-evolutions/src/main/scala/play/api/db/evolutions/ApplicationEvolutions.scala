@@ -243,13 +243,13 @@ trait EvolutionsConfig {
  * Default evolutions datasource configuration.
  */
 case class DefaultEvolutionsDatasourceConfig(
-  enabled: Boolean,
-  schema: String,
-  autocommit: Boolean,
-  useLocks: Boolean,
-  autoApply: Boolean,
-  autoApplyDowns: Boolean,
-  skipApplyDownsOnly: Boolean) extends EvolutionsDatasourceConfig
+    enabled: Boolean,
+    schema: String,
+    autocommit: Boolean,
+    useLocks: Boolean,
+    autoApply: Boolean,
+    autoApplyDowns: Boolean,
+    skipApplyDownsOnly: Boolean) extends EvolutionsDatasourceConfig
 
 /**
  * Default evolutions configuration.
