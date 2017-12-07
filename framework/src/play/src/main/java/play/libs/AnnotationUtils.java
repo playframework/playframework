@@ -43,7 +43,7 @@ public class AnnotationUtils {
      * {@code Annotation[]} array are annotated with the {@link Repeatable} annotation the annotations of that array will be returned.
      * If the passed annotation does not have a {@code value()} method or the above criteria are not met an empty list will be returned instead.
      * 
-     * @param annotation The annotation which {@code value()} method will be checked for other annotations
+     * @param maybeContainerAnnotation The annotation which {@code value()} method will be checked for other annotations
      * @return The annotations defined by the {@code value()} method or an empty list.
      */
     public static <A extends Annotation> List<Annotation> getIndirectlyPresentAnnotations(final A maybeContainerAnnotation) {
