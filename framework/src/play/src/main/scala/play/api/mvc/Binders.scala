@@ -558,6 +558,9 @@ object QueryStringBindable {
  */
 object PathBindable {
 
+  import play.api.mvc.macros.BinderMacros
+  import scala.language.experimental.macros
+
   /**
    * A helper class for creating PathBindables to map the value of a path pattern/segment
    *
@@ -671,6 +674,11 @@ object PathBindable {
   ) {
     override def javascriptUnbind = """function(k,v){return !!v}"""
   }
+
+  /**
+   * Path binder for AnyVal
+   */
+  implicit def anyValPathBindable[T <: AnyVal]: PathBindable[T] = macro BinderMacros.anyValPathBindable[T]
 
   /**
    * Path binder for Java Boolean.
