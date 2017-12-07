@@ -248,6 +248,7 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.streams.GzipFlow.gzip"),
 
       // Pass a default server header to netty
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.this"),
