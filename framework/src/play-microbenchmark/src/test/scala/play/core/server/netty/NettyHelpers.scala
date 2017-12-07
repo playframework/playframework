@@ -26,7 +26,8 @@ object NettyHelpers {
     )
     new NettyModelConversion(
       serverResultUtils,
-      new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None))
+      new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None)),
+      None
     )
   }
 

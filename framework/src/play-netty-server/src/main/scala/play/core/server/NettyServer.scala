@@ -50,6 +50,7 @@ class NettyServer(
 
   private val serverConfig = config.configuration.get[Configuration]("play.server")
   private val nettyConfig = serverConfig.get[Configuration]("netty")
+  private val serverHeader = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize = nettyConfig.get[Int]("maxHeaderSize")
   private val maxChunkSize = nettyConfig.get[Int]("maxChunkSize")
@@ -144,7 +145,7 @@ class NettyServer(
   /**
    * Create a new PlayRequestHandler.
    */
-  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this)
+  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this, serverHeader)
 
   /**
    * Create a sink for the incoming connection channels.
