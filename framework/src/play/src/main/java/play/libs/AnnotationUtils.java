@@ -4,9 +4,10 @@
 package play.libs;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Repeatable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,39 +18,43 @@ import java.util.List;
 public class AnnotationUtils {
 
     /**
-     * Returns a new array whose entries do not contain container annotations anymore but the indirectly present annotations a container annotation
-     * was wrapping instead. Annotations inside the given array which are not container annotations will be returned untouched.
+     * Returns a new array whose entries do not contain container annotations anymore but the indirectly present annotation(s) a container annotation
+     * was wrapping instead. An annotation is considered a container annotation if its indirectly present annotation(s) are annotated with {@link Repeatable}.
+     * Annotations inside the given array which don't meet the above definition of a container annotations will be returned untouched.
      * 
      * @param annotations An array of annotations to unwrap. Can contain both container and non container annotations.
      * @return A new array without container annotations but the container annotations' indirectly defined annotations.
      */
     public static <A extends Annotation> Annotation[] unwrapContainerAnnotations(final A[] annotations) {
-        final List<Annotation> returnAnnotations = new ArrayList<>();
-        for(final Annotation a : annotations) {
-            final List<Annotation> indirectlyPresentAnnotations = getIndirectlyPresentAnnotations(a);
+        final List<Annotation> unwrappedAnnotations = new LinkedList<>();
+        for(final Annotation maybeContainerAnnotation : annotations) {
+            final List<Annotation> indirectlyPresentAnnotations = getIndirectlyPresentAnnotations(maybeContainerAnnotation);
             if(!indirectlyPresentAnnotations.isEmpty()) {
-                returnAnnotations.addAll(indirectlyPresentAnnotations);
+                unwrappedAnnotations.addAll(indirectlyPresentAnnotations);
             } else {
-                returnAnnotations.add(a);
+                unwrappedAnnotations.add(maybeContainerAnnotation); // was not a container annotation
             }
         }
-        return returnAnnotations.toArray(new Annotation[returnAnnotations.size()]);
+        return unwrappedAnnotations.toArray(new Annotation[unwrappedAnnotations.size()]);
     }
 
     /**
-     * If the given annotation's {@code value()} method is an {@code Annotation[]} array the annotations of that array will be returned.
-     * If the annotation does not have a {@code value()} method or the return type of the {@code value()} method is not an {@code Annotation[]} array
-     * an empty list will be returned instead.
+     * If the return type of an existing {@code value()} method of the passed annotation is an {@code Annotation[]} array and the annotations inside that
+     * {@code Annotation[]} array are annotated with the {@link Repeatable} annotation the annotations of that array will be returned.
+     * If the passed annotation does not have a {@code value()} method or the above criteria are not met an empty list will be returned instead.
      * 
-     * @param annotation The annotation which {@code value()} method will be checked for other annotations 
+     * @param annotation The annotation which {@code value()} method will be checked for other annotations
      * @return The annotations defined by the {@code value()} method or an empty list.
      */
-    public static <A extends Annotation> List<Annotation> getIndirectlyPresentAnnotations(final A annotation) {
+    public static <A extends Annotation> List<Annotation> getIndirectlyPresentAnnotations(final A maybeContainerAnnotation) {
         try {
-            final Method method = annotation.getClass().getMethod("value");
-            final Object o = method.invoke(annotation);
+            final Method method = maybeContainerAnnotation.annotationType().getMethod("value");
+            final Object o = method.invoke(maybeContainerAnnotation);
             if (Annotation[].class.isAssignableFrom(o.getClass())) {
-                return Arrays.asList((Annotation[])o);
+                final Annotation[] indirectAnnotations = (Annotation[])o;
+                if(indirectAnnotations.length > 0 && indirectAnnotations[0].annotationType().isAnnotationPresent(Repeatable.class)) {
+                    return Arrays.asList(indirectAnnotations);
+                }
             }
         } catch (final NoSuchMethodException e) {
             // That's ok, this just wasn't a container annotation -> continue
