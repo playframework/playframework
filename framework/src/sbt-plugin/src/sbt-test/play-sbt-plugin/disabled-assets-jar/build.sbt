@@ -14,5 +14,5 @@ lazy val root = (project in file("."))
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3"),
     includeFilter in (Assets, LessKeys.less) := "*.less",
     excludeFilter in (Assets, LessKeys.less) := "_*.less",
-    generateAssetsJar := false
+    PlayKeys.generateAssetsJar := false
   )
