@@ -19,6 +19,8 @@ import play.core.server.Server
 
 class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
+  sequential
+
   val body =
     """
       |--aabbccddee
