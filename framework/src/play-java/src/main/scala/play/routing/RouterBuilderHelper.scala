@@ -7,15 +7,15 @@ import java.util.concurrent.CompletionStage
 
 import play.api.mvc._
 import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.mvc.Http.Context
-import play.mvc.{ Http, Result }
+import play.mvc.Http.{ Context, RequestBody }
+import play.mvc.Result
 import play.utils.UriEncoding
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
-private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], contextComponents: JavaContextComponents) {
+private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], contextComponents: JavaContextComponents) {
 
   def build(router: RoutingDsl): play.routing.Router = {
     val routes = router.routes.asScala
@@ -60,7 +60,7 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], c
               case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
               case Right(parameters) =>
                 import play.core.Execution.Implicits.trampoline
-                ActionBuilder.ignoringBody.async(bodyParser.map(ac => new Http.RequestBody(ac))) { request =>
+                ActionBuilder.ignoringBody.async(bodyParser) { request =>
                   val ctx = JavaHelpers.createJavaContext(request, contextComponents)
                   try {
                     Context.current.set(ctx)
@@ -82,5 +82,12 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[AnyContent], c
         } else None
       ))
     }).asJava
+  }
+}
+
+object RouterBuilderHelper {
+  def toRequestBodyParser(bodyParser: BodyParser[AnyContent]): BodyParser[RequestBody] = {
+    import play.core.Execution.Implicits.trampoline
+    bodyParser.map(ac => new RequestBody(ac))
   }
 }
