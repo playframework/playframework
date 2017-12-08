@@ -7,6 +7,8 @@ Runtime dependency injection is so called because the dependency graph is create
 
 Play supports [Guice](https://github.com/google/guice) out of the box, but other JSR 330 implementations can be plugged in. The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
 
+> **Note:** Guice is a Java library and the examples in this documentation use Guice's built-in Java API. If you prefer a Scala DSL you might wish to use the [scala-guice](https://github.com/codingwell/scala-guice) or [sse-guice](https://github.com/sptz45/sse-guice) library.
+
 ## Motivation
 
 Dependency injection achieves several goals:
