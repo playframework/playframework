@@ -3,14 +3,12 @@
  */
 import sbt.ScriptedPlugin._
 import sbt._
-import Keys.{version, _}
-
+import Keys.{ version, _ }
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
-
 import de.heikoseeberger.sbtheader.HeaderKey._
-import de.heikoseeberger.sbtheader.HeaderPattern
+import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPattern }
 
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform.autoImport._
@@ -266,7 +264,7 @@ object BuildSettings {
    */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlaySbtLibrary)
+        .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(
@@ -280,7 +278,7 @@ object BuildSettings {
    */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlayLibrary)
+        .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
         .settings(playCommonSettings: _*)
         .settings(
           (javacOptions in compile) ~= (_.map {
@@ -295,7 +293,7 @@ object BuildSettings {
    */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlayLibrary)
+        .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(
@@ -327,7 +325,7 @@ object BuildSettings {
    */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlaySbtLibrary)
+        .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
         .settings(playCommonSettings: _*)
   }
 
@@ -336,7 +334,7 @@ object BuildSettings {
    */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlaySbtPlugin)
+        .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
         .settings(playCommonSettings: _*)
         .settings(playScriptedSettings: _*)
         .settings(
