@@ -3,7 +3,8 @@
  */
 package play.db.jpa;
 
-import play.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.db.DBApi;
 import play.inject.ApplicationLifecycle;
 
@@ -22,7 +23,7 @@ import javax.persistence.*;
  */
 public class DefaultJPAApi implements JPAApi {
 
-    private static final Logger.ALogger logger = Logger.of(DefaultJPAApi.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultJPAApi.class);
 
     private final JPAConfig jpaConfig;
 
