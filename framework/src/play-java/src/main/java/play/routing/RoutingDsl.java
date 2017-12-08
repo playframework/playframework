@@ -126,6 +126,7 @@ public class RoutingDsl {
      * @deprecated Deprecated as of 2.6.8. Use {@link #RoutingDsl(play.mvc.BodyParser.Default, JavaContextComponents)}
      *             or {@link #fromComponents(BuiltInComponents)} instead.
      */
+    @Deprecated
     public RoutingDsl(BodyParser<AnyContent> bodyParser, JavaContextComponents contextComponents) {
         this.bodyParser = RouterBuilderHelper$.MODULE$.toRequestBodyParser(bodyParser);
         this.contextComponents = contextComponents;
@@ -140,6 +141,7 @@ public class RoutingDsl {
      * @deprecated Deprecated as of 2.6.8. Use {@link #RoutingDsl(play.mvc.BodyParser.Default, JavaContextComponents)}
      *             or {@link #fromComponents(BuiltInComponents)} instead.
      */
+    @Deprecated
     public RoutingDsl(PlayBodyParsers bodyParsers, JavaContextComponents contextComponents) {
         this(bodyParsers.defaultBodyParser(), contextComponents);
     }
