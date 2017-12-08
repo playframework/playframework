@@ -28,7 +28,7 @@ private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])
 }
 
-private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelInboundHandlerAdapter {
+private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader: Option[String]) extends ChannelInboundHandlerAdapter {
 
   import PlayRequestHandler._
 
@@ -56,7 +56,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     override protected def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
       val serverResultUtils = reloadServerResultUtils(tryApp)
       val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
-      val modelConversion = new NettyModelConversion(serverResultUtils, forwardedHeaderHandler)
+      val modelConversion = new NettyModelConversion(serverResultUtils, forwardedHeaderHandler, serverHeader)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
         modelConversion = modelConversion
