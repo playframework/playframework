@@ -151,9 +151,11 @@ public class DefaultJPAApi implements JPAApi {
             return result;
 
         } catch (Throwable t) {
-            if (tx != null && tx.isActive()) {
+            if (tx != null) {
                 try {
-                    tx.rollback();
+                    if (tx.isActive()) {
+                        tx.rollback();
+                    }
                 } catch (Exception e) {
                     logger.error("Could not rollback transaction", e);
                 }
