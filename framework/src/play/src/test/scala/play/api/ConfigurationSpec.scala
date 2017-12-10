@@ -9,6 +9,7 @@ import com.typesafe.config.{ ConfigException, ConfigFactory }
 import org.specs2.mutable.Specification
 
 import scala.util.control.NonFatal
+import scala.concurrent.duration._
 
 class ConfigurationSpec extends Specification {
 
@@ -207,6 +208,85 @@ class ConfigurationSpec extends Specification {
     }
     "throw a useful exception when invalid collections are passed in the load method" in {
       Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
+    }
+  }
+
+  "ConfigLoader macro" should {
+    "work with a simple case class" in {
+      case class Foo(str: String, int: Int)
+
+      implicit val fooLoader: ConfigLoader[Foo] = ConfigLoader.forClass[Foo]
+
+      val config = Configuration(ConfigFactory.parseString(
+        """foo = {
+          |  str = string
+          |  int = 7
+          |}
+        """.stripMargin))
+
+      config.get[Foo]("foo") must_== Foo("string", 7)
+    }
+    "work with a simple case class with weird property names" in {
+      case class SnowmanConfig(`☃`: String, `snowman-age`: FiniteDuration)
+
+      implicit val fooLoader: ConfigLoader[SnowmanConfig] = ConfigLoader.forClass[SnowmanConfig]
+
+      val config = Configuration(ConfigFactory.parseString(
+        """snowman = {
+          |  ☃ = snowman
+          |  snowman-age = 5 hours
+          |}
+        """.stripMargin))
+
+      config.get[SnowmanConfig]("snowman") must_== SnowmanConfig("snowman", 5.hours)
+    }
+    "work with multiple argument lists" in {
+      case class Bar(a: String, b: String)(c: Double)
+      implicit val loader: ConfigLoader[Bar] = ConfigLoader.forClass
+      val config = Configuration(ConfigFactory.parseString(
+        """bar = {
+          |  a = hello
+          |  b = goodbye
+          |  c = 4.2
+          |}
+        """.stripMargin))
+
+      config.get[Bar]("bar") must_== Bar("hello", "goodbye")(4.2)
+    }
+    "work with the default constructor for non-case classes" in {
+      final class Baz(val a: String, val b: String, val c: Double) {
+
+        def this(a: String, b: String) = this(a, b, 0)
+
+      }
+      implicit val loader: ConfigLoader[Baz] = ConfigLoader.forClass
+      val config = Configuration(ConfigFactory.parseString(
+        """baz = {
+          |  a = hello
+          |  b = goodbye
+          |  c = 4.2
+          |}
+        """.stripMargin))
+
+      val baz = config.get[Baz]("baz")
+      (baz.a, baz.b, baz.c) must_== ("hello", "goodbye", 4.2)
+    }
+    "work with a case class with a non public default constructor and an alternate public constructor" in {
+      final class Qux private (val a: String, val b: String, val c: Double) {
+        // this constructor should be used since it's the only public constructor
+        def this(a: String, b: String) = this(a, b, 0)
+      }
+      implicit val loader: ConfigLoader[Qux] = ConfigLoader.forClass
+      val config = Configuration(ConfigFactory.parseString(
+        """qux = {
+          |  a = hello
+          |  b = goodbye
+          |  c = 4.2
+          |}
+        """.stripMargin))
+
+      val qux = config.get[Qux]("qux")
+      (qux.a, qux.b, qux.c) must_== ("hello", "goodbye", 0)
     }
   }
 
