@@ -3,7 +3,7 @@
  */
 package play.utils
 
-import java.lang.ref.WeakReference
+import java.lang.ref.SoftReference
 
 /**
  * Creates a wrapper for a function that uses an inline cache to
@@ -23,15 +23,15 @@ import java.lang.ref.WeakReference
  * efficient than an unwrapped function because it will update
  * the cache.
  *
- * The cached input and output will be wrapped by a WeakReference
- * so that they can be garbage collected. This may mean that the
- * cache needs to be repopulated after garbage collection has
- * been run.
+ * The cached input and output will be wrapped by a SoftReference
+ * so that they can be garbage collected when there is memory pressure.
+ * This may mean that the cache needs to be repopulated after garbage
+ * collection has been run.
  *
  * The function may sometimes be called again for the same input.
  * In the current implementation this happens in order to avoid
  * synchronizing the cached value across threads. It may also
- * happen when the weakly-referenced cache is cleared by the
+ * happen when the softly-referenced cache is cleared by the
  * garbage collector.
  *
  * Reference equality is used to compare inputs, for speed and
@@ -45,7 +45,7 @@ private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B
    * reach the same value. If the input value is different, then
    * there's no point sharing the value across threads anyway.
    */
-  var cache: WeakReference[(A, B)] = null
+  var cache: SoftReference[(A, B)] = null
 
   override def apply(a: A): B = {
     // Get the current value of the cache into a local variable.
@@ -53,7 +53,7 @@ private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B
     // (on this thread) so get a fresh value.
     val cacheSnapshot = cache
     if (cacheSnapshot == null) return fresh(a)
-    // Get cached input/output pair out of the WeakReference.
+    // Get cached input/output pair out of the SoftReference.
     // If the pair is null then the reference has been collected
     // and we need a fresh value.
     val inputOutput = cacheSnapshot.get
@@ -67,7 +67,7 @@ private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B
   /** Get a fresh value and update the cache with it. */
   private def fresh(a: A): B = {
     val b = f(a)
-    cache = new WeakReference((a, b))
+    cache = new SoftReference((a, b))
     b
   }
 }
