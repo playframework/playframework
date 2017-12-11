@@ -232,7 +232,6 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         } getOrElse {
           val httpConfig = HttpConfiguration()
           val serverResultUtils = new ServerResultUtils(
-            httpConfig,
             new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
             new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
             new DefaultCookieHeaderEncoding(httpConfig.cookies)
