@@ -5,6 +5,7 @@ package play.api.libs.concurrent
 
 import javax.inject.{ Inject, Provider, Singleton }
 
+import akka.actor.CoordinatedShutdown.ClusterDowningReason
 import akka.actor._
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.{ Config, ConfigValueFactory }
@@ -128,6 +129,8 @@ object ActorSystemProvider {
 
   private val logger = Logger(classOf[ActorSystemProvider])
 
+  case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
+
   /**
    * Start an ActorSystem, using the given configuration and ClassLoader.
    *
@@ -174,7 +177,7 @@ object ActorSystemProvider {
       // The phases that should be run is a configurable setting so Play users
       // that embed an Akka Cluster node can opt-in to using Akka's CS or continue
       // to use their own shutdown code.
-      CoordinatedShutdown(system).run(Some(akkaRunCSFromPhase))
+      CoordinatedShutdown(system).run(ApplicationShutdownReason, Some(akkaRunCSFromPhase))
     }
 
     (system, stopHook)
