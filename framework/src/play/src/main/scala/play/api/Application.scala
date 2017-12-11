@@ -218,7 +218,7 @@ object Application {
    * instance if this method is called from different threads
    * at the same time.
    *
-   * The cache uses a WeakReference to both the Application and
+   * The cache uses a SoftReference to both the Application and
    * the returned instance so it will not cause memory leaks.
    * Unlike WeakHashMap it doesn't use a ReferenceQueue, so values
    * will still be cleaned even if the ReferenceQueue is never
