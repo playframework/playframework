@@ -18,15 +18,7 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 Play's default routes generator creates a router class that accepts controller instances in an `@Inject`-annotated constructor. That means the class is suitable for use with dependency injection and can also be instantiated manually using the constructor.
 
-Play also comes with a legacy static routes generator that works with controllers that declare actions as static methods. This is generally not recommended because it breaks encapsulation, makes code less testable, and is incompatible with many of Play's new APIs.
-
-If you need to use static controllers, you can switch to the static routes generator by adding the following configuration to your `build.sbt`.
-
-```scala
-routesGenerator := StaticRoutesGenerator
-```
-
-The code samples in Play's documentation assume that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
+Before Play 2.7.0, Play supported a static routes generator that supported defining actions as `static` methods. That is no longer supported, as Play no longer relies on static state. If you wish to use your own static state you can still do so in a controller using instance methods.
 
 ## The routes file syntax
 

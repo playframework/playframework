@@ -45,7 +45,6 @@ object RoutesKeys {
     "A list of projects that reverse routes should be aggregated from.")
 
   val InjectedRoutesGenerator = play.routes.compiler.InjectedRoutesGenerator
-  val StaticRoutesGenerator = play.routes.compiler.StaticRoutesGenerator
 }
 
 object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
@@ -127,18 +126,12 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
     }.value,
 
     namespaceReverseRouter := false,
-    routesGenerator := InjectedRoutesGenerator, // changed from StaticRoutesGenerator in 2.5.0
+    routesGenerator := InjectedRoutesGenerator,
     sourcePositionMappers += routesPositionMapper
   )
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
     val log = state.value.log
-    if (routesGenerator.value.id == StaticRoutesGenerator.id) {
-      log.warn(
-        "StaticRoutesGenerator is deprecated. Please use InjectedRoutesGenerator or a custom router instead.\n" +
-          "For more info see https://www.playframework.com/documentation/2.6.x/JavaRouting#Dependency-Injection"
-      )
-    }
     compileRoutes(routesCompilerTasks.value, routesGenerator.value, (target in routes).value, streams.value.cacheDirectory, log)
   }
 
