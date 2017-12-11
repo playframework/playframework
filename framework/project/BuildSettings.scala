@@ -150,7 +150,7 @@ object BuildSettings {
   def playRuntimeSettings: Seq[Setting[_]] = playCommonSettings ++ mimaDefaultSettings ++ Seq(
     mimaPreviousArtifacts := {
       // Binary compatibility is tested against these versions
-      val invalidVersions = Seq("2.6.4")
+      val invalidVersions = Seq("2.6.4", "2.6.8")
       val previousVersions = {
         val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
         version.value match {
