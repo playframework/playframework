@@ -143,4 +143,13 @@ class BindersSpec extends Specification {
     }
   }
 
+  "AnyVal QueryStringBindable" should {
+    "Bind Long String as Demo" in {
+      implicitly[QueryStringBindable[Demo]].bind("key", Map("key" -> Seq("10"))) must equalTo(Some(Right(Demo(10L))))
+    }
+    "Unbind Hase as String" in {
+      implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
+    }
+  }
+
 }

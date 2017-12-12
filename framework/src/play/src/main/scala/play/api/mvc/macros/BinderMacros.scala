@@ -29,6 +29,17 @@ class BinderMacros(val c: MacroContext) {
     }.getOrElse(fail("PathBindable", t.tpe))
   }
 
+  def anyValQueryStringBindable[T](implicit t: WeakTypeTag[T]): Tree = {
+    withAnyValParam(t.tpe) { param =>
+      // currently we do not need to invoke `import _root_.play.api.mvc.QueryStringBindable._`
+      // since we are in the same package
+      q"""
+         private val binder = _root_.scala.Predef.implicitly[_root_.play.api.mvc.QueryStringBindable[${param.typeSignature}]]
+         binder.transform((p: ${param.typeSignature}) => new ${t.tpe}(p), (p: ${t.tpe}) => p.${param.name.toTermName})
+       """
+    }.getOrElse(fail("QueryStringBindable", t.tpe))
+  }
+
   private def fail(enc: String, t: Type) = {
     c.abort(c.enclosingPosition, s"could not find the implicit $enc for AnyVal Type $t")
   }
