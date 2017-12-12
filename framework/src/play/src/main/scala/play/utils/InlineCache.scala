@@ -45,7 +45,7 @@ private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B
    * reach the same value. If the input value is different, then
    * there's no point sharing the value across threads anyway.
    */
-  var cache: SoftReference[(A, B)] = null
+  private var cache: SoftReference[(A, B)] = null
 
   override def apply(a: A): B = {
     // Get the current value of the cache into a local variable.
