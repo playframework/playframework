@@ -7,7 +7,8 @@ import java.net.InetSocketAddress
 import java.security.{ Provider, SecureRandom }
 import javax.net.ssl._
 
-import akka.actor.ActorSystem
+import akka.Done
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.model.headers.Expect
@@ -180,6 +181,7 @@ class AkkaHttpServer(
 
   private def resultUtils: ServerResultUtils =
     reloadCache.cachedFrom(applicationProvider.get).resultUtils
+
   private def modelConversion: AkkaModelConversion =
     reloadCache.cachedFrom(applicationProvider.get).modelConversion
 
@@ -329,28 +331,61 @@ class AkkaHttpServer(
   }
 
   override def stop() {
+    // CoordinatedShutdown only runs the first time it is invoked for a given actor system. Further
+    // attempts to run it result in noop.
+    // This method is in charge of stopping the server and it may be part of a Play application or it may be
+    // be an embedded server. When in a Play application the following CS.run will, very likely, be a noop
+    // since the trigger to stop a Play application is usually SIGTERM.
+    // When the server is embedded, this CS.run will actually run all the stopping phases and stop the actor system.
+    CoordinatedShutdown(system).run()
+  }
 
+  // register all Shutdown tasks as soon as the AkkaHttpServer is created.
+  // Note that order of task registration is irrelevant but maintaining
+  // an order similar to how the tasks will be run on makes code more readable.
+  {
+    import akka.actor.{ CoordinatedShutdown => AkkaCS }
+    import play.api.{ PlayCoordinatedShutdown => PlayCS }
+    val cs = AkkaCS(system)
+    implicit val exCtx = actorSystem.dispatcher
+
+    // Trace the server shutdown event
     mode match {
       case Mode.Test =>
-      case _ => logger.info("Stopping server...")
+      case _ =>
+        cs.addTask(AkkaCS.PhaseBeforeServiceUnbind, "log-shutdown-in-progress") { () =>
+          logger.info("Stopping server...")
+          Future.successful(Done)
+        }
     }
 
-    // First, stop listening
-    def unbind(binding: Http.ServerBinding) = Await.result(binding.unbind(), Duration.Inf)
-    httpServerBinding.foreach(unbind)
-    httpsServerBinding.foreach(unbind)
-    applicationProvider.current.foreach(Play.stop)
+    // Unbind HTTP/S ports
+    cs.addTask(AkkaCS.PhaseServiceUnbind, "unbind-http-and-https") { () =>
+      def unbind(binding: Http.ServerBinding): Future[Done] = binding.unbind().map { _ => Done }
 
-    try {
-      super.stop()
-    } catch {
-      case NonFatal(e) => logger.error("Error while stopping logger", e)
+      for {
+        _ <- httpServerBinding.map(unbind).getOrElse(Future.successful(Done))
+        _ <- httpsServerBinding.map(unbind).getOrElse(Future.successful(Done))
+      } yield Done
+    }
+
+    // Final Server stop
+    val serverStop = super.stop _
+    cs.addTask(PlayCS.PhasePlayServerStop, "play-server-loggers") { () =>
+      try {
+        serverStop()
+      } catch {
+        case NonFatal(e) => logger.error("Error while stopping logger", e)
+      }
+      Future.successful(Done)
     }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(stopHook(), Duration.Inf)
+    cs.addTask(PlayCS.PhaseAfterPlayServerStop, "custom-server-stop-hook") { () =>
+      stopHook().map(_ => Done)
+    }
   }
 
   override lazy val mainAddress: InetSocketAddress = {
@@ -371,12 +406,17 @@ class AkkaHttpServer(
   private def mockSslContext(sslEngineProvider: SSLEngineProvider): SSLContext = {
     new SSLContext(new SSLContextSpi() {
       def engineCreateSSLEngine() = sslEngineProvider.createSSLEngine()
+
       def engineCreateSSLEngine(s: String, i: Int) = engineCreateSSLEngine()
 
       def engineInit(keyManagers: Array[KeyManager], trustManagers: Array[TrustManager], secureRandom: SecureRandom) = ()
+
       def engineGetClientSessionContext() = SSLContext.getDefault.getClientSessionContext
+
       def engineGetServerSessionContext() = SSLContext.getDefault.getServerSessionContext
+
       def engineGetSocketFactory() = SSLSocketFactory.getDefault.asInstanceOf[SSLSocketFactory]
+
       def engineGetServerSocketFactory() = SSLServerSocketFactory.getDefault.asInstanceOf[SSLServerSocketFactory]
     }, new Provider("Play SSlEngineProvider delegate", 1d,
       "A provider that only implements the creation of SSL engines, and delegates to Play's SSLEngineProvider") {},
@@ -426,7 +466,7 @@ object AkkaHttpServer extends ServerFromRouter {
    * Create a Netty server from the given application and server configuration.
    *
    * @param application The application.
-   * @param config The server configuration.
+   * @param config      The server configuration.
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): AkkaHttpServer = {
@@ -437,6 +477,7 @@ object AkkaHttpServer extends ServerFromRouter {
   override protected def createServerFromRouter(serverConf: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server = {
     new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = serverConf
+
       override def router: Router = routes(this)
     }.server
   }

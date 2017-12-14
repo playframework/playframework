@@ -4,14 +4,19 @@
 package play.core.server
 
 import java.io._
-import akka.actor.ActorSystem
+import java.util.concurrent.atomic.AtomicBoolean
+
+import akka.Done
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.actor.CoordinatedShutdown._
 import akka.stream.ActorMaterializer
 import play.api._
 import play.api.mvc._
 import play.core._
 import play.utils.Threads
+
 import scala.collection.JavaConverters._
-import scala.concurrent.{ Future, Await }
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
@@ -93,6 +98,8 @@ object DevServerStart {
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
         println()
 
+        val unexpectedApplicationShutdown = new AtomicBoolean(true)
+
         // Create reloadable ApplicationProvider
         val appProvider = new ApplicationProvider {
           // Use a stamped lock over a synchronized block so we can better control concurrency and avoid
@@ -141,6 +148,7 @@ object DevServerStart {
               val reloadable = this
 
               // First, stop the old application if it exists
+              unexpectedApplicationShutdown.set(false)
               lastState.foreach(Play.stop)
 
               // Basically no matter if the last state was a Success, we need to
@@ -170,7 +178,26 @@ object DevServerStart {
                   devContext = Some(ApplicationLoader.DevContext(sourceMapper, buildLink))
                 )
                 val loader = ApplicationLoader(context)
-                loader.load(context)
+                val app = loader.load(context)
+
+                // The new incarnation of Application may be shutdown in a controlled way (via reload)
+                // or it may be shutdown by an external trigger of CoordinatedShutdown. Unless explicitly
+                // specified we assume the shutdown was external (aka unexpected)
+                unexpectedApplicationShutdown.set(true)
+                CoordinatedShutdown(app.actorSystem).addTask(PlayCoordinatedShutdown.PhaseApplicationStopHooks, "dev-application-stop-hooks") {
+                  () =>
+                    Play.stop(app)
+                    // because anyone has access to shutting down the application via invoking
+                    // CoordinatedShutdown.run(), we track if the shutdown was controlled or unexpected. When it's
+                    // unexpected we tell the buildLink to force a reload. When it's expected the buildLink should
+                    // not be notified because it is either a reload or on system termination.
+                    if (unexpectedApplicationShutdown.get()) {
+                      buildLink.forceReload()
+                    }
+                    Future.successful(Done)
+                }
+
+                app
               }
 
               Play.start(newApplication)
@@ -209,16 +236,29 @@ object DevServerStart {
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.
         val devModeAkkaConfig = serverConfig.configuration.underlying.getConfig("play.akka.dev-mode")
-        val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
+        val serverActorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
 
-        val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
-          ActorMaterializer()(actorSystem), () => {
-            actorSystem.terminate()
-            Await.result(actorSystem.whenTerminated, Duration.Inf)
-            Future.successful(())
-          })
+        val serverContext = ServerProvider.Context(serverConfig, appProvider, serverActorSystem,
+          ActorMaterializer()(serverActorSystem),
+          () => Future.successful(()))
+
+        CoordinatedShutdown(serverActorSystem).addTask(PlayCoordinatedShutdown.PhaseApplicationStopHooks, "devmode-server-actor-system-shutdown") {
+          () =>
+            appProvider.current.map {
+              app =>
+                unexpectedApplicationShutdown.set(false)
+                CoordinatedShutdown(app.actorSystem).run()
+            }.getOrElse(Future.successful(Done))
+        }
+
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
-        serverProvider.createServer(serverContext)
+
+        new ReloadableServer {
+          val delegate: ReloadableServer = serverProvider.createServer(serverContext)
+          override def stop() = CoordinatedShutdown(serverActorSystem).run()
+          override def reload() = delegate.reload()
+          override def mainAddress() = delegate.mainAddress()
+        }
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause
       }

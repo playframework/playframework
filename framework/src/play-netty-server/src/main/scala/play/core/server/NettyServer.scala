@@ -6,7 +6,7 @@ package play.core.server
 import java.net.InetSocketAddress
 
 import akka.Done
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.typesafe.config.{ Config, ConfigValue }
@@ -225,33 +225,64 @@ class NettyServer(
     }
     serverChannel
   }
-
   override def stop() {
+    // CoordinatedShutdown only runs the first time it is invoked for a given actor system. Further
+    // attempts to run it result in noop.
+    // This method is in charge of stopping the server and it may be part of a Play application or it may be
+    // be an embedded server. When in a Play application the following CS.run will, very likely, be a noop
+    // since the trigger to stop a Play application is usually SIGTERM.
+    // When the server is embedded, this CS.run will actually run all the stopping phases and stop the actor system.
+    CoordinatedShutdown(actorSystem).run()
+  }
 
-    // First, close all opened sockets
-    allChannels.close().awaitUninterruptibly()
+  // register all Shutdown tasks as soon as the AkkaHttpServer is created.
+  // Note that order of task registration is irrelevant but maintaining
+  // an order similar to how the tasks will be run on makes code more readable.
+  {
+    import akka.actor.{ CoordinatedShutdown => AkkaCS }
+    import play.api.{ PlayCoordinatedShutdown => PlayCS }
+    val cs = AkkaCS(actorSystem)
+    implicit val exCtx = actorSystem.dispatcher
 
-    // Now shutdown the event loop
-    eventLoop.shutdownGracefully()
-
-    // Now shut the application down
-    applicationProvider.current.foreach(Play.stop)
-
-    try {
-      super.stop()
-    } catch {
-      case NonFatal(e) => logger.error("Error while stopping logger", e)
-    }
-
+    // Trace the server shutdown event
     mode match {
       case Mode.Test =>
-      case _ => logger.info("Stopping server...")
+      case _ =>
+        cs.addTask(AkkaCS.PhaseBeforeServiceUnbind, "log-shutdown-in-progress") { () =>
+          logger.info("Stopping server...")
+          Future.successful(Done)
+        }
+    }
+
+    // First, close all opened sockets
+    cs.addTask(AkkaCS.PhaseServiceUnbind, "close-netty-channels") { () =>
+      allChannels.close().awaitUninterruptibly()
+      Future.successful(Done)
+    }
+
+    // Now shutdown the event loop
+    cs.addTask(AkkaCS.PhaseServiceStop, "shutdown-netty-eventloop") { () =>
+      eventLoop.shutdownGracefully()
+      Future.successful(Done)
+    }
+
+    // Final Server stop
+    val serverStop = super.stop _
+    cs.addTask(PlayCS.PhasePlayServerStop, "play-server-loggers") { () =>
+      try {
+        serverStop()
+      } catch {
+        case NonFatal(e) => logger.error("Error while stopping logger", e)
+      }
+      Future.successful(Done)
     }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(stopHook(), Duration.Inf)
+    cs.addTask(PlayCS.PhaseAfterPlayServerStop, "custom-server-stop-hook") { () =>
+      stopHook().map(_ => Done)
+    }
   }
 
   override lazy val mainAddress: InetSocketAddress = {

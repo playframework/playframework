@@ -15,6 +15,8 @@ import javax.xml.parsers.SAXParserFactory
 import play.libs.XML.Constants
 import javax.xml.XMLConstants
 
+import akka.actor.CoordinatedShutdown
+
 /**
  * Application mode, either `Dev`, `Test`, or `Prod`.
  *
@@ -142,7 +144,12 @@ object Play {
   def stop(app: Application): Unit = {
     if (app != null) {
       Threads.withContextClassLoader(app.classloader) {
-        try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
+        try {
+          val f = CoordinatedShutdown(app.actorSystem).run()
+          Await.ready(f, Duration.Inf)
+        } catch {
+          case NonFatal(e) => logger.warn("Error stopping application", e)
+        }
       }
     }
     synchronized {
