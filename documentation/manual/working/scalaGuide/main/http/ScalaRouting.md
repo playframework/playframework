@@ -127,9 +127,9 @@ Play supports the following Parameter Types:
 - Float
 - Boolean
 - UUID
-- AnyVal Types
+- AnyVal wrappers for other supported types
 
-If you have a different type and want to implement it you can take a look at [[Request Binders|ScalarequestBinders]]
+If you have a different type and want to implement it you can take a look at [[Request Binders|ScalaRequestBinders]]
 
 ### Parameters with fixed values
 
