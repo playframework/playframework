@@ -4,8 +4,6 @@
 package javaguide.forms.customconstraint;
 
 //#constraint
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.validation.ConstraintValidatorContext;
 
