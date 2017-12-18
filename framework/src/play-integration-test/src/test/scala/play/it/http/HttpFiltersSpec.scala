@@ -20,7 +20,7 @@ class HttpFiltersSpec extends PlaySpecification
     val appFactory: ApplicationFactory = new ApplicationFactory {
       override def create(): Application = {
         val components = new BuiltInComponentsFromContext(
-          ApplicationLoader.Context.create(Environment.simple())) {
+          ApplicationLoader.createContext(Environment.simple())) {
           import play.api.mvc.Results._
           import play.api.routing.sird
           import play.api.routing.sird._
