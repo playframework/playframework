@@ -5,7 +5,6 @@ package play.api.libs.concurrent
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import akka.actor.CoordinatedShutdown.ClusterDowningReason
 import akka.actor._
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.{ Config, ConfigValueFactory }
@@ -13,10 +12,10 @@ import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
-import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
-import scala.util.{ Success, Try }
+import scala.util.Try
 
 /**
  * Helper to access the application defined Akka Actor system.
