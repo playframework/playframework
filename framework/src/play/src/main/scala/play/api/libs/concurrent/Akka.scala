@@ -12,10 +12,10 @@ import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
-import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
-import scala.util.{ Success, Try }
+import scala.util.Try
 
 /**
  * Helper to access the application defined Akka Actor system.
@@ -128,6 +128,8 @@ object ActorSystemProvider {
 
   private val logger = Logger(classOf[ActorSystemProvider])
 
+  case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
+
   /**
    * Start an ActorSystem, using the given configuration and ClassLoader.
    *
@@ -174,7 +176,7 @@ object ActorSystemProvider {
       // The phases that should be run is a configurable setting so Play users
       // that embed an Akka Cluster node can opt-in to using Akka's CS or continue
       // to use their own shutdown code.
-      CoordinatedShutdown(system).run(Some(akkaRunCSFromPhase))
+      CoordinatedShutdown(system).run(ApplicationShutdownReason, Some(akkaRunCSFromPhase))
     }
 
     (system, stopHook)
