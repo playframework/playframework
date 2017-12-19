@@ -3,19 +3,19 @@
  */
 package play.api.libs.concurrent
 
-import java.util.concurrent.TimeoutException
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor._
 import akka.stream.{ ActorMaterializer, Materializer }
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigValueFactory }
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
 import play.core.ClosableLazy
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
+import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
+import scala.util.{ Success, Try }
 
 /**
  * Helper to access the application defined Akka Actor system.
@@ -31,7 +31,8 @@ object Akka {
    * Typically, you will want to use this in combination with a named qualifier, so that multiple ActorRefs can be
    * bound, and the scope should be set to singleton or eager singleton.
    * *
-   * @param name The name of the actor.
+   *
+   * @param name  The name of the actor.
    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
    *              actor, this function can be used to provide additional configuration such as router and dispatcher
    *              configuration.
@@ -64,7 +65,7 @@ object Akka {
    *   }
    * }}}
    *
-   * @param name The name of the actor.
+   * @param name  The name of the actor.
    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
    *              actor, this function can be used to provide additional configuration such as router and dispatcher
    *              configuration.
@@ -81,7 +82,9 @@ object Akka {
 trait AkkaComponents {
 
   def environment: Environment
+
   def configuration: Configuration
+
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
@@ -127,13 +130,34 @@ object ActorSystemProvider {
 
   /**
    * Start an ActorSystem, using the given configuration and ClassLoader.
+   *
    * @return The ActorSystem and a function that can be used to stop it.
    */
   def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
-      // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
-      config.get[Config](akkaConfigRoot).withFallback(config.underlying)
+
+      // normalize timeout values for Akka's use
+      val playTimeoutKey = "play.akka.shutdown-timeout"
+      val playTimeoutDuration = Try(config.get[Duration](playTimeoutKey)).getOrElse(Duration.Inf)
+
+      // Typesafe config used internally by Akka doesn't support "infinite".
+      // Also, the value expected is an integer so can't use Long.MaxValue.
+      // Finally, Akka requires the delay to be less than a certain threshold.
+      val akkaMaxDelay = Int.MaxValue / 1000
+      val akkaMaxDuration = Duration(akkaMaxDelay, "seconds")
+      val normalisedDuration =
+        if (playTimeoutDuration > akkaMaxDuration) akkaMaxDuration else playTimeoutDuration
+
+      val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
+      config.get[Config](akkaConfigRoot)
+        // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
+        .withFallback(config.underlying)
+        // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
+        .withValue(
+          akkaTimeoutKey,
+          ConfigValueFactory.fromAnyRef(java.time.Duration.ofMillis(normalisedDuration.toMillis))
+        )
     }
 
     val name = config.get[String]("play.akka.actor-system")
@@ -141,24 +165,16 @@ object ActorSystemProvider {
     logger.debug(s"Starting application default Akka system: $name")
 
     val stopHook = { () =>
+      val akkaRunCSFromPhase = config.get[String]("play.akka.run-cs-from-phase")
       logger.debug(s"Shutdown application default Akka system: $name")
-      system.terminate()
-
-      config.get[Duration]("play.akka.shutdown-timeout") match {
-        case timeout: FiniteDuration =>
-          try {
-            Await.result(system.whenTerminated, timeout)
-          } catch {
-            case te: TimeoutException =>
-              // oh well.  We tried to be nice.
-              logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
-          }
-        case _ =>
-          // wait until it is shutdown
-          Await.result(system.whenTerminated, Duration.Inf)
-      }
-
-      Future.successful(())
+      // Play's "play.akka.shutdown-timeout" is used to configure the timeout of
+      // the 'actor-system-terminate' phase of Akka's CoordinatedShutdown
+      // in reference-overrides.conf.
+      //
+      // The phases that should be run is a configurable setting so Play users
+      // that embed an Akka Cluster node can opt-in to using Akka's CS or continue
+      // to use their own shutdown code.
+      CoordinatedShutdown(system).run(Some(akkaRunCSFromPhase))
     }
 
     (system, stopHook)
@@ -171,6 +187,7 @@ object ActorSystemProvider {
   def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
     new ClosableLazy[ActorSystem, Future[_]] {
       protected def create() = start(classLoader, configuration)
+
       protected def closeNotNeeded = Future.successful(())
     }
   }
@@ -185,11 +202,11 @@ trait InjectedActorSupport {
   /**
    * Create an injected child actor.
    *
-   * @param create A function to create the actor.
-   * @param name The name of the actor.
-   * @param props A function to provide props for the actor. The props passed in will just describe how to create the
-   *              actor, this function can be used to provide additional configuration such as router and dispatcher
-   *              configuration.
+   * @param create  A function to create the actor.
+   * @param name    The name of the actor.
+   * @param props   A function to provide props for the actor. The props passed in will just describe how to create the
+   *                actor, this function can be used to provide additional configuration such as router and dispatcher
+   *                configuration.
    * @param context The context to create the actor from.
    * @return An ActorRef for the created actor.
    */
