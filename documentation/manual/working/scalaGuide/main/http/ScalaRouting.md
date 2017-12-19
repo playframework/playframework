@@ -118,6 +118,19 @@ And do the same on the corresponding `show` method definition in the `controller
 
 @[show-client-action](code/ScalaRouting.scala)
 
+Play supports the following Parameter Types:
+
+- String
+- Int
+- Long
+- Double
+- Float
+- Boolean
+- UUID
+- AnyVal wrappers for other supported types
+
+If you have a different type and want to implement it you can take a look at [[Request Binders|ScalaRequestBinders]]
+
 ### Parameters with fixed values
 
 Sometimes you’ll want to use a fixed value for a parameter:

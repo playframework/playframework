@@ -308,6 +308,9 @@ object JavascriptLiteral {
  */
 object QueryStringBindable {
 
+  import play.api.mvc.macros.BinderMacros
+  import scala.language.experimental.macros
+
   /**
    * A helper class for creating QueryStringBindables to map the value of a single key
    *
@@ -550,6 +553,8 @@ object QueryStringBindable {
     override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
+
+  implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] = macro BinderMacros.anyValQueryStringBindable[T]
 
 }
 
