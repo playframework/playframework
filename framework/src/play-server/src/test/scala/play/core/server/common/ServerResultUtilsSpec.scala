@@ -28,7 +28,6 @@ class ServerResultUtilsSpec extends Specification {
   val resultUtils = {
     val httpConfig = HttpConfiguration()
     new ServerResultUtils(
-      httpConfig,
       new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
       new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
       new DefaultCookieHeaderEncoding(httpConfig.cookies)
