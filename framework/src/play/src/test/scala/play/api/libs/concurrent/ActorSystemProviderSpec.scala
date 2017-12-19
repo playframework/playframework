@@ -3,14 +3,12 @@
  */
 package play.api.libs.concurrent
 
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import org.specs2.mutable.Specification
-import play.api.libs.concurrent.ActorSystemProvider.StopHook
 import play.api.{ Configuration, Environment }
 
 import scala.concurrent.duration.Duration
@@ -121,7 +119,7 @@ class ActorSystemProviderSpec extends Specification {
     try {
       block(actorSystem)
     } finally {
-      CoordinatedShutdown(actorSystem).run()
+      stopHook()
     }
   }
 
