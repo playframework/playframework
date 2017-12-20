@@ -37,7 +37,7 @@ You can define additional constraints that will be checked during the binding ph
 
 @[user](code/javaguide/forms/u2/User.java)
 
-> **Tip:** The `play.data.validation.Constraints` class contains several built-in validation annotations.
+> **Tip:** The `play.data.validation.Constraints` class contains several built-in validation annotations. All of these constraint annotations are defined as `@Repeatable`. This lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith` for example.
 
 In the [Advanced validation](#advanced-validation) section further below you will learn how to handle concerns like cross field validation, partial form validation or how to make use of injected components (e.g. to access a database) during validation.
 
