@@ -27,9 +27,9 @@ public class AnnotationUtils {
      */
     public static <A extends Annotation> Annotation[] unwrapContainerAnnotations(final A[] annotations) {
         final List<Annotation> unwrappedAnnotations = new LinkedList<>();
-        for(final Annotation maybeContainerAnnotation : annotations) {
+        for (final Annotation maybeContainerAnnotation : annotations) {
             final List<Annotation> indirectlyPresentAnnotations = getIndirectlyPresentAnnotations(maybeContainerAnnotation);
-            if(!indirectlyPresentAnnotations.isEmpty()) {
+            if (!indirectlyPresentAnnotations.isEmpty()) {
                 unwrappedAnnotations.addAll(indirectlyPresentAnnotations);
             } else {
                 unwrappedAnnotations.add(maybeContainerAnnotation); // was not a container annotation
@@ -52,7 +52,7 @@ public class AnnotationUtils {
             final Object o = method.invoke(maybeContainerAnnotation);
             if (Annotation[].class.isAssignableFrom(o.getClass())) {
                 final Annotation[] indirectAnnotations = (Annotation[])o;
-                if(indirectAnnotations.length > 0 && indirectAnnotations[0].annotationType().isAnnotationPresent(Repeatable.class)) {
+                if (indirectAnnotations.length > 0 && indirectAnnotations[0].annotationType().isAnnotationPresent(Repeatable.class)) {
                     return Arrays.asList(indirectAnnotations);
                 }
             }
