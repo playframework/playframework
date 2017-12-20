@@ -6,6 +6,7 @@ package play.api.libs.concurrent
 import javax.inject.{ Inject, Provider, Singleton }
 
 import akka.actor._
+import akka.actor.setup.{ ActorSystemSetup, Setup }
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import play.api._
@@ -136,6 +137,19 @@ object ActorSystemProvider {
    * @return The ActorSystem and a function that can be used to stop it.
    */
   def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
+    start(classLoader, config, additionalSetup = None)
+  }
+
+  /**
+   * Start an ActorSystem, using the given configuration, ClassLoader, and additional ActorSystem Setup.
+   *
+   * @return The ActorSystem and a function that can be used to stop it.
+   */
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): (ActorSystem, StopHook) = {
+    start(classLoader, config, Some(additionalSetup))
+  }
+
+  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): (ActorSystem, StopHook) = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 
@@ -163,7 +177,14 @@ object ActorSystemProvider {
     }
 
     val name = config.get[String]("play.akka.actor-system")
-    val system = ActorSystem(name, akkaConfig, classLoader)
+
+    val bootstrapSetup = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
+    val actorSystemSetup = additionalSetup match {
+      case Some(setup) => ActorSystemSetup(bootstrapSetup, setup)
+      case None => ActorSystemSetup(bootstrapSetup)
+    }
+
+    val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
 
     val stopHook = { () =>
