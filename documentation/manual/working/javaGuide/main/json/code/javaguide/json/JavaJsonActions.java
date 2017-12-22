@@ -123,12 +123,9 @@ public class JavaJsonActions extends WithApplication {
         //#json-request-as-anyclazz
         public Result sayHello() {
             Optional<Person> person = request().body().parseJson(Person.class);
-            if (!person.isPresent()) {
-                return badRequest("Expecting Json data");
-            } else {
-                String name = person.get().firstName;
-                return ok("Hello " + name);
-            }
+            return person
+              .map(p -> ok("Hello, " + p.firstName))
+              .orElse(badRequest("Expecting Json data"));
         }
         //#json-request-as-anyclazz
     }

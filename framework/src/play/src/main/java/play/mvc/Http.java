@@ -1875,11 +1875,15 @@ public class Http {
         }
 
         /**
-         * Parses the request body to the expected class.
+         * Converts a JSON request to a given class. Conversion is performed
+         * with [[Json.fromJson(JsonNode,Class)]].
          *
-         * @param <A> the type of the return value.
-         * @param clazz Expected Java value type.
-         * @return the return value.
+         * Will return Optional.empty() if the request body is not an instance of JsonNode.
+         * If the JsonNode simply has missing fields, a valid reference with null fields is returne.
+         *
+         * @param <A> The type to convert the JSON value to.
+         * @param clazz The class to convert the JSON value to.
+         * @return The converted value if the request has a JSON body or an empty value if the request has an empty body or a body of a different type.
          */
         public <A> Optional<A> parseJson(Class<A> clazz) {
             return (body instanceof JsonNode) ? Optional.of(Json.fromJson(asJson(), clazz)) : Optional.empty();
