@@ -28,7 +28,7 @@ private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])
 }
 
-private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelInboundHandlerAdapter {
+private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader: Option[String]) extends ChannelInboundHandlerAdapter {
 
   import PlayRequestHandler._
 
@@ -45,8 +45,8 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
    * Values that are cached based on the current application.
    */
   private case class ReloadCacheValues(
-    resultUtils: ServerResultUtils,
-    modelConversion: NettyModelConversion
+      resultUtils: ServerResultUtils,
+      modelConversion: NettyModelConversion
   )
 
   /**
@@ -56,7 +56,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     override protected def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
       val serverResultUtils = reloadServerResultUtils(tryApp)
       val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
-      val modelConversion = new NettyModelConversion(serverResultUtils, forwardedHeaderHandler)
+      val modelConversion = new NettyModelConversion(serverResultUtils, forwardedHeaderHandler, serverHeader)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
         modelConversion = modelConversion
@@ -109,13 +109,7 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
 
       //execute normal action
       case Right((action: EssentialAction, app)) =>
-        val recovered = EssentialAction { rh =>
-          import play.core.Execution.Implicits.trampoline
-          action(rh).recoverWith {
-            case error => app.errorHandler.onServerError(rh, error)
-          }
-        }
-        handleAction(recovered, requestHeader, request, Some(app))
+        handleAction(action, requestHeader, request, Some(app))
 
       case Right((ws: WebSocket, app)) if requestHeader.headers.get(HeaderNames.UPGRADE).exists(_.equalsIgnoreCase("websocket")) =>
         logger.trace("Serving this request with: " + ws)
@@ -270,19 +264,20 @@ private[play] class PlayRequestHandler(val server: NettyServer) extends ChannelI
     implicit val mat: Materializer = app.fold(server.materializer)(_.materializer)
     import play.core.Execution.Implicits.trampoline
 
+    // Execute the action on the Play default execution context
+    val actionFuture = Future(action(requestHeader))(mat.executionContext)
     for {
-      bodyParser <- Future(action(requestHeader))(mat.executionContext)
-      // Execute the action and get a result
-      actionResult <- {
+      // Execute the action and get a result, calling errorHandler if errors happen in this process
+      actionResult <- actionFuture.flatMap { acc =>
         val body = modelConversion.convertRequestBody(request)
-        (body match {
-          case None => bodyParser.run()
-          case Some(source) => bodyParser.run(source)
-        }).recoverWith {
-          case error =>
-            logger.error("Cannot invoke the action", error)
-            errorHandler(app).onServerError(requestHeader, error)
+        body match {
+          case None => acc.run()
+          case Some(source) => acc.run(source)
         }
+      }.recoverWith {
+        case error =>
+          logger.error("Cannot invoke the action", error)
+          errorHandler(app).onServerError(requestHeader, error)
       }
       // Clean and validate the action's result
       validatedResult <- {

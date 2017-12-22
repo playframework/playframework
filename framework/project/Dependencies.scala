@@ -8,9 +8,9 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.6"
-  val akkaHttpVersion = "10.0.10"
-  val playJsonVersion = "2.6.7"
+  val akkaVersion = "2.5.8"
+  val akkaHttpVersion = "10.0.11"
+  val playJsonVersion = "2.6.8"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -56,7 +56,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.7.2",
+    "com.zaxxer" % "HikariCP" % "2.7.4",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -153,7 +153,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.16.Final"
+  val nettyVersion = "4.1.18.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -176,7 +176,7 @@ object Dependencies {
   }
 
   def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
-    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.6"
+    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.7"
     case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
   }
 

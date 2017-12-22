@@ -21,7 +21,7 @@ class AkkaHttpServerIntegrationSpecificationSpec extends ServerIntegrationSpecif
  * server backends, works properly.
  */
 trait ServerIntegrationSpecificationSpec extends PlaySpecification
-    with WsTestClient with ServerIntegrationSpecification {
+  with WsTestClient with ServerIntegrationSpecification {
 
   def expectedServerTag: Option[String]
 

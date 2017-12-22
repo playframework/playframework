@@ -44,7 +44,7 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
   class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty) extends BuiltInComponentsFromContext(context)
-      with FormFactoryComponents {
+    with FormFactoryComponents {
     override def router(): Router = Router.empty()
 
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
@@ -398,6 +398,25 @@ trait FormSpec extends Specification {
       )))
       optForm.allErrors().size() must beEqualTo(0)
       optForm.get().getOptional.get must beEqualTo("Microsoft Corporation")
+    }
+
+    "support @repeatable constraints" in {
+      val form = formFactory.form(classOf[RepeatableConstraintsForm]).bind(Map("name" -> "xyz").asJava)
+      form.field("name").constraints().size() must beEqualTo(4)
+      form.field("name").constraints().get(0)._1 must beEqualTo("constraint.validatewith")
+      form.field("name").constraints().get(1)._1 must beEqualTo("constraint.validatewith")
+      form.field("name").constraints().get(2)._1 must beEqualTo("constraint.pattern")
+      form.field("name").constraints().get(3)._1 must beEqualTo("constraint.pattern")
+      form.hasErrors must beEqualTo(true)
+      form.hasGlobalErrors() must beEqualTo(false)
+      form.allErrors().size() must beEqualTo(4)
+      form.errors("name").size() must beEqualTo(4)
+      val nameErrorMessages = form.errors("name").asScala.flatMap(_.messages().asScala)
+      nameErrorMessages.size must beEqualTo(4)
+      nameErrorMessages must contain("Should be a - c")
+      nameErrorMessages must contain("Should be c - h")
+      nameErrorMessages must contain("notgreen")
+      nameErrorMessages must contain("notblue")
     }
 
     "work with the @repeat helper" in {

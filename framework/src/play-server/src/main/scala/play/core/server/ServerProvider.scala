@@ -37,11 +37,11 @@ object ServerProvider {
    * This function can be used to close resources that are provided to the server.
    */
   final case class Context(
-    config: ServerConfig,
-    appProvider: ApplicationProvider,
-    actorSystem: ActorSystem,
-    materializer: Materializer,
-    stopHook: () => Future[_])
+      config: ServerConfig,
+      appProvider: ApplicationProvider,
+      actorSystem: ActorSystem,
+      materializer: Materializer,
+      stopHook: () => Future[_])
 
   /**
    * Load a server provider from the configuration and classloader.

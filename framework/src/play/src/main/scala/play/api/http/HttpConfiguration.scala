@@ -23,14 +23,14 @@ import scala.concurrent.duration._
  * @param fileMimeTypes The fileMimeTypes configuration
  */
 case class HttpConfiguration(
-  context: String = "/",
-  parser: ParserConfiguration = ParserConfiguration(),
-  actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
-  cookies: CookiesConfiguration = CookiesConfiguration(),
-  session: SessionConfiguration = SessionConfiguration(),
-  flash: FlashConfiguration = FlashConfiguration(),
-  fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
-  secret: SecretConfiguration = SecretConfiguration())
+    context: String = "/",
+    parser: ParserConfiguration = ParserConfiguration(),
+    actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
+    cookies: CookiesConfiguration = CookiesConfiguration(),
+    session: SessionConfiguration = SessionConfiguration(),
+    flash: FlashConfiguration = FlashConfiguration(),
+    fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
+    secret: SecretConfiguration = SecretConfiguration())
 
 /**
  * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
@@ -89,14 +89,14 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * @param jwt        The JWT specific information
  */
 case class SessionConfiguration(
-  cookieName: String = "PLAY_SESSION",
-  secure: Boolean = false,
-  maxAge: Option[FiniteDuration] = None,
-  httpOnly: Boolean = true,
-  domain: Option[String] = None,
-  path: String = "/",
-  sameSite: Option[SameSite] = Some(SameSite.Lax),
-  jwt: JWTConfiguration = JWTConfiguration()
+    cookieName: String = "PLAY_SESSION",
+    secure: Boolean = false,
+    maxAge: Option[FiniteDuration] = None,
+    httpOnly: Boolean = true,
+    domain: Option[String] = None,
+    path: String = "/",
+    sameSite: Option[SameSite] = Some(SameSite.Lax),
+    jwt: JWTConfiguration = JWTConfiguration()
 )
 
 /**
@@ -111,13 +111,13 @@ case class SessionConfiguration(
  * @param jwt        The JWT specific information
  */
 case class FlashConfiguration(
-  cookieName: String = "PLAY_FLASH",
-  secure: Boolean = false,
-  httpOnly: Boolean = true,
-  domain: Option[String] = None,
-  path: String = "/",
-  sameSite: Option[SameSite] = Some(SameSite.Lax),
-  jwt: JWTConfiguration = JWTConfiguration()
+    cookieName: String = "PLAY_FLASH",
+    secure: Boolean = false,
+    httpOnly: Boolean = true,
+    domain: Option[String] = None,
+    path: String = "/",
+    sameSite: Option[SameSite] = Some(SameSite.Lax),
+    jwt: JWTConfiguration = JWTConfiguration()
 )
 
 /**
@@ -127,8 +127,8 @@ case class FlashConfiguration(
  * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
  */
 case class ParserConfiguration(
-  maxMemoryBuffer: Int = 102400,
-  maxDiskBuffer: Long = 10485760)
+    maxMemoryBuffer: Int = 102400,
+    maxDiskBuffer: Long = 10485760)
 
 /**
  * Configuration for action composition.
@@ -138,8 +138,8 @@ case class ParserConfiguration(
  *                                        executed before the action composition ones.
  */
 case class ActionCompositionConfiguration(
-  controllerAnnotationsFirst: Boolean = false,
-  executeActionCreatorActionFirst: Boolean = false)
+    controllerAnnotationsFirst: Boolean = false,
+    executeActionCreatorActionFirst: Boolean = false)
 
 /**
  * Configuration for file MIME types, mapping from extension to content type.
@@ -329,10 +329,10 @@ object HttpConfiguration {
  * @param dataClaim The claim key corresponding to the data map passed in by the user
  */
 case class JWTConfiguration(
-  signatureAlgorithm: String = "HS256",
-  expiresAfter: Option[FiniteDuration] = None,
-  clockSkew: FiniteDuration = 30.seconds,
-  dataClaim: String = "data"
+    signatureAlgorithm: String = "HS256",
+    expiresAfter: Option[FiniteDuration] = None,
+    clockSkew: FiniteDuration = 30.seconds,
+    dataClaim: String = "data"
 )
 
 object JWTConfigurationParser {

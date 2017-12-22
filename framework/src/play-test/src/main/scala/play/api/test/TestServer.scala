@@ -137,6 +137,6 @@ private[play] class TestServerProcess extends ServerProcess {
 }
 
 private[play] case class TestServerExitException(
-  message: String,
-  cause: Option[Throwable] = None,
-  returnCode: Int = -1) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)
+    message: String,
+    cause: Option[Throwable] = None,
+    returnCode: Int = -1) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)

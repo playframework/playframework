@@ -232,7 +232,6 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         } getOrElse {
           val httpConfig = HttpConfiguration()
           val serverResultUtils = new ServerResultUtils(
-            httpConfig,
             new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
             new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
             new DefaultCookieHeaderEncoding(httpConfig.cookies)
@@ -281,7 +280,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
  *             trailers
  */
 case class BasicResponse(version: String, status: Int, reasonPhrase: String, headers: Map[String, String],
-  body: Either[String, (Seq[String], Map[String, String])])
+    body: Either[String, (Seq[String], Map[String, String])])
 
 /**
  * A basic request

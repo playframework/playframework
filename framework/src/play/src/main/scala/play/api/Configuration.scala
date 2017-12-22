@@ -231,7 +231,11 @@ case class Configuration(underlying: Config) {
    * usage. Instead you should define all config keys in a reference.conf file.
    */
   def getOptional[A](path: String)(implicit loader: ConfigLoader[A]): Option[A] = {
-    readValue(path, get[A](path))
+    try {
+      if (underlying.hasPath(path)) Some(get[A](path)) else None
+    } catch {
+      case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
+    }
   }
 
   /**

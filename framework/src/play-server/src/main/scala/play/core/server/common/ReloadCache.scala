@@ -39,7 +39,7 @@ private[play] abstract class ReloadCache[+T] {
    * Helper to calculate a `ServerResultUtil`.
    */
   protected final def reloadServerResultUtils(tryApp: Try[Application]): ServerResultUtils = {
-    val (httpConfiguration, sessionBaker, flashBaker, cookieHeaderEncoding) = tryApp match {
+    val (sessionBaker, flashBaker, cookieHeaderEncoding) = tryApp match {
       case Success(app) =>
         val requestFactory: DefaultRequestFactory = app.requestFactory match {
           case drf: DefaultRequestFactory => drf
@@ -47,7 +47,6 @@ private[play] abstract class ReloadCache[+T] {
         }
 
         (
-          HttpConfiguration.fromConfiguration(app.configuration, app.environment),
           requestFactory.sessionBaker,
           requestFactory.flashBaker,
           requestFactory.cookieHeaderEncoding
@@ -57,13 +56,12 @@ private[play] abstract class ReloadCache[+T] {
         val cookieSigner = new CookieSignerProvider(httpConfig.secret).get
 
         (
-          httpConfig,
           new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, cookieSigner),
           new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, cookieSigner),
           new DefaultCookieHeaderEncoding(httpConfig.cookies)
         )
     }
-    new ServerResultUtils(httpConfiguration, sessionBaker, flashBaker, cookieHeaderEncoding)
+    new ServerResultUtils(sessionBaker, flashBaker, cookieHeaderEncoding)
   }
 
   /**

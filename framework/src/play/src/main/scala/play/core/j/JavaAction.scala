@@ -58,7 +58,7 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
  * An action that's handling Java requests
  */
 abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
-    extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+  extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
   private val logger = Logger(classOf[JAction[_]])
 
@@ -163,10 +163,10 @@ trait JavaContextComponents {
  * The components necessary to handle a play.mvc.Http.Context object.
  */
 class DefaultJavaContextComponents @Inject() (
-  val messagesApi: JMessagesApi,
-  val langs: JLangs,
-  val fileMimeTypes: FileMimeTypes,
-  val httpConfiguration: HttpConfiguration
+    val messagesApi: JMessagesApi,
+    val langs: JLangs,
+    val fileMimeTypes: FileMimeTypes,
+    val httpConfiguration: HttpConfiguration
 ) extends JavaContextComponents
 
 trait JavaHandlerComponents {
