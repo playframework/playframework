@@ -18,8 +18,10 @@ import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
 import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
+import play.libs.AnnotationUtils
 import play.mvc.Http.{ Context => JContext }
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
@@ -49,6 +51,10 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
       case (a: play.mvc.With, ae) => a.value.map(c => (a, c, ae)).toSeq
       case (a, ae) if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
         a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c, ae)).toSeq
+      case (a, ae) if !a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
+        AnnotationUtils.getIndirectlyPresentAnnotations(a).asScala.filter(_.annotationType.isAnnotationPresent(classOf[play.mvc.With])).flatMap(ia =>
+          ia.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (ia, c, ae))
+        )
     }.flatten.reverse
   }
 
