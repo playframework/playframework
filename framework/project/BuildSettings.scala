@@ -243,6 +243,13 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.sourceMapper"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerComponents.webCommands"),
 
+      // Add compressionLevel to GzipFilter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilter.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.streams.GzipFlow.gzip"),
+
       // Pass a default server header to netty
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler.this"),
