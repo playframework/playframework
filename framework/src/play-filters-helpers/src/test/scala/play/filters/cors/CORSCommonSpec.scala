@@ -74,12 +74,21 @@ trait CORSCommonSpec extends PlaySpecification {
       }
       "forbidden" in withApplication(conf = serveForbidden) { app =>
         val result = route(app, fakeRequest().withHeaders(
-          ORIGIN -> "http://www.example.com"
+          ORIGIN -> "http://www.notinwhitelistorhost.com"
         )).get
 
         status(result) must_== OK
         header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
+      }
+      "in the whitelist" in withApplication(conf = serveForbidden) { app =>
+        val result = route(app, fakeRequest().withHeaders(
+          ORIGIN -> "http://example.org"
+        )).get
+
+        status(result) must_== OK
+        header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://example.org")
+        header(VARY, result) must beSome(ORIGIN)
       }
     }
 
