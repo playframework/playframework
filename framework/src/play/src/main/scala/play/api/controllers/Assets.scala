@@ -243,6 +243,8 @@ package controllers {
   }
 
   object AssetsConfiguration {
+    private val logger = Logger(getClass)
+
     def fromConfiguration(c: Configuration, mode: Mode = Mode.Test): AssetsConfiguration = {
       val assetsConfiguration = AssetsConfiguration(
         path = c.get[String]("play.assets.path"),
@@ -265,14 +267,14 @@ package controllers {
 
     private def logAssetsConfiguration(assetsConfiguration: AssetsConfiguration): Unit = {
       val msg = new StringBuffer()
-      msg.append("Using the following cache for assets configuration:\n")
-      msg.append(s"\t enabledCaching = ${assetsConfiguration.enableCaching}\n")
-      msg.append(s"\t enabledCacheControl = ${assetsConfiguration.enableCacheControl}\n")
+      msg.append("Using the following cache configuration for assets:\n")
+      msg.append(s"\t enableCaching = ${assetsConfiguration.enableCaching}\n")
+      msg.append(s"\t enableCacheControl = ${assetsConfiguration.enableCacheControl}\n")
       msg.append(s"\t defaultCacheControl = ${assetsConfiguration.defaultCacheControl}\n")
       msg.append(s"\t aggressiveCacheControl = ${assetsConfiguration.aggressiveCacheControl}\n")
       msg.append(s"\t configuredCacheControl:")
       msg.append(assetsConfiguration.configuredCacheControl.map(c => s"\t\t ${c._1} = ${c._2}").mkString("\n", "\n", "\n"))
-      Logger.warn(msg.toString)
+      logger.debug(msg.toString)
     }
 
     private def getAssetEncodings(c: Configuration): Seq[AssetEncoding] = {
