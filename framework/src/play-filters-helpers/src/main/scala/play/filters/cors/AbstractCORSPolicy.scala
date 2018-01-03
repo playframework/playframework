@@ -105,7 +105,10 @@ private[cors] trait AbstractCORSPolicy {
      * headers and terminate this set of steps.
      */
     if (!corsConfig.allowedOrigins(origin)) {
-      handleInvalidCORSRequest(request)
+      if (corsConfig.serveForbiddenOrigins)
+        next(request)
+      else
+        handleInvalidCORSRequest(request)
     } else {
       import play.api.libs.iteratee.Execution.Implicits.trampoline
 
