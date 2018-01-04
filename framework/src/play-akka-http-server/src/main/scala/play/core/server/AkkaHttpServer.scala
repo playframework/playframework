@@ -81,16 +81,15 @@ class AkkaHttpServer(
     val initialSettings = ServerSettings(initialConfig)
 
     val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
-    val requestTimeoutOption = akkaServerConfig.getOptional[Duration]("requestTimeout")
+    val requestTimeout = akkaServerConfig.get[Duration]("requestTimeout")
 
     // all akka settings that are applied to the server needs to be set here
-    val serverSettings: ServerSettings = initialSettings.withTimeouts {
-      val timeouts = initialSettings.timeouts.withIdleTimeout(idleTimeout)
-      requestTimeoutOption match {
-        case Some(requestTimeout) => timeouts.withRequestTimeout(requestTimeout)
-        case None => timeouts
-      }
-    }
+    val serverSettings: ServerSettings = initialSettings
+      .withTimeouts(
+        initialSettings.timeouts
+          .withIdleTimeout(idleTimeout)
+          .withRequestTimeout(requestTimeout)
+      )
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
