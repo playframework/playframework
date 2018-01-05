@@ -33,11 +33,8 @@ object Configuration {
 
   private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
 
-  private[play] def load(
-    classLoader: ClassLoader,
-    properties: Properties,
-    directSettings: Map[String, AnyRef],
-    allowMissingApplicationConf: Boolean): Configuration = {
+  def load(classLoader: ClassLoader, properties: Properties, directSettings: Map[String, AnyRef], 
+           allowMissingApplicationConf: Boolean): Configuration = {
 
     try {
       // Get configuration from the system properties.
