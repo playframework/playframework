@@ -447,6 +447,8 @@ trait LegacyI18nSupport {
 /** Helper utilities to generate results. */
 object Results extends Results with LegacyI18nSupport {
 
+  private[mvc] final val logger = Logger(getClass)
+
   /** Empty result, i.e. nothing to send. */
   case class EmptyContent()
 
@@ -914,9 +916,9 @@ trait Results {
    * Generates a redirect simple result.
    *
    * @param url the URL to redirect to
-   * @param status HTTP status
+   * @param statusCode HTTP status
    */
-  def Redirect(url: String, status: Int): Result = Redirect(url, Map.empty, status)
+  def Redirect(url: String, statusCode: Int): Result = Redirect(url, Map.empty, statusCode)
 
   /**
    * Generates a redirect simple result.
@@ -925,11 +927,12 @@ trait Results {
    * @param queryStringParams queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(
-      url: String,
-      queryStringParams: Map[String, Seq[String]] = Map.empty,
-      status: Int = SEE_OTHER
-  ): Result = {
+  def Redirect(url: String, queryStringParams: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
+    if (!play.api.http.Status.isRedirect(status)) {
+      Results.logger
+        .forMode(Mode.Dev)
+        .warn(s"You are using status code $status which is not a redirect code!")
+    }
     val fullUrl: String = Results.addQueryStringParams(url, queryStringParams)
     Status(status).withHeaders(LOCATION -> fullUrl)
   }
