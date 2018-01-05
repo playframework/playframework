@@ -33,7 +33,9 @@ object Configuration {
 
   private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
 
-  def load(classLoader: ClassLoader, properties: Properties, directSettings: Map[String, AnyRef], 
+  def load(classLoader: ClassLoader, 
+           properties: Properties, 
+           directSettings: Map[String, AnyRef], 
            allowMissingApplicationConf: Boolean): Configuration = {
 
     try {
