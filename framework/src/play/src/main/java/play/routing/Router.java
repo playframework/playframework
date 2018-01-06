@@ -24,6 +24,10 @@ public interface Router {
 
     Router withPrefix(String prefix);
 
+    default Router orElse(Router router) {
+        return this.asScala().orElse(router.asScala()).asJava();
+    }
+
     default play.api.routing.Router asScala() {
         return SimpleRouter$.MODULE$.apply(new JavaPartialFunction<play.api.mvc.RequestHeader, Handler>() {
             @Override

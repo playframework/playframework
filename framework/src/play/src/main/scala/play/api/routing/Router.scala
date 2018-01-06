@@ -6,6 +6,7 @@ package play.api.routing
 import play.api.libs.typedmap.TypedKey
 import play.api.{ Configuration, Environment }
 import play.api.mvc.{ Handler, RequestHeader }
+import play.api.routing.Router.Routes
 import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
@@ -13,7 +14,7 @@ import play.utils.Reflect
  * A router.
  */
 trait Router {
-
+  self =>
   /**
    * The actual routes of the router.
    */
@@ -36,11 +37,22 @@ trait Router {
   /**
    * A lifted version of the routes partial function.
    */
-  def handlerFor(request: RequestHeader): Option[Handler] = {
+  final def handlerFor(request: RequestHeader): Option[Handler] = {
     routes.lift(request)
   }
 
   def asJava: play.routing.Router = new JavaRouterAdapter(this)
+
+  /**
+   * Compose two routers into one. The resulting router will contain
+   * both the routes in `this` as well as `router`
+   */
+  final def orElse(other: Router): Router = new Router {
+    def documentation: Seq[(String, String, String)] = self.documentation ++ other.documentation
+    def withPrefix(prefix: String): Router = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
+    def routes: Routes = self.routes.orElse(other.routes)
+  }
+
 }
 
 /**
