@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
-package javaguide.cache;
+package javaguide.ehcache;
 
 import akka.Done;
 import com.google.common.collect.ImmutableMap;
@@ -25,7 +25,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-public class JavaCache extends WithApplication {
+public class JavaEhCache extends WithApplication {
 
     @Override
     protected Application provideApplication() {
@@ -52,9 +52,9 @@ public class JavaCache extends WithApplication {
         CompletionStage<Done> result = cache.set("item.key", frontPageNews);
         //#simple-set
         block(result);
+        //#time-set
         }
         {
-        //#time-set	
         // Cache for 15 minutes
         CompletionStage<Done> result = cache.set("item.key", frontPageNews, 60 * 15);
         //#time-set

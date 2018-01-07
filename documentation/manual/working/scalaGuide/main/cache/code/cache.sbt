@@ -10,7 +10,7 @@ libraryDependencies ++= Seq(
 
 //#ehcache-sbt-dependencies
 libraryDependencies ++= Seq(
-  caffeineCache
+  caffeine
 )
 //#ehcache-sbt-dependencies
 

@@ -11,7 +11,7 @@ The default implementation of the cache API uses [Caffeine Cache](https://github
 
 ## Importing the Cache API
 
-Play provides both an API and an default Caffeine Cache implementation of that API. To get the full Caffeine Cache implementation, add `caffeine-cache` to your dependencies list:
+Play provides both an API and an default Caffeine Cache implementation of that API. To get the full Caffeine Cache implementation, add `caffeine` to your dependencies list:
 
 @[caffeine-cache-sbt-dependencies](code/cache.sbt)
 
@@ -25,7 +25,9 @@ The API dependency is useful if you'd like to define your own bindings for the `
 
 ## JCache Support
 
-Caffeine Cache implements the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache, but Play does not bind `javax.caching.CacheManager` by default.  To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
+Caffeine Cache does not natively implement the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache. If you want to use JCache with Caffeine you can use [caffeine-jcache](https://github.com/ben-manes/caffeine/wiki/JCache) dependency.
+
+Play does not bind `javax.caching.CacheManager` by default.  To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
 
 @[jcache-sbt-dependencies](code/cache.sbt)
 
@@ -79,9 +81,24 @@ If you want to access multiple different caffeine cache caches, then you'll need
 
     play.cache.bindCaches = ["db-cache", "user-cache", "session-cache"]
 
-If you want to pass custom configuration data for Caffeine Cache you can do so by specifying:
+If you want to pass a default custom configuration that will be used as a fallback for all your caches you can do it by specifying:
 
-    play.cache.caffeine.spec = {}
+```
+    play.cache.caffeine.defaults = {
+        initial-capacity = 200
+        ...
+    }
+```
+
+
+You can also pass custom configuration data for specific caches by doing:
+
+```
+    play.cache.caffeine.user-cache = {
+        initial-capacity = 200
+        ...
+    }
+```
 
 Now to access these different caches, when you inject them, use the [NamedCache](api/java/play/cache/NamedCache.html) qualifier on your dependency, for example:
 
