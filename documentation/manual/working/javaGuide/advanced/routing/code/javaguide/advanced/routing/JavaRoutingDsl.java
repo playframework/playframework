@@ -124,7 +124,7 @@ public class JavaRoutingDsl extends WithApplication {
 
     @Test
     public void createNewRoutingDsl() {
-        BodyParser<AnyContent> bodyParser = app.injector().instanceOf(PlayBodyParsers.class).defaultBodyParser();
+        play.mvc.BodyParser.Default bodyParser = app.injector().instanceOf(play.mvc.BodyParser.Default.class);
         JavaContextComponents javaContextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
         //#new-routing-dsl

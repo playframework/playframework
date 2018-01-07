@@ -50,8 +50,11 @@ object PlaySettings extends PlaySettingsCompat {
     Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
   }
 
-  lazy val defaultSettings = Seq[Setting[_]](
-    TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
+  // Settings for a Play service (not a web project)
+  lazy val serviceSettings = Seq[Setting[_]](
+
+    scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
+    javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
 
     playPlugin := false,
 
@@ -97,6 +100,10 @@ object PlaySettings extends PlaySettingsCompat {
       Seq(playStartCommand, playRunProdCommand, playTestProdCommand, playStopProdCommand, h2Command)
     },
 
+    // Assets classloader (used by PlayRun.playDefaultRunTask)
+    PlayInternalKeys.playAllAssets := Seq.empty,
+    PlayRun.playAssetsClassLoaderSetting,
+
     // THE `in Compile` IS IMPORTANT!
     Keys.run in Compile := PlayRun.playDefaultRunTask.evaluated,
     mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
@@ -128,13 +135,6 @@ object PlaySettings extends PlaySettingsCompat {
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
-    RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
-
-    sources in (Compile, RoutesKeys.routes) ++= {
-      val dirs = (unmanagedResourceDirectories in Compile).value
-      (dirs * "routes").get ++ (dirs * "*.routes").get
-    },
-
     playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
 
     fileWatchService := FileWatchService.defaultWatchService(target.value, getPoolInterval(pollInterval.value).toMillis.toInt, sLog.value),
@@ -147,35 +147,6 @@ object PlaySettings extends PlaySettingsCompat {
     playRunHooks := Nil,
 
     playInteractionMode := PlayConsoleInteractionMode,
-
-    // sbt-web
-    jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
-
-    WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
-
-    playAssetsWithCompilation := {
-      val ignore = ((assets in Assets)?).value
-      getPlayAssetsWithCompilation((compile in Compile).value)
-    },
-
-    // Assets for run mode
-    PlayRun.playPrefixAndAssetsSetting,
-    PlayRun.playAllAssetsSetting,
-    PlayRun.playAssetsClassLoaderSetting,
-    assetsPrefix := "public/",
-
-    // Assets for distribution
-    WebKeys.packagePrefix in Assets := assetsPrefix.value,
-    playPackageAssets := (packageBin in Assets).value,
-    scriptClasspathOrdering += {
-      val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
-      val jarName = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, Some("assets"))
-      playPackageAssets.value -> ("lib/" + jarName)
-    },
-
-    // Assets for testing
-    public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
-    fullClasspath in Test += Attributed.blank((assets in TestAssets).value.getParentFile),
 
     // Settings
 
@@ -252,9 +223,56 @@ object PlaySettings extends PlaySettingsCompat {
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
 
     generateSecret := ApplicationSecretGenerator.generateSecretTask.value,
-    updateSecret := ApplicationSecretGenerator.updateSecretTask.value
+    updateSecret := ApplicationSecretGenerator.updateSecretTask.value,
+
+    // by default, compile any routes files in the root named "routes" or "*.routes"
+    sources in (Compile, RoutesKeys.routes) ++= {
+      val dirs = (unmanagedResourceDirectories in Compile).value
+      (dirs * "routes").get ++ (dirs * "*.routes").get
+    }
 
   ) ++ inConfig(Compile)(externalizedSettings)
+
+  /**
+   * All default settings for a Play project. Normally these are enabled by the PlayWeb and PlayService plugin and
+   * will be added separately.
+   */
+  @deprecated("Use serviceSettings for a Play app or service, and add webSettings for a web app", "2.7.0")
+  lazy val defaultSettings = serviceSettings ++ webSettings
+
+  lazy val webSettings = Seq[Setting[_]](
+    TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
+
+    RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
+
+    // sbt-web
+    jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
+
+    WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
+
+    playAssetsWithCompilation := {
+      val ignore = ((assets in Assets)?).value
+      getPlayAssetsWithCompilation((compile in Compile).value)
+    },
+
+    // Assets for run mode
+    PlayRun.playPrefixAndAssetsSetting,
+    PlayRun.playAllAssetsSetting,
+    assetsPrefix := "public/",
+
+    // Assets for distribution
+    WebKeys.packagePrefix in Assets := assetsPrefix.value,
+    playPackageAssets := (packageBin in Assets).value,
+    scriptClasspathOrdering += {
+      val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
+      val jarName = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, Some("assets"))
+      playPackageAssets.value -> ("lib/" + jarName)
+    },
+
+    // Assets for testing
+    public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
+    fullClasspath in Test += Attributed.blank((assets in TestAssets).value.getParentFile)
+  )
 
   /**
    * Settings for creating a jar that excludes externalized resources

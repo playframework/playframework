@@ -322,7 +322,7 @@ trait CookieHeaderEncoding {
  * The default implementation of `CookieHeaders`.
  */
 class DefaultCookieHeaderEncoding @Inject() (
-  override protected val config: CookiesConfiguration = CookiesConfiguration()) extends CookieHeaderEncoding
+    override protected val config: CookiesConfiguration = CookiesConfiguration()) extends CookieHeaderEncoding
 
 /**
  * Utilities for merging individual cookie values in HTTP cookie headers.
@@ -762,13 +762,13 @@ trait FallbackCookieDataCodec extends CookieDataCodec {
 }
 
 case class DefaultUrlEncodedCookieDataCodec(
-  isSigned: Boolean,
-  cookieSigner: CookieSigner
+    isSigned: Boolean,
+    cookieSigner: CookieSigner
 ) extends UrlEncodedCookieDataCodec
 
 case class DefaultJWTCookieDataCodec @Inject() (
-  secretConfiguration: SecretConfiguration,
-  jwtConfiguration: JWTConfiguration
+    secretConfiguration: SecretConfiguration,
+    jwtConfiguration: JWTConfiguration
 ) extends JWTCookieDataCodec
 
 /**

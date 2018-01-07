@@ -37,9 +37,9 @@ class EhCacheApiSpec extends PlaySpecification {
       _.overrides(
         bind[CacheManager].toProvider[CustomCacheManagerProvider]
       ).configure(
-        "play.cache.createBoundCaches" -> false,
-        "play.cache.bindCaches" -> Seq("custom")
-      )
+          "play.cache.createBoundCaches" -> false,
+          "play.cache.bindCaches" -> Seq("custom")
+        )
     ) {
       app.injector.instanceOf[NamedCacheController]
     }
@@ -91,6 +91,6 @@ class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerPr
 }
 
 class NamedCacheController @Inject() (
-  @NamedCache("custom") val cache: SyncCacheApi,
-  @NamedCache("custom") val asyncCache: AsyncCacheApi
+    @NamedCache("custom") val cache: SyncCacheApi,
+    @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

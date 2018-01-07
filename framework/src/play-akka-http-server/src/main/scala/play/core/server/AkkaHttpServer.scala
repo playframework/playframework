@@ -31,7 +31,7 @@ import play.core.ApplicationProvider
 import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -76,6 +76,7 @@ class AkkaHttpServer(
 
     val parserSettings = ParserSettings(initialConfig)
       .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+      .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
 
     val initialSettings = ServerSettings(initialConfig)
 
@@ -95,7 +96,7 @@ class AkkaHttpServer(
       .withRemoteAddressHeader(true)
       // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
       .withTransparentHeadRequests(akkaServerConfig.get[Boolean]("transparent-head-requests"))
-      .withServerHeader(akkaServerConfig.getOptional[String]("server-header").filterNot(_ == "").map(headers.Server(_)))
+      .withServerHeader(akkaServerConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => headers.Server(s) })
       .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
       .withParserSettings(parserSettings)
 
@@ -157,8 +158,8 @@ class AkkaHttpServer(
    * Values that are cached based on the current application.
    */
   private case class ReloadCacheValues(
-    resultUtils: ServerResultUtils,
-    modelConversion: AkkaModelConversion
+      resultUtils: ServerResultUtils,
+      modelConversion: AkkaModelConversion
   )
 
   /**
@@ -242,23 +243,20 @@ class AkkaHttpServer(
       case Failure(_) => DefaultHttpErrorHandler
     }
 
+    // default execution context used for executing the action
+    implicit val defaultExecutionContext: ExecutionContext = tryApp match {
+      case Success(app) => app.actorSystem.dispatcher
+      case Failure(_) => actorSystem.dispatcher
+    }
+
     (handler, upgradeToWebSocket) match {
       //execute normal action
       case (action: EssentialAction, _) =>
-        val actionWithErrorHandling = EssentialAction { rh =>
-          import play.core.Execution.Implicits.trampoline
-          action(rh).recoverWith {
-            case error => errorHandler.onServerError(taggedRequestHeader, error)
-          }
-        }
-        executeAction(request, taggedRequestHeader, requestBodySource, actionWithErrorHandling, errorHandler)
-
+        runAction(request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>
-        import play.core.Execution.Implicits.trampoline
-
         val bufferLimit = config.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
 
-        websocket(taggedRequestHeader).flatMap {
+        websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
             modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
@@ -273,15 +271,23 @@ class AkkaHttpServer(
     }
   }
 
+  @deprecated("This method is an internal API and should not be public", "2.6.10")
   def executeAction(
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodySource: Either[ByteString, Source[ByteString, _]],
     action: EssentialAction,
-    errorHandler: HttpErrorHandler): Future[HttpResponse] = {
+    errorHandler: HttpErrorHandler): Future[HttpResponse] =
+    runAction(request, taggedRequestHeader, requestBodySource, action, errorHandler)(actorSystem.dispatcher)
 
-    import play.core.Execution.Implicits.trampoline
-    val actionAccumulator: Accumulator[ByteString, Result] = action(taggedRequestHeader)
+  private[play] def runAction(
+    request: HttpRequest,
+    taggedRequestHeader: RequestHeader,
+    requestBodySource: Either[ByteString, Source[ByteString, _]],
+    action: EssentialAction,
+    errorHandler: HttpErrorHandler)(implicit ec: ExecutionContext): Future[HttpResponse] = {
+
+    val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(taggedRequestHeader))
 
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {
       // If we expect 100 continue, then we must not feed the source into the accumulator until the accumulator
@@ -293,12 +299,18 @@ class AkkaHttpServer(
       requestBodySource
     }
 
-    val resultFuture: Future[Result] = source match {
-      case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
-      case Left(bytes) => actionAccumulator.run(bytes)
-      case Right(s) => actionAccumulator.run(s)
+    // here we use FastFuture so the flatMap shouldn't actually need the executionContext
+    val resultFuture: Future[Result] = futureAcc.fast.flatMap { actionAccumulator =>
+      source match {
+        case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
+        case Left(bytes) => actionAccumulator.run(bytes)
+        case Right(s) => actionAccumulator.run(s)
+      }
+    }.recoverWith {
+      case e: Throwable =>
+        errorHandler.onServerError(taggedRequestHeader, e)
     }
-    val responseFuture: Future[HttpResponse] = resultFuture.fast.flatMap { result =>
+    val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = resultUtils.prepareCookies(taggedRequestHeader, result)
       modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
     }
@@ -334,8 +346,6 @@ class AkkaHttpServer(
     } catch {
       case NonFatal(e) => logger.error("Error while stopping logger", e)
     }
-
-    system.terminate()
 
     // Call provided hook
     // Do this last because the hooks were created before the server,

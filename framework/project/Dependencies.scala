@@ -8,9 +8,9 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.6"
-  val akkaHttpVersion = "10.0.10"
-  val playJsonVersion = "2.6.7"
+  val akkaVersion = "2.5.8"
+  val akkaHttpVersion = "10.0.11"
+  val playJsonVersion = "2.6.8"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -56,7 +56,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.7.2",
+    "com.zaxxer" % "HikariCP" % "2.7.4",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -73,7 +73,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.11.RELEASE"
+  val springFrameworkVersion = "5.0.1.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -93,7 +93,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate" % "hibernate-validator" % "5.4.1.Final",
+    "org.hibernate" % "hibernate-validator" % "6.0.5.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
@@ -104,6 +104,7 @@ object Dependencies {
 
     ("org.springframework" % "spring-core" % springFrameworkVersion)
       .exclude("org.springframework", "spring-asm")
+      .exclude("org.springframework", "spring-jcl")
       .exclude("commons-logging", "commons-logging"),
 
     ("org.springframework" % "spring-beans" % springFrameworkVersion)
@@ -152,7 +153,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.16.Final"
+  val nettyVersion = "4.1.19.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -160,6 +161,8 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val cookieEncodingDependencies = slf4j
+
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.0"
 
@@ -173,7 +176,7 @@ object Dependencies {
   }
 
   def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
-    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.5"
+    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.7"
     case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
   }
 
@@ -298,7 +301,7 @@ object Dependencies {
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
  * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.4", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.4", "2.11.11"),
+ *    crossScalaVersions := Seq("2.12.4", "2.11.12"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka

@@ -89,10 +89,10 @@ trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
 }
 
 class DefaultFlashCookieBaker @Inject() (
-  val config: FlashConfiguration,
-  val secretConfiguration: SecretConfiguration,
-  val cookieSigner: CookieSigner)
-    extends FlashCookieBaker with FallbackCookieDataCodec {
+    val config: FlashConfiguration,
+    val secretConfiguration: SecretConfiguration,
+    val cookieSigner: CookieSigner)
+  extends FlashCookieBaker with FallbackCookieDataCodec {
 
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 
@@ -101,10 +101,10 @@ class DefaultFlashCookieBaker @Inject() (
 }
 
 class LegacyFlashCookieBaker @Inject() (
-  val config: FlashConfiguration,
-  val secretConfiguration: SecretConfiguration,
-  val cookieSigner: CookieSigner)
-    extends FlashCookieBaker with UrlEncodedCookieDataCodec {
+    val config: FlashConfiguration,
+    val secretConfiguration: SecretConfiguration,
+    val cookieSigner: CookieSigner)
+  extends FlashCookieBaker with UrlEncodedCookieDataCodec {
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 

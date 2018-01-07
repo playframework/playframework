@@ -6,6 +6,7 @@ package play.api.routing
 import play.api.libs.typedmap.TypedKey
 import play.api.{ Configuration, Environment }
 import play.api.mvc.{ Handler, RequestHeader }
+import play.api.routing.Router.Routes
 import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
@@ -13,7 +14,7 @@ import play.utils.Reflect
  * A router.
  */
 trait Router {
-
+  self =>
   /**
    * The actual routes of the router.
    */
@@ -27,20 +28,31 @@ trait Router {
   def documentation: Seq[(String, String, String)]
 
   /**
-   * Prefix this router with the given prefix.
+   * Get a router that routes requests to `s"$prefix/$path"` in the same way this router routes requests to `path`.
    *
-   * Should return a new router that uses the prefix, but legacy implementations may just update their existing prefix.
+   * @return the prefixed router
    */
   def withPrefix(prefix: String): Router
 
   /**
    * A lifted version of the routes partial function.
    */
-  def handlerFor(request: RequestHeader): Option[Handler] = {
+  final def handlerFor(request: RequestHeader): Option[Handler] = {
     routes.lift(request)
   }
 
   def asJava: play.routing.Router = new JavaRouterAdapter(this)
+
+  /**
+   * Compose two routers into one. The resulting router will contain
+   * both the routes in `this` as well as `router`
+   */
+  final def orElse(other: Router): Router = new Router {
+    def documentation: Seq[(String, String, String)] = self.documentation ++ other.documentation
+    def withPrefix(prefix: String): Router = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
+    def routes: Routes = self.routes.orElse(other.routes)
+  }
+
 }
 
 /**
@@ -140,6 +152,13 @@ object Router {
     def withPrefix(prefix: String) = this
     def routes = PartialFunction.empty
   }
+
+  /**
+   * Add the given prefix to the given path, collapsing any slashes.
+   */
+  def prefixPath(prefix: String, path: String = ""): String = {
+    prefix + (if (prefix.endsWith("/")) "" else "/") + path.stripPrefix("/")
+  }
 }
 
 /**
@@ -153,7 +172,7 @@ trait SimpleRouter extends Router { self =>
     } else {
       new Router {
         def routes = {
-          val p = if (prefix.endsWith("/")) prefix else prefix + "/"
+          val p = Router.prefixPath(prefix)
           val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
             case rh: RequestHeader if rh.path.startsWith(p) =>
               val newPath = rh.path.drop(p.length - 1)
@@ -161,7 +180,7 @@ trait SimpleRouter extends Router { self =>
           }
           Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
         }
-        def withPrefix(prefix: String) = self.withPrefix(prefix)
+        def withPrefix(p: String) = self.withPrefix(Router.prefixPath(p, prefix))
         def documentation = self.documentation
       }
     }

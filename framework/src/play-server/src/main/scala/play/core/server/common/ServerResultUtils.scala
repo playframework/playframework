@@ -11,14 +11,12 @@ import play.api.mvc._
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.request.RequestAttrKey
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 private[play] final class ServerResultUtils(
-    httpConfiguration: HttpConfiguration,
     sessionBaker: SessionCookieBaker,
     flashBaker: FlashCookieBaker,
     cookieHeaderEncoding: CookieHeaderEncoding) {

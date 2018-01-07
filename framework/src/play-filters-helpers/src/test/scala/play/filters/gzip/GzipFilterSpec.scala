@@ -16,7 +16,7 @@ import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test._
 import play.api.mvc.{ AnyContentAsEmpty, Cookie, DefaultActionBuilder, Result }
 import play.api.mvc.Results._
-import java.util.zip.GZIPInputStream
+import java.util.zip.{ Deflater, GZIPInputStream }
 import java.io.ByteArrayInputStream
 
 import org.apache.commons.io.IOUtils
@@ -305,15 +305,55 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       }
     }
 
+    // Random output doesn't compress well and makes for an unreliable comparison between compression levels. This
+    // admittedly way too complicated way to create a test string is somewhat compressible and identical run-to-run.
+    val compressibleBody: String = {
+      var i = 0
+      var j = 0
+      var count = 0
+      val N = 25000
+      val sb = new java.lang.StringBuilder(N + 100)
+      val alphabet = "abcdefghijklmnopqrstuvwxyz012"
+      while (count < N) {
+        j = (j + 1) % alphabet.length
+        val char = alphabet.charAt(j)
+        i = (i + 7) % 17
+        for (x <- 0 until i) sb.append(char)
+        count += i
+      }
+      sb.toString
+    }
+    "GzipFilterConfig.compressionLevel" should {
+      "changing the compressionLevel should result in a change in the output size" in {
+        val result1 = withApplication(Ok(compressibleBody), compressionLevel = 1) { implicit app =>
+          contentAsBytes(makeGzipRequest(app))
+        }
+        val result9 = withApplication(Ok(compressibleBody), compressionLevel = 9) { implicit app =>
+          contentAsBytes(makeGzipRequest(app))
+        }
+        result1.length should be > result9.length
+      }
+
+      "NOT changing the compressionLevel should NOT result in a change in the output size" in {
+        val result1a = withApplication(Ok(compressibleBody), compressionLevel = 1) { implicit app =>
+          contentAsBytes(makeGzipRequest(app))
+        }
+        val result1b = withApplication(Ok(compressibleBody), compressionLevel = 1) { implicit app =>
+          contentAsBytes(makeGzipRequest(app))
+        }
+        result1a.length === result1b.length
+      }
+    }
   }
 
-  def withApplication[T](result: Result, chunkedThreshold: Int = 1024, whiteList: List[String] = List.empty, blackList: List[String] = List.empty)(block: Application => T): T = {
+  def withApplication[T](result: Result, chunkedThreshold: Int = 1024, whiteList: List[String] = List.empty, blackList: List[String] = List.empty, compressionLevel: Int = Deflater.DEFAULT_COMPRESSION)(block: Application => T): T = {
     val application = new GuiceApplicationBuilder()
       .configure(
         "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
         "play.filters.gzip.bufferSize" -> 512,
         "play.filters.gzip.contentType.whiteList" -> whiteList,
-        "play.filters.gzip.contentType.blackList" -> blackList
+        "play.filters.gzip.contentType.blackList" -> blackList,
+        "play.filters.gzip.compressionLevel" -> compressionLevel
       ).overrides(
           bind[Result].to(result),
           bind[Router].to[ResultRouter],

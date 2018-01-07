@@ -76,10 +76,10 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerI
 }
 
 trait WebSocketSpec extends PlaySpecification
-    with WsTestClient
-    with ServerIntegrationSpecification
-    with WebSocketSpecMethods
-    with PingWebSocketSpec {
+  with WsTestClient
+  with ServerIntegrationSpecification
+  with WebSocketSpecMethods
+  with PingWebSocketSpec {
 
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets

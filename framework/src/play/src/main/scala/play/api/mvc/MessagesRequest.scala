@@ -64,7 +64,7 @@ class MessagesRequest[A](request: Request[A], val messagesApi: MessagesApi) exte
 trait MessagesActionBuilder extends ActionBuilder[MessagesRequest, AnyContent]
 
 class MessagesActionBuilderImpl[B](val parser: BodyParser[B], messagesApi: MessagesApi)(implicit val executionContext: ExecutionContext)
-    extends ActionBuilder[MessagesRequest, B] {
+  extends ActionBuilder[MessagesRequest, B] {
 
   def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
     block(new MessagesRequest[A](request, messagesApi))
@@ -72,7 +72,7 @@ class MessagesActionBuilderImpl[B](val parser: BodyParser[B], messagesApi: Messa
 }
 
 class DefaultMessagesActionBuilderImpl(parser: BodyParser[AnyContent], messagesApi: MessagesApi)(implicit ec: ExecutionContext)
-    extends MessagesActionBuilderImpl(parser, messagesApi) with MessagesActionBuilder {
+  extends MessagesActionBuilderImpl(parser, messagesApi) with MessagesActionBuilder {
   @Inject
   def this(parser: BodyParsers.Default, messagesApi: MessagesApi)(implicit ec: ExecutionContext) = {
     this(parser: BodyParser[AnyContent], messagesApi)
@@ -87,13 +87,13 @@ trait MessagesControllerComponents extends ControllerComponents {
 }
 
 case class DefaultMessagesControllerComponents @Inject() (
-  messagesActionBuilder: MessagesActionBuilder,
-  actionBuilder: DefaultActionBuilder,
-  parsers: PlayBodyParsers,
-  messagesApi: MessagesApi,
-  langs: Langs,
-  fileMimeTypes: FileMimeTypes,
-  executionContext: scala.concurrent.ExecutionContext
+    messagesActionBuilder: MessagesActionBuilder,
+    actionBuilder: DefaultActionBuilder,
+    parsers: PlayBodyParsers,
+    messagesApi: MessagesApi,
+    langs: Langs,
+    fileMimeTypes: FileMimeTypes,
+    executionContext: scala.concurrent.ExecutionContext
 ) extends MessagesControllerComponents
 
 /**
@@ -125,5 +125,5 @@ trait MessagesBaseController extends BaseControllerHelpers {
  * }}}
  */
 abstract class MessagesAbstractController @Inject() (
-  protected val controllerComponents: MessagesControllerComponents
+    protected val controllerComponents: MessagesControllerComponents
 ) extends MessagesBaseController

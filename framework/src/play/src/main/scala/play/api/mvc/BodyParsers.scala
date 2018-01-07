@@ -403,10 +403,10 @@ trait BodyParserUtils {
 }
 
 class DefaultPlayBodyParsers @Inject() (
-  val config: ParserConfiguration,
-  val errorHandler: HttpErrorHandler,
-  val materializer: Materializer,
-  val temporaryFileCreator: TemporaryFileCreator) extends PlayBodyParsers
+    val config: ParserConfiguration,
+    val errorHandler: HttpErrorHandler,
+    val materializer: Materializer,
+    val temporaryFileCreator: TemporaryFileCreator) extends PlayBodyParsers
 
 object PlayBodyParsers {
   /**

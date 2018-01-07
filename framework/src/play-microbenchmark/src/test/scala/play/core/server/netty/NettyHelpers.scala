@@ -19,14 +19,14 @@ object NettyHelpers {
   val conversion: NettyModelConversion = {
     val httpConfig = HttpConfiguration()
     val serverResultUtils = new ServerResultUtils(
-      httpConfig,
       new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
       new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
       new DefaultCookieHeaderEncoding(httpConfig.cookies)
     )
     new NettyModelConversion(
       serverResultUtils,
-      new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None))
+      new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None)),
+      None
     )
   }
 

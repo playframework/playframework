@@ -22,6 +22,14 @@ object PlayImport extends PlayImportCompat {
     throw new ComponentExternalisedException
   }
 
+  val playCore = component("play")
+
+  val nettyServer = component("play-netty-server")
+
+  val akkaHttpServer = component("play-akka-http-server")
+
+  val logback = component("play-logback")
+
   val evolutions = component("play-jdbc-evolutions")
 
   val jdbc = component("play-jdbc")

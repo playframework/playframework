@@ -6,6 +6,9 @@ package play.api.mvc
 import java.util.UUID
 import org.specs2.mutable._
 
+case class Demo(value: Long) extends AnyVal
+case class Hase(x: String) extends AnyVal
+
 class BindersSpec extends Specification {
 
   val uuid = UUID.randomUUID
@@ -128,6 +131,24 @@ class BindersSpec extends Specification {
     }
     "Fail on empty" in {
       subject.bind("key", "") must be_==(Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length."))
+    }
+  }
+
+  "AnyVal PathBindable" should {
+    "Bind Long String as Demo" in {
+      implicitly[PathBindable[Demo]].bind("key", "10") must equalTo(Right(Demo(10L)))
+    }
+    "Unbind Hase as String" in {
+      implicitly[PathBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("Disney_Land")
+    }
+  }
+
+  "AnyVal QueryStringBindable" should {
+    "Bind Long String as Demo" in {
+      implicitly[QueryStringBindable[Demo]].bind("key", Map("key" -> Seq("10"))) must equalTo(Some(Right(Demo(10L))))
+    }
+    "Unbind Hase as String" in {
+      implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
     }
   }
 

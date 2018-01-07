@@ -9,16 +9,25 @@ import play.api.inject._
 import play.api.{ Configuration, Environment }
 import play.api.mvc.PlayBodyParsers
 import play.core.j.JavaContextComponents
+import play.mvc.BodyParser.Default
 
 /**
  * A Play binding for the RoutingDsl API.
  */
 class RoutingDslModule extends Module {
   override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Seq(bind[RoutingDsl].toProvider[RoutingDslProvider])
+    Seq(
+      bind[Default].toSelf, // this bind is here because it is needed by RoutingDsl only
+      bind[RoutingDsl].toProvider[JavaRoutingDslProvider]
+    )
   }
 }
 
+@deprecated(since = "2.6.8", message = "Use JavaRoutingDslProvider instead")
 class RoutingDslProvider @Inject() (bodyParsers: PlayBodyParsers, contextComponents: JavaContextComponents) extends Provider[RoutingDsl] {
   override def get(): RoutingDsl = new RoutingDsl(bodyParsers.default, contextComponents)
+}
+
+class JavaRoutingDslProvider @Inject() (bodyParser: play.mvc.BodyParser.Default, contextComponents: JavaContextComponents) extends Provider[RoutingDsl] {
+  override def get(): RoutingDsl = new RoutingDsl(bodyParser, contextComponents)
 }
