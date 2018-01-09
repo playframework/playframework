@@ -102,10 +102,14 @@ object Evolutions {
    */
   def fileName(db: String, revision: Int): String = s"${directoryName(db)}/${revision}.sql"
 
+  def fileName(db: String, revision: String): String = s"${directoryName(db)}/${revision}.sql"
+
   /**
    * Default evolution resource name.
    */
   def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
+
+  def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
 
   /**
    * Apply pending evolutions for the given database.
