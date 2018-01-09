@@ -59,7 +59,7 @@ public class ActionCompositionOrderTest {
         }
     }
 
-    @With({RepeatableAction.class, AnotherRepeatableAction.class}) // let's run two actions
+    @With({FirstAction.class, SecondAction.class}) // let's run two actions
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     @Repeatable(SomeRepeatable.List.class)
@@ -74,41 +74,21 @@ public class ActionCompositionOrderTest {
         }
     }
 
-    public static class RepeatableAction extends Action<SomeRepeatable> {
+    public static class FirstAction extends Action<SomeRepeatable> {
         @Override
         public CompletionStage<Result> call(Http.Context ctx) {
             return delegate.call(ctx).thenApply(result -> {
-                String newContent = this.annotatedElement.getClass().getName() + "repeatableaction" + Helpers.contentAsString(result);
+                String newContent = this.annotatedElement.getClass().getName() + "action1" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
         }
     }
 
-    public static class AnotherRepeatableAction extends Action<SomeRepeatable> {
+    public static class SecondAction extends Action<SomeRepeatable> {
         @Override
         public CompletionStage<Result> call(Http.Context ctx) {
             return delegate.call(ctx).thenApply(result -> {
-                String newContent = this.annotatedElement.getClass().getName() + "anotherrepeatableaction" + Helpers.contentAsString(result);
-                return Results.ok(newContent);
-            });
-        }
-    }
-
-    public static class ThirdRepeatableAction extends Action<Object> {
-        @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
-                String newContent = this.annotatedElement.getClass().getName() + "thirdrepeatableaction" + Helpers.contentAsString(result);
-                return Results.ok(newContent);
-            });
-        }
-    }
-
-    public static class FourthRepeatableAction extends Action<Object> {
-        @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
-                String newContent = this.annotatedElement.getClass().getName() + "fourthrepeatableaction" + Helpers.contentAsString(result);
+                String newContent = this.annotatedElement.getClass().getName() + "action2" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
         }
