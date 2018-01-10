@@ -52,6 +52,15 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
           .addAction(classOf[ActionCompositionOrderTest.WithUsernameAction], new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
             override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
           })
+          .addAction(classOf[ActionCompositionOrderTest.FirstAction], new JSupplier[ActionCompositionOrderTest.FirstAction] {
+            override def get(): ActionCompositionOrderTest.FirstAction = new ActionCompositionOrderTest.FirstAction()
+          })
+          .addAction(classOf[ActionCompositionOrderTest.SecondAction], new JSupplier[ActionCompositionOrderTest.SecondAction] {
+            override def get(): ActionCompositionOrderTest.SecondAction = new ActionCompositionOrderTest.SecondAction()
+          })
+          .addAction(classOf[ActionCompositionOrderTest.SomeActionAnnotationAction], new JSupplier[ActionCompositionOrderTest.SomeActionAnnotationAction] {
+            override def get(): ActionCompositionOrderTest.SomeActionAnnotationAction = new ActionCompositionOrderTest.SomeActionAnnotationAction()
+          })
       }
 
       override def router(): JRouter = {
@@ -158,6 +167,69 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("foo=bar")
       response.body must_== "foo"
+    }
+
+    "run a single @Repeatable annotation on a controller type" in makeRequest(new SingleRepeatableOnTypeController()) { response =>
+      response.body must beEqualTo("""java.lang.Classaction1
+                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run a single @Repeatable annotation on a controller action" in makeRequest(new SingleRepeatableOnActionController()) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run multiple @Repeatable annotations on a controller type" in makeRequest(new MultipleRepeatableOnTypeController()) { response =>
+      response.body must beEqualTo("""java.lang.Classaction1
+                                     |java.lang.Classaction2
+                                     |java.lang.Classaction1
+                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run multiple @Repeatable annotations on a controller action" in makeRequest(new MultipleRepeatableOnActionController()) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run single @Repeatable annotation on a controller type and a controller action" in makeRequest(new SingleRepeatableOnTypeAndActionController()) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.Classaction1
+                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run multiple @Repeatable annotations on a controller type and a controller action" in makeRequest(new MultipleRepeatableOnTypeAndActionController()) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.Classaction1
+                                     |java.lang.Classaction2
+                                     |java.lang.Classaction1
+                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run @Repeatable action composition annotations backward compatible" in makeRequest(new RepeatableBackwardCompatibilityController()) { response =>
+      response.body must beEqualTo("do_NOT_treat_me_as_container_annotation")
+    }
+
+    "run @With annotation on a controller type" in makeRequest(new WithOnTypeController()) { response =>
+      response.body must beEqualTo("""java.lang.Classaction1
+                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run @With annotation on a controller action" in makeRequest(new WithOnActionController()) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll("\n", ""))
+    }
+
+    "run @With annotations on a controller type and a controller action" in makeRequest(new WithOnTypeAndActionController()) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.Classaction1
+                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
     }
   }
 
