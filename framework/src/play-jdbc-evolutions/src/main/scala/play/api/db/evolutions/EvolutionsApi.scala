@@ -501,19 +501,22 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
       if (paddedRevision.length > 15) {
         path.map(p => Files.newInputStream(p)) // Revision string has reached max padding
       } else {
-        val resource = environment
-          .getExistingFile(Evolutions.fileName(db, paddedRevision))
-          .map(_.toPath)
-          .orElse(
-            environment
-              .resource(Evolutions.resourceName(db, paddedRevision))
-              .map(url => Paths.get(url.toURI))
-          )
+
+        val evolution = {
+          // First try a file on the filesystem
+          val filename = Evolutions.fileName(db, paddedRevision)
+          environment.getExistingFile(filename).map(_.toPath)
+        } orElse {
+          // If file was not found, try a resource on the classpath
+          val resourceName = Evolutions.resourceName(db, paddedRevision)
+          environment.resource(resourceName).map(url => Paths.get(url.toURI))
+        }
+
         for {
           p <- path
-          r <- resource
-        } yield logger.warn(s"Ignoring evolution script ${r.toFile.getName}, using ${p.toFile.getName} instead already")
-        findPaddedRevisionResource("0" + paddedRevision, path.orElse(resource))
+          e <- evolution
+        } yield logger.warn(s"Ignoring evolution script ${e.toFile.getName}, using ${p.toFile.getName} instead already")
+        findPaddedRevisionResource("0" + paddedRevision, path.orElse(evolution))
       }
     }
     findPaddedRevisionResource(revision.toString, None)
