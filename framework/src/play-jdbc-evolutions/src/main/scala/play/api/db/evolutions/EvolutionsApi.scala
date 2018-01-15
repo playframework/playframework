@@ -5,7 +5,7 @@ package play.api.db.evolutions
 
 import java.io.InputStream
 import java.io.File
-import java.net.URL
+import java.nio.file.{ Files, Path, Paths }
 import java.sql._
 import javax.inject.{ Inject, Singleton }
 
@@ -497,16 +497,26 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
   import DefaultEvolutionsApi._
 
   def loadResource(db: String, revision: Int): Option[InputStream] = {
-    @tailrec def findPaddedRevisionResource(paddedRevision: String, url: Option[URL]): Option[InputStream] = {
+    @tailrec def findPaddedRevisionResource(paddedRevision: String, path: Option[Path]): Option[InputStream] = {
       if (paddedRevision.length > 15) {
-        url.map(_.openStream()) // Revision string has reached max padding
+        path.map(p => Files.newInputStream(p)) // Revision string has reached max padding
       } else {
-        val resource = environment.resource(Evolutions.resourceName(db, paddedRevision))
+
+        val evolution = {
+          // First try a file on the filesystem
+          val filename = Evolutions.fileName(db, paddedRevision)
+          environment.getExistingFile(filename).map(_.toPath)
+        } orElse {
+          // If file was not found, try a resource on the classpath
+          val resourceName = Evolutions.resourceName(db, paddedRevision)
+          environment.resource(resourceName).map(url => Paths.get(url.toURI))
+        }
+
         for {
-          u <- url
-          r <- resource
-        } yield logger.warn(s"Ignoring evolution script ${new File(r.getPath()).getName()}, using ${new File(u.getPath()).getName()} instead already")
-        findPaddedRevisionResource("0" + paddedRevision, url.orElse(resource))
+          p <- path
+          e <- evolution
+        } yield logger.warn(s"Ignoring evolution script ${e.toFile.getName}, using ${p.toFile.getName} instead already")
+        findPaddedRevisionResource("0" + paddedRevision, path.orElse(evolution))
       }
     }
     findPaddedRevisionResource(revision.toString, None)
