@@ -7,7 +7,7 @@ package play.api.libs.ws.ssl
 
 import java.net.URL
 
-import play.api.PlayConfig
+import play.api.{ Configuration, PlayConfig }
 import java.security.{ KeyStore, SecureRandom }
 
 import org.slf4j.LoggerFactory
@@ -200,7 +200,9 @@ object SSLConfigFactory {
   def defaultConfig = SSLConfig()
 }
 
-class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
+class SSLConfigParser private[play] (c: PlayConfig, classLoader: ClassLoader) {
+
+  def this(c: Configuration, classLoader: ClassLoader) = this(PlayConfig(c), classLoader)
 
   private[ssl] val logger = LoggerFactory.getLogger(this.getClass)
 
