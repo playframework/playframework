@@ -10,7 +10,6 @@ import play.api.ApplicationLoader.Context
 import play.api.http.{ DefaultHttpErrorHandler, Port }
 import play.api.routing.Router
 
-import scala.language.postfixOps
 import play.api._
 import play.api.mvc._
 import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
@@ -22,6 +21,8 @@ import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
 
 import scala.util.{ Failure, Success }
 import scala.concurrent.Future
+import scala.language.postfixOps
+import scala.util.Try
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -44,8 +45,62 @@ trait Server extends ReloadableServer {
    * - If we fail to get the `Application` from the `applicationProvider`,
    *   i.e. if there's an error loading the application.
    * - If an exception is thrown.
+   *
+   * NOTE: This will use the ApplicationProvider of the server to get the application instance.
+   *       Use {@code Server.getHandlerFor(request, provider)} to pass a specific application instance
    */
-  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
+  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] =
+    Server.getHandlerFor(request, applicationProvider)
+
+  def applicationProvider: ApplicationProvider
+
+  def reload(): Unit = applicationProvider.get
+
+  def stop(): Unit = {
+    applicationProvider.current.foreach { app =>
+      LoggerConfigurator(app.classloader).foreach(_.shutdown())
+    }
+  }
+
+  /**
+   * Returns the HTTP port of the server.
+   *
+   * This is useful when the port number has been automatically selected (by setting a port number of 0).
+   *
+   * @return The HTTP port the server is bound to, if the HTTP connector is enabled.
+   */
+  def httpPort: Option[Int]
+
+  /**
+   * Returns the HTTPS port of the server.
+   *
+   * This is useful when the port number has been automatically selected (by setting a port number of 0).
+   *
+   * @return The HTTPS port the server is bound to, if the HTTPS connector is enabled.
+   */
+  def httpsPort: Option[Int]
+
+}
+
+/**
+ * Utilities for creating a server that runs around a block of code.
+ */
+object Server {
+
+  /**
+   * Try to get the handler for a request and return it as a `Right`. If we
+   * can't get the handler for some reason then return a result immediately
+   * as a `Left`. Reasons to return a `Left` value:
+   *
+   * - If there's a "web command" installed that intercepts the request.
+   * - If we fail to get the `Application` from the `applicationProvider`,
+   *   i.e. if there's an error loading the application.
+   * - If an exception is thrown.
+   */
+  private[server] def getHandlerFor(
+    request: RequestHeader,
+    applicationProvider: ApplicationProvider
+  ): Either[Future[Result], (RequestHeader, Handler, Application)] = {
 
     // Common code for handling an exception and returning an error result
     def logExceptionAndGetResult(e: Throwable): Left[Future[Result], Nothing] = {
@@ -82,41 +137,6 @@ trait Server extends ReloadableServer {
         logExceptionAndGetResult(e)
     }
   }
-
-  def applicationProvider: ApplicationProvider
-
-  def reload(): Unit = applicationProvider.get
-
-  def stop(): Unit = {
-    applicationProvider.current.foreach { app =>
-      LoggerConfigurator(app.classloader).foreach(_.shutdown())
-    }
-  }
-
-  /**
-   * Returns the HTTP port of the server.
-   *
-   * This is useful when the port number has been automatically selected (by setting a port number of 0).
-   *
-   * @return The HTTP port the server is bound to, if the HTTP connector is enabled.
-   */
-  def httpPort: Option[Int]
-
-  /**
-   * Returns the HTTPS port of the server.
-   *
-   * This is useful when the port number has been automatically selected (by setting a port number of 0).
-   *
-   * @return The HTTPS port the server is bound to, if the HTTPS connector is enabled.
-   */
-  def httpsPort: Option[Int]
-
-}
-
-/**
- * Utilities for creating a server that runs around a block of code.
- */
-object Server {
 
   /**
    * Run a block of code with a server for the given application.

@@ -210,7 +210,10 @@ object BuildSettings {
 
       // Made InlineCache.cache private and changed the type (class is private[play])
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache_=")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache_="),
+
+      // private[play]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
