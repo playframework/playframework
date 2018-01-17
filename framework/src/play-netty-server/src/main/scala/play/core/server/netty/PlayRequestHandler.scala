@@ -16,10 +16,11 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.timeout.IdleStateEvent
 import play.api.http._
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{ EssentialAction, RequestHeader, Results, WebSocket }
-import play.api.{ Application, Configuration, Logger }
-import play.core.server.NettyServer
-import play.core.server.common.{ ForwardedHeaderHandler, ReloadCache, ServerResultUtils }
+import play.api.mvc._
+import play.api.{ Application, Logger }
+import play.core.ApplicationProvider
+import play.core.server.{ NettyServer, Server }
+import play.core.server.common.{ ReloadCache, ServerResultUtils }
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
@@ -64,10 +65,10 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
     }
   }
 
-  private def resultUtils: ServerResultUtils =
-    reloadCache.cachedFrom(server.applicationProvider.get).resultUtils
-  private def modelConversion: NettyModelConversion =
-    reloadCache.cachedFrom(server.applicationProvider.get).modelConversion
+  private def resultUtils(tryApp: Try[Application]): ServerResultUtils =
+    reloadCache.cachedFrom(tryApp).resultUtils
+  private def modelConversion(tryApp: Try[Application]): NettyModelConversion =
+    reloadCache.cachedFrom(tryApp).modelConversion
 
   /**
    * Handle the given request.
@@ -78,11 +79,13 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
 
     import play.core.Execution.Implicits.trampoline
 
-    val tryRequest: Try[RequestHeader] = modelConversion.convertRequest(channel, request)
+    val tryApp: Try[Application] = server.applicationProvider.get
+
+    val tryRequest: Try[RequestHeader] = modelConversion(tryApp).convertRequest(channel, request)
 
     def clientError(statusCode: Int, message: String) = {
-      val unparsedTarget = modelConversion.createUnparsedRequestTarget(request)
-      val requestHeader = modelConversion.createRequestHeader(channel, request, unparsedTarget)
+      val unparsedTarget = modelConversion(tryApp).createUnparsedRequestTarget(request)
+      val requestHeader = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
       val result = errorHandler(server.applicationProvider.current).onClientError(requestHeader, statusCode,
         if (message == null) "" else message)
       // If there's a problem in parsing the request, then we should close the connection, once done with it
@@ -94,7 +97,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception) => clientError(Status.BAD_REQUEST, exception.getMessage)
       case Success(untagged) =>
-        server.getHandlerFor(untagged) match {
+        Server.getHandlerFor(untagged, tryApp) match {
 
           case Left(directResult) =>
             untagged -> Left(directResult)
@@ -264,12 +267,14 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
     implicit val mat: Materializer = app.fold(server.materializer)(_.materializer)
     import play.core.Execution.Implicits.trampoline
 
+    val tryApp = Try(app.get)
+
     // Execute the action on the Play default execution context
     val actionFuture = Future(action(requestHeader))(mat.executionContext)
     for {
       // Execute the action and get a result, calling errorHandler if errors happen in this process
       actionResult <- actionFuture.flatMap { acc =>
-        val body = modelConversion.convertRequestBody(request)
+        val body = modelConversion(tryApp).convertRequestBody(request)
         body match {
           case None => acc.run()
           case Some(source) => acc.run(source)
@@ -281,13 +286,12 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       }
       // Clean and validate the action's result
       validatedResult <- {
-        val cleanedResult = resultUtils.prepareCookies(requestHeader, actionResult)
-        resultUtils.validateResult(requestHeader, cleanedResult, errorHandler(app))
+        val cleanedResult = resultUtils(tryApp).prepareCookies(requestHeader, actionResult)
+        resultUtils(tryApp).validateResult(requestHeader, cleanedResult, errorHandler(app))
       }
       // Convert the result to a Netty HttpResponse
-      convertedResult <- {
-        modelConversion.convertResult(validatedResult, requestHeader, request.protocolVersion(), errorHandler(app))
-      }
+      convertedResult <- modelConversion(tryApp)
+        .convertResult(validatedResult, requestHeader, request.protocolVersion(), errorHandler(app))
     } yield convertedResult
   }
 
