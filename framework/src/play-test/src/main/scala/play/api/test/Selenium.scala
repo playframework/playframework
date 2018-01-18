@@ -117,7 +117,7 @@ object WebDriverFactory {
    * @return The driver instance
    */
   def apply[D <: WebDriver](clazz: Class[D]): WebDriver = {
-    val driver = clazz.newInstance
+    val driver = clazz.getDeclaredConstructor().newInstance()
     // Driver-specific configuration
     driver match {
       case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
