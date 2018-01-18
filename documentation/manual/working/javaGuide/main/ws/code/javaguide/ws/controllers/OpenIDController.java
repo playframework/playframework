@@ -15,7 +15,7 @@ import play.mvc.*;
 
 import javax.inject.Inject;
 
-public class OpenIDController extends Controller {
+public class OpenIDController extends BaseController {
 
     @Inject
     OpenIdClient openIdClient;
@@ -37,7 +37,7 @@ public class OpenIDController extends Controller {
                 openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
 
         return redirectUrlPromise
-                .thenApply(Controller::redirect)
+                .thenApply(Results::redirect)
                 .exceptionally(throwable ->
                                 badRequest(views.html.login.render(throwable.getMessage()))
                 );
@@ -69,11 +69,16 @@ public class OpenIDController extends Controller {
 }
 //#ws-openid-controller
 
-class OpenIDSamples extends Controller {
+class OpenIDSamples extends BaseController {
 
-    static OpenIdClient openIdClient;
+    private final OpenIdClient openIdClient;
 
-    public static void extendedAttributes() {
+    @Inject
+    OpenIDSamples(OpenIdClient openIdClient) {
+        this.openIdClient = openIdClient;
+    }
+
+    public void extendedAttributes() {
 
         String openID = "";
 

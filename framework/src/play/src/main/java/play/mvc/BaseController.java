@@ -5,28 +5,17 @@ package play.mvc;
 
 import play.i18n.Lang;
 
-import play.mvc.Http.HeaderNames;
-import play.mvc.Http.Response;
-import play.mvc.Http.Context;
-import play.mvc.Http.Request;
-import play.mvc.Http.Session;
-import play.mvc.Http.Status;
-import play.mvc.Http.Flash;
-
 /**
- * Superclass for a Java-based controller.
- *
- * @deprecated As of release 2.7.0. Use {@link BaseController} instead.
+ * A base controller for Java controllers.
  */
-@Deprecated
-public abstract class Controller extends Results implements Status, HeaderNames {
+public class BaseController extends Results implements Http.Status, Http.HeaderNames {
 
     /**
      * Returns the current HTTP context.
      *
      * @return the context
      */
-    public static Context ctx() {
+    public Http.Context ctx() {
         return Http.Context.current();
     }
 
@@ -35,7 +24,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @return the request
      */
-    public static Request request() {
+    public Http.Request request() {
         return Http.Context.current().request();
     }
 
@@ -44,7 +33,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @return the language
      */
-    public static Lang lang() {
+    public Lang lang() {
         return Http.Context.current().lang();
     }
 
@@ -54,7 +43,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * @param code New lang code to use (e.g. "fr", "en-US", etc.)
      * @return true if the requested lang was supported by the application, otherwise false.
      */
-    public static boolean changeLang(String code) {
+    public boolean changeLang(String code) {
         return Http.Context.current().changeLang(code);
     }
 
@@ -64,14 +53,14 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * @param lang New Lang object to use
      * @return true if the requested lang was supported by the application, otherwise false.
      */
-    public static boolean changeLang(Lang lang) {
+    public boolean changeLang(Lang lang) {
         return Http.Context.current().changeLang(lang);
     }
 
     /**
      * Clear the lang for the current user.
      */
-    public static void clearLang() {
+    public void clearLang() {
         Http.Context.current().clearLang();
     }
 
@@ -80,7 +69,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @return the response
      */
-    public static Response response() {
+    public Http.Response response() {
         return Http.Context.current().response();
     }
 
@@ -89,17 +78,17 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @return the session
      */
-    public static Session session() {
+    public Http.Session session() {
         return Http.Context.current().session();
     }
 
     /**
      * Puts a new value into the current session.
      *
-     * @param key the key to set into the session
+     * @param key   the key to set into the session
      * @param value the value to set for <code>key</code>
      */
-    public static void session(String key, String value) {
+    public void session(String key, String value) {
         session().put(key, value);
     }
 
@@ -109,7 +98,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * @param key the session key
      * @return the value for the provided key, or null if there was no value
      */
-    public static String session(String key) {
+    public String session(String key) {
         return session().get(key);
     }
 
@@ -118,17 +107,17 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @return the flash scope
      */
-    public static Flash flash() {
+    public Http.Flash flash() {
         return Http.Context.current().flash();
     }
 
     /**
      * Puts a new value into the flash scope.
      *
-     * @param key the key to put into the flash scope
+     * @param key   the key to put into the flash scope
      * @param value the value corresponding to <code>key</code>
      */
-    public static void flash(String key, String value) {
+    public void flash(String key, String value) {
         flash().put(key, value);
     }
 
@@ -138,8 +127,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * @param key the key to look up in the flash scope
      * @return the value corresponding to <code>key</code> from the flash scope, or null if there was none
      */
-    public static String flash(String key) {
+    public String flash(String key) {
         return flash().get(key);
     }
-
 }

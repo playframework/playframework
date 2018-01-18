@@ -5,10 +5,9 @@
 //###replace: package controllers;
 package javaguide.http.routing.reverse.controllers;
 
-import play.*;
 import play.mvc.*;
 
-public class Application extends Controller {
+public class Application extends BaseController {
 
     public Result hello(String name) {
         return ok("Hello " + name + "!");

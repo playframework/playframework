@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionStage;
 
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
-import play.mvc.Controller;
+import play.mvc.BaseController;
 import play.mvc.Result;
 
 import javaguide.testhelpers.MockJavaAction;
@@ -72,7 +72,7 @@ public class JavaActions extends WithApplication {
     @Test
     public void otherResults() {
 
-        class Controller5 extends Controller {
+        class Controller5 extends BaseController {
             void run() {
                 Object formWithErrors = null;
 

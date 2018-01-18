@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-public class Application extends Controller {
+public class Application extends BaseController {
 
     private final Component component;
 

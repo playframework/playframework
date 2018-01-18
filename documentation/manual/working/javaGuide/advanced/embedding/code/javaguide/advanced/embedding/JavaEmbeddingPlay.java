@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 //#imports
 import play.routing.RoutingDsl;
 import play.server.Server;
-import static play.mvc.Controller.*;
+import static play.mvc.Results.*;
 //#imports
 
 import static org.hamcrest.CoreMatchers.*;

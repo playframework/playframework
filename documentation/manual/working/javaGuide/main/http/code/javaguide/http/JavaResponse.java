@@ -9,6 +9,7 @@ import org.junit.Test;
 import play.core.j.JavaContextComponents;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Http.Cookie;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -21,7 +22,8 @@ import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static play.mvc.Controller.*;
+import static play.mvc.Results.*;
+import static play.mvc.Http.HeaderNames.*;
 import static play.test.Helpers.fakeRequest;
 
 public class JavaResponse extends WithApplication {
@@ -123,6 +125,10 @@ public class JavaResponse extends WithApplication {
         assertThat(cookie.name(), equalTo("theme"));
         assertThat(cookie.value(), equalTo(""));
         removeContext();
+    }
+
+    private Http.Response response() {
+        return Http.Context.current().response();
     }
 
     @Test

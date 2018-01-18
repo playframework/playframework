@@ -7,7 +7,7 @@ import play.mvc.*;
 
 import java.io.File;
 
-public class JavaRangeRequestController extends Controller {
+public class JavaRangeRequestController extends BaseController {
 
     // #range-request
     public Result video(Long videoId) {

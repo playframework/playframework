@@ -283,7 +283,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(requestData(Http.Context.current().request()), allowedFields);
     }
 
     /**

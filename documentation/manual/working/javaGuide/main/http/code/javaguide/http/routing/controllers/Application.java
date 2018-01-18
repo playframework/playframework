@@ -3,10 +3,10 @@
  */
 package javaguide.http.routing.controllers;
 
-import play.mvc.Controller;
+import play.mvc.BaseController;
 import play.mvc.Result;
 
-public class Application extends Controller {
+public class Application extends BaseController {
 
     public Result download(String path) {
         return ok("download " + path);

@@ -6,15 +6,12 @@ package javaguide.logging;
 //#logging-pattern-mix
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import play.mvc.Action;
-import play.mvc.Controller;
-import play.mvc.Http;
+import play.mvc.*;
 import play.mvc.Http.Request;
-import play.mvc.Result;
-import play.mvc.With;
+
 import java.util.concurrent.CompletionStage;
 
-public class Application extends Controller {
+public class Application extends BaseController {
 
   private static final Logger logger = LoggerFactory.getLogger(Application.class);
 

@@ -8,7 +8,7 @@ import play.mvc.*;
 
 import javax.inject.Inject;
 
-public class Application extends Controller {
+public class Application extends BaseController {
 
     private AsyncCacheApi cache;
 

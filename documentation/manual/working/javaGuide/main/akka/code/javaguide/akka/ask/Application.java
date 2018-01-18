@@ -16,7 +16,7 @@ import java.util.concurrent.CompletionStage;
 import static akka.pattern.Patterns.ask;
 
 @Singleton
-public class Application extends Controller {
+public class Application extends BaseController {
 
     final ActorRef helloActor;
 

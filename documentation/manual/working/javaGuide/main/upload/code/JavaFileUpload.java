@@ -12,8 +12,8 @@ import play.api.http.HttpErrorHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.parsers.Multipart;
 import play.libs.streams.Accumulator;
-import play.mvc.BodyParser;
-import play.mvc.Controller;
+import play.mvc.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +28,6 @@ import java.util.function.Function;
 
 import play.mvc.Http;
 import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Result;
 import play.test.WithApplication;
 
 import javax.inject.Inject;
@@ -37,7 +36,6 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static play.mvc.Results.ok;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
 
@@ -45,7 +43,7 @@ import static javaguide.testhelpers.MockJavaActionHelper.*;
 
 public class JavaFileUpload extends WithApplication {
 
-    static class SyncUpload extends Controller {
+    static class SyncUpload extends BaseController {
         //#syncUpload
         public Result upload() {
             Http.MultipartFormData<File> body = request().body().asMultipartFormData();
@@ -63,7 +61,7 @@ public class JavaFileUpload extends WithApplication {
         //#syncUpload
     }
 
-    static class AsyncUpload extends Controller {
+    static class AsyncUpload extends BaseController {
         //#asyncUpload
         public Result upload() {
             File file = request().body().asRaw().asFile();

@@ -12,7 +12,7 @@ import akka.actor.*;
 import akka.stream.*;
 import javax.inject.Inject;
 
-public class HomeController extends Controller {
+public class HomeController extends BaseController {
 
     private final ActorSystem actorSystem;
     private final Materializer materializer;

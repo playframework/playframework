@@ -3,8 +3,8 @@
  */
 package javaguide.async.controllers;
 
+import play.mvc.BaseController;
 import play.mvc.Result;
-import play.mvc.Controller;
 
 //#async-explicit-ec-imports
 import play.libs.concurrent.HttpExecution;
@@ -16,7 +16,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 //#async-explicit-ec-imports
 
 //#async-explicit-ec
-public class Application extends Controller {
+public class Application extends BaseController {
 
     private MyExecutionContext myExecutionContext;
 

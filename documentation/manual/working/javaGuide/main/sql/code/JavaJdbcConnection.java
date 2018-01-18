@@ -3,12 +3,12 @@
  */
 package javaguide.sql;
 
+//#java-jdbc-connection
 import java.sql.Connection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.inject.Inject;
 
-import play.mvc.Controller;
 import play.db.NamedDatabase;
 import play.db.Database;
 
@@ -16,8 +16,8 @@ class JavaJdbcConnection {
     private Database db;
     private DatabaseExecutionContext executionContext;
 
-    @Inject
-    public JavaJdbcConnection(Database db, DatabaseExecutionContext executionContext) {
+    @Inject // inject "orders" database instead of "default"
+    public JavaJdbcConnection(@NamedDatabase("orders") Database db, DatabaseExecutionContext executionContext) {
         this.db = db;
         this.executionContext = executionContext;
     }
@@ -33,3 +33,4 @@ class JavaJdbcConnection {
     }
 
 }
+//#java-jdbc-connection
