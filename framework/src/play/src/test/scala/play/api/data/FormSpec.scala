@@ -362,7 +362,7 @@ class FormSpec extends Specification {
     }
     implicit val messages = messagesApi.preferred(Seq.empty)
 
-    val filled = ScalaForms.parametarizederrorMessageForm.fillAndValidate("john")
+    val filled = ScalaForms.parameterizederrorMessageForm.fillAndValidate("john")
     filled.errors("name").find(_.message == "error.minLength").map(_.format) must beSome("Minimum length is 5")
 
   }
@@ -542,6 +542,6 @@ object ScalaForms {
 
   val charForm = Form("gender" -> char)
 
-  val parametarizederrorMessageForm = Form("name" -> nonEmptyText(minLength = 5))
+  val parameterizederrorMessageForm = Form("name" -> nonEmptyText(minLength = 5))
 
 }
