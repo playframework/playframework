@@ -359,6 +359,7 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Results.status"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Results.unauthorized"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.StatusHeader.sendJson"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.routing.RoutingDsl.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.server.Server.forRouter"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.Helpers.route"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.Helpers.routeAndCall"),
@@ -372,6 +373,7 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.libs.concurrent.Timeout"),
       ProblemFilters.exclude[MissingClassProblem]("play.libs.ws.WS"),
       ProblemFilters.exclude[MissingClassProblem]("play.routing.Router$Tags"),
+      ProblemFilters.exclude[MissingClassProblem]("play.routing.RoutingDslProvider"),
       ProblemFilters.exclude[MissingTypesProblem]("play.cache.DefaultSyncCacheApi")
     ),
     unmanagedSourceDirectories in Compile += {
