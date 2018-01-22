@@ -26,11 +26,16 @@ lazy val root = (project in file("."))
       }
     },
 
+    InputKey[Unit]("makeRequestWithHeader") := {
+      val args = Def.spaceDelimited("<path> <status> <headers> ...").parsed
+      val path :: status :: headers = args
+      val headerValue = headers.mkString
+      DevModeBuild.verifyResourceContains(path, status.toInt, Seq.empty, 0, "Header" -> headerValue)
+    },
+
     InputKey[Unit]("verifyResourceContains") := {
       val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
-      val path = args.head
-      val status = args.tail.head.toInt
-      val assertions = args.tail.tail
-      DevModeBuild.verifyResourceContains(path, status, assertions, 0)
+      val path :: status :: assertions = args
+      DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
     }
   )
