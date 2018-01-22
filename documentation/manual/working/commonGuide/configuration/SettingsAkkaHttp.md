@@ -25,4 +25,4 @@ There is also a separate configuration file for the HTTP/2 support in Akka HTTP,
 
 @[](/confs/play-akka-http2-support/reference.conf)
 
-> **Note:** In dev mode, when you use the `run` command, your `application.conf` settings will not be picked up by the server. This is because in dev mode the server starts before the application classpath is available. There are several [[other options|Configuration#Using-with-the-run-command]] you'll need to use instead.
+> **Note:** In dev mode, when you use the `run` command, your `application.conf` settings will not be picked up by the server. This is because in dev mode the server starts before the application classpath is available. There are several [[other options|ConfigFile#Using-with-the-run-command]] you'll need to use instead.
