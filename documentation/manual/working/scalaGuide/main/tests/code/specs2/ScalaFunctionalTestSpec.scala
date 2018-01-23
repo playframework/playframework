@@ -4,10 +4,11 @@
 
 package scalaguide.tests.specs2
 
+import javax.inject.{Inject, Provider}
+
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
-
 import play.api.mvc._
 import play.api.routing._
 import play.api.routing.sird._
@@ -40,11 +41,14 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     val application: Application = GuiceApplicationBuilder().build()
     // #scalafunctionaltest-application
 
-    val applicationWithRouter = GuiceApplicationBuilder().router(Router.from {
-      case GET(p"/Bob") => Action {
-        Ok("Hello Bob") as "text/html; charset=utf-8"
-      }
-    }).build()
+    val applicationWithRouter = GuiceApplicationBuilder().appRoutes { app =>
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
+      ({
+        case ("GET", "/Bob") => Action {
+          Ok("Hello Bob") as "text/html; charset=utf-8"
+        }
+      })
+    }.build()
 
     // #scalafunctionaltest-respondtoroute
     "respond to the index Action" in new WithApplication(applicationWithRouter) {
@@ -78,31 +82,36 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     // #scalafunctionaltest-testmodel
 
     // #scalafunctionaltest-testwithbrowser
-    def applicationWithBrowser = new GuiceApplicationBuilder().router(Router.from {
-      case GET(p"/") =>
-        Action {
-          Ok(
-            """
-              |<html>
-              |<body>
-              |  <div id="title">Hello Guest</div>
-              |  <a href="/login">click me</a>
-              |</body>
-              |</html>
-            """.stripMargin) as "text/html"
-        }
-      case GET(p"/login") =>
-        Action {
-          Ok(
-            """
-              |<html>
-              |<body>
-              |  <div id="title">Hello Coco</div>
-              |</body>
-              |</html>
-            """.stripMargin) as "text/html"
-        }
-    }).build()
+    def applicationWithBrowser = {
+      new GuiceApplicationBuilder().appRoutes { app =>
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        ({
+          case ("GET", "/") =>
+            Action {
+              Ok(
+                """
+                  |<html>
+                  |<body>
+                  |  <div id="title">Hello Guest</div>
+                  |  <a href="/login">click me</a>
+                  |</body>
+                  |</html>
+                """.stripMargin) as "text/html"
+            }
+          case ("GET", "/login") =>
+            Action {
+              Ok(
+                """
+                  |<html>
+                  |<body>
+                  |  <div id="title">Hello Coco</div>
+                  |</body>
+                  |</html>
+                """.stripMargin) as "text/html"
+            }
+        })
+      }.build()
+    }
 
     "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
       browser.goTo("/")
@@ -135,11 +144,14 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     // #scalafunctionaltest-testpaymentgateway
 
     // #scalafunctionaltest-testws
-    val appWithRoutes = GuiceApplicationBuilder().router(Router.from {
-      case GET(p"/") => Action {
-        Ok("ok")
-      }
-    }).build()
+    val appWithRoutes = GuiceApplicationBuilder().appRoutes {app =>
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
+      ({
+        case ("GET", "/") => Action {
+          Ok("ok")
+        }
+      })
+    }.build()
 
     "test WSClient logic" in new WithServer(app = appWithRoutes, port = 3333) {
       val ws = app.injector.instanceOf[WSClient]

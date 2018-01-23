@@ -279,17 +279,7 @@ class NettyServerProvider extends ServerProvider {
 }
 
 /**
- * Create a Netty server from the given router and server config:
- *
- * {{{
- *   val server = Netty.fromRouter(ServerConfig(port = Some(9002))) {
- *     case GET(p"/") => Action {
- *       Results.Ok("Hello")
- *     }
- *   }
- * }}}
- *
- * Or from a given router using [[BuiltInComponents]]:
+ * Create a Netty server zfrom a given router using [[BuiltInComponents]]:
  *
  * {{{
  *   val server = NettyServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
@@ -349,3 +339,20 @@ trait NettyServerComponents extends ServerComponents {
 
   def application: Application
 }
+
+/**
+ * A convenient helper trait for constructing an NettyServer, for example:
+ *
+ * {{{
+ *   val components = new DefaultNettyServerComponents {
+ *     override lazy val router = {
+ *       case GET(p"/") => Action(parse.json) { body =>
+ *         Ok("Hello")
+ *       }
+ *     }
+ *   }
+ *   val server = components.server
+ * }}}
+ */
+trait DefaultNettyServerComponents
+  extends NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents

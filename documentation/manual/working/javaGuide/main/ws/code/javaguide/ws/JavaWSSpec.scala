@@ -23,26 +23,29 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
-  def fakeApplication: PlayApplication = GuiceApplicationBuilder().routes {
-    case ("GET", "/feed") =>
-      Action {
-        val obj: JsObject = Json.obj(
-          "title" -> "foo",
-          "commentsUrl" -> "http://localhost:3333/comments"
-        )
-        Ok(obj)
-      }
-    case ("GET", "/comments") =>
-         Action {
-           val obj: JsObject = Json.obj(
-             "count" -> "10"
-           )
-           Ok(obj)
-         }
-    case (_, _) =>
-      Action {
-        BadRequest("no binding found")
-      }
+  def fakeApplication: PlayApplication = GuiceApplicationBuilder().appRoutes { app =>
+    val Action = app.injector.instanceOf[DefaultActionBuilder]
+    ({
+      case ("GET", "/feed") =>
+        Action {
+          val obj: JsObject = Json.obj(
+            "title" -> "foo",
+            "commentsUrl" -> "http://localhost:3333/comments"
+          )
+          Ok(obj)
+        }
+      case ("GET", "/comments") =>
+        Action {
+          val obj: JsObject = Json.obj(
+            "count" -> "10"
+          )
+          Ok(obj)
+        }
+      case (_, _) =>
+        Action {
+          BadRequest("no binding found")
+        }
+    })
   }.build()
 
   "The Java WSClient" should {

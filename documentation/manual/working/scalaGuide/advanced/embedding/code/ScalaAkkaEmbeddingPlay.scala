@@ -3,7 +3,7 @@
  */
 
 import org.specs2.mutable.Specification
-import play.api.NoHttpFiltersComponents
+import play.core.server.DefaultAkkaHttpServerComponents
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
@@ -76,7 +76,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
       import scala.concurrent.Future
 
-      val components = new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
+      val components = new DefaultAkkaHttpServerComponents {
 
         override lazy val router: Router = Router.from {
           case GET(p"/hello/$to") => Action {

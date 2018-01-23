@@ -252,6 +252,7 @@ private[server] trait ServerFromRouter {
    * @param routes the routes definitions
    * @return an AkkaHttpServer instance
    */
+  @deprecated("Use fromRouterWithComponents or use DefaultAkkaHttpServerComponents/DefaultNettyServerComponents", "2.7.0")
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
     createServerFromRouter(config) { _ => Router.from(routes) }
   }
