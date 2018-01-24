@@ -60,7 +60,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
       result.status must_== OK
       result.body must_== "This is a test asset."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -91,7 +91,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
       result.status must_== OK
       result.body must_== "Content of baz.txt."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -104,7 +104,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
       result.status must_== OK
       result.body must_== "This is a test asset with spaces."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -124,7 +124,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -143,7 +143,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -162,7 +162,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -182,7 +182,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -202,7 +202,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -223,7 +223,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -343,7 +343,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       val result = await(client.url("/nosuchfile.txt").get())
 
       result.status must_== NOT_FOUND
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/html"))
     }
 
     "serve a versioned asset" in withServer() { client =>
@@ -351,7 +351,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
       result.status must_== OK
       result.body must_== "This is a test asset."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -371,7 +371,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -390,7 +390,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -409,7 +409,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -429,7 +429,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -449,7 +449,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -472,7 +472,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.status must_== OK
         result.body must_== "This is a test asset."
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
         result.header(VARY) must beNone
@@ -519,7 +519,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-499/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 0-499/"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
@@ -533,7 +533,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.bodyAsBytes.length must beEqualTo(500)
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 500-999/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 500-999/"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
@@ -546,7 +546,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 9500-9999/"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
@@ -559,7 +559,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/10000"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 9500-9999/10000"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
@@ -572,7 +572,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-0,-1/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 0-0,-1/"))
       }.pendingUntilFixed
 
       "Multiple intervals to get the second 500 bytes" in withServer() { client =>
@@ -583,7 +583,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("multipart/byteranges"))
+        result.header(CONTENT_TYPE) must beSome(startWith("multipart/byteranges"))
       }.pendingUntilFixed
 
       "Return status 416 when first byte is gt the length of the complete entity" in withServer() { client =>
@@ -603,7 +603,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
             .get()
         )
 
-        result.header(CONTENT_RANGE) must beSome.which(_ == "bytes */10000")
+        result.header(CONTENT_RANGE) must beSome("bytes */10000")
       }
 
       "No Content-Disposition header when serving assets" in withServer() { client =>
