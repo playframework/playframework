@@ -7,6 +7,7 @@ import java.io._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api._
+import play.api.mvc._
 import play.core._
 import play.utils.Threads
 import scala.collection.JavaConverters._
