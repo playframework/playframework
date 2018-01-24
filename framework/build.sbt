@@ -245,6 +245,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty,
       fork in Test := true,
+      javaOptions in Test += "-Dfile.encoding=UTF8",
       javaAgents += jettyAlpnAgent % "test"
     )
     .dependsOn(
