@@ -195,9 +195,11 @@ $ copy-file changes/application.conf.1 conf/application.conf
 > verifyResourceContains / 500
 > verifyReloads 4
 
-> playStop
 # Revert to the original application.conf
 $ copy-file conf/application.original conf/application.conf
+> verifyResourceContains / 200
+
+> playStop
 
 # devSettings tests
 # -----------------
