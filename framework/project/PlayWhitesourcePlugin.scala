@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
  */
-import sbt.{ AutoPlugin, PluginTrigger, Plugins }
-
+import sbt._
+import sbt.Keys._
 import sbtwhitesource.WhiteSourcePlugin
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
@@ -17,8 +17,9 @@ object PlayWhitesourcePlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     whitesourceProduct := "Lightbend Reactive Platform",
-    whitesourceAggregateProjectName := "playframework-2.5-previous",
-    whitesourceAggregateProjectToken := "5465438f-9ba6-494f-bad0-939b1b260e00"
+    whitesourceAggregateProjectName := "play-framework-2.5-" + {
+      if (isSnapshot.value) "-snapshot" else "-stable"
+    }
   )
 
 }
