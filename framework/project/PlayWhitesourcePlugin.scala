@@ -18,7 +18,7 @@ object PlayWhitesourcePlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     whitesourceProduct := "Lightbend Reactive Platform",
     whitesourceAggregateProjectName := "play-framework-2.5-" + {
-      if (isSnapshot.value) "-snapshot" else "-stable"
+      if (isSnapshot.value) "-snapshot" else "-previous"
     }
   )
 
