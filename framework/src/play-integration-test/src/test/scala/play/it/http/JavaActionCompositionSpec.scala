@@ -171,33 +171,33 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
     "run a single @Repeatable annotation on a controller type" in makeRequest(new SingleRepeatableOnTypeController()) { response =>
       response.body must beEqualTo("""java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run a single @Repeatable annotation on a controller action" in makeRequest(new SingleRepeatableOnActionController()) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run multiple @Repeatable annotations on a controller type" in makeRequest(new MultipleRepeatableOnTypeController()) { response =>
       response.body must beEqualTo("""java.lang.Classaction1
                                      |java.lang.Classaction2
                                      |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run multiple @Repeatable annotations on a controller action" in makeRequest(new MultipleRepeatableOnActionController()) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
                                      |java.lang.reflect.Methodaction2
                                      |java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run single @Repeatable annotation on a controller type and a controller action" in makeRequest(new SingleRepeatableOnTypeAndActionController()) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
                                      |java.lang.reflect.Methodaction2
                                      |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run multiple @Repeatable annotations on a controller type and a controller action" in makeRequest(new MultipleRepeatableOnTypeAndActionController()) { response =>
@@ -208,7 +208,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
                                      |java.lang.Classaction1
                                      |java.lang.Classaction2
                                      |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run @Repeatable action composition annotations backward compatible" in makeRequest(new RepeatableBackwardCompatibilityController()) { response =>
@@ -217,19 +217,19 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
     "run @With annotation on a controller type" in makeRequest(new WithOnTypeController()) { response =>
       response.body must beEqualTo("""java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run @With annotation on a controller action" in makeRequest(new WithOnActionController()) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
     "run @With annotations on a controller type and a controller action" in makeRequest(new WithOnTypeAndActionController()) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
                                      |java.lang.reflect.Methodaction2
                                      |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll("\n", ""))
+                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
   }
 
