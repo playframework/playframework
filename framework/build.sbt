@@ -391,8 +391,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
       mimaReportBinaryIssues := (),
-      commands += Commands.quickPublish,
-      whitesourceAggregateProjectName := "playframework-master",
-      whitesourceAggregateProjectToken := "f21388d8-a520-4d3a-afbd-b5cadcea0a6d"
+      commands += Commands.quickPublish
     ).settings(Release.settings: _*)
     .aggregate(publishedProjects: _*)
