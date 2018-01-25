@@ -196,6 +196,7 @@ $ copy-file changes/application.conf.1 conf/application.conf
 > verifyReloads 4
 
 # Revert to the original application.conf
+$ sleep 1000
 $ copy-file conf/application.original conf/application.conf
 > verifyResourceContains / 200
 
