@@ -55,7 +55,7 @@ There is also a specific *namespace* if you need to customize Akka configuration
 
 @[prefix-with-play-akka-dev-mode](code/build.sbt)
 
-This is specially useful if there is some conflict between the Akka ActorSystem used run development mode and the ActorSystem used by the application itself.
+This is specially useful if there is some conflict between the Akka ActorSystem used to run the development server and the ActorSystem used by the application itself.
 
 ## HOCON Syntax
 
