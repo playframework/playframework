@@ -209,7 +209,18 @@ object DevServerStart {
         // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.
-        val devModeAkkaConfig = serverConfig.configuration.underlying.getConfig("play.akka.dev-mode")
+        val devModeAkkaConfig = {
+          serverConfig
+            .configuration
+            .underlying
+            // "play.akka.dev-mode" has the priority, so if there is a conflict
+            // between the actor system for dev mode and the application actor system
+            // users can resolve it by add a specific configuration for dev mode.
+            .getConfig("play.akka.dev-mode")
+            // We then fallback to the app configuration to avoid losing configurations
+            // made using devSettings, system properties and application.conf itself.
+            .withFallback(serverConfig.configuration.underlying)
+        }
         val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
 
         val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,

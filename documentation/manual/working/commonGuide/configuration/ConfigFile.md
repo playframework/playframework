@@ -51,6 +51,12 @@ In `run` mode the HTTP server part of Play starts before the application has bee
 > run -Dhttp.port=1234
 ```
 
+There is also a specific *namespace* if you need to customize Akka configuration for development mode (the mode used with `run` command). You need to prefix your configuration in `PlayKeys.devSettings` with `play.akka.dev-mode`, for example:
+
+@[prefix-with-play-akka-dev-mode](code/build.sbt)
+
+This is specially useful if there is some conflict between the Akka ActorSystem used to run the development server and the ActorSystem used by the application itself.
+
 ## HOCON Syntax
 
 HOCON has similarities to JSON; you can find the JSON spec at <http://json.org/> of course.
