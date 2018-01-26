@@ -570,7 +570,11 @@ public class Http {
          * @return this with the new header added
          */
         public Headers addHeader(String name, String value) {
-            this.headers.put(name, Collections.singletonList(value));
+            if (this.headers.containsKey(name)) {
+                this.headers.get(name).add(value);
+            } else {
+                this.headers.put(name, Collections.singletonList(value));
+            }
             return this;
         }
 
