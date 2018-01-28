@@ -27,6 +27,7 @@ import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 import scala.util.{ Failure, Try }
 
 private[server] class NettyModelConversion(
@@ -110,9 +111,15 @@ private[server] class NettyModelConversion(
       override val queryString: String = parsedQueryString.stripPrefix("?")
       override lazy val queryMap: Map[String, Seq[String]] = {
         val decoder = new QueryStringDecoder(parsedQueryString)
-        val decodedParameters = decoder.parameters()
-        if (decodedParameters.isEmpty) Map.empty
-        else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
+        val decodedParameters =
+          try {
+            Some(decoder.parameters())
+          } catch {
+            case NonFatal(e) =>
+              logger.warn("Failed to parse query string; returning empty map.", e)
+              None
+          }
+        decodedParameters.filter(!_.isEmpty).map(_.asScala.mapValues(_.asScala.toList).toMap).getOrElse(Map.empty)
       }
     }
   }
