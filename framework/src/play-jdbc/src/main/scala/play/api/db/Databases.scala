@@ -140,7 +140,13 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   def getConnection(autocommit: Boolean): Connection = {
     val connection = dataSource.getConnection
-    connection.setAutoCommit(autocommit)
+    try {
+      connection.setAutoCommit(autocommit)
+    } catch {
+      case e: Throwable =>
+        connection.close()
+        throw e
+    }
     connection
   }
 
