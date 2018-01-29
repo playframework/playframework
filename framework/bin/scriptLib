@@ -12,6 +12,8 @@ BASEDIR=${DIR}/../..
 FRAMEWORK=${BASEDIR}/framework
 DOCUMENTATION=${BASEDIR}/documentation
 
+export CURRENT_BRANCH=${TRAVIS_BRANCH}
+
 printMessage() {
   echo "[info]"
   echo "[info] ---- $1"
