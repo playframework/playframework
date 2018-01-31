@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt.ScriptedPlugin._
 import sbt._
@@ -7,15 +7,15 @@ import Keys.{ version, _ }
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
-import de.heikoseeberger.sbtheader.HeaderKey._
-import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPattern }
-
+import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform.autoImport._
 import bintray.BintrayPlugin.autoImport._
 import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
+import java.util.regex.Pattern
 
 import scala.util.control.NonFatal
 
@@ -39,20 +39,18 @@ object BuildSettings {
   /**
    * File header settings
    */
+  private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
+    val compiledPattern = Pattern.compile(pattern)
+    override def accept(pathname: File): Boolean = {
+      val uriString = pathname.toURI.toString
+      compiledPattern.matcher(uriString).matches()
+    }
+  }
+
   val fileHeaderSettings = Seq(
-    excludes := Seq("*/cookie/encoding/*", "*/inject/SourceProvider.java"),
-    headers := Map(
-      "scala" -> (HeaderPattern.cStyleBlockComment,
-        """|/*
-           | * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
-           | */
-           |""".stripMargin),
-      "java"  -> (HeaderPattern.cStyleBlockComment,
-        """|/*
-           | * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
-           | */
-           |""".stripMargin)
-    )
+    excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
+         fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$"),
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
   )
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
