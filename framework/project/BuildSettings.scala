@@ -448,7 +448,11 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.routing.Router$Tags"),
 
       // Upgrade Guice from 4.1.0 to 4.2.0 which uses java.util.function.Function instead of com.google.common.base.Function now
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.TestBrowser.waitUntil")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.TestBrowser.waitUntil"),
+
+      // Made Session and Flash final and refactored their code into the super class AbstractHttpCookieStorage
+      ProblemFilters.exclude[FinalClassProblem]("play.mvc.Http$Session"),
+      ProblemFilters.exclude[FinalClassProblem]("play.mvc.Http$Flash")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

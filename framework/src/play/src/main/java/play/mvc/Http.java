@@ -1871,20 +1871,20 @@ public class Http {
     }
 
     /**
-     * HTTP Session.
-     * <p>
-     * Session data are encoded into an HTTP cookie, and can only contain simple <code>String</code> values.
+     * HTTP cookie storage.
      */
-    public static class Session extends HashMap<String,String>{
+    protected static abstract class AbstractHttpCookieStorage extends HashMap<String,String>{
 
-        public boolean isDirty = false;
+        public boolean isDirty;
 
-        public Session(Map<String,String> data) {
-            super(data);
+        public AbstractHttpCookieStorage(Map<String,String> data) {
+            super(data.size());
+            this.putAll(data);
+            isDirty = false;
         }
 
         /**
-         * Removes the specified value from the session.
+         * Removes the specified value from the HttpCookieStorage.
          */
         @Override
         public String remove(Object key) {
@@ -1893,25 +1893,29 @@ public class Http {
         }
 
         /**
-         * Adds the given value to the session.
+         * Adds the given value to the HttpCookieStorage.
          */
         @Override
         public String put(String key, String value) {
+            requireNoNullKeyValue(key, value);
             isDirty = true;
             return super.put(key, value);
         }
 
         /**
-         * Adds the given values to the session.
+         * Adds the given values to the HttpCookieStorage.
          */
         @Override
         public void putAll(Map<? extends String,? extends String> values) {
+            values.forEach((key, value) -> {
+                requireNoNullKeyValue(key, value);
+            });
             isDirty = true;
             super.putAll(values);
         }
 
         /**
-         * Clears the session.
+         * Clears the HttpCookieStorage.
          */
         @Override
         public void clear() {
@@ -1919,6 +1923,42 @@ public class Http {
             super.clear();
         }
 
+        protected abstract String nullValueErrorMessage(String key);
+
+        protected abstract String nullKeyErrorMessage(String value);
+
+        private void requireNoNullKeyValue(String key, String value) {
+
+            if (key == null) throw
+                    new IllegalArgumentException(
+                            nullKeyErrorMessage(key)
+                    );
+            if (value == null) throw
+                    new IllegalArgumentException(
+                            nullValueErrorMessage(value)
+                    );
+        }
+    }
+
+    /**
+     * HTTP Session.
+     * <p>
+     * Session data are encoded into an HTTP cookie, and can only contain simple <code>String</code> values.
+     */
+    public static final class Session extends AbstractHttpCookieStorage {
+        public Session(Map<String,String> data) {
+            super(data);
+        }
+
+        @Override
+        protected String nullKeyErrorMessage(String value) {
+            return "key must not be null when adding session data, a null key found for value = " + value;
+        }
+
+        @Override
+        protected String nullValueErrorMessage(String key) {
+            return "value must not be null when adding session data, a null value found for key = " + key;
+        }
     }
 
     /**
@@ -1926,50 +1966,21 @@ public class Http {
      * <p>
      * Flash data are encoded into an HTTP cookie, and can only contain simple String values.
      */
-    public static class Flash extends HashMap<String,String>{
-
-        public boolean isDirty = false;
+    public static final class Flash extends AbstractHttpCookieStorage {
 
         public Flash(Map<String,String> data) {
             super(data);
         }
 
-        /**
-         * Removes the specified value from the flash scope.
-         */
         @Override
-        public String remove(Object key) {
-            isDirty = true;
-            return super.remove(key);
+        protected String nullKeyErrorMessage(String value) {
+            return "key must not be null when adding flash data, a null key found for value = " + value;
         }
 
-        /**
-         * Adds the given value to the flash scope.
-         */
         @Override
-        public String put(String key, String value) {
-            isDirty = true;
-            return super.put(key, value);
+        protected String nullValueErrorMessage(String key) {
+            return "value must not be null when adding flash data, a null value found for key = " + key;
         }
-
-        /**
-         * Adds the given values to the flash scope.
-         */
-        @Override
-        public void putAll(Map<? extends String,? extends String> values) {
-            isDirty = true;
-            super.putAll(values);
-        }
-
-        /**
-         * Clears the flash scope.
-         */
-        @Override
-        public void clear() {
-            isDirty = true;
-            super.clear();
-        }
-
     }
 
     /**

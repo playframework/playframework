@@ -103,11 +103,6 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
       flash.decode("asfjdlkasjdflk") must beEmpty
     }
 
-    "put disallows null values" in {
-      val c = Flash(Map("foo" -> "bar"))
-      c + (("x", null)) must throwA(new IllegalArgumentException("requirement failed: Cookie values cannot be null"))
-    }
-
     "be insecure by default" in {
       flash.encodeAsCookie(Flash()).secure must beFalse
     }
