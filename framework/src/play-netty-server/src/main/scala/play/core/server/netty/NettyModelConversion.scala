@@ -111,15 +111,13 @@ private[server] class NettyModelConversion(
       override val queryString: String = parsedQueryString.stripPrefix("?")
       override lazy val queryMap: Map[String, Seq[String]] = {
         val decoder = new QueryStringDecoder(parsedQueryString)
-        val decodedParameters =
-          try {
-            Some(decoder.parameters())
-          } catch {
-            case NonFatal(e) =>
-              logger.warn("Failed to parse query string; returning empty map.", e)
-              None
-          }
-        decodedParameters.filter(!_.isEmpty).map(_.asScala.mapValues(_.asScala.toList).toMap).getOrElse(Map.empty)
+        try {
+          decoder.parameters().asScala.mapValues(_.asScala.toList).toMap
+        } catch {
+          case NonFatal(e) =>
+            logger.warn("Failed to parse query string; returning empty map.", e)
+            Map.empty
+        }
       }
     }
   }
