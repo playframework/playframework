@@ -34,16 +34,30 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
     else strictTransportSecurity.toSeq.map(STRICT_TRANSPORT_SECURITY -> _)
   }
 
+  @inline
+  private[this] def forwardedProto(req: RequestHeader) = {
+    if (xForwardedProtoEnabled) req.headers.get("x-forwarded-proto").contains("http")
+    else true
+  }
+
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
     import play.core.Execution.Implicits.trampoline
     if (req.secure) {
       next(req).map(_.withHeaders(stsHeaders: _*))
-    } else if (redirectEnabled) {
-      Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), redirectStatusCode))
     } else {
-      logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
-      next(req)
+      val xForwarded = forwardedProto(req)
+      if (redirectEnabled && xForwarded) {
+        Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), redirectStatusCode))
+      } else {
+        if (xForwarded) {
+          logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
+        } else {
+          logger.debug(s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
+              "X-Forwareded-Proto is not present.")
+        }
+        next(req)
+      }
     }
   }
 
@@ -62,7 +76,8 @@ case class RedirectHttpsConfiguration(
     strictTransportSecurity: Option[String] = Some("max-age=31536000; includeSubDomains"),
     redirectStatusCode: Int = PERMANENT_REDIRECT,
     sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
-    redirectEnabled: Boolean = true
+    redirectEnabled: Boolean = true,
+    xForwardedProtoEnabled: Boolean = false,
 ) {
   @deprecated("Use redirectEnabled && strictTransportSecurity.isDefined", "2.7.0")
   def hstsEnabled: Boolean = redirectEnabled && strictTransportSecurity.isDefined
@@ -73,11 +88,13 @@ private object RedirectHttpsKeys {
   val statusCodePath = "play.filters.https.redirectStatusCode"
   val portPath = "play.filters.https.port"
   val redirectEnabledPath = "play.filters.https.redirectEnabled"
+  val forwardedProtoEnabled = "play.filters.https.xForwardedProtoEnabled"
 }
 
 @Singleton
-class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
-  extends Provider[RedirectHttpsConfiguration] {
+class RedirectHttpsConfigurationProvider @Inject()(c: Configuration, e: Environment)
+    extends Provider[RedirectHttpsConfiguration] {
+
   import RedirectHttpsKeys._
 
   private val logger = Logger(getClass)
@@ -93,13 +110,20 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
       if (e.mode != Mode.Prod) {
         logger.info(
           s"RedirectHttpsFilter is disabled by default except in Prod mode.\n" +
-            s"See https://www.playframework.com/documentation/2.6.x/RedirectHttpsFilter"
+              s"See https://www.playframework.com/documentation/2.6.x/RedirectHttpsFilter"
         )
       }
       e.mode == Mode.Prod
     }
+    val xProtoEnabled = c.get[Boolean](forwardedProtoEnabled)
 
-    RedirectHttpsConfiguration(strictTransportSecurity, redirectStatusCode, port, redirectEnabled)
+    RedirectHttpsConfiguration(
+      strictTransportSecurity,
+      redirectStatusCode,
+      port,
+      redirectEnabled,
+      xProtoEnabled
+    )
   }
 }
 
