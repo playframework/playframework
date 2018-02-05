@@ -54,7 +54,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
           logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
         } else {
           logger.debug(s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
-              "X-Forwareded-Proto is not present.")
+              "X-Forwarded-Proto is not present.")
         }
         next(req)
       }
