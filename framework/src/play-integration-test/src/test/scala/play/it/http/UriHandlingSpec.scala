@@ -79,6 +79,14 @@ class UriHandlingSpec extends PlaySpecification with EndpointIntegrationSpecific
           response.body.string must_=== """/?filter=a,b"""
         }
       }
+
+    "handle '/pat?param=%_D%' as a URI with an invalid query string" in makeRequest(
+      "/pat?param=%_D%"
+    ) {
+        case (endpoint, response) => {
+          response.body.string must_=== """/pat"""
+        }
+      }
   }
 
 }
