@@ -25,7 +25,7 @@ object Dependencies {
 
   val specsSbt = specsBuild
 
-  val jacksonVersion = "2.9.1"
+  val jacksonVersion = "2.9.4"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
