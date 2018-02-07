@@ -259,7 +259,13 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache_="),
       ProblemFilters.exclude[FinalMethodProblem]("play.api.inject.guice.FakeRoutes.handlerFor"),
       ProblemFilters.exclude[FinalMethodProblem]("play.core.routing.GeneratedRouter.handlerFor"),
-      ProblemFilters.exclude[FinalMethodProblem]("play.api.routing.SimpleRouterImpl.handlerFor")
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.routing.SimpleRouterImpl.handlerFor"),
+
+      // Added xForwardedForProto handling to RedirectHttpsFilter
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.this")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
