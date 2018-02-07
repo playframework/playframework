@@ -54,7 +54,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
           logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
         } else {
           logger.debug(s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
-              "X-Forwarded-Proto is not present.")
+            "X-Forwarded-Proto is not present.")
         }
         next(req)
       }
@@ -92,8 +92,8 @@ private object RedirectHttpsKeys {
 }
 
 @Singleton
-class RedirectHttpsConfigurationProvider @Inject()(c: Configuration, e: Environment)
-    extends Provider[RedirectHttpsConfiguration] {
+class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
+  extends Provider[RedirectHttpsConfiguration] {
 
   import RedirectHttpsKeys._
 
@@ -110,7 +110,7 @@ class RedirectHttpsConfigurationProvider @Inject()(c: Configuration, e: Environm
       if (e.mode != Mode.Prod) {
         logger.info(
           s"RedirectHttpsFilter is disabled by default except in Prod mode.\n" +
-              s"See https://www.playframework.com/documentation/2.6.x/RedirectHttpsFilter"
+            s"See https://www.playframework.com/documentation/2.6.x/RedirectHttpsFilter"
         )
       }
       e.mode == Mode.Prod
