@@ -3,6 +3,7 @@
  */
 
 //#components-decl
+import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import play.inject.ApplicationLifecycle;
 import play.libs.F;
@@ -15,7 +16,7 @@ class MyComponentImpl implements MyComponent {
     // previous contents of Plugin.onStart
     lifecycle.addStopHook( () -> {
       // previous contents of Plugin.onStop
-      return F.Promise.pure(null);
+      return CompletableFuture.completedFuture(null);
     });
   }
 }
