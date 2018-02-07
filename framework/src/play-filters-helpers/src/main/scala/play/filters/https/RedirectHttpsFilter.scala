@@ -77,7 +77,7 @@ case class RedirectHttpsConfiguration(
     redirectStatusCode: Int = PERMANENT_REDIRECT,
     sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
     redirectEnabled: Boolean = true,
-    xForwardedProtoEnabled: Boolean = false,
+    xForwardedProtoEnabled: Boolean = false
 ) {
   @deprecated("Use redirectEnabled && strictTransportSecurity.isDefined", "2.7.0")
   def hstsEnabled: Boolean = redirectEnabled && strictTransportSecurity.isDefined
