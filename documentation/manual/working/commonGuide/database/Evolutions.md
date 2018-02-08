@@ -104,7 +104,7 @@ DROP TABLE Post;
 
 Play will apply this evolution script to Developer A’s database.
 
-On the other hand, developer B will work on a feature that requires altering the User table. So he will also create the following `2.sql` evolution script:
+On the other hand, developer B will work on a feature that requires altering the User table. So she will also create the following `2.sql` evolution script:
 
 ```
 # Update User
@@ -116,7 +116,7 @@ ALTER TABLE User ADD age INT;
 ALTER TABLE User DROP age;
 ```
 
-Developer B finishes his feature and commits (let’s say they are using Git). Now developer A has to merge the his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
+Developer B finishes her feature and commits (let’s say they are using Git). Now developer A has to merge the his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
 
 ```
 Auto-merging db/evolutions/2.sql
