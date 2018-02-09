@@ -82,7 +82,7 @@ For example, to enable `autoApply` for all evolutions, you might set `play.evolu
 
 ## Synchronizing concurrent changes
 
-Now let’s imagine that we have two developers working on this project. Developer A will work on a feature that requires a new database table. So he will create the following `2.sql` evolution script:
+Now let’s imagine that we have two developers working on this project. Developer A will work on a feature that requires a new database table. So they will create the following `2.sql` evolution script:
 
 ```
 # Add Post
@@ -104,7 +104,7 @@ DROP TABLE Post;
 
 Play will apply this evolution script to Developer A’s database.
 
-On the other hand, developer B will work on a feature that requires altering the User table. So she will also create the following `2.sql` evolution script:
+On the other hand, developer B will work on a feature that requires altering the User table. So they will also create the following `2.sql` evolution script:
 
 ```
 # Update User
@@ -116,7 +116,7 @@ ALTER TABLE User ADD age INT;
 ALTER TABLE User DROP age;
 ```
 
-Developer B finishes her feature and commits (let’s say they are using Git). Now developer A has to merge the his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
+Developer B finishes their feature and commits (let’s say they are using Git). Now developer A has to merge their colleague’s work before continuing, so they run git pull, and the merge has a conflict, like:
 
 ```
 Auto-merging db/evolutions/2.sql
@@ -180,7 +180,7 @@ DROP TABLE Post;
 
 This evolution script represents the new revision 2 of the database, that is different of the previous revision 2 that developer A has already applied.
 
-So Play will detect it and ask developer A to synchronize his database by first reverting the old revision 2 already applied, and by applying the new revision 2 script:
+So Play will detect it and ask developer A to synchronize their database by first reverting the old revision 2 already applied, and by applying the new revision 2 script:
 
 ## Inconsistent states
 
