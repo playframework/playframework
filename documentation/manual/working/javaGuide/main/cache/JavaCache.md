@@ -50,7 +50,7 @@ If you are using Guice, you can add the following for Java annotations:
 Caffeine Cache does not natively implement the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache. If you want to use JCache with Caffeine you can use [caffeine-jcache](https://github.com/ben-manes/caffeine/wiki/JCache) dependency.
 
 ### JCache support with EhCache
-Ehcache implements the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache, by default.
+Ehcache module already supports the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache, by using a wrapper, so there is no additional dependencies needed.
 
 ## Accessing the Cache API
 
