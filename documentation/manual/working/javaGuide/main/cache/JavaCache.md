@@ -7,15 +7,27 @@ Caching data is a typical optimization in modern applications, and so Play provi
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime.
 
-The default implementation of the cache API uses [Caffeine Cache](https://github.com/ben-manes/caffeine/).
+Implmentations of both [Caffeine](https://github.com/ben-manes/caffeine/) and [EhCache](http://www.ehcache.org) are provided, using the Caffeine implementation is recommended.
 
 ## Importing the Cache API
 
-Play provides both an API and an default Caffeine Cache implementation of that API. To get the full Caffeine Cache implementation, add `caffeine` to your dependencies list:
+### Caffeine
 
-@[caffeine-cache-sbt-dependencies](code/cache.sbt)
+Play provides both the API and the default Caffeine implementation of that API. To get the Caffeine implementation, add `caffeine` to your dependencies list:
+
+@[caffeine-sbt-dependencies](code/cache.sbt)
 
 This will also automatically set up the bindings for runtime DI so the components are injectable.
+
+### EhCache
+
+Play provides both the API and the default EhCache implementation of that API. To get the EhCache implementation, add `ehcache` to your dependencies list:
+
+@[ehcache-sbt-dependencies](code/ehcache.sbt)
+
+This will also automatically set up the bindings for runtime DI so the components are injectable.
+
+### Custom Cache Implementation
 
 To add only the API, add `cacheApi` to your dependencies list.
 
@@ -25,15 +37,20 @@ The API dependency is useful if you'd like to define your own bindings for the `
 
 ## JCache Support
 
-Caffeine Cache does not natively implement the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache. If you want to use JCache with Caffeine you can use [caffeine-jcache](https://github.com/ben-manes/caffeine/wiki/JCache) dependency.
-
-Play does not bind `javax.caching.CacheManager` by default.  To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
+Play does not bind `javax.caching.CacheManager` by default. To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
 
 @[jcache-sbt-dependencies](code/cache.sbt)
 
 If you are using Guice, you can add the following for Java annotations:
 
 @[jcache-guice-annotation-sbt-dependencies](code/cache.sbt)
+
+### JCache support with Caffeine
+
+Caffeine Cache does not natively implement the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache. If you want to use JCache with Caffeine you can use [caffeine-jcache](https://github.com/ben-manes/caffeine/wiki/JCache) dependency.
+
+### JCache support with EhCache
+Ehcache implements the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache, by default.
 
 ## Accessing the Cache API
 
@@ -75,11 +92,17 @@ Note that the [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) has the same
 
 ## Accessing different caches
 
-It is possible to access different caches. In the default implementation, the default cache is called `play`, and can be configured by setting `play.cache.caffeine.spec` in `application.conf`. Additional caches may be configured with different configurations, or even implementations.
+It is possible to define and use different caches with different configurations by their name. To access different caches, when you inject them, use the [NamedCache](api/java/play/cache/NamedCache.html) qualifier on your dependency, for example:
+
+@[qualified](code/javaguide/cache/qualified/Application.java)
 
 If you want to access multiple different caffeine cache caches, then you'll need to tell Play to bind them in `application.conf`, like so:
 
     play.cache.bindCaches = ["db-cache", "user-cache", "session-cache"]
+
+Defining and configuring named caches depends on the cache implementation you are using, examples of configuring named caches with Caffeine are given below.
+
+### Configuring named caches with Caffeine
 
 If you want to pass a default custom configuration that will be used as a fallback for all your caches you can do it by specifying:
 
@@ -99,10 +122,6 @@ You can also pass custom configuration data for specific caches by doing:
         ...
     }
 ```
-
-Now to access these different caches, when you inject them, use the [NamedCache](api/java/play/cache/NamedCache.html) qualifier on your dependency, for example:
-
-@[qualified](code/javaguide/cache/qualified/Application.java)
 
 ## Setting the execution context
 
@@ -135,16 +154,27 @@ Play provides a default built-in helper for the standard case:
 
 ## Custom implementations
 
-It is possible to provide a custom implementation of the cache API that either replaces or sits alongside the default implementation.
-
-To replace the default implementation based on something other than Caffeine Cache, you only need the `cacheApi` dependency rather than the `caffeineCache` dependency in your `build.sbt`. If you still need access to the Caffeine Cache implementation classes, you can use `caffeineCache` and disable the module from automatically binding it in `application.conf`:
-
-```
-play.modules.disabled += "play.api.cache.caffeine.CaffeineCacheModule"
-```
+It is possible to provide a custom implementation of the cache API. Make sure that you have the `cacheApi` dependency.
 
 You can then implement [AsyncCacheApi](api/java/play/cache/AsyncCacheApi.html) and bind it in the DI container. You can also bind [SyncCacheApi](api/java/play/cache/SyncCacheApi.html) to [DefaultSyncCacheApi](api/java/play/cache/DefaultSyncCacheApi.html), which simply wraps the async implementation.
 
 Note that the `removeAll` method may not be supported by your cache implementation, either because it is not possible or because it would be unnecessarily inefficient. If that is the case, you can throw an `UnsupportedOperationException` in the `removeAll` method.
 
 To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.
+
+
+### Using Caffeine alongside your custom implementation
+
+To use the default implementations of Caffeine you will need the `caffeine` dependency and you will have to disable Caffeine module from automatically binding it in `application.conf`:
+
+```
+play.modules.disabled += "play.api.cache.caffeine.CaffeineCacheModule"
+```
+
+### Using EhCache alongside your custom implementation
+
+To use the default implementations of EhCache you will need the `ehcache` dependency and you will have to disable EhCache module from automatically binding it in `application.conf`:
+
+```
+play.modules.disabled += "play.api.cache.ehcache.EhCacheModule"
+```

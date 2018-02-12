@@ -15,19 +15,11 @@ import java.util.Objects;
  * <ul>
  *   <li>{@code initial-capacity=[integer]}: sets {@link Caffeine#initialCapacity}.
  *   <li>{@code maximum-size=[long]}: sets {@link Caffeine#maximumSize}.
- *   <li>{@code maximum-weight=[memory-size]}: sets {@link Caffeine#maximumWeight}.
- *   <li>{@code expire-after-access=[duration]}: sets {@link Caffeine#expireAfterAccess}.
- *   <li>{@code expire-after-write=[duration]}: sets {@link Caffeine#expireAfterWrite}.
- *   <li>{@code refresh-after-write=[duration]}: sets {@link Caffeine#refreshAfterWrite}.
  *   <li>{@code weak-keys}=[condition]: sets {@link Caffeine#weakKeys}.
  *   <li>{@code weak-values}=[condition]: sets {@link Caffeine#weakValues}.
  *   <li>{@code soft-values}=[condition]: sets {@link Caffeine#softValues}.
  *   <li>{@code record-stats}=[condition]: sets {@link Caffeine#recordStats}.
  * </ul>
- * <p>
- * The maximum weight may be specified numerically or as a memory size. When set using a memory size
- * syntax the builder is set to the number of bytes.
- * <p>
  * It is illegal to use the following configurations together:
  * <ul>
  *   <li>{@code maximumSize} and {@code maximumWeight}

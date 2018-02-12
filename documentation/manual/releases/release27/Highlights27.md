@@ -29,6 +29,6 @@ You can of course also make your own custom constraints `@Repeatable` as well an
 
 Play now offeres an implementation of caching with Caffeine. Caffeine is the recomended cache implementation for Play users.
 
-To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine` and you will have to change your EhCache configuration to Caffeine Cache configuration.
+To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine` and you will have to change your caching configuration.
 
-Read the documentation for the [[Java cache API|JavaEhCache]] and [[Scala cache API|ScalaEhCache]] to learn more about configuring caching with Play.
+Read the documentation for the [[Java cache API|JavaCache]] and [[Scala cache API|ScalaCache]] to learn more about configuring caching with Play.
