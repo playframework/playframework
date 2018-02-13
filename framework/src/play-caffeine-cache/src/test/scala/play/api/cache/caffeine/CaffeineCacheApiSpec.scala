@@ -33,16 +33,6 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       syncCacheName must_== "custom"
       asyncCacheName must_== "custom"
     }
-    "bind already created named caches" in new WithApplication(
-      _.overrides(
-        bind[CaffeineCacheManager].toProvider[CustomCacheManagerProvider]
-      ).configure(
-          "play.cache.createBoundCaches" -> false,
-          "play.cache.bindCaches" -> Seq("custom")
-        )
-    ) {
-      app.injector.instanceOf[NamedCacheController]
-    }
     "get values from cache" in new WithApplication() {
       val cacheApi = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
