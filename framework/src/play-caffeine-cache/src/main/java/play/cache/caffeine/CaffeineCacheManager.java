@@ -33,7 +33,7 @@ public class CaffeineCacheManager {
         return namedCache;
     }
 
-    private Caffeine getCacheBuilder(String cacheName) {
+    public Caffeine getCacheBuilder(String cacheName) {
         Caffeine cacheBuilder;
         CaffeineDefaultExpiry defaultExpiry = new CaffeineDefaultExpiry();
         Config caches = config.getConfig("caches");

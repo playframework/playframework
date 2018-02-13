@@ -33,6 +33,33 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       syncCacheName must_== "custom"
       asyncCacheName must_== "custom"
     }
+
+    "configure cache builder by name" in new WithApplication(
+      _.configure(
+        "play.cache.caffeine.caches.custom.initial-capacity" -> 130,
+        "play.cache.caffeine.caches.custom.maximum-size" -> 50,
+        "play.cache.caffeine.caches.custom.weak-keys" -> true,
+        "play.cache.caffeine.caches.custom.weak-values" -> true,
+        "play.cache.caffeine.caches.custom.record-stats" -> true,
+
+        "play.cache.caffeine.caches.custom-two.initial-capacity" -> 140,
+        "play.cache.caffeine.caches.custom-two.soft-values" -> true,
+      )
+    ) {
+      val caffeineCacheManager: CaffeineCacheManager = app.injector.instanceOf[CaffeineCacheManager]
+
+      val cacheBuilderStrCustom: String = caffeineCacheManager.getCacheBuilder("custom").toString
+      val cacheBuilderStrCustomTwo: String = caffeineCacheManager.getCacheBuilder("custom-two").toString
+
+      cacheBuilderStrCustom.contains("initialCapacity=130") must be
+      cacheBuilderStrCustom.contains("maximumSize=50") must be
+      cacheBuilderStrCustom.contains("keyStrength=weak") must be
+      cacheBuilderStrCustom.contains("valueStrength=weak") must be
+
+      cacheBuilderStrCustomTwo.contains("initialCapacity=140") must be
+      cacheBuilderStrCustomTwo.contains("valueStrength=soft") must be
+    }
+
     "get values from cache" in new WithApplication() {
       val cacheApi = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
