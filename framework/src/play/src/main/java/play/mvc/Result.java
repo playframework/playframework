@@ -280,7 +280,7 @@ public class Result {
         return new Cookies() {
             @Override
             public Cookie get(String name) {
-                return cookies.stream().filter(c -> c.name().equals(name)).findFirst().get();
+                return cookies.stream().filter(c -> c.name().equals(name)).findFirst().orElse(null);
             }
 
             @Override
