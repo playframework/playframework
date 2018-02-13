@@ -7,13 +7,15 @@ Caching data is a typical optimization in modern applications, and so Play provi
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime.
 
-Implmentations of both [Caffeine](https://github.com/ben-manes/caffeine/) and [EhCache](http://www.ehcache.org) are provided, using the Caffeine implementation is recommended.
+Play provides a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/) and a legacy implementation based on [Ehcache 2.x](http://www.ehcache.org). For in-process caching Caffeine is typically the best choice. If you need distributed caching, there are third-party plugins for memcached and redis.
 
 ## Importing the Cache API
 
+Play provides separate dependencies for the Cache API and for the Caffeine and Ehcache implementations.
+
 ### Caffeine
 
-Play provides both the API and the default Caffeine implementation of that API. To get the Caffeine implementation, add `caffeine` to your dependencies list:
+To get the Caffeine implementation, add `caffeine` to your dependencies list:
 
 @[caffeine-sbt-dependencies](code/cache.sbt)
 
@@ -21,7 +23,7 @@ This will also automatically set up the bindings for runtime DI so the component
 
 ### EhCache
 
-Play provides both the API and the default EhCache implementation of that API. To get the EhCache implementation, add `ehcache` to your dependencies list:
+To get the EhCache implementation, add `ehcache` to your dependencies list:
 
 @[ehcache-sbt-dependencies](code/ehcache.sbt)
 
@@ -33,7 +35,7 @@ To add only the API, add `cacheApi` to your dependencies list.
 
 @[cache-sbt-dependencies](code/cache.sbt)
 
-The API dependency is useful if you'd like to define your own bindings for the `Cached` helper and `AsyncCacheApi`, etc., without having to depend on Caffeine Cache. If you're writing a custom cache module you should use this.
+The API dependency is useful if you'd like to define your own bindings for the `Cached` helper and `AsyncCacheApi`, etc., without having to depend on any specific cache implementation. If you're writing a custom cache module you should use this.
 
 ## JCache Support
 

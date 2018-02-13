@@ -52,9 +52,9 @@ public class JavaEhCache extends WithApplication {
         CompletionStage<Done> result = cache.set("item.key", frontPageNews);
         //#simple-set
         block(result);
-        //#time-set
         }
         {
+        //#time-set
         // Cache for 15 minutes
         CompletionStage<Done> result = cache.set("item.key", frontPageNews, 60 * 15);
         //#time-set
