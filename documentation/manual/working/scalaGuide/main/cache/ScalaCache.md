@@ -127,10 +127,10 @@ You can also pass custom configuration data for specific caches by doing:
 
 ## Setting the execution context
 
-By default, all Caffeine operations are blocking, and async implementations will block threads in the default execution context.
+By default, all Caffeine and EhCache operations are blocking, and async implementations will block threads in the default execution context.
 Usually this is okay if you are using Play's default configuration, which only stores elements in memory since reads should be relatively fast.
-However, depending on how Caffeine Cache was configured, this blocking I/O might be too costly.
-For such a case you can configure a different [Akka dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the Caffeine Cache plugin makes use of it:
+However, depending on how cache was configured, this blocking I/O might be too costly.
+For such a case you can configure a different [Akka dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
 
 ```
 play.cache.dispatcher = "contexts.blockingCacheDispatcher"
