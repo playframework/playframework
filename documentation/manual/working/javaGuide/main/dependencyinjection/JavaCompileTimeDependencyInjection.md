@@ -103,7 +103,6 @@ Other helper traits are also available as the [CSRFComponents](api/java/play/fil
 - [`play.routing.RoutingDslComponents`](api/java/play/routing/RoutingDslComponents.html)
 - [`play.data.FormFactoryComponents`](api/java/play/data/FormFactoryComponents.html)
 - [`play.data.validation.ValidatorsComponents`](api/java/play/data/validation/ValidatorsComponents.html)
-- [`play.db.BoneCPComponents`](api/java/play/db/BoneCPComponents.html)
 - [`play.db.ConnectionPoolComponents`](api/java/play/db/ConnectionPoolComponents.html)
 - [`play.db.DBComponents`](api/java/play/db/DBComponents.html)
 - [`play.db.HikariCPComponents`](api/java/play/db/HikariCPComponents.html)

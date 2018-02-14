@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(evolutions, jdbc)
 
 ### Running evolutions using compile-time DI
 
-If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. `EvolutionsComponents` requires `dbApi` to be defined, which you can get by mixing in `DBComponents` and `HikariCPComponents` (or `BoneCPComponents` if you are using BoneCP instead). Since `applicationEvolutions` is a lazy val supplied by `EvolutionsComponents`, you need to access that val to make sure the evolutions run. For example you could explicitly access it in your `ApplicationLoader`, or have an explicit dependency from another component.
+If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. `EvolutionsComponents` requires `dbApi` to be defined, which you can get by mixing in `DBComponents` and `HikariCPComponents`. Since `applicationEvolutions` is a lazy val supplied by `EvolutionsComponents`, you need to access that val to make sure the evolutions run. For example you could explicitly access it in your `ApplicationLoader`, or have an explicit dependency from another component.
 
 Your models will need an instance of `Database` to make connections to your database, which can be obtained from `dbApi.database`.
 
@@ -233,4 +233,3 @@ By default, each statement of each evolution script will be executed immediately
 ### Evolution storage and limitations
 
 Evolutions are stored in your database in a table called `play_evolutions`.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (preferred) create multiple evolutions scripts less than 64kb in size.
-
