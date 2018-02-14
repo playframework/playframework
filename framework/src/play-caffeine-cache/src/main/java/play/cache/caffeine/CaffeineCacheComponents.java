@@ -4,6 +4,7 @@
 package play.cache.caffeine;
 
 import play.api.cache.caffeine.CaffeineCacheApi;
+import play.api.cache.caffeine.CaffeineCacheManager;
 import play.api.cache.caffeine.NamedCaffeineCacheProvider$;
 import play.cache.AsyncCacheApi;
 import play.cache.DefaultAsyncCacheApi;

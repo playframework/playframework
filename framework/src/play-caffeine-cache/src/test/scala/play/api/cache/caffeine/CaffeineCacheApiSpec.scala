@@ -10,7 +10,6 @@ import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
 import play.api.inject._
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.cache.NamedCache
-import play.cache.caffeine.CaffeineCacheManager
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }

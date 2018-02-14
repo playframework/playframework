@@ -11,7 +11,7 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.google.common.primitives.Primitives
-import play.cache.caffeine.{ CaffeineCacheManager, NamedCaffeineCache }
+import play.cache.caffeine.NamedCaffeineCache
 import play.api.cache._
 import play.api.inject._
 import play.api.{ Configuration }
