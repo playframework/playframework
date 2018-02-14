@@ -55,7 +55,6 @@ object Dependencies {
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
 
   val jdbcDeps = Seq(
-    "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
     "com.zaxxer" % "HikariCP" % "2.7.8",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
@@ -269,7 +268,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
-  
+
   val playWsStandaloneVersion = "1.1.6"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,

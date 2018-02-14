@@ -7,10 +7,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import javax.sql.DataSource;
 
 import com.google.common.collect.ImmutableMap;
-import com.jolbox.bonecp.BoneCPDataSource;
 
 import org.jdbcdslog.LogSqlDataSource;
 import org.junit.Rule;
@@ -77,12 +75,6 @@ public class DatabaseTest {
 
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
-
-        DataSource ds = db.getDataSource();
-        if (ds instanceof BoneCPDataSource) {
-            BoneCPDataSource bcp = (BoneCPDataSource) ds;
-            assertThat(bcp.getJdbcUrl(), equalTo("jdbc:h2:mem:test;MODE=MySQL"));
-        }
 
         db.shutdown();
     }
