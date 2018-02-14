@@ -286,8 +286,8 @@ object Dependencies {
     "com.typesafe.play" % "shaded-asynchttpclient" % playWsStandaloneVersion,
     "com.typesafe.play" % "shaded-oauth" % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion % Test,
-    "net.sf.ehcache" % "ehcache" % ehcacheVersion,
-    "org.ehcache" % "jcache" % "1.0.1"
+    "net.sf.ehcache" % "ehcache" % ehcacheVersion % Test,
+    "org.ehcache" % "jcache" % "1.0.1" % Test
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(
