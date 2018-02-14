@@ -10,6 +10,9 @@ import javax.inject.Singleton;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Optional;
+
+import scala.compat.java8.OptionConverters;
 
 /**
  * The environment for the application.
@@ -103,6 +106,17 @@ public class Environment {
      */
     public File getFile(String relativePath) {
         return env.getFile(relativePath);
+    }
+
+    /**
+     * Retrieves a file relative to the application root path.
+     * This method returns an Optional, using empty if the file was not found.
+     *
+     * @param relativePath relative path of the file to fetch
+     * @return an existing file
+     */
+    public Optional<File> getExistingFile(String relativePath) {
+        return OptionConverters.toJava(env.getExistingFile(relativePath));
     }
 
     /**
