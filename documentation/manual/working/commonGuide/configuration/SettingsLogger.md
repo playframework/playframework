@@ -109,7 +109,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
         <file>${application.home:-.}/logs/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
-            <fileNamePattern>application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home:-.}/logs/application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -136,7 +136,7 @@ Here's an example of configuration that uses a rolling file appender, as well as
         <file>${application.home:-.}/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover with compression -->
-            <fileNamePattern>access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home:-.}/logs/access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 1 week worth of history -->
             <maxHistory>7</maxHistory>
         </rollingPolicy>
