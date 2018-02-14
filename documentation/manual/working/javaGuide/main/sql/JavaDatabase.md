@@ -162,13 +162,15 @@ For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.41"
 ```
 
-## Connection pool
+## Configuring the connection pool
 
 Out of the box, Play uses [HikariCP](https://github.com/brettwooldridge/HikariCP) as default database connection pool implementation. Also, you can use your own pool that implements `play.api.db.ConnectionPool` by specifying FQCN:
 
 ```
 play.db.pool=your.own.ConnectionPool
 ```
+
+The full range of configuration options for connection pools can be found by inspecting the `play.db.prototype` property in Play's JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
 
 ## Testing
 
