@@ -82,7 +82,7 @@ For example, to enable `autoApply` for all evolutions, you might set `play.evolu
 
 ## Synchronizing concurrent changes
 
-Now let’s imagine that we have two developers working on this project. Developer A will work on a feature that requires a new database table. So he will create the following `2.sql` evolution script:
+Now let’s imagine that we have two developers working on this project. Jamie will work on a feature that requires a new database table. So Jamie will create the following `2.sql` evolution script:
 
 ```
 # Add Post
@@ -102,9 +102,9 @@ CREATE TABLE Post (
 DROP TABLE Post;
 ```
 
-Play will apply this evolution script to Developer A’s database.
+Play will apply this evolution script to Jamie’s database.
 
-On the other hand, developer B will work on a feature that requires altering the User table. So he will also create the following `2.sql` evolution script:
+On the other hand, Robin will work on a feature that requires altering the User table. So Robin will also create the following `2.sql` evolution script:
 
 ```
 # Update User
@@ -116,7 +116,7 @@ ALTER TABLE User ADD age INT;
 ALTER TABLE User DROP age;
 ```
 
-Developer B finishes his feature and commits (let’s say they are using Git). Now developer A has to merge the his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
+Robin finishes the feature and commits (let’s say by using Git). Now Jamie has to merge Robin’s work before continuing, so Jamie runs git pull, and the merge has a conflict, like:
 
 ```
 Auto-merging db/evolutions/2.sql
@@ -124,7 +124,7 @@ CONFLICT (add/add): Merge conflict in db/evolutions/2.sql
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
-Each developer has created a `2.sql` evolution script. So developer A needs to merge the contents of this file:
+Each developer has created a `2.sql` evolution script. So Jamie needs to merge the contents of this file:
 
 ```
 <<<<<<< HEAD
@@ -178,9 +178,9 @@ ALTER TABLE User DROP age;
 DROP TABLE Post;
 ```
 
-This evolution script represents the new revision 2 of the database, that is different of the previous revision 2 that developer A has already applied.
+This evolution script represents the new revision 2 of the database, that is different of the previous revision 2 that Jamie has already applied.
 
-So Play will detect it and ask developer A to synchronize his database by first reverting the old revision 2 already applied, and by applying the new revision 2 script:
+So Play will detect it and ask Jamie to synchronize the database by first reverting the old revision 2 already applied, and by applying the new revision 2 script:
 
 ## Inconsistent states
 
