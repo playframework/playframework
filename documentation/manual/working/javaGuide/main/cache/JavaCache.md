@@ -125,6 +125,15 @@ You can also pass custom configuration data for specific caches by doing:
     }
 ```
 
+### Configuring named caches with EhCache
+
+With EhCache implementation, the default cache is called play, and can be configured by creating a file called ehcache.xml. Additional caches may be configured with different configurations, or even implementations.
+
+By default, Play will try to create caches with names from `play.cache.bindCaches` for you. If you would like to define them yourself in `ehcache.xml`, you can set:
+
+    play.cache.createBoundCaches = false
+
+
 ## Setting the execution context
 
 By default, all Caffeine and EhCache operations are blocking, and async implementations will block threads in the default execution context.

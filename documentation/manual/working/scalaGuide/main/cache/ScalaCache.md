@@ -98,7 +98,7 @@ It is possible to define and use different caches with different configurations 
 
 @[qualified](code/ScalaCache.scala)
 
-If you want to access multiple different caffeine cache caches, then you'll need to tell Play to bind them in `application.conf`, like so:
+If you want to access multiple different caches, then you'll need to tell Play to bind them in `application.conf`, like so:
 
     play.cache.bindCaches = ["db-cache", "user-cache", "session-cache"]
 
@@ -124,6 +124,15 @@ You can also pass custom configuration data for specific caches by doing:
         ...
     }
 ```
+
+### Configuring named caches with EhCache
+
+With EhCache implementation, the default cache is called play, and can be configured by creating a file called ehcache.xml. Additional caches may be configured with different configurations, or even implementations.
+
+By default, Play will try to create caches with names from `play.cache.bindCaches` for you. If you would like to define them yourself in `ehcache.xml`, you can set:
+
+    play.cache.createBoundCaches = false
+
 
 ## Setting the execution context
 
