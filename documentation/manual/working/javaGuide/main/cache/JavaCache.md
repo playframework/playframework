@@ -100,7 +100,7 @@ It is possible to define and use different caches with different configurations 
 
 @[qualified](code/javaguide/cache/qualified/Application.java)
 
-If you want to access multiple different caffeine cache caches, then you'll need to tell Play to bind them in `application.conf`, like so:
+If you want to access multiple different caches, then you'll need to tell Play to bind them in `application.conf`, like so:
 
     play.cache.bindCaches = ["db-cache", "user-cache", "session-cache"]
 
