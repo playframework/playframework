@@ -22,6 +22,7 @@ import play.core.ApplicationProvider
 import play.core.server.{ NettyServer, Server }
 import play.core.server.common.{ ReloadCache, ServerResultUtils }
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 

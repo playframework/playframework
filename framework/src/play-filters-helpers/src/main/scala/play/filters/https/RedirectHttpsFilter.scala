@@ -11,6 +11,7 @@ import play.api.inject.{ SimpleModule, bind }
 import play.api.mvc._
 import play.api.{ Configuration, Environment, Mode }
 import play.api.Logger
+import play.api.http.HeaderNames
 
 /**
  * A filter that redirects HTTP requests to https requests.
@@ -36,7 +37,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
 
   @inline
   private[this] def forwardedProto(req: RequestHeader) = {
-    if (xForwardedProtoEnabled) req.headers.get("x-forwarded-proto").contains("http")
+    if (xForwardedProtoEnabled) req.headers.get(HeaderNames.X_FORWARDED_PROTO).contains("http")
     else true
   }
 
