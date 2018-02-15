@@ -39,6 +39,8 @@ The API dependency is useful if you'd like to define your own bindings for the `
 
 ## JCache Support
 
+We do not recommend using JCache in your own code, but it may be useful for integration with other libraries. Both Caffeine and Ehcache provide JCache implementations.
+
 Play does not bind `javax.caching.CacheManager` by default. To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
 
 @[jcache-sbt-dependencies](code/cache.sbt)
