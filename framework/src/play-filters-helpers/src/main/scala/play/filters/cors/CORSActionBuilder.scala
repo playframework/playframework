@@ -34,7 +34,6 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
           case r: Request[A] => Accumulator.done(block(r))
           case _ => Accumulator.done(block(req.withBody(request.body)))
         }
-        Accumulator.done(block(req.asInstanceOf[Request[A]]))
       }
     }
 
