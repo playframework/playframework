@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
  */
+// #assets-builder
 //###replace: package controllers.admin;
 package javaguide.common.build.controllers;
-// #assets-builder
 import play.api.mvc.*;
 import controllers.AssetsMetadata;
 import play.api.http.HttpErrorHandler;
 
 import javax.inject.Inject;
 
-class Assets extends controllers.Assets {
+public class Assets extends controllers.Assets {
 
     @Inject
     public Assets(HttpErrorHandler errorHandler, AssetsMetadata meta) {
