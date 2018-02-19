@@ -122,6 +122,17 @@ Looks good. We can now visit the app by running:
 $ heroku open
 ```
 
+### Troubleshooting
+
+If your app contains a `build.gradle` file, Heroku will detect it and try to build your app as Gradle project instead of a Scala sbt project. You can force Heroku to use with sbt by running the following command:
+
+```bash
+$ heroku buildpacks:set heroku/scala
+```
+
+The [Scala buildpack](https://github.com/heroku/heroku-buildpack-scala) will use the `build.sbt` file in your repo to build the app.
+
+
 ## Deploying Java 9 application
 
 Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying a Java 9 application will lead to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory:
