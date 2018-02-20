@@ -84,3 +84,32 @@ The "old" `validate` methods of a Java form will not be executed anymore.
 Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]] you have to migrate such `validate` methods to [[class-level constraints|JavaForms#advanced-validation]].
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
+
+### SecurityHeadersFilter's contentSecurityPolicy deprecated for CSPFilter
+
+The SecurityHeadersFilter has a `contentSecurityPolicy` property in configuration is deprecated.  The functionality is still enabled, but `contentSecurityPolicy` property's default setting has been changed from `default-src ‘self’` to `null`.
+ 
+If `play.filters.headers.contentSecurityPolicy` is not null, you will receive a warning.  It is technically possible to have `contentSecurityPolicy` and the new `CSPFilter` active at the same time, but this is not recommended.
+
+You can enable the new `CSPFilter` by adding it to the `play.filters.enabled` property:
+
+```
+play.filters.enabled += play.filters.csp.CSPFilter
+```
+
+> **NOTE**: You will want to review the Content Security Policy closely to ensure it meets your needs.  The new `CSPFilter` is notably more permissive than `default-src ‘self’`, and is based off the Google Strict CSP configuration.  You can use the `report-only` functionality with a [[CSP report controller|CSPFilter#Configuring-CSP-Report-Only]] to review policy violations.
+
+Please see the documentation in [[CSPFilter]] for more information.
+
+### play.mvc.Results.TODO moved to play.mvc.Controller.TODO
+
+All Play's error pages have been updated to render a CSP nonce if the CSP filter is present.  This means that the templates must take a request as a parameter.  The `TODO` field was rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  The `TODO` field has been removed, and there is now a `TODO()` method in `play.mvc.Controller` instead:
+
+```java
+public abstract class Controller extends Results implements Status, HeaderNames {
+    public static Result TODO() {
+        play.mvc.Http.Request request = Http.Context.current().request();
+        return status(NOT_IMPLEMENTED, views.html.defaultpages.todo.render(request.asScala()));
+    }
+}
+```

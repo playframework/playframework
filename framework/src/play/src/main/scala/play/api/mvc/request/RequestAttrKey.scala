@@ -38,4 +38,10 @@ object RequestAttrKey {
    * The key for the request attribute storing the server name.
    */
   val Server = TypedKey[String]("Server-Name")
+
+  /**
+   * The CSP nonce key.
+   */
+  val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")
+
 }

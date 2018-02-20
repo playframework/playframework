@@ -56,3 +56,8 @@ Play now offers a CacheApi implementation based on [Caffeine](https://github.com
 To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine`. To customize the settings from the defaults you will also need to update the configuration in application.conf as explained in the documentation.
 
 Read the documentation for the [[Java cache API|JavaCache]] and [[Scala cache API|ScalaCache]] to learn more about configuring caching with Play.
+
+
+## New Content Security Policy Filter
+
+There is a new Content Security Policy filter available.  The new filter supports CSP nonce and hashes for embedded content.

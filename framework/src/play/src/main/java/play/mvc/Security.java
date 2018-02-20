@@ -94,7 +94,7 @@ public class Security {
          * @return a <code>401 Not Authorized</code> result
          */
         public Result onUnauthorized(Context ctx) {
-            return unauthorized(views.html.defaultpages.unauthorized.render());
+            return unauthorized(views.html.defaultpages.unauthorized.render(ctx.request().asScala()));
         }
 
     }

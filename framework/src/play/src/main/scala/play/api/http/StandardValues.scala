@@ -330,8 +330,11 @@ trait HeaderNames {
   val X_XSS_PROTECTION = "X-XSS-Protection"
   val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
   val X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies"
-  val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
   val REFERRER_POLICY = "Referrer-Policy"
+
+  val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
+  val CONTENT_SECURITY_POLICY_REPORT_ONLY: String = "Content-Security-Policy-Report-Only"
+  val X_CONTENT_SECURITY_POLICY_NONCE_HEADER: String = "X-Content-Security-Policy-Nonce"
 }
 
 /**

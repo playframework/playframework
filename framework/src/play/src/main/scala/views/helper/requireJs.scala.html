@@ -13,5 +13,6 @@
  * @param folder Javascript folder, default "javascripts".
  *@
 
+@* XXX This probably doesn't require a CSP nonce, since there is no inline content *@
 @(module: String, core: String, isProd: Boolean, productionFolderPrefix: String = "-min", folder: String = "javascripts")
 <script type="text/javascript" data-main="@{if(isProd) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>

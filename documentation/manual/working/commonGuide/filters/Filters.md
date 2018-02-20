@@ -6,6 +6,7 @@ Play provides several standard filters that can modify the HTTP behavior of your
 - [[Configuring gzip encoding|GzipEncoding]]
 - [[Configuring security headers|SecurityHeaders]]
 - [[Configuring CORS|CorsFilter]]
+- [[Configuring CSP|CspFilter]]
 - [[Configuring allowed hosts|AllowedHostsFilter]]
 - [[Configuring Redirect HTTPS filter|RedirectHttpsFilter]]
 

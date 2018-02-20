@@ -15,7 +15,7 @@ class SecurityHeaders @Inject()(val controllerComponents: ControllerComponents) 
 
   def index = Action {
   //#allowActionSpecificHeaders
-  	Ok("Index").withHeaders(SecurityHeadersFilter.CONTENT_SECURITY_POLICY_HEADER -> "my page-specific header")
+  	Ok("Index").withHeaders(SecurityHeadersFilter.REFERRER_POLICY -> "my page-specific header")
   //#allowActionSpecificHeaders
   }
 }

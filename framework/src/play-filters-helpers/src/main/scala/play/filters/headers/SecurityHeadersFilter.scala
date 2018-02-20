@@ -4,7 +4,6 @@
 package play.filters.headers
 
 import javax.inject.{ Inject, Provider, Singleton }
-
 import play.api.Configuration
 import play.api.http.HeaderNames
 import play.api.inject._
@@ -30,17 +29,16 @@ import play.api.mvc._
  * @see <a href="https://developer.mozilla.org/en-US/docs/HTTP/X-Frame-Options">X-Frame-Options</a>
  * @see <a href="http://blogs.msdn.com/b/ie/archive/2008/09/02/ie8-security-part-vi-beta-2-update.aspx">X-Content-Type-Options</a>
  * @see <a href="http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx">X-XSS-Protection</a>
- * @see <a href="http://www.html5rocks.com/en/tutorials/security/content-security-policy/">Content-Security-Policy</a>
  * @see <a href="http://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html">Cross Domain Policy File Specification</a>
  * @see <a href="https://www.w3.org/TR/referrer-policy/">Referrer Policy</a>
  */
 object SecurityHeadersFilter {
-  val X_FRAME_OPTIONS_HEADER = HeaderNames.X_FRAME_OPTIONS
-  val X_XSS_PROTECTION_HEADER = HeaderNames.X_XSS_PROTECTION
-  val X_CONTENT_TYPE_OPTIONS_HEADER = HeaderNames.X_CONTENT_TYPE_OPTIONS
-  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES
-  val CONTENT_SECURITY_POLICY_HEADER = HeaderNames.CONTENT_SECURITY_POLICY
-  val REFERRER_POLICY = HeaderNames.REFERRER_POLICY
+  val X_FRAME_OPTIONS_HEADER: String = HeaderNames.X_FRAME_OPTIONS
+  val X_XSS_PROTECTION_HEADER: String = HeaderNames.X_XSS_PROTECTION
+  val X_CONTENT_TYPE_OPTIONS_HEADER: String = HeaderNames.X_CONTENT_TYPE_OPTIONS
+  val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER: String = HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES
+  val CONTENT_SECURITY_POLICY_HEADER: String = HeaderNames.CONTENT_SECURITY_POLICY
+  val REFERRER_POLICY: String = HeaderNames.REFERRER_POLICY
 
   /**
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
@@ -69,16 +67,17 @@ object SecurityHeadersFilter {
  * @param frameOptions "X-Frame-Options":
  * @param xssProtection "X-XSS-Protection":
  * @param contentTypeOptions "X-Content-Type-Options"
- * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies".
- * @param contentSecurityPolicy "Content-Security-Policy"
+ * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies"
+ * @param contentSecurityPolicy "Content-Security-Policy" - this is deprecated in favor of the dedicated CSPFilter.
  * @param referrerPolicy "Referrer-Policy"
+ * @param allowActionSpecificHeaders Allows specific headers
  */
 case class SecurityHeadersConfig(
     frameOptions: Option[String] = Some("DENY"),
     xssProtection: Option[String] = Some("1; mode=block"),
     contentTypeOptions: Option[String] = Some("nosniff"),
     permittedCrossDomainPolicies: Option[String] = Some("master-only"),
-    contentSecurityPolicy: Option[String] = Some("default-src 'self'"),
+    @deprecated("Please use play.filters.csp.CSPFilter", "2.7.0") contentSecurityPolicy: Option[String] = None,
     referrerPolicy: Option[String] = Some("origin-when-cross-origin, strict-origin-when-cross-origin"),
     allowActionSpecificHeaders: Boolean = false) {
   def this() {
@@ -97,6 +96,8 @@ case class SecurityHeadersConfig(
     copy(contentTypeOptions = contentTypeOptions.asScala)
   def withPermittedCrossDomainPolicies(permittedCrossDomainPolicies: ju.Optional[String]): SecurityHeadersConfig =
     copy(permittedCrossDomainPolicies = permittedCrossDomainPolicies.asScala)
+
+  @deprecated("Please use play.filters.csp.CSPFilter", "2.7.0")
   def withContentSecurityPolicy(contentSecurityPolicy: ju.Optional[String]): SecurityHeadersConfig =
     copy(contentSecurityPolicy = contentSecurityPolicy.asScala)
   def withReferrerPolicy(referrerPolicy: ju.Optional[String]): SecurityHeadersConfig = copy(referrerPolicy = referrerPolicy.asScala)
@@ -108,7 +109,13 @@ case class SecurityHeadersConfig(
 object SecurityHeadersConfig {
 
   def fromConfiguration(conf: Configuration): SecurityHeadersConfig = {
+
     val config = conf.get[Configuration]("play.filters.headers")
+
+    config.getOptional[String]("contentSecurityPolicy").foreach { _ =>
+      val logger = play.api.Logger(getClass)
+      logger.warn("""play.filters.headers.contentSecurityPolicy is deprecated in 2.7.0.  Please use play.filters.csp.CSPFilter instead.""")
+    }
 
     SecurityHeadersConfig(
       frameOptions = config.get[Option[String]]("frameOptions"),
