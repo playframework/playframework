@@ -48,8 +48,8 @@ object BuildSettings {
   }
 
   val fileHeaderSettings = Seq(
-    excludeFilter.in(unmanagedSources.in(headerCreate)) := HiddenFileFilter ||
-        fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$"),
+    excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
+         fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
   )
 
