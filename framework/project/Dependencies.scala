@@ -50,7 +50,7 @@ object Dependencies {
   val acolyteVersion = "1.0.46"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.6"
+  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
 
