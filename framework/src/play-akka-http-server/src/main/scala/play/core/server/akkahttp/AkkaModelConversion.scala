@@ -345,10 +345,19 @@ final case class AkkaHeadersWrapper(
 
   import AkkaHeadersWrapper._
 
-  private lazy val contentType = request.entity.contentType.value
+  private lazy val contentType: Option[String] = {
+    if (request.entity.contentType == ContentTypes.NoContentType)
+      None
+    else
+      Some(request.entity.contentType.value)
+  }
 
   override lazy val headers: Seq[(String, String)] = {
-    val h0 = (HeaderNames.CONTENT_TYPE -> contentType) +: hs.map(h => h.name() -> h.value)
+    val h: immutable.Seq[(String, String)] = hs.map(h => h.name() -> h.value)
+    val h0 = contentType match {
+      case Some(ct) => (HeaderNames.CONTENT_TYPE -> ct) +: h
+      case None => h
+    }
     val h1 = knownContentLength match {
       case Some(cl) => (HeaderNames.CONTENT_LENGTH -> cl) +: h0
       case _ => h0
@@ -364,7 +373,7 @@ final case class AkkaHeadersWrapper(
     headerName.toLowerCase(Locale.ROOT) match {
       case CONTENT_LENGTH_LOWER_CASE => knownContentLength.isDefined
       case TRANSFER_ENCODING_LOWER_CASE => isChunked.isDefined
-      case CONTENT_TYPE_LOWER_CASE => true
+      case CONTENT_TYPE_LOWER_CASE => contentType.isDefined
       case _ => get(headerName).isDefined
     }
 
@@ -380,7 +389,7 @@ final case class AkkaHeadersWrapper(
     key.toLowerCase(Locale.ROOT) match {
       case CONTENT_LENGTH_LOWER_CASE => knownContentLength
       case TRANSFER_ENCODING_LOWER_CASE => isChunked
-      case CONTENT_TYPE_LOWER_CASE => Some(contentType)
+      case CONTENT_TYPE_LOWER_CASE => contentType
       case lowerCased => hs.collectFirst { case h if h.is(lowerCased) => h.value }
     }
 
@@ -388,7 +397,7 @@ final case class AkkaHeadersWrapper(
     key.toLowerCase(Locale.ROOT) match {
       case CONTENT_LENGTH_LOWER_CASE => knownContentLength.toList
       case TRANSFER_ENCODING_LOWER_CASE => isChunked.toList
-      case CONTENT_TYPE_LOWER_CASE => contentType :: Nil
+      case CONTENT_TYPE_LOWER_CASE => contentType.toList
       case lowerCased => hs.collect { case h if h.is(lowerCased) => h.value }
     }
 
