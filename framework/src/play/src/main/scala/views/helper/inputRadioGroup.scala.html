@@ -17,7 +17,6 @@
  * @param handler The field constructor.
  *@
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.MessagesProvider)
-
 @input(field, args.map{ x => if(x._1 == '_label) '_name -> x._2 else x }:_*) { (id, name, value, htmlArgs) =>
   <span class="buttonset" id="@id">
     @options.map { v =>
