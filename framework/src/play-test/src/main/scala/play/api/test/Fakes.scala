@@ -31,7 +31,7 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  * @param request The original request that this `FakeRequest` wraps.
  * @tparam A the body content type.
  */
-class FakeRequest[A](request: Request[A]) extends Request[A] {
+class FakeRequest[+A](request: Request[A]) extends Request[A] {
   override def connection: RemoteConnection = request.connection
   override def method: String = request.method
   override def target: RequestTarget = request.target

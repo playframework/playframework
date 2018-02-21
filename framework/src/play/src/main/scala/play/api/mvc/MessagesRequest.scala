@@ -42,7 +42,7 @@ trait MessagesRequestHeader extends RequestHeader with MessagesProvider
  * @param messagesApi the injected messagesApi
  * @tparam A the body type of the request
  */
-class MessagesRequest[A](request: Request[A], val messagesApi: MessagesApi) extends WrappedRequest(request)
+class MessagesRequest[+A](request: Request[A], val messagesApi: MessagesApi) extends WrappedRequest(request)
   with PreferredMessagesProvider with MessagesRequestHeader
 
 /**
