@@ -73,6 +73,10 @@ And finally, we can use these in our WebSocket:
 
 Now in our actor, we will receive messages of type `InEvent`, and we can send messages of type `OutEvent`.
 
+You could also pass in request parameters to your WebSocket endpoint. This might be useful for cases where you want to apply some filtering on the stream of data that you get from the server. For example., your application might stream different types of events which are then identified by an EventID. You client could then pass in this EventID as a request parameter when it opens the WebSocket connection and in your WebSocket actor, you could filter all events that match the EventID.
+
+@[websocket-request-parameter](code/ScalaWebSockets.scala)
+
 ## Handling WebSockets with Akka streams directly
 
 Actors are not always the right abstraction for handling WebSockets, particularly if the WebSocket behaves more like a stream.
