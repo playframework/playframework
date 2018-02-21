@@ -3,7 +3,6 @@
  */
 package play.it.http
 
-import org.specs2.specification.core.Fragments
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
