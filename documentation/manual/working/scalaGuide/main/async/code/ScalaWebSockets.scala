@@ -367,6 +367,19 @@ object Samples {
   class Controller9 {
 
     //#websocket-request-parameter
+    import akka.actor._
+
+    class MyWebSocketActor(out: ActorRef) extends Actor {
+      def receive = {
+        case InEvent(foo) =>
+          out ! OutEvent(foo)
+      }
+    }
+
+    object MyWebSocketActor {
+      def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+    }
+    
     import play.api.mvc._
     import akka.stream.scaladsl._
 
