@@ -362,6 +362,24 @@ object Samples {
     }
     //#streams3
   }
+  
+  
+  class Controller9 {
+
+    //#websocket-request-parameter
+    import play.api.mvc._
+    import akka.stream.scaladsl._
+
+    def socket(eventId: Int) =  WebSocket.accept[String, String] { request =>
+      ActorFlow.actorRef { out =>
+          MyWebSocketActor.props(out)
+        }
+    }
+    
+    // Your routes file will have an endpoint to take this request parameter
+    // GET /your/application/socket your.controller.package.YourController(eventId: Int) 
+    //#websocket-request-parameter
+  }
 
 
 }
