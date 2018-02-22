@@ -269,7 +269,14 @@ object BuildSettings {
 
       // invokeWithContextOpt is unnecessary since JavaGlobalSettingsAdapter has been removed in Play 2.6
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.invokeWithContextOpt"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invokeWithContextOpt")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invokeWithContextOpt"),
+
+      // Remove BoneCP
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.BoneConnectionPool"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.BoneConnectionPool$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.BoneCPComponents"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.BoneCPModule"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.BoneCPComponents")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
