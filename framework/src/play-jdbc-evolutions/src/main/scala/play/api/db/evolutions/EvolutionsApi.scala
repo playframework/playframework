@@ -5,7 +5,7 @@ package play.api.db.evolutions
 
 import java.io.InputStream
 import java.io.File
-import java.nio.file.{ Files, Path, Paths }
+import java.net.URI
 import java.sql._
 import javax.inject.{ Inject, Singleton }
 
@@ -497,26 +497,26 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
   import DefaultEvolutionsApi._
 
   def loadResource(db: String, revision: Int): Option[InputStream] = {
-    @tailrec def findPaddedRevisionResource(paddedRevision: String, path: Option[Path]): Option[InputStream] = {
+    @tailrec def findPaddedRevisionResource(paddedRevision: String, uri: Option[URI]): Option[InputStream] = {
       if (paddedRevision.length > 15) {
-        path.map(p => Files.newInputStream(p)) // Revision string has reached max padding
+        uri.map(u => u.toURL().openStream()) // Revision string has reached max padding
       } else {
 
         val evolution = {
           // First try a file on the filesystem
           val filename = Evolutions.fileName(db, paddedRevision)
-          environment.getExistingFile(filename).map(_.toPath)
+          environment.getExistingFile(filename).map(_.toURI)
         } orElse {
           // If file was not found, try a resource on the classpath
           val resourceName = Evolutions.resourceName(db, paddedRevision)
-          environment.resource(resourceName).map(url => Paths.get(url.toURI))
+          environment.resource(resourceName).map(url => url.toURI)
         }
 
         for {
-          p <- path
+          u <- uri
           e <- evolution
-        } yield logger.warn(s"Ignoring evolution script ${e.toFile.getName}, using ${p.toFile.getName} instead already")
-        findPaddedRevisionResource("0" + paddedRevision, path.orElse(evolution))
+        } yield logger.warn(s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString.substring(u.toString.lastIndexOf('/') + 1)} instead already")
+        findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
       }
     }
     findPaddedRevisionResource(revision.toString, None)
