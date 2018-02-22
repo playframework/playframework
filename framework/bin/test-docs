@@ -10,6 +10,6 @@ printMessage "RUNNING DOCUMENTATION TESTS"
 runSbtNoisy test
 runSbtNoisy evaluateSbtFiles
 runSbt validateDocs
-runSbt checkHeaders test:checkHeaders
+runSbt headerCheck test:headerCheck
 
 printMessage "ALL DOCUMENTATION TESTS PASSED"
