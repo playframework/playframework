@@ -36,6 +36,17 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
       responses(0).headers.get("Authorization") must_== Some("invalid")
     }
 
+    "don't strip quotes from Link header" in withServer((Action, _) => Action { rh =>
+      // Test the header reported in https://github.com/playframework/playframework/issues/7733
+      Results.Ok.withHeaders("Link" -> """<http://example.com/some/url>; rel="next"""")
+    }) { port =>
+      val responses = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+      )
+      responses(0).headers.get("Link") must_== Some("""<http://example.com/some/url>; rel=next""")
+      //responses(0).headers.get("Link") must_== Some("""<http://example.com/some/url>; rel="next"""")
+    }
+
   }
 
 }
