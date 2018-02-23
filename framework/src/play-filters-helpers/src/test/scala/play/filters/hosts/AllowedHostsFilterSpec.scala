@@ -3,6 +3,7 @@
  */
 package play.filters.hosts
 
+import java.net.InetAddress
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
@@ -17,6 +18,7 @@ import play.api.mvc.{ DefaultActionBuilder, RequestHeader, Result }
 import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test.{ FakeRequest, PlaySpecification, TestServer }
 import play.api.{ Application, Configuration }
+import play.core.server.common.Subnet
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -178,14 +180,13 @@ class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
         wsResponse.body must_== s"localhost:$TestServerPort"
       }
 
-    type NetMask = Int
+    type CIDR = Int
     type IpAddress = String
-    type CIDR = (NetMask, Range, Range)
 
-    final case class ValidAddress(ipAddress: IpAddress, netMask: NetMask)
-    final case class InvalidAddress(ipAddress: IpAddress, netMask: NetMask)
+    final case class ValidAddress(ipAddress: IpAddress, cidr: CIDR)
+    final case class InvalidAddress(ipAddress: IpAddress, cidr: CIDR)
 
-    val all: Map[NetMask, (Range, Range)] = Map(
+    val all: Map[CIDR, (Range, Range)] = Map(
       32 -> (0 to 0, 0 to 0),
       31 -> (0 to 0, 0 until 2),
       30 -> (0 to 0, 0 until 4),
@@ -205,26 +206,33 @@ class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
       16 -> (0 until 256, 0 until 256)
     )
 
-    def genNetMask: Gen[NetMask] = Gen.choose(16, 32)
-    def genIpRanges(netMask: NetMask): Gen[(Range, Range)] = Gen.const(all(netMask))
+    def genCIDR: Gen[CIDR] = Gen.choose(16, 32)
+    def genIpRanges(cidr: CIDR): Gen[(Range, Range)] = Gen.const(all(cidr))
 
     def genValidAddress: Gen[ValidAddress] =
       for {
-        netmask <- genNetMask
-        (as, bs) <- genIpRanges(netmask)
+        cidr <- genCIDR
+        (as, bs) <- genIpRanges(cidr)
         a <- Gen.choose(as.min, as.max)
         b <- Gen.choose(bs.min, bs.max)
-      } yield ValidAddress(s"10.0.$a.$b", netmask)
+      } yield ValidAddress(s"10.0.$a.$b", cidr)
 
     implicit val arbValidAddress: Arbitrary[ValidAddress] = Arbitrary(genValidAddress)
 
-    def genInvalidAddress: Gen[InvalidAddress] =
-      for {
-        netmask <- genNetMask
-        (as, bs) <- genIpRanges(netmask)
-        a <- Gen.choose(0, 255).filter(!as.contains(_))
-        b <- Gen.choose(0, 255).filter(!bs.contains(_))
-      } yield InvalidAddress(s"10.0.$a.$b", netmask)
+    def genInvalidAddress: Gen[InvalidAddress] = {
+      val addGen = for {
+        cidr <- genCIDR
+        (as, bs) <- genIpRanges(cidr)
+        a <- Gen.choose(0, 255)
+        b <- Gen.choose(0, 255)
+        c <- Gen.choose(0, 255)
+      } yield InvalidAddress(s"10.$a.$b.$c", cidr)
+
+      addGen.filter {
+        case InvalidAddress(ipAddress, cidr) =>
+          !Subnet(s"10.0.0.0/$cidr").isInRange(InetAddress.getByName(ipAddress))
+      }
+    }
 
     implicit val arbInvalidAddress: Arbitrary[InvalidAddress] = Arbitrary(genInvalidAddress)
 
@@ -232,7 +240,7 @@ class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
       withApplication(
         okWithHost,
         s"""
-           |play.filters.hosts.allowed = ["10.0.0.0/${address.netMask}"]
+           |play.filters.hosts.allowed = ["10.0.0.0/${address.cidr}"]
       """.stripMargin) { app =>
           status(request(app, address.ipAddress)) must_== OK
         }
@@ -242,7 +250,7 @@ class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
       withApplication(
         okWithHost,
         s"""
-           |play.filters.hosts.allowed = ["10.0.0.0/${address.netMask}"]
+           |play.filters.hosts.allowed = ["10.0.0.0/${address.cidr}"]
       """.stripMargin) { app =>
           status(request(app, address.ipAddress)) must_== BAD_REQUEST
         }
