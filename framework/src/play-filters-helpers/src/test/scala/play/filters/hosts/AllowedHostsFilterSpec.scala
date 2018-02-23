@@ -222,7 +222,6 @@ class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
     def genInvalidAddress: Gen[InvalidAddress] = {
       val addGen = for {
         cidr <- genCIDR
-        (as, bs) <- genIpRanges(cidr)
         a <- Gen.choose(0, 255)
         b <- Gen.choose(0, 255)
         c <- Gen.choose(0, 255)
