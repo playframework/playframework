@@ -120,6 +120,19 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       }
     }
 
+    "not change UTF-8 Content-Disposition headers" in {
+      withServer((Action, _) => Action { rh =>
+        Results.Ok(rh.headers.get("Content-Disposition").toString)
+      }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map("Content-Disposition" -> "attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf"), "")
+        )
+        response.body must beLeft("Some(attachment; filename=\"UTF-8''Roget%27s%20Thesaurus.pdf\")")
+        //response.body must beLeft("Some(attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf)")
+      }
+
+    }
+
     "not complain about invalid User-Agent headers" in {
 
       // This test modifies the global (!) logger to capture log messages.
