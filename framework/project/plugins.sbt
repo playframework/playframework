@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 
 enablePlugins(BuildInfoPlugin)
 
@@ -12,7 +12,7 @@ val Versions = new {
   val sbtJmh = "0.2.27"
   val sbtDoge = "0.1.5"
   val webjarsLocatorCore = "0.33"
-  val sbtHeader = "1.8.0"
+  val sbtHeader = "5.0.0"
   val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.3.12")
   val interplay: String = sys.props.getOrElse("interplay.version", "1.3.15")
 }
