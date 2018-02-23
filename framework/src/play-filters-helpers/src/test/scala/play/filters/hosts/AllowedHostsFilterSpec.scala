@@ -225,12 +225,11 @@ class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
         a <- Gen.choose(0, 255)
         b <- Gen.choose(0, 255)
         c <- Gen.choose(0, 255)
-      } yield InvalidAddress(s"10.$a.$b.$c", cidr)
+      } yield s"10.$a.$b.$c" -> cidr
 
-      addGen.filter {
-        case InvalidAddress(ipAddress, cidr) =>
-          !Subnet(s"10.0.0.0/$cidr").isInRange(InetAddress.getByName(ipAddress))
-      }
+      addGen
+        .filter { case ((ipAddress, cidr)) => !Subnet(s"10.0.0.0/$cidr").isInRange(InetAddress.getByName(ipAddress)) }
+        .map { case ((ipAddress, cidr)) => InvalidAddress(ipAddress, cidr) }
     }
 
     implicit val arbInvalidAddress: Arbitrary[InvalidAddress] = Arbitrary(genInvalidAddress)
