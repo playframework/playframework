@@ -1,4 +1,5 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+
 # Play Tutorials
 
 Play's documentation shows the available features and how to use them, but the documentation will not show how to create an application from start to finish.  This is where tutorials and examples come in.
@@ -20,17 +21,15 @@ If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can cre
 
 > **Note**: If running Windows, you may need to run sbt using `sbt.bat` instead of `sbt`. This documentation assumes the command is `sbt`.
 
-Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form.
-
 #### Java
 
-```
+```bash
 sbt new playframework/play-java-seed.g8
 ```
 
 #### Scala
 
-```
+```bash
 sbt new playframework/play-scala-seed.g8
 ```
 
