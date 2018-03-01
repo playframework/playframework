@@ -105,7 +105,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
 class Module extends AbstractModule {
-  def configure() = {
+  override def configure() = {
 
     bind(classOf[Hello])
       .annotatedWith(Names.named("en"))
@@ -131,7 +131,7 @@ import play.api.{ Configuration, Environment }
 class Module(
   environment: Environment,
   configuration: Configuration) extends AbstractModule {
-  def configure() = {
+  override def configure() = {
     // Expect configuration like:
     // hello.en = "myapp.EnglishHello"
     // hello.de = "myapp.GermanHello"
