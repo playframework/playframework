@@ -37,25 +37,6 @@ To add only the API, add `cacheApi` to your dependencies list.
 
 The API dependency is useful if you'd like to define your own bindings for the `Cached` helper and `AsyncCacheApi`, etc., without having to depend on any specific cache implementation. If you're writing a custom cache module you should use this.
 
-## JCache Support
-
-We do not recommend using JCache in your own code, but it may be useful for integration with other libraries. Both Caffeine and Ehcache provide JCache implementations.
-
-Play does not bind `javax.caching.CacheManager` by default. To bind `javax.caching.CacheManager` to the default provider, add the following to your dependencies list:
-
-@[jcache-sbt-dependencies](code/cache.sbt)
-
-If you are using Guice, you can add the following for Java annotations:
-
-@[jcache-guice-annotation-sbt-dependencies](code/cache.sbt)
-
-### JCache support with Caffeine
-
-Caffeine Cache does not natively implement the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache. If you want to use JCache with Caffeine you can use [caffeine-jcache](https://github.com/ben-manes/caffeine/wiki/JCache) dependency.
-
-### JCache support with EhCache
-Ehcache module already supports the [JSR 107](https://github.com/jsr107/jsr107spec) specification, also known as JCache, by using a wrapper, so there is no additional dependencies needed.
-
 ## Accessing the Cache API
 
 The cache API is defined by the [AsyncCacheApi](api/scala/play/api/cache/AsyncCacheApi.html) and [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) traits, depending on whether you want an asynchronous or synchronous implementation, and can be injected into your component like any other dependency.  For example:
