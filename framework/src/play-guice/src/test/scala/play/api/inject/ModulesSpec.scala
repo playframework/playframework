@@ -60,17 +60,17 @@ class ModulesSpec extends Specification {
 }
 
 class PlainGuiceModule extends AbstractModule {
-  def configure(): Unit = ()
+  override def configure(): Unit = ()
 }
 
 class ScalaGuiceModule(
     val environment: Environment,
     val configuration: Configuration) extends AbstractModule {
-  def configure(): Unit = ()
+  override def configure(): Unit = ()
 }
 
 class JavaGuiceConfigModule(
     val environment: JavaEnvironment,
     val config: Config) extends AbstractModule {
-  def configure(): Unit = ()
+  override def configure(): Unit = ()
 }
