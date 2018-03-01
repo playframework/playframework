@@ -3,12 +3,12 @@
  */
 package play.test;
 
-import com.google.common.base.Function;
 import org.fluentlenium.adapter.FluentAdapter;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).

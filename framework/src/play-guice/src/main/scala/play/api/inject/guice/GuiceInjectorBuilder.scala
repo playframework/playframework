@@ -343,7 +343,7 @@ trait GuiceableModuleConversions {
    */
   def guice(bindings: Seq[PlayBinding[_]], binderOptions: Set[BinderOption]): GuiceModule = {
     new com.google.inject.AbstractModule {
-      def configure(): Unit = {
+      override def configure(): Unit = {
         binderOptions.foreach(_(binder))
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]
