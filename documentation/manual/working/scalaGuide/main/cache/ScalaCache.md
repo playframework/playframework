@@ -7,7 +7,7 @@ Caching data is a typical optimization in modern applications, and so Play provi
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime.
 
-Play provides a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/) and a legacy implementation based on [Ehcache 2.x](http://www.ehcache.org). For in-process caching Caffeine is typically the best choice. If you need distributed caching, there are third-party plugins for memcached and redis.
+Play provides a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/) and a legacy implementation based on [Ehcache 2.x](http://www.ehcache.org). For in-process caching Caffeine is typically the best choice. If you need distributed caching, there are third-party plugins for [memcached](https://github.com/mumoshu/play2-memcached) and [redis](https://github.com/KarelCemus/play-redis).
 
 ## Importing the Cache API
 
