@@ -3,7 +3,7 @@
 
 Caching data is a typical optimization in modern applications, and so Play provides a global cache.
 
-> An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
+**Note:** An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime.
 
@@ -35,7 +35,7 @@ To add only the API, add `cacheApi` to your dependencies list.
 
 @[cache-sbt-dependencies](code/cache.sbt)
 
-The API dependency is useful if you'd like to define your own bindings for the `Cached` helper and `AsyncCacheApi`, etc., without having to depend on any specific cache implementation. If you're writing a custom cache module you should use this.
+The API dependency is useful if you'd like to define your own bindings for the [`Cached`](api/scala/play/api/cache/Cached.html) helper and [`AsyncCacheApi`](api/scala/play/api/cache/AsyncCacheApi.html), etc., without having to depend on any specific cache implementation. If you're writing a custom cache module you should use this.
 
 ## Accessing the Cache API
 
