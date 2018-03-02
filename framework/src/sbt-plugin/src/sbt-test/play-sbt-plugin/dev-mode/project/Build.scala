@@ -29,7 +29,7 @@ object DevModeBuild {
   val ReadTimeout = 10000
 
   @tailrec
-  def verifyResourceContains(path: String, status: Int, assertions: Seq[String], attempts: Int): Unit = {
+  def verifyResourceContains(path: String, status: Int, assertions: Seq[String], attempts: Int, headers: (String, String)*): Unit = {
     println(s"Attempt $attempts at $path")
     val messages = ListBuffer.empty[String]
     try {
@@ -37,6 +37,8 @@ object DevModeBuild {
       val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
       conn.setConnectTimeout(ConnectTimeout)
       conn.setReadTimeout(ReadTimeout)
+
+      headers.foreach(h => conn.setRequestProperty(h._1, h._2))
 
       if (status == conn.getResponseCode) {
         messages += s"Resource at $path returned $status as expected"
@@ -72,7 +74,7 @@ object DevModeBuild {
         println(s"Got exception: $e")
         if (attempts < MaxAttempts) {
           Thread.sleep(WaitTime)
-          verifyResourceContains(path, status, assertions, attempts + 1)
+          verifyResourceContains(path, status, assertions, attempts + 1, headers: _*)
         } else {
           messages.foreach(println)
           println(s"After $attempts attempts:")

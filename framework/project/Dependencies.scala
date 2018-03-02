@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.8"
+  val akkaVersion = "2.5.11"
   val akkaHttpVersion = "10.0.11"
   val playJsonVersion = "2.6.8"
 
@@ -25,7 +25,7 @@ object Dependencies {
 
   val specsSbt = specsBuild
 
-  val jacksonVersion = "2.9.1"
+  val jacksonVersion = "2.9.4"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
@@ -50,13 +50,13 @@ object Dependencies {
   val acolyteVersion = "1.0.46"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.6"
+  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.7.4",
+    "com.zaxxer" % "HikariCP" % "2.7.8",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -153,7 +153,7 @@ object Dependencies {
     specsBuild.map(_ % Test) ++
     javaTestDeps
 
-  val nettyVersion = "4.1.19.Final"
+  val nettyVersion = "4.1.22.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -270,7 +270,8 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
   
-  val playWsStandaloneVersion = "1.1.3"
+  val playWsStandaloneVersion = "1.1.5"
+
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,

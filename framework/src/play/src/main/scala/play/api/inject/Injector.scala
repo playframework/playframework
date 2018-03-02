@@ -53,7 +53,7 @@ object NewInstanceInjector extends Injector {
   /**
    * Get an instance of the given class from the injector.
    */
-  def instanceOf[T](clazz: Class[T]) = clazz.newInstance()
+  def instanceOf[T](clazz: Class[T]) = clazz.getDeclaredConstructor().newInstance()
 
   /**
    * Get an instance bound to the given binding key.

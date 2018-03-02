@@ -81,16 +81,15 @@ class AkkaHttpServer(
     val initialSettings = ServerSettings(initialConfig)
 
     val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
-    val requestTimeoutOption = akkaServerConfig.getOptional[Duration]("requestTimeout")
+    val requestTimeout = akkaServerConfig.get[Duration]("requestTimeout")
 
     // all akka settings that are applied to the server needs to be set here
-    val serverSettings: ServerSettings = initialSettings.withTimeouts {
-      val timeouts = initialSettings.timeouts.withIdleTimeout(idleTimeout)
-      requestTimeoutOption match {
-        case Some(requestTimeout) => timeouts.withRequestTimeout(requestTimeout)
-        case None => timeouts
-      }
-    }
+    val serverSettings: ServerSettings = initialSettings
+      .withTimeouts(
+        initialSettings.timeouts
+          .withIdleTimeout(idleTimeout)
+          .withRequestTimeout(requestTimeout)
+      )
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
@@ -178,21 +177,22 @@ class AkkaHttpServer(
     }
   }
 
-  private def resultUtils: ServerResultUtils =
-    reloadCache.cachedFrom(applicationProvider.get).resultUtils
-  private def modelConversion: AkkaModelConversion =
-    reloadCache.cachedFrom(applicationProvider.get).modelConversion
+  private def resultUtils(tryApp: Try[Application]): ServerResultUtils =
+    reloadCache.cachedFrom(tryApp).resultUtils
+  private def modelConversion(tryApp: Try[Application]): AkkaModelConversion =
+    reloadCache.cachedFrom(tryApp).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
     val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
     val decodedRequest = HttpRequestDecoder.decodeRequest(request)
     val requestId = requestIDs.incrementAndGet()
-    val (convertedRequestHeader, requestBodySource) = modelConversion.convertRequest(
+    val tryApp = applicationProvider.get
+    val (convertedRequestHeader, requestBodySource) = modelConversion(tryApp).convertRequest(
       requestId = requestId,
       remoteAddress = remoteAddress,
       secureProtocol = secure,
       request = decodedRequest)
-    val (taggedRequestHeader, handler, newTryApp) = getHandler(convertedRequestHeader)
+    val (taggedRequestHeader, handler, newTryApp) = getHandler(convertedRequestHeader, tryApp)
     val responseFuture = executeHandler(
       newTryApp,
       decodedRequest,
@@ -211,8 +211,10 @@ class AkkaHttpServer(
     }
   }
 
-  private def getHandler(requestHeader: RequestHeader): (RequestHeader, Handler, Try[Application]) = {
-    getHandlerFor(requestHeader) match {
+  private def getHandler(
+    requestHeader: RequestHeader, tryApp: Try[Application]
+  ): (RequestHeader, Handler, Try[Application]) = {
+    Server.getHandlerFor(requestHeader, tryApp) match {
       case Left(futureResult) =>
         (
           requestHeader,
@@ -252,13 +254,13 @@ class AkkaHttpServer(
     (handler, upgradeToWebSocket) match {
       //execute normal action
       case (action: EssentialAction, _) =>
-        runAction(request, taggedRequestHeader, requestBodySource, action, errorHandler)
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>
         val bufferLimit = config.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
 
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
-            modelConversion.convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
+            modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
             Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
         }
@@ -277,10 +279,13 @@ class AkkaHttpServer(
     taggedRequestHeader: RequestHeader,
     requestBodySource: Either[ByteString, Source[ByteString, _]],
     action: EssentialAction,
-    errorHandler: HttpErrorHandler): Future[HttpResponse] =
-    runAction(request, taggedRequestHeader, requestBodySource, action, errorHandler)(actorSystem.dispatcher)
+    errorHandler: HttpErrorHandler): Future[HttpResponse] = {
+    runAction(applicationProvider.get, request, taggedRequestHeader, requestBodySource,
+      action, errorHandler)(actorSystem.dispatcher)
+  }
 
   private[play] def runAction(
+    tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
     requestBodySource: Either[ByteString, Source[ByteString, _]],
@@ -311,8 +316,8 @@ class AkkaHttpServer(
         errorHandler.onServerError(taggedRequestHeader, e)
     }
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
-      val cleanedResult: Result = resultUtils.prepareCookies(taggedRequestHeader, result)
-      modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
+      val cleanedResult: Result = resultUtils(tryApp).prepareCookies(taggedRequestHeader, result)
+      modelConversion(tryApp).convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
     }
     responseFuture
   }

@@ -13,7 +13,6 @@
  * @param body The form body.
  *@
 @(action: play.api.mvc.Call, args: (Symbol,String)*)(body: => Html) 
-
 <form action="@action.path" method="@action.method" @toHtmlArgs(args.toMap)>
     @body
 </form>

@@ -100,7 +100,9 @@ import AkkaDependency._
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
-    .addAkkaModuleDependency("akka-http-core")
+    .settings(
+      libraryDependencies ++= specsBuild.map(_ % "test")
+    ).addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
     .dependsOn(PlayAkkaHttpServerProject)
@@ -245,6 +247,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty,
       fork in Test := true,
+      javaOptions in Test += "-Dfile.encoding=UTF8",
       javaAgents += jettyAlpnAgent % "test"
     )
     .dependsOn(
@@ -403,8 +406,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
       mimaReportBinaryIssues := (),
-      commands += Commands.quickPublish,
-      whitesourceAggregateProjectName := "playframework-master",
-      whitesourceAggregateProjectToken := "f21388d8-a520-4d3a-afbd-b5cadcea0a6d"
+      commands += Commands.quickPublish
     ).settings(Release.settings: _*)
     .aggregate(publishedProjects: _*)

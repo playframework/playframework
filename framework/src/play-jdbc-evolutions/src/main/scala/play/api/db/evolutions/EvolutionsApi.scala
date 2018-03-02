@@ -4,6 +4,8 @@
 package play.api.db.evolutions
 
 import java.io.InputStream
+import java.io.File
+import java.net.URI
 import java.sql._
 import javax.inject.{ Inject, Singleton }
 
@@ -12,6 +14,7 @@ import play.api.libs.Collections
 import play.api.{ Environment, Logger, PlayException }
 import play.utils.PlayIO
 
+import scala.annotation.tailrec
 import scala.io.Codec
 import scala.util.control.NonFatal
 
@@ -71,7 +74,7 @@ trait EvolutionsApi {
   /**
    * Apply pending evolutions for the given database.
    */
-  def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
+  def applyFor(dbName: String, path: File = new File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
     val scripts = this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema)
     this.evolve(dbName, scripts, autocommit, schema)
   }
@@ -491,10 +494,32 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 @Singleton
 class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
 
-  def loadResource(db: String, revision: Int) = {
-    environment.getExistingFile(Evolutions.fileName(db, revision)).map(f => java.nio.file.Files.newInputStream(f.toPath)).orElse {
-      environment.resourceAsStream(Evolutions.resourceName(db, revision))
+  import DefaultEvolutionsApi._
+
+  def loadResource(db: String, revision: Int): Option[InputStream] = {
+    @tailrec def findPaddedRevisionResource(paddedRevision: String, uri: Option[URI]): Option[InputStream] = {
+      if (paddedRevision.length > 15) {
+        uri.map(u => u.toURL().openStream()) // Revision string has reached max padding
+      } else {
+
+        val evolution = {
+          // First try a file on the filesystem
+          val filename = Evolutions.fileName(db, paddedRevision)
+          environment.getExistingFile(filename).map(_.toURI)
+        } orElse {
+          // If file was not found, try a resource on the classpath
+          val resourceName = Evolutions.resourceName(db, paddedRevision)
+          environment.resource(resourceName).map(url => url.toURI)
+        }
+
+        for {
+          u <- uri
+          e <- evolution
+        } yield logger.warn(s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString.substring(u.toString.lastIndexOf('/') + 1)} instead already")
+        findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
+      }
     }
+    findPaddedRevisionResource(revision.toString, None)
   }
 }
 

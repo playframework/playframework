@@ -233,7 +233,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     }
     val docServerStart = constructor.newInstance()
     val server: ReloadableServer = startMethod.invoke(docServerStart, manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
-      new java.lang.Integer(port)).asInstanceOf[ReloadableServer]
+      java.lang.Integer.valueOf(port)).asInstanceOf[ReloadableServer]
 
     println()
     println(Colors.green("Documentation server started, you can now view the docs by going to http://" + server.mainAddress()))

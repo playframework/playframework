@@ -36,6 +36,9 @@ package controllers {
   import play.api.http._
   import play.api.inject.{ ApplicationLifecycle, Module }
 
+  import scala.annotation.tailrec
+  import scala.util.matching.Regex
+
   object Execution extends TrampolineContextProvider
 
   class AssetsModule extends Module {
@@ -849,18 +852,43 @@ package controllers {
      */
     private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
       val decodedFile = UriEncoding.decodePath(file, "utf-8")
-      def dblSlashRemover(input: String): String = dblSlashPattern.replaceAllIn(input, "/")
-      val resourceName = dblSlashRemover(s"/$path/$decodedFile")
-      val resourceFile = new File(resourceName)
-      val pathFile = new File(path)
-      if (!resourceFile.getCanonicalPath.startsWith(pathFile.getCanonicalPath)) {
+      val resourceName = removeExtraSlashes(s"/$path/$decodedFile")
+      if (!fileLikeCanonicalPath(resourceName).startsWith(fileLikeCanonicalPath(path))) {
         None
       } else {
         Some(resourceName)
       }
     }
 
-    private val dblSlashPattern = """//+""".r
+    /**
+     * Like File.getCanonicalPath, but works across platforms. Using File.getCanonicalPath caused inconsistent
+     * behavior when tested on Windows.
+     */
+    private def fileLikeCanonicalPath(path: String): String = {
+      @tailrec
+      def normalizePathSegments(accumulated: Seq[String], remaining: List[String]): Seq[String] = {
+        remaining match {
+          case Nil => // Return the accumulated result
+            accumulated
+          case "." :: rest => // Ignore '.' path segments
+            normalizePathSegments(accumulated, rest)
+          case ".." :: rest => // Remove last segment (if possible) when '..' is encountered
+            val newAccumulated = if (accumulated.isEmpty) Seq("..") else accumulated.dropRight(1)
+            normalizePathSegments(newAccumulated, rest)
+          case segment :: rest => // Append new segment
+            normalizePathSegments(accumulated :+ segment, rest)
+        }
+      }
+      val splitPath: List[String] = path.split('/').toList
+      val splitNormalized: Seq[String] = normalizePathSegments(Vector.empty, splitPath)
+      splitNormalized.mkString("/")
+    }
+    /** Cache this compiled regular expression. */
+    private val extraSlashPattern: Regex = """//+""".r
+
+    /** Remove extra slashes in a string, e.g. "/x///y/" becomes "/x/y/". */
+    private def removeExtraSlashes(input: String): String = extraSlashPattern.replaceAllIn(input, "/")
+
   }
 
 }

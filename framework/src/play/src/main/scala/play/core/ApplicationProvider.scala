@@ -31,6 +31,8 @@ trait ApplicationProvider {
 
   /**
    * Get the application. In dev mode this lazily loads the application.
+   *
+   * NOTE: This should be called once per request. Calling multiple times may result in multiple compilations.
    */
   def get: Try[Application]
 

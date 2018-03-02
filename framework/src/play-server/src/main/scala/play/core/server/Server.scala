@@ -18,6 +18,7 @@ import play.{ ApplicationLoader => JApplicationLoader, BuiltInComponents => JBui
 
 import scala.concurrent.Future
 import scala.language.postfixOps
+import scala.util.Try
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -40,24 +41,13 @@ trait Server extends ReloadableServer {
    * - If we fail to get the `Application` from the `applicationProvider`,
    *   i.e. if there's an error loading the application.
    * - If an exception is thrown.
+   *
+   * NOTE: This will use the ApplicationProvider of the server to get the application instance.
+   *       Use {@code Server.getHandlerFor(request, tryApp)} to pass a specific application instance
    */
-  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
-    try {
-      // Get the Application from the provider.
-      val application = applicationProvider.get.get
-      // We managed to get an Application, now make a fresh request
-      // using the Application's RequestFactory, then use the Application's
-      // logic to handle that request.
-      val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
-      val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
-      Right((handlerHeader, handler, application))
-    } catch {
-      case e: ThreadDeath => throw e
-      case e: VirtualMachineError => throw e
-      case e: Throwable =>
-        Left(DefaultHttpErrorHandler.onServerError(request, e))
-    }
-  }
+  @deprecated("Use Server.getHandlerFor(request, tryApp) instead", "2.7.0")
+  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] =
+    Server.getHandlerFor(request, applicationProvider.get)
 
   def applicationProvider: ApplicationProvider
 
@@ -93,6 +83,37 @@ trait Server extends ReloadableServer {
  * Utilities for creating a server that runs around a block of code.
  */
 object Server {
+
+  /**
+   * Try to get the handler for a request and return it as a `Right`. If we
+   * can't get the handler for some reason then return a result immediately
+   * as a `Left`. Reasons to return a `Left` value:
+   *
+   * - If there's a "web command" installed that intercepts the request.
+   * - If we fail to get the `Application` from the `applicationProvider`,
+   *   i.e. if there's an error loading the application.
+   * - If an exception is thrown.
+   */
+  def getHandlerFor(
+    request: RequestHeader,
+    tryApp: Try[Application]
+  ): Either[Future[Result], (RequestHeader, Handler, Application)] = {
+    try {
+      // Get the Application from the try.
+      val application = tryApp.get
+      // We managed to get an Application, now make a fresh request
+      // using the Application's RequestFactory, then use the Application's
+      // logic to handle that request.
+      val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+      val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+      Right((handlerHeader, handler, application))
+    } catch {
+      case e: ThreadDeath => throw e
+      case e: VirtualMachineError => throw e
+      case e: Throwable =>
+        Left(DefaultHttpErrorHandler.onServerError(request, e))
+    }
+  }
 
   /**
    * Run a block of code with a server for the given application.

@@ -82,7 +82,7 @@ class BindersSpec extends Specification {
       |failed to parse q: failed: knew
       |failed to parse q: failed: a
       |failed to parse q: failed: man
-      |failed to parse q: failed: from""".stripMargin
+      |failed to parse q: failed: from""".stripMargin.replaceAll(System.lineSeparator, "\n") // Windows compatibility
 
       brokenSeqBinder.bind("q", params) must equalTo(Some(Left(err)))
     }

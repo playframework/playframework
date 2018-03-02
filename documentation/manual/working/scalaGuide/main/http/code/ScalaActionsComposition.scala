@@ -168,6 +168,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
     "allow blocking the request" in {
       //#block-request
       import play.api.mvc._
+      //###insert: import play.api.mvc.Results._
 
       def onlyHttps[A](action: Action[A]) = Action.async(action.parser) { request =>
         request.headers.get("X-Forwarded-Proto").collect {

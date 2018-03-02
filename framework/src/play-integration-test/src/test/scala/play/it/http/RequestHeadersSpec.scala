@@ -11,35 +11,36 @@ import play.core.server.ServerConfig
 import play.it._
 
 class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
+
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification
 
 trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification with HttpHeadersCommonSpec {
 
   sequential
 
+  def withServerAndConfig[T](configuration: (String, Any)*)(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+    val port = testServerPort
+
+    val serverConfig: ServerConfig = {
+      val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
+      c.copy(configuration = c.configuration ++ Configuration(configuration: _*))
+    }
+    running(play.api.test.TestServer(serverConfig, GuiceApplicationBuilder().appRoutes { app =>
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
+      val parse = app.injector.instanceOf[PlayBodyParsers]
+      ({
+        case _ => action(Action, parse)
+      })
+    }.build(), Some(integrationServerProvider))) {
+      block(port)
+    }
+  }
+
+  def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+    withServerAndConfig()(action)(block)
+  }
+
   "Play request header handling" should {
-
-    def withServerAndConfig[T](configuration: (String, Any)*)(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      val port = testServerPort
-
-      val serverConfig: ServerConfig = {
-        val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
-        c.copy(configuration = c.configuration ++ Configuration(configuration: _*))
-      }
-      running(play.api.test.TestServer(serverConfig, GuiceApplicationBuilder().appRoutes { app =>
-        val Action = app.injector.instanceOf[DefaultActionBuilder]
-        val parse = app.injector.instanceOf[PlayBodyParsers]
-        ({
-          case _ => action(Action, parse)
-        })
-      }.build(), Some(integrationServerProvider))) {
-        block(port)
-      }
-    }
-
-    def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      withServerAndConfig()(action)(block)
-    }
 
     "get request headers properly" in withServer((Action, _) => Action { rh =>
       Results.Ok(rh.headers.getAll("Origin").mkString(","))
@@ -66,6 +67,17 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
         BasicRequest("GET", "/", "HTTP/1.1", Map("origin" -> "http://foo"), "")
       )
       response.body.left.toOption must beSome("https://bar.com")
+    }
+
+    "not expose a content-type when there's no body" in withServer((Action, _) => Action { rh =>
+      // the body is a String representation of `get("Content-Type")`
+      Results.Ok(rh.headers.get("Content-Type").getOrElse("no-header"))
+    }) { port =>
+      val Seq(response) = BasicHttpClient.makeRequests(port)(
+        // an empty body implies no parsing is used and no content type is derived from the body.
+        BasicRequest("GET", "/", "HTTP/1.1", Map.empty, "")
+      )
+      response.body.left.toOption must beSome("no-header")
     }
 
     "pass common tests for headers" in withServer((Action, _) => Action { rh =>

@@ -58,7 +58,7 @@ class WriteableSpec extends Specification {
           Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType)
         )
 
-        writeable.contentType must beSome.which(_.startsWith("multipart/form-data; boundary="))
+        writeable.contentType must beSome(startWith("multipart/form-data; boundary="))
       }
     }
   }

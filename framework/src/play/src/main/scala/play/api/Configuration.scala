@@ -556,7 +556,7 @@ case class Configuration(underlying: Config) {
    * Authorized values are `yes`/`no` or `true`/`false`.
    */
   @deprecated("Use get[Seq[Boolean]] with reference config entry", "2.6.0")
-  def getBooleanSeq(path: String): Option[Seq[java.lang.Boolean]] = getOptional[Seq[Boolean]](path).map(_.map(new java.lang.Boolean(_)))
+  def getBooleanSeq(path: String): Option[Seq[java.lang.Boolean]] = getOptional[Seq[Boolean]](path).map(_.map(java.lang.Boolean.valueOf))
 
   /**
    * Retrieves a configuration value as a List of `Bytes`.
@@ -656,7 +656,7 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   @deprecated("Use get[Seq[Double]] with reference config entry", "2.6.0")
-  def getDoubleSeq(path: String): Option[Seq[java.lang.Double]] = getOptional[Seq[Double]](path).map(_.map(new java.lang.Double(_)))
+  def getDoubleSeq(path: String): Option[Seq[java.lang.Double]] = getOptional[Seq[Double]](path).map(_.map(java.lang.Double.valueOf))
 
   /**
    * Retrieves a configuration value as a List of `Integer`.
@@ -692,7 +692,7 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   @deprecated("Use get[Seq[Int]] with reference config entry", "2.6.0")
-  def getIntSeq(path: String): Option[Seq[java.lang.Integer]] = getOptional[Seq[Int]](path).map(_.map(new java.lang.Integer(_)))
+  def getIntSeq(path: String): Option[Seq[java.lang.Integer]] = getOptional[Seq[Int]](path).map(_.map(java.lang.Integer.valueOf))
 
   /**
    * Gets a list value (with any element type) as a ConfigList, which implements java.util.List<ConfigValue>.
@@ -747,7 +747,7 @@ case class Configuration(underlying: Config) {
    */
   @deprecated("Use get[Seq[Long]] with reference config entry", "2.6.0")
   def getLongSeq(path: String): Option[Seq[java.lang.Long]] =
-    getOptional[Seq[Long]](path).map(_.map(new java.lang.Long(_)))
+    getOptional[Seq[Long]](path).map(_.map(java.lang.Long.valueOf))
 
   /**
    * Retrieves a configuration value as List of `Milliseconds`.
@@ -785,7 +785,7 @@ case class Configuration(underlying: Config) {
    */
   @deprecated("Use get[Seq[Duration]].map(_.toMillis) with reference config entry", "2.6.0")
   def getMillisecondsSeq(path: String): Option[Seq[java.lang.Long]] =
-    getOptional[Seq[Duration]](path).map(_.map(duration => new java.lang.Long(duration.toMillis)))
+    getOptional[Seq[Duration]](path).map(_.map(duration => java.lang.Long.valueOf(duration.toMillis)))
 
   /**
    * Retrieves a configuration value as List of `Nanoseconds`.
@@ -823,7 +823,7 @@ case class Configuration(underlying: Config) {
    */
   @deprecated("Use get[Seq[Duration]].map(_.toMillis) with reference config entry", "2.6.0")
   def getNanosecondsSeq(path: String): Option[Seq[java.lang.Long]] =
-    getOptional[Seq[Duration]](path).map(_.map(duration => new java.lang.Long(duration.toNanos)))
+    getOptional[Seq[Duration]](path).map(_.map(duration => java.lang.Long.valueOf(duration.toNanos)))
 
   /**
    * Retrieves a configuration value as a List of `Number`.
