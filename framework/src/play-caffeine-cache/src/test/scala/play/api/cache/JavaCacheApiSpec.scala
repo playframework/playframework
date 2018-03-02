@@ -95,7 +95,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
       cacheApi.set("foo", "bar", 1 /* second */ )
 
-      after2sec { cacheApi.get[String]("foo") must beNull }
+      cacheApi.get[String]("foo") must beNull.eventually(3, 2.seconds)
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]

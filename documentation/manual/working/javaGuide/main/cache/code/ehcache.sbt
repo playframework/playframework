@@ -8,8 +8,8 @@ libraryDependencies ++= Seq(
 )
 //#cache-sbt-dependencies
 
-//#caffeine-sbt-dependencies
+//#ehcache-sbt-dependencies
 libraryDependencies ++= Seq(
-  caffeine
+  ehcache
 )
-//#caffeine-sbt-dependencies
+//#ehcache-sbt-dependencies

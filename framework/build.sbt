@@ -221,9 +221,9 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
     parallelExecution in Test := false,
     // quieten deprecation warnings in tests
     scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
-  ).dependsOn(PlayWsProject, PlayEhcacheProject % "test")
-  .dependsOn(PlaySpecs2Project % "test")
-  .dependsOn(PlayTestProject % "test->test")
+  ).dependsOn(PlayWsProject, PlayCaffeineCacheProject % "test")
+    .dependsOn(PlaySpecs2Project % "test")
+    .dependsOn(PlayTestProject % "test->test")
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
   .settings(
@@ -317,9 +317,21 @@ lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
       PlaySpecs2Project % "test"
     )
 
+
 lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcache")
     .settings(
       libraryDependencies ++= playEhcacheDeps
+    )
+    .dependsOn(
+      PlayProject,
+      PlayCacheProject,
+      PlaySpecs2Project % "test"
+    )
+
+lazy val PlayCaffeineCacheProject = PlayCrossBuiltProject("Play-Caffeine-Cache", "play-caffeine-cache")
+    .settings(
+      mimaPreviousArtifacts := Set.empty,
+      libraryDependencies ++= playCaffeineDeps
     )
     .dependsOn(
       PlayProject,
@@ -334,7 +346,7 @@ lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "play-jcache")
     )
     .dependsOn(
       PlayProject,
-      PlayEhcacheProject % "test", // provide a cachemanager implementation
+      PlayCaffeineCacheProject % "test", // provide a cachemanager implementation
       PlaySpecs2Project % "test"
     )
 
@@ -354,6 +366,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
   PlayEhcacheProject,
+  PlayCaffeineCacheProject,
   PlayJCacheProject,
   PlayJdbcApiProject,
   PlayJdbcProject,

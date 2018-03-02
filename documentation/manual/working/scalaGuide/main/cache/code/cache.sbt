@@ -8,16 +8,8 @@ libraryDependencies ++= Seq(
 )
 //#cache-sbt-dependencies
 
-//#ehcache-sbt-dependencies
+//#caffeine-sbt-dependencies
 libraryDependencies ++= Seq(
-  ehcache
+  caffeine
 )
-//#ehcache-sbt-dependencies
-
-//#jcache-sbt-dependencies
-libraryDependencies += jcache
-//#jcache-sbt-dependencies
-
-//#jcache-guice-annotation-sbt-dependencies
-libraryDependencies += "org.jsr107.ri" % "cache-annotations-ri-guice" % "1.0.0"
-//#jcache-guice-annotation-sbt-dependencies
+//#caffeine-sbt-dependencies

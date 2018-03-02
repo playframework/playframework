@@ -24,3 +24,11 @@ public class MyForm {
 ```
 
 You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognise that.
+
+## Support for Caffeine
+
+Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recommended cache implementation for Play users.
+
+To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine`. To customize the settings from the defaults you will also need to update the configuration in application.conf as explained in the documentation.
+
+Read the documentation for the [[Java cache API|JavaCache]] and [[Scala cache API|ScalaCache]] to learn more about configuring caching with Play.
