@@ -42,7 +42,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
         "play.cache.caffeine.caches.custom.record-stats" -> true,
 
         "play.cache.caffeine.caches.custom-two.initial-capacity" -> 140,
-        "play.cache.caffeine.caches.custom-two.soft-values" -> true,
+        "play.cache.caffeine.caches.custom-two.soft-values" -> true
       )
     ) {
       val caffeineCacheManager: CaffeineCacheManager = app.injector.instanceOf[CaffeineCacheManager]

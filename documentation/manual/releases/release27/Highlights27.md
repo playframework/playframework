@@ -27,7 +27,7 @@ You can of course also make your own custom constraints `@Repeatable` as well an
 
 ## Support for Caffeine
 
-Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recomended cache implementation for Play users.
+Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recommended cache implementation for Play users.
 
 To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine`. To customize the settings from the defaults you will also need to update the configuration in application.conf as explained in the documentation.
 
