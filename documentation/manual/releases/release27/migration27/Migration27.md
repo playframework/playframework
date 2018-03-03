@@ -33,10 +33,34 @@ If you were using the `StaticRoutesGenerator` with dependency-injected controlle
 
 
 ### `application/javascript` as default content type for JavaScript
-`application/javascript` is now the default content-type returned for JavaScript instead of `text/javascript`. 
+`application/javascript` is now the default content-type returned for JavaScript instead of `text/javascript`.
 
 ### `Router#withPrefix` should always add prefix
 
 Previously, `router.withPrefix(prefix)` was meant to add a prefix to a router, but still allowed "legacy implementations" to update their existing prefix. Play's `SimpleRouter` and other classes followed this behavior. Now all implementations have been updated to add the prefix, so `router.withPrefix(prefix)` should always return a router that routes `s"$prefix/$path"` the same way `router` routes `path`.
 
 By default routers are unprefixed, so this will only cause a change in behavior if you are calling `withPrefix` on a router that has already been returned by `withPrefix`. To replace a prefix that has already been set on a router, you must call `withPrefix` on the original unprefixed router rather than the prefixed version.
+
+### BoneCP removed
+
+BoneCP is removed. If you configured to use BoneCP, you need to switch to [HikariCP](http://brettwooldridge.github.io/HikariCP/) which is the default JDBC connection pool.
+
+```
+play.db.pool = "default"  # Use the default connection pool provided by the platform (HikariCP)
+play.db.pool = "hikaricp" # Use HikariCP
+
+```
+
+You may also need to migrate parameters for the pool. For example, if you want to configure maximum number of connections for HikariCP, it would be as follows.
+
+```
+play.db.prototype.hikaricp.maximumPoolSize = 15
+```
+
+For more detail, see [[JDBC configuration section|SettingsJDBC]].
+
+Also, you can your own pool that implements `play.api.db.ConnectionPool` by specifying the fully-qualified class name.
+
+```
+play.db.pool=your.own.ConnectionPool
+```
