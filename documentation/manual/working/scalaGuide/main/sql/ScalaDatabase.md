@@ -171,7 +171,7 @@ For a database other than the default:
 
 ## Configuring the connection pool
 
-Out of the box, Play uses [HikariCP](https://github.com/brettwooldridge/HikariCP) as default database connection pool implementation. Also, you can use your own pool that implements `play.api.db.ConnectionPool` by specifying FQCN:
+Out of the box, Play uses [HikariCP](https://github.com/brettwooldridge/HikariCP) as default database connection pool implementation. Also, you can use your own pool that implements `play.api.db.ConnectionPool` by specifying the fully-qualified class name:
 
 ```
 play.db.pool=your.own.ConnectionPool
