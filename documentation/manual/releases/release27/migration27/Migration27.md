@@ -59,7 +59,7 @@ play.db.prototype.hikaricp.maximumPoolSize = 15
 
 For more detail, see [[JDBC configuration section|SettingsJDBC]].
 
-Also, you can your own pool that implements `play.api.db.ConnectionPool` by specifying the fully-qualified class name.
+Also, you can use your own pool that implements `play.api.db.ConnectionPool` by specifying the fully-qualified class name.
 
 ```
 play.db.pool=your.own.ConnectionPool
