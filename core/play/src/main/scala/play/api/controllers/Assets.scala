@@ -817,14 +817,15 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
    * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
    * @param fallback the file to serve if the requested asset cannot be found. Defaults to no fallback.
    */
-  def at(
-      path: String,
-      file: String,
-      aggressiveCaching: Boolean = false,
-      fallback: String = ""
-  ): Action[AnyContent] = Action.async { implicit request =>
+  def at(path: String, file: String, aggressiveCaching: Boolean, fallback: String): Action[AnyContent] = Action.async {
+    implicit request =>
     assetAt(path, file, aggressiveCaching, fallback)
   }
+
+  def at(path: String, file: String, fallback: String): Action[AnyContent] = at(path, file, false, fallback)
+
+  def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] =
+    at(path, file, aggressiveCaching, "")
 
   private def assetAt(path: String, file: String, aggressiveCaching: Boolean, fallback: String = "")(
       implicit request: RequestHeader
