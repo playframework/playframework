@@ -7,8 +7,8 @@ import java.io.File
 import java.net.URL
 
 import ch.qos.logback.classic._
-import ch.qos.logback.classic.joran._
 import ch.qos.logback.classic.jul.LevelChangePropagator
+import ch.qos.logback.classic.util.ContextInitializer
 import ch.qos.logback.core.util._
 import org.slf4j.ILoggerFactory
 import org.slf4j.bridge._
@@ -28,10 +28,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     // Set the global application mode for logging
     play.api.Logger.setApplicationMode(mode)
 
-    val properties = Map("application.home" -> rootPath.getAbsolutePath)
-    val resourceName = if (mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
-    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
-    configure(properties, resourceUrl)
+    configure(Environment(rootPath, this.getClass.getClassLoader, mode))
   }
 
   def configure(env: Environment): Unit = {
@@ -51,14 +48,18 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     // Get an explicitly configured URL
     def explicitUrl = sys.props.get("logger.url").map(new URL(_))
 
-    // logback.xml is the documented method, logback-play-default.xml is the fallback that Play uses
-    // if no other file is found
-    def resourceUrl = env.resource("logback.xml")
-      .orElse(env.resource(
+    def defaultResourceUrl = {
+      import ContextInitializer._
+      // Order specified in https://logback.qos.ch/manual/configuration.html#auto_configuration
+      Stream(
+        TEST_AUTOCONFIG_FILE,
+        GROOVY_AUTOCONFIG_FILE,
+        AUTOCONFIG_FILE,
         if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
-      ))
+      ).flatMap(env.resource).headOption
+    }
 
-    val configUrl = explicitResourceUrl orElse explicitFileUrl orElse explicitUrl orElse resourceUrl
+    val configUrl = explicitResourceUrl orElse explicitFileUrl orElse explicitUrl orElse defaultResourceUrl
 
     val properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties)
 
@@ -81,9 +82,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
       // Configure logback
       val ctx = loggerFactory.asInstanceOf[LoggerContext]
-
-      val configurator = new JoranConfigurator
-      configurator.setContext(ctx)
 
       // Set a level change propagator to minimize the overhead of JUL
       //
@@ -115,7 +113,9 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       properties.foreach { case (k, v) => ctx.putProperty(k, v) }
 
       config match {
-        case Some(url) => configurator.doConfigure(url)
+        case Some(url) =>
+          val initializer = new ContextInitializer(ctx)
+          initializer.configureByResource(url)
         case None =>
           System.err.println("Could not detect a logback configuration file, not configuring logback")
       }
