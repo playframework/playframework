@@ -8,6 +8,7 @@ import java.net.URL
 
 import ch.qos.logback.classic._
 import ch.qos.logback.classic.joran._
+import ch.qos.logback.classic.util.ContextInitializer
 import ch.qos.logback.core.util._
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge._
@@ -20,10 +21,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    * Initialize the Logger when there's no application ClassLoader available.
    */
   def init(rootPath: java.io.File, mode: Mode.Mode): Unit = {
-    val properties = Map("application.home" -> rootPath.getAbsolutePath)
-    val resourceName = if (mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
-    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
-    configure(properties, resourceUrl)
+    configure(Environment(rootPath, this.getClass.getClassLoader, mode))
   }
 
   /**
@@ -46,18 +44,22 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
     // application-logger.xml and logger.xml are no longer supported methods for supplying the configuration
     // Support removed in Play 2.5. This notice can be removed in future versions of Play
-    if (!env.resource("application-logger.xml").orElse(env.resource("logger.xml")).isEmpty) {
+    if (env.resource("application-logger.xml").orElse(env.resource("logger.xml")).isDefined) {
       System.err.println("application-logger.xml and logger.xml are no longer supported. Please name your file logback.xml");
     }
 
-    // logback.xml is the documented method, logback-play-default.xml is the fallback that Play uses
-    // if no other file is found
-    def resourceUrl = env.resource("logback.xml")
-      .orElse(env.resource(
+    def defaultResourceUrl = {
+      import ContextInitializer._
+      // Order specified in https://logback.qos.ch/manual/configuration.html#auto_configuration
+      Stream(
+        TEST_AUTOCONFIG_FILE,
+        GROOVY_AUTOCONFIG_FILE,
+        AUTOCONFIG_FILE,
         if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
-      ))
+      ).flatMap(env.resource).headOption
+    }
 
-    val configUrl = explicitResourceUrl orElse explicitFileUrl orElse explicitUrl orElse resourceUrl
+    val configUrl = explicitResourceUrl orElse explicitFileUrl orElse explicitUrl orElse defaultResourceUrl
 
     configure(properties, configUrl)
   }
