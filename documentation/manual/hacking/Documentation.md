@@ -5,6 +5,10 @@ The Play documentation is written in Markdown format, with code samples extracte
 
 There are a few guidelines that must be adhered to when writing Play documentation.
 
+## Gender-neutral language and names
+
+The Play community honors gender diversity. When writing examples in documentation, please use [gender-neutral language](https://en.wikipedia.org/wiki/Gender-neutral_language) and [unisex names](https://en.wikipedia.org/wiki/Unisex_name) whenever possible. Ask your reviewer(s) for help if you are unsure of the right wording.
+
 ## Markdown
 
 All markdown files must have unique names across the entire documentation, regardless of what folders they are in.  Play uses a wiki style of linking and rendering documentation.
