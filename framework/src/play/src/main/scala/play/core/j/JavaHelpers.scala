@@ -237,30 +237,6 @@ trait JavaHelpers {
    * Java request, and converting the resulting Java result to a Scala result, before returning
    * it.
    *
-   * This is intended for use by methods in the JavaGlobalSettingsAdapter, which need to be handled
-   * like Java actions, but are not Java actions. In this case, f may return null, so we wrap its
-   * result in an Option. E.g. see the default behavior of GlobalSettings.onError.
-   *
-   * @param request The request
-   * @param components the context components
-   * @param f The function to invoke
-   * @return The result
-   */
-  def invokeWithContextOpt(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Option[Future[Result]] = {
-    val javaContext = createJavaContext(request, components)
-    try {
-      JContext.current.set(javaContext)
-      Option(f(javaContext.request())).map(cs => FutureConverters.toScala(cs).map(createResult(javaContext, _))(trampoline))
-    } finally {
-      JContext.current.remove()
-    }
-  }
-
-  /**
-   * Invoke the given function with the right context set, converting the scala request to a
-   * Java request, and converting the resulting Java result to a Scala result, before returning
-   * it.
-   *
    * This is intended for use by callback methods in Java adapters.
    *
    * @param request The request
