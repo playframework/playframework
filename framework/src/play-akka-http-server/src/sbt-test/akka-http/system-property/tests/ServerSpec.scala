@@ -5,6 +5,7 @@
 import play.api.libs.ws._
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.mvc.request.RequestAttrKey
 import play.api.test._
 import play.api.inject.guice._
 
@@ -12,8 +13,8 @@ class ServerSpec extends PlaySpecification {
 
   val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
     case ("GET", "/httpServerTag") => Action { implicit request =>
-      val httpServer = request.tags.get("HTTP_SERVER")
-      Ok(httpServer.toString)
+      val httpServer = request.attrs.get(RequestAttrKey.Server).getOrElse("")
+      Ok(httpServer)
     }
   }
 
@@ -26,6 +27,5 @@ class ServerSpec extends PlaySpecification {
       response.status must equalTo(OK)
       response.body must_== "Some(akka-http)"
     }
-
   }
 }

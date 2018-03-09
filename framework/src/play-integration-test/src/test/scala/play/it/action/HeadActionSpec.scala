@@ -130,39 +130,25 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     }
 
     val CustomAttr = TypedKey[String]("CustomAttr")
-    def addCustomTagAndAttr(r: RequestHeader): RequestHeader = {
-      val withTags = r.copy(tags = Map("CustomTag" -> "x"))
-      val withAttrs = withTags.addAttr(CustomAttr, "y")
+    def addCustomAttr(r: RequestHeader): RequestHeader = {
+      val withAttrs = r.addAttr(CustomAttr, "y")
       withAttrs
     }
-    val tagAndAttrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>
-      val tagComment = rh.tags.get("CustomTag")
+    val attrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>
       val attrComment = rh.attrs.get(CustomAttr)
       val headers = Array.empty[(String, String)] ++
-        rh.tags.get("CustomTag").map("CustomTag" -> _) ++
         rh.attrs.get(CustomAttr).map("CustomAttr" -> _)
       Results.Ok.withHeaders(headers: _*)
     }
 
-    "tag request with DefaultHttpRequestHandler" in serverWithHandler(new RequestTaggingHandler with EssentialAction {
-      def tagRequest(request: RequestHeader) = addCustomTagAndAttr(request)
-      def apply(rh: RequestHeader) = tagAndAttrAction(rh)
-    }) { client =>
-      val result = await(client.url("/get").head())
-      result.status must_== OK
-      result.header("CustomTag") must beSome("x")
-      result.header("CustomAttr") must beSome("y")
-    }
-
     "modify request with DefaultHttpRequestHandler" in serverWithHandler(
       Handler.Stage.modifyRequest(
-        (rh: RequestHeader) => addCustomTagAndAttr(rh),
-        tagAndAttrAction
+        (rh: RequestHeader) => addCustomAttr(rh),
+        attrAction
       )
     ) { client =>
         val result = await(client.url("/get").head())
         result.status must_== OK
-        result.header("CustomTag") must beSome("x")
         result.header("CustomAttr") must beSome("y")
       }
 

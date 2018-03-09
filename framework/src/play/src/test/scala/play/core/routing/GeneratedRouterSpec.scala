@@ -69,11 +69,6 @@ object GeneratedRouterSpec extends Specification {
         val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
         preprocessedHandler must_== handler
         preprocessedRequest.path must_== "/"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RoutePattern) must_== "/"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteVerb) must_== "GET"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteController) must_== "ControllerClassName"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteActionMethod) must_== "handler"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteComments) must_== "Comment"
         preprocessedRequest.attrs(play.api.routing.Router.Attrs.HandlerDef) must_== handlerDef
       }
     }
@@ -97,11 +92,6 @@ object GeneratedRouterSpec extends Specification {
         val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
         preprocessedHandler must haveInterface[JavaHandler]
         preprocessedRequest.path must_== "/"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RoutePattern) must_== "/"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteVerb) must_== "GET"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteController) must_== controller.getClass.getName
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteActionMethod) must_== "index"
-        preprocessedRequest.tags(play.api.routing.Router.Tags.RouteComments) must_== "Comment"
         preprocessedRequest.attrs(play.api.routing.Router.Attrs.HandlerDef) must_== handlerDef
       }
     }
