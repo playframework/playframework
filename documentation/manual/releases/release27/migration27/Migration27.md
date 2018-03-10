@@ -43,7 +43,7 @@ By default routers are unprefixed, so this will only cause a change in behavior 
 
 ### BoneCP removed
 
-BoneCP is removed. If you configured to use BoneCP, you need to switch to [HikariCP](http://brettwooldridge.github.io/HikariCP/) which is the default JDBC connection pool.
+BoneCP is removed. If your application is configured to use BoneCP, you need to switch to [HikariCP](http://brettwooldridge.github.io/HikariCP/) which is the default JDBC connection pool.
 
 ```
 play.db.pool = "default"  # Use the default connection pool provided by the platform (HikariCP)
@@ -51,13 +51,13 @@ play.db.pool = "hikaricp" # Use HikariCP
 
 ```
 
-You may also need to migrate parameters for the pool. For example, if you want to configure maximum number of connections for HikariCP, it would be as follows.
+You may need to reconfigure the pool to use HikariCP. For example, if you want to configure maximum number of connections for HikariCP, it would be as follows.
 
 ```
 play.db.prototype.hikaricp.maximumPoolSize = 15
 ```
 
-For more detail, see [[JDBC configuration section|SettingsJDBC]].
+For more details, see [[JDBC configuration section|SettingsJDBC]].
 
 Also, you can use your own pool that implements `play.api.db.ConnectionPool` by specifying the fully-qualified class name.
 
