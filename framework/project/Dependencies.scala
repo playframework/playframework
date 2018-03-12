@@ -63,8 +63,8 @@ object Dependencies {
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
 
   val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "5.2.11.Final" % "test"
+    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
+    "org.hibernate" % "hibernate-core" % "5.2.15.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
