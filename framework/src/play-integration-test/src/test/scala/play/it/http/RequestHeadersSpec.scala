@@ -3,10 +3,6 @@
  */
 package play.it.http
 
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.AppenderBase
-import org.slf4j.LoggerFactory
 import org.specs2.execute.AsResult
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
@@ -14,8 +10,6 @@ import play.api.test._
 import play.api.{ Configuration, Mode }
 import play.core.server.ServerConfig
 import play.it._
-
-import scala.collection.mutable.ArrayBuffer
 
 class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
 
@@ -30,8 +24,8 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
         val Seq(response) = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map("Content-Disposition" -> "attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf"), "")
         )
-        response.body must beLeft("Some(attachment; filename=\"UTF-8''Roget%27s%20Thesaurus.pdf\")")
-        //response.body must beLeft("Some(attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf)")
+        //response.body must beLeft("Some(attachment; filename=\"UTF-8''Roget%27s%20Thesaurus.pdf\")")
+        response.body must beLeft("Some(attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf)")
       }
     }
 
@@ -45,40 +39,11 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
       // to fail. I think it's still worth including this test because it
       // will still often report correct failures, even if it's not perfect.
 
-      import scala.collection.immutable
-
-      def recordLogEvents[T](block: => T): immutable.Seq[ILoggingEvent] = {
-
-        /** Collects all log events that occur */
-        class RecordingAppender extends AppenderBase[ILoggingEvent] {
-          private val eventBuffer = ArrayBuffer[ILoggingEvent]()
-
-          override def append(e: ILoggingEvent): Unit = synchronized {
-            eventBuffer += e
-          }
-
-          def events: immutable.Seq[ILoggingEvent] = synchronized {
-            eventBuffer.to[immutable.Seq]
-          }
-        }
-
-        // Get the Logback root logger and attach a RecordingAppender
-        val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
-        val appender = new RecordingAppender()
-        appender.setContext(rootLogger.getLoggerContext)
-        appender.start()
-        rootLogger.addAppender(appender)
-        block
-        rootLogger.detachAppender(appender)
-        appender.stop()
-        appender.events
-      }
-
       withServerAndConfig()((Action, _) => Action { rh =>
         Results.Ok(rh.headers.get("User-Agent").toString)
       }) { port =>
         def testAgent[R: AsResult](agent: String) = {
-          val logMessages = recordLogEvents {
+          val (_, logMessages) = LogTester.recordLogEvents {
             val Seq(response) = BasicHttpClient.makeRequests(port)(
               BasicRequest("GET", "/", "HTTP/1.1", Map(
                 "User-Agent" -> agent
@@ -86,7 +51,7 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
             )
             response.body must beLeft(s"Some($agent)")
           }
-          logMessages.map(_.getFormattedMessage) must contain(contain(agent))
+          logMessages.map(_.getFormattedMessage) must not contain (contain(agent))
         }
         // These agent strings come from https://github.com/playframework/playframework/issues/7997
         testAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 11_0_3 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Mobile/15A432 [FBAN/FBIOS;FBAV/147.0.0.46.81;FBBV/76961488;FBDV/iPhone8,1;FBMD/iPhone;FBSN/iOS;FBSV/11.0.3;FBSS/2;FBCR/T-Mobile.pl;FBID/phone;FBLC/pl_PL;FBOP/5;FBRV/0]")
