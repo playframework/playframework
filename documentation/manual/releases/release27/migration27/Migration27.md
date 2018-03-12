@@ -64,3 +64,9 @@ Also, you can use your own pool that implements `play.api.db.ConnectionPool` by 
 ```
 play.db.pool=your.own.ConnectionPool
 ```
+
+### Java `Http.Context` changed
+
+Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
+Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
+Instead you can use the `contextObj.request().attrs()` method now, which provides you the equivalent request attributes.

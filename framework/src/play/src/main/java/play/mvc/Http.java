@@ -106,7 +106,6 @@ public class Http {
             this.session = new Session(Scala.asJava(header.session().data()));
             this.flash = new Flash(Scala.asJava(header.flash().data()));
             this.args = new HashMap<>();
-            this.args.putAll(Scala.asJava(header.tags()));
             this.components = components;
         }
 

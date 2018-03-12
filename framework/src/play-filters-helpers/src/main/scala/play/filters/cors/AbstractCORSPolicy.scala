@@ -116,7 +116,6 @@ private[cors] trait AbstractCORSPolicy {
 
       val taggedRequest = request
         .addAttr(CORSFilter.Attrs.Origin, origin)
-        .copy(tags = request.tags + (CORSFilter.RequestTag -> origin))
 
       // We must recover any errors so that we can add the headers to them to allow clients to see the result
       val result = try {

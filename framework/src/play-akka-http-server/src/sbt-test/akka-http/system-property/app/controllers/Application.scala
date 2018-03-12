@@ -6,6 +6,7 @@ package controllers
 import javax.inject.Inject
 
 import play.api.mvc._
+import play.api.mvc.request.RequestAttrKey
 
 class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
 
@@ -14,7 +15,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
    * can test if we're using the Akka HTTP server.
    */
   def index = Action { request =>
-    val httpServerTag = request.tags.getOrElse("HTTP_SERVER", "unknown")
+    val httpServerTag = request.attrs.get(RequestAttrKey.Server).getOrElse("unknown")
     Ok(s"HTTP_SERVER tag: $httpServerTag")
   }
 }

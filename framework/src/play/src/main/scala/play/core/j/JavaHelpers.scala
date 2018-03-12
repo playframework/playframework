@@ -164,7 +164,7 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava,
+      new java.util.HashMap[String, Object],
       components
     )
   }
@@ -182,7 +182,7 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava,
+      new java.util.HashMap[String, Object],
       components
     )
   }
@@ -317,8 +317,6 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def contentType(): Optional[String] = OptionConverters.toJava(header.contentType)
 
   override def charset(): Optional[String] = OptionConverters.toJava(header.charset)
-
-  def withTag(name: String, value: String) = header.withTag(name, value)
 
   override def toString: String = header.toString
 

@@ -60,7 +60,6 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
   @deprecated("Use with* methods instead.", "2.6.0")
   def copyFakeRequest[B](
     id: java.lang.Long = null,
-    tags: Map[String, String] = null,
     uri: String = null,
     path: String = null,
     method: String = null,
@@ -72,7 +71,7 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
     body: B = body): FakeRequest[B] = {
 
     new FakeRequest[B](
-      request.copy(id, tags, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
+      request.copy(id, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
         .withBody(body))
   }
 
@@ -198,7 +197,6 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
     remoteAddress: String = "127.0.0.1",
     version: String = "HTTP/1.1",
     id: Long = 666,
-    tags: Map[String, String] = Map.empty[String, String],
     secure: Boolean = false,
     clientCertificateChain: Option[Seq[X509Certificate]] = None,
     attrs: TypedMap = TypedMap.empty): FakeRequest[A] = {
@@ -215,7 +213,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       },
       version,
       headers,
-      attrs + (RequestAttrKey.Id -> id, RequestAttrKey.Tags -> tags),
+      attrs + (RequestAttrKey.Id -> id),
       body
     )
     new FakeRequest(request)

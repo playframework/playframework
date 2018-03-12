@@ -63,8 +63,6 @@ class CORSFilter(
 
 object CORSFilter {
 
-  val RequestTag = "CORS_REQUEST"
-
   object Attrs {
     val Origin: TypedKey[String] = TypedKey("CORS_ORIGIN")
   }

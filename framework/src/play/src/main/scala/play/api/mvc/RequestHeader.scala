@@ -33,13 +33,6 @@ trait RequestHeader {
   final def id: Long = attrs(RequestAttrKey.Id)
 
   /**
-   * The request Tags. The request's tags are stored in an optional attribute indexed by
-   * [[play.api.mvc.request.RequestAttrKey.Tags]]. If the attribute is not present then the tags are assumed to be empty.
-   */
-  @deprecated("Use typed attributes instead, see `attrs`", "2.6.0")
-  final def tags: Map[String, String] = attrs.get(RequestAttrKey.Tags).getOrElse(Map.empty)
-
-  /**
    * The HTTP method.
    */
   def method: String
@@ -257,15 +250,6 @@ trait RequestHeader {
   } yield charset
 
   /**
-   * Convenience method for adding a single tag to this request
-   *
-   * @return the tagged request
-   */
-  def withTag(tagName: String, tagValue: String): RequestHeader = {
-    copy(tags = tags + (tagName -> tagValue))
-  }
-
-  /**
    * Attach a body to this header.
    *
    * @param body The body to attach.
@@ -281,7 +265,6 @@ trait RequestHeader {
   @deprecated("Use the with* methods instead", "2.6.0")
   def copy(
     id: java.lang.Long = null,
-    tags: Map[String, String] = null,
     uri: String = null,
     path: String = null,
     method: String = this.method,
@@ -297,9 +280,6 @@ trait RequestHeader {
     // We only need to modify the request when an argument is non-null.
     if (id != null) {
       newHeader = newHeader.addAttr(RequestAttrKey.Id, (id: Long))
-    }
-    if (tags != null) {
-      newHeader = newHeader.addAttr(RequestAttrKey.Tags, tags)
     }
     if (uri != null) {
       newHeader = newHeader.withTarget(newHeader.target.withUriString(uri))

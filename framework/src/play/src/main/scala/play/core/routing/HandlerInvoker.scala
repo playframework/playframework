@@ -79,8 +79,7 @@ object HandlerInvokerFactory {
   }
 
   /**
-   * Create a `HandlerInvokerFactory` for a Java action. Caches the
-   * tags and annotations.
+   * Create a `HandlerInvokerFactory` for a Java action. Caches the annotations.
    */
   private abstract class JavaActionInvokerFactory[A] extends HandlerInvokerFactory[A] {
 
