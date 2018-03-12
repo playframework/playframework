@@ -7,9 +7,6 @@ import scala.language.implicitConversions
 
 import scala.collection.JavaConverters._
 
-/*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
- */
 package views.html.helper {
 
   case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], p: play.api.i18n.MessagesProvider) {
