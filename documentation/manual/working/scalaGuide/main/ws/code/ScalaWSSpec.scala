@@ -91,7 +91,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     (1 to 9).foldLeft(source){(acc, _) => (acc ++ source)}
   }
 
-  "WS" should {
+  "WSClient" should {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     "allow making a request" in withSimpleServer { ws =>

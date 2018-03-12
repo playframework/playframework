@@ -20,7 +20,6 @@ public class BuiltInModule extends play.api.inject.Module {
         return seq(
             bind(ApplicationLifecycle.class).to(DelegateApplicationLifecycle.class),
             bind(play.Environment.class).toSelf(),
-            bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
             bind(CookieSigner.class).to(DefaultCookieSigner.class),
             bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
             bind(FileMimeTypes.class).toSelf(),

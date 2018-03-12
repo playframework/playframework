@@ -137,40 +137,7 @@ public class Form<T> {
         this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
     }
 
-    /**
-     * @param rootName the root name.
-     * @param clazz wrapped class
-     * @param data the current form data (used to display the form)
-     * @param errors the collection of errors associated with this form
-     * @param value optional concrete value of type <code>T</code> if the form submission was successful
-     * @param messagesApi needed to look up various messages
-     * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
-     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
-     */
-    @Deprecated
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
-    }
-
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
-    }
-
-    /**
-     * @param rootName the root name.
-     * @param clazz wrapped class
-     * @param data the current form data (used to display the form)
-     * @param errors the collection of errors associated with this form
-     * @param value optional concrete value of type <code>T</code> if the form submission was successful
-     * @param group the class with the group.
-     * @param messagesApi needed to look up various messages
-     * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
-     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
-     */
-    @Deprecated
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
     }
 
@@ -197,33 +164,6 @@ public class Form<T> {
         this.messagesApi = messagesApi;
         this.formatters = formatters;
         this.validator = validator;
-    }
-
-    /**
-     * @param rootName    the root name.
-     * @param clazz wrapped class
-     * @param data the current form data (used to display the form)
-     * @param errors the collection of errors associated with this form
-     * @param value optional concrete value of type <code>T</code> if the form submission was successful
-     * @param groups    the array of classes with the groups.
-     * @param messagesApi needed to look up various messages
-     * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
-     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
-     */
-    @Deprecated
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(
-            rootName,
-            clazz,
-            data,
-            errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<ValidationError>(),
-            value,
-            groups,
-            messagesApi,
-            formatters,
-            validator
-        );
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -588,16 +528,6 @@ public class Form<T> {
     }
 
     /**
-     * @return the actual form data.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #rawData()} instead which returns an unmodifiable map.
-     */
-    @Deprecated
-    public Map<String,String> data() {
-        return data;
-    }
-
-    /**
      * @return the actual form data as unmodifiable map.
      */
     public Map<String,String> rawData() {
@@ -664,34 +594,10 @@ public class Form<T> {
     /**
      * Retrieves the first global error (an error without any key), if it exists.
      *
-     * @return An error or <code>null</code>.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #getGlobalError()} instead.
-     */
-    @Deprecated
-    public ValidationError globalError() {
-        return this.getGlobalError().orElse(null);
-    }
-
-    /**
-     * Retrieves the first global error (an error without any key), if it exists.
-     *
      * @return An error.
      */
     public Optional<ValidationError> getGlobalError() {
         return globalErrors().stream().findFirst();
-    }
-
-    /**
-     * Returns all errors.
-     *
-     * @return All errors associated with this form.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #allErrors()} instead.
-     */
-    @Deprecated
-    public Map<String,List<ValidationError>> errors() {
-        return Collections.unmodifiableMap(this.errors.stream().collect(Collectors.groupingBy(error -> error.key())));
     }
 
     /**
@@ -712,17 +618,6 @@ public class Form<T> {
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList()));
-    }
-
-    /**
-     * @param key    the field name associated with the error.
-     * @return an error by key, or null.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
-     */
-    @Deprecated
-    public ValidationError error(String key) {
-        return this.getError(key).orElse(null);
     }
 
     /**
@@ -795,21 +690,6 @@ public class Form<T> {
     }
 
     /**
-     * Adds an error to this form.
-     *
-     * @param error the <code>ValidationError</code> to add.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(ValidationError)} instead.
-     */
-    @Deprecated
-    public void reject(ValidationError error) {
-        if (error == null) {
-            throw new NullPointerException("Can't reject null-values");
-        }
-        errors.add(error);
-    }
-
-    /**
      * @param error the <code>ValidationError</code> to add to the returned form.
      *
      * @return a copy of this form with the given error added.
@@ -824,20 +704,6 @@ public class Form<T> {
     }
 
     /**
-     * Adds an error to this form.
-     *
-     * @param key the error key
-     * @param error the error message
-     * @param args the error arguments
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
-     */
-    @Deprecated
-    public void reject(String key, String error, List<Object> args) {
-        reject(new ValidationError(key, error, args));
-    }
-
-    /**
      * @param key the error key
      * @param error the error message
      * @param args the error arguments
@@ -846,19 +712,6 @@ public class Form<T> {
      */
     public Form<T> withError(final String key, final String error, final List<Object> args) {
         return withError(new ValidationError(key, error, args != null ? new ArrayList<>(args) : new ArrayList<>()));
-    }
-
-    /**
-     * Adds an error to this form.
-     *
-     * @param key the error key
-     * @param error the error message
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
-     */
-    @Deprecated
-    public void reject(String key, String error) {
-        reject(key, error, new ArrayList<>());
     }
 
     /**
@@ -872,19 +725,6 @@ public class Form<T> {
     }
 
     /**
-     * Adds a global error to this form.
-     *
-     * @param error the error message
-     * @param args the error arguments
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String, List)} instead.
-     */
-    @Deprecated
-    public void reject(String error, List<Object> args) {
-        reject(new ValidationError("", error, args));
-    }
-
-    /**
      * @param error the global error message
      * @param args the global error arguments
      *
@@ -895,34 +735,12 @@ public class Form<T> {
     }
 
     /**
-     * Adds a global error to this form.
-     *
-     * @param error the error message.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String)} instead.
-     */
-    @Deprecated
-    public void reject(String error) {
-        reject("", error, new ArrayList<>());
-    }
-
-    /**
      * @param error the global error message
      *
      * @return a copy of this form with the given global error added.
      */
     public Form<T> withGlobalError(final String error) {
         return withGlobalError(error, new ArrayList<>());
-    }
-
-    /**
-     * Discards errors of this form
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #discardingErrors()} instead.
-     */
-    @Deprecated
-    public void discardErrors() {
-        errors.clear();
     }
 
     /**
@@ -1100,52 +918,15 @@ public class Form<T> {
         }
 
         /**
-         * Returns the field name.
-         *
          * @return The field name.
-         *
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getName()} instead.
          */
-        @Deprecated
-        public String name() {
-            return name;
-        }
-
-        /**
-        * @return The field name.
-        */
         public Optional<String> getName() {
             return Optional.ofNullable(name);
         }
 
         /**
-         * Returns the field value, if defined.
-         *
-         * @return The field value, if defined.
-         *
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
-         */
-        @Deprecated
-        public String value() {
-            return value;
-        }
-
-        /**
-         * @param or the value to return if value is null.
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
          * @return The field value, if defined.
          */
-        @Deprecated
-        public String valueOr(String or) {
-            if (value == null) {
-                return or;
-            }
-            return value;
-        }
-
-        /**
-        * @return The field value, if defined.
-        */
         public Optional<String> getValue() {
             return Optional.ofNullable(value);
         }

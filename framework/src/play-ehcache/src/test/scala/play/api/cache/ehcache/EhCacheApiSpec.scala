@@ -18,7 +18,7 @@ import scala.concurrent.{ Await, ExecutionContext, Future }
 class EhCacheApiSpec extends PlaySpecification {
   sequential
 
-  "CacheApi" should {
+  "SyncCacheApi" should {
     "bind named caches" in new WithApplication(
       _.configure(
         "play.cache.bindCaches" -> Seq("custom")

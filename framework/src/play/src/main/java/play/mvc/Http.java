@@ -737,36 +737,6 @@ public class Http {
         Headers getHeaders();
 
         /**
-         * Retrieves all headers.
-         *
-         * @return a map of of header name to headers with case-insensitive keys
-         *
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getHeaders()} instead.
-         */
-        @Deprecated
-        default Map<String,String[]> headers() {
-            final Map<String, String[]> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-            this.getHeaders().headers.forEach((key, values) -> {
-                String[] valuesArray = new String[values.size()];
-                result.put(key, values.toArray(valuesArray));
-            });
-            return result;
-        }
-
-        /**
-         * Retrieves a single header.
-         *
-         * @param headerName The name of the header (case-insensitive)
-         * @return the value corresponding to <code>headerName</code>, or null if it was not present
-         *
-         * @deprecated Deprecated as of 2.6.0. Use {@link #header(String)} ()} instead.
-         */
-        @Deprecated
-        default String getHeader(String headerName) {
-            return getHeaders().get(headerName).orElse(null);
-        }
-
-        /**
          * Retrieves a single header.
          *
          * @param headerName The name of the header (case-insensitive)
@@ -815,22 +785,6 @@ public class Http {
         Optional<List<X509Certificate>> clientCertificateChain();
 
         /**
-         * @return the tags for the request
-         * @deprecated Use <code>attr</code>, <code>withAttr</code>, etc.
-         */
-        @Deprecated
-        Map<String, String> tags();
-
-        /**
-         * For internal Play-use only
-         *
-         * @return the underlying request
-         * @deprecated As of release 2.6.0. Use {@link #asScala()}
-         */
-        @Deprecated
-        play.api.mvc.RequestHeader _underlyingHeader();
-
-        /**
          * Return the Scala version of the request header.
          *
          * @return the Scala version for this request header.
@@ -858,33 +812,6 @@ public class Http {
 
         // Override return type
         <A> Request addAttr(TypedKey<A> key, A value);
-
-        /**
-         * The user name for this request, if defined.
-         * This is usually set by annotating your Action with <code>@Authenticated</code>.
-         *
-         * @return the username
-         * @deprecated As of release 2.6, use <code>attrs.get(Security.USERNAME)</code> or <code>attrs.getOptional(Security.USERNAME)</code>.
-         */
-        @Deprecated String username();
-
-        /**
-         * Returns a request updated with specified user name
-         *
-         * @param username the new user name
-         * @return a copy of the request containing the specified user name
-         * @deprecated As of release 2.6, use <code>req.withAttrs(req.attrs().put(Security.USERNAME, username))</code>.
-         */
-        @Deprecated Request withUsername(String username);
-
-        /**
-         * For internal Play-use only
-         *
-         * @return the underlying request
-         * @deprecated As of release 2.6.0. Use {@link #asScala()}
-         */
-        @Deprecated
-        play.api.mvc.Request<RequestBody> _underlyingRequest();
 
         /**
          * Return the Scala version of the request
@@ -961,28 +888,6 @@ public class Http {
          */
         public RequestBody body() {
             return req.body();
-        }
-
-        /**
-         * Get the username. This method calls <code>attrs().getOptional(Security.USERNAME)</code>.
-         * @return the username or null
-         * @deprecated Use <code>attrs().get(Security.USERNAME)</code> or <code>attrs().getOptional(Security.USERNAME)</code> instead.
-         */
-        @Deprecated
-        public String username() {
-            return attrs().getOptional(Security.USERNAME).orElse(null);
-        }
-
-        /**
-         * Set the username. This method calls <code>attr(Security.USERNAME, username)</code>.
-         * @param username the username for the request
-         * @return the modified builder
-         * @deprecated Use <code>attr(Security.USERNAME, username)</code> instead.
-         */
-        @Deprecated
-        public RequestBuilder username(String username) {
-            attr(Security.USERNAME, username);
-            return this;
         }
 
         /**
@@ -1233,41 +1138,6 @@ public class Http {
         }
 
         /**
-         * @return the tags for the request
-         * @deprecated Use typed attributes, i.e. <code>attrs()</code>, instead.
-         */
-        @Deprecated
-        public Map<String, String> tags() {
-            return Scala.asJava(req.tags());
-        }
-
-        /**
-         * @param tags overwrites the tags for this request
-         * @return the builder instance
-         * @deprecated Use <code>attrs(...)</code> instead.
-         */
-        @Deprecated
-        public RequestBuilder tags(Map<String, String> tags) {
-            attr(new TypedKey(RequestAttrKey.Tags()), JavaHelpers$.MODULE$.javaMapToImmutableScalaMap(tags));
-            return this;
-        }
-
-        /**
-         * Puts an extra tag.
-         * @param key the key for the tag
-         * @param value the value for the tag
-         * @return the builder
-         * @deprecated Use <code>attr(key, value)</code> instead.
-         */
-        @Deprecated
-        public RequestBuilder tag(String key, String value) {
-            Map<String, String> tags = tags();
-            tags.put(key, value);
-            tags(tags);
-            return this;
-        }
-
-        /**
          * @return the builder instance.
          */
         public String method() {
@@ -1333,7 +1203,7 @@ public class Http {
          * @return the host name from the header
          */
         public String host() {
-          return header(HeaderNames.HOST);
+          return getHeaders().get(HeaderNames.HOST).orElse(null);
         }
 
         /**
@@ -1389,56 +1259,10 @@ public class Http {
         }
 
         /**
-         * @param key the key to be used in the header
-         * @return the value associated with the key, if multiple, the first, if none returns null
-         *
-         * @deprecated As of release 2.6, use {@link #getHeaders()} instead.
-         */
-        @Deprecated
-        public String header(String key) {
-            return getHeaders().get(key).orElse(null);
-        }
-
-        /**
-         * @param key the key to be used in the header
-         * @return all values (could be 0) associated with the key
-         *
-         * @deprecated As of release 2.6, use {@link #getHeaders()} instead.
-         */
-        @Deprecated
-        public String[] headers(String key) {
-            return headers().get(key);
-        }
-
-        /**
-         * @return the headers
-         *
-         * @deprecated As of release 2.6, use {@link #getHeaders()} instead.
-         */
-        @Deprecated
-        public Map<String, String[]> headers() {
-            return JavaHelpers$.MODULE$.scalaMapOfSeqsToJavaMapOfArrays(req.headers().toMap());
-        }
-
-        /**
          * @return the headers for this request builder
          */
         public Headers getHeaders() {
             return req.headers().asJava();
-        }
-
-        /**
-         * @param headers the headers to be replaced
-         * @return the builder instance
-         *
-         * @deprecated As of release 2.6, use {@link #headers(Headers)} instead.
-         */
-        @Deprecated
-        public RequestBuilder headers(Map<String, String[]> headers) {
-            req = req.withHeaders(new play.api.mvc.Headers(
-                    JavaHelpers$.MODULE$.javaMapOfArraysToScalaSeqOfPairs(headers)
-            ));
-            return this;
         }
 
         /**
@@ -1450,18 +1274,6 @@ public class Http {
         public RequestBuilder headers(Headers headers) {
             req = req.withHeaders(headers.asScala());
             return this;
-        }
-
-        /**
-         * @param key the key for in the header
-         * @param values the values associated with the key
-         * @return the builder instance
-         *
-         * @deprecated As of release 2.6, use {@link #header(String, List)} instead.
-         */
-        @Deprecated
-        public RequestBuilder header(String key, String[] values) {
-            return this.headers(getHeaders().addHeader(key, Arrays.asList(values)));
         }
 
         /**
@@ -1905,13 +1717,16 @@ public class Http {
             } else {
                 Map<String, String[]> form = asFormUrlEncoded();
                 if (form != null) {
-                    return ByteString.fromString(form.entrySet().stream()
-                            .flatMap(entry -> {
-                                String key = encode(entry.getKey());
-                                return Arrays.asList(entry.getValue()).stream().map(
+                    return ByteString.fromString(
+                            form.entrySet()
+                                .stream()
+                                .flatMap(entry -> {
+                                    String key = encode(entry.getKey());
+                                    return Arrays.stream(entry.getValue()).map(
                                         value -> key + "=" + encode(value)
-                                );
-                            }).collect(Collectors.joining("&")));
+                                    );
+                                })
+                                .collect(Collectors.joining("&")));
                 }
             }
             return null;
@@ -1978,34 +1793,6 @@ public class Http {
          */
         public Map<String,String> getHeaders() {
             return headers;
-        }
-
-        /**
-         * @deprecated noop. Use {@link Result#as(String)} instead.
-         *
-         * @param contentType Deprecated
-         */
-        @Deprecated
-        public void setContentType(String contentType) {
-        }
-
-        /**
-         * Set a new cookie.
-         * @param name Cookie name, must not be null
-         * @param value Cookie value
-         * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
-         * @param path Cookie path
-         * @param domain Cookie domain
-         * @param secure Whether the cookie is secured (for HTTPS requests)
-         * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
-         * @param sameSite The SameSite value (Strict or Lax)
-         * @deprecated Use {@link #setCookie(Http.Cookie)} instead.
-         */
-        @Deprecated
-        public void setCookie(
-                String name, String value, Integer maxAge, String path, String domain,
-                boolean secure, boolean httpOnly, SameSite sameSite) {
-            cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly, sameSite));
         }
 
         /**
@@ -2209,22 +1996,6 @@ public class Http {
         }
 
         /**
-         * @param name Cookie name, must not be null
-         * @param value Cookie value
-         * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
-         * @param path Cookie path
-         * @param domain Cookie domain
-         * @param secure Whether the cookie is secured (for HTTPS requests)
-         * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
-         * @deprecated as of 2.6.0. Use {@link Cookie#builder}.
-         */
-        @Deprecated
-        public Cookie(String name, String value, Integer maxAge, String path,
-            String domain, boolean secure, boolean httpOnly) {
-            this(name, value, maxAge, path, domain, secure, httpOnly, null);
-        }
-
-        /**
          * @param name the cookie builder name
          * @param value the cookie builder value
          * @return the cookie builder with the specified name and value
@@ -2370,17 +2141,6 @@ public class Http {
         public CookieBuilder withValue(String value) {
             this.value = value;
             return this;
-        }
-
-        /**
-         * @param maxAge The maxAge of the cookie in seconds
-         * @return the cookie builder with the new maxAge
-         *
-         * @deprecated As of 2.6.0, use withMaxAge(Duration) instead.
-         * */
-        @Deprecated
-        public CookieBuilder withMaxAge(Integer maxAge) {
-            return withMaxAge(Duration.of(maxAge, ChronoUnit.SECONDS));
         }
 
         /**

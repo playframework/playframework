@@ -127,28 +127,22 @@ public class RequestBuilderTest {
         Play.stop(app);
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testUsername() {
         final Request req1 =
             new RequestBuilder().uri("http://playframework.com/").build();
         final Request req2 = req1.addAttr(Security.USERNAME, "user2");
-        final Request req3 = req1.withUsername("user3");
-        final Request req4 =
-                new RequestBuilder().uri("http://playframework.com/").username("user4").build();
+        final Request req3 = req1.addAttr(Security.USERNAME, "user3");
+        final Request req4 = new RequestBuilder().uri("http://playframework.com/").attr(Security.USERNAME, "user4").build();
 
-        assertNull(req1.username());
         assertFalse(req1.attrs().containsKey(Security.USERNAME));
 
-        assertEquals("user2", req2.username());
         assertTrue(req2.attrs().containsKey(Security.USERNAME));
         assertEquals("user2", req2.attrs().get(Security.USERNAME));
 
-        assertEquals("user3", req3.username());
         assertTrue(req3.attrs().containsKey(Security.USERNAME));
         assertEquals("user3", req3.attrs().get(Security.USERNAME));
 
-        assertEquals("user4", req4.username());
         assertTrue(req4.attrs().containsKey(Security.USERNAME));
         assertEquals("user4", req4.attrs().get(Security.USERNAME));
     }

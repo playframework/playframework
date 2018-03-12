@@ -44,7 +44,7 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
       }
   }.build()
 
-  "The Java WS class" should {
+  "The Java WSClient" should {
     "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {
       val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
 

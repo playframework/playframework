@@ -277,7 +277,7 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
-  "CacheApi" should {
+  "AsyncCacheApi" should {
     "get items from cache" in new WithApplication() {
       val defaultCache = app.injector.instanceOf[AsyncCacheApi].sync
       defaultCache.set("foo", "bar")

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -36,7 +35,7 @@ public class StatusHeader extends Result {
     private static final int DEFAULT_CHUNK_SIZE = 1024 * 8;
     private static final boolean DEFAULT_INLINE_MODE = true;
 
-    private static final FileMimeTypes fileMimeTypes() {
+    private static FileMimeTypes fileMimeTypes() {
         return Http.Context.current().fileMimeTypes();
     }
 
@@ -310,25 +309,6 @@ public class StatusHeader extends Result {
      */
     public Result sendJson(JsonNode json) {
         return sendJson(json, JsonEncoding.UTF8);
-    }
-
-    /**
-     * Send a json result.
-     *
-     * @param json the json to send
-     * @param charset the charset in which to encode the json (e.g. "UTF-8")
-     * @return a '200 OK' result containing the json encoded with the given charset
-     *
-     * @deprecated As of 2.6.0, use sendJson(JsonNode, JsonEncoding)
-     */
-    @Deprecated
-    public Result sendJson(JsonNode json, String charset) {
-        JsonEncoding encoding = Arrays.stream(JsonEncoding.values())
-                .filter(enc -> enc.getJavaName().equalsIgnoreCase(charset)).findFirst()
-                .orElseGet(() -> {
-                    throw new IllegalArgumentException(charset + " is not a valid JsonEncoding");
-                });
-        return sendJson(json, encoding);
     }
 
     /**

@@ -6,7 +6,7 @@ package play.cache;
 import java.util.concurrent.Callable;
 
 /**
- * A CacheApi that makes synchronous calls.
+ * A synchronous API to access a Cache.
  */
 public interface SyncCacheApi {
     /**

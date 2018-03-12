@@ -548,7 +548,7 @@ public interface BodyParser<A> {
          */
         @Override
         public play.libs.streams.Accumulator<ByteString, F.Either<Result, Http.MultipartFormData<A>>> apply(Http.RequestHeader request) {
-            return delegate.apply(request._underlyingHeader())
+            return delegate.apply(request.asScala())
                     .asJava()
                     .map(result -> {
                                 if (result.isLeft()) {

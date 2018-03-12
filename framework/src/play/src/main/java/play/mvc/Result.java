@@ -71,21 +71,6 @@ public class Result {
      * @param reasonPhrase The reason phrase, if a non default reason phrase is required.
      * @param headers The headers.
      * @param body The body.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #Result(int, String, Map, HttpEntity)}.
-     */
-    @Deprecated
-    public Result(int status, Optional<String> reasonPhrase, Map<String, String> headers, HttpEntity body) {
-        this(new ResponseHeader(status, headers, reasonPhrase.orElse(null)), body);
-    }
-
-    /**
-     * Create a result.
-     *
-     * @param status The status.
-     * @param reasonPhrase The reason phrase, if a non default reason phrase is required.
-     * @param headers The headers.
-     * @param body The body.
      */
     public Result(int status, String reasonPhrase, Map<String, String> headers, HttpEntity body) {
         this(new ResponseHeader(status, headers, reasonPhrase), body);
@@ -147,20 +132,6 @@ public class Result {
      */
     public Optional<String> reasonPhrase() {
         return header.reasonPhrase();
-    }
-
-    /**
-     * Get the Scala version of response header
-     *
-     * @return the header
-     *
-     * @deprecated Deprecated as in 2.6.0. Use {@link #getHeader()}
-     *
-     * @see play.api.mvc.ResponseHeader
-     */
-    @Deprecated
-    protected play.api.mvc.ResponseHeader header() {
-        return header.asScala();
     }
 
     /**

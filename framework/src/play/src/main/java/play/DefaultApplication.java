@@ -39,22 +39,6 @@ public class DefaultApplication implements Application {
      * Create an application that wraps a Scala application.
      *
      * @param application the application to wrap
-     * @param configuration the new application's configuration
-     * @param injector the new application's injector
-     *
-     * @deprecated Use the constructor that accepts Config
-     */
-    @Deprecated
-    public DefaultApplication(play.api.Application application, Configuration configuration, Injector injector) {
-        this.application = application;
-        this.config = configuration.underlying();
-        this.injector = injector;
-    }
-
-    /**
-     * Create an application that wraps a Scala application.
-     *
-     * @param application the application to wrap
      * @param injector the new application's injector
      */
     public DefaultApplication(play.api.Application application, Injector injector) {

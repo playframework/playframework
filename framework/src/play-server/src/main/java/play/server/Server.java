@@ -86,46 +86,11 @@ public class Server {
      * <p>
      * The server will be running in TEST mode.
      *
-     * @param router The router for the server to serve.
-     * @return The running server.
-     *
-     * @deprecated As of 2.6.0. Use {@link #forRouter(Function)}
-     */
-    @Deprecated
-    public static Server forRouter(Router router) {
-        return forRouter((components) -> router);
-    }
-
-    /**
-     * Create a server for the given router.
-     * <p>
-     * The server will be running on a randomly selected ephemeral port, which can be checked using the httpPort
-     * property.
-     * <p>
-     * The server will be running in TEST mode.
-     *
      * @param block The block that creates the router.
      * @return The running server.
      */
     public static Server forRouter(Function<BuiltInComponents, Router> block) {
         return forRouter(Mode.TEST, 0, block);
-    }
-
-    /**
-     * Create a server for the given router.
-     * <p>
-     * The server will be running on a randomly selected ephemeral port, which can be checked using the httpPort
-     * property.
-     *
-     * @param router The router for the server to serve.
-     * @param mode   The mode the server will run on.
-     * @return The running server.
-     *
-     * @deprecated As of 2.6.0. Use {@link #forRouter(Mode, Function)}
-     */
-    @Deprecated
-    public static Server forRouter(Router router, Mode mode) {
-        return forRouter(router, mode, 0);
     }
 
     /**
@@ -147,22 +112,6 @@ public class Server {
     /**
      * Create a server for the given router.
      * <p>
-     * The server will be running in TEST mode.
-     *
-     * @param router The router for the server to serve.
-     * @param port   The port the server will run on.
-     * @return The running server.
-     *
-     * @deprecated As of 2.6.0. Use {@link #forRouter(int, Function)}
-     */
-    @Deprecated
-    public static Server forRouter(Router router, int port) {
-        return forRouter(router, Mode.TEST, port);
-    }
-
-    /**
-     * Create a server for the given router.
-     * <p>
      * The server will be running on a randomly selected ephemeral port, which can be checked using the httpPort
      * property.
      * <p>
@@ -174,21 +123,6 @@ public class Server {
      */
     public static Server forRouter(int port, Function<BuiltInComponents, Router> block) {
         return forRouter(Mode.TEST, port, block);
-    }
-
-    /**
-     * Create a server for the given router.
-     *
-     * @param router The router for the server to serve.
-     * @param mode   The mode the server will run on.
-     * @param port   The port the server will run on.
-     * @return The running server.
-     *
-     * @deprecated As of 2.6.0. Use {@link #forRouter(Mode, int, Function)}
-     */
-    @Deprecated
-    public static Server forRouter(Router router, Mode mode, int port) {
-        return forRouter(mode, port, (components) -> router);
     }
 
     /**

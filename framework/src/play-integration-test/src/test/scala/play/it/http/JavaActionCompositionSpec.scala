@@ -11,7 +11,7 @@ import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
 import play.core.j.MappedJavaHandlerComponents
 import play.http.{ ActionCreator, DefaultActionCreator }
 import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation, WithUsername }
-import play.mvc.{ EssentialFilter, Result, Results }
+import play.mvc.{ EssentialFilter, Result, Results, Security }
 import play.mvc.Http.Cookie
 import play.routing.{ Router => JRouter }
 
@@ -131,7 +131,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
   "Java action composition" should {
     "ensure the right request is set when the context is modified down the chain" in makeRequest(new MockController {
       @WithUsername("foo")
-      def action = Results.ok(request.username())
+      def action = Results.ok(request.attrs().get(Security.USERNAME))
     }) { response =>
       response.body must_== "foo"
     }
@@ -139,7 +139,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       @WithUsername("foo")
       def action = {
         session.clear()
-        Results.ok(request.username())
+        Results.ok(request.attrs().get(Security.USERNAME))
       }
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
@@ -150,7 +150,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       @WithUsername("foo")
       def action = {
         flash.clear()
-        Results.ok(request.username())
+        Results.ok(request.attrs().get(Security.USERNAME))
       }
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
@@ -161,7 +161,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       @WithUsername("foo")
       def action = {
         response.setCookie(Cookie.builder("foo", "bar").build())
-        Results.ok(request.username())
+        Results.ok(request.attrs().get(Security.USERNAME))
       }
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")

@@ -13,7 +13,7 @@ import play.libs.Scala;
 /**
  * Adapts a Scala SyncCacheApi to a Java SyncCacheApi
  */
-public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
+public class SyncCacheApiAdapter implements SyncCacheApi {
 
   private final play.api.cache.SyncCacheApi scalaApi;
 
@@ -37,18 +37,8 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
   }
 
   @Override
-  public <T> T getOrElse(String key, Callable<T> block, int expiration) {
-    return getOrElseUpdate(key, block, expiration);
-  }
-
-  @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block) {
     return scalaApi.getOrElseUpdate(key, Duration.Inf(), Scala.asScala(block), Scala.classTag());
-  }
-
-  @Override
-  public <T> T getOrElse(String key, Callable<T> block) {
-    return getOrElseUpdate(key, block);
   }
 
   @Override

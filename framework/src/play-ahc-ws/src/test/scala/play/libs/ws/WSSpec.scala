@@ -15,7 +15,7 @@ class WSSpec extends PlaySpecification with WsTestClient {
 
   sequential
 
-  "WS.url().post(InputStream)" should {
+  "WSClient.url().post(InputStream)" should {
 
     "uploads the stream" in {
 

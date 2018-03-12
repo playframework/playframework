@@ -10,7 +10,6 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 import com.typesafe.config.Config;
-import play.Configuration;
 import play.Environment;
 import play.Logger;
 import play.api.OptionalSourceMapper;
@@ -46,12 +45,6 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
         this.routes = routes;
 
         this.playEditor = Option.apply(config.hasPath("play.editor") ? config.getString("play.editor") : null);
-    }
-
-    @Deprecated
-    public DefaultHttpErrorHandler(
-            Configuration config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes) {
-        this(config.underlying(), environment, sourceMapper, routes);
     }
 
     /**
