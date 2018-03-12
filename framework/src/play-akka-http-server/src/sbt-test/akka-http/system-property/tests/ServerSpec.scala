@@ -13,8 +13,8 @@ class ServerSpec extends PlaySpecification {
 
   val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
     case ("GET", "/httpServerTag") => Action { implicit request =>
-      val httpServer = request.attrs.get(RequestAttrKey.Server).getOrElse("")
-      Ok(httpServer)
+      val httpServer = request.attrs.get(RequestAttrKey.Server)
+      Ok(httpServer.toString)
     }
   }
 

@@ -130,10 +130,6 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
     }
 
     val CustomAttr = TypedKey[String]("CustomAttr")
-    def addCustomAttr(r: RequestHeader): RequestHeader = {
-      val withAttrs = r.addAttr(CustomAttr, "y")
-      withAttrs
-    }
     val attrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>
       val attrComment = rh.attrs.get(CustomAttr)
       val headers = Array.empty[(String, String)] ++
@@ -143,7 +139,7 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
 
     "modify request with DefaultHttpRequestHandler" in serverWithHandler(
       Handler.Stage.modifyRequest(
-        (rh: RequestHeader) => addCustomAttr(rh),
+        (rh: RequestHeader) => rh.addAttr(CustomAttr, "y"),
         attrAction
       )
     ) { client =>
