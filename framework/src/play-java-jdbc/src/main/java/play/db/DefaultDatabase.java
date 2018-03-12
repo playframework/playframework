@@ -25,7 +25,7 @@ public class DefaultDatabase implements Database {
     }
 
     /**
-     * Create a default BoneCP-backed database.
+     * Create a default HikariCP-backed database.
      *
      * @param name name for the db's underlying datasource
      * @param configuration the database's configuration
@@ -37,7 +37,7 @@ public class DefaultDatabase implements Database {
     }
 
     /**
-     * Create a default BoneCP-backed database.
+     * Create a default HikariCP-backed database.
      *
      * @param name name for the db's underlying datasource
      * @param config the db's configuration

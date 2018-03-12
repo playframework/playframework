@@ -42,7 +42,6 @@ object ConnectionPool {
   def fromConfig(config: String, injector: Injector, environment: Environment, default: ConnectionPool): ConnectionPool = {
     config match {
       case "default" => default
-      case "bonecp" => new BoneConnectionPool(environment)
       case "hikaricp" => new HikariCPConnectionPool(environment)
       case fqcn => injector.instanceOf(Reflect.getClass[ConnectionPool](fqcn, environment.classLoader))
     }
@@ -54,7 +53,6 @@ object ConnectionPool {
    */
   def fromConfig(config: String, environment: Environment, default: ConnectionPool): ConnectionPool = {
     config match {
-      case "bonecp" => new BoneConnectionPool(environment)
       case "hikaricp" => new HikariCPConnectionPool(environment)
       case _ => default
     }

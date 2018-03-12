@@ -301,12 +301,6 @@ Logging is now configured solely via [logback configuration files](https://logba
 
 The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
 
-To switch back to BoneCP, you can set the `play.db.pool` property in `application.conf`:
-
-```
-play.db.pool = bonecp
-```
-
 The full range of configuration options available to the Play connection pools can be found in the Play JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
 
 You may run into the following exception:

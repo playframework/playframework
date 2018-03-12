@@ -12,7 +12,7 @@ import scala.Option;
 import java.util.List;
 
 /**
- * Java DB components. You can mix in {@link HikariCPComponents} or {@link BoneCPComponents}
+ * Java DB components. You can mix in {@link HikariCPComponents}
  * to have a default implementation for accessing a connection pool.
  *
  * For example:
