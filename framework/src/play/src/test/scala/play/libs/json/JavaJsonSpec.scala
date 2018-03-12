@@ -7,10 +7,13 @@ import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.Optional
 
-import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
-
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import play.api.mvc.Request
+import play.core.test.FakeRequest
+import play.mvc.Http
+import play.mvc.Http.RequestBody
 
 class JavaJsonSpec extends Specification {
   sequential
@@ -68,6 +71,22 @@ class JavaJsonSpec extends Specification {
       "prettyPrint" in new JsonScope {
         Json.prettyPrint(testJson) must_== testJsonString
       }
+    }
+    "deserialize to a POJO from request body" in new JsonScope(Json.newDefaultMapper()) {
+
+      val validRequest: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(testJson))
+      val javaPOJO = validRequest.body.parseJson(classOf[JavaPOJO]).get()
+
+      javaPOJO.getBar must_== "baz"
+      javaPOJO.getFoo must_== "bar"
+      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861l)
+      javaPOJO.getOptNumber must_== Optional.of(55555)
+
+      val testNotJsonBody: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody("foo"))
+      testNotJsonBody.body.parseJson(classOf[JavaPOJO]) must_== Optional.empty()
+
+      val testJsonMissingFields: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(mapper.createObjectNode()))
+      testJsonMissingFields.body.parseJson(classOf[JavaPOJO]).get().getBar must_== null
     }
     "ignore unknown fields when deserializing to a POJO" in new JsonScope(Json.newDefaultMapper()) {
       val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
