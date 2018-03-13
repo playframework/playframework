@@ -44,42 +44,10 @@ private[server] class AkkaModelConversion(
    * for its body.
    */
   def convertRequest(requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean, request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
-
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
     )
-
-    //    // FIXME this is if you want to try out avoiding conversion
-    //    (
-    //      new RequestHeaderImpl(
-    //        forwardedHeaderHandler.forwardedConnection(
-    //          new RemoteConnection {
-    //            override def remoteAddress: InetAddress = InetAddress.getLocalHost
-    //            override def secure: Boolean = secureProtocol
-    //            // TODO - Akka does not yet expose the SSLEngine used for the request
-    //            override lazy val clientCertificateChain = None
-    //          },
-    //          Headers()),
-    //        request.method.name,
-    //        new RequestTarget {
-    //          override lazy val uri: URI = new URI(uriString)
-    //          override lazy val uriString: String = request.header[`Raw-Request-URI`] match {
-    //            case None =>
-    //              logger.warn("Can't get raw request URI.")
-    //              request.uri.toString
-    //            case Some(rawUri) =>
-    //              rawUri.uri
-    //          }
-    //          override lazy val path: String = request.uri.path.toString
-    //          override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
-    //        },
-    //        request.protocol.value,
-    //        Headers(),
-    //        TypedMap.empty
-    //      ),
-    //      None
-    //    )
   }
 
   /**
