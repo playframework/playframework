@@ -11,6 +11,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api._
 import play.api.http.HttpConfiguration
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 import play.libs.Scala
 import play.mvc.Http
@@ -33,6 +34,8 @@ import scala.util.parsing.input._
  * }}}
  */
 object Messages extends MessagesImplicits {
+
+  private[play] val currentContextLang = TypedKey.apply[Lang]("contextLang")
 
   private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
 
@@ -457,8 +460,9 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: RequestHeader): Messages = {
+    val maybeLangFromContext = request.attrs.get(Messages.currentContextLang)
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
-    val lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
   }
 
