@@ -24,7 +24,6 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
         val Seq(response) = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map("Content-Disposition" -> "attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf"), "")
         )
-        //response.body must beLeft("Some(attachment; filename=\"UTF-8''Roget%27s%20Thesaurus.pdf\")")
         response.body must beLeft("Some(attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf)")
       }
     }

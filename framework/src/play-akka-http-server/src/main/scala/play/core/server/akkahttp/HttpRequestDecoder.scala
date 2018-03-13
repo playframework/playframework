@@ -4,7 +4,7 @@
 package play.core.server.akkahttp
 
 import akka.NotUsed
-import akka.http.scaladsl.model.{ HttpHeader, HttpRequest }
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.headers.{ HttpEncodings, `Content-Encoding` }
 import akka.stream.scaladsl.{ Compression, Flow }
 import akka.util.ByteString
@@ -21,22 +21,18 @@ private[server] object HttpRequestDecoder {
    */
   private def decodeRequestWith(decoderFlow: Flow[ByteString, ByteString, NotUsed], request: HttpRequest): HttpRequest = {
     request.withEntity(request.entity.transformDataBytes(decoderFlow))
-      .withHeaders(request.headers.filterNot(_.lowercaseName == "content-encoding"))
+      .withHeaders(request.headers.filterNot(_.isInstanceOf[`Content-Encoding`]))
   }
 
   /**
    * Decode the request body if it is encoded and we know how to decode it.
    */
   def decodeRequest(request: HttpRequest): HttpRequest = {
-    val contentEncoding: Option[HttpHeader] = request.headers.find(_.lowercaseName == `Content-Encoding`.lowercaseName)
-    contentEncoding match {
-      case None => request
-      case Some(ce) =>
-        ce.value match {
-          case HttpEncodings.gzip.value => decodeRequestWith(Compression.gunzip(), request)
-          case HttpEncodings.deflate.value => decodeRequestWith(Compression.inflate(), request)
-          case _ => request
-        }
+    request.encoding match {
+      case HttpEncodings.gzip => decodeRequestWith(Compression.gunzip(), request)
+      case HttpEncodings.deflate => decodeRequestWith(Compression.inflate(), request)
+      // Handle every undefined decoding as is
+      case _ => request
     }
   }
 
