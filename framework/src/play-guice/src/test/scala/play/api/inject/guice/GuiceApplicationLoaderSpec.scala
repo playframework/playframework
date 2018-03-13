@@ -21,7 +21,7 @@ class GuiceApplicationLoaderSpec extends Specification {
 
     "allow adding additional modules" in {
       val module = new AbstractModule {
-        def configure() = {
+        override def configure() = {
           bind(classOf[Bar]) to classOf[MarsBar]
         }
       }
@@ -80,13 +80,13 @@ class GuiceApplicationLoaderSpec extends Specification {
 }
 
 class ManualTestModule extends AbstractModule {
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind(classOf[Foo]) to classOf[ManualFoo]
   }
 }
 
 class StaticTestModule extends AbstractModule {
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind(classOf[Foo]) to classOf[StaticFoo]
   }
 }
@@ -94,14 +94,14 @@ class StaticTestModule extends AbstractModule {
 class ScalaConfiguredModule(
     environment: Environment,
     configuration: Configuration) extends AbstractModule {
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind(classOf[Foo]) to classOf[ScalaConfiguredFoo]
   }
 }
 class JavaConfiguredModule(
     environment: JavaEnvironment,
     config: Config) extends AbstractModule {
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind(classOf[Foo]) to classOf[JavaConfiguredFoo]
   }
 }

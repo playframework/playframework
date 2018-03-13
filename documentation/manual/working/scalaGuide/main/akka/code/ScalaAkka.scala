@@ -144,7 +144,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 import actors.ConfiguredActor
 
 class MyModule extends AbstractModule with AkkaGuiceSupport {
-  def configure = {
+  override def configure = {
     bindActor[ConfiguredActor]("configured-actor")
   }
 }
@@ -159,7 +159,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 import actors._
 
 class MyModule extends AbstractModule with AkkaGuiceSupport {
-  def configure = {
+  override def configure = {
     bindActor[ParentActor]("parent-actor")
     bindActorFactory[ConfiguredChildActor, ConfiguredChildActor.Factory]
   }

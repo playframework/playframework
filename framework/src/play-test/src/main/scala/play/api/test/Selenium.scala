@@ -5,13 +5,14 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
-import com.google.common.base.Function
 import org.fluentlenium.adapter.FluentAdapter
 import org.fluentlenium.core.domain.{ FluentList, FluentWebElement }
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
+
+import scala.compat.java8.FunctionConverters._
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
@@ -52,12 +53,8 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    */
   def waitUntil[T](timeout: Int, timeUnit: TimeUnit)(block: => T): T = {
     val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout, timeUnit)
-    val f = new Function[WebDriver, T]() {
-      def apply(driver: WebDriver): T = {
-        block
-      }
-    }
-    wait.until(f)
+    val f = (driver: WebDriver) => block
+    wait.until(f.asJava)
   }
 
   /**
