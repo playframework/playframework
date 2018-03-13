@@ -185,7 +185,7 @@ object WebSocketFlowHandler {
                         push(remoteOut, close)
                         // And complete both remote out and remote in
                         complete(remoteOut)
-                        cancel(appIn)
+                        cancel(remoteIn)
                       } else {
                         // Store so we can send later
                         state = ClientInitiatedClose(close)
