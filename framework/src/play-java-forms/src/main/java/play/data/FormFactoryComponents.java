@@ -18,6 +18,6 @@ public interface FormFactoryComponents extends ValidatorsComponents, I18nCompone
     }
 
     default FormFactory formFactory() {
-        return new FormFactory(messagesApi(), formatters(), validator());
+        return new FormFactory(messagesApi(), formatters(), validatorFactory());
     }
 }

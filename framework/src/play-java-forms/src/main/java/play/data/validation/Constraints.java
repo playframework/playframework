@@ -4,6 +4,8 @@
 
 package play.data.validation;
 
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.data.Form.Display;
 
 import static play.libs.F.*;
@@ -50,6 +52,64 @@ public class Constraints {
 
         public abstract Tuple<String, Object[]> getErrorMessageKey();
 
+    }
+
+    /**
+     * Super-type for validators with a payload.
+     */
+    public static abstract class ValidatorWithPayload<T> {
+
+        /**
+         * @param object    the value to test.
+         * @param payload   the payload providing validation context information.
+         * @return {@code true} if this value is valid.
+         */
+        public abstract boolean isValid(T object, ValidatorPayload payload);
+
+        /**
+         * @param object            the object to check
+         * @param constraintContext The JSR-303 validation context.
+         * @return {@code true} if this value is valid for the given constraint.
+         */
+        public boolean isValid(T object, ConstraintValidatorContext constraintContext) {
+            return isValid(object, constraintContext.unwrap(HibernateConstraintValidatorContext.class).getConstraintValidatorPayload(ValidatorPayload.class));
+        }
+
+        public abstract Tuple<String, Object[]> getErrorMessageKey();
+
+    }
+
+    public static class ValidatorPayload {
+        private final Lang lang;
+        private final Messages messages;
+        private final Map<String, Object> args;
+
+        public ValidatorPayload(final Lang lang, final Messages messages, final Map<String, Object> args) {
+            this.lang = lang;
+            this.messages = messages;
+            this.args = args;
+        }
+
+        /**
+         * @return if validation happens during a Http Request the lang of that request, otherwise null
+         */
+        public Lang getLang() {
+            return this.lang;
+        }
+
+        /**
+         * @return if validation happens during a Http Request the messages for the lang of that request, otherwise null
+         */
+        public Messages getMessages() {
+            return this.messages;
+        }
+
+        /**
+         * @return if validation happens during a Http Request the args map of that request, otherwise null
+         */
+        public Map<String, Object> getArgs() {
+            return this.args;
+        }
     }
 
     /**
@@ -572,7 +632,7 @@ public class Constraints {
 
     // --- validate fields with custom validator
     
-     /**
+    /**
      * Defines a custom validator.
      */
     @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
@@ -645,6 +705,81 @@ public class Constraints {
 
     }
 
+    // --- validate fields with custom validator that gets payload
+    
+    /**
+     * Defines a custom validator.
+     */
+    @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = ValidatePayloadWithValidator.class)
+    @Repeatable(play.data.validation.Constraints.ValidatePayloadWith.List.class)
+    @play.data.Form.Display(name="constraint.validatewith", attributes={})
+    public @interface ValidatePayloadWith {
+        String message() default ValidatePayloadWithValidator.defaultMessage;
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+        Class<? extends ValidatorWithPayload> value();
+
+        /**
+         * Defines several {@code @ValidatePayloadWith} annotations on the same element.
+         */
+        @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+        @Retention(RUNTIME)
+        public @interface List {
+            ValidatePayloadWith[] value();
+        }
+    }
+
+    /**
+     * Validator for {@code @ValidatePayloadWith} fields.
+     */
+    public static class ValidatePayloadWithValidator extends ValidatorWithPayload<Object> implements ConstraintValidator<ValidatePayloadWith, Object> {
+
+        final static public String defaultMessage = "error.invalid";
+        Class<?> clazz = null;
+        ValidatorWithPayload validator = null;
+
+        public ValidatePayloadWithValidator() {}
+
+        public ValidatePayloadWithValidator(Class clazz) {
+            this.clazz = clazz;
+        }
+
+        public void initialize(ValidatePayloadWith constraintAnnotation) {
+            this.clazz = constraintAnnotation.value();
+             try {
+                Constructor<?> constructor = clazz.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                validator = (ValidatorWithPayload)constructor.newInstance();
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        public boolean isValid(Object object, ValidatorPayload payload) {
+            try {
+                return validator.isValid(object, payload);
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        public Tuple<String, Object[]> getErrorMessageKey() {
+            Tuple<String, Object[]> errorMessageKey = null;
+            try {
+                errorMessageKey = validator.getErrorMessageKey();
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            return (errorMessageKey != null) ? errorMessageKey : Tuple(defaultMessage, new Object[] {});
+        }
+
+    }
+
     // --- class level helpers
 
     @Target({TYPE, ANNOTATION_TYPE})
@@ -670,6 +805,29 @@ public class Constraints {
         T validate();
     }
 
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = ValidateValidatorWithPayload.class)
+    @Repeatable(play.data.validation.Constraints.ValidateWithPayload.List.class)
+    public @interface ValidateWithPayload {
+        String message() default "error.invalid";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+
+        /**
+         * Defines several {@code @ValidateWithPayload} annotations on the same element.
+         */
+        @Target({TYPE, ANNOTATION_TYPE})
+        @Retention(RUNTIME)
+        public @interface List {
+            ValidateWithPayload[] value();
+        }
+    }
+
+    public interface ValidatableWithPayload<T> {
+        T validate(ValidatorPayload payload);
+    }
+
     public static class ValidateValidator implements PlayConstraintValidator<Validate, Validatable<?>> {
 
         @Override
@@ -679,6 +837,18 @@ public class Constraints {
         @Override
         public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
             return reportValidationStatus(value.validate(), constraintValidatorContext);
+        }
+    }
+
+    public static class ValidateValidatorWithPayload implements PlayConstraintValidatorWithPayload<ValidateWithPayload, ValidatableWithPayload<?>> {
+
+        @Override
+        public void initialize(final ValidateWithPayload constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(final ValidatableWithPayload<?> value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
+            return reportValidationStatus(value.validate(payload), constraintValidatorContext);
         }
     }
 
@@ -697,5 +867,15 @@ public class Constraints {
                 .withDynamicPayload(validationResult);
             return false;
         }
+    }
+
+    public interface PlayConstraintValidatorWithPayload<A extends Annotation, T> extends PlayConstraintValidator<A, T> {
+
+        @Override
+        default boolean isValid(final T value, final ConstraintValidatorContext constraintValidatorContext) {
+            return isValid(value, constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).getConstraintValidatorPayload(ValidatorPayload.class), constraintValidatorContext);
+        }
+
+        boolean isValid(final T value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext);
     }
 }

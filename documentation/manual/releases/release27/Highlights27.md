@@ -57,6 +57,51 @@ public class MyForm {
 
 You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognise that.
 
+## Payloads for Java `validate` and `isValid` methods
+
+When using [[advanced validation features|JavaForms#Advanced-validation]] you can now pass a `ValidatorPayload` object, containing useful information sometimes needed for a validation process, to a Java `validate` or `isValid` method.
+To pass such a payload to a `validate` method just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
+
+```java
+import play.data.validation.Constraints.ValidatableWithPayload;
+import play.data.validation.Constraints.ValidateWithPayload;
+import play.data.validation.Constraints.ValidatorPayload;
+
+@ValidateWithPayload
+public class SomeForm implements ValidatableWithPayload<String> {
+
+    @Override
+    public String validate(ValidatorPayload payload) {
+        payload.getLang(); // language of the current request
+        payload.getMessages(); // messages defined for the current lang
+        payload.getArgs(); // request context args
+        // ...
+    }
+
+}
+```
+
+In case you wrote your own [[custom class-level constraint|JavaForms#Custom-class-level-constraints-with-DI-support]], you can also pass a payload to an `isValid` method by implementing `PlayConstraintValidatorWithPayload` (instead of just `PlayConstraintValidator`):
+```java
+import javax.validation.ConstraintValidatorContext;
+
+import play.data.validation.Constraints.PlayConstraintValidatorWithPayload;
+import play.data.validation.Constraints.ValidatorPayload;
+// ...
+
+public class ValidateWithDBValidator implements PlayConstraintValidatorWithPayload<SomeValidatorAnnotation, SomeValidatableInterface<?>> {
+
+    //...
+
+    @Override
+    public boolean isValid(final SomeValidatableInterface<?> value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
+        // You can now pass the payload on to your custom validate(...) method:
+        return reportValidationStatus(value.validate(...., payload), constraintValidatorContext);
+    }
+
+}
+```
+
 ## Support for Caffeine
 
 Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recommended cache implementation for Play users.

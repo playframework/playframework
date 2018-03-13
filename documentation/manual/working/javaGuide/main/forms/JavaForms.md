@@ -37,7 +37,7 @@ You can define additional constraints that will be checked during the binding ph
 
 @[user](code/javaguide/forms/u2/User.java)
 
-> **Tip:** The `play.data.validation.Constraints` class contains several built-in validation annotations. All of these constraint annotations are defined as `@Repeatable`. This lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith` for example.
+> **Tip:** The `play.data.validation.Constraints` class contains several built-in validation annotations. All of these constraint annotations are defined as `@Repeatable`. This lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`/`@ValidatePayloadWith` for example.
 
 In the [Advanced validation](#advanced-validation) section further below you will learn how to handle concerns like cross field validation, partial form validation or how to make use of injected components (e.g. to access a database) during validation.
 
@@ -192,6 +192,13 @@ Now we can use it:
 Using this group sequence will first validate all fields belonging to the `Default` group (which again also includes fields that haven't defined a group at all). Only when all the fields belonging to the `Default` group pass validation successfully, the fields belonging to the `SignUpCheck` will be validated and so on. 
 
 Using a group sequence is especially a good practice when you have a `validate` method which queries a database or performs any other blocking action: It's not really useful to execute the method at all if the validation fails at it's basic level (email is not valid, number is a string, etc). In such a case you probably want the `validate` be called only after checking all other annotation-based constraints before and only if they pass. A user, for example, who signs up should enter a valid email address and *only* if it is valid a database lookup for the email address should be done *afterwards*.
+
+### Passing payloads to validators
+
+If needed, you can also pass a `ValidatorPayload` object - which contains useful information sometimes needed for a validation process - to a `validate` method.
+To pass such a payload just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
+
+@[payload-validate](code/javaguide/forms/JavaForms.java)
 
 ### Custom class-level constraints with DI support
 

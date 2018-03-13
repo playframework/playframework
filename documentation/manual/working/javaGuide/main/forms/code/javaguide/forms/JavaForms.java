@@ -13,7 +13,10 @@ import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
 import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.Validatable;
+import play.data.validation.Constraints.ValidatableWithPayload;
+import play.data.validation.Constraints.ValidatorPayload;
 import play.data.validation.ValidationError;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
@@ -527,5 +530,28 @@ public class JavaForms extends WithApplication {
             }
         }
     }
+
+    //#payload-validate
+    //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
+    //###insert: import play.data.validation.Constraints.ValidateWithPayload;
+    //###insert: import play.data.validation.ValidationError;
+    //###insert: import play.data.validation.ValidatorPayload;
+
+    @ValidateWithPayload
+    public static class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
+
+        // fields, getters, setters, etc.
+
+        @Override
+        public ValidationError validate(ValidatorPayload payload) {
+            payload.getLang(); // language of the current request
+            payload.getMessages(); // messages defined for the current lang
+            payload.getArgs(); // request context args
+            // ...
+            //###skip: 1
+            return null;
+        }
+    }
+    //#payload-validate
 
 }

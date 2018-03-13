@@ -17,6 +17,8 @@ import javax.validation.ConstraintValidator;
 import javax.validation.Payload;
 
 import play.api.i18n.Lang;
+import play.data.validation.Constraints.ValidatorPayload;
+import play.data.validation.Constraints.ValidatorWithPayload;
 import play.data.validation.Constraints.Validator;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
@@ -52,7 +54,7 @@ public class TestConstraints {
     /**
      * Validator for <code>@I18Constraint</code> fields.
      */
-    public static class I18NConstraintValidator extends Validator<String> implements ConstraintValidator<I18Constraint, String> {
+    public static class I18NConstraintValidator extends ValidatorWithPayload<String> implements ConstraintValidator<I18Constraint, String> {
 
         String msgKey;
 
@@ -69,12 +71,12 @@ public class TestConstraints {
         }
 
         @Override
-        public boolean isValid(String object) {
+        public boolean isValid(String object, ValidatorPayload payload) {
             if(object == null || object.length() == 0) {
                 return true;
             }
 
-            return Pattern.compile(this.messagesApi.get(Http.Context.current.get().lang(), this.msgKey)).matcher(object).matches();
+            return Pattern.compile(this.messagesApi.get(payload.getLang(), this.msgKey)).matcher(object).matches();
         }
 
         @Override
