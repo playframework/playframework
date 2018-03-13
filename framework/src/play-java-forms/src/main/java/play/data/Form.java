@@ -443,30 +443,6 @@ public class Form<T> {
                 ).collect(Collectors.toList());
     }
 
-    private Object callLegacyValidateMethod(BindingResult result) {
-        Object globalError = null;
-
-        // instances of Validatable have been validated already
-        boolean shouldTryLegacyValidateMethod = result.getTarget() != null && !(result.getTarget() instanceof Validatable);
-        if (shouldTryLegacyValidateMethod) {
-            try {
-                java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                if (v.getParameterCount() == 0) {
-                    globalError = v.invoke(result.getTarget());
-                    Logger.warn("The \"validate\" method in class \"{}\" is deprecated since Play 2.6. " +
-                                    "To migrate to class-level constraints see https://www.playframework.com/documentation/2.6.x/Migration26#java-form-changes " +
-                                    "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
-                            result.getTarget().getClass().getName());
-                }
-            } catch (NoSuchMethodException ex) {
-                // do nothing
-            } catch (IllegalAccessException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        return globalError;
-    }
-
     /**
      * Binds data to this form - that is, handles form submission.
      *
@@ -493,19 +469,6 @@ public class Form<T> {
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
-        }
-
-        final Object globalError = callLegacyValidateMethod(result);
-        if (globalError != null) {
-            final List<ValidationError> errors = new ArrayList<>();
-            if (globalError instanceof String) {
-                errors.add(new ValidationError("", (String)globalError, new ArrayList<>()));
-            } else if (globalError instanceof List) {
-                errors.addAll((List<ValidationError>) globalError);
-            } else if (globalError instanceof Map) {
-                ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
-            }
             return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
         }
         return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
