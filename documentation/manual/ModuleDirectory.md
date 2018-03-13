@@ -274,6 +274,12 @@ to Twirl
 * **Documentation:** <https://github.com/Rhinofly/play-s3/blob/master/README.md>
 * **Short description:** S3 (Simple Storage Service) API wrapper for Play
 
+### Benji (Scala)
+
+* **Website:** <https://github.com/zengularity/benji>
+* **Documentation:** <https://github.com/zengularity/benji/tree/master/examples>
+* **Short description:** A reactive module for the Benji library, providing an Object storage DSL (AWS/Ceph S3, Google Cloud Storage).
+
 ### Pusher
 * **Website:** <https://pusher.com/>
 * **Documentation:** <https://github.com/tindr/Play2Pusher>
