@@ -54,8 +54,8 @@ object Multipart {
   private sealed trait Formatter {
     def ~~(ch: Char): this.type
 
-    def ~~(string: String): this.type = {
-      @tailrec def rec(ix: Int = 0): this.type =
+    def ~~(string: String): Formatter = {
+      @tailrec def rec(ix: Int = 0): Formatter =
         if (ix < string.length) {
           this ~~ string.charAt(ix)
           rec(ix + 1)
