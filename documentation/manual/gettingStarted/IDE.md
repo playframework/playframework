@@ -1,9 +1,14 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
-Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
+Working with Play is easy. You don’t need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically. A simple text editor is sufficient. However, using a modern Java or Scala IDE provides cool productivity features like auto-completion, on-the-fly compilation, assisted refactoring and debugging.
 
-However, using a modern Java or Scala IDE provides cool productivity features like auto-completion, on-the-fly compilation, assisted refactoring and debugging.
+This page describes how to set up the following IDEs to work with Play:
+
+* [Eclipse](#Eclipse)
+* [IntelliJ IDEA](#Intellij-IDEA)
+* [Netbeans](#Netbeans)
+* [Ensime](#Ensime)
 
 ## Eclipse
 

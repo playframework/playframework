@@ -1,13 +1,32 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
-# Installing Play
+# Introduction
 
-This page shows how to download, install and run a Play application.  There's a built in tutorial that shows you around, so running this Play application will show you how Play itself works!
+In contrast with web frameworks that were designed to support large eco-systems, such as Java EE, Play was developed by web developers&mdash;for web development. Play saves precious development time by directly supporting common tasks and hot reloading so that you can immediately view the results of your work. As a full-stack framework, it includes all of the components you need to build a web application such as an integrated HTTP server, form validation, Cross-Site Request Forgery (CSRF) protection, RESTful web services API, and more.
 
-Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by [SBT](http://www.scala-sbt.org/). In this guide we describe how to install Play with SBT.
+Play Framework uses Scala and Akka under the hood. This endows Play applications with a stateless, non-blocking, event-driven architecture that provides horizontal and vertical scalability and uses resources more efficiently. See [Elasticity](https://developer.lightbend.com/elastic-scaling/) and [Efficient Resource Usage](https://developer.lightbend.com/efficient-resource-usage/) for more information.
 
-## Prerequisites
+Play offers both Java and Scala APIs. Java developers find Play's Model-View-Controller (MVC) architecture familiar and easy to learn. Scala developers appreciate using the concise and familiar functional programming patterns. The large community developing Play applications provides an excellent resource for getting questions answered.
 
-Play requires Java 1.8.  To check that you have the latest JDK, please run:
+Play is non-opinionated about database access, and integrates with many object relational mapping (ORM) layers.  It supports Anorm, Ebean, Slick, and JPA, out-of-the-box but many customers use NoSQL or REST layers and other ORMs. 
+
+Read on to learn about:
+
+* [Choosing a build tool](#Choosing-a-build-tool)
+* [Verifying prerequisites](#Verifying-prerequisites) 
+
+Or jump to [[Examples and templates|NewApplication]]
+
+## Choosing a build tool
+
+Because Play Framework libraries are available from [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), you can use any Java build tool to build a Play project. However,   [sbt](http://www.scala-sbt.org/) (simple build tool) provides the development experience Play is known and loved for, such as routes, template compilation, and auto-reloading.  For example,  `sbt run` builds and runs an HTTP server and your application so that you can immediately view your work. 
+
+This guide describes how to use `sbt` to develop Play applications. Examples demonstrate use of a Bash command shell, but work with any shell.
+
+## Verifying prerequisites
+
+Play requires Java SE 1.8 and we recommend that you use the latest version of `sbt`.  
+
+To check your JDK, enter the following in a command window:
 
 ```bash
 java -version
@@ -21,22 +40,16 @@ Java(TM) SE Runtime Environment (build 1.8.0_121-b13)
 Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
 ```
 
-If you don't have the JDK, you have to install it from [Oracle's JDK Site](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+If you don't have the right JDK, install it from [Oracle's JDK Site](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
-## Installing Play with SBT
+To check your `sbt` version, enter the following:
 
-We provide a number of sample projects that have `./sbt` and `sbt.bat` launchers for Unix and Windows environments respectively. These can be found on our [download page](https://playframework.com/download#examples). The launcher will automatically download dependencies without you having to install SBT ahead of time.
+```bash
+sbt -version
+```
 
-Or, refer to the [SBT download page](http://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command.
-
-> **Note:** See [sbt documentation](http://www.scala-sbt.org/release/docs/Setup-Notes.html) for details about how to setup sbt. We recommend that you use the latest version of sbt.
-
-If your proxy requires user/password for authentication, you need to add system properties when invoking sbt instead: `./sbt -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
-
-### Running Play with SBT
-
-SBT provides all the necessary commands to run your application. For example, you can use `sbt run` to run your app. For more details on running Play from the command line, refer to the [[new application documentation|NewApplication]].
+The [sbt download page](http://www.scala-sbt.org/download.html) lists the latest version.
 
 ## Congratulations!
 
-You are now ready to work with Play!  The next page will show you how to create projects from the command line and some more detail about creating new applications.
+You are now ready to work with Play!  Next, learn more about Play from example apps or start developing your own application.
