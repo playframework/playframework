@@ -51,22 +51,24 @@ trait OkHttpEndpointSupport {
     val serverClient = new OkHttpEndpoint {
       override val endpoint = e
       override val clientBuilder: OkHttpClient.Builder = {
-        val b = new OkHttpClient.Builder().hostnameVerifier(allowAllHostnameVerifier)
+        val b = new OkHttpClient.Builder()
         endpoint match {
           case e: HttpsEndpoint =>
+
+            // We are only using this for tests, so we are accepting all host names
+            // when OkHttp client verifies the identity of the server with the hostname.
+            // See https://tools.ietf.org/html/rfc2818#section-3.1
+            val allowAllHostnameVerifier = new HostnameVerifier {
+              override def verify(s: String, sslSession: SSLSession): Boolean = true
+            }
+
             b.sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
+              .hostnameVerifier(allowAllHostnameVerifier)
           case _ => b
         }
       }
     }
     block(serverClient)
-  }
-
-  // We are only using this for tests, so we are accepting all host names
-  // when OkHttp client verifies the identity of the server with the hostname.
-  // See https://tools.ietf.org/html/rfc2818#section-3.1
-  private lazy val allowAllHostnameVerifier = new HostnameVerifier {
-    override def verify(s: String, sslSession: SSLSession): Boolean = true
   }
 
   /**
