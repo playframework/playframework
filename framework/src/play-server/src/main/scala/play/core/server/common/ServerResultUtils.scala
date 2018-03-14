@@ -3,6 +3,8 @@
  */
 package play.core.server.common
 
+import java.util.{ BitSet => JBitSet }
+
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
@@ -12,7 +14,9 @@ import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.mvc.request.RequestAttrKey
+import play.core.utils.{ AsciiBitSet, AsciiSet }
 
+import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
@@ -76,6 +80,84 @@ private[play] final class ServerResultUtils(
     } else {
       Future.successful(result)
     }
+  }
+
+  /*
+
+https://tools.ietf.org/html/rfc5234#appendix-B.1
+
+         ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z
+
+         DIGIT          =  %x30-39
+                                ; 0-9
+
+         VCHAR          =  %x21-7E
+                                ; visible (printing) characters
+
+https://tools.ietf.org/html/rfc7230#section-1.2
+
+   The following core rules are included by reference, as defined in
+   [RFC5234], Appendix B.1: ALPHA (letters), CR (carriage return), CRLF
+   (CR LF), CTL (controls), DIGIT (decimal 0-9), DQUOTE (double quote),
+   HEXDIG (hexadecimal 0-9/A-F/a-f), HTAB (horizontal tab), LF (line
+   feed), OCTET (any 8-bit sequence of data), SP (space), and VCHAR (any
+   visible [USASCII] character).
+
+  https://tools.ietf.org/html/rfc7230#section-3.2
+
+       header-field   = field-name ":" OWS field-value OWS
+
+     field-name     = token
+     field-value    = *( field-content / obs-fold )
+     field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+     field-vchar    = VCHAR / obs-text
+
+     obs-fold       = CRLF 1*( SP / HTAB )
+                    ; obsolete line folding
+                    ; see Section 3.2.4
+
+https://tools.ietf.org/html/rfc7230#section-3.2.6
+
+     token          = 1*tchar
+
+     tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+                    / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+                    / DIGIT / ALPHA
+                    ; any VCHAR, except delimiters
+
+     quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+     qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text
+     obs-text       = %x80-FF
+
+   */
+
+  private def allowedHeaderChars: AsciiBitSet = {
+    (AsciiSet('!', '#', '$', '%', '&', ''', '*', '+', '-',
+      '.', '^', '_', '`', '|', '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha).toBitSet
+  }
+
+  def validateHeaderNameChars(headerName: String): Unit = {
+    @tailrec def loop(i: Int): Unit = {
+      if (i < headerName.length) {
+        val c = headerName(i)
+        if (c > 255) throw new IllegalArgumentException(s"Header value had non-ASCII character: 0x${c.toInt.toHexString}")
+        if (!allowedHeaderChars.get(c)) throw new IllegalArgumentException()
+        loop(i + 1)
+      }
+    }
+    loop(0)
+  }
+
+  def validateHeaderValueChars(headerValue: String): Unit = {
+    @tailrec def loop(i: Int): Unit = {
+      if (i < headerValue.length) {
+        val c = headerValue(i)
+        if (c > 255) throw new IllegalArgumentException(s"Header value had non-ASCII character: 0x${c.toInt.toHexString}")
+        if (c < 21) throw new IllegalArgumentException(s"Header value had non-visible ASCII character: 0x${c.toInt.toHexString}")
+        loop(i + 1)
+      }
+    }
+    loop(0)
   }
 
   /**

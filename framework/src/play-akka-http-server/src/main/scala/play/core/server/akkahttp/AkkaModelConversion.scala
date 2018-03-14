@@ -6,11 +6,12 @@ package play.core.server.akkahttp
 import java.net.{ InetAddress, InetSocketAddress, URI }
 import java.security.cert.X509Certificate
 import java.util.Locale
-import javax.net.ssl.SSLPeerUnverifiedException
 
+import javax.net.ssl.SSLPeerUnverifiedException
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.settings.ParserSettings
 import akka.http.scaladsl.util.FastFuture._
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -33,7 +34,8 @@ import scala.util.control.NonFatal
  */
 private[server] class AkkaModelConversion(
     resultUtils: ServerResultUtils,
-    forwardedHeaderHandler: ForwardedHeaderHandler) {
+    forwardedHeaderHandler: ForwardedHeaderHandler,
+    illegalResponseHeaderValue: ParserSettings.IllegalResponseHeaderValueProcessingMode) {
 
   private val logger = Logger(getClass)
 
@@ -57,8 +59,8 @@ private[server] class AkkaModelConversion(
     secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
 
-    val headers: AkkaHeadersWrapper = convertRequestHeadersAkka(request)
-    val remoteAddressArg: InetSocketAddress = remoteAddress // Avoid clash between method arg and RequestHeader field
+    val headers = convertRequestHeadersAkka(request)
+    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
 
     new RequestHeaderImpl(
       forwardedHeaderHandler.forwardedConnection(
@@ -270,9 +272,38 @@ private[server] class AkkaModelConversion(
     headers.flatMap {
       case (HeaderNames.SET_COOKIE, value) =>
         resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
+      case (HeaderNames.CONNECTION, value) =>
+        parseHeader(HeaderNames.CONNECTION, value)
       case (name, value) =>
+        resultUtils.validateHeaderNameChars(name)
+        resultUtils.validateHeaderValueChars(value)
         RawHeader(name, value) :: Nil
     }(collection.breakOut): Vector[HttpHeader]
+  }
+
+  private def parseHeader(name: String, value: String): Seq[HttpHeader] = {
+    HttpHeader.parse(name, value) match {
+      case HttpHeader.ParsingResult.Ok(header, errors /* errors are ignored if Ok */ ) =>
+        if (!header.renderInResponses()) {
+          // since play did not enforce the http spec when it came to headers
+          // we actually relax it by converting the parsed header to a RawHeader
+          // This will still fail on content-type, content-length, transfer-encoding, date, server and connection headers.
+          illegalResponseHeaderValue match {
+            case ParserSettings.IllegalResponseHeaderValueProcessingMode.Warn =>
+              logger.warn(s"HTTP Header '$header' is not allowed in responses, you can turn off this warning by setting `play.server.akka.illegal-response-header-value-processing-mode = ignore`")
+              RawHeader(name, value) :: Nil
+            case ParserSettings.IllegalResponseHeaderValueProcessingMode.Ignore =>
+              RawHeader(name, value) :: Nil
+            case ParserSettings.IllegalResponseHeaderValueProcessingMode.Error =>
+              logger.error(s"HTTP Header '$header' is not allowed in responses")
+              Nil
+          }
+        } else {
+          header :: Nil
+        }
+      case HttpHeader.ParsingResult.Error(error) =>
+        sys.error(s"Error parsing header: $error")
+    }
   }
 }
 

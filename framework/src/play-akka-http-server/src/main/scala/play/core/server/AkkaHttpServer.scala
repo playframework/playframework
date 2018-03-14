@@ -179,9 +179,11 @@ class AkkaHttpServer(
     override protected def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
       val serverResultUtils = reloadServerResultUtils(tryApp)
       val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
+      val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(akkaServerConfig.get[String]("illegal-response-header-value-processing-mode"))
       val modelConversion = new AkkaModelConversion(
         serverResultUtils,
-        forwardedHeaderHandler)
+        forwardedHeaderHandler,
+        illegalResponseHeaderValue)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
         modelConversion = modelConversion
