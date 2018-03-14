@@ -305,7 +305,7 @@ public class JavaWS {
                             materializer);
             // #ws-client
 
-            org.slf4j.Logger logger = play.Logger.underlying();
+            org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
             // #ws-close-client
             try {
                 customWSClient.close();

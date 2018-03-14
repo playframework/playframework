@@ -3,17 +3,14 @@
  */
 package javaguide.tests;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
 import org.junit.*;
 
-import play.api.test.WsTestClient;
 import play.mvc.*;
 import play.test.*;
-import play.libs.F.*;
 import play.libs.ws.*;
 
 import static play.test.Helpers.*;
@@ -76,7 +73,7 @@ public class FunctionalTest extends WithApplication {
     public void runInBrowser() {
         running(testServer(), HTMLUNIT, browser -> {
             browser.goTo("/");
-            assertEquals("Welcome to Play!", browser.$("#title").text());
+            assertEquals("Welcome to Play!", browser.el("#title").text());
             browser.$("a").click();
             assertEquals("login", browser.url());
         });

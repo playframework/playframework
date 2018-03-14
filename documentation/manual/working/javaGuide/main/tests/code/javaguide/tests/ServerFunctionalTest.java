@@ -3,20 +3,14 @@
  */
 package javaguide.tests;
 
-import java.io.IOException;
 import java.util.concurrent.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.*;
 
-import play.mvc.*;
 import play.test.*;
-import play.libs.F.*;
 import play.libs.ws.*;
+import scala.Option;
 
-import static play.test.Helpers.*;
 import static org.junit.Assert.*;
 
 import static play.test.Helpers.NOT_FOUND;
