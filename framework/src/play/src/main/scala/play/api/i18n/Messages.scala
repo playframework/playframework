@@ -45,8 +45,6 @@ object Messages extends MessagesImplicits {
 
   }
 
-
-
   private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
 
   /**
