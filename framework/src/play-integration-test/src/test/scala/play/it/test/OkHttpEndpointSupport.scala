@@ -3,12 +3,11 @@
  */
 package play.it.test
 
+import javax.net.ssl.{ HostnameVerifier, SSLSession }
+
 import okhttp3.{ OkHttpClient, Request, Response }
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
-import play.api.mvc.Call
-
-import scala.annotation.implicitNotFound
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but
@@ -52,7 +51,7 @@ trait OkHttpEndpointSupport {
     val serverClient = new OkHttpEndpoint {
       override val endpoint = e
       override val clientBuilder: OkHttpClient.Builder = {
-        val b = new OkHttpClient.Builder()
+        val b = new OkHttpClient.Builder().hostnameVerifier(allowAllHostnameVerifier)
         endpoint match {
           case e: HttpsEndpoint =>
             b.sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
@@ -61,6 +60,13 @@ trait OkHttpEndpointSupport {
       }
     }
     block(serverClient)
+  }
+
+  // We are only using this for tests, so we are accepting all host names
+  // when OkHttp client verifies the identity of the server with the hostname.
+  // See https://tools.ietf.org/html/rfc2818#section-3.1
+  private lazy val allowAllHostnameVerifier = new HostnameVerifier {
+    override def verify(s: String, sslSession: SSLSession): Boolean = true
   }
 
   /**
