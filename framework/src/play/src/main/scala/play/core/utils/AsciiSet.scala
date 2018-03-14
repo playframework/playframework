@@ -11,9 +11,6 @@ object AsciiSet {
     case (acc, c1) => acc ||| apply(c1)
   }
 
-  implicit def charToAsciiChar(c: Char) = new AsciiChar(c)
-  implicit def charsToAsciiRange(cs: (Char, Char)) = new AsciiRange(cs._1, cs._2)
-
   val empty = new AsciiSet {
     override def get(i: Int): Boolean = false
   }
@@ -21,9 +18,9 @@ object AsciiSet {
   object Sets {
     // Core Rules (https://tools.ietf.org/html/rfc5234#appendix-B.1).
     // These are used in HTTP (https://tools.ietf.org/html/rfc7230#section-1.2).
-    val Digit: AsciiSet = ('0', '1')
-    val Lower: AsciiSet = ('a', 'z')
-    val Upper: AsciiSet = ('A', 'Z')
+    val Digit: AsciiSet = new AsciiRange('0', '9')
+    val Lower: AsciiSet = new AsciiRange('a', 'z')
+    val Upper: AsciiSet = new AsciiRange('A', 'Z')
     val Alpha: AsciiSet = Lower ||| Upper
     val AlphaDigit: AsciiSet = Alpha ||| Digit
     val VChar: AsciiSet = new AsciiRange(0x21, 0x7e)
@@ -34,7 +31,13 @@ trait AsciiSet {
   def get(i: Int): Boolean
   def |||(that: AsciiSet): AsciiUnion = new AsciiUnion(this, that)
   def ---(that: AsciiSet): AsciiDifference = new AsciiDifference(this, that)
-  def toBitSet: AsciiBitSet = new AsciiBitSet(this)
+  def toBitSet: AsciiBitSet = {
+    val bitSet = new JBitSet(256)
+    for (i <- (0 until 256)) {
+      if (this.get(i)) { bitSet.set(i) }
+    }
+    new AsciiBitSet(bitSet)
+  }
 }
 /** An inclusive range of ASCII characters */
 private[play] final class AsciiRange(first: Int, last: Int) extends AsciiSet {
@@ -57,11 +60,7 @@ private[play] final class AsciiDifference(a: AsciiSet, b: AsciiSet) extends Asci
   require(a != null && b != null)
   override def get(i: Int): Boolean = a.get(i) && !b.get(i)
 }
-private[play] final class AsciiBitSet(as: AsciiSet) extends AsciiSet {
-  private val bitSet = new JBitSet(256)
-  for (i <- (0 until 256)) {
-    if (as.get(i)) { bitSet.set(i) }
-  }
+private[play] final class AsciiBitSet private[utils] (bitSet: JBitSet) extends AsciiSet {
   override def get(i: Int): Boolean = bitSet.get(i)
   override def toBitSet: AsciiBitSet = this
 }
