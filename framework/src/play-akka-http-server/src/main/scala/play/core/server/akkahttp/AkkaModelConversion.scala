@@ -268,16 +268,25 @@ private[server] class AkkaModelConversion(
     }
   }
 
+  // These headers are listed in the Akka HTTP's HttpResponseRenderer class as being invalid when given as RawHeaders
+  private val mustParseHeaders: Set[String] = Set(
+    HeaderNames.CONTENT_TYPE, HeaderNames.CONTENT_LENGTH, HeaderNames.TRANSFER_ENCODING, HeaderNames.DATE,
+    HeaderNames.SERVER, HeaderNames.CONNECTION
+  ).map(_.toLowerCase(Locale.ROOT))
+
   private def convertHeaders(headers: Iterable[(String, String)]): immutable.Seq[HttpHeader] = {
     headers.flatMap {
-      case (HeaderNames.SET_COOKIE, value) =>
-        resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
-      case (HeaderNames.CONNECTION, value) =>
-        parseHeader(HeaderNames.CONNECTION, value)
       case (name, value) =>
-        resultUtils.validateHeaderNameChars(name)
-        resultUtils.validateHeaderValueChars(value)
-        RawHeader(name, value) :: Nil
+        val lowerName = name.toLowerCase(Locale.ROOT)
+        if (lowerName == "set-cookie") {
+          resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
+        } else if (mustParseHeaders.contains(lowerName)) {
+          parseHeader(name, value)
+        } else {
+          resultUtils.validateHeaderNameChars(name)
+          resultUtils.validateHeaderValueChars(value)
+          RawHeader(name, value) :: Nil
+        }
     }(collection.breakOut): Vector[HttpHeader]
   }
 
