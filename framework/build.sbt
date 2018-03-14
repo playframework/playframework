@@ -101,7 +101,7 @@ lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Serve
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .settings(
-      libraryDependencies ++= specsBuild.map(_ % "test")
+      libraryDependencies ++= specs2Deps.map(_ % "test")
     ).addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
@@ -144,7 +144,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
     .settings(
-      libraryDependencies ++= specsBuild,
+      libraryDependencies ++= specs2Deps,
       parallelExecution in Test := false
     ).dependsOn(PlayTestProject)
 
@@ -172,7 +172,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     ).dependsOn(PlayAkkaHttpServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
-    .settings(libraryDependencies ++= guiceDeps ++ specsBuild.map(_ % "test"))
+    .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
     .dependsOn(
       PlayProject % "compile;test->test"
     )
