@@ -139,7 +139,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie samesite" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.session.sameSite must beSome(SameSite.Lax)
+        httpConfiguration.session.sameSite must be some (SameSite.Lax)
       }
     }
 
@@ -162,7 +162,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie samesite" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.flash.sameSite must beSome(SameSite.Lax)
+        httpConfiguration.flash.sameSite must be some (SameSite.Lax)
       }
     }
 
