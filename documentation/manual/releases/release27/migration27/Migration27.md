@@ -84,3 +84,7 @@ The "old" `validate` methods of a Java form will not be executed anymore.
 Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]] you have to migrate such `validate` methods to [[class-level constraints|JavaForms#advanced-validation]].
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
+
+### `Guava` version updated to 24.0-jre
+
+Play 2.6.x provided 23.0 version of Guava library. Now it is updated to the next major release, 24.0-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).
