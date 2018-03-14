@@ -88,9 +88,9 @@ object BuildSettings {
         Resolver.typesafeIvyRepo("releases")
       ),
       scalacOptions in(Compile, doc) := {
-        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 ()
         CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, 12)) => Seq("-no-java-comments")
+          case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
           case _ => Seq()
         }
       },
