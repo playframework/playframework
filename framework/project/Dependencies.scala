@@ -261,6 +261,7 @@ object Dependencies {
     ),
     "org.seleniumhq.selenium" % "selenium-api" % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support" % seleniumVersion,
+    "org.seleniumhq.selenium" % "selenium-remote-driver" % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test)
 
