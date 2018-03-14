@@ -43,8 +43,7 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )
-      responses(0).headers.get("Link") must_== Some("""<http://example.com/some/url>; rel=next""")
-      //responses(0).headers.get("Link") must_== Some("""<http://example.com/some/url>; rel="next"""")
+      responses(0).headers.get("Link") must_== Some("""<http://example.com/some/url>; rel="next"""")
     }
 
     "don't log a warning for Set-Cookie headers with negative ages" in {
