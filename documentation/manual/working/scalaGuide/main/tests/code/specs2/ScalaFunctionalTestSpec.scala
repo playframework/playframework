@@ -107,12 +107,12 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       browser.goTo("/")
 
       // Check the page
-      browser.$("#title").text() must equalTo("Hello Guest")
+      browser.el("#title").text() must equalTo("Hello Guest")
 
-      browser.$("a").click()
+      browser.el("a").click()
 
       browser.url must equalTo("login")
-      browser.$("#title").text() must equalTo("Hello Coco")
+      browser.el("#title").text() must equalTo("Hello Coco")
     }
     // #scalafunctionaltest-testwithbrowser
 

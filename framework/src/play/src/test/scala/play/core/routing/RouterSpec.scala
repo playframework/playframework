@@ -91,16 +91,16 @@ class RouterSpec extends Specification {
 
     "work" in {
       import play.api.http.HttpVerbs._
-      router.handlerFor(FakeRequest(GET, "/")) must beSome(Root)
-      router.handlerFor(FakeRequest(GET, "/foo")) must beSome(Foo)
+      router.handlerFor(FakeRequest(GET, "/")) must be some (Root)
+      router.handlerFor(FakeRequest(GET, "/foo")) must be some (Foo)
     }
 
     "add prefix" in {
       import play.api.http.HttpVerbs._
       val apiRouter = router.withPrefix("/api")
       apiRouter.handlerFor(FakeRequest(GET, "/")) must beNone
-      apiRouter.handlerFor(FakeRequest(GET, "/api/")) must beSome(Root)
-      apiRouter.handlerFor(FakeRequest(GET, "/api/foo")) must beSome(Foo)
+      apiRouter.handlerFor(FakeRequest(GET, "/api/")) must be some (Root)
+      apiRouter.handlerFor(FakeRequest(GET, "/api/foo")) must be some (Foo)
     }
 
     "add prefix multiple times" in {
@@ -109,8 +109,8 @@ class RouterSpec extends Specification {
       val apiV1Router = v1Router.withPrefix("/api/")
       apiV1Router.handlerFor(FakeRequest(GET, "/")) must beNone
       apiV1Router.handlerFor(FakeRequest(GET, "/api/")) must beNone
-      apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/")) must beSome(Root)
-      apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/foo")) must beSome(Foo)
+      apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/")) must be some (Root)
+      apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/foo")) must be some (Foo)
     }
   }
 }

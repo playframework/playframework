@@ -2,6 +2,26 @@
 
 This page highlights the new features of Play 2.7. If you want to learn about the changes you need to make when you migrate to Play 2.7, check out the [[Play 2.7 Migration Guide|Migration27]].
 
+## Scala 2.13 support
+
+Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. A number of dependencies we updated so that we can have support for both versions.
+
+You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
+
+For Scala 2.12:
+
+```scala
+scalaVersion := "2.12.4"
+```
+
+For Scala 2.13:
+
+```scala
+scalaVersion := "2.13.0-M3"
+```
+
+> **Note**: Keep in mind Scala 2.13 still does not have a final version.
+
 ## Guice was upgraded to 4.2.0
 
 Guice, the default dependency injection framework used by Play, was upgraded to 4.2.0 (from 4.1.0). Have a look at its [release notes](https://github.com/google/guice/wiki/Guice42). This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].

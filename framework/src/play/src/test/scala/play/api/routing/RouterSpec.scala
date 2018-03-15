@@ -26,23 +26,23 @@ class RouterSpec extends Specification {
 
     "be composable" in {
       "find handler from first router" in {
-        firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must beSome(First)
+        firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must be some (First)
       }
       "find handler from second router" in {
-        firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/anotherRoute")) must beSome(Second)
+        firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/anotherRoute")) must be some (Second)
       }
       "none when handler is not present in any of the routers" in {
         firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/noSuchRoute")) must beNone
       }
       "prefer first router if both match" in {
-        firstRouter.orElse(thirdRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must beSome(First)
+        firstRouter.orElse(thirdRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must be some (First)
       }
       "withPrefix should be applied recursively" in {
         val r1 = firstRouter.withPrefix("/stan")
         val r2 = secondRouter.withPrefix("/kyle")
         val r3 = r1.orElse(r2).withPrefix("/cartman")
-        r3.handlerFor(FakeRequest("GET", "/cartman/stan/oneRoute")) must beSome(First)
-        r3.handlerFor(FakeRequest("GET", "/cartman/kyle/anotherRoute")) must beSome(Second)
+        r3.handlerFor(FakeRequest("GET", "/cartman/stan/oneRoute")) must be some (First)
+        r3.handlerFor(FakeRequest("GET", "/cartman/kyle/anotherRoute")) must be some (Second)
       }
       "documentation should be concatenated" in {
         case class DocRouter(documentation: Seq[(String, String, String)]) extends Router {

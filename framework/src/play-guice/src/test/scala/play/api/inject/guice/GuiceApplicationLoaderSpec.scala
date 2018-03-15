@@ -59,7 +59,7 @@ class GuiceApplicationLoaderSpec extends Specification {
     "call the stop hooks from the context" in {
       val lifecycle = new DefaultApplicationLifecycle
       var hooksCalled = false
-      lifecycle.addStopHook(() => Future.successful(hooksCalled = true))
+      lifecycle.addStopHook(() => Future.successful { hooksCalled = true })
       val loader = new GuiceApplicationLoader()
       val app = loader.load(ApplicationLoader.Context.create(Environment.simple(), lifecycle = lifecycle))
       Await.ready(app.stop(), 5.minutes)
