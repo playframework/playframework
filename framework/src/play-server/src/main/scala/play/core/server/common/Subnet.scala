@@ -31,7 +31,7 @@ private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
   }
 }
 
-private[common] object Subnet {
+private[play] object Subnet {
   def apply(s: String): Subnet = s.split("/") match {
     case Array(ip, subnet) => Subnet(InetAddresses.forString(ip), Some(subnet.toInt))
     case Array(ip) => Subnet(InetAddresses.forString(ip))

@@ -3,9 +3,12 @@
  */
 package play.filters.hosts
 
+import java.net.InetAddress
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
+import org.scalacheck.{ Arbitrary, Gen }
+import org.specs2.ScalaCheck
 import play.api.http.{ HeaderNames, HttpFilters }
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -15,6 +18,7 @@ import play.api.mvc.{ DefaultActionBuilder, RequestHeader, Result }
 import play.api.routing.{ Router, SimpleRouterImpl }
 import play.api.test.{ FakeRequest, PlaySpecification, TestServer }
 import play.api.{ Application, Configuration }
+import play.core.server.common.Subnet
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -33,7 +37,7 @@ object AllowedHostsFilterSpec {
   })
 }
 
-class AllowedHostsFilterSpec extends PlaySpecification {
+class AllowedHostsFilterSpec extends PlaySpecification with ScalaCheck {
 
   sequential
 
@@ -175,5 +179,79 @@ class AllowedHostsFilterSpec extends PlaySpecification {
         wsResponse.status must_== OK
         wsResponse.body must_== s"localhost:$TestServerPort"
       }
+
+    type CIDR = Int
+    type IpAddress = String
+
+    final case class ValidAddress(ipAddress: IpAddress, cidr: CIDR)
+    final case class InvalidAddress(ipAddress: IpAddress, cidr: CIDR)
+
+    val all: Map[CIDR, (Range, Range)] = Map(
+      32 -> (0 to 0, 0 to 0),
+      31 -> (0 to 0, 0 until 2),
+      30 -> (0 to 0, 0 until 4),
+      29 -> (0 to 0, 0 until 8),
+      28 -> (0 to 0, 0 until 16),
+      27 -> (0 to 0, 0 until 32),
+      26 -> (0 to 0, 0 until 64),
+      25 -> (0 to 0, 0 until 128),
+      24 -> (0 to 0, 0 until 256),
+      23 -> (0 until 2, 0 until 256),
+      22 -> (0 until 4, 0 until 256),
+      21 -> (0 until 8, 0 until 256),
+      20 -> (0 until 16, 0 until 256),
+      19 -> (0 until 32, 0 until 256),
+      18 -> (0 until 64, 0 until 256),
+      17 -> (0 until 128, 0 until 256),
+      16 -> (0 until 256, 0 until 256)
+    )
+
+    def genCIDR: Gen[CIDR] = Gen.choose(16, 32)
+    def genIpRanges(cidr: CIDR): Gen[(Range, Range)] = Gen.const(all(cidr))
+
+    def genValidAddress: Gen[ValidAddress] =
+      for {
+        cidr <- genCIDR
+        (as, bs) <- genIpRanges(cidr)
+        a <- Gen.choose(as.min, as.max)
+        b <- Gen.choose(bs.min, bs.max)
+      } yield ValidAddress(s"10.0.$a.$b", cidr)
+
+    implicit val arbValidAddress: Arbitrary[ValidAddress] = Arbitrary(genValidAddress)
+
+    def genInvalidAddress: Gen[InvalidAddress] = {
+      val addGen = for {
+        cidr <- genCIDR
+        a <- Gen.choose(0, 255)
+        b <- Gen.choose(0, 255)
+        c <- Gen.choose(0, 255)
+      } yield s"10.$a.$b.$c" -> cidr
+
+      addGen
+        .filter { case ((ipAddress, cidr)) => !Subnet(s"10.0.0.0/$cidr").isInRange(InetAddress.getByName(ipAddress)) }
+        .map { case ((ipAddress, cidr)) => InvalidAddress(ipAddress, cidr) }
+    }
+
+    implicit val arbInvalidAddress: Arbitrary[InvalidAddress] = Arbitrary(genInvalidAddress)
+
+    "allow IP address inside CIDR range 10.0.0.0/x" >> prop { (address: ValidAddress) =>
+      withApplication(
+        okWithHost,
+        s"""
+           |play.filters.hosts.allowed = ["10.0.0.0/${address.cidr}"]
+      """.stripMargin) { app =>
+          status(request(app, address.ipAddress)) must_== OK
+        }
+    }
+
+    "reject IP address outside CIDR range 10.0.0.0/x" >> prop { (address: InvalidAddress) =>
+      withApplication(
+        okWithHost,
+        s"""
+           |play.filters.hosts.allowed = ["10.0.0.0/${address.cidr}"]
+      """.stripMargin) { app =>
+          status(request(app, address.ipAddress)) must_== BAD_REQUEST
+        }
+    }
   }
 }
