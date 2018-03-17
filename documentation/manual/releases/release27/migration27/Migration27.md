@@ -87,4 +87,4 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 
 ### `Guava` version updated to 24.0-jre
 
-Play 2.6.x provided 23.0 version of Guava library. Now it is updated to the next major release, 24.0-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).
+Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 24.1-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).
