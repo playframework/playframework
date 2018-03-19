@@ -87,14 +87,14 @@ trait FormSpec extends Specification {
     "with a root name" should {
       "be valid with all fields" in {
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891"), "task.name" -> Array("peter"), "task.dueDate" -> Array("15/12/2009"), "task.endDate" -> Array("2008-11-21")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
         myForm hasErrors () must beEqualTo(false)
       }
       "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(application()) {
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("notAnInt"), "task.name" -> Array("peter"), "task.done" -> Array("true"), "task.dueDate" -> Array("15/12/2009")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
 
@@ -105,7 +105,7 @@ trait FormSpec extends Specification {
         val contextComponents = defaultContextComponents
 
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
+        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, contextComponents))
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
         myForm hasErrors () must beEqualTo(true)
@@ -114,21 +114,21 @@ trait FormSpec extends Specification {
     }
     "be valid with all fields" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "query params ignored when using POST" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "POST", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -137,7 +137,7 @@ trait FormSpec extends Specification {
     }
     "query params ignored when using PUT" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PUT", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -146,7 +146,7 @@ trait FormSpec extends Specification {
     }
     "query params ignored when using PATCH" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PATCH", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -156,7 +156,7 @@ trait FormSpec extends Specification {
 
     "query params NOT ignored when using GET" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "GET", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -166,7 +166,7 @@ trait FormSpec extends Specification {
     }
     "query params NOT ignored when using DELETE" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "DELETE", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -176,7 +176,7 @@ trait FormSpec extends Specification {
     }
     "query params NOT ignored when using HEAD" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "HEAD", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -186,7 +186,7 @@ trait FormSpec extends Specification {
     }
     "query params NOT ignored when using OPTIONS" in {
       val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "OPTIONS", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
@@ -197,7 +197,7 @@ trait FormSpec extends Specification {
 
     "have an error due to badly formatted date" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
@@ -212,14 +212,14 @@ trait FormSpec extends Specification {
     }
     "throws an exception when trying to access value of invalid form via get()" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm.get must throwAn[IllegalStateException]
     }
     "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm.value().get().getId() must_== null
@@ -227,7 +227,7 @@ trait FormSpec extends Specification {
     }
     "have an error due to badly formatted date after using setTransientLang" in new WithApplication(application("play.i18n.langs" -> Seq("en", "en-US", "fr"))) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       Context.current.get().setTransientLang("fr")
 
@@ -241,7 +241,7 @@ trait FormSpec extends Specification {
     }
     "have an error due to badly formatted date after using changeLang" in new WithApplication(application("play.i18n.langs" -> Seq("en", "en-US", "fr"))) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       Context.current.get().changeLang("fr")
 
@@ -255,7 +255,7 @@ trait FormSpec extends Specification {
     }
     "have an error due to missing required value" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
@@ -263,7 +263,7 @@ trait FormSpec extends Specification {
     }
     "have an error due to bad value in Id field" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
@@ -272,7 +272,7 @@ trait FormSpec extends Specification {
 
     "have an error due to badly formatted date for default date binder" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11e-21")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)

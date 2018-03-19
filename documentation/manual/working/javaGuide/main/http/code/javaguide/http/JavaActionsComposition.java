@@ -85,7 +85,7 @@ public class JavaActionsComposition extends Controller {
     // #pass-arg-action
     public class PassArgAction extends play.mvc.Action.Simple {
         public CompletionStage<Result> call(Http.Context ctx) {
-            ctx.args.put("user", User.findById(1234));
+            ctx.args().put("user", User.findById(1234));
             return delegate.call(ctx);
         }
     }
@@ -94,7 +94,7 @@ public class JavaActionsComposition extends Controller {
     // #pass-arg-action-index
     @With(PassArgAction.class)
     public static Result passArgIndex() {
-        Object user = ctx().args.get("user");
+        Object user = ctx().args().get("user");
         return ok(Json.toJson(user));
     }
     // #pass-arg-action-index

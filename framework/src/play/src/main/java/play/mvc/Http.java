@@ -105,7 +105,6 @@ public class Http {
             this.response = new Response();
             this.session = new Session(Scala.asJava(header.session().data()));
             this.flash = new Flash(Scala.asJava(header.flash().data()));
-            this.args = new HashMap<>();
             this.components = components;
         }
 
@@ -117,14 +116,13 @@ public class Http {
          * @param request the request with body
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
-         * @param args any arbitrary data to associate with this request context.
          * @param components the context components.
          */
         public Context(Long id, play.api.mvc.RequestHeader header, Request request,
-                Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args,
+                Map<String,String> sessionData, Map<String,String> flashData,
                 JavaContextComponents components) {
             this(id, header, request, new Response(), new Session(sessionData), new Flash(flashData),
-                new HashMap<>(args), components);
+                components);
         }
 
         /**
@@ -138,18 +136,16 @@ public class Http {
          * @param response the response instance to use
          * @param session the session instance to use
          * @param flash the flash instance to use
-         * @param args any arbitrary data to associate with this request context.
          * @param components the context components.
          */
         public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
-                Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
+                Session session, Flash flash, JavaContextComponents components) {
             this.id = id;
             this.header = header;
             this.request = request;
             this.response = response;
             this.session = session;
             this.flash = flash;
-            this.args = args;
             this.components = components;
         }
 
@@ -345,7 +341,9 @@ public class Http {
         /**
          * Free space to store your request specific data.
          */
-        public Map<String, Object> args;
+        public Map<String, Object> args() {
+            return this.request.attrs().getOptional(RequestAttrKey.ContextArgs().asJava()).orElse(null);
+        }
 
         public FileMimeTypes fileMimeTypes() {
             return components.fileMimeTypes();
@@ -437,7 +435,7 @@ public class Http {
          * @return The new context.
          */
         public Context withRequest(Request request) {
-            return new Context(id, header, request, response, session, flash, args, components);
+            return new Context(id, header, request, response, session, flash, components);
         }
     }
 
@@ -452,8 +450,7 @@ public class Http {
          * @param wrapped the context the created instance will wrap
          */
         public WrappedContext(Context wrapped) {
-            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.components);
-            this.args = wrapped.args;
+            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.components);
             this.wrapped = wrapped;
         }
 
@@ -1101,6 +1098,15 @@ public class Http {
          */
         public RequestBuilder id(Long id) {
             attr(new TypedKey(RequestAttrKey.Id()), id);
+            return this;
+        }
+
+        /**
+         * @param args the map to be used as context args
+         * @return the builder instance
+         */
+        public RequestBuilder contextArgs(Map args) {
+            attr(new TypedKey(RequestAttrKey.ContextArgs()), args);
             return this;
         }
 
