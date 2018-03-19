@@ -74,8 +74,16 @@ play.db.pool=your.own.ConnectionPool
 
 ### Java `Http.Context` changed
 
+#### `args` is `args()` now
+
+The context arguments map, which previously was accessible via `contextObj.args`, is now a request attribute. This has the advantage that it's tied to a request and is therefore available everywhere where a request is availabe as well.
+To access the context arguments you now have to call the method `contextObj.args()` - which is just a shortcut for retrieving the request attribute [`RequestAttrKey.ContextArgs`](api/scala/play/api/mvc/request/RequestAttrKey$.html) (e.g. via  `request.attrs().getOptional(RequestAttrKey.ContextArgs().asJava())`).
+Because the context arguments map is still a normal Java `Map` you can use it like before via `args().get(...)`, `args().put(...)`, etc.
+
+#### Context arguments no longer contain request tags
+
 Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
-Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
+Therefore the `args()` map of a `Http.Context` instance no longer contains these removed request tags as well.
 Instead you can use the `contextObj.request().attrs()` method now, which provides you the equivalent request attributes.
 
 ### All Java form `validate` methods need to be migrated to class-level constraints
