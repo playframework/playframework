@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Build documentation
 
-This is the README for the Play documentation project.  The documentation project does not build with the rest of the Play projects, and uses its own sbt setup instead.  Please refer to the [main README file](../README.md) for how to build Play in general and how to [contribute](../CONTRIBUTION.md).
+This is the README for the Play documentation project.  The documentation project does not build with the rest of the Play projects, and uses its own sbt setup instead.  Please refer to the [main README file](../README.md) for how to build Play in general and how to [contribute](../CONTRIBUTING.md).
 
 If you are completely lost and want to run Play for the first time, go to the [download page](https://www.playframework.com/download) and pick out a starter project: the starter projects are explicitly written for new users and are the best place to start.
 
@@ -39,7 +39,7 @@ Any directory under /manual called "code" is treated as a root of a test directo
 
 All documentation code samples must be adequately namespaced.  For example, no code samples should ever create a class called "controllers.Application", nor should any code samples ever create a routes file called "routes", they should instead namespace them, eg something like "javaguide.async.routes".
 
-For more information, please see the [Play documentatioon guidelines](https://www.playframework.com/documentation/2.6.x/Documentation).
+For more information, please see the [Play documentation guidelines](https://www.playframework.com/documentation/latest/Documentation).
 
 ## IDE integration
 
