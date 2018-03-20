@@ -4,11 +4,10 @@
 package play.api.mvc
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.Sink
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
 
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ Future, Promise }
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
@@ -62,7 +61,7 @@ trait Filter extends EssentialFilter {
 
         // if no Accumulator was set, we know that the next function was never called
         // so we can just ignore the body
-        bodyAccumulator.getOrElse(Accumulator.done(result)).mapFuture{ simpleResult =>
+        bodyAccumulator.getOrElse(Accumulator.done(result)).mapFuture { simpleResult =>
           // When the iteratee is done, we can redeem the promised result that was returned to the filter
           promisedResult.success(simpleResult)
           result
