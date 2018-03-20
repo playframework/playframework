@@ -4,6 +4,7 @@
 package play.it.http
 
 import org.specs2.execute.AsResult
+import org.specs2.matcher.MatchResult
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test._
@@ -16,17 +17,6 @@ class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSp
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification {
 
   "Akka HTTP request header handling" should {
-
-    "not change UTF-8 Content-Disposition headers" in {
-      withServer((Action, _) => Action { rh =>
-        Results.Ok(rh.headers.get("Content-Disposition").toString)
-      }) { port =>
-        val Seq(response) = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map("Content-Disposition" -> "attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf"), "")
-        )
-        response.body must beLeft("Some(attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf)")
-      }
-    }
 
     "not complain about invalid User-Agent headers" in {
 
@@ -160,5 +150,50 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
         )
       }
     }
+
+    "preserve the value of headers" in {
+      def headerValueInRequest(headerName: String, headerValue: String): MatchResult[Either[String, _]] = {
+        withServer((Action, _) => Action { rh =>
+          Results.Ok(rh.headers.get(headerName).toString)
+        }) { port =>
+          val Seq(response) = BasicHttpClient.makeRequests(port)(
+            // an empty body implies no parsing is used and no content type is derived from the body.
+            BasicRequest("GET", "/", "HTTP/1.1", Map(headerName -> headerValue), "")
+          )
+          response.body must beLeft(s"Some($headerValue)")
+        }
+      }
+      // This example comes from https://github.com/playframework/playframework/issues/7719
+      "for UTF-8 Content-Disposition headers" in headerValueInRequest("Content-Disposition", "attachment; filename*=UTF-8''Roget%27s%20Thesaurus.pdf")
+      // This example comes from https://github.com/playframework/playframework/issues/7737#issuecomment-323335828
+      "for Authorization headers" in headerValueInRequest("Authorization", """OAuth realm="https://api.clever-cloud.com/v2/oauth", oauth_consumer_key="<key>", oauth_token="<token>", oauth_signature_method="HMAC-SHA512", oauth_signature="<signature>", oauth_timestamp="1502979668", oauth_nonce="402047"""")
+    }
+
+    "preserve the case of header names" in {
+      def headerNameInRequest(headerName: String, headerValue: String): MatchResult[Either[String, _]] = {
+        withServer((Action, _) => Action { rh =>
+          Results.Ok(rh.headers.keys.filter(_.equalsIgnoreCase(headerName)).mkString)
+        }) { port =>
+          val Seq(response) = BasicHttpClient.makeRequests(port)(
+            // an empty body implies no parsing is used and no content type is derived from the body.
+            BasicRequest("GET", "/", "HTTP/1.1", Map(headerName -> headerValue), "")
+          )
+          response.body must beLeft(headerName)
+        }
+      }
+      "'Foo' header" in headerNameInRequest("Foo", "Bar")
+      "'foo' header" in headerNameInRequest("foo", "bar")
+      // Authorization examples taken from https://github.com/playframework/playframework/issues/7735
+      "'Authorization' header" in headerNameInRequest("Authorization", "some value")
+      "'authorization' header" in headerNameInRequest("authorization", "some value")
+      // User agent examples taken from https://github.com/playframework/playframework/issues/7735#issuecomment-360180932
+      "'User-Agent' header with valid value" in headerNameInRequest(
+        "User-Agent",
+        """Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_2 like Mac OS X) AppleWebKit/604.4.7 (KHTML, like Gecko) Mobile/15C202""")
+      "'User-Agent' header with invalid value" in headerNameInRequest(
+        "User-Agent",
+        """Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_2 like Mac OS X) AppleWebKit/604.4.7 (KHTML, like Gecko) Mobile/15C202 [FBAN/FBIOS;FBAV/155.0.0.36.93;FBBV/87992437;FBDV/iPhone9,3;FBMD/iPhone;FBSN/iOS;FBSV/11.2.2;FBSS/2;FBCR/3Ireland;FBID/phone;FBLC/en_US;FBOP/5;FBRV/0]""")
+    }
+
   }
 }
