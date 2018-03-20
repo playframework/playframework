@@ -132,7 +132,7 @@ https://tools.ietf.org/html/rfc7230#section-3.2.6
    */
 
   private def allowedHeaderChars: AsciiBitSet = {
-    (AsciiSet('!', '#', '$', '%', '&', ''', '*', '+', '-',
+    (AsciiSet('!', '#', '$', '%', '&', '\'', '*', '+', '-',
       '.', '^', '_', '`', '|', '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha).toBitSet
   }
 
