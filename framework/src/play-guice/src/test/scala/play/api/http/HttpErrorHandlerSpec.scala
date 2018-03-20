@@ -4,6 +4,7 @@
 package play.api.http
 
 import java.util.concurrent.CompletableFuture
+import java.util.Optional
 
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable.Specification
@@ -108,8 +109,8 @@ class CustomScalaErrorHandler extends HttpErrorHandler {
 }
 
 class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
-  def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
+  def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String, ctx: Optional[play.mvc.Http.Context]) =
     CompletableFuture.completedFuture(play.mvc.Results.ok())
-  def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
+  def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable, ctx: Optional[play.mvc.Http.Context]) =
     CompletableFuture.completedFuture(play.mvc.Results.ok())
 }

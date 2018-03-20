@@ -272,13 +272,13 @@ object CSRF {
 
   class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) extends ErrorHandler {
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
+      JavaHelpers.invokeWithContext(request, contextComponents, (req, ctx) => underlying.handle(req, msg, Optional.ofNullable(ctx)))
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
     import play.core.Execution.Implicits.trampoline
 
-    def handle(requestHeader: Http.RequestHeader, msg: String) =
+    def handle(requestHeader: Http.RequestHeader, msg: String, ctx: Optional[Http.Context]) =
       FutureConverters.toJava(delegate.handle(requestHeader.asScala(), msg).map(_.asJava))
   }
 

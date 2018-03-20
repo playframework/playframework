@@ -10,6 +10,7 @@ import scala.compat.java8.FutureConverters;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
+import java.util.Optional;
 
 /**
  * This interface handles the CSRF error.
@@ -23,7 +24,7 @@ public interface CSRFErrorHandler {
      * @param msg message is passed by framework.
      * @return Client gets this result.
      */
-    CompletionStage<Result> handle(Http.RequestHeader req, String msg);
+    CompletionStage<Result> handle(Http.RequestHeader req, String msg, Optional<Http.Context> context);
 
     class DefaultCSRFErrorHandler extends Results implements CSRFErrorHandler {
 
@@ -35,7 +36,7 @@ public interface CSRFErrorHandler {
         }
 
         @Override
-        public CompletionStage<Result> handle(Http.RequestHeader requestHeader, String msg) {
+        public CompletionStage<Result> handle(Http.RequestHeader requestHeader, String msg, Optional<Http.Context> context) {
             return FutureConverters.toJava(errorHandler.handle(requestHeader.asScala(), msg))
                     .thenApply(play.api.mvc.Result::asJava);
         }

@@ -5,6 +5,7 @@ package play.http;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -16,6 +17,7 @@ import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
 import play.api.http.HttpErrorHandlerExceptions;
 import play.api.routing.Router;
+import play.mvc.Http.Context;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 import play.mvc.Results;
@@ -59,15 +61,15 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @return a CompletionStage containing the Result.
      */
     @Override
-    public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
+    public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message, Optional<Context> context) {
         if (statusCode == 400) {
-            return onBadRequest(request, message);
+            return onBadRequest(request, message, context);
         } else if (statusCode == 403) {
-            return onForbidden(request, message);
+            return onForbidden(request, message, context);
         } else if (statusCode == 404) {
-            return onNotFound(request, message);
+            return onNotFound(request, message, context);
         } else if (statusCode >= 400 && statusCode < 500) {
-            return onOtherClientError(request, statusCode, message);
+            return onOtherClientError(request, statusCode, message, context);
         } else {
             throw new IllegalArgumentException("onClientError invoked with non client error status code " + statusCode + ": " + message);
         }
@@ -82,7 +84,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param message The error message.
      * @return a CompletionStage containing the Result.
      */
-    protected CompletionStage<Result> onBadRequest(RequestHeader request, String message) {
+    protected CompletionStage<Result> onBadRequest(RequestHeader request, String message, Optional<Context> context) {
         return CompletableFuture.completedFuture(Results.badRequest(views.html.defaultpages.badRequest.render(
                 request.method(), request.uri(), message
         )));
@@ -97,7 +99,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param message The error message.
      * @return a CompletionStage containing the Result.
      */
-    protected CompletionStage<Result> onForbidden(RequestHeader request, String message) {
+    protected CompletionStage<Result> onForbidden(RequestHeader request, String message, Optional<Context> context) {
         return CompletableFuture.completedFuture(Results.forbidden(views.html.defaultpages.unauthorized.render()));
     }
 
@@ -112,7 +114,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param message A message, which is not used by the default implementation.
      * @return a CompletionStage containing the Result.
      */
-    protected CompletionStage<Result> onNotFound(RequestHeader request, String message) {
+    protected CompletionStage<Result> onNotFound(RequestHeader request, String message, Optional<Context> context) {
         if (environment.isProd()) {
             return CompletableFuture.completedFuture(Results.notFound(views.html.defaultpages.notFound.render(
                     request.method(), request.uri())));
@@ -134,7 +136,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param message    The error message.
      * @return a CompletionStage containing the Result.
      */
-    protected CompletionStage<Result> onOtherClientError(RequestHeader request, int statusCode, String message) {
+    protected CompletionStage<Result> onOtherClientError(RequestHeader request, int statusCode, String message, Optional<Context> context) {
         return CompletableFuture.completedFuture(Results.status(statusCode, views.html.defaultpages.badRequest.render(
                 request.method(), request.uri(), message
         )));
@@ -152,7 +154,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @return a CompletionStage containing the Result.
      */
     @Override
-    public CompletionStage<Result> onServerError(RequestHeader request, Throwable exception) {
+    public CompletionStage<Result> onServerError(RequestHeader request, Throwable exception, Optional<Context> context) {
         try {
             UsefulException usefulException = throwableToUsefulException(exception);
 
@@ -160,9 +162,9 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
 
             switch (environment.mode()) {
                 case PROD:
-                    return onProdServerError(request, usefulException);
+                    return onProdServerError(request, usefulException, context);
                 default:
-                    return onDevServerError(request, usefulException);
+                    return onDevServerError(request, usefulException, context);
             }
         } catch (Exception e) {
             Logger.error("Error while handling error", e);
@@ -206,7 +208,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param exception The exception.
      * @return a CompletionStage containing the Result.
      */
-    protected CompletionStage<Result> onDevServerError(RequestHeader request, UsefulException exception) {
+    protected CompletionStage<Result> onDevServerError(RequestHeader request, UsefulException exception, Optional<Context> context) {
         return CompletableFuture.completedFuture(Results.internalServerError(views.html.defaultpages.devError.render(playEditor, exception)));
     }
 
@@ -223,7 +225,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param exception The exception.
      * @return a CompletionStage containing the Result.
      */
-    protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception) {
+    protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception, Optional<Context> context) {
         return CompletableFuture.completedFuture(Results.internalServerError(views.html.defaultpages.error.render(exception)));
     }
 

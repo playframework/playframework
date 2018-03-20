@@ -5,8 +5,10 @@ package play.http;
 
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
+import play.mvc.Http;
 
 import java.util.concurrent.CompletionStage;
+import java.util.Optional;
 
 /**
  * Component for handling HTTP errors in Play.
@@ -23,7 +25,7 @@ public interface HttpErrorHandler {
      * @param message The error message.
      * @return a CompletionStage with the Result.
      */
-    CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message);
+    CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message, Optional<Http.Context> context);
 
     /**
      * Invoked when a server error occurs.
@@ -32,5 +34,5 @@ public interface HttpErrorHandler {
      * @param exception The server error.
      * @return a CompletionStage with the Result.
      */
-    CompletionStage<Result> onServerError(RequestHeader request, Throwable exception);
+    CompletionStage<Result> onServerError(RequestHeader request, Throwable exception, Optional<Http.Context> context);
 }

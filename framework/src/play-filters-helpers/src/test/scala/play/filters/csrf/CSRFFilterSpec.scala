@@ -4,6 +4,7 @@
 package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
+import java.util.Optional
 import javax.inject.Inject
 
 import akka.stream.scaladsl.Source
@@ -318,7 +319,7 @@ class CustomErrorHandler extends CSRF.ErrorHandler {
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {
-  def handle(req: Http.RequestHeader, msg: String) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
+  def handle(req: Http.RequestHeader, msg: String, ctx: Optional[Http.Context]) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
 }
 
 class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {

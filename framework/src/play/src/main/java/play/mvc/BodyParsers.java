@@ -5,6 +5,7 @@ package play.mvc;
 
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.Optional;
 
 import play.api.http.Status$;
 import play.http.HttpErrorHandler;
@@ -40,7 +41,7 @@ public class BodyParsers {
             return parser.apply(request);
         } else {
             CompletionStage<Result> result =
-                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage);
+                    errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage, Optional.empty());
             return Accumulator.done(result.thenApply(F.Either::Left));
         }
     }
