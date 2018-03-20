@@ -6,7 +6,8 @@ package play.api.mvc
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
-import scala.concurrent.{ Promise, Future }
+
+import scala.concurrent.{ Future, Promise }
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
@@ -44,44 +45,35 @@ trait Filter extends EssentialFilter {
   def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result]
 
   def apply(next: EssentialAction): EssentialAction = {
-    implicit val ec = mat.executionContext
+    import play.core.Execution.Implicits.trampoline
     new EssentialAction {
       def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
-
         // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
         val promisedResult = Promise[Result]()
-        // Promised accumulator returned to the framework
-        val bodyAccumulator = Promise[Accumulator[ByteString, Result]]()
+        // uses a stateful variable to avoid unnecessary Materialization
+        var bodyAccumulator: Option[Accumulator[ByteString, Result]] = None
 
-        // Invoke the filter
         val result = self.apply({ (rh: RequestHeader) =>
           // Invoke the delegate
-          bodyAccumulator.success(next(rh))
+          bodyAccumulator = Some(next(rh))
           promisedResult.future
         })(rh)
 
-        result.onComplete({ resultTry =>
-          // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter.
-          // Therefore, as a fallback, we try to redeem the bodyAccumulator Promise here with an iteratee that consumes
-          // the request body.
-          bodyAccumulator.tryComplete(resultTry.map(simpleResult => Accumulator.done(simpleResult)))
-        })
-
-        Accumulator.flatten(bodyAccumulator.future.map { it =>
-          it.mapFuture { simpleResult =>
-            // When the iteratee is done, we can redeem the promised result that was returned to the filter
-            promisedResult.success(simpleResult)
+        // if no Accumulator was set, we know that the next function was never called
+        // so we can just ignore the body
+        bodyAccumulator.getOrElse(Accumulator.done(result)).mapFuture { simpleResult =>
+          // When the iteratee is done, we can redeem the promised result that was returned to the filter
+          promisedResult.success(simpleResult)
+          result
+        }.recoverWith {
+          case t: Throwable =>
+            // If the iteratee finishes with an error, fail the promised result that was returned to the
+            // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
+            // promisedResult was already completed successfully in the mapM method above but b) calculating
+            // the result in that method caused an error, so we ended up in this recover block anyway.
+            promisedResult.tryFailure(t)
             result
-          }.recoverWith {
-            case t: Throwable =>
-              // If the iteratee finishes with an error, fail the promised result that was returned to the
-              // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
-              // promisedResult was already completed successfully in the mapM method above but b) calculating
-              // the result in that method caused an error, so we ended up in this recover block anyway.
-              promisedResult.tryFailure(t)
-              result
-          }
-        })
+        }
       }
 
     }
