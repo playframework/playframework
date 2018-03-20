@@ -49,11 +49,13 @@ trait Filter extends EssentialFilter {
     import play.core.Execution.Implicits.trampoline
     new EssentialAction {
       def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
+        // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
         val promisedResult = Promise[Result]()
         // uses a stateful variable to avoid unnecessary Materialization
         var bodyAccumulator: Option[Accumulator[ByteString, Result]] = None
 
         val result = self.apply({ (rh: RequestHeader) =>
+          // Invoke the delegate
           bodyAccumulator = Some(next(rh))
           promisedResult.future
         })(rh)
