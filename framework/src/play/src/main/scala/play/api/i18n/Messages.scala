@@ -470,7 +470,7 @@ class DefaultMessagesApi @Inject() (
   override def preferred(request: RequestHeader): Messages = {
     val maybeLangFromContext = request.attrs.get(Messages.Attrs.CurrentContextLang)
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
-    val lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages ++ maybeLangFromContext.toSeq)
+    val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
   }
 
