@@ -225,8 +225,7 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            TypedKey<play.api.i18n.Lang> key = play.api.i18n.Messages.Attrs$.MODULE$.CurrentContextLang().asJava();
-            Request request = lang != null ? request().addAttr(key, lang) : request();
+            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentContextLang, lang) : request();
             return messagesApi().preferred(request);
         }
 

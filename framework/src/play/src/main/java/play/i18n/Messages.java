@@ -3,6 +3,8 @@
  */
 package play.i18n;
 
+import play.libs.typedmap.TypedKey;
+
 import java.util.List;
 
 /**
@@ -12,6 +14,12 @@ import java.util.List;
  * return MessagesApi.
  */
 public interface Messages {
+
+    public static class Attrs {
+
+        public static TypedKey<play.api.i18n.Lang> CurrentContextLang = play.api.i18n.Messages.Attrs$.MODULE$.CurrentContextLang().asJava();
+
+    }
 
     /**
      * Get the lang for these messages.
