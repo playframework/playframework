@@ -79,6 +79,32 @@ public class HttpTest {
     }
 
     @Test
+    public void testMessagesOrder() {
+        withApplication((app) -> {
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            Context ctx1 = new Context(new RequestBuilder().header(Http.HeaderNames.ACCEPT_LANGUAGE, "en-US"),
+                    contextComponents);
+            // if no cookie is provided the context lang order will have the accept language as the default lang
+            assertThat(ctx1.messages().lang().code()).isEqualTo("en-US");
+
+
+            Cookie cookie = Cookie.builder("PLAY_LANG", "fr").build();
+            Context ctx2 = new Context(
+                    new RequestBuilder().cookie(cookie).header(Http.HeaderNames.ACCEPT_LANGUAGE, "en"),
+                    contextComponents);
+
+            // if no context lang is provided the language order will be cookie > accept language
+            assertThat(ctx2.messages().lang().code()).isEqualTo("fr");
+
+            // if a context lang is set the language order will be context lang > cookie > accept language
+            // Change the language to 'en-US'
+            assertThat(ctx2.changeLang("en-US")).isTrue();
+            // The language and cookie should now be 'en-US'
+            assertThat(ctx2.messages().lang().code()).isEqualTo("en-US");
+        });
+    }
+
+    @Test
     public void testChangeLangFailure() {
         withApplication((app) -> {
             JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
