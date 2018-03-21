@@ -3,7 +3,7 @@
  */
 package play.core.server.common
 
-import java.util.{ BitSet => JBitSet }
+import java.util.{BitSet => JBitSet}
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
@@ -14,7 +14,7 @@ import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.mvc.request.RequestAttrKey
-import play.core.utils.{ AsciiBitSet, AsciiSet }
+import play.core.utils.{AsciiBitSet, AsciiRange, AsciiSet}
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
@@ -82,78 +82,46 @@ private[play] final class ServerResultUtils(
     }
   }
 
-  /*
-
-https://tools.ietf.org/html/rfc5234#appendix-B.1
-
-         ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z
-
-         DIGIT          =  %x30-39
-                                ; 0-9
-
-         VCHAR          =  %x21-7E
-                                ; visible (printing) characters
-
-https://tools.ietf.org/html/rfc7230#section-1.2
-
-   The following core rules are included by reference, as defined in
-   [RFC5234], Appendix B.1: ALPHA (letters), CR (carriage return), CRLF
-   (CR LF), CTL (controls), DIGIT (decimal 0-9), DQUOTE (double quote),
-   HEXDIG (hexadecimal 0-9/A-F/a-f), HTAB (horizontal tab), LF (line
-   feed), OCTET (any 8-bit sequence of data), SP (space), and VCHAR (any
-   visible [USASCII] character).
-
-  https://tools.ietf.org/html/rfc7230#section-3.2
-
-       header-field   = field-name ":" OWS field-value OWS
-
-     field-name     = token
-     field-value    = *( field-content / obs-fold )
-     field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
-     field-vchar    = VCHAR / obs-text
-
-     obs-fold       = CRLF 1*( SP / HTAB )
-                    ; obsolete line folding
-                    ; see Section 3.2.4
-
-https://tools.ietf.org/html/rfc7230#section-3.2.6
-
-     token          = 1*tchar
-
-     tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
-                    / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
-                    / DIGIT / ALPHA
-                    ; any VCHAR, except delimiters
-
-     quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
-     qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text
-     obs-text       = %x80-FF
-
-   */
-
-  private def allowedHeaderChars: AsciiBitSet = {
-    (AsciiSet('!', '#', '$', '%', '&', '\'', '*', '+', '-',
-      '.', '^', '_', '`', '|', '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha).toBitSet
+  /** Set of characters that are allowed in a header name. */
+  private def allowedHeaderNameChars: AsciiBitSet = {
+    /*
+     * From https://tools.ietf.org/html/rfc7230#section-3.2:
+     *   field-name     = token
+     * From https://tools.ietf.org/html/rfc7230#section-3.2.6:
+     *   token          = 1*tchar
+     *   tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+     *                  / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+     *                  / DIGIT / ALPHA
+     */
+    val TChar = AsciiSet('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha
+    TChar.toBitSet
   }
 
-  def validateHeaderNameChars(headerName: String): Unit = {
-    @tailrec def loop(i: Int): Unit = {
-      if (i < headerName.length) {
-        val c = headerName(i)
-        if (c > 255) throw new IllegalArgumentException(s"Header value had non-ASCII character: 0x${c.toInt.toHexString}")
-        if (!allowedHeaderChars.get(c)) throw new IllegalArgumentException()
-        loop(i + 1)
-      }
-    }
-    loop(0)
+  def validateHeaderNameChars(headerName: String): Unit = validateString(allowedHeaderNameChars, "header name", headerName)
+
+  /** Set of characters that are allowed in a header name. */
+  private def allowedHeaderValueChars: AsciiBitSet = {
+    /*
+     * From https://tools.ietf.org/html/rfc7230#section-3.2:
+     *   field-value    = *( field-content / obs-fold )
+     *   field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+     *   field-vchar    = VCHAR / obs-text
+     * From https://tools.ietf.org/html/rfc7230#section-3.2.6:
+     *   obs-text       = %x80-FF
+     */
+    val ObsText = new AsciiRange(0x80, 0xFF)
+    val FieldVChar = AsciiSet.Sets.VChar ||| ObsText
+    val FieldContent = FieldVChar ||| AsciiSet(' ', '\t')
+    FieldContent.toBitSet
   }
 
-  def validateHeaderValueChars(headerValue: String): Unit = {
+  def validateHeaderValueChars(headerValue: String): Unit = validateString(allowedHeaderValueChars, "header value", headerValue)
+
+  private def validateString(allowedSet: AsciiBitSet, setDescription: String, string: String): Unit = {
     @tailrec def loop(i: Int): Unit = {
-      if (i < headerValue.length) {
-        val c = headerValue(i)
-        if (c > 255) throw new IllegalArgumentException(s"Header value had non-ASCII character: 0x${c.toInt.toHexString}")
-        if (c < 21) throw new IllegalArgumentException(s"Header value had non-visible ASCII character: 0x${c.toInt.toHexString}")
+      if (i < string.length) {
+        val c = string.charAt(i)
+        if (!allowedSet.get(c)) throw new IllegalArgumentException(s"Invalid $setDescription character: '$c' (${c.toInt})")
         loop(i + 1)
       }
     }
