@@ -87,7 +87,6 @@ public class HttpTest {
             // if no cookie is provided the context lang order will have the accept language as the default lang
             assertThat(ctx1.messages().lang().code()).isEqualTo("en-US");
 
-
             Cookie cookie = Cookie.builder("PLAY_LANG", "fr").build();
             Context ctx2 = new Context(
                     new RequestBuilder().cookie(cookie).header(Http.HeaderNames.ACCEPT_LANGUAGE, "en"),
@@ -99,7 +98,7 @@ public class HttpTest {
             // if a context lang is set the language order will be context lang > cookie > accept language
             // Change the language to 'en-US'
             assertThat(ctx2.changeLang("en-US")).isTrue();
-            // The language and cookie should now be 'en-US'
+            // The messages language 'en-US'
             assertThat(ctx2.messages().lang().code()).isEqualTo("en-US");
         });
     }
