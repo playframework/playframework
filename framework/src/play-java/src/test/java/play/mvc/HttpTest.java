@@ -100,6 +100,15 @@ public class HttpTest {
             assertThat(ctx2.changeLang("en-US")).isTrue();
             // The messages language 'en-US'
             assertThat(ctx2.messages().lang().code()).isEqualTo("en-US");
+
+            // check's that the order stays the same even when no cookie is changed
+            // by using setTransientLang which will not set any cookie
+            Context ctx3 = new Context(
+                    new RequestBuilder().cookie(cookie).header(Http.HeaderNames.ACCEPT_LANGUAGE, "en"),
+                    contextComponents);
+
+            ctx3.setTransientLang("en-US");
+            assertThat(ctx3.messages().lang().code()).isEqualTo("en-US");
         });
     }
 
