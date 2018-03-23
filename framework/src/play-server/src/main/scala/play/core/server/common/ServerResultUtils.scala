@@ -3,7 +3,7 @@
  */
 package play.core.server.common
 
-import java.util.{BitSet => JBitSet}
+import java.util.{ BitSet => JBitSet }
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
@@ -14,7 +14,7 @@ import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.mvc.request.RequestAttrKey
-import play.core.utils.{AsciiBitSet, AsciiRange, AsciiSet}
+import play.core.utils.{ AsciiBitSet, AsciiRange, AsciiSet }
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
