@@ -84,3 +84,28 @@ The "old" `validate` methods of a Java form will not be executed anymore.
 Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]] you have to migrate such `validate` methods to [[class-level constraints|JavaForms#advanced-validation]].
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
+
+### Java `ErrorHandler`s get `Http.Context` passed
+
+To avoid calling the static method [`Http.Context.current()`](api/java/play/mvc/Http.Context.html#current) (which will likely be removed in the future) Play now passes the [`Http.Context`](api/java/play/mvc/Http.Context.html) to all the methods of all error handlers.
+This only effects you if you implemented your own [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html) (or subclassed [`DefaultHttpErrorHandler`](api/java/play/http/DefaultHttpErrorHandler.html)) or [`CSRFErrorHandler`](api/java/play/filters/csrf/CSRFErrorHandler.html). All the methods of these interfaces and classes get an `Optional<Http.Context>` passed as the last argument now.
+
+> **Info**: An `Optional` is passed because a `Http.Context` is not always available:
+When a request fails at the `BodyParser` level an error handler will be called but a `Http.Context` hasn't been created yet by Play. Therefore in such cases the parameter will be `Optional.empty`.
+
+Overview of the changed methods:
+
+* **In [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html) / [`DefaultHttpErrorHandler`](api/java/play/http/DefaultHttpErrorHandler.html):**
+`onClientError(..., Optional<Context> context)`
+`onServerError(..., Optional<Context> context)`
+
+* **In [`DefaultHttpErrorHandler`](api/java/play/http/DefaultHttpErrorHandler.html):**
+`onBadRequest(..., Optional<Context> context)`
+`onForbidden(..., Optional<Context> context)`
+`onNotFound(..., Optional<Context> context)`
+`onOtherClientError(..., Optional<Context> context)`
+`onDevServerError(..., Optional<Context> context)`
+`onProdServerError(..., Optional<Context> context)`
+
+* **In [`CSRFErrorHandler`](api/java/play/filters/csrf/CSRFErrorHandler.html):**
+`handle(..., Optional<Http.Context> context)`

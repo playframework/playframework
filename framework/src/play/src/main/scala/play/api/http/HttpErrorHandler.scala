@@ -20,6 +20,8 @@ import scala.compat.java8.FutureConverters
 import scala.concurrent._
 import scala.util.control.NonFatal
 
+import java.util.Optional
+
 /**
  * Component for handling HTTP errors in Play.
  *
@@ -308,9 +310,9 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
 private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorHandler) extends play.http.HttpErrorHandler {
   import play.core.Execution.Implicits.trampoline
 
-  def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
+  def onClientError(request: Http.RequestHeader, statusCode: Int, message: String, context: Optional[Http.Context]) =
     FutureConverters.toJava(delegate.onClientError(request.asScala(), statusCode, message).map(_.asJava))
 
-  def onServerError(request: Http.RequestHeader, exception: Throwable) =
+  def onServerError(request: Http.RequestHeader, exception: Throwable, context: Optional[Http.Context]) =
     FutureConverters.toJava(delegate.onServerError(request.asScala(), exception).map(_.asJava))
 }

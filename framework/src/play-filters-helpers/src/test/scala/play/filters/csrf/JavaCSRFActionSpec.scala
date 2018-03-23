@@ -4,6 +4,7 @@
 package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
+import java.util.Optional
 
 import play.api.Application
 import play.api.libs.ws._
@@ -131,7 +132,7 @@ object JavaCSRFActionSpec {
   }
 
   class CustomErrorHandler extends CSRFErrorHandler {
-    def handle(req: RequestHeader, msg: String) = {
+    def handle(req: RequestHeader, msg: String, ctx: Optional[Context]) = {
       CompletableFuture.completedFuture(Results.unauthorized(msg))
     }
   }

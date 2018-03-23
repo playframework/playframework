@@ -6,6 +6,7 @@ package play.filters.csrf;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -109,6 +110,6 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         }
 
         CSRFErrorHandler handler = configurator.apply(this.configuration);
-        return handler.handle(request.asJava(), msg);
+        return handler.handle(request.asJava(), msg, Optional.ofNullable(ctx));
     }
 }

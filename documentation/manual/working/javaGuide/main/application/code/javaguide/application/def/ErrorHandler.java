@@ -17,6 +17,7 @@ import play.mvc.*;
 import javax.inject.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.Optional;
 
 @Singleton
 public class ErrorHandler extends DefaultHttpErrorHandler {
@@ -27,13 +28,13 @@ public class ErrorHandler extends DefaultHttpErrorHandler {
         super(config, environment, sourceMapper, routes);
     }
 
-    protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception) {
+    protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception, Optional<Http.Context> context) {
         return CompletableFuture.completedFuture(
                 Results.internalServerError("A server error occurred: " + exception.getMessage())
         );
     }
 
-    protected CompletionStage<Result> onForbidden(RequestHeader request, String message) {
+    protected CompletionStage<Result> onForbidden(RequestHeader request, String message, Optional<Http.Context> context) {
         return CompletableFuture.completedFuture(
                 Results.forbidden("You're not allowed to access this resource.")
         );

@@ -244,9 +244,9 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Future[Result] = {
+  def invokeWithContext(request: RequestHeader, components: JavaContextComponents, f: (JRequest, JContext) => CompletionStage[JResult]): Future[Result] = {
     withContext(request, components) { javaContext =>
-      FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
+      FutureConverters.toScala(f(javaContext.request(), javaContext)).map(createResult(javaContext, _))(trampoline)
     }
   }
 

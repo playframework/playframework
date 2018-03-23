@@ -448,7 +448,23 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.routing.Router$Tags"),
 
       // Upgrade Guice from 4.1.0 to 4.2.0 which uses java.util.function.Function instead of com.google.common.base.Function now
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.TestBrowser.waitUntil")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.TestBrowser.waitUntil"),
+
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.j.JavaHelpers.invokeWithContext"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.j.JavaAction.invokeWithContext"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.j.JavaHelpers.invokeWithContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.http.DefaultHttpErrorHandler.onServerError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.http.DefaultHttpErrorHandler.onClientError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.http.HttpErrorHandler.onServerError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.http.HttpErrorHandler.onClientError"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.http.HttpErrorHandler.onServerError"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.http.HttpErrorHandler.onClientError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JavaHttpErrorHandlerDelegate.onClientError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JavaHttpErrorHandlerDelegate.onServerError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFErrorHandler#DefaultCSRFErrorHandler.handle"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFErrorHandler.handle"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.filters.csrf.CSRFErrorHandler.handle"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRF#JavaCSRFErrorHandlerDelegate.handle")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
