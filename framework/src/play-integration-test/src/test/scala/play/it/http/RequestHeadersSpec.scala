@@ -31,7 +31,7 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
       withServerAndConfig()((Action, _) => Action { rh =>
         Results.Ok(rh.headers.get("User-Agent").toString)
       }) { port =>
-        def testAgent[R: AsResult](agent: String) = {
+        def testAgent(agent: String) = {
           val (_, logMessages) = LogTester.recordLogEvents {
             val Seq(response) = BasicHttpClient.makeRequests(port)(
               BasicRequest("GET", "/", "HTTP/1.1", Map(
