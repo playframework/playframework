@@ -51,8 +51,8 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             CSRF.Token newToken = helper.generateToken();
 
             // Place this token into the context
-            ctx.args.put(CSRF_TOKEN, newToken.value());
-            ctx.args.put(CSRF_TOKEN_NAME, newToken.name());
+            ctx.args().put(CSRF_TOKEN, newToken.value());
+            ctx.args().put(CSRF_TOKEN_NAME, newToken.name());
 
             // Create a new Scala RequestHeader with the token
             request = helper.tagRequest(request, newToken);

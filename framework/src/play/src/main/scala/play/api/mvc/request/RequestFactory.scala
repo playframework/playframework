@@ -118,11 +118,13 @@ class DefaultRequestFactory @Inject() (
       override protected def emptyMarker: Flash = null
       override protected def create: Flash = flashBaker.decodeFromCookie(cookieCell.value.get(flashBaker.COOKIE_NAME))
     }
+    val contextArgs: java.util.Map[String, Object] = new java.util.HashMap()
     val updatedAttrMap = attrs + (
       RequestAttrKey.Id -> requestId,
       RequestAttrKey.Cookies -> cookieCell,
       RequestAttrKey.Session -> sessionCell,
-      RequestAttrKey.Flash -> flashCell
+      RequestAttrKey.Flash -> flashCell,
+      RequestAttrKey.ContextArgs -> contextArgs
     )
     new RequestHeaderImpl(connection, method, target, version, headers, updatedAttrMap)
   }

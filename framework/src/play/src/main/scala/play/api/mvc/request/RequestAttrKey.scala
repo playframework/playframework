@@ -38,4 +38,10 @@ object RequestAttrKey {
    * The key for the request attribute storing the server name.
    */
   val Server = TypedKey[String]("Server-Name")
+
+  /**
+   * The key for the request attribute storing the request's
+   * context args (useful for Play Java applications).
+   */
+  val ContextArgs = TypedKey[java.util.Map[String, Object]]("Context-Args")
 }

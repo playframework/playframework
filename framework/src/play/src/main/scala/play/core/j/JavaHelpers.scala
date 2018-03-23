@@ -164,7 +164,6 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
       components
     )
   }
@@ -182,7 +181,6 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
       components
     )
   }
