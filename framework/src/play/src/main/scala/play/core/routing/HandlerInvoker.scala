@@ -12,7 +12,7 @@ import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
-import play.mvc.Http.{ Context, RequestBody }
+import play.mvc.Http.{ Context, RequestBody, RequestImpl => JRequestImpl }
 
 import scala.compat.java8.{ FutureConverters, OptionConverters }
 import scala.util.control.NonFatal
@@ -155,18 +155,18 @@ object HandlerInvokerFactory {
       def call(call: => JWebSocket) = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
           WebSocket.acceptOrResult[Message, Message] { request =>
-            val javaContext = JavaHelpers.createJavaContext(request, handlerComponents.contextComponents)
+            val javaRequest = new JRequestImpl(request, handlerComponents.requestComponents)
 
-            val callWithContext = {
+            val callWithRequest = {
               try {
-                Context.current.set(javaContext)
+                Context.current.set(javaRequest)
                 FutureConverters.toScala(call(request.asJava))
               } finally {
                 Context.current.remove()
               }
             }
 
-            callWithContext.map { resultOrFlow =>
+            callWithRequest.map { resultOrFlow =>
               if (resultOrFlow.left.isPresent) {
                 Left(resultOrFlow.left.get.asScala())
               } else {

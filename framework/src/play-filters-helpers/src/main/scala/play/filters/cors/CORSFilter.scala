@@ -6,7 +6,7 @@ package play.filters.cors
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
+import play.core.j.{ JavaRequestComponents, JavaHttpErrorHandlerAdapter }
 
 import scala.concurrent.Future
 import play.api.Logger
@@ -44,8 +44,8 @@ class CORSFilter(
     private val pathPrefixes: Seq[String] = Seq("/")) extends EssentialFilter with AbstractCORSPolicy {
 
   // Java constructor
-  def this(corsConfig: CORSConfig, errorHandler: play.http.HttpErrorHandler, pathPrefixes: java.util.List[String], contextComponents: JavaContextComponents) = {
-    this(corsConfig, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents), Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*))
+  def this(corsConfig: CORSConfig, errorHandler: play.http.HttpErrorHandler, pathPrefixes: java.util.List[String], requestComponents: JavaRequestComponents) = {
+    this(corsConfig, new JavaHttpErrorHandlerAdapter(errorHandler, requestComponents), Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*))
   }
 
   override protected val logger = Logger(classOf[CORSFilter])

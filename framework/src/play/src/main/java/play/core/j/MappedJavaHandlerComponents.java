@@ -25,16 +25,16 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
     private final ActionCreator actionCreator;
     private final HttpConfiguration httpConfiguration;
     private final ExecutionContext executionContext;
-    private final JavaContextComponents contextComponents;
+    private final JavaRequestComponents requestComponents;
 
     private final Map<Class<? extends Action<?>>, Supplier<Action<?>>> actions = new HashMap<>();
     private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyPasers = new HashMap<>();
 
-    public MappedJavaHandlerComponents(ActionCreator actionCreator, HttpConfiguration httpConfiguration, ExecutionContext executionContext, JavaContextComponents contextComponents) {
+    public MappedJavaHandlerComponents(ActionCreator actionCreator, HttpConfiguration httpConfiguration, ExecutionContext executionContext, JavaRequestComponents requestComponents) {
         this.actionCreator = actionCreator;
         this.httpConfiguration = httpConfiguration;
         this.executionContext = executionContext;
-        this.contextComponents = contextComponents;
+        this.requestComponents = requestComponents;
     }
 
     @Override @SuppressWarnings("unchecked")
@@ -63,8 +63,8 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
     }
 
     @Override
-    public JavaContextComponents contextComponents() {
-        return this.contextComponents;
+    public JavaRequestComponents requestComponents() {
+        return this.requestComponents;
     }
 
     public <A extends Action<?>> MappedJavaHandlerComponents addAction(Class<A> clazz, Supplier<A> actionSupplier) {

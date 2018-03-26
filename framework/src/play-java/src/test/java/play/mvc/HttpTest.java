@@ -10,7 +10,7 @@ import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
-import play.core.j.JavaContextComponents;
+import play.core.j.JavaRequestComponents;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Context;
@@ -62,9 +62,9 @@ public class HttpTest {
     @Test
     public void testChangeLang() {
         withApplication((app) -> {
-            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            JavaRequestComponents requestComponents = app.injector().instanceOf(JavaRequestComponents.class);
 
-            Context ctx = new Context(new RequestBuilder(), contextComponents);
+            Context ctx = new Context(new RequestBuilder(), requestComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
@@ -81,9 +81,9 @@ public class HttpTest {
     @Test
     public void testChangeLangFailure() {
         withApplication((app) -> {
-            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            JavaRequestComponents requestComponents = app.injector().instanceOf(JavaRequestComponents.class);
 
-            Context ctx = new Context(new RequestBuilder(), contextComponents);
+            Context ctx = new Context(new RequestBuilder(), requestComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
@@ -98,9 +98,9 @@ public class HttpTest {
     @Test
     public void testClearLang() {
         withApplication((app) -> {
-            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            JavaRequestComponents requestComponents = app.injector().instanceOf(JavaRequestComponents.class);
 
-            Context ctx = new Context(new RequestBuilder(), contextComponents);
+            Context ctx = new Context(new RequestBuilder(), requestComponents);
             // Set 'fr' as our initial language
             assertThat(ctx.changeLang("fr")).isTrue();
             assertThat(ctx.lang().code()).isEqualTo("fr");
@@ -116,9 +116,9 @@ public class HttpTest {
     @Test
     public void testSetTransientLang() {
         withApplication((app) -> {
-            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            JavaRequestComponents requestComponents = app.injector().instanceOf(JavaRequestComponents.class);
 
-            Context ctx = new Context(new RequestBuilder(), contextComponents);
+            Context ctx = new Context(new RequestBuilder(), requestComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
@@ -135,9 +135,9 @@ public class HttpTest {
     @Test(expected=IllegalArgumentException.class)
     public void testSetTransientLangFailure() {
         withApplication((app) -> {
-            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            JavaRequestComponents requestComponents = app.injector().instanceOf(JavaRequestComponents.class);
 
-            Context ctx = new Context(new RequestBuilder(), contextComponents);
+            Context ctx = new Context(new RequestBuilder(), requestComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("en");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
@@ -149,11 +149,11 @@ public class HttpTest {
     @Test
     public void testClearTransientLang() {
         withApplication((app) -> {
-            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+            JavaRequestComponents requestComponents = app.injector().instanceOf(JavaRequestComponents.class);
 
             Cookie frCookie = new Cookie("PLAY_LANG", "fr", null, "/", null, false, false, null);
             RequestBuilder rb = new RequestBuilder().cookie(frCookie);
-            Context ctx = new Context(rb, contextComponents);
+            Context ctx = new Context(rb, requestComponents);
             // Start off as 'en' with no cookie set
             assertThat(ctx.lang().code()).isEqualTo("fr");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();

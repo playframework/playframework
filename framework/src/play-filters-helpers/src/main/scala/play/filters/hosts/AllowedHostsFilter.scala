@@ -11,7 +11,7 @@ import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
+import play.core.j.{ JavaRequestComponents, JavaHttpErrorHandlerAdapter }
 
 /**
  * A filter that denies requests by hosts that do not match a configured list of allowed hosts.
@@ -22,8 +22,8 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
   private val logger = Logger(this.getClass)
 
   // Java API
-  def this(config: AllowedHostsConfig, errorHandler: play.http.HttpErrorHandler, contextComponents: JavaContextComponents) {
-    this(config, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents))
+  def this(config: AllowedHostsConfig, errorHandler: play.http.HttpErrorHandler, requestComponents: JavaRequestComponents) {
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler, requestComponents))
   }
 
   private val hostMatchers: Seq[HostMatcher] = config.allowed map HostMatcher.apply

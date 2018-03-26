@@ -8,7 +8,7 @@ import play.BuiltInComponents;
 import play.api.mvc.BodyParser;
 import play.api.mvc.PathBindable;
 import play.api.mvc.PathBindable$;
-import play.core.j.JavaContextComponents;
+import play.core.j.JavaRequestComponents;
 import play.core.routing.HandlerInvokerFactory$;
 import play.libs.F;
 import play.libs.Scala;
@@ -89,18 +89,18 @@ import java.util.stream.StreamSupport;
 public class RoutingDsl {
 
     private final BodyParser<Http.RequestBody> bodyParser;
-    private final JavaContextComponents contextComponents;
+    private final JavaRequestComponents requestComponents;
 
     final List<Route> routes = new ArrayList<>();
 
     @Inject
-    public RoutingDsl(play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {
+    public RoutingDsl(play.mvc.BodyParser.Default bodyParser, JavaRequestComponents requestComponents) {
         this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
-        this.contextComponents = contextComponents;
+        this.requestComponents = requestComponents;
     }
 
     public static RoutingDsl fromComponents(BuiltInComponents components) {
-        return new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents());
+        return new RoutingDsl(components.defaultBodyParser(), components.javaRequestComponents());
     }
 
     /**
@@ -190,7 +190,7 @@ public class RoutingDsl {
      * @return The built router.
      */
     public play.routing.Router build() {
-        return new RouterBuilderHelper(this.bodyParser, this.contextComponents).build(this);
+        return new RouterBuilderHelper(this.bodyParser, this.requestComponents).build(this);
     }
 
     private RoutingDsl with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {

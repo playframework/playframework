@@ -6,8 +6,8 @@ package play.routing
 import java.util.concurrent.CompletionStage
 
 import play.api.mvc._
-import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.mvc.Http.{ Context, RequestBody }
+import play.core.j.{ JavaRequestComponents, JavaHelpers }
+import play.mvc.Http.{ Context, RequestBody, RequestImpl }
 import play.mvc.Result
 import play.utils.UriEncoding
 
@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
 
-private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], contextComponents: JavaContextComponents) {
+private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], requestComponents: JavaRequestComponents) {
 
   def build(router: RoutingDsl): play.routing.Router = {
     val routes = router.routes.asScala
@@ -61,16 +61,16 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], 
               case Right(parameters) =>
                 import play.core.Execution.Implicits.trampoline
                 ActionBuilder.ignoringBody.async(bodyParser) { request =>
-                  val ctx = JavaHelpers.createJavaContext(request, contextComponents)
+                  val req = new RequestImpl(request, requestComponents)
                   try {
-                    Context.current.set(ctx)
+                    Context.current.set(req)
                     val javaResultFuture = route.actionMethod.invoke(route.action, parameters: _*) match {
                       case result: Result => Future.successful(result)
                       case promise: CompletionStage[_] =>
                         val p = promise.asInstanceOf[CompletionStage[Result]]
                         FutureConverters.toScala(p)
                     }
-                    javaResultFuture.map(JavaHelpers.createResult(ctx, _))
+                    javaResultFuture.map(JavaHelpers.createResult(req, _))
                   } finally {
                     Context.current.remove()
                   }

@@ -18,7 +18,7 @@ import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
-import play.core.j.{ JavaContextComponents, JavaHelpers }
+import play.core.j.{ JavaRequestComponents, JavaHelpers }
 import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils._
 
@@ -351,7 +351,7 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
-  lazy val javaContextComponents: JavaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+  lazy val javaRequestComponents: JavaRequestComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 
   // NOTE: the following helpers are declared as protected since they are only meant to be used inside BuiltInComponents
   // This also makes them not conflict with other methods of the same type when used with Macwire.

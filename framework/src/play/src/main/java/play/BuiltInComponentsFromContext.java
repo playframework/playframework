@@ -139,7 +139,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
                 actionCreator(),
                 httpConfiguration(),
                 executionContext(),
-                javaContextComponents()
+                javaRequestComponents()
         );
 
         return javaHandlerComponents
@@ -182,7 +182,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
         play.api.http.HttpErrorHandler scalaErrorHandler = new JavaHttpErrorHandlerAdapter(
                 httpErrorHandler(),
-                javaContextComponents()
+                javaRequestComponents()
         );
 
         return new JavaCompatibleHttpRequestHandler(

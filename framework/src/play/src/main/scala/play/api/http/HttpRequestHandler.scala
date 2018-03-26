@@ -51,10 +51,10 @@ object HttpRequestHandler {
       environment,
       configuration, "play.http.requestHandler", "RequestHandler")
 
-    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
+    val javaRequestComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaRequestComponents]).to[play.core.j.DefaultJavaRequestComponents])
     val javaHandlerComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
 
-    fromConfiguration ++ javaContextComponentsBindings ++ javaHandlerComponentsBindings
+    fromConfiguration ++ javaRequestComponentsBindings ++ javaHandlerComponentsBindings
   }
 }
 

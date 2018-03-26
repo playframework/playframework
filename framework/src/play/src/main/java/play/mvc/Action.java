@@ -6,7 +6,7 @@ package play.mvc;
 import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage;
 
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 
 /**
  * An action acts as decorator for the action method call.
@@ -40,12 +40,12 @@ public abstract class Action<T> extends Results {
     public Action<?> delegate;
 
     /**
-     * Executes this action with the given HTTP context and returns the result.
+     * Executes this action with the given HTTP request and returns the result.
      *
-     * @param ctx the http context in which to execute this action
+     * @param req the http request with which to execute this action
      * @return a promise to the action's result
      */
-    public abstract CompletionStage<Result> call(Context ctx);
+    public abstract CompletionStage<Result> call(Request req);
 
     /**
      * A simple action with no configuration.

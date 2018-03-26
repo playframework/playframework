@@ -8,7 +8,7 @@ import javax.inject.{ Inject, Provider }
 import play.api.inject._
 import play.api.{ Configuration, Environment }
 import play.api.mvc.PlayBodyParsers
-import play.core.j.JavaContextComponents
+import play.core.j.JavaRequestComponents
 import play.mvc.BodyParser.Default
 
 /**
@@ -23,6 +23,6 @@ class RoutingDslModule extends Module {
   }
 }
 
-class JavaRoutingDslProvider @Inject() (bodyParser: play.mvc.BodyParser.Default, contextComponents: JavaContextComponents) extends Provider[RoutingDsl] {
-  override def get(): RoutingDsl = new RoutingDsl(bodyParser, contextComponents)
+class JavaRoutingDslProvider @Inject() (bodyParser: play.mvc.BodyParser.Default, requestComponents: JavaRequestComponents) extends Provider[RoutingDsl] {
+  override def get(): RoutingDsl = new RoutingDsl(bodyParser, requestComponents)
 }

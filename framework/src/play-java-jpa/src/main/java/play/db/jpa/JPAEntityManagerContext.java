@@ -49,12 +49,12 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
     public Deque<EntityManager> emStack(boolean threadLocalFallback) {
         Http.Context context = Http.Context.current.get();
         if (context != null) {
-            Object emsObject = context.args.get(CURRENT_ENTITY_MANAGER);
+            Object emsObject = context.args().get(CURRENT_ENTITY_MANAGER);
             if (emsObject != null) {
                 return (Deque<EntityManager>) emsObject;
             } else {
                 Deque<EntityManager> ems = new ArrayDeque<>();
-                context.args.put(CURRENT_ENTITY_MANAGER, ems);
+                context.args().put(CURRENT_ENTITY_MANAGER, ems);
                 return ems;
             }
         } else {

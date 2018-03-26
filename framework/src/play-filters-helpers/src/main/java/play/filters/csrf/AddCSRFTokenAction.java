@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
+import play.core.j.JavaRequestComponents;
 import play.api.mvc.Session;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -23,13 +24,15 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final SessionConfiguration sessionConfiguration;
     private final CSRF.TokenProvider tokenProvider;
     private final CSRFTokenSigner tokenSigner;
+    private final JavaRequestComponents components;
 
     @Inject
-    public AddCSRFTokenAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner tokenSigner) {
+    public AddCSRFTokenAction(CSRFConfig config, SessionConfiguration sessionConfiguration, CSRF.TokenProvider tokenProvider, CSRFTokenSigner tokenSigner, JavaRequestComponents components) {
         this.config = config;
         this.sessionConfiguration = sessionConfiguration;
         this.tokenProvider = tokenProvider;
         this.tokenSigner = tokenSigner;
+        this.components = components;
     }
 
     private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
@@ -38,21 +41,21 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private static final String CSRF_TOKEN_NAME = "CSRF_TOKEN_NAME";
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
+    public CompletionStage<Result> call(Http.Request req) {
 
         CSRFActionHelper helper =
             new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
         play.api.mvc.Request<RequestBody> request =
-                helper.tagRequestFromHeader(ctx.request().asScala());
+                helper.tagRequestFromHeader(req.asScala());
 
         if (helper.getTokenToValidate(request).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
             CSRF.Token newToken = helper.generateToken();
 
             // Place this token into the context
-            ctx.args.put(CSRF_TOKEN, newToken.value());
-            ctx.args.put(CSRF_TOKEN_NAME, newToken.name());
+            req.args().put(CSRF_TOKEN, newToken.value());
+            req.args().put(CSRF_TOKEN_NAME, newToken.name());
 
             // Create a new Scala RequestHeader with the token
             request = helper.tagRequest(request, newToken);
@@ -63,27 +66,15 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
                 Http.Cookie cookie = new Http.Cookie(
                     config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
                     domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
-                ctx.response().setCookie(cookie);
+                req.response().setCookie(cookie);
             } else {
-                ctx.session().put(newToken.name(), newToken.value());
+                req.session().put(newToken.name(), newToken.value());
             }
         }
 
-        final play.api.mvc.Request<RequestBody> newRequest = request;
-        // Methods returning requests should return the tagged request
-        Http.Context newCtx = new Http.WrappedContext(ctx) {
-            @Override
-            public Request request() {
-                return new RequestImpl(newRequest);
-            }
+        final Request newRequest = new RequestImpl(request, components);
 
-            @Override
-            public play.api.mvc.RequestHeader _requestHeader() {
-                return newRequest;
-            }
-        };
-
-        Http.Context.current.set(newCtx);
-        return delegate.call(newCtx);
+        Http.Context.current.set(newRequest);
+        return delegate.call(newRequest);
     }
 }

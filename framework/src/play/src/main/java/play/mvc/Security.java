@@ -57,16 +57,15 @@ public class Security {
             this.configurator = configurator;
         }
 
-        public CompletionStage<Result> call(final Context ctx) {
+        public CompletionStage<Result> call(final Request req) {
             Authenticator authenticator = configurator.apply(configuration);
-            String username = authenticator.getUsername(ctx);
+            String username = authenticator.getUsername(req);
             if (username == null) {
-                Result unauthorized = authenticator.onUnauthorized(ctx);
+                Result unauthorized = authenticator.onUnauthorized(req);
                 return CompletableFuture.completedFuture(unauthorized);
             } else {
-                Request usernameReq = ctx.request().addAttr(USERNAME, username);
-                Context usernameCtx = ctx.withRequest(usernameReq);
-                return delegate.call(usernameCtx);
+                Request usernameReq = req.request().addAttr(USERNAME, username);
+                return delegate.call(usernameReq);
             }
         }
 
@@ -80,20 +79,20 @@ public class Security {
         /**
          * Retrieves the username from the HTTP context; the default is to read from the session cookie.
          *
-         * @param ctx the current request context
+         * @param req the current request context
          * @return null if the user is not authenticated.
          */
-        public String getUsername(Context ctx) {
-            return ctx.session().get("username");
+        public String getUsername(Request req) {
+            return req.session().get("username");
         }
 
         /**
          * Generates an alternative result if the user is not authenticated; the default a simple '401 Not Authorized' page.
          *
-         * @param ctx the current request context
+         * @param req the current request context
          * @return a <code>401 Not Authorized</code> result
          */
-        public Result onUnauthorized(Context ctx) {
+        public Result onUnauthorized(Request req) {
             return unauthorized(views.html.defaultpages.unauthorized.render());
         }
 

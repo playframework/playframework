@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture
 import play.api.Application
 import play.api.libs.ws._
 import play.api.mvc.{ DefaultSessionCookieBaker, SessionCookieBaker }
-import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
+import play.core.j.{ JavaAction, JavaActionAnnotations, JavaRequestComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.{ Context, RequestHeader }
 import play.mvc.{ Controller, Result, Results }
@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
 class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
-  def javaContextComponents(implicit app: Application) = inject[JavaContextComponents]
+  def javaRequestComponents(implicit app: Application) = inject[JavaRequestComponents]
   def myAction(implicit app: Application) = inject[JavaCSRFActionSpec.MyAction]
 
   def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application) = new JavaAction(javaHandlerComponents) {

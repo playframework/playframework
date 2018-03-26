@@ -3,7 +3,7 @@
  */
 package play.components;
 
-import play.core.j.JavaContextComponents;
+import play.core.j.JavaRequestComponents;
 import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.http.HttpErrorHandler;
 
@@ -12,11 +12,11 @@ import play.http.HttpErrorHandler;
  */
 public interface HttpErrorHandlerComponents {
 
-    JavaContextComponents javaContextComponents();
+    JavaRequestComponents javaRequestComponents();
 
     HttpErrorHandler httpErrorHandler();
 
     default play.api.http.HttpErrorHandler scalaHttpErrorHandler() {
-        return new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaContextComponents());
+        return new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaRequestComponents());
     }
 }

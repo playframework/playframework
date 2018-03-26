@@ -6,7 +6,7 @@ package play;
 import play.api.http.HttpConfiguration;
 import play.api.i18n.DefaultMessagesApiProvider;
 import play.components.*;
-import play.core.j.JavaContextComponents;
+import play.core.j.JavaRequestComponents;
 import play.core.j.JavaHelpers$;
 import play.http.ActionCreator;
 import play.http.DefaultActionCreator;
@@ -30,7 +30,7 @@ public interface BuiltInComponents extends
         TemporaryFileComponents {
 
     @Override
-    default JavaContextComponents javaContextComponents() {
+    default JavaRequestComponents javaRequestComponents() {
         return JavaHelpers$.MODULE$.createContextComponents(
                 messagesApi().asScala(),
                 langs().asScala(),

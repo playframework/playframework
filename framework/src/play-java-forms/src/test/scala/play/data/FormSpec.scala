@@ -16,7 +16,7 @@ import play.{ ApplicationLoader, BuiltInComponentsFromContext }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
-import play.core.j.JavaContextComponents
+import play.core.j.JavaRequestComponents
 import play.data.validation.ValidationError
 import play.mvc.EssentialFilter
 import play.mvc.Http.{ Context, Request, RequestBuilder }
@@ -30,7 +30,7 @@ import scala.compat.java8.OptionConverters._
 class RuntimeDependencyInjectionFormSpec extends FormSpec {
   private var app: Option[Application] = None
 
-  override def defaultContextComponents: JavaContextComponents = app.getOrElse(application()).injector.instanceOf[JavaContextComponents]
+  override def defaultContextComponents: JavaRequestComponents = app.getOrElse(application()).injector.instanceOf[JavaRequestComponents]
 
   override def formFactory: FormFactory = app.getOrElse(application()).injector.instanceOf[FormFactory]
 
@@ -71,7 +71,7 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
     myComponents.application().asScala()
   }
 
-  override def defaultContextComponents: JavaContextComponents = components.getOrElse(new MyComponents(ApplicationLoader.create(play.Environment.simple()))).javaContextComponents()
+  override def defaultContextComponents: JavaRequestComponents = components.getOrElse(new MyComponents(ApplicationLoader.create(play.Environment.simple()))).javaRequestComponents()
 }
 
 trait FormSpec extends Specification {
@@ -80,7 +80,7 @@ trait FormSpec extends Specification {
 
   def formFactory: FormFactory
   def application(extraConfig: (String, Any)*): Application
-  def defaultContextComponents: JavaContextComponents
+  def defaultContextComponents: JavaRequestComponents
 
   "a java form" should {
 
@@ -102,10 +102,10 @@ trait FormSpec extends Specification {
         myForm.field("task.name").getValue.asScala must beSome("peter")
       }
       "have an error due to missing required value" in new WithApplication(application()) {
-        val contextComponents = defaultContextComponents
+        val requestComponents = defaultContextComponents
 
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
+        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, requestComponents))
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
         myForm hasErrors () must beEqualTo(true)

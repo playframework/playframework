@@ -22,8 +22,8 @@ public class ActionCompositionOrderTest {
 
     static class ControllerComposition extends Action<ControllerAnnotation> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
+        public CompletionStage<Result> call(Http.Context req) {
+            return delegate.call(req).thenApply(result -> {
                 String newContent = this.annotatedElement.getClass().getName() + "controller" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
@@ -37,8 +37,8 @@ public class ActionCompositionOrderTest {
 
     static class ActionComposition extends Action<ControllerAnnotation> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
+        public CompletionStage<Result> call(Http.Context req) {
+            return delegate.call(req).thenApply(result -> {
                 String newContent = this.annotatedElement.getClass().getName() + "action" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
@@ -54,8 +54,8 @@ public class ActionCompositionOrderTest {
 
     static class WithUsernameAction extends Action<WithUsername> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx.withRequest(ctx.request().addAttr(Security.USERNAME, configuration.value())));
+        public CompletionStage<Result> call(Http.Context req) {
+            return delegate.call(req.request().addAttr(Security.USERNAME, configuration.value()));
         }
     }
 
@@ -76,8 +76,8 @@ public class ActionCompositionOrderTest {
 
     public static class FirstAction extends Action<SomeRepeatable> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
+        public CompletionStage<Result> call(Http.Context req) {
+            return delegate.call(req).thenApply(result -> {
                 String newContent = this.annotatedElement.getClass().getName() + "action1" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
@@ -86,8 +86,8 @@ public class ActionCompositionOrderTest {
 
     public static class SecondAction extends Action<SomeRepeatable> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
+        public CompletionStage<Result> call(Http.Context req) {
+            return delegate.call(req).thenApply(result -> {
                 String newContent = this.annotatedElement.getClass().getName() + "action2" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
@@ -106,8 +106,8 @@ public class ActionCompositionOrderTest {
 
     public static class SomeActionAnnotationAction extends Action<SomeActionAnnotation> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
+        public CompletionStage<Result> call(Http.Context req) {
+            return delegate.call(req).thenApply(result -> {
                 String newContent = "do_NOT_treat_me_as_container_annotation" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });

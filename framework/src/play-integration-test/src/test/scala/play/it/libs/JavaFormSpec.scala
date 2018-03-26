@@ -4,7 +4,7 @@
 package play.it.libs
 
 import play.api.test._
-import play.core.j.{ JavaContextComponents, JavaHelpers }
+import play.core.j.{ JavaRequestComponents, JavaHelpers }
 import play.data.validation.Constraints.Required
 
 import scala.annotation.meta.field
@@ -16,7 +16,7 @@ class JavaFormSpec extends PlaySpecification {
   "A Java form" should {
 
     "throw a meaningful exception when get is called on an invalid form" in new WithApplication() {
-      val components = app.injector.instanceOf[JavaContextComponents]
+      val components = app.injector.instanceOf[JavaRequestComponents]
       JavaHelpers.withContext(FakeRequest(), components) { _ =>
         val formFactory = app.injector.instanceOf[play.data.FormFactory]
         val myForm = formFactory.form(classOf[FooForm]).bind(Map("id" -> "1234567891").asJava)

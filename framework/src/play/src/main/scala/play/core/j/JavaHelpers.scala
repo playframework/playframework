@@ -126,24 +126,24 @@ trait JavaHelpers {
   }
 
   /**
-   * Creates a scala result from java context and result objects
-   * @param javaContext the Java Http.Context
+   * Creates a scala result from java context/request and result objects
+   * @param javaRequest the Java Http.Request
    * @param javaResult the Java Result
    */
-  def createResult(javaContext: JContext, javaResult: JResult): Result = {
+  def createResult(javaRequest: JRequest, javaResult: JResult): Result = {
     require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
     val scalaResult = javaResult.asScala
-    val wResult = scalaResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-      .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
+    val wResult = scalaResult.withHeaders(javaRequest.response.getHeaders.asScala.toSeq: _*)
+      .withCookies(cookiesToScalaCookies(javaRequest.response.cookies): _*)
 
-    if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+    if (javaRequest.session.isDirty && javaRequest.flash.isDirty) {
+      wResult.withSession(Session(javaRequest.session.asScala.toMap)).flashing(Flash(javaRequest.flash.asScala.toMap))
     } else {
-      if (javaContext.session.isDirty) {
-        wResult.withSession(Session(javaContext.session.asScala.toMap))
+      if (javaRequest.session.isDirty) {
+        wResult.withSession(Session(javaRequest.session.asScala.toMap))
       } else {
-        if (javaContext.flash.isDirty) {
-          wResult.flashing(Flash(javaContext.flash.asScala.toMap))
+        if (javaRequest.flash.isDirty) {
+          wResult.flashing(Flash(javaRequest.flash.asScala.toMap))
         } else {
           wResult
         }
@@ -152,48 +152,12 @@ trait JavaHelpers {
   }
 
   /**
-   * Creates a java context from a scala RequestHeader
-   * @param req the scala request
-   * @param components the context components (use JavaHelpers.createContextComponents)
-   */
-  def createJavaContext(req: RequestHeader, components: JavaContextComponents): JContext = {
-    require(components != null, "Null JavaContextComponents")
-    new JContext(
-      req.id,
-      req,
-      new JRequestImpl(req),
-      req.session.data.asJava,
-      req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
-      components
-    )
-  }
-
-  /**
-   * Creates a java context from a scala Request[RequestBody]
-   * @param req the scala request
-   * @param components the context components (use JavaHelpers.createContextComponents)
-   */
-  def createJavaContext(req: Request[RequestBody], components: JavaContextComponents): JContext = {
-    require(components != null, "Null JavaContextComponents")
-    new JContext(
-      req.id,
-      req,
-      new JRequestImpl(req),
-      req.session.data.asJava,
-      req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
-      components
-    )
-  }
-
-  /**
    * Creates java context components from environment, using
    * play.api.Configuration.reference and play.api.Environment.simple as defaults.
    *
-   * @return an instance of JavaContextComponents.
+   * @return an instance of JavaRequestComponents.
    */
-  def createContextComponents(): JavaContextComponents = {
+  def createContextComponents(): JavaRequestComponents = {
     val reference: Configuration = play.api.Configuration.reference
     val environment = play.api.Environment.simple()
     createContextComponents(reference, environment)
@@ -203,9 +167,9 @@ trait JavaHelpers {
    * Creates context components from environment.
    * @param configuration play config.
    * @param env play environment.
-   * @return an instance of JavaContextComponents with default messagesApi and langs.
+   * @return an instance of JavaRequestComponents with default messagesApi and langs.
    */
-  def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
+  def createContextComponents(configuration: Configuration, env: Environment): JavaRequestComponents = {
     val langs = new DefaultLangsProvider(configuration).get
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
     val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
@@ -214,26 +178,26 @@ trait JavaHelpers {
   }
 
   /**
-   * Creates JavaContextComponents directly from components..
+   * Creates JavaRequestComponents directly from components..
    * @param messagesApi the messagesApi instance
    * @param langs the langs instance
    * @param fileMimeTypes the file mime types
    * @param httpConfiguration the http configuration
-   * @return an instance of JavaContextComponents with given input components.
+   * @return an instance of JavaRequestComponents with given input components.
    */
   def createContextComponents(
     messagesApi: MessagesApi,
     langs: Langs,
     fileMimeTypes: FileMimeTypes,
-    httpConfiguration: HttpConfiguration): JavaContextComponents = {
+    httpConfiguration: HttpConfiguration): JavaRequestComponents = {
     val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
     val jLangs = new play.i18n.Langs(langs)
     val jFileMimeTypes = new play.mvc.FileMimeTypes(fileMimeTypes)
-    new DefaultJavaContextComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
+    new DefaultJavaRequestComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
   }
 
   /**
-   * Invoke the given function with the right context set, converting the scala request to a
+   * Invoke the given function with the right java request set, converting the scala request to a
    * Java request, and converting the resulting Java result to a Scala result, before returning
    * it.
    *
@@ -244,20 +208,20 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Future[Result] = {
-    withContext(request, components) { javaContext =>
-      FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
+  def invokeWithRequest(request: RequestHeader, components: JavaRequestComponents, f: JRequest => CompletionStage[JResult]): Future[Result] = {
+    withRequest(request, components) { javaRequest =>
+      FutureConverters.toScala(f(javaRequest)).map(createResult(javaRequest, _))(trampoline)
     }
   }
 
   /**
-   * Invoke the given block with Java context created from the request header
+   * Invoke the given block with Java request created from the scala request header
    */
-  def withContext[A](request: RequestHeader, components: JavaContextComponents)(block: JContext => A) = {
-    val javaContext = createJavaContext(request, components)
+  def withRequest[A](request: RequestHeader, components: JavaRequestComponents)(block: JRequest => A) = {
+    val javaRequest = new JRequestImpl(request, components)
     try {
-      JContext.current.set(javaContext)
-      block(javaContext)
+      JContext.current.set(javaRequest)
+      block(javaRequest)
     } finally {
       JContext.current.remove()
     }
@@ -286,7 +250,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def withAttrs(newAttrs: TypedMap): JRequestHeader = header.withAttrs(newAttrs.underlying()).asJava
   override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
 
-  override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
+  override def withBody(body: RequestBody, components: JavaRequestComponents): JRequest = new JRequestImpl(header.withBody(body), components)
 
   override def host: String = header.host
 
@@ -324,16 +288,33 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
 }
 
-class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
+class RequestImpl(request: Request[RequestBody], components: JavaRequestComponents) extends RequestHeaderImpl(request) with JRequest {
   override def asScala: Request[RequestBody] = request
 
   override def attrs: TypedMap = new TypedMap(asScala.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequest =
-    new RequestImpl(request.withAttrs(newAttrs.underlying()))
+    new RequestImpl(request.withAttrs(newAttrs.underlying()), components)
   override def addAttr[A](key: TypedKey[A], value: A): JRequest =
     withAttrs(attrs.put(key, value))
 
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody
-  override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
+  override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body), components)
+
+  def changeLang(lang: play.i18n.Lang): Boolean = ???
+  def changeLang(code: String): Boolean = ???
+  def clearLang(): Unit = ???
+  def clearTransientLang(): Unit = ???
+  def fileMimeTypes(): play.mvc.FileMimeTypes = ???
+  def flash(): play.mvc.Http.Flash = ???
+  def id(): java.lang.Long = null
+  def lang(): play.i18n.Lang = ???
+  def messages(): play.i18n.Messages = ???
+  def request(): play.mvc.Http.Request = ???
+  def response(): play.mvc.Http.Response = ???
+  def session(): play.mvc.Http.Session = ???
+  def setTransientLang(lang: play.i18n.Lang): Unit = ???
+  def setTransientLang(code: String): Unit = ???
+  def args(): java.util.Map[String, Object] = ???
+
 }
