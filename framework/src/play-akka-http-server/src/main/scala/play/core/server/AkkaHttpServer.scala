@@ -60,24 +60,35 @@ class AkkaHttpServer(
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
 
+  /**
+   * The underlying Config object used to initialize Akka HTTP. We patch in a setting to enable
+   * or disable HTTP/2.
+   */
+  private val initialConfig: Config = (Configuration(system.settings.config) ++ Configuration(
+    "akka.http.server.preview.enable-http2" -> http2Enabled
+  )).underlying
+
+  /**
+   * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
+   * parsing of byte values.
+   */
   private def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
     config.getString(path) match {
       case "infinite" => Long.MaxValue
-      case x => config.getBytes(path)
+      case _ => config.getBytes(path)
     }
   }
 
+  /**
+   * Play's custom parser settings for Akka HTTP.
+   */
+  private val parserSettings: ParserSettings = ParserSettings(initialConfig)
+    .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+    .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
+    .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
+
+  /** Listen for incoming connections and handle them with the `handleRequest` method. */
   private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
-    // Listen for incoming connections and handle them with the `handleRequest` method.
-
-    val initialConfig = (Configuration(system.settings.config) ++ Configuration(
-      "akka.http.server.preview.enable-http2" -> http2Enabled
-    )).underlying
-
-    val parserSettings = ParserSettings(initialConfig)
-      .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
-      .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
-
     val initialSettings = ServerSettings(initialConfig)
 
     val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
@@ -169,7 +180,10 @@ class AkkaHttpServer(
       val serverResultUtils = reloadServerResultUtils(tryApp)
       val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
       val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(akkaServerConfig.get[String]("illegal-response-header-value-processing-mode"))
-      val modelConversion = new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
+      val modelConversion = new AkkaModelConversion(
+        serverResultUtils,
+        forwardedHeaderHandler,
+        illegalResponseHeaderValue)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
         modelConversion = modelConversion
