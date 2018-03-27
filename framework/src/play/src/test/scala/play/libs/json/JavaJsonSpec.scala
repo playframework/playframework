@@ -25,7 +25,7 @@ class JavaJsonSpec extends Specification {
         |  "a" : 2.5,
         |  "copyright" : "\u00a9",
         |  "baz" : [ 1, 2, 3 ]
-        |}""".stripMargin
+        |}""".stripMargin.replaceAll("\r?\n", System.lineSeparator)
 
     val testJsonInputStream = new ByteArrayInputStream(testJsonString.getBytes("UTF-8"))
 
