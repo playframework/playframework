@@ -28,7 +28,8 @@ public interface CSRFComponents extends ConfigurationComponents,
                 csrfConfig(),
                 sessionConfiguration(),
                 csrfTokenProvider(),
-                csrfTokenSigner().asScala()
+                csrfTokenSigner().asScala(),
+                javaRequestComponents()
         );
     }
 
@@ -55,7 +56,7 @@ public interface CSRFComponents extends ConfigurationComponents,
                 sessionConfiguration(),
                 csrfTokenProvider(),
                 csrfErrorHandler(),
-                javaContextComponents(),
+                javaRequestComponents(),
                 materializer()
         );
     }

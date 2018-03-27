@@ -8,7 +8,7 @@ import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
-import play.core.j.JavaContextComponents;
+import play.core.j.JavaRequestComponents;
 import play.data.*;
 import play.data.format.Formatters;
 import play.data.Task;
@@ -53,8 +53,8 @@ public class HttpFormsTest {
         }
     }
 
-    private JavaContextComponents contextComponents(Application app) {
-        return app.injector().instanceOf(JavaContextComponents.class);
+    private JavaRequestComponents requestComponents(Application app) {
+        return app.injector().instanceOf(JavaRequestComponents.class);
     }
 
     private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
@@ -75,7 +75,7 @@ public class HttpFormsTest {
             Map<String, String> data = new HashMap<>();
             data.put("amount", "1234567,89");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb, contextComponents(app));
+            Context ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse french input with french formatter
             ctx.changeLang("fr");
@@ -98,7 +98,7 @@ public class HttpFormsTest {
             data = new HashMap<>();
             data.put("amount", "1234567.89");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse english input with french formatter
             ctx.changeLang("fr");
@@ -131,7 +131,7 @@ public class HttpFormsTest {
             Validator validator = app.injector().instanceOf(Validator.class);
 
             RequestBuilder rb = new RequestBuilder();
-            Context ctx = new Context(rb, contextComponents(app));
+            Context ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
 
             List<String> msgs = new ArrayList<>();
@@ -156,7 +156,7 @@ public class HttpFormsTest {
             Map<String, String> data = new HashMap<>();
             data.put("date", "3/10/1986");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb, contextComponents(app));
+            Context ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse date input with pattern from the default messages file
             Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
@@ -170,7 +170,7 @@ public class HttpFormsTest {
             data = new HashMap<>();
             data.put("date", "16.2.2001");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse french date input with pattern from the french messages file
             ctx.changeLang("fr");
@@ -185,7 +185,7 @@ public class HttpFormsTest {
             data = new HashMap<>();
             data.put("date", "8-31-1950");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse english date input with pattern from the en-US messages file
             ctx.changeLang("en-US");
@@ -207,7 +207,7 @@ public class HttpFormsTest {
             Map<String, String> data = new HashMap<>();
             data.put("alternativeDate", "1982-5-7");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb, contextComponents(app));
+            Context ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse date input with pattern from Play's default messages file
             Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
@@ -221,7 +221,7 @@ public class HttpFormsTest {
             data = new HashMap<>();
             data.put("alternativeDate", "10_4_2005");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse french date input with pattern from the french messages file
             ctx.changeLang("fr");
@@ -236,7 +236,7 @@ public class HttpFormsTest {
             data = new HashMap<>();
             data.put("alternativeDate", "3/12/1962");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse english date input with pattern from the en-US messages file
             ctx.changeLang("en-US");
@@ -260,7 +260,7 @@ public class HttpFormsTest {
             data.put("name", "peter");
             data.put("dueDate", "2009/11e/11");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb, contextComponents(app));
+            Context ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse date input with pattern from the default messages file
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
@@ -278,7 +278,7 @@ public class HttpFormsTest {
             data.put("dueDate", "2009/11e/11");
             Cookie frCookie = new Cookie("PLAY_LANG", "fr", 0, "/", null, false, false, null);
             rb = new RequestBuilder().cookie(frCookie).uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse date input with pattern from the french messages file
             myForm = formFactory.form(Task.class).bindFromRequest();
@@ -305,7 +305,7 @@ public class HttpFormsTest {
             data.put("zip", "1234");
             data.put("anotherZip", "1234");
             RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            Context ctx = new Context(rb, contextComponents(app));
+            Context ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse input with pattern from the default messages file
             Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
@@ -320,7 +320,7 @@ public class HttpFormsTest {
             data.put("zip", "567");
             data.put("anotherZip", "567");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse input with pattern from the french messages file
             ctx.changeLang("fr");
@@ -336,7 +336,7 @@ public class HttpFormsTest {
             data.put("zip", "1234");
             data.put("anotherZip", "1234");
             rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-            ctx = new Context(rb, contextComponents(app));
+            ctx = new Context(rb, requestComponents(app));
             Context.current.set(ctx);
             // Parse WRONG input with pattern from the french messages file
             ctx.changeLang("fr");

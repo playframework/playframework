@@ -45,15 +45,15 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     }
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
+    public CompletionStage<Result> call(Http.Request req) {
 
         CSRFActionHelper csrfActionHelper =
             new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
-        RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader());
+        RequestHeader request = csrfActionHelper.tagRequestFromHeader(req.asScala());
         // Check for bypass
         if (!csrfActionHelper.requiresCsrfCheck(request)) {
-            return delegate.call(ctx);
+            return delegate.call(req);
         } else {
             // Get token from cookie/session
             Option<String> headerToken = csrfActionHelper.getTokenToValidate(request);
@@ -67,13 +67,13 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                 } else {
 
                     // Get token from body
-                    if (ctx.request().body().asFormUrlEncoded() != null) {
-                        String[] values = ctx.request().body().asFormUrlEncoded().get(config.tokenName());
+                    if (req.body().asFormUrlEncoded() != null) {
+                        String[] values = req.body().asFormUrlEncoded().get(config.tokenName());
                         if (values != null && values.length > 0) {
                             tokenToCheck = values[0];
                         }
-                    } else if (ctx.request().body().asMultipartFormData() != null) {
-                        Map<String, String[]> form = ctx.request().body().asMultipartFormData().asFormUrlEncoded();
+                    } else if (req.body().asMultipartFormData() != null) {
+                        Map<String, String[]> form = req.body().asMultipartFormData().asFormUrlEncoded();
                         String[] values = form.get(config.tokenName());
                         if (values != null && values.length > 0) {
                             tokenToCheck = values[0];
@@ -83,28 +83,28 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
                 if (tokenToCheck != null) {
                     if (tokenProvider.compareTokens(tokenToCheck, headerToken.get())) {
-                        return delegate.call(ctx);
+                        return delegate.call(req);
                     } else {
-                        return handleTokenError(ctx, request, "CSRF tokens don't match");
+                        return handleTokenError(req, request, "CSRF tokens don't match");
                     }
                 } else {
-                    return handleTokenError(ctx, request, "CSRF token not found in body or query string");
+                    return handleTokenError(req, request, "CSRF token not found in body or query string");
                 }
             } else {
-                return handleTokenError(ctx, request, "CSRF token not found in session");
+                return handleTokenError(req, request, "CSRF token not found in session");
             }
         }
     }
 
-    private CompletionStage<Result> handleTokenError(Http.Context ctx, RequestHeader request, String msg) {
+    private CompletionStage<Result> handleTokenError(Http.Request req, RequestHeader request, String msg) {
 
         if (CSRF.getToken(request).isEmpty()) {
             if (config.cookieName().isDefined()) {
                 Option<String> domain = sessionConfiguration.domain();
-                ctx.response().discardCookie(config.cookieName().get(), sessionConfiguration.path(),
+                req.response().discardCookie(config.cookieName().get(), sessionConfiguration.path(),
                         domain.isDefined() ? domain.get() : null, config.secureCookie());
             } else {
-                ctx.session().remove(config.tokenName());
+                req.session().remove(config.tokenName());
             }
         }
 

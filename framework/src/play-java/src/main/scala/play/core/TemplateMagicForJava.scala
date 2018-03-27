@@ -29,7 +29,7 @@ object PlayMagicForJava extends JavaImplicitConversions {
   }
 
   implicit def requestHeader: play.api.mvc.RequestHeader = {
-    ctx._requestHeader
+    ctx.asScala()
   }
 
   implicit def implicitJavaMessages: play.api.i18n.Messages = {

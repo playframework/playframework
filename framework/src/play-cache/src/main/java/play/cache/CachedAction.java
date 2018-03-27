@@ -6,7 +6,7 @@ package play.cache;
 import java.util.concurrent.CompletionStage;
 
 import play.mvc.Action;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
 
 import javax.inject.Inject;
@@ -23,10 +23,10 @@ public class CachedAction extends Action<Cached> {
         this.cacheApi = cacheApi;
     }
 
-    public CompletionStage<Result> call(Context ctx) {
+    public CompletionStage<Result> call(Request req) {
         final String key = configuration.key();
         final Integer duration = configuration.duration();
-        return cacheApi.getOrElseUpdate(key, () -> delegate.call(ctx), duration);
+        return cacheApi.getOrElseUpdate(key, () -> delegate.call(req), duration);
     }
 
 }

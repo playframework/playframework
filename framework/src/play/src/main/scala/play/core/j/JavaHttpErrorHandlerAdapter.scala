@@ -12,13 +12,13 @@ import play.http.{ HttpErrorHandler => JHttpErrorHandler }
 /**
  * Adapter from a Java HttpErrorHandler to a Scala HttpErrorHandler
  */
-class JavaHttpErrorHandlerAdapter @Inject() (underlying: JHttpErrorHandler, contextComponents: JavaContextComponents) extends HttpErrorHandler {
+class JavaHttpErrorHandlerAdapter @Inject() (underlying: JHttpErrorHandler, requestComponents: JavaRequestComponents) extends HttpErrorHandler {
 
   def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
-    JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.onClientError(req, statusCode, message))
+    JavaHelpers.invokeWithRequest(request, requestComponents, req => underlying.onClientError(req, statusCode, message))
   }
 
   def onServerError(request: RequestHeader, exception: Throwable) = {
-    JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.onServerError(req, exception))
+    JavaHelpers.invokeWithRequest(request, requestComponents, req => underlying.onServerError(req, exception))
   }
 }

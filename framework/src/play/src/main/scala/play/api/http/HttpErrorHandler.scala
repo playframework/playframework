@@ -54,9 +54,9 @@ object HttpErrorHandler {
     val fromConfiguration = Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, JavaHttpErrorHandlerDelegate, DefaultHttpErrorHandler](environment, configuration,
       "play.http.errorHandler", "ErrorHandler")
 
-    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
+    val javaRequestComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaRequestComponents]).to[play.core.j.DefaultJavaRequestComponents])
 
-    fromConfiguration ++ javaContextComponentsBindings
+    fromConfiguration ++ javaRequestComponentsBindings
   }
 }
 

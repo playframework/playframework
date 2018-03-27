@@ -19,7 +19,7 @@ import play.api.mvc._
 import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.libs.AnnotationUtils
-import play.mvc.Http.{ Context => JContext }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
@@ -76,15 +76,15 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
   val executionContext: ExecutionContext = handlerComponents.executionContext
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
-    val contextComponents = handlerComponents.contextComponents
-    val javaContext: JContext = createJavaContext(req, contextComponents)
+    val requestComponents = handlerComponents.requestComponents
+    val javaRequest: JRequest = new JRequestImpl(req, requestComponents)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): CompletionStage[JResult] = {
+      def call(req: JRequest): CompletionStage[JResult] = {
         // The context may have changed, set it again
         val oldContext = JContext.current.get()
         try {
-          JContext.current.set(ctx)
+          JContext.current.set(req)
           invocation
         } finally {
           JContext.current.set(oldContext)
@@ -92,7 +92,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       }
     }
 
-    val baseAction = handlerComponents.actionCreator.createAction(javaContext.request, annotations.method)
+    val baseAction = handlerComponents.actionCreator.createAction(javaRequest, annotations.method)
 
     val endOfChainAction = if (config.executeActionCreatorActionFirst) {
       rootAction
@@ -122,7 +122,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
-      new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
+      new HttpExecutionContext(javaClassLoader, javaRequest, trampoline)
     }
     if (logger.isDebugEnabled) {
       val actionChain = play.api.libs.Collections.unfoldLeft[JAction[_], Option[JAction[_]]](Option(firstAction)) { action =>
@@ -135,9 +135,9 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       })
       logger.debug("### End of action order")
     }
-    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext)) }(trampolineWithContext)
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaRequest)) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
-    val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
+    val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaRequest, _))(trampoline)
     resultFuture
   }
 
@@ -158,7 +158,7 @@ trait JavaHandler extends Handler {
   def withComponents(handlerComponents: JavaHandlerComponents): Handler
 }
 
-trait JavaContextComponents {
+trait JavaRequestComponents {
   def messagesApi: JMessagesApi
   def langs: JLangs
   def fileMimeTypes: FileMimeTypes
@@ -168,12 +168,12 @@ trait JavaContextComponents {
 /**
  * The components necessary to handle a play.mvc.Http.Context object.
  */
-class DefaultJavaContextComponents @Inject() (
+class DefaultJavaRequestComponents @Inject() (
     val messagesApi: JMessagesApi,
     val langs: JLangs,
     val fileMimeTypes: FileMimeTypes,
     val httpConfiguration: HttpConfiguration
-) extends JavaContextComponents
+) extends JavaRequestComponents
 
 trait JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A
@@ -181,7 +181,7 @@ trait JavaHandlerComponents {
   def actionCreator: play.http.ActionCreator
   def httpConfiguration: HttpConfiguration
   def executionContext: ExecutionContext
-  def contextComponents: JavaContextComponents
+  def requestComponents: JavaRequestComponents
 }
 
 /**
@@ -192,7 +192,7 @@ class DefaultJavaHandlerComponents @Inject() (
     val actionCreator: play.http.ActionCreator,
     val httpConfiguration: HttpConfiguration,
     val executionContext: ExecutionContext,
-    val contextComponents: JavaContextComponents
+    val requestComponents: JavaRequestComponents
 ) extends JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A = injector.instanceOf(parserClass)
   def getAction[A <: JAction[_]](actionClass: Class[A]): A = injector.instanceOf(actionClass)

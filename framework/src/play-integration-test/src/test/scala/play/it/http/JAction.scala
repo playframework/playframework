@@ -7,7 +7,7 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import play.api._
 import play.api.mvc.EssentialAction
-import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
+import play.core.j.{ JavaAction, JavaActionAnnotations, JavaRequestComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.{ Http, Result }
 

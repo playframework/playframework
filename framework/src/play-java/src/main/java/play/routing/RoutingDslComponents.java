@@ -32,7 +32,7 @@ import play.components.BodyParserComponents;
 public interface RoutingDslComponents extends BodyParserComponents {
 
     default RoutingDsl routingDsl() {
-        return new RoutingDsl(defaultBodyParser(), javaContextComponents());
+        return new RoutingDsl(defaultBodyParser(), javaRequestComponents());
     }
 
 }

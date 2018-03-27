@@ -72,6 +72,35 @@ Also, you can use your own pool that implements `play.api.db.ConnectionPool` by 
 play.db.pool=your.own.ConnectionPool
 ```
 
+### Java's `Http.Context` is deprecated now -> BIG FAT TODO
+
+1) Action composition now passes `Request` instead of `Context` object:
+
+```java
+public class SomeAction extends Action<Some> {
+
+    @Override
+    public CompletionStage<Result> call(final Context ctx) {
+    }
+
+}
+```
+
+is now
+
+```java
+    public CompletionStage<Result> call(final Request req) { ... }
+```
+
+2) args changes:
+
+`.args` -> `.args()`
+
+3) Some methods and constructors removed:
+
+* `withRequest(...)` not needed anymore
+* etc.
+
 ### Java `Http.Context` changed
 
 Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.

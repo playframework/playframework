@@ -20,7 +20,7 @@ import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import play.Application;
 import play.api.i18n.DefaultLangs;
 import play.api.test.Helpers$;
-import play.core.j.JavaContextComponents;
+import play.core.j.JavaRequestComponents;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaHelpers$;
@@ -106,15 +106,35 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Calls a Callable which invokes a Controller or some other method with a Context.
      *
      * @param requestBuilder the request builder to invoke in this context.
-     * @param contextComponents the context components to run.
      * @param callable the callable block to run.
      * @param <V> the return type.
      * @return the value from {@code callable}.
      */
-    public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
+    @Deprecated
+    public static <V> V invokeWithRequest(RequestBuilder requestBuilder, Callable<V> callable) {
         try {
-            Context.current.set(new Context(requestBuilder, contextComponents));
+            Context.current.set(requestBuilder.build());
             return callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            Context.current.remove();
+        }
+    }
+
+    /**
+     * Calls a Callable which invokes a Controller or some other method with a Context passed.
+     *
+     * @param requestBuilder the request builder to invoke in this context.
+     * @param callable the callable block to run.
+     * @param <V> the return type.
+     * @return the value from {@code callable}.
+     */
+    public static <V> V invokeWithRequest(RequestBuilder requestBuilder, Function<Request, V> callable) {
+        try {
+            final Request request = requestBuilder.build();
+            Context.current.set(request);
+            return callable.apply(request);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -126,35 +146,38 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Builds a new "GET /" fake request.
      * @return the request builder.
      */
-    public static RequestBuilder fakeRequest() {
-        return fakeRequest("GET", "/");
+    public static RequestBuilder fakeRequest(JavaRequestComponents components) {
+        return fakeRequest("GET", "/", components);
     }
 
     /**
      * Builds a new fake request.
      * @param method    the request method.
      * @param uri the relative URL.
+     * @param requestComponents the context components to run.
      * @return the request builder.
      */
-    public static RequestBuilder fakeRequest(String method, String uri) {
-        return new RequestBuilder().method(method).uri(uri);
+    public static RequestBuilder fakeRequest(String method, String uri, JavaRequestComponents components) {
+        return new RequestBuilder(components).method(method).uri(uri);
     }
 
     /**
      * Builds a new fake request corresponding to a given route call.
      * @param call    the route call.
+     * @param requestComponents the context components to run.
      * @return the request builder.
      */
-    public static RequestBuilder fakeRequest(Call call) {
-        return fakeRequest(call.method(), call.url());
+    public static RequestBuilder fakeRequest(Call call, JavaRequestComponents components) {
+        return fakeRequest(call.method(), call.url(), components);
     }
 
     /**
      * Builds a new Http.Context from a new request
+     * @param requestComponents the context components to run.
      * @return a new Http.Context using the default request
      */
-    public static Http.Context httpContext() {
-        return httpContext(new Http.RequestBuilder().build());
+    public static Http.Context httpContext(JavaRequestComponents components) {
+        return httpContext(new Http.RequestBuilder(components).build());
     }
 
     /**
@@ -163,14 +186,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @return a new Http.Context for this request
      */
     public static Http.Context httpContext(Http.Request request) {
-        return new Http.Context(request, contextComponents());
+        return request;
     }
 
     /**
-     * Creates a new JavaContextComponents using play.api.Configuration.reference and play.api.Environment.simple as defaults
-     * @return the newly created JavaContextComponents
+     * Creates a new JavaRequestComponents using play.api.Configuration.reference and play.api.Environment.simple as defaults
+     * @return the newly created JavaRequestComponents
      */
-    public static JavaContextComponents contextComponents() {
+    public static JavaRequestComponents requestComponents() {
         return JavaHelpers$.MODULE$.createContextComponents();
     }
 
@@ -436,8 +459,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @see GuiceApplicationBuilder
      * @return the result
      */
-    public static Result route(Application app, Call call) {
-        return route(app, fakeRequest(call));
+    public static Result route(Application app, Call call, JavaRequestComponents components) {
+        return route(app, fakeRequest(call, components));
     }
 
     /**
@@ -449,8 +472,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @see GuiceApplicationBuilder
      * @return the result
      */
-    public static Result route(Application app, Call call, long timeout) {
-        return route(app, fakeRequest(call), timeout);
+    public static Result route(Application app, Call call, long timeout, JavaRequestComponents components) {
+        return route(app, fakeRequest(call, components), timeout);
     }
 
     /**

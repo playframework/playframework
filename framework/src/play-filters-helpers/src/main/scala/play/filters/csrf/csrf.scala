@@ -15,7 +15,7 @@ import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider }
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.core.j.{ JavaContextComponents, JavaHelpers }
+import play.core.j.{ JavaRequestComponents, JavaHelpers }
 import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, _ }
 import play.mvc.Http
 import play.utils.Reflect
@@ -270,9 +270,9 @@ object CSRF {
     def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
   }
 
-  class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) extends ErrorHandler {
+  class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler, requestComponents: JavaRequestComponents) extends ErrorHandler {
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
+      JavaHelpers.invokeWithRequest(request, requestComponents, req => underlying.handle(req, msg))
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
