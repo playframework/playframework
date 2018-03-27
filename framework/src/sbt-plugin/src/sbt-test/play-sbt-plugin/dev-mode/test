@@ -213,7 +213,7 @@ $ copy-file conf/application.original conf/application.conf
 # A test overriding a akka setting that should be picked by dev mode
 > set PlayKeys.devSettings ++= Seq("akka.http.parsing.max-header-value-length" -> "32 bytes")
 > run
-> makeRequestWithHeader / 400 this-is-a-header-value-longer-than-32-chars
+> makeRequestWithHeader / 431 this-is-a-header-value-longer-than-32-chars
 > playStop
 
 # Should prioritize play.akka.dev-mode
@@ -222,5 +222,5 @@ $ copy-file conf/application.original conf/application.conf
 # This should NOT be picked
 > set PlayKeys.devSettings ++= Seq("akka.http.parsing.max-header-value-length" -> "1 megabyte")
 > run
-> makeRequestWithHeader / 400 this-is-a-header-value-longer-than-32-chars
+> makeRequestWithHeader / 431 this-is-a-header-value-longer-than-32-chars
 > playStop
