@@ -40,9 +40,7 @@ object Messages extends MessagesImplicits {
    * Currently all Attributes are only available inside the [[MessagesApi]] methods.
    */
   object Attrs {
-
-    val CurrentContextLang: TypedKey[Lang] = TypedKey("CurrentContextLang")
-
+    val CurrentLang: TypedKey[Lang] = TypedKey("CurrentLang")
   }
 
   private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
@@ -468,7 +466,7 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: RequestHeader): Messages = {
-    val maybeLangFromContext = request.attrs.get(Messages.Attrs.CurrentContextLang)
+    val maybeLangFromContext = request.attrs.get(Messages.Attrs.CurrentLang)
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
     val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)

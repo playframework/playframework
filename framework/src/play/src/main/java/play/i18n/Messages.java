@@ -17,7 +17,7 @@ public interface Messages {
 
     public static class Attrs {
 
-        public static TypedKey<play.api.i18n.Lang> CurrentContextLang = play.api.i18n.Messages.Attrs$.MODULE$.CurrentContextLang().asJava();
+        public static TypedKey<play.api.i18n.Lang> CurrentLang = play.api.i18n.Messages.Attrs$.MODULE$.CurrentLang().asJava();
 
     }
 

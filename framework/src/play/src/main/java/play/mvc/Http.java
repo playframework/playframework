@@ -225,7 +225,7 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentContextLang, lang) : request();
+            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentLang, lang) : request();
             return messagesApi().preferred(request);
         }
 
