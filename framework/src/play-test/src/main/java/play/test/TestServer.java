@@ -13,6 +13,7 @@ import scala.compat.java8.OptionConverters;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * A test Netty web server.
@@ -47,4 +48,21 @@ public class TestServer extends play.api.test.TestServer {
                 Mode.TEST.asScala(), System.getProperties());
     }
 
+    /**
+     * The HTTP port that the server is running on.
+     */
+    @SuppressWarnings("unchecked")
+    public OptionalInt getRunningHttpPort() {
+        Option scalaPortOption = runningHttpPort();
+        return OptionConverters.specializer_OptionalInt().fromScala(scalaPortOption);
+    }
+
+    /**
+     * The HTTPS port that the server is running on.
+     */
+    @SuppressWarnings("unchecked")
+    public OptionalInt getRunningHttpsPort(){
+        Option scalaPortOption = runningHttpsPort();
+        return OptionConverters.specializer_OptionalInt().fromScala(scalaPortOption);
+    }
 }
