@@ -8,10 +8,10 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
+import play.api.i18n.Messages$;
 import play.api.libs.json.JsValue;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
@@ -225,16 +225,8 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            Cookie langCookie = request().cookies().get(messagesApi().langCookieName());
-            Lang cookieLang = langCookie == null ? null : new Lang(play.api.i18n.Lang.apply(langCookie.value()));
-            LinkedList<Lang> langs = Lists.newLinkedList(request().acceptLanguages());
-            if (cookieLang != null) {
-                langs.addFirst(cookieLang);
-            }
-            if (lang != null) {
-                langs.addFirst(lang);
-            }
-            return messagesApi().preferred(langs);
+            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentLang, lang) : request();
+            return messagesApi().preferred(request);
         }
 
         /**
