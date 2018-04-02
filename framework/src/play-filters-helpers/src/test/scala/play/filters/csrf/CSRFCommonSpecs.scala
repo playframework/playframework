@@ -49,7 +49,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       |Content-Disposition: form-data; name="$tokenName"
       |
       |$tokenValue
-      |--$Boundary--""".stripMargin.replaceAll(System.lineSeparator, "\r\n")
+      |--$Boundary--""".stripMargin.replaceAll("\r?\n", "\r\n")
   }
 
   // This extracts the tests out into different configurations
