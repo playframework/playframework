@@ -16,14 +16,14 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
- * A test Netty web server.
+ * A test web server.
  */
 public class TestServer extends play.api.test.TestServer {
 
     /**
-     * A test Netty web server.
+     * A test web server.
      *
-     * @param port HTTP port to bind on.
+     * @param port        HTTP port to bind on.
      * @param application The Application to load in this server.
      */
     public TestServer(int port, Application application) {
@@ -32,10 +32,11 @@ public class TestServer extends play.api.test.TestServer {
     }
 
     /**
-     * A test Netty web server with HTTPS support
-     * @param port HTTP port to bind on
+     * A test web server with HTTPS support
+     *
+     * @param port        HTTP port to bind on
      * @param application The Application to load in this server
-     * @param sslPort HTTPS port to bind on
+     * @param sslPort     HTTPS port to bind on
      */
     public TestServer(int port, Application application, int sslPort) {
         super(createServerConfig(Optional.of(port), Optional.of(sslPort)), application.asScala(),
@@ -61,7 +62,7 @@ public class TestServer extends play.api.test.TestServer {
      * The HTTPS port that the server is running on.
      */
     @SuppressWarnings("unchecked")
-    public OptionalInt getRunningHttpsPort(){
+    public OptionalInt getRunningHttpsPort() {
         Option scalaPortOption = runningHttpsPort();
         return OptionConverters.specializer_OptionalInt().fromScala(scalaPortOption);
     }
