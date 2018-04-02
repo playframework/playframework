@@ -21,9 +21,13 @@ public class ServerFunctionalTest extends WithServer {
 
     @Test
     public void testInServer() throws Exception {
-        int timeout = 5000;
-        String url = "http://localhost:" + this.testServer.port() + "/";
-        try (WSClient ws = play.test.WSTestClient.newClient(this.testServer.port())) {
+        int port = testServer.getRunningHttpPort().orElse(
+                testServer.getRunningHttpsPort().orElseThrow(
+                        () -> new IllegalStateException("Both HTTP and HTTPS ports are not provided")
+                )
+        );
+        String url = "http://localhost:" + port + "/";
+        try (WSClient ws = play.test.WSTestClient.newClient(port)) {
             CompletionStage<WSResponse> stage = ws.url(url).get();
             WSResponse response = stage.toCompletableFuture().get();
             assertEquals(NOT_FOUND, response.getStatus());
