@@ -21,8 +21,8 @@ public class ServerFunctionalTest extends WithServer {
 
     @Test
     public void testInServer() throws Exception {
-        int port = testServer.getRunningHttpPort().orElse(
-                testServer.getRunningHttpsPort().orElseThrow(
+        int port = testServer.getRunningHttpPort().orElseGet(
+                () -> testServer.getRunningHttpsPort().orElseThrow(
                         () -> new IllegalStateException("Both HTTP and HTTPS ports are not provided")
                 )
         );
