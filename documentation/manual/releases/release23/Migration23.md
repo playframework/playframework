@@ -15,7 +15,7 @@ All the features that were available with the `play` command are still available
 * `activator` to run the console. See [[Using the Play console|PlayConsole]].
 * `activator ui` is a new command that launches a web user interface.
 
-> The new `activator` command and the old `play` command are both wrappers around [sbt](http://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
+> The new `activator` command and the old `play` command are both wrappers around [sbt](https://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
 
 ### Activator distribution
 
@@ -23,7 +23,7 @@ Play is distributed as an Activator distribution that contains all Play's depend
 
 If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://www.lightbend.com/community/core-tools/activator-and-sbt). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
 
-Since Activator is a wrapper around sbt, you can also download and use [sbt](http://www.scala-sbt.org/) directly, if you prefer.
+Since Activator is a wrapper around sbt, you can also download and use [sbt](https://www.scala-sbt.org/) directly, if you prefer.
 
 ## Build changes
 

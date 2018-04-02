@@ -5,7 +5,7 @@ If you want to use some unreleased changes for Play, or you want to contribute t
 
 ## Prerequisites
 
-To build Play, you need to have [sbt](http://www.scala-sbt.org/) installed.
+To build Play, you need to have [sbt](https://www.scala-sbt.org/) installed.
 
 ## Grab the source
 

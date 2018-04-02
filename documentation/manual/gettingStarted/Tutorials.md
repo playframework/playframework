@@ -16,7 +16,7 @@ This section covers the core tutorials and examples from Play.  These are mainta
 
 There are two Play Seeds that are designed expressly for getting started with new Play applications.  They contain a hello world controller and view template, filters, and nothing else.
 
-If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can create your own Play project using `sbt new`
+If you have [sbt 0.13.13 or higher](https://scala-sbt.org) installed, you can create your own Play project using `sbt new`
  using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately.
 
 > **Note**: If running Windows, you may need to run sbt using `sbt.bat` instead of `sbt`. This documentation assumes the command is `sbt`.
@@ -132,7 +132,7 @@ A tutorial video series by Radix Code provides an initial overview to Play, walk
 
 #### Dependency Injection
 
-* [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado.
+* [Dependency Injection in Play Framework using Scala](https://www.schibsted.pl/blog/dependency-injection-play-framework-scala/) by Krzysztof Pado.
 
 #### Akka Streams
 
@@ -190,8 +190,8 @@ Semisafe has an excellent series on Play in general:
 
 Justin Rodenbostel of SPR Consulting also has two blog posts on building REST APIs in Play:
 
-* [Building a Simple REST API with Scala & Play! (PART 1)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
-* [Building a Simple REST API with Scala & Play! (PART 2)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
+* [Building a Simple REST API with Scala & Play! (PART 1)](https://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
+* [Building a Simple REST API with Scala & Play! (PART 2)](https://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
 
 #### Slick
 
@@ -207,7 +207,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### EmberJS
 
-* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
+* [HTML 5 Device Orientation with play, ember and websockets](https://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
 
 #### AngularJS, RequireJS and sbt-web
 
