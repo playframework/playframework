@@ -5,7 +5,7 @@ This page highlights the new features of Play 2.5. If you want to learn about th
 
 ## New streaming API based on Akka Streams
 
-The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka Streams](http://doc.akka.io/docs/akka/2.4.3/scala/stream/stream-introduction.html).
+The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka Streams](https://doc.akka.io/docs/akka/2.4.3/scala/stream/stream-introduction.html).
 
 At its heart, any time you communicate over the network, or write/read some data to the filesystem, some streaming is involved.  In many cases, this streaming is done at a low level, and the framework exposes the materialized values to your application as in-memory messages.  This is the case for many Play actions, a body parser converts the request body stream into an object such as a parsed JSON object, which the application consumes, and the returned result body is a JSON object that Play then turns back into a stream.
 

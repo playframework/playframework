@@ -3,7 +3,7 @@
 
 ## About sbt settings
 
-The `build.sbt` file defines settings for your project. You can also define your own custom settings for your project, as described in the [sbt documentation](http://www.scala-sbt.org).  In particular, it helps to be familiar with the [settings](http://www.scala-sbt.org/release/docs/Getting-Started/More-About-Settings) in sbt.
+The `build.sbt` file defines settings for your project. You can also define your own custom settings for your project, as described in the [sbt documentation](https://www.scala-sbt.org).  In particular, it helps to be familiar with the [settings](https://www.scala-sbt.org/release/docs/Getting-Started/More-About-Settings) in sbt.
 
 To set a basic setting, use the `:=` operator:
 

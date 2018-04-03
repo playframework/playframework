@@ -45,7 +45,7 @@ Please see [[Java thread locals|ThreadPools#Java thread locals]] for more inform
 
 ## Using CustomExecutionContext and HttpExecution
 
-Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html).
+Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=java).
 
 Add the following imports:
 
@@ -55,7 +55,7 @@ Define a custom execution context:
 
 @[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
 
-You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html#Setting_the_dispatcher_for_an_Actor).
+You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
 
 Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpException.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
 
