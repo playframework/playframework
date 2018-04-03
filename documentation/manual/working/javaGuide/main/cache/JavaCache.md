@@ -87,10 +87,8 @@ Now to access these different caches, when you inject them, use the [NamedCache]
 
 ## Setting the execution context
 
-By default, all Ehcache operations are blocking, and async implementations will block threads in the default execution context.
-Usually this is okay if you are using Play's default configuration, which only stores elements in memory since reads should be relatively fast.
-However, depending on how EhCache was configured and [where the data is stored](http://www.ehcache.org/generated/2.10.4/html/ehc-all/#page/Ehcache_Documentation_Set%2Fco-store_storage_tiers.html), this blocking I/O might be too costly.
-For such a case you can configure a different [Akka dispatcher](http://doc.akka.io/docs/akka/current/scala/dispatchers.html#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the EhCache plugin makes use of it:
+By default, all Ehcache operations are blocking, and async implementations will block threads in the default execution context. Usually this is okay if you are using Play's default configuration, which only stores elements in memory since reads should be relatively fast. However, depending on how EhCache was configured and [where the data is stored](https://www.ehcache.org/generated/2.10.4/html/ehc-all/#page/Ehcache_Documentation_Set%2Fco-store_storage_tiers.html), this blocking I/O might be too costly.
+For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/current/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the EhCache plugin makes use of it:
 
 ```
 play.cache.dispatcher = "contexts.blockingCacheDispatcher"

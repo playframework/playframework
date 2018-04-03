@@ -10,7 +10,7 @@ libraryDependencies += ws
 This includes the `play-ahc-ws` module, which wraps the standalone version with Play Dependency Injection bindings and components, configuration and anything else that is necessary to better integrate it.
 
 
-And if you want to use the cache support, you need to add `ws`, `ehcache` and [[enable and configure cache|WSCache]]:
+And if you want to use the cache support, you need to add `ws`, `ehcache` and [[enable and configure cache|WsCache]]:
 
 ```scala
 libraryDependencies += ws

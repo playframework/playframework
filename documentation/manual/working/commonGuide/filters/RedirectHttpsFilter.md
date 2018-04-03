@@ -51,5 +51,5 @@ If the HTTPS server is on a custom port, then the redirect URL needs to be aware
 play.filters.https.port = 9443
 ```
 
-then the URL in the `Location` header will include the port specifically, e.g. https://playframework.com:9443/some/url
+then the URL in the `Location` header will include the port specifically, e.g. `https://playframework.com:9443/some/url`.
 

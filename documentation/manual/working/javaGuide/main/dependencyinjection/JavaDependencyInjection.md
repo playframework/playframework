@@ -133,7 +133,7 @@ You can also disable the automatic registration of a module named `Module` in th
 
 #### Configurable bindings
 
-Sometimes you might want to read the [`Config`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+Sometimes you might want to read the [`Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
 
 In the example below, the `Hello` binding for each language is read from a configuration file. This allows new `Hello` bindings to be added by adding new settings in your `application.conf` file.
 

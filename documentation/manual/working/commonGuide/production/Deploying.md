@@ -176,7 +176,7 @@ Then in the Play console, use the `publish` task:
 [my-first-app] $ publish
 ```
 
-> Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
+> Check the [sbt documentation](https://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
 
 ## Running a production server in place
 

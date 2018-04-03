@@ -55,7 +55,7 @@ Errors for a particular field can be rendered in the following manner with [`err
 
 @[field-errors](code/javaguide/forms/view.scala.html)
 
-Note that `error.format` takes `messages()` as an argument -- this is an [`play.18n.Messages`](api/java/play/i18n/Messages.html) instance defined in [[JavaI18n]].
+Note that `error.format` takes `messages()` as an argument -- this is an [`play.18n.Messages`](api/java/play/i18n/Messages.html) instance defined in [[JavaI18N]].
 
 ## Filling a form with initial default values
 
