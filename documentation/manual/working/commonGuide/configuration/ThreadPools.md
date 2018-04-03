@@ -18,7 +18,7 @@ Other cases when your code may block include:
 
 In general, if the API you are using returns `Future`s, it is non-blocking, otherwise it is blocking.
 
-> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.  Please see Play's example templates on http://playframework.com/download#examples for how to configure your application for a blocking API.
+> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.  Please see Play's example templates on https://playframework.com/download#examples for how to configure your application for a blocking API.
 
 In contrast, the following types of IO do not block:
 
@@ -46,7 +46,7 @@ or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html).
+This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=scala).
 
 ### Configuring the default thread pool
 
@@ -60,7 +60,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.5.3/java/general/configuration.html#listing-of-the-reference-configuration).
+The full configuration options available to you can be found [here](https://doc.akka.io/docs/akka/2.5.3/java/general/configuration.html#listing-of-the-reference-configuration).
 
 ## Using other thread pools
 
@@ -82,7 +82,7 @@ or you could just use it implicitly:
 
 @[my-context-implicit](code/ThreadPools.scala)
 
-In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
+In addition, please see the example templates on https://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
 ## Class loaders and thread locals
 
@@ -138,7 +138,7 @@ In this profile, you would use the default execution context everywhere, but con
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
 
-In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
+In addition, please see the example templates on https://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
 ### Many specific thread pools
 

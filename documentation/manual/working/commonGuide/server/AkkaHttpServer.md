@@ -1,11 +1,11 @@
 <!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
 # Akka HTTP Server Backend
 
-Play uses the [Akka HTTP](http://doc.akka.io/docs/akka-http/current/) server backend to implement HTTP requests and responses using Akka Streams over the network.  Akka HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
+Play uses the [Akka HTTP](https://doc.akka.io/docs/akka-http/current/index.html) server backend to implement HTTP requests and responses using Akka Streams over the network.  Akka HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
 
 ## Akka HTTP Implementation
 
-Play's server backend uses the [low level server API](http://doc.akka.io/docs/akka-http/current/scala/http/low-level-server-side-api.html) to handle Akka's `HttpRequest` and `HttpResponse` classes.
+Play's server backend uses the [low level server API](https://doc.akka.io/docs/akka-http/current/server-side/low-level-api.html?language=scala) to handle Akka's `HttpRequest` and `HttpResponse` classes.
 
 Play's server backend automatically converts of an Akka `HttpRequest` into a Play HTTP request, so that details of the implementation are under the hood.  Play handles all the routing and application logic surrounding the server backend, while still providing the power and reliability of Akka-HTTP for processing requests.
 

@@ -15,7 +15,7 @@ That’s why we created Play 2, a new web framework for a new era.
 
 Today’s web applications are integrating more concurrent real-time data, so web frameworks need to support a full asynchronous HTTP programming model. Play was initially designed to handle classic web applications with many short-lived requests. But now, the event model is the way to go for persistent connections - through Comet, long-polling and WebSockets.
 
-Play 2 is architected from the start under the assumption that every request is potentially long-lived. But that’s not all: we also need a powerful way to schedule and run long-running tasks. The Actor-based model is unquestionably the best model today to handle highly concurrent systems, and the best implementation of that model available for both Java and Scala is Akka - so it’s going in. Play 2 provides native [Akka](http://akka.io/) support for Play applications, making it possible to write highly-distributed systems.
+Play 2 is architected from the start under the assumption that every request is potentially long-lived. But that’s not all: we also need a powerful way to schedule and run long-running tasks. The Actor-based model is unquestionably the best model today to handle highly concurrent systems, and the best implementation of that model available for both Java and Scala is Akka - so it’s going in. Play 2 provides native [Akka](https://akka.io/) support for Play applications, making it possible to write highly-distributed systems.
 
 ## Focused on type safety
 
@@ -51,7 +51,7 @@ Existing Java build systems, however, were not flexible enough to support this n
 
 Meanwhile, developers using Play for more enterprise-scale projects, which require build process customization and integration with their existing company build systems, were a bit lost. The Python scripts we provided with Play 1.x are in no way a fully-featured build system and are not easily customizable. That’s why we’ve decided to go for a more powerful build system for Play 2.
 
-Since we need a modern build tool, flexible enough to support Play original conventions and able to build Java and Scala projects, we have chosen to integrate [sbt](http://www.scala-sbt.org/) in Play 2. SBT is the de facto build tool for Scala and is increasingly accepted in the Java community as well.
+Since we need a modern build tool, flexible enough to support Play original conventions and able to build Java and Scala projects, we have chosen to integrate [sbt](https://www.scala-sbt.org/) in Play 2. SBT is the de facto build tool for Scala and is increasingly accepted in the Java community as well.
 
 This also means better integration with Maven projects out of the box, the ability to package and publish your project as a simple set of JAR files to any repository, and especially live compiling and reloading at development time of any depended project, even for standard Java or Scala library projects.
 

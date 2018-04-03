@@ -221,7 +221,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Thymeleaf module (Scala)
 * **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
 * **Documentation:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md>
-* **Short description:** Allows to use [Thymeleaf](http://www.thymeleaf.org/) template engine as an alternative
+* **Short description:** Allows to use [Thymeleaf](https://www.thymeleaf.org/) template engine as an alternative
 to Twirl
 
 ### Handlebars templates (Java and Scala)
