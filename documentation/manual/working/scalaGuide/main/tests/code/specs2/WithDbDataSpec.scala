@@ -16,7 +16,7 @@ class WithDbDataSpec extends PlaySpecification {
       t
     }
 
-    def setupData() {
+    def setupData(): Unit = {
       // setup data
     }
   }

@@ -73,7 +73,7 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    */
   def manage: WebDriver.Options = super.getDriver.manage
 
-  def quit() {
+  def quit(): Unit = {
     Option(super.getDriver).foreach(_.quit())
     releaseFluent()
   }

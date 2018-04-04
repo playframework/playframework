@@ -20,7 +20,7 @@ object ProdServerStart {
   /**
    * Start a prod mode server from the command line.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val process = new RealServerProcess(args)
     start(process)
   }

@@ -23,7 +23,7 @@ class ExecutionSpec extends Specification {
     }
 
     "not overflow the stack" in {
-      def executeRecursively(ec: ExecutionContext, times: Int) {
+      def executeRecursively(ec: ExecutionContext, times: Int): Unit = {
         if (times > 0) {
           ec.execute(new Runnable {
             def run() = executeRecursively(ec, times - 1)

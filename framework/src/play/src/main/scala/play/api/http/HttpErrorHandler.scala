@@ -201,7 +201,7 @@ class DefaultHttpErrorHandler(
    * @param request The request that triggered the server error.
    * @param usefulException The server error.
    */
-  protected def logServerError(request: RequestHeader, usefulException: UsefulException) {
+  protected def logServerError(request: RequestHeader, usefulException: UsefulException): Unit = {
     Logger.error(
       """
                     |
