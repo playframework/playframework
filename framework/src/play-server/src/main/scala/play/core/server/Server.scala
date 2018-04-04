@@ -49,6 +49,7 @@ trait Server extends ReloadableServer {
    * NOTE: This will use the ApplicationProvider of the server to get the application instance.
    *       Use {@code Server.getHandlerFor(request, provider)} to pass a specific application instance
    */
+  @deprecated("Use Server.getHandlerFor instead", "2.6.13")
   def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] =
     Server.getHandlerFor(request, applicationProvider)
 

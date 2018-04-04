@@ -86,7 +86,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
     def clientError(statusCode: Int, message: String) = {
       val unparsedTarget = modelConversion(tryApp).createUnparsedRequestTarget(request)
       val requestHeader = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
-      val result = errorHandler(server.applicationProvider.current).onClientError(requestHeader, statusCode,
+      val result = errorHandler(tryApp).onClientError(requestHeader, statusCode,
         if (message == null) "" else message)
       // If there's a problem in parsing the request, then we should close the connection, once done with it
       requestHeader -> Left(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
@@ -116,7 +116,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
 
       //execute normal action
       case Right((action: EssentialAction, app)) =>
-        handleAction(action, requestHeader, request, Some(app))
+        handleAction(action, requestHeader, request, tryApp)
 
       case Right((ws: WebSocket, app)) if requestHeader.headers.get(HeaderNames.UPGRADE).exists(_.equalsIgnoreCase("websocket")) =>
         logger.trace("Serving this request with: " + ws)
@@ -133,7 +133,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
           case Left(result) =>
             // WebSocket was rejected, send result
             val action = EssentialAction(_ => Accumulator.done(result))
-            handleAction(action, requestHeader, request, Some(app))
+            handleAction(action, requestHeader, request, tryApp)
           case Right(flow) =>
             import app.materializer
             val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
@@ -144,7 +144,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
           case error =>
             app.errorHandler.onServerError(requestHeader, error).flatMap { result =>
               val action = EssentialAction(_ => Accumulator.done(result))
-              handleAction(action, requestHeader, request, Some(app))
+              handleAction(action, requestHeader, request, tryApp)
             }
         }
 
@@ -157,7 +157,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
             HeaderNames.CONNECTION -> HeaderNames.UPGRADE
           )
         ))
-        handleAction(action, requestHeader, request, Some(app))
+        handleAction(action, requestHeader, request, tryApp)
 
       // This case usually indicates an error in Play's internal routing or handling logic
       case Right((h, _)) =>
@@ -168,7 +168,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       case Left(e) =>
         logger.trace("No handler, got direct result: " + e)
         val action = EssentialAction(_ => Accumulator.done(e))
-        handleAction(action, requestHeader, request, None)
+        handleAction(action, requestHeader, request, tryApp)
 
     }
   }
@@ -267,11 +267,9 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
    * Handle an essential action.
    */
   private def handleAction(action: EssentialAction, requestHeader: RequestHeader,
-    request: HttpRequest, app: Option[Application]): Future[HttpResponse] = {
-    implicit val mat: Materializer = app.fold(server.materializer)(_.materializer)
+    request: HttpRequest, tryApp: Try[Application]): Future[HttpResponse] = {
+    implicit val mat: Materializer = tryApp.fold(_ => server.materializer, _.materializer)
     import play.core.Execution.Implicits.trampoline
-
-    val tryApp = Try(app.get)
 
     // Execute the action on the Play default execution context
     val actionFuture = Future(action(requestHeader))(mat.executionContext)
@@ -286,24 +284,24 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       }.recoverWith {
         case error =>
           logger.error("Cannot invoke the action", error)
-          errorHandler(app).onServerError(requestHeader, error)
+          errorHandler(tryApp).onServerError(requestHeader, error)
       }
       // Clean and validate the action's result
       validatedResult <- {
         val cleanedResult = resultUtils(tryApp).prepareCookies(requestHeader, actionResult)
-        resultUtils(tryApp).validateResult(requestHeader, cleanedResult, errorHandler(app))
+        resultUtils(tryApp).validateResult(requestHeader, cleanedResult, errorHandler(tryApp))
       }
       // Convert the result to a Netty HttpResponse
       convertedResult <- modelConversion(tryApp)
-        .convertResult(validatedResult, requestHeader, request.protocolVersion(), errorHandler(app))
+        .convertResult(validatedResult, requestHeader, request.protocolVersion(), errorHandler(tryApp))
     } yield convertedResult
   }
 
   /**
    * Get the error handler for the application.
    */
-  private def errorHandler(app: Option[Application]): HttpErrorHandler =
-    app.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+  private def errorHandler(app: Try[Application]): HttpErrorHandler =
+    app.fold[HttpErrorHandler](_ => DefaultHttpErrorHandler, _.errorHandler)
 
   /**
    * Sends a simple response with no body, then closes the connection.
