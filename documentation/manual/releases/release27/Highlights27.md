@@ -59,8 +59,8 @@ Read the documentation for the [[Java cache API|JavaCache]] and [[Scala cache AP
 
 ## New Content Security Policy Filter
 
-There is a new [[Content Security Policy filter|CspFilter]] available that supports CSP nonce and hashes for embedded content. 
+There is a new [[Content Security Policy filter|CspFilter]] available that supports CSP nonce and hashes for embedded content.
 
-The previous setting of enabling CSP by default and setting it to `default-src 'self'` was too strict, and interfered with plugins.  The CSPFilter is not enabled by default, and the `contentSecurityPolicy` in [[SecurityHeaderFilters]] is now deprecated and set to `null` by default.
+The previous setting of enabling CSP by default and setting it to `default-src 'self'` was too strict, and interfered with plugins.  The CSP filter is not enabled by default, and the `contentSecurityPolicy` in the [[SecurityHeaders filter|SecurityHeaders]] is now deprecated and set to `null` by default.
 
-The CSP filter uses Google's [Strict CSP policy](https://csp.withgoogle.com/docs/strict-csp.html) by default, which is a nonce based policy.  It is recommended to use this as a starting point, and use the included CSPReport body parsers and actions to log CSP violations before enforcing CSP in production. 
+The CSP filter uses Google's [Strict CSP policy](https://csp.withgoogle.com/docs/strict-csp.html) by default, which is a nonce based policy.  It is recommended to use this as a starting point, and use the included CSPReport body parsers and actions to log CSP violations before enforcing CSP in production.

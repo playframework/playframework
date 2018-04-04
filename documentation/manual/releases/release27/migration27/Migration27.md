@@ -87,7 +87,7 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 
 ### SecurityHeadersFilter's contentSecurityPolicy deprecated for CSPFilter
 
-The SecurityHeadersFilter has a `contentSecurityPolicy` property in configuration is deprecated.  The functionality is still enabled, but `contentSecurityPolicy` property's default setting has been changed from `default-src ‘self’` to `null`.
+The [[SecurityHeaders filter|SecurityHeaders]] has a `contentSecurityPolicy` property in configuration is deprecated.  The functionality is still enabled, but `contentSecurityPolicy` property's default setting has been changed from `default-src ‘self’` to `null`.
  
 If `play.filters.headers.contentSecurityPolicy` is not null, you will receive a warning.  It is technically possible to have `contentSecurityPolicy` and the new `CSPFilter` active at the same time, but this is not recommended.
 
