@@ -206,9 +206,9 @@ class AkkaHttpServer(
       remoteAddress = remoteAddress,
       secureProtocol = secure,
       request = decodedRequest)
-    val (taggedRequestHeader, handler, newTryApp) = getHandler(convertedRequestHeader, tryApp)
+    val (taggedRequestHeader, handler) = Server.getHandlerFor(convertedRequestHeader, tryApp)
     val responseFuture = executeHandler(
-      newTryApp,
+      tryApp,
       decodedRequest,
       taggedRequestHeader,
       requestBodySource,
@@ -222,25 +222,6 @@ class AkkaHttpServer(
       case Some(headers.`Remote-Address`(RemoteAddress.IP(ip, Some(port)))) =>
         new InetSocketAddress(ip, port)
       case _ => throw new IllegalStateException("`Remote-Address` header was missing")
-    }
-  }
-
-  private def getHandler(
-    requestHeader: RequestHeader, tryApp: Try[Application]
-  ): (RequestHeader, Handler, Try[Application]) = {
-    Server.getHandlerFor(requestHeader, tryApp) match {
-      case Left(futureResult) =>
-        (
-          requestHeader,
-          EssentialAction(_ => Accumulator.done(futureResult)),
-          Failure(new Exception("getHandler returned Result, but not Application"))
-        )
-      case Right((newRequestHeader, handler, newApp)) =>
-        (
-          newRequestHeader,
-          handler,
-          Success(newApp) // TODO: Change getHandlerFor to use the app that we already had
-        )
     }
   }
 
