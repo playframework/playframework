@@ -248,7 +248,10 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
    */
   private def handleAction(action: EssentialAction, requestHeader: RequestHeader,
     request: HttpRequest, tryApp: Try[Application]): Future[HttpResponse] = {
-    implicit val mat: Materializer = tryApp.fold(_ => server.materializer, _.materializer)
+    implicit val mat: Materializer = tryApp match {
+      case Success(app) => app.materializer
+      case Failure(_) => server.materializer
+    }
     import play.core.Execution.Implicits.trampoline
 
     // Execute the action on the Play default execution context
@@ -281,7 +284,10 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
    * Get the error handler for the application.
    */
   private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
-    tryApp.fold[HttpErrorHandler](_ => DefaultHttpErrorHandler, _.errorHandler)
+    tryApp match {
+      case Success(app) => app.errorHandler
+      case Failure(_) => DefaultHttpErrorHandler
+    }
 
   /**
    * Sends a simple response with no body, then closes the connection.
