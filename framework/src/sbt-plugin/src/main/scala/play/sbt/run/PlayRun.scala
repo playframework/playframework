@@ -245,7 +245,7 @@ object PlayRun extends PlayRunCompat {
           javaProductionOptions ++
           Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"))
         new Thread {
-          override def run() {
+          override def run(): Unit = {
             if (noExitSbt) {
               createAndRunProcess(args)
             } else {

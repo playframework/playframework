@@ -452,7 +452,7 @@ class Reloader(
     devSettings.toMap.asJava
   }
 
-  def forceReload() {
+  def forceReload(): Unit = {
     forceReloadNextTime = true
   }
 

@@ -34,7 +34,7 @@ case class TestServer(
   /**
    * Starts this server.
    */
-  def start() {
+  def start(): Unit = {
     if (testServerProcess != null) {
       sys.error("Server already started!")
     }
@@ -61,7 +61,7 @@ case class TestServer(
   /**
    * Stops this server.
    */
-  def stop() {
+  def stop(): Unit = {
     if (testServerProcess != null) {
       val p = testServerProcess
       testServerProcess = null // Clear field before shutting, in case an error occurs

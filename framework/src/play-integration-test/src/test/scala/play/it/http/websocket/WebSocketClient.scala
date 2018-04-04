@@ -135,7 +135,7 @@ object WebSocketClient {
 
   private class WebSocketSupervisor(disconnected: Promise[Unit], handshaker: WebSocketClientHandshaker,
       onConnected: Flow[ExtendedMessage, ExtendedMessage, _] => Unit) extends ChannelInboundHandlerAdapter {
-    override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
+    override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
       msg match {
         case resp: HttpResponse if handshaker.isHandshakeComplete =>
           throw new WebSocketException("Unexpected HttpResponse (status=" + resp.status + ")")
@@ -277,7 +277,7 @@ object WebSocketClient {
       bytes
     }
 
-    override def exceptionCaught(ctx: ChannelHandlerContext, e: Throwable) {
+    override def exceptionCaught(ctx: ChannelHandlerContext, e: Throwable): Unit = {
       if (serverInitiatedClose.get()) {
         disconnected.trySuccess(())
       } else {

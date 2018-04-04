@@ -254,7 +254,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)
-    def waitEOF() {
+    def waitEOF(): Unit = {
       consoleReader.readCharacter() match {
         case 4 => // STOP
         case 11 =>

@@ -360,7 +360,7 @@ class AkkaHttpServer(
       }
   }
 
-  override def stop() {
+  override def stop(): Unit = {
 
     mode match {
       case Mode.Test =>

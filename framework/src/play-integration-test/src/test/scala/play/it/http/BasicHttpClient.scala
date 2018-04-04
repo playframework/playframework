@@ -299,9 +299,9 @@ case class BasicRequest(method: String, uri: String, version: String, headers: M
 class MockTrustManager() extends X509TrustManager {
   val nullArray = Array[X509Certificate]()
 
-  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
 
-  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
 
   def getAcceptedIssuers = nullArray
 }

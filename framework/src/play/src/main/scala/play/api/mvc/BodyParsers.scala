@@ -225,7 +225,7 @@ case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCr
   @volatile private var backedByTemporaryFile: TemporaryFile = _
   @volatile private var outStream: OutputStream = _
 
-  private[play] def push(chunk: ByteString) {
+  private[play] def push(chunk: ByteString): Unit = {
     if (inMemory != null) {
       if (chunk.length + inMemory.size > memoryThreshold) {
         backToTemporaryFile()
@@ -238,13 +238,13 @@ case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCr
     }
   }
 
-  private[play] def close() {
+  private[play] def close(): Unit = {
     if (outStream != null) {
       outStream.close()
     }
   }
 
-  private[play] def backToTemporaryFile() {
+  private[play] def backToTemporaryFile(): Unit = {
     backedByTemporaryFile = temporaryFileCreator.create("requestBody", "asRaw")
     outStream = Files.newOutputStream(backedByTemporaryFile)
     outStream.write(inMemory.toArray)
