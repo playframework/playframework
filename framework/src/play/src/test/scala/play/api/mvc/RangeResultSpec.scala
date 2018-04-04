@@ -465,7 +465,7 @@ class RangeResultSpec extends Specification {
     path.toFile
   }
 
-  private def closeWithoutError(input: InputStream) {
+  private def closeWithoutError(input: InputStream): Unit = {
     try {
       input.close()
     } catch {

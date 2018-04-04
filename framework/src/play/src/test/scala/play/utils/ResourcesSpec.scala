@@ -154,7 +154,7 @@ class ResourcesSpec extends Specification {
 
   object EmptyURLStreamHandler extends URLStreamHandler {
     def openConnection(u: URL) = new URLConnection(u) {
-      def connect() {}
+      def connect(): Unit = {}
     }
   }
 

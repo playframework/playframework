@@ -197,7 +197,7 @@ trait CookieHeaderEncoding {
     def get(name: String) = cookies.get(name)
     override def toString = cookies.toString
 
-    def foreach[U](f: (Cookie) => U) {
+    def foreach[U](f: (Cookie) => U): Unit = {
       cookies.values.foreach(f)
     }
   }
