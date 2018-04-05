@@ -214,8 +214,8 @@ class AkkaHttpServer(
       val debugInfo: Option[ServerDebugInfo] = reloadCache.cachedFrom(tryApp).serverDebugInfo
       ServerDebugInfo.attachToRequestHeader(convertedRequestHeader, debugInfo)
     }
+    val (taggedRequestHeader, handler) = getHandler(debugInfoRequestHeader, tryApp)
     val responseFuture: Future[HttpResponse] = {
-      val (taggedRequestHeader, handler) = getHandler(debugInfoRequestHeader, tryApp)
       executeHandler(
         tryApp,
         decodedRequest,
