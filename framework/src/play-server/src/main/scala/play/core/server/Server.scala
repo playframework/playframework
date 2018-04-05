@@ -50,8 +50,11 @@ trait Server extends ReloadableServer {
    *       Use {@code Server.getHandlerFor(request, provider)} to pass a specific application instance
    */
   @deprecated("Use Server.getHandlerFor instead", "2.6.13")
-  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] =
-    Server.getHandlerFor(request, applicationProvider)
+  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
+    val appProvider = applicationProvider
+    val result = Server.getHandlerFor(request, appProvider)
+    result.right.map { case (rh, h) => (rh, h, appProvider.get.get) }
+  }
 
   def applicationProvider: ApplicationProvider
 
@@ -101,7 +104,7 @@ object Server {
   private[server] def getHandlerFor(
     request: RequestHeader,
     applicationProvider: ApplicationProvider
-  ): Either[Future[Result], (RequestHeader, Handler, Application)] = {
+  ): Either[Future[Result], (RequestHeader, Handler)] = {
 
     // Common code for handling an exception and returning an error result
     def logExceptionAndGetResult(e: Throwable): Left[Future[Result], Nothing] = {
@@ -123,7 +126,7 @@ object Server {
               // logic to handle that request.
               val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
               val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
-              Right((handlerHeader, handler, application))
+              Right((handlerHeader, handler))
             case Failure(e) =>
               // The ApplicationProvider couldn't give us an application.
               // This usually means there was a compile error or a problem
