@@ -213,7 +213,17 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.utils.InlineCache.cache_="),
 
       // private[play]
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction"),
+
+      // Change the values the server caches internally when an app reloads
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer#ReloadCacheValues.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer#ReloadCacheValues.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.server.AkkaHttpServer$ReloadCacheValues$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer#ReloadCacheValues.apply"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.server.netty.PlayRequestHandler$ReloadCacheValues$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.this")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
