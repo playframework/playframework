@@ -3,10 +3,10 @@
  */
 package javaguide.http.routing.controllers;
 
-import play.mvc.Controller;
+import play.mvc.BaseController;
 import play.mvc.Result;
 
-public class Clients extends Controller {
+public class Clients extends BaseController {
 
     //#clients-show-action
     public Result show(Long id) {

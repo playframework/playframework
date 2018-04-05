@@ -3,10 +3,10 @@
  */
 package javaguide.binder.controllers;
 
-import play.mvc.Controller;
+import play.mvc.BaseController;
 import play.mvc.Result;
 
-public class Users extends Controller {
+public class Users extends BaseController {
 
     public Result list() {
         return ok("List Users");

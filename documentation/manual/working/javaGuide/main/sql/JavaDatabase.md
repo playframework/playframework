@@ -88,7 +88,7 @@ The `play.db` package provides access to the default datasource, primarily throu
 
 For a database other than the default:
 
-@[](code/JavaNamedDatabase.java)
+@[java-named-database](code/JavaNamedDatabase.java)
 
 ## Configuring a CustomExecutionContext
 
@@ -115,7 +115,7 @@ database.dispatcher {
 
 You can retrieve a JDBC connection the same way:
 
-@[](code/JavaJdbcConnection.java)
+@[java-jdbc-connection](code/JavaJdbcConnection.java)
 
 It is important to note that resulting Connections are not automatically disposed at the end of the request cycle. In other words, you are responsible for calling their close() method somewhere in your code so that they can be immediately returned to the pool.
 

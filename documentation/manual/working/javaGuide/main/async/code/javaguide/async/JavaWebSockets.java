@@ -13,7 +13,7 @@ import play.libs.F;
 import akka.stream.javadsl.*;
 //#streams-imports
 
-import play.mvc.Controller;
+import play.mvc.BaseController;
 
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
@@ -56,7 +56,7 @@ public class JavaWebSockets {
         }
     }
 
-    public static class ActorController2 extends Controller {
+    public static class ActorController2 extends BaseController {
         private ActorSystem actorSystem;
         private Materializer materializer;
 
@@ -75,7 +75,7 @@ public class JavaWebSockets {
         //#actor-reject
     }
 
-    public static class ActorController4 extends Controller {
+    public static class ActorController4 extends BaseController {
         private ActorSystem actorSystem;
         private Materializer materializer;
 
@@ -91,7 +91,7 @@ public class JavaWebSockets {
     public static class InEvent {}
     public static class OutEvent {}
 
-    public static class ActorController5 extends Controller {
+    public static class ActorController5 extends BaseController {
         private ActorSystem actorSystem;
         private Materializer materializer;
 
@@ -104,7 +104,7 @@ public class JavaWebSockets {
         //#actor-json-class
     }
 
-    public static class Controller1 extends Controller {
+    public static class Controller1 extends BaseController {
         //#streams1
         public WebSocket socket() {
             return WebSocket.Text.accept(request -> {
@@ -120,7 +120,7 @@ public class JavaWebSockets {
         //#streams1
     }
 
-    public static class Controller2 extends Controller {
+    public static class Controller2 extends BaseController {
 
         //#streams2
         public WebSocket socket() {
@@ -138,7 +138,7 @@ public class JavaWebSockets {
 
     }
 
-    public static class Controller3 extends Controller {
+    public static class Controller3 extends BaseController {
 
         //#streams3
         public WebSocket socket() {

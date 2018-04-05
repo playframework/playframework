@@ -11,7 +11,7 @@ import play.api.mvc.{ DefaultSessionCookieBaker, SessionCookieBaker }
 import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http.{ Context, RequestHeader }
-import play.mvc.{ Controller, Result, Results }
+import play.mvc.{ BaseController, Result, Results }
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -92,16 +92,16 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
 object JavaCSRFActionSpec {
 
-  class MyAction extends Controller {
+  class MyAction extends BaseController {
     @AddCSRFToken
     def add(): Result = {
-      require(Controller.request().asScala() != null) // Make sure request is set
+      require(request().asScala() != null) // Make sure request is set
       // Simulate a template that adds a CSRF token
       import play.core.j.PlayMagicForJava.requestHeader
       Results.ok(CSRF.getToken.get.value)
     }
     def getToken: Result = {
-      Results.ok(Option(CSRF.getToken(Controller.request()).orElse(null)) match {
+      Results.ok(Option(CSRF.getToken(request()).orElse(null)) match {
         case Some(CSRF.Token(_, value)) => value
         case None => ""
       })
@@ -117,7 +117,7 @@ object JavaCSRFActionSpec {
     }
   }
 
-  class MyUnauthorizedAction() extends Controller {
+  class MyUnauthorizedAction() extends BaseController {
     @AddCSRFToken
     def add(): Result = {
       // Simulate a template that adds a CSRF token

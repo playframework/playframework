@@ -2233,7 +2233,7 @@ public class Http {
     /**
      * Defines all standard HTTP headers.
      */
-    public static interface HeaderNames {
+    public interface HeaderNames {
 
         String ACCEPT = "Accept";
         String ACCEPT_CHARSET = "Accept-Charset";
@@ -2315,7 +2315,7 @@ public class Http {
     /**
      * Defines all standard HTTP status codes.
      */
-    public static interface Status {
+    public interface Status {
         int CONTINUE = 100;
         int SWITCHING_PROTOCOLS = 101;
 

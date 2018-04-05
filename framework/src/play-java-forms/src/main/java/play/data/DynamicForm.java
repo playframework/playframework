@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.MessagesApi;
+import play.mvc.Http;
 
 /**
  * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String&gt;</code>
@@ -108,7 +109,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     @Override
     public DynamicForm bindFromRequest(String... allowedFields) {
-        return bind(requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(requestData(Http.Context.current().request()), allowedFields);
     }
 
     /**

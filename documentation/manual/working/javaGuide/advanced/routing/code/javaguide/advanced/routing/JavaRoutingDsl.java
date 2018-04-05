@@ -17,7 +17,7 @@ import play.routing.Router;
 import play.routing.RoutingDsl;
 import java.util.concurrent.CompletableFuture;
 
-import static play.mvc.Controller.*;
+import static play.mvc.Results.*;
 //#imports
 
 import play.mvc.Result;

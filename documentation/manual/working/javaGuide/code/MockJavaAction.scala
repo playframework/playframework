@@ -7,7 +7,7 @@ import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import play.api.mvc.{Action, Request}
 import play.core.j._
-import play.mvc.{Controller, Http, Result}
+import play.mvc.{BaseController, Http, Result}
 import play.api.test.Helpers
 import java.lang.reflect.Method
 
@@ -15,7 +15,7 @@ import akka.stream.Materializer
 
 import scala.concurrent.ExecutionContext
 
-abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends Controller with Action[Http.RequestBody] {
+abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends BaseController with Action[Http.RequestBody] {
   self =>
 
   private lazy val action = new JavaAction(handlerComponents) {

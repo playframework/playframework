@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class MyController extends Controller {
+public class MyController extends BaseController {
 
     private HttpExecutionContext httpExecutionContext;
 

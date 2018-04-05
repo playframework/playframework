@@ -13,7 +13,7 @@ An action returns a `play.mvc.Result` value, representing the HTTP response to s
 
 ## Controllers 
 
-A controller is nothing more than a class extending `play.mvc.Controller` that groups several action methods.
+A controller is nothing more than a class extending [`play.mvc.BaseController`](api/java/play/mvc/BaseController.html) that groups several action methods.
 
 @[full-controller](code/javaguide/http/full/Application.java)
 

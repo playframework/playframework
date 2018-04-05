@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
-import static play.mvc.Controller.*;
+import static play.mvc.Results.*;
 
 public class JavaTestingWebServiceClients {
 

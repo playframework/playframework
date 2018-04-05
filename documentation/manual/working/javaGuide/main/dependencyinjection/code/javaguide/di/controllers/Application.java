@@ -5,7 +5,7 @@ package javaguide.di.controllers;
 
 import play.mvc.*;
 
-public class Application extends Controller {
+public class Application extends BaseController {
     public Result index() {
         return ok();
     }

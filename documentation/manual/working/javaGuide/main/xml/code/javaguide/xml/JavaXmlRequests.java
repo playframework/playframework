@@ -6,10 +6,10 @@ package javaguide.xml;
 import org.w3c.dom.Document;
 import play.libs.XPath;
 import play.mvc.BodyParser;
-import play.mvc.Controller;
+import play.mvc.BaseController;
 import play.mvc.Result;
 
-public class JavaXmlRequests extends Controller {
+public class JavaXmlRequests extends BaseController {
     //#xml-hello
     public Result sayHello() {
         Document dom = request().body().asXml();

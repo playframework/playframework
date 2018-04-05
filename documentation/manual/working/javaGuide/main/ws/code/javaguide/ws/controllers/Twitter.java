@@ -10,7 +10,7 @@ import play.libs.oauth.OAuth.OAuthCalculator;
 import play.libs.oauth.OAuth.RequestToken;
 import play.libs.oauth.OAuth.ServiceInfo;
 import play.libs.ws.WSClient;
-import play.mvc.Controller;
+import play.mvc.BaseController;
 import play.mvc.Result;
 
 import com.google.common.base.Strings;
@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class Twitter extends Controller {
+public class Twitter extends BaseController {
     static final ConsumerKey KEY = new ConsumerKey("...", "...");
 
     private static final ServiceInfo SERVICE_INFO =

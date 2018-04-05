@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.CompletionStage;
 
-public class JavaActionsComposition extends Controller {
+public class JavaActionsComposition extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(JavaActionsComposition.class);
 
@@ -93,7 +93,7 @@ public class JavaActionsComposition extends Controller {
 
     // #pass-arg-action-index
     @With(PassArgAction.class)
-    public static Result passArgIndex() {
+    public Result passArgIndex() {
         Object user = ctx().args.get("user");
         return ok(Json.toJson(user));
     }
@@ -101,7 +101,7 @@ public class JavaActionsComposition extends Controller {
 
     // #annotated-controller
     @Security.Authenticated
-    public class Admin extends Controller {
+    public class Admin extends BaseController {
         /// ###insert: ...
 
     }

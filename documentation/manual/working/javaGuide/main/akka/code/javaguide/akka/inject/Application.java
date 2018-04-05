@@ -15,7 +15,7 @@ import java.util.concurrent.CompletionStage;
 
 import static akka.pattern.Patterns.ask;
 
-public class Application extends Controller {
+public class Application extends BaseController {
 
     private ActorRef configuredActor;
 

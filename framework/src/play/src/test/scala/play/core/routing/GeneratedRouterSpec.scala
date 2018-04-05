@@ -36,7 +36,7 @@ object GeneratedRouterSpec extends Specification {
     )
   }
 
-  class JavaController extends play.mvc.Controller {
+  class JavaController extends play.mvc.BaseController {
     def index = play.mvc.Results.ok("Hello world")
   }
 

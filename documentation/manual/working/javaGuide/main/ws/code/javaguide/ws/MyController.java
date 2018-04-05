@@ -15,7 +15,7 @@ import play.libs.ws.*;
 
 import scala.compat.java8.FutureConverters;
 
-public class MyController extends Controller {
+public class MyController extends BaseController {
 
     @Inject WSClient ws;
     @Inject Materializer materializer;
