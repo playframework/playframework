@@ -146,6 +146,13 @@ object Docs {
 
       val javadocOptions = Seq(
         "-windowtitle", label,
+        // Adding a user agent when we run `javadoc` is necessary to create link docs
+        // with Akka (at least, maybe play too) because doc.akka.io is served by Cloudflare
+        // which blocks requests without a User-Agent header.
+        "-J-Dhttp.agent=Play-Unidoc-Javadoc",
+        "-link", "https://docs.oracle.com/javase/8/docs/api/",
+        "-link", "https://doc.akka.io/japi/akka/current/",
+        "-link", "https://doc.akka.io/japi/akka-http/current/",
         "-notimestamp",
         "-subpackages", "play",
         "-Xmaxwarns", "1000",
