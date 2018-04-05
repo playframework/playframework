@@ -134,7 +134,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       case Right(ws: WebSocket) if requestHeader.headers.get(HeaderNames.UPGRADE).exists(_.equalsIgnoreCase("websocket")) =>
         logger.trace("Serving this request with: " + ws)
 
-        val app = tryApp.get
+        val app = tryApp.get // Guaranteed to be Success for a WebSocket handler
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
         val bufferLimit = app.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
