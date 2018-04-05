@@ -25,7 +25,7 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
-import play.core.server.common.{ ReloadCache, ServerResultUtils }
+import play.core.server.common.{ ReloadCache, ServerDebugInfo, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
 import play.core.ApplicationProvider
 import play.server.SSLEngineProvider
@@ -169,7 +169,8 @@ class AkkaHttpServer(
    */
   private case class ReloadCacheValues(
       resultUtils: ServerResultUtils,
-      modelConversion: AkkaModelConversion
+      modelConversion: AkkaModelConversion,
+      serverDebugInfo: Option[ServerDebugInfo]
   )
 
   /**
@@ -186,7 +187,8 @@ class AkkaHttpServer(
         illegalResponseHeaderValue)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
-        modelConversion = modelConversion
+        modelConversion = modelConversion,
+        serverDebugInfo = reloadDebugInfo(tryApp, provider)
       )
     }
   }
@@ -197,23 +199,31 @@ class AkkaHttpServer(
     reloadCache.cachedFrom(tryApp).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
-    val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
-    val decodedRequest = HttpRequestDecoder.decodeRequest(request)
-    val requestId = requestIDs.incrementAndGet()
-    val tryApp = applicationProvider.get
-    val (convertedRequestHeader, requestBodySource) = modelConversion(tryApp).convertRequest(
-      requestId = requestId,
-      remoteAddress = remoteAddress,
-      secureProtocol = secure,
-      request = decodedRequest)
-    val (taggedRequestHeader, handler, newTryApp) = getHandler(convertedRequestHeader, tryApp)
-    val responseFuture = executeHandler(
-      newTryApp,
-      decodedRequest,
-      taggedRequestHeader,
-      requestBodySource,
-      handler
-    )
+    val tryApp: Try[Application] = applicationProvider.get
+    val decodedRequest: HttpRequest = HttpRequestDecoder.decodeRequest(request)
+    val (convertedRequestHeader, requestBodySource): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
+      val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
+      val requestId: Long = requestIDs.incrementAndGet()
+      modelConversion(tryApp).convertRequest(
+        requestId = requestId,
+        remoteAddress = remoteAddress,
+        secureProtocol = secure,
+        request = decodedRequest)
+    }
+    val debugInfoRequestHeader: RequestHeader = {
+      val debugInfo: Option[ServerDebugInfo] = reloadCache.cachedFrom(tryApp).serverDebugInfo
+      ServerDebugInfo.attachToRequestHeader(convertedRequestHeader, debugInfo)
+    }
+    val (taggedRequestHeader, handler) = getHandler(debugInfoRequestHeader, tryApp)
+    val responseFuture: Future[HttpResponse] = {
+      executeHandler(
+        tryApp,
+        decodedRequest,
+        taggedRequestHeader,
+        requestBodySource,
+        handler
+      )
+    }
     responseFuture
   }
 
@@ -227,23 +237,22 @@ class AkkaHttpServer(
 
   private def getHandler(
     requestHeader: RequestHeader, tryApp: Try[Application]
-  ): (RequestHeader, Handler, Try[Application]) = {
-    Server.getHandlerFor(requestHeader, new ApplicationProvider {
+  ): (RequestHeader, Handler) = {
+    val sameAppProvider = new ApplicationProvider {
       override def handleWebCommand(requestHeader: RequestHeader): Option[Result] =
         applicationProvider.handleWebCommand(requestHeader)
       override def get: Try[Application] = tryApp
-    }) match {
+    }
+    Server.getHandlerFor(requestHeader, sameAppProvider) match {
       case Left(futureResult) =>
         (
           requestHeader,
-          EssentialAction(_ => Accumulator.done(futureResult)),
-          Failure(new Exception("getHandler returned Result, but not Application"))
+          EssentialAction(_ => Accumulator.done(futureResult))
         )
-      case Right((newRequestHeader, handler, newApp)) =>
+      case Right((newRequestHeader, handler)) =>
         (
           newRequestHeader,
-          handler,
-          Success(newApp) // TODO: Change getHandlerFor to use the app that we already had
+          handler
         )
     }
   }
