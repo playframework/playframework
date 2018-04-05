@@ -19,7 +19,7 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.{ Application, Logger }
 import play.core.server.{ NettyServer, Server }
-import play.core.server.common.{ ReloadCache, ServerResultUtils }
+import play.core.server.common.{ ReloadCache, ServerDebugInfo, ServerResultUtils }
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
@@ -46,7 +46,8 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
    */
   private case class ReloadCacheValues(
       resultUtils: ServerResultUtils,
-      modelConversion: NettyModelConversion
+      modelConversion: NettyModelConversion,
+      serverDebugInfo: Option[ServerDebugInfo]
   )
 
   /**
@@ -59,7 +60,8 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       val modelConversion = new NettyModelConversion(serverResultUtils, forwardedHeaderHandler, serverHeader)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
-        modelConversion = modelConversion
+        modelConversion = modelConversion,
+        serverDebugInfo = reloadDebugInfo(tryApp, NettyServer.provider)
       )
     }
   }
@@ -79,22 +81,31 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
     import play.core.Execution.Implicits.trampoline
 
     val tryApp: Try[Application] = server.applicationProvider.get
+    val cacheValues: ReloadCacheValues = reloadCache.cachedFrom(tryApp)
 
-    val tryRequest: Try[RequestHeader] = modelConversion(tryApp).convertRequest(channel, request)
+    val tryRequest: Try[RequestHeader] = cacheValues.modelConversion.convertRequest(channel, request)
+
+    // Helper to attach ServerDebugInfo attribute to a RequestHeader
+    def attachDebugInfo(rh: RequestHeader): RequestHeader = {
+      ServerDebugInfo.attachToRequestHeader(rh, cacheValues.serverDebugInfo)
+    }
 
     def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
       val unparsedTarget = modelConversion(tryApp).createUnparsedRequestTarget(request)
       val requestHeader = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
-      val result = errorHandler(tryApp).onClientError(requestHeader, statusCode,
+      val debugHeader = attachDebugInfo(requestHeader)
+      val result = errorHandler(tryApp).onClientError(debugHeader, statusCode,
         if (message == null) "" else message)
       // If there's a problem in parsing the request, then we should close the connection, once done with it
-      requestHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
+      debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
 
     val (requestHeader, handler): (RequestHeader, Handler) = tryRequest match {
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception) => clientError(Status.BAD_REQUEST, exception.getMessage)
-      case Success(untagged) => Server.getHandlerFor(untagged, tryApp)
+      case Success(untagged) =>
+        val debugHeader: RequestHeader = attachDebugInfo(untagged)
+        Server.getHandlerFor(debugHeader, tryApp)
     }
 
     handler match {
