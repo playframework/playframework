@@ -1,4 +1,5 @@
 JavaHome:Section contents
+config:Config API
 http:HTTP programming
 async:Asynchronous HTTP programming
 templates:The Twirl template engine

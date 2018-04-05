@@ -25,7 +25,11 @@ These system properties specify a replacement for `application.conf`, not an add
 
 The configuration can be available in your controller (or your component), to use the default settings or your custom one, thanks to Dependency Injection (in [[Scala|ScalaDependencyInjection]] or in [[Java|JavaDependencyInjection]]).
 
-@[dependency-injection](code/Configuration.scala)
+Scala
+: @[dependency-injection](code/Configuration.scala)
+
+Java
+: @[dependency-injection](code/javaguide/configuration/MyController.java)
 
 ## Using with Akka
 
