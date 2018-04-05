@@ -39,6 +39,7 @@ trait ApplicationProvider {
   /**
    * Get the currently loaded application. May be empty in dev mode because of compile failure or before first load.
    */
+  @deprecated("Use ApplicationProvider.get instead", "2.6.13")
   def current: Option[Application] = get.toOption
 
   /**
