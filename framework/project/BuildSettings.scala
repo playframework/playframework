@@ -93,10 +93,7 @@ object BuildSettings {
       apiURL in doc := {
         val v = version.value
         if (isSnapshot.value) {
-          v match {
-            case VersionPattern(epoch, major, _, _) => Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
-            case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
-          }
+          Some(url("https://www.playframework.com/documentation/2.6.x/api/scala/index.html"))
         } else {
           Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
         }
