@@ -46,7 +46,7 @@ object HttpExecutionContext {
  */
 class HttpExecutionContext(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) extends ExecutionContextExecutor {
   override def execute(runnable: Runnable) = delegate.execute(new Runnable {
-    def run() {
+    def run(): Unit = {
       val thread = Thread.currentThread()
       val oldContextClassLoader = thread.getContextClassLoader()
       val oldHttpContext = Http.Context.current.get()

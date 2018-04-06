@@ -6,9 +6,9 @@ package play.api.mvc
 import java.time.{ Instant, ZoneId }
 
 import org.specs2.mutable._
-import play.api.http.{ JWTConfiguration, SecretConfiguration, SessionConfiguration }
+import play.api.http.{ JWTConfiguration, SecretConfiguration }
 import play.api.mvc.Cookie.SameSite
-import play.core.cookie.encoding.ServerCookieEncoder
+import play.core.cookie.encoding.{ DefaultCookie, ServerCookieEncoder }
 import play.core.test._
 
 import scala.concurrent.duration._
@@ -61,6 +61,13 @@ class CookiesSpec extends Specification {
     "properly encode field name which starts with $" in {
       val output = encoder.encode("$Test", "Test")
       output must be_==("$Test=Test")
+    }
+
+    "properly encode discarded cookies" in {
+      val dc = new DefaultCookie("foo", "bar")
+      dc.setMaxAge(0)
+      val encoded = encoder.encode(dc)
+      encoded must_== "foo=bar; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
     }
   }
 

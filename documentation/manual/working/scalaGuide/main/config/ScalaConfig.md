@@ -5,7 +5,7 @@ Play uses the [Typesafe config library](https://github.com/typesafehub/config), 
 
 ## Accessing the configuration
 
-Typically, you'll obtain a `Configuration` object through dependendency injection, or simply by passing an instance of `Configuration` to your component:
+Typically, you'll obtain a `Configuration` object through [[Dependency Injection|ScalaDependencyInjection]]dependency injection, or simply by passing an instance of `Configuration` to your component:
 
 @[inject-config](code/ScalaConfig.scala)
 

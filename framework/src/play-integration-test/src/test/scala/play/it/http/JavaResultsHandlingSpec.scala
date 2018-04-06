@@ -262,7 +262,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         Results.ok("Hello world")
       }
     }) { response =>
-      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=-86400")
+      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=0")
       response.body must_== "Hello world"
     }
 

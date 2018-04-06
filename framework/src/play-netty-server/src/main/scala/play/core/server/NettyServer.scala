@@ -226,7 +226,7 @@ class NettyServer(
     serverChannel
   }
 
-  override def stop() {
+  override def stop(): Unit = {
 
     // First, close all opened sockets
     allChannels.close().awaitUninterruptibly()
@@ -310,7 +310,7 @@ object NettyServer extends ServerFromRouter {
 
   implicit val provider = new NettyServerProvider
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     System.err.println(s"NettyServer.main is deprecated. Please start your Play server with the ${ProdServerStart.getClass.getName}.main.")
     ProdServerStart.main(args)
   }

@@ -27,7 +27,7 @@ import scala.util.control.NonFatal
  *
  * @param name the cookie name
  * @param value the cookie value
- * @param maxAge the cookie expiration date in seconds, `None` for a transient cookie, or a value less than 0 to expire a cookie now
+ * @param maxAge the cookie expiration date in seconds, `None` for a transient cookie, or a value 0 or less to expire a cookie now
  * @param path the cookie path, defaulting to the root path `/`
  * @param domain the cookie domain
  * @param secure whether this cookie is secured, sent only for HTTPS requests
@@ -96,10 +96,11 @@ object Cookie {
   import scala.concurrent.duration._
 
   /**
-   * The cookie's max age, in seconds, when we expire the cookie. This is also used to determine Expires. It's set
-   * to one day ago to work for clients that only support Expires and have a clock that is slightly behind.
+   * The cookie's Max-Age, in seconds, when we expire the cookie.
+   *
+   * When Max-Age = 0, Expires is set to 0 epoch time for compatibility with older browsers.
    */
-  val DiscardedMaxAge: Int = -1.day.toSeconds.toInt
+  val DiscardedMaxAge: Int = 0
 }
 
 /**
@@ -197,7 +198,7 @@ trait CookieHeaderEncoding {
     def get(name: String) = cookies.get(name)
     override def toString = cookies.toString
 
-    def foreach[U](f: (Cookie) => U) {
+    def foreach[U](f: (Cookie) => U): Unit = {
       cookies.values.foreach(f)
     }
   }

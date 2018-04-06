@@ -240,7 +240,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
 
         private void setMaxAge(String value) {
             try {
-                maxAge = Integer.valueOf(value);
+                maxAge = Math.max(Integer.valueOf(value), 0);
             } catch (NumberFormatException e1) {
                 // ignore failure to parse -> treat as session cookie
             }
