@@ -56,3 +56,7 @@ Play now offers a CacheApi implementation based on [Caffeine](https://github.com
 To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine`. To customize the settings from the defaults you will also need to update the configuration in application.conf as explained in the documentation.
 
 Read the documentation for the [[Java cache API|JavaCache]] and [[Scala cache API|ScalaCache]] to learn more about configuring caching with Play.
+
+## HikariCP upgraded
+
+[HikariCP](https://github.com/brettwooldridge/HikariCP) was updated to its latest major version. Have a look at the [[Migration Guide|Migration27#HikariCP]] to see what changed.
