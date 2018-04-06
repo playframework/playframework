@@ -90,6 +90,17 @@ object BuildSettings {
       javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
       bintrayPackage := "play-sbt-plugin",
+      apiURL in doc := {
+        val v = version.value
+        if (isSnapshot.value) {
+          v match {
+            case VersionPattern(epoch, major, _, _) => Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
+            case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
+          }
+        } else {
+          Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
+        }
+      },
       autoAPIMappings := true,
       apiMappings += scalaInstance.value.libraryJar -> url(raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""),
       apiMappings += {
@@ -127,7 +138,7 @@ object BuildSettings {
               val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
               apiOrganization match {
                 case "com.typesafe.akka" =>
-                  Some(url(raw"http://doc.akka.io/api/akka/$apiVersion/"))
+                  Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
 
                 case default =>
                   val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
