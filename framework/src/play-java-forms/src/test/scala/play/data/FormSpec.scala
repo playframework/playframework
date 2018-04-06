@@ -99,7 +99,7 @@ trait FormSpec extends Specification {
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
 
         myForm hasErrors () must beEqualTo(true)
-        myForm.field("task.name").getValue.asScala must beSome("peter")
+        myForm.field("task.name").value.asScala must beSome("peter")
       }
       "have an error due to missing required value" in new WithApplication(application()) {
         val contextComponents = defaultContextComponents
@@ -335,9 +335,9 @@ trait FormSpec extends Specification {
 
     "support email validation" in {
       val userEmail = formFactory.form(classOf[UserEmail])
-      userEmail.bind(Map("email" -> "john@example.com").asJava).allErrors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).allErrors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).allErrors().asScala must not(beEmpty)
+      userEmail.bind(Map("email" -> "john@example.com").asJava).errors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not(beEmpty)
     }
 
     "support custom validators" in {
@@ -379,7 +379,7 @@ trait FormSpec extends Specification {
       )))
 
       listForm.hasErrors must beEqualTo(true)
-      listForm.allErrors().size() must beEqualTo(4)
+      listForm.errors().size() must beEqualTo(4)
       listForm.errors("list[1]").get(0).messages().size() must beEqualTo(1)
       listForm.errors("list[1]").get(0).messages().get(0) must beEqualTo("error.min")
       listForm.value().get().getList.get(0) must beEqualTo(4)
@@ -396,7 +396,7 @@ trait FormSpec extends Specification {
       val optForm = formFactory.form(classOf[TypeArgumentForm]).bindFromRequest(FormSpec.dummyRequest(Map(
         "optional" -> Array("Microsoft Corporation")
       )))
-      optForm.allErrors().size() must beEqualTo(0)
+      optForm.errors().size() must beEqualTo(0)
       optForm.get().getOptional.get must beEqualTo("Microsoft Corporation")
     }
 
@@ -409,7 +409,7 @@ trait FormSpec extends Specification {
       form.field("name").constraints().get(3)._1 must beEqualTo("constraint.pattern")
       form.hasErrors must beEqualTo(true)
       form.hasGlobalErrors() must beEqualTo(false)
-      form.allErrors().size() must beEqualTo(4)
+      form.errors().size() must beEqualTo(4)
       form.errors("name").size() must beEqualTo(4)
       val nameErrorMessages = form.errors("name").asScala.flatMap(_.messages().asScala)
       nameErrorMessages.size must beEqualTo(4)
@@ -649,7 +649,7 @@ trait FormSpec extends Specification {
     "honor its validate method" in {
       "when it returns an error object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.getError("password").get.message() must beEqualTo ("Passwords do not match")
+        myForm.error("password").get.message() must beEqualTo ("Passwords do not match")
       }
       "when it returns an null (error) object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
@@ -658,7 +658,7 @@ trait FormSpec extends Specification {
       }
       "when it returns an error object but is skipped because its not in validation group" in {
         val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.getError("password").isPresent must beFalse
+        myForm.error("password").isPresent must beFalse
       }
       "when it returns a string" in {
         val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "fail@google.com").asJava)
@@ -680,7 +680,7 @@ trait FormSpec extends Specification {
       "when it returns an empty error list" in {
         val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Kiki").asJava)
         myForm.globalErrors().size() must beEqualTo(0)
-        myForm.allErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(0)
         myForm.errors("name").size() must beEqualTo(0)
       }
     }

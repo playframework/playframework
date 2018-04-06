@@ -16,10 +16,8 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
-import play.Logger;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
-import play.data.validation.Constraints.Validatable;
 import play.data.validation.ValidationError;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
@@ -35,7 +33,6 @@ import javax.validation.metadata.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -89,7 +86,7 @@ public class Form<T> {
 
     private final String rootName;
     private final Class<T> backedType;
-    private final Map<String,String> data;
+    private final Map<String,String> rawData;
     private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
@@ -157,7 +154,7 @@ public class Form<T> {
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
         this.rootName = rootName;
         this.backedType = clazz;
-        this.data = data != null ? new HashMap<>(data) : new HashMap<>();
+        this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
         this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
         this.value = value;
         this.groups = groups;
@@ -494,7 +491,7 @@ public class Form<T> {
      * @return the actual form data as unmodifiable map.
      */
     public Map<String,String> rawData() {
-        return Collections.unmodifiableMap(data);
+        return Collections.unmodifiableMap(rawData);
     }
 
     public String name() {
@@ -558,8 +555,20 @@ public class Form<T> {
      * Retrieves the first global error (an error without any key), if it exists.
      *
      * @return An error.
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #globalError()}.
      */
+    @Deprecated
     public Optional<ValidationError> getGlobalError() {
+        return globalError();
+    }
+
+    /**
+     * Retrieves the first global error (an error without any key), if it exists.
+     *
+     * @return An error.
+     */
+    public Optional<ValidationError> globalError() {
         return globalErrors().stream().findFirst();
     }
 
@@ -567,8 +576,20 @@ public class Form<T> {
      * Returns all errors.
      *
      * @return All errors associated with this form.
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #errors()}.
      */
+    @Deprecated
     public List<ValidationError> allErrors() {
+        return errors();
+    }
+
+    /**
+     * Returns all errors.
+     *
+     * @return All errors associated with this form.
+     */
+    public List<ValidationError> errors() {
         return Collections.unmodifiableList(errors);
     }
 
@@ -586,8 +607,19 @@ public class Form<T> {
     /**
      * @param key    the field name associated with the error.
      * @return an error by key
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
      */
+    @Deprecated
     public Optional<ValidationError> getError(String key) {
+        return error(key);
+    }
+
+    /**
+     * @param key    the field name associated with the error.
+     * @return an error by key
+     */
+    public Optional<ValidationError> error(String key) {
         return errors(key).stream().findFirst();
     }
 
@@ -663,7 +695,7 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.data, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validator);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validator);
     }
 
     /**
@@ -710,7 +742,7 @@ public class Form<T> {
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.data, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validator);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validator);
     }
 
     /**
@@ -733,8 +765,8 @@ public class Form<T> {
 
         // Value
         String fieldValue = null;
-        if (data.containsKey(key)) {
-            fieldValue = data.get(key);
+        if (rawData.containsKey(key)) {
+            fieldValue = rawData.get(key);
         } else {
             if (value.isPresent()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
@@ -826,7 +858,7 @@ public class Form<T> {
     }
 
     public String toString() {
-        return "Form(of=" + backedType + ", data=" + data + ", value=" + value +", errors=" + errors + ")";
+        return "Form(of=" + backedType + ", data=" + rawData + ", value=" + value +", errors=" + errors + ")";
     }
 
     /**
@@ -882,15 +914,35 @@ public class Form<T> {
 
         /**
          * @return The field name.
+         *
+         * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #name()}.
          */
+        @Deprecated
         public Optional<String> getName() {
+            return name();
+        }
+
+        /**
+         * @return The field name.
+         */
+        public Optional<String> name() {
             return Optional.ofNullable(name);
         }
 
         /**
          * @return The field value, if defined.
+         *
+         * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #value()}.
          */
+        @Deprecated
         public Optional<String> getValue() {
+            return value();
+        }
+
+        /**
+         * @return The field value, if defined.
+         */
+        public Optional<String> value() {
             return Optional.ofNullable(value);
         }
 
