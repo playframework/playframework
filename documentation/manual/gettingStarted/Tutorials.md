@@ -116,6 +116,13 @@ The Play community also has a number of tutorials and templates that cover aspec
 
 This is an incomplete list of several helpful blog posts, and because some of the blog posts have been written a while ago, this section is organized by Play version.
 
+### 2.6.x
+
+* Java Play 2.6.x + Angular 5 with Angular CLI seed project (https://github.com/yohangz/java-play-angular-seed)
+* Scala Play 2.6.x + Angular 5 with Angular CLI seed project (https://github.com/yohangz/scala-play-angular-seed)
+* Java Play 2.6.x + React seed project (https://github.com/yohangz/java-play-react-seed)
+* Scala Play 2.6.x + React seed project (https://github.com/yohangz/scala-play-react-seed)
+
 ### 2.5.x
 
 #### Play Framework Tutorial Video Series
