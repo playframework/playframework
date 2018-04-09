@@ -98,7 +98,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -136,7 +136,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         data = newData;
 
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.rawData(), form.allErrors(), form.value(), messagesApi, formatters, validator);
+        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validator);
     }
 
     /**
@@ -150,15 +150,25 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         // javadoc cannot find the static inner class.
         Field field = super.field(asDynamicKey(key));
         return new Field(this, key, field.constraints(), field.format(), field.errors(),
-            field.getValue().orElse((String)value(key).orElse(null))
+            field.value().orElse((String)value(key).orElse(null))
         );
     }
 
     /**
      * Retrieve an error by key.
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
      */
+    @Deprecated
     public Optional<ValidationError> getError(String key) {
-        return super.getError(asDynamicKey(key));
+        return error(key);
+    }
+
+    /**
+     * Retrieve an error by key.
+     */
+    public Optional<ValidationError> error(String key) {
+        return super.error(asDynamicKey(key));
     }
 
     /**
@@ -171,7 +181,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
-        return new DynamicForm(this.rawData, form.allErrors(), form.value(), this.messagesApi, this.formatters, this.validator);
+        return new DynamicForm(this.rawData, form.errors(), form.value(), this.messagesApi, this.formatters, this.validator);
     }
 
     /**

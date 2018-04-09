@@ -16,7 +16,7 @@ object PlayFormsMagicForJava {
   implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {
     new play.api.data.Field(
       null,
-      jField.getName.orElse(null),
+      jField.name.orElse(null),
       Option(jField.constraints).map(c => c.asScala.map { jT =>
         jT._1 -> jT._2.asScala
       }).getOrElse(Nil),
@@ -27,7 +27,7 @@ object PlayFormsMagicForJava {
           jE.messages.asScala,
           jE.arguments.asScala)
       }).getOrElse(Nil),
-      OptionConverters.toScala(jField.getValue)) {
+      OptionConverters.toScala(jField.value)) {
 
       override def apply(key: String) = {
         javaFieldtoScalaField(jField.sub(key))
