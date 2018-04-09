@@ -85,7 +85,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 
 ## The Native Packager
 
-Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.2/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.4/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 [my-first-app] $ universal:packageBin
@@ -100,16 +100,16 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.2/) on the native packager plugin for more information.
+Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/) on the native packager plugin for more information.
 
 ### Build a server distribution
 
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.2/archetypes/java_server/index.html#default-mappings)
+* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/index.html#default-mappings)
 
-More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.2/archetypes/java_server/index.html).
+More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
@@ -152,7 +152,7 @@ s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
 
-Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.2/recipes/play.html) for more details.
+Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.4/recipes/play.html) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
@@ -160,7 +160,7 @@ To prevent Play from creating a PID just set the property to `/dev/null`:
 -Dpidfile.path=/dev/null
 ```
 
-For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.2/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.2/archetypes/java_app/customize.html).
+For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
 

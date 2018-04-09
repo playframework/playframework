@@ -64,3 +64,7 @@ There is a new [[Content Security Policy filter|CspFilter]] available that suppo
 The previous setting of enabling CSP by default and setting it to `default-src 'self'` was too strict, and interfered with plugins.  The CSP filter is not enabled by default, and the `contentSecurityPolicy` in the [[SecurityHeaders filter|SecurityHeaders]] is now deprecated and set to `null` by default.
 
 The CSP filter uses Google's [Strict CSP policy](https://csp.withgoogle.com/docs/strict-csp.html) by default, which is a nonce based policy.  It is recommended to use this as a starting point, and use the included CSPReport body parsers and actions to log CSP violations before enforcing CSP in production.
+
+## HikariCP upgraded
+
+[HikariCP](https://github.com/brettwooldridge/HikariCP) was updated to its latest major version. Have a look at the [[Migration Guide|Migration27#HikariCP]] to see what changed.

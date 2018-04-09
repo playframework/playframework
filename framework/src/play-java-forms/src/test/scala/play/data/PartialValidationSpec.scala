@@ -23,7 +23,7 @@ class PartialValidationSpec extends Specification {
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {
       val form = formFactory.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop2" -> "Hello", "prop3" -> "abc").asJava)
-      form.allErrors().asScala must beEmpty
+      form.errors().asScala must beEmpty
     }
 
     "fail when a field in the group fails validation" in {

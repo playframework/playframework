@@ -100,6 +100,17 @@ object BuildSettings {
       javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
       bintrayPackage := "play-sbt-plugin",
+      apiURL in doc := {
+        val v = version.value
+        if (isSnapshot.value) {
+          v match {
+            case VersionPattern(epoch, major, _, _) => Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
+            case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
+          }
+        } else {
+          Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
+        }
+      },
       autoAPIMappings := true,
       apiMappings += scalaInstance.value.libraryJar -> url(raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""),
       apiMappings += {
@@ -137,7 +148,7 @@ object BuildSettings {
               val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
               apiOrganization match {
                 case "com.typesafe.akka" =>
-                  Some(url(raw"http://doc.akka.io/api/akka/$apiVersion/"))
+                  Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
 
                 case default =>
                   val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
@@ -336,16 +347,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.RequestImpl.username"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.RequestImpl.withUsername"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.data"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.error"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.reject"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.name"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.value"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.valueOr"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.data"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.discardErrors"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.error"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.errors"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.globalError"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.reject"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.parse"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.http.HandlerForRequest.getRequest"),
@@ -487,7 +492,15 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.routing.Router$Tags"),
 
       // Upgrade Guice from 4.1.0 to 4.2.0 which uses java.util.function.Function instead of com.google.common.base.Function now
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.TestBrowser.waitUntil")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.test.TestBrowser.waitUntil"),
+
+      // "Renamed" methods in Java form api
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form#Field.value"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form#Field.name"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form.error"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form.globalError"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form.errors"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.DynamicForm.error")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
