@@ -4,6 +4,7 @@
 
 package javaguide.tests;
 
+import java.util.OptionalInt;
 import java.util.concurrent.*;
 
 import org.junit.*;
@@ -21,12 +22,14 @@ public class ServerFunctionalTest extends WithServer {
 
     @Test
     public void testInServer() throws Exception {
-        int port = testServer.getRunningHttpPort().orElseGet(
+        OptionalInt optHttpPort = testServer.getRunningHttpPort();
+        int port = optHttpPort.orElseGet(
                 () -> testServer.getRunningHttpsPort().orElseThrow(
                         () -> new IllegalStateException("Both HTTP and HTTPS ports are not provided")
                 )
         );
-        String url = "http://localhost:" + port + "/";
+        boolean isHttpConn = optHttpPort.isPresent();
+        String url = (isHttpConn ? "http://" : "https://") + "localhost:" + port + "/";
         try (WSClient ws = play.test.WSTestClient.newClient(port)) {
             CompletionStage<WSResponse> stage = ws.url(url).get();
             WSResponse response = stage.toCompletableFuture().get();
