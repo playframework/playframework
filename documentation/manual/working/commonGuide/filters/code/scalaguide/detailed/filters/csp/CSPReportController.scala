@@ -13,7 +13,7 @@ class CSPReportController @Inject()(cc: ControllerComponents,
 
   val report: Action[ScalaCSPReport] = cspReportAction { request =>
     val report = request.body
-    logger.warn(s"violated-directive: ${report.violatedDirective}, " +
+    logger.warn(s"CSP violation: violated-directive = ${report.violatedDirective}, " +
       s"blocked = ${report.blockedUri}, " +
       s"policy = ${report.originalPolicy}")
     Ok("{}").as(JSON)

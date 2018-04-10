@@ -15,7 +15,7 @@ public class CSPReportController extends Controller {
     @BodyParser.Of(CSPReportBodyParser.class)
     public Result cspReport() {
         JavaCSPReport cspReport = request().body().as(JavaCSPReport.class);
-        logger.warn("violatedDirective = {}, blockedUri = {}, originalPolicy = {}",
+        logger.warn("CSP violation: violatedDirective = {}, blockedUri = {}, originalPolicy = {}",
                 cspReport.violatedDirective(),
                 cspReport.blockedUri(),
                 cspReport.originalPolicy());
