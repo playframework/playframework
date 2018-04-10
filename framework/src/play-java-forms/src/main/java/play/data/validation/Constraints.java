@@ -171,7 +171,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = RequiredValidator.class)
     @Repeatable(play.data.validation.Constraints.Required.List.class)
-    @play.data.Form.Display(name="constraint.required")
+    @Display(name="constraint.required")
     public @interface Required {
         String message() default RequiredValidator.message;
         Class<?>[] groups() default {};
@@ -235,7 +235,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinValidator.class)
     @Repeatable(play.data.validation.Constraints.Min.List.class)
-    @play.data.Form.Display(name="constraint.min", attributes={"value"})
+    @Display(name="constraint.min", attributes={"value"})
     public @interface Min {
         String message() default MinValidator.message;
         Class<?>[] groups() default {};
@@ -303,7 +303,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxValidator.class)
     @Repeatable(play.data.validation.Constraints.Max.List.class)
-    @play.data.Form.Display(name="constraint.max", attributes={"value"})
+    @Display(name="constraint.max", attributes={"value"})
     public @interface Max {
         String message() default MaxValidator.message;
         Class<?>[] groups() default {};
@@ -371,7 +371,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinLengthValidator.class)
     @Repeatable(play.data.validation.Constraints.MinLength.List.class)
-    @play.data.Form.Display(name="constraint.minLength", attributes={"value"})
+    @Display(name="constraint.minLength", attributes={"value"})
     public @interface MinLength {
         String message() default MinLengthValidator.message;
         Class<?>[] groups() default {};
@@ -438,7 +438,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = MaxLengthValidator.class)
     @Repeatable(play.data.validation.Constraints.MaxLength.List.class)
-    @play.data.Form.Display(name="constraint.maxLength", attributes={"value"})
+    @Display(name="constraint.maxLength", attributes={"value"})
     public @interface MaxLength {
         String message() default MaxLengthValidator.message;
         Class<?>[] groups() default {};
@@ -505,7 +505,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = EmailValidator.class)
     @Repeatable(play.data.validation.Constraints.Email.List.class)
-    @play.data.Form.Display(name="constraint.email", attributes={})
+    @Display(name="constraint.email", attributes={})
     public @interface Email {
         String message() default EmailValidator.message;
         Class<?>[] groups() default {};
@@ -569,7 +569,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = PatternValidator.class)
     @Repeatable(play.data.validation.Constraints.Pattern.List.class)
-    @play.data.Form.Display(name="constraint.pattern", attributes={"value"})
+    @Display(name="constraint.pattern", attributes={"value"})
     public @interface Pattern {
         String message() default PatternValidator.message;
         Class<?>[] groups() default {};
@@ -639,7 +639,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = ValidateWithValidator.class)
     @Repeatable(play.data.validation.Constraints.ValidateWith.List.class)
-    @play.data.Form.Display(name="constraint.validatewith", attributes={})
+    @Display(name="constraint.validatewith", attributes={})
     public @interface ValidateWith {
         String message() default ValidateWithValidator.defaultMessage;
         Class<?>[] groups() default {};
@@ -714,7 +714,7 @@ public class Constraints {
     @Retention(RUNTIME)
     @Constraint(validatedBy = ValidatePayloadWithValidator.class)
     @Repeatable(play.data.validation.Constraints.ValidatePayloadWith.List.class)
-    @play.data.Form.Display(name="constraint.validatewith", attributes={})
+    @Display(name="constraint.validatewith", attributes={})
     public @interface ValidatePayloadWith {
         String message() default ValidatePayloadWithValidator.defaultMessage;
         Class<?>[] groups() default {};
