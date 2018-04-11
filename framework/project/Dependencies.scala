@@ -64,7 +64,7 @@ object Dependencies {
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.0"
 
   val jdbcDeps = Seq(
-    "com.zaxxer" % "HikariCP" % "3.0.0",
+    "com.zaxxer" % "HikariCP" % "3.1.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
