@@ -9,7 +9,7 @@ import javax.inject.{ Inject, Provider }
 import akka.Done
 import com.github.benmanes.caffeine.cache.{ Cache, Caffeine }
 import com.google.common.primitives.Primitives
-import play.api.Application
+import play.api.{ Application, Configuration }
 import play.api.cache.AsyncCacheApi
 import play.api.cache.caffeine.CaffeineCacheModule
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -29,7 +29,9 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
     import play.api.inject.bind
 
     implicit val port = testServerPort
+    val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
     lazy val app: Application = GuiceApplicationBuilder()
+      .configure(globalAppConfig)
       .disable[CaffeineCacheModule]
       .bindings(
         bind[play.api.cache.AsyncCacheApi].toProvider[TestAsyncCacheApiProvider],

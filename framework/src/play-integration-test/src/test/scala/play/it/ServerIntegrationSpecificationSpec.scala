@@ -3,6 +3,7 @@
  */
 package play.it
 
+import play.api.Configuration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -25,6 +26,8 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
 
   def expectedServerTag: Option[String]
 
+  val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
+
   "ServerIntegrationSpecification" should {
 
     val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
@@ -35,7 +38,7 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
     }
 
     "run the right HTTP server when using TestServer constructor" in {
-      running(TestServer(testServerPort, GuiceApplicationBuilder().routes(httpServerTagRoutes).build())) {
+      running(TestServer(testServerPort, GuiceApplicationBuilder().configure(globalAppConfig).routes(httpServerTagRoutes).build())) {
         val plainRequest = wsUrl("/httpServerTag")(testServerPort)
         val responseFuture = plainRequest.get()
         val response = await(responseFuture)
@@ -45,7 +48,7 @@ trait ServerIntegrationSpecificationSpec extends PlaySpecification
     }
 
     "run the right server when using WithServer trait" in new WithServer(
-      app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build()) {
+      app = GuiceApplicationBuilder().configure(globalAppConfig).routes(httpServerTagRoutes).build()) {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
       response.body must_== expectedServerTag.toString

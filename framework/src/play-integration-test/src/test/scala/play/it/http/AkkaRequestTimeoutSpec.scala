@@ -7,7 +7,7 @@ import java.io.IOException
 import java.util.Properties
 
 import akka.stream.scaladsl.Sink
-import play.api.Mode
+import play.api.{ Configuration, Mode }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{ EssentialAction, Results }
 import play.api.test._
@@ -33,9 +33,11 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         "play.server.akka.requestTimeout" -> getTimeout(httpTimeout)
       ).asJava)
       val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)
+      val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
       running(play.api.test.TestServer(
         config = serverConfig,
         application = new GuiceApplicationBuilder()
+          .configure(globalAppConfig)
           .routes({
             case _ => action
           }).build(),
