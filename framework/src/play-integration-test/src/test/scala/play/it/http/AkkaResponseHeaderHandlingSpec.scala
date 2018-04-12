@@ -3,6 +3,7 @@
  */
 package play.it.http
 
+import play.api.Configuration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test.{ PlaySpecification, Port }
@@ -14,7 +15,8 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
 
     def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().appRoutes { app =>
+      val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
+      running(TestServer(port, GuiceApplicationBuilder().configure(globalAppConfig).appRoutes { app =>
         val Action = app.injector.instanceOf[DefaultActionBuilder]
         val parse = app.injector.instanceOf[PlayBodyParsers]
         ({ case _ => action(Action, parse) })

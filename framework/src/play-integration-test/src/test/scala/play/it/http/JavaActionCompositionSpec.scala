@@ -18,7 +18,8 @@ import play.routing.{ Router => JRouter }
 class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
   override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T = {
     implicit val port = testServerPort
-    lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
+    val globalAppConfig = Map("play.allowGlobalApplication" -> true)
+    lazy val app: Application = GuiceApplicationBuilder().configure(configuration ++ globalAppConfig).routes {
       case _ => JAction(app, controller)
     }.build()
 
@@ -38,7 +39,8 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
 
   override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef])(block: (WSResponse) => T): T = {
     implicit val port = testServerPort
-    val components = new play.BuiltInComponentsFromContext(context(configuration)) {
+    val globalAppConfig = Map("play.allowGlobalApplication" -> true.asInstanceOf[java.lang.Boolean])
+    val components = new play.BuiltInComponentsFromContext(context(configuration ++ globalAppConfig)) {
 
       override def javaHandlerComponents(): MappedJavaHandlerComponents = {
         import java.util.function.{ Supplier => JSupplier }

@@ -197,7 +197,7 @@ trait Application {
    * also affecting the deprecated Play APIs that use these.
    */
   lazy val globalApplicationEnabled: Boolean = {
-    configuration.getOptional[Boolean](Play.GlobalAppConfigKey).getOrElse(true)
+    configuration.getOptional[Boolean](Play.GlobalAppConfigKey).getOrElse(false)
   }
 }
 

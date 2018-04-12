@@ -4,6 +4,7 @@
 package play.it.http
 
 import akka.stream.scaladsl.Source
+import play.api.Configuration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc.{ Results, EssentialAction }
@@ -26,7 +27,8 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     def withServer[T](action: EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().routes { case _ => action }.build())) {
+      val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
+      running(TestServer(port, GuiceApplicationBuilder().configure(globalAppConfig).routes { case _ => action }.build())) {
         block(port)
       }
     }

@@ -294,7 +294,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar", "play.allowGlobalApplication" -> true))
       .routes(router)
       .build()
     val ws = inject[WSClient]
@@ -303,7 +303,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def withActionServer[T](config: Seq[(String, String)])(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar", "play.allowGlobalApplication" -> true))
       .appRoutes(app => router(app))
       .build()
     val ws = inject[WSClient]

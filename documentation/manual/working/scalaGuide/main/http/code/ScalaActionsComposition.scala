@@ -14,7 +14,7 @@ import play.api.mvc.{AbstractController, BodyParsers, Controller, ControllerHelp
 import org.specs2.mutable.{Specification, SpecificationLike}
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import play.api.Logger
+import play.api.{ Configuration, Logger }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
@@ -282,7 +282,8 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
   }
 
   def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-    running() { app =>
+    val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
+    running(_.configure(globalAppConfig)) { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
       val result = action(request).run()
       status(result) must_== expectedResponse

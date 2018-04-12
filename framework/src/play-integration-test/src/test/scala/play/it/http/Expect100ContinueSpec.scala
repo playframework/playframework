@@ -3,6 +3,7 @@
  */
 package play.it.http
 
+import play.api.Configuration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.it._
@@ -18,7 +19,8 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
 
     def withServer[T](action: DefaultActionBuilder => EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().appRoutes { app =>
+      val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
+      running(TestServer(port, GuiceApplicationBuilder().configure(globalAppConfig).appRoutes { app =>
         val Action = app.injector.instanceOf[DefaultActionBuilder]
         ({ case _ => action(Action) })
       }.build())) {

@@ -4,6 +4,7 @@
 package scalaguide.tests.specs2
 
 import play.api.mvc._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.mvc.Results._
 import play.api.libs.json.Json
@@ -12,7 +13,8 @@ import play.api.libs.json.Json
 class ExampleEssentialActionSpec extends PlaySpecification {
 
   "An essential action" should {
-    "can parse a JSON body" in new WithApplication() {
+    val app = GuiceApplicationBuilder().configure("play.allowGlobalApplication" -> true).build()
+    "can parse a JSON body" in new WithApplication(app) {
       val action: EssentialAction = Action { request =>
         val value = (request.body.asJson.get \ "field").as[String]
         Ok(value)

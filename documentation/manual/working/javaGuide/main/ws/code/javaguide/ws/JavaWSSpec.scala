@@ -22,7 +22,7 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
-  def fakeApplication: PlayApplication = GuiceApplicationBuilder().routes {
+  def fakeApplication: PlayApplication = GuiceApplicationBuilder().configure("play.allowGlobalApplication" -> true).routes {
     case ("GET", "/feed") =>
       Action {
         val obj: JsObject = Json.obj(

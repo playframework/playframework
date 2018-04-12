@@ -46,12 +46,14 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       val port = testServerPort
       val props = new Properties(System.getProperties)
       val serverConfig = ServerConfig(port = Some(port), sslPort = httpsPort, mode = Mode.Test, properties = props)
+      val globalAppConfig = Map("play.allowGlobalApplication" -> true)
 
       val configuration = Configuration.load(play.api.Environment.simple(), extraConfig)
 
       running(play.api.test.TestServer(
         config = serverConfig.copy(configuration = configuration),
         application = new GuiceApplicationBuilder()
+          .configure(globalAppConfig)
           .routes({
             case _ => action
           }).build(),

@@ -3,7 +3,7 @@
  */
 package play.it.http
 
-import play.api.Application
+import play.api.{ Application, Configuration }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.ws.WSResponse
@@ -19,7 +19,8 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
 
   def handlerResponse[T](handler: Handler)(block: WSResponse => T): T = {
     implicit val port = testServerPort
-    val app: Application = GuiceApplicationBuilder().routes {
+    val globalAppConfig = Configuration.from(Map("play.allowGlobalApplication" -> true))
+    val app: Application = GuiceApplicationBuilder().configure(globalAppConfig).routes {
       case _ => handler
     }.build()
     running(TestServer(port, app)) {
