@@ -75,43 +75,13 @@ class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
     )
   }
 
-  protected def generateDirectives(directives: CSPDirectivesConfig): String = {
-    import directives._
-
-    @inline def boolMap(flag: Boolean, name: String): Option[(String, String)] = {
-      if (flag) Some(name -> "") else None
-    }
-
-    Seq(
-      baseUri.map("base-uri" -> _),
-      boolMap(blockAllMixedContent, "block-all-mixed-content"),
-      childSrc.map("child-src" -> _),
-      connectSrc.map("connect-src" -> _),
-      defaultSrc.map("default-src" -> _),
-      boolMap(disownOpener, "disown-opener"),
-      formAction.map("form-action" -> _),
-      fontSrc.map("font-src" -> _),
-      frameAncestors.map("frame-ancestors" -> _),
-      frameSrc.map("frame-src" -> _),
-      imgSrc.map("img-src" -> _),
-      manifestSrc.map("manifest-src" -> _),
-      mediaSrc.map("media-src" -> _),
-      objectSrc.map("object-src" -> _),
-      pluginTypes.map("plugin-types" -> _),
-      reportUri.map("report-uri" -> _),
-      reportTo.map("report-to" -> _),
-      requireSriFor.map("require-sri-for" -> _),
-      sandbox.map("sandbox" -> _),
-      scriptSrc.map("script-src" -> _),
-      styleSrc.map("style-src" -> _),
-      workerSrc.map("worker-src" -> _),
-      boolMap(upgradeInsecureRequests, "upgrade-insecure-requests")
-    ).flatten.map {
-        case (k, v) if v.isEmpty =>
-          k
-        case (k, v) =>
-          s"$k $v".trim
-      }.mkString(" ; ").trim
+  protected def generateDirectives(directives: Seq[CSPDirective]): String = {
+    directives.map {
+      case CSPDirective(name, value) if java.lang.Boolean.valueOf(value) =>
+        s"$name"
+      case CSPDirective(name, value) =>
+        s"$name $value"
+    }.mkString("; ")
   }
 
   protected def generateContentSecurityPolicyNonce(maybeRequest: Option[RequestHeader]): String = {

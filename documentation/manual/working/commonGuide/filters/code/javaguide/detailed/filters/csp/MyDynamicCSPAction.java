@@ -3,9 +3,10 @@ package javaguide.detailed.filters.csp;
 import play.filters.csp.*;
 
 import javax.inject.Inject;
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static scala.compat.java8.OptionConverters.toJava;
+import scala.collection.JavaConverters;
 
 // #java-csp-dynamic-action
 public class MyDynamicCSPAction extends AbstractCSPAction {
@@ -23,12 +24,18 @@ public class MyDynamicCSPAction extends AbstractCSPAction {
         return cspConfig.withDirectives(generateDirectives());
     }
 
-    private CSPDirectivesConfig generateDirectives() {
-        CSPDirectivesConfig baseDirectives = cspConfig.directives();
-        // import static scala.compat.java8.OptionConverters.toJava;
-        String scriptSrc = toJava(baseDirectives.scriptSrc()).orElseGet(() -> "");
-        String modifiedScriptSrc = scriptSrc + " " + String.join(" ", assetCache.cspHashes());
-        return baseDirectives.withScriptSrc(Optional.of(modifiedScriptSrc));
+    private List<CSPDirective> generateDirectives() {
+        // import scala.collection.JavaConverters;
+        List<CSPDirective> baseDirectives = JavaConverters.seqAsJavaList(cspConfig.directives());
+        return baseDirectives.stream().map(directive -> {
+            if ("script-src".equals(directive.name())) {
+                String scriptSrc = directive.value();
+                String newScriptSrc = scriptSrc + " " + String.join(" ", assetCache.cspHashes());
+                return new CSPDirective("script-src", newScriptSrc);
+            } else {
+                return directive;
+            }
+        }).collect(Collectors.toList());
     }
 
     @Override

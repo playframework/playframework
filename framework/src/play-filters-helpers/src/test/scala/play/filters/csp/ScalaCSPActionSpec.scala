@@ -34,15 +34,14 @@ object ScalaCSPActionSpec {
     override def parser: BodyParser[AnyContent] = bodyParsers.default
 
     override protected def cspResultProcessor: CSPResultProcessor = {
-      val scriptSrc = cspConfig.directives.scriptSrc.map { scriptSrc =>
-        scriptSrc + assetCache.cspDigests.mkString(" ")
+      val modifiedDirectives: Seq[CSPDirective] = cspConfig.directives.map {
+        case CSPDirective(name, value) if name == "script-src" =>
+          CSPDirective(name, value + assetCache.cspDigests.mkString(" "))
+        case csp: CSPDirective =>
+          csp
       }
-      CSPResultProcessor(
-        CSPProcessor(
-          cspConfig.copy(directives =
-            cspConfig.directives.copy(scriptSrc =
-              scriptSrc)))
-      )
+
+      CSPResultProcessor(CSPProcessor(cspConfig.copy(directives = modifiedDirectives)))
     }
   }
 

@@ -59,43 +59,10 @@ class CSPFilterSpec extends PlaySpecification {
   val defaultHocon =
     """
       |play.filters.csp {
-      |    reportOnly = false
-      |
-      |    routeModifiers {
-      |      whiteList = ["nocsp"]
-      |      blackList = []
-      |    }
-      |
-      |    nonce {
-      |      enabled = true
-      |      pattern = "%CSP_NONCE_PATTERN%"
-      |      header = true
-      |    }
-      |
+      |    nonce.header = true
       |    directives {
-      |      base-uri = null
-      |      block-all-mixed-content = false
-      |      child-src = null
-      |      connect-src = null
-      |      default-src = null
-      |      disown-opener = false
-      |      font-src = null
-      |      form-action = null
-      |      frame-ancestors = null
-      |      frame-src = null
-      |      img-src = null
-      |      manifest-src = null
-      |      media-src = null
       |      object-src = null
-      |      plugin-types = null
-      |      report-uri = null
-      |      report-to = null
-      |      require-sri-for = null
-      |      sandbox = null
-      |      script-src = null
-      |      style-src = null
-      |      worker-src = null
-      |      upgrade-insecure-requests = false
+      |      base-uri = null
       |    }
       |  }
     """.stripMargin
@@ -171,7 +138,7 @@ class CSPFilterSpec extends PlaySpecification {
   }
 
   "reportOnly" should {
-    "set only the report only header when defined" in withApplication(Ok("hello"), ConfigFactory.parseString(
+    "set only the report only header when defined" in withApplication(Ok("hello"), ConfigFactory.parseString(defaultHocon +
       """
         |play.filters.csp.reportOnly=true
         |""".stripMargin).withFallback(defaultConfig)
@@ -185,11 +152,11 @@ class CSPFilterSpec extends PlaySpecification {
 
   "nonce" should {
 
-    "work with no nonce" in withApplication(Ok("hello"), ConfigFactory.parseString(
+    "work with no nonce" in withApplication(Ok("hello"), ConfigFactory.parseString(defaultHocon +
       """
         |play.filters.csp.nonce.enabled=false
         |play.filters.csp.directives.script-src="%CSP_NONCE_PATTERN%"
-        |""".stripMargin).withFallback(defaultConfig)
+        |""".stripMargin)
       .root().render(ConfigRenderOptions.concise())) { app =>
       val result = route(app, FakeRequest()).get
 
@@ -199,10 +166,10 @@ class CSPFilterSpec extends PlaySpecification {
       header(CONTENT_SECURITY_POLICY, result) must beSome(expected)
     }
 
-    "work with CSP nonce" in withApplication(Ok("hello"), ConfigFactory.parseString(
+    "work with CSP nonce" in withApplication(Ok("hello"), ConfigFactory.parseString(defaultHocon +
       """
         |play.filters.csp.directives.script-src="%CSP_NONCE_PATTERN%"
-        |""".stripMargin).withFallback(defaultConfig)
+        |""".stripMargin)
       .root().render(ConfigRenderOptions.concise())) { app =>
       val result = route(app, FakeRequest()).get
 
@@ -212,10 +179,10 @@ class CSPFilterSpec extends PlaySpecification {
       header(CONTENT_SECURITY_POLICY, result) must beSome(expected)
     }
 
-    "work with CSP nonce but no nonce header" in withApplication(Ok("hello"), ConfigFactory.parseString(
+    "work with CSP nonce but no nonce header" in withApplication(Ok("hello"), ConfigFactory.parseString(defaultHocon +
       """
         |play.filters.csp.nonce.header=false
-        |""".stripMargin).withFallback(defaultConfig)
+        |""".stripMargin)
       .root().render(ConfigRenderOptions.concise())) { app =>
       val result = route(app, FakeRequest()).get
 

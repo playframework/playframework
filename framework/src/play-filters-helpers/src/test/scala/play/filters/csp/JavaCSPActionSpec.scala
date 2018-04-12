@@ -48,8 +48,8 @@ class JavaCSPActionSpec extends PlaySpecification {
       val Some(result) = route(app, request)
 
       val Some(nonce) = header(HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER, result)
-      val expected = s"base-uri 'none' ; object-src 'none' ; script-src 'nonce-$nonce' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:"
-      header(HeaderNames.CONTENT_SECURITY_POLICY, result) must beSome(expected)
+      val expected = s"script-src 'nonce-$nonce' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:"
+      header(HeaderNames.CONTENT_SECURITY_POLICY, result).get must contain(expected)
     }
   }
 
