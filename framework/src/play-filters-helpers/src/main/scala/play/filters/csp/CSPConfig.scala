@@ -12,14 +12,14 @@ import play.api.mvc.RequestHeader
  * @see <a href="https://www.w3.org/TR/CSP3/">Content Security Policy Level 3</a>
  *
  * @param reportOnly true if the header should be Content-Security-Policy-Report-Only.
- * @param shouldProtect A function that decides based on the headers of the request if a check is needed.
+ * @param shouldFilterRequest A function that decides based on the headers of the request if a check is needed.
  * @param nonce the CSP nonce configuration
  * @param hashes a list of CSP hashes that can be added to the header
  * @param directives the CSP directives configuration
  */
 case class CSPConfig(
     reportOnly: Boolean = false,
-    shouldProtect: RequestHeader => Boolean = _ => true,
+    shouldFilterRequest: RequestHeader => Boolean = _ => true,
     nonce: CSPNonceConfig = CSPNonceConfig(),
     hashes: Seq[CSPHashConfig] = Seq.empty,
     directives: Seq[CSPDirective] = Seq.empty) {
@@ -36,8 +36,8 @@ case class CSPConfig(
   def withReportOnly(reportOnly: Boolean): CSPConfig =
     copy(reportOnly = reportOnly)
 
-  def withShouldProtect(shouldProtect: ju.function.Predicate[JRequestHeader]): CSPConfig =
-    copy(shouldProtect = shouldProtect.asScala.compose(_.asJava))
+  def withShouldProtect(shouldFilterRequest: ju.function.Predicate[JRequestHeader]): CSPConfig =
+    copy(shouldFilterRequest = shouldFilterRequest.asScala.compose(_.asJava))
 
   def withNonce(nonce: CSPNonceConfig): CSPConfig = {
     copy(nonce = nonce)
@@ -92,7 +92,7 @@ object CSPConfig {
         !whitelistModifiers.exists(rh.hasRouteModifier)
       }
     }
-    val shouldProtect: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) }
+    val shouldFilterRequest: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) }
 
     val nonce = config.get[Configuration]("nonce")
     val nonceConfig = CSPNonceConfig(
@@ -120,7 +120,7 @@ object CSPConfig {
 
     CSPConfig(
       reportOnly = reportOnly,
-      shouldProtect = shouldProtect,
+      shouldFilterRequest = shouldFilterRequest,
       nonce = nonceConfig,
       hashes = hashConfigs,
       directives = directivesConfig)

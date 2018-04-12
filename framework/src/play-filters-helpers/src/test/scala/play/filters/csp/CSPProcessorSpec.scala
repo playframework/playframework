@@ -15,19 +15,19 @@ import scala.collection.JavaConverters._
 
 class CSPProcessorSpec extends PlaySpecification {
 
-  "shouldProtect" should {
+  "shouldFilterRequest" should {
 
-    "produce a result when shouldProtect is true" in {
-      val shouldProtect: RequestHeader => Boolean = _ => true
-      val config = CSPConfig(shouldProtect = shouldProtect)
+    "produce a result when shouldFilterRequest is true" in {
+      val shouldFilterRequest: RequestHeader => Boolean = _ => true
+      val config = CSPConfig(shouldFilterRequest = shouldFilterRequest)
       val processor = new DefaultCSPProcessor(config)
       val maybeResult = processor.process(FakeRequest())
       maybeResult must beSome
     }
 
-    "not produce a result when shouldProtect is false" in {
-      val shouldProtect: RequestHeader => Boolean = _ => false
-      val config = CSPConfig(shouldProtect = shouldProtect)
+    "not produce a result when shouldFilterRequest is false" in {
+      val shouldFilterRequest: RequestHeader => Boolean = _ => false
+      val config = CSPConfig(shouldFilterRequest = shouldFilterRequest)
       val processor = new DefaultCSPProcessor(config)
       val maybeResult = processor.process(FakeRequest())
       maybeResult must beNone

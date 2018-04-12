@@ -23,7 +23,7 @@ trait CSPProcessor {
    * result, otherwise a new nonce will be generated.
    *
    * @param requestHeader a request header
-   * @return Some(CSPResult) if config.shouldProtect returns true, otherwise None
+   * @return Some(CSPResult) if the processor is enabled for this request, otherwise None
    */
   def process(requestHeader: RequestHeader): Option[CSPResult]
 }
@@ -58,7 +58,7 @@ class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
       None
     }
 
-    if (config.shouldProtect(requestHeader)) {
+    if (config.shouldFilterRequest(requestHeader)) {
       Some(CSPResult(nonce, generateLine(nonce), config.reportOnly, config.nonce.header))
     } else {
       None
