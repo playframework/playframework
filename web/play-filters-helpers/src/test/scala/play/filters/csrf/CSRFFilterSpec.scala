@@ -5,10 +5,11 @@
 package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
-import javax.inject.Inject
 
+import javax.inject.Inject
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import org.specs2.specification.core.Fragment
 import play.api.ApplicationLoader.Context
 import play.api.http.HttpEntity
 import play.api.http.HttpFilters
@@ -47,11 +48,29 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     "not add a token to GET requests that don't accept HTML" in {
       buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
     }
-    "not add a token to responses that set cache headers" in {
-      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must be empty)
+    "not add a token to non GET request when response is cached" in {
+      Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
+        method >> {
+          buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=2600")(_.execute(method))(_.cookies must be empty)
+        }
+      }
     }
-    "add a token to responses that set 'no-cache' headers" in {
-      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "no-cache")(_.get())(_.cookies must not be empty)
+    "not add a token to non GET request when response is not cached " in {
+      Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
+        method >> {
+          buildCsrfAddResponseHeaders()(_.addHttpHeaders(CACHE_CONTROL -> "no-cache").execute(method))(_.cookies must be empty)
+        }
+      }
+    }
+    "add a token to GET request when response is not cached" in {
+      Fragment.foreach(Seq("no-cache", "no-store", "NO-CACHE", "NO-STORE ", "no-cache, must-revalidate")) { directive =>
+        directive >> {
+          buildCsrfAddResponseHeaders(CACHE_CONTROL -> directive)(_.get())(_.cookies must not be empty)
+        }
+      }
+    }
+    "add a token to GET request when response is cached " in {
+      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must not be empty)
     }
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)

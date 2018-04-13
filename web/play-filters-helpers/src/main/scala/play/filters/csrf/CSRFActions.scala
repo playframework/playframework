@@ -405,6 +405,9 @@ class CSRFActionHelper(
     tokenProvider: TokenProvider
 ) {
 
+  /** Set of Cache-Control header directives that will explicitely prevent response caching. */
+  private val NoCacheDirectives = Set("no-cache", "no-store")
+
   /**
    * Construct a new CSRFActionHelper and determine the TokenProvider from configuration.
    */
@@ -508,8 +511,8 @@ class CSRFActionHelper(
           } =>
         filterLogger.trace("[CSRF] Not emitting CSRF token because token was never rendered")
         result
-      case _ if isCached(result) =>
-        filterLogger.trace("[CSRF] Not adding token to cached response")
+      case _ if !csrfConfig.createIfNotFound(request) && isCached(result) =>
+        filterLogger.trace(s"[CSRF] Not adding token to cached response for ${request.method} request")
         result
       case Some(tokenInfo) =>
         val Token(tokenName, tokenValue) = tokenInfo.toToken
@@ -535,8 +538,19 @@ class CSRFActionHelper(
     }
   }
 
+  /**
+   * @return an array of Cache-Control header directives.
+   */
+  private def extractCacheControlDirectives(headerValue: String): Array[String] =
+    headerValue.toLowerCase(Locale.ROOT).split(",").map(_.trim)
+
+  /**
+   * @return true if Cache-Control header is absent or if it does not contain an explicit directive to
+   *         prevent caching for this response.
+   */
   def isCached(result: Result): Boolean =
-    result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
+    !result.header.headers.get(CACHE_CONTROL).map(extractCacheControlDirectives)
+      .exists(_.exists(NoCacheDirectives.contains))
 
   def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
