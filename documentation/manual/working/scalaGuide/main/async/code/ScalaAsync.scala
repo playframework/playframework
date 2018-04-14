@@ -43,7 +43,7 @@ trait MyExecutionContext extends ExecutionContext
 class MyExecutionContextImpl @Inject()(system: ActorSystem)
   extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
 
-class HomeController @Inject()(myExecutionContext: MyExecutionContext, val controllerComponents: ControllerComponents) extends BaseController {
+class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends InjectedController {
   def index = Action.async {
     Future {
       // Call some blocking API
@@ -53,8 +53,7 @@ class HomeController @Inject()(myExecutionContext: MyExecutionContext, val contr
 }
 //#my-execution-context
 
-class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponents)(implicit actorSystem: ActorSystem, ec: ExecutionContext)
-  extends BaseController {
+class ScalaAsyncSamples @Inject()()(implicit actorSystem: ActorSystem, ec: ExecutionContext) extends InjectedController {
 
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
