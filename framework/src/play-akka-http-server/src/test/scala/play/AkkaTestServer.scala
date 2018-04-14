@@ -23,11 +23,8 @@ object AkkaTestServer extends App {
     case GET(p"/") => Action { implicit req =>
       Results.Ok(s"Hello world")
     }
-    case GET(p"/akkaHttpApi") => new AkkaHttpHandler {
-      override def apply(request: HttpRequest): Future[HttpResponse] =
-        Future.successful(
-          HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API"))
-        )
+    case GET(p"/akkaHttpApi") => AkkaHttpHandler { request =>
+      Future.successful(HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")))
     }
   }
   println("Server (Akka HTTP) started: http://127.0.0.1:9000/ ")

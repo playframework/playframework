@@ -7,11 +7,8 @@ import play.api.routing.Router
 
 class AkkaHttpRouter @Inject() ()(implicit mat: Materializer) extends Router {
 
-  val handler = new AkkaHttpHandler {
-    override def apply(request: HttpRequest): Future[HttpResponse] =
-      Future.successful(
-        HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")
-      )
+  val handler = AkkaHttpHandler { request =>
+      Future.successful(HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")))
   }
 
   override def routes: Routes = { case _ ⇒ handler }

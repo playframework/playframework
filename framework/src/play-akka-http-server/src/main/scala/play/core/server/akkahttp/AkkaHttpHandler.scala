@@ -10,3 +10,7 @@ import play.mvc.Http.RequestHeader
 import scala.concurrent.Future
 
 trait AkkaHttpHandler extends (HttpRequest => Future[HttpResponse]) with Handler
+
+object AkkaHttpHandler {
+  def apply(handler: HttpRequest => Future[HttpResponse]): AkkaHttpHandler = (request: HttpRequest) => handler(request)
+}
