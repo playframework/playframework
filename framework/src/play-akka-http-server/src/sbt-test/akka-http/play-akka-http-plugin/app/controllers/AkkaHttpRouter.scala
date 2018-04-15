@@ -11,7 +11,7 @@ class AkkaHttpRouter @Inject() ()(implicit mat: Materializer) extends Router {
       Future.successful(HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")))
   }
 
-  override def routes: Routes = { case _ ⇒ handler }
+  override def routes: Routes = { case _ => handler }
 
   override def documentation: Seq[(String, String, String)] = Seq.empty
 
