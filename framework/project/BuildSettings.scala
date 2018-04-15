@@ -90,7 +90,7 @@ object BuildSettings {
       javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
       bintrayPackage := "play-sbt-plugin",
-      apiURL in doc := {
+      apiURL := {
         val v = version.value
         if (isSnapshot.value) {
           Some(url("https://www.playframework.com/documentation/2.6.x/api/scala/index.html"))
