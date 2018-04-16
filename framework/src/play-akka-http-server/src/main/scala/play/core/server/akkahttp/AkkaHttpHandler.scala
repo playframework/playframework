@@ -12,5 +12,7 @@ import scala.concurrent.Future
 trait AkkaHttpHandler extends (HttpRequest => Future[HttpResponse]) with Handler
 
 object AkkaHttpHandler {
-  def apply(handler: HttpRequest => Future[HttpResponse]): AkkaHttpHandler = (request: HttpRequest) => handler(request)
+  def apply(handler: HttpRequest => Future[HttpResponse]): AkkaHttpHandler = new AkkaHttpHandler {
+    def apply(request: HttpRequest): Future[HttpResponse] = handler(request)
+  }
 }
