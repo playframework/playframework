@@ -3,6 +3,8 @@
  */
 package play.runsupport.classloader;
 
+import java.net.URLClassLoader;
+
 public interface ApplicationClassLoaderProvider {
-  ClassLoader get();
+  URLClassLoader get();
 }
