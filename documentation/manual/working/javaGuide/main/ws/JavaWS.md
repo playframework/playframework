@@ -180,7 +180,7 @@ Please refer to the [AsyncHttpClientConfig Documentation](https://asynchttpclien
 * `play.ws.ning.ioThreadMultiplier`
 * `play.ws.ning.maxConnectionsPerHost`
 * `play.ws.ning.maxConnectionsTotal`
-* `play.ws.ning.maxConnectionLifeTime`
+* `play.ws.ning.maxConnectionLifetime`
 * `play.ws.ning.idleConnectionInPoolTimeout`
 * `ws.ning.webSocketIdleTimeout`
 * `play.ws.ning.maxNumberOfRedirects`
