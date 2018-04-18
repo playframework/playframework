@@ -92,3 +92,11 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 ### `Guava` version updated to 24.0-jre
 
 Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 24.1-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).
+
+### Internal changes
+
+Many changes have been made to Play's internal APIs. These APIs are used internally and don't follow a normal deprecation process. Changes may be mentioned below to help those who integrate directly with Play internal APIs.
+
+#### `Server.getHandlerFor` has moved to `Server#getHandlerFor`
+
+The `getHandlerFor` method on the `Server` trait was used internally by the Play server code when routing requests. It has been removed and replaced with a method of the same name on the `Server` object.

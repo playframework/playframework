@@ -467,7 +467,12 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.api.cache.CacheApi"),
       ProblemFilters.exclude[MissingTypesProblem]("play.api.cache.DefaultSyncCacheApi"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.DefaultSyncCacheApi.getOrElse"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.DefaultSyncCacheApi.getOrElse$default$2")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.DefaultSyncCacheApi.getOrElse$default$2"),
+
+      // Remove Server trait's deprecated getHandler method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.Server.getHandlerFor"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServer.getHandlerFor"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.getHandlerFor")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
