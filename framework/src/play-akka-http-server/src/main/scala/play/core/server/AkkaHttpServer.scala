@@ -23,8 +23,9 @@ import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.routing.Router
-import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder, AkkaHttpHandler }
+import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
 import play.core.ApplicationProvider

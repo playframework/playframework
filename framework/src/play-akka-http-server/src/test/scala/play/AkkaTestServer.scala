@@ -7,7 +7,7 @@ import akka.http.scaladsl.model._
 import play.core.server._
 import play.api.routing.sird._
 import play.api.mvc._
-import play.core.server.akkahttp.AkkaHttpHandler
+import play.api.mvc.akkahttp.AkkaHttpHandler
 
 import scala.concurrent.Future
 

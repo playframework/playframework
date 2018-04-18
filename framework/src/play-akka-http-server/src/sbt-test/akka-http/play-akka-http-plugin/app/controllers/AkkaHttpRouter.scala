@@ -1,9 +1,12 @@
 package controllers
 
 import javax.inject.Inject
+
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, StatusCodes}
 import akka.stream.Materializer
+
 import play.api.routing.Router
+import play.api.mvc.akkahttp.AkkaHttpHandler
 
 class AkkaHttpRouter @Inject() ()(implicit mat: Materializer) extends Router {
 
