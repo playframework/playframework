@@ -63,7 +63,6 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
     bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
     bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
     bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
-    bind[CacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
     bind[JavaSyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey))
   )
 
@@ -88,7 +87,6 @@ class CaffeineCacheModule extends SimpleModule((environment, configuration) => {
     bindDefault[AsyncCacheApi],
     bindDefault[JavaAsyncCacheApi],
     bindDefault[SyncCacheApi],
-    bindDefault[CacheApi],
     bindDefault[JavaSyncCacheApi]
   ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
 })
@@ -130,14 +128,13 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCach
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
-  extends Provider[SyncCacheApi with CacheApi] {
+  extends Provider[SyncCacheApi] {
   @Inject private var injector: Injector = _
 
-  // TODO: remove "with CacheApi" hacks for 2.7.0
-  lazy val get: SyncCacheApi with CacheApi = {
+  lazy val get: SyncCacheApi = {
     val async = injector.instanceOf(key)
     async.sync match {
-      case sync: SyncCacheApi with CacheApi => sync
+      case sync: SyncCacheApi => sync
       case _ => new DefaultSyncCacheApi(async)
     }
   }
@@ -166,7 +163,7 @@ private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends 
 
 private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 
-class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi with CacheApi {
+class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     expiration match {
@@ -194,9 +191,6 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
         value
     }
   }
-
-  override def getOrElse[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A =
-    getOrElseUpdate(key, expiration)(orElse)
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
     Option(cache.getIfPresent(key)).filter { v =>

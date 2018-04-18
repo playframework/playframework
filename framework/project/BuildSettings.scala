@@ -461,7 +461,13 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form.error"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form.globalError"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.Form.errors"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.DynamicForm.error")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.DynamicForm.error"),
+
+      // Remove CacheApi
+      ProblemFilters.exclude[MissingClassProblem]("play.api.cache.CacheApi"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.cache.DefaultSyncCacheApi"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.DefaultSyncCacheApi.getOrElse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.DefaultSyncCacheApi.getOrElse$default$2")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
