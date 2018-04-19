@@ -10,6 +10,7 @@ import com.shapesecurity.salvation.data._
 import java.util
 
 import com.shapesecurity.salvation.directiveValues.HashSource.HashAlgorithm
+import com.shapesecurity.salvation.directives.{ DirectiveValue, UpgradeInsecureRequestsDirective }
 
 import scala.collection.JavaConverters._
 
@@ -80,6 +81,18 @@ class CSPProcessorSpec extends PlaySpecification {
       notices must beEmpty
       policy.hasSomeEffect must beTrue
       policy.allowsScriptWithHash(HashAlgorithm.SHA256, base64Value) must beTrue
+    }
+
+    "have effect using directives with no value" in {
+      val directives = Seq(
+        CSPDirective("upgrade-insecure-requests", "")
+      )
+      val processor = new DefaultCSPProcessor(CSPConfig(directives = directives))
+      val Some(cspResult) = processor.process(FakeRequest())
+      val (policy, notices) = parse(cspResult.directives)
+
+      val directive = policy.getDirectiveByType[DirectiveValue, UpgradeInsecureRequestsDirective](classOf[UpgradeInsecureRequestsDirective])
+      directive must not beNull
     }
 
     "have effect with christmas tree directives" in {

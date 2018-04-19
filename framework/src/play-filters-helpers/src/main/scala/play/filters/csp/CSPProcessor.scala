@@ -76,12 +76,7 @@ class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
   }
 
   protected def generateDirectives(directives: Seq[CSPDirective]): String = {
-    directives.map {
-      case CSPDirective(name, value) if java.lang.Boolean.valueOf(value) =>
-        s"$name"
-      case CSPDirective(name, value) =>
-        s"$name $value"
-    }.mkString("; ")
+    directives.map(d => s"${d.name} ${d.value}").mkString("; ")
   }
 
   protected def generateContentSecurityPolicyNonce(maybeRequest: Option[RequestHeader]): String = {

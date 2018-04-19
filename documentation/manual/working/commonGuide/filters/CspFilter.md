@@ -140,9 +140,15 @@ Accessing the CSP nonce from a Twirl template is shown in [[Using CSP in Page Te
 
 ### Configuring CSP Directives
 
-CSP directives are configured through the directives section.
+CSP directives are configured through the `play.filters.csp.directives` section in `application.conf`.
 
-@[csp-directives](/confs/filters-helpers/reference.conf)
+#### Defining CSP Directives
+
+Directives are configured one to one, with the configuration key matching the CSP directive name, i.e. for a CSP directive `default-src` with a value of  `'none'`, you would set the following:
+
+```hocon
+play.filters.csp.directives.default-src = "'none'"
+```
 
 CSP directives are mostly defined in the [CSP3 Spec](https://www.w3.org/TR/CSP3/) except for the following exceptions:
 
@@ -150,19 +156,21 @@ CSP directives are mostly defined in the [CSP3 Spec](https://www.w3.org/TR/CSP3/
 * `upgrade-insecure-requests` in [Upgrade Insecure Requests W3C CR](https://www.w3.org/TR/upgrade-insecure-requests/#delivery)
 * `block-all-mixed-content` in [Mixed Content W3C CR](https://www.w3.org/TR/mixed-content/#block-all-mixed-content)
 
-The default policy defined in `CSPFilter` is based off Google's [Strict CSP Policy](https://csp.withgoogle.com/docs/strict-csp.html):
+Some directives, such as [`upgrade-insecure-requests`](https://www.w3.org/TR/upgrade-insecure-requests/#delivery) do not contain a value, and should be configured using the empty string, i.e.
 
 ```hocon
-play.filters.csp.directives {
-  base-uri = "'none'"
-  object-src = "'none'"
-  script-src = ${play.filters.csp.nonce.pattern} "'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:"
-}
+play.filters.csp.directives.upgrade-insecure-requests = ""
 ```
 
-> **Note:** Google's Strict CSP policy is a good place to start, but it does not completely define a content security policy.  Please consult with a security team to determine the right policy for your site.
+The [CSP cheat sheet](https://scotthelme.co.uk/csp-cheat-sheet/) is a good reference for looking up CSP directives.
 
-The [CSP cheat sheet](https://scotthelme.co.uk/csp-cheat-sheet/) is a good reference.
+#### Default CSP Policy
+
+The default policy defined in `CSPFilter` is based off Google's [Strict CSP Policy](https://csp.withgoogle.com/docs/strict-csp.html):
+
+@[csp-directives](/confs/filter-helpers/reference.conf)
+
+> **Note:** Google's Strict CSP policy is a good place to start, but it does not completely define a content security policy.  Please consult with a security team to determine the right policy for your site.  
 
 ## Using CSP in Page Templates
 
