@@ -39,7 +39,23 @@ class ConfigurationSpec extends Specification {
 
       "simple duration" in {
         val conf = config("my.duration" -> "10s")
-        conf.get[Duration]("my.duration") must beEqualTo(10.seconds)
+        val value = conf.get[Duration]("my.duration")
+        value must beEqualTo(10.seconds)
+        value.toString must beEqualTo("10 seconds")
+      }
+
+      "use minutes when possible" in {
+        val conf = config("my.duration" -> "120s")
+        val value = conf.get[Duration]("my.duration")
+        value must beEqualTo(2.minutes)
+        value.toString must beEqualTo("2 minutes")
+      }
+
+      "use seconds when minutes aren't accurate enough" in {
+        val conf = config("my.duration" -> "121s")
+        val value = conf.get[Duration]("my.duration")
+        value must beEqualTo(121.seconds)
+        value.toString must beEqualTo("121 seconds")
       }
 
       "handle 'infinite' as Duration.Inf" in {
