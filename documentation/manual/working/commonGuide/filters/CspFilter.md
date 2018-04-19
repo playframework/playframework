@@ -150,17 +150,17 @@ Directives are configured one to one, with the configuration key matching the CS
 play.filters.csp.directives.default-src = "'none'"
 ```
 
+Where no value is specified then `""` should be used, i.e. [`upgrade-insecure-requests`](https://www.w3.org/TR/upgrade-insecure-requests/#delivery) would be defined as follows:
+
+```hocon
+play.filters.csp.directives.upgrade-insecure-requests = ""
+```
+
 CSP directives are mostly defined in the [CSP3 Spec](https://www.w3.org/TR/CSP3/) except for the following exceptions:
 
 * `require-sri-for` is described in [subresource-integrity](https://w3c.github.io/webappsec-subresource-integrity/#opt-in-require-sri-for)
 * `upgrade-insecure-requests` in [Upgrade Insecure Requests W3C CR](https://www.w3.org/TR/upgrade-insecure-requests/#delivery)
 * `block-all-mixed-content` in [Mixed Content W3C CR](https://www.w3.org/TR/mixed-content/#block-all-mixed-content)
-
-Some directives, such as [`upgrade-insecure-requests`](https://www.w3.org/TR/upgrade-insecure-requests/#delivery) do not contain a value, and should be configured using the empty string, i.e.
-
-```hocon
-play.filters.csp.directives.upgrade-insecure-requests = ""
-```
 
 The [CSP cheat sheet](https://scotthelme.co.uk/csp-cheat-sheet/) is a good reference for looking up CSP directives.
 
@@ -168,7 +168,7 @@ The [CSP cheat sheet](https://scotthelme.co.uk/csp-cheat-sheet/) is a good refer
 
 The default policy defined in `CSPFilter` is based off Google's [Strict CSP Policy](https://csp.withgoogle.com/docs/strict-csp.html):
 
-@[csp-directives](/confs/filter-helpers/reference.conf)
+@[csp-directives](/confs/filters-helpers/reference.conf)
 
 > **Note:** Google's Strict CSP policy is a good place to start, but it does not completely define a content security policy.  Please consult with a security team to determine the right policy for your site.  
 
