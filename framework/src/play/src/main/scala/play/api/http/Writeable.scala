@@ -97,7 +97,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * `Writeable` for `JsValue` values that writes to UTF-8, so they can be sent with the application/json media type.
    */
   implicit def writeableOf_JsValue: Writeable[JsValue] = {
-    Writeable(a => ByteString(Json.toBytes(a)))
+    Writeable(a => ByteString.fromArrayUnsafe(Json.toBytes(a)))
   }
 
   /**
