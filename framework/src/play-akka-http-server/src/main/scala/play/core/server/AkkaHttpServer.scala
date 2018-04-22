@@ -23,6 +23,7 @@ import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.routing.Router
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerDebugInfo, ServerResultUtils }
@@ -271,6 +272,8 @@ class AkkaHttpServer(
       case (websocket: WebSocket, None) =>
         // WebSocket handler for non WebSocket request
         sys.error(s"WebSocket returned for non WebSocket request")
+      case (akkaHttpHandler: AkkaHttpHandler, _) =>
+        akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
 
     }
