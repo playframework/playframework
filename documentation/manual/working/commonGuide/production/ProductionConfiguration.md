@@ -133,7 +133,7 @@ You can also specify another logback configuration file via a System property. P
 Specify another logback configuration file to be loaded from the classpath:
 
 ```
-$ /path/to/bin/<project-name> -Dlogger.resource=conf/prod-logger.xml
+$ /path/to/bin/<project-name> -Dlogger.resource=prod-logger.xml
 ```
 
 ### Using `-Dlogger.file`
