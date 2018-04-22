@@ -1038,20 +1038,21 @@ object ConfigLoader {
   implicit val seqBooleanLoader: ConfigLoader[Seq[Boolean]] =
     ConfigLoader(_.getBooleanList).map(_.asScala.map(_.booleanValue))
 
+  implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] =
+    ConfigLoader(_.getDuration).map(javaDurationToScala)
+
+  implicit val seqFiniteDurationLoader: ConfigLoader[Seq[FiniteDuration]] =
+    ConfigLoader(_.getDurationList).map(_.asScala.map(javaDurationToScala))
+
   implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader { config => path =>
     if (config.getIsNull(path)) Duration.Inf
     else if (config.getString(path) == "infinite") Duration.Inf
-    else config.getDuration(path).toNanos.nanos
+    else finiteDurationLoader.load(config, path)
   }
 
   // Note: this does not support null values but it added for convenience
   implicit val seqDurationLoader: ConfigLoader[Seq[Duration]] =
-    ConfigLoader(_.getDurationList).map(_.asScala.map(_.toNanos.nanos))
-
-  implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] =
-    ConfigLoader(_.getDuration).map(_.toNanos.nanos)
-  implicit val seqFiniteDurationLoader: ConfigLoader[Seq[FiniteDuration]] =
-    ConfigLoader(_.getDurationList).map(_.asScala.map(_.toNanos.nanos))
+    seqFiniteDurationLoader.map(identity[Seq[Duration]])
 
   implicit val doubleLoader: ConfigLoader[Double] = ConfigLoader(_.getDouble)
   implicit val seqDoubleLoader: ConfigLoader[Seq[Double]] =
@@ -1074,6 +1075,9 @@ object ConfigLoader {
 
   implicit val configurationLoader: ConfigLoader[Configuration] = configLoader.map(Configuration(_))
   implicit val seqConfigurationLoader: ConfigLoader[Seq[Configuration]] = seqConfigLoader.map(_.map(Configuration(_)))
+
+  private def javaDurationToScala(javaDuration: java.time.Duration): FiniteDuration =
+    Duration.fromNanos(javaDuration.toNanos)
 
   private[play] implicit val playConfigLoader: ConfigLoader[PlayConfig] = configLoader.map(PlayConfig(_))
   private[play] implicit val seqPlayConfigLoader: ConfigLoader[Seq[PlayConfig]] = seqConfigLoader.map(_.map(PlayConfig(_)))
