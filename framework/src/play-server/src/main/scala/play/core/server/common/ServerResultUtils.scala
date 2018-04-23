@@ -3,8 +3,6 @@
  */
 package play.core.server.common
 
-import java.util.{ BitSet => JBitSet }
-
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
@@ -83,7 +81,7 @@ private[play] final class ServerResultUtils(
   }
 
   /** Set of characters that are allowed in a header name. */
-  private def allowedHeaderNameChars: AsciiBitSet = {
+  private[this] val allowedHeaderNameChars: AsciiBitSet = {
     /*
      * From https://tools.ietf.org/html/rfc7230#section-3.2:
      *   field-name     = token
@@ -100,7 +98,7 @@ private[play] final class ServerResultUtils(
   def validateHeaderNameChars(headerName: String): Unit = validateString(allowedHeaderNameChars, "header name", headerName)
 
   /** Set of characters that are allowed in a header name. */
-  private def allowedHeaderValueChars: AsciiBitSet = {
+  private[this] val allowedHeaderValueChars: AsciiBitSet = {
     /*
      * From https://tools.ietf.org/html/rfc7230#section-3.2:
      *   field-value    = *( field-content / obs-fold )
