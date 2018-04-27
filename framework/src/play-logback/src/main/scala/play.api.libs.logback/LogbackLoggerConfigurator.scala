@@ -21,9 +21,11 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    * Initialize the Logger when there's no application ClassLoader available.
    */
   def init(rootPath: java.io.File, mode: Mode.Mode): Unit = {
-    configure(Environment(rootPath, this.getClass.getClassLoader, mode))
+    val properties = Map("application.home" -> rootPath.getAbsolutePath)
+    val resourceName = if (mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
+    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
+    configure(properties, resourceUrl)
   }
-
   /**
    * Reconfigures the underlying logback infrastructure.
    */
