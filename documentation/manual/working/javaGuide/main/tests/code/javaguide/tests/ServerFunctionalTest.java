@@ -22,11 +22,11 @@ public class ServerFunctionalTest extends WithServer {
 
     @Test
     public void testInServer() throws Exception {
-        OptionalInt optHttpPort = testServer.getRunningHttpPort();
+        OptionalInt optHttpsPort = testServer.getRunningHttpsPort();
         String url;
         int port;
         if(optHttpsPort.isPresent()){
-            port = testServer.getRunningHttpsPort().getAsInt();
+            port = optHttpsPort.getAsInt();
             url = "https://localhost:" + port;
         }else {
             port = testServer.getRunningHttpPort().getAsInt();
