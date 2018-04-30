@@ -26,7 +26,7 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4"),
+  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
   libraryDependencies += guice
 )
 

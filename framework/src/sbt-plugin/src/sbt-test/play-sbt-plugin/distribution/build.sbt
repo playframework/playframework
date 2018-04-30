@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
     name := "dist-sample",
     version := "1.0-SNAPSHOT",
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
     routesGenerator := InjectedRoutesGenerator
   )
 
