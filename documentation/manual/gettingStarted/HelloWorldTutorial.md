@@ -18,7 +18,7 @@ Before following the tutorial instructions:
 
 ## Introduction to Play
 
-As illustrated below, Play is a full-stack framework with all of the components you need to build a Web Application or a REST service, including: an integrated HTTP server, form handling, Cross-Site Request Forgery (CSRF) protection, a powerful routing mechanism, I18n support, and more. Play integrates with many object relational mapping (ORM) layers. It supports [[Anorm]], [[Ebean|PlayEbean]], [[Slick|PlaySlick]], and [[JPA|JavaJPA]] out-of-the-box, but many customers use NoSQL or REST layers and other ORMs.
+As illustrated below, Play is a full-stack framework with all of the components you need to build a Web Application or a REST service, including: an integrated HTTP server, form handling, Cross-Site Request Forgery (CSRF) protection, a powerful routing mechanism, I18n support, and more. Play integrates with many object relational mapping (ORM) layers. It supports [[Anorm]], [[Ebean|JavaEbean]], [[Slick|PlaySlick]], and [[JPA|JavaJPA]] out-of-the-box, but many customers use NoSQL or REST layers and other ORMs.
 
 [[images/play-stack.png]]
 

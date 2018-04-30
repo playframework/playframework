@@ -30,7 +30,9 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
       PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set(
+        "JavaEbean",
         "ScalaAnorm",
+        "PlaySlick",
         "PlaySlickMigrationGuide",
         "ScalaTestingWithScalaTest",
         "ScalaFunctionalTestingWithScalaTest",
