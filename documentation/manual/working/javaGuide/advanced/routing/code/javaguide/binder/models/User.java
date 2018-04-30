@@ -10,8 +10,9 @@ public class User implements PathBindable<User> {
 	
     public Long id;
     public String name;
+	//###replace: }
   //#declaration
-    
+
 //#bind
 @Override
 public User bind(String key, String id) {

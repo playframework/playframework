@@ -1,8 +1,10 @@
 # #user
+###replace: GET     /user/:user            controllers.BinderApplication.user(user: User)
 GET     /user/:user            controllers.BinderApplication.user(user: scalaguide.binder.models.User)
 # #user
 
 # #ageRange
+###replace: GET     /ageRange              controllers.BinderApplication.age(age: AgeRange)
 GET     /ageRange              controllers.BinderApplication.age(age: scalaguide.binder.models.AgeRange)
 # #ageRange
 

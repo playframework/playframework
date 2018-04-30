@@ -15,18 +15,19 @@ public class AgeRange implements QueryStringBindable<AgeRange> {
 
     public Integer from;
     public Integer to;
+//###replace: }
 //#declaration
     
 //#bind
 @Override
 public Optional<AgeRange> bind(String key, Map<String, String[]> data) {
 	
-	try{
+	try {
 		from = new Integer(data.get("from")[0]);
 		to = new Integer(data.get("to")[0]);
 		return Optional.of(this);
 		
-	} catch (Exception e){ // no parameter match return None
+	} catch (Exception e) { // no parameter match return None
 		return Optional.empty();
 	}
 }
