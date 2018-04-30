@@ -47,9 +47,11 @@ To have Play call the new action method when the browser requests the `hello` pa
 
 To define a route for the new Hello page:
 
-Open the `conf/routes` file and aFdd the following line:
+Open the `conf/routes` file and add the following line:
 
 @[hello-world-hello-route](code/commonguide/routes)
+
+When you add a route to the `routes` file, Play's routes compiler will automatically generate a router class that calls that action using an instance of your controller. For more information see the [routing documentation](https://www.playframework.com/documentation/2.6.x/ScalaRouting#HTTP-routing). By default, the controller instances are created using dependency injection (see docs for [[Java|JavaDependencyInjection]] and [[Scala|ScalaDependencyInjection]]).
 
 You are now ready to test the new page. If you stopped the application for some reason, restart it with the `sbt run` command.
 
@@ -83,13 +85,11 @@ In Twirl templates, all variables and their types must be declared. In the `app/
 1. On that line, add an @ directive that declares the name parameter and its type: `@(name: String)`
 1. To use the variable on the page, change the text in the `<h2>` heading from `Hello World!` to `<h2>Hello @name!</h2>`.
 
-In the browser, enter the following URL and pass in any name as a query parameter to the hello method: <http://localhost:9000/hello?name=MyName>
+In the browser, enter the following URL and pass in any name as a query parameter to the hello method: <http://localhost:9000/hello?name=MyName>. Play responds with a helpful compilation error that lets you know that the render method in the return value requires a typed parameter:
 
 [[images/hello-error.png]]
 
-Play responds with a helpful compilation error that lets you know that the render method in the return value requires a typed parameter:
-
-To fix the compilation error, modify the `hello` action method in `HomeController` so that the it includes the `name` parameter:
+To fix the compilation error, modify the `hello` action method in `HomeController` so that the it includes the `name` parameter when rendering the view:
 
 Java
 : 

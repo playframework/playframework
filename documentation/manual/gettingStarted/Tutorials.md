@@ -5,7 +5,7 @@ Play's documentation shows the available features and how to use them, but the d
 
 Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-Play uses [Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) to publish tutorials that cover a huge number of cases. There you can find projects in Java, Scala and for multiple versions of Play.  
+The Play team uses [Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) to publish tutorials that cover a huge number of cases. There you can find projects in Java, Scala and for multiple versions of Play.
 
 ## Third Party Tutorials and Templates
 

@@ -24,7 +24,7 @@ As illustrated below, Play is a full-stack framework with all of the components 
 
 Play APIs are available in both Java and Scala. The Framework uses [Akka](https://akka.io) and [Akka HTTP](https://doc.akka.io/docs/akka-http/current/index.html) under the hood. This endows Play applications with a stateless, non-blocking, event-driven architecture that provides horizontal and vertical scalability and uses resources more efficiently. Play projects contain Scala components, but you do not need to learn Scala to use Play successfully if you are a Java developer.
 
-The following describe just a few of the reasons why developers enjoy using Play framework:
+Here are just a few of the reasons developers love using Play Framework:
 
 - Its Model-View-Controller (MVC) architecture is familiar and easy to learn.
 - Direct support of common web development tasks and hot reloading save precious development time.

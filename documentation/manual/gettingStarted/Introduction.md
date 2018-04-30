@@ -10,7 +10,7 @@ As a full-stack framework, it includes all of the components you need to build W
 
 Play’s lightweight, stateless, web-friendly architecture uses Akka and Akka Streams under the covers to provide predictable and minimal resource consumption (CPU, memory, threads). Thanks to its reactive model, applications scale naturally--both horizontally and vertically. See [Elasticity](https://developer.lightbend.com/elastic-scaling/) and [Efficient Resource Usage](https://developer.lightbend.com/efficient-resource-usage/) for more information.
 
-Play is non-opinionated about database access, and integrates with many object relational mapping (ORM) layers.  It supports [[Anorm]], [[Ebean|JavaEbean]], [[Slick|PlaySlick]], and [[JPA|JavaJPA]], out-of-the-box but many customers use NoSQL or other ORMs.
+Play is non-opinionated about database access, and integrates with many object relational mapping (ORM) layers.  It supports [[Anorm]], [[Ebean|JavaEbean]], [[Slick|PlaySlick]], and [[JPA|JavaJPA]] out of the box, but many customers use NoSQL or other ORMs.
 
 Read more about [[Play philosophy and history|Philosophy]].
 
