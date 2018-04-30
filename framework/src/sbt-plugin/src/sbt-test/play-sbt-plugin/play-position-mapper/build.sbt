@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "secret-sample",
     version := "1.0-SNAPSHOT",
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
     libraryDependencies += guice,
     extraLoggers := {
       val currentFunction = extraLoggers.value
