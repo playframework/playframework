@@ -5,7 +5,9 @@ package play.core.j
 
 import java.util.concurrent.Executor
 
+import org.slf4j.MDC
 import play.mvc.Http
+
 import scala.compat.java8.FutureConverters
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
@@ -45,18 +47,25 @@ object HttpExecutionContext {
  * in the current thread. Actual execution is performed by a delegate ExecutionContext.
  */
 class HttpExecutionContext(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) extends ExecutionContextExecutor {
+  val mdcContext: java.util.Map[String, String] = MDC.getCopyOfContextMap()
+
   override def execute(runnable: Runnable) = delegate.execute(new Runnable {
     def run(): Unit = {
       val thread = Thread.currentThread()
       val oldContextClassLoader = thread.getContextClassLoader()
       val oldHttpContext = Http.Context.current.get()
+      val oldMdcContext = MDC.getCopyOfContextMap()
       thread.setContextClassLoader(contextClassLoader)
       Http.Context.current.set(httpContext)
+      if (mdcContext != null) {
+        MDC.setContextMap(mdcContext)
+      }
       try {
         runnable.run()
       } finally {
         thread.setContextClassLoader(oldContextClassLoader)
         Http.Context.current.set(oldHttpContext)
+        if (oldMdcContext == null) MDC.clear() else MDC.setContextMap(oldMdcContext)
       }
     }
   })
