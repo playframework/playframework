@@ -41,18 +41,25 @@ import scala.util.{ Failure, Success, Try }
  * Starts a Play server using Akka HTTP.
  */
 class AkkaHttpServer(
-    config: ServerConfig,
+    protected val config: ServerConfig,
     val applicationProvider: ApplicationProvider,
-    actorSystem: ActorSystem,
-    materializer: Materializer,
+    protected val actorSystem: ActorSystem,
+    protected val materializer: Materializer,
     stopHook: () => Future[_]) extends Server {
+
+  /**
+   * Construct an Akka HTTP server from a context object.
+   */
+  def this(context: ServerProvider.Context) = this(context.config, context.appProvider, context.actorSystem, context.materializer, context.stopHook)
 
   import AkkaHttpServer._
 
   assert(config.port.isDefined || config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
 
-  private val serverConfig = config.configuration.get[Configuration]("play.server")
-  private val akkaServerConfig = config.configuration.get[Configuration]("play.server.akka")
+  /** Helper to access server configuration under the `play.server` prefix. */
+  protected val serverConfig = config.configuration.get[Configuration]("play.server")
+  /** Helper to access server configuration under the `play.server.akka` prefix. */
+  protected val akkaServerConfig = config.configuration.get[Configuration]("play.server.akka")
 
   override def mode: Mode = config.mode
 
@@ -63,12 +70,21 @@ class AkkaHttpServer(
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
 
   /**
-   * The underlying Config object used to initialize Akka HTTP. We patch in a setting to enable
-   * or disable HTTP/2.
+   * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
+   *
+   * Note that the rest of the [[ActorSystem]] outside Akka HTTP is initialized by the configuration in [[config]].
    */
-  private val initialConfig: Config = (Configuration(system.settings.config) ++ Configuration(
-    "akka.http.server.preview.enable-http2" -> http2Enabled
-  )).underlying
+  protected val akkaHttpConfig: Config = createAkkaHttpConfig()
+
+  /**
+   * Creates the configuration used to initialize the Akka HTTP subsystem. By default this uses the ActorSystem's
+   * configuration, with an additional setting patched in to enable or disable HTTP/2.
+   */
+  protected def createAkkaHttpConfig(): Config = {
+    (Configuration(system.settings.config) ++ Configuration(
+      "akka.http.server.preview.enable-http2" -> http2Enabled
+    )).underlying
+  }
 
   /**
    * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
@@ -81,23 +97,26 @@ class AkkaHttpServer(
     }
   }
 
-  /**
-   * Play's custom parser settings for Akka HTTP.
-   */
-  private val parserSettings: ParserSettings = ParserSettings(initialConfig)
+  /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
+  protected val parserSettings: ParserSettings = createParserSettings()
+
+  /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
+  protected def createParserSettings(): ParserSettings = ParserSettings(akkaHttpConfig)
     .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
     .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
     .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
-  /** Listen for incoming connections and handle them with the `handleRequest` method. */
-  private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
-    val initialSettings = ServerSettings(initialConfig)
-
+  /**
+   * Create Akka HTTP settings for a given port binding.
+   *
+   * Called by Play when binding a handler to a server port. Will be called once per port. Called by the
+   * [[createServerBinding()]] method.
+   */
+  protected def createServerSettings(port: Int, connectionContext: ConnectionContext, secure: Boolean): ServerSettings = {
     val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
     val requestTimeout = akkaServerConfig.get[Duration]("requestTimeout")
-
-    // all akka settings that are applied to the server needs to be set here
-    val serverSettings: ServerSettings = initialSettings
+    val initialSettings = ServerSettings(akkaHttpConfig)
+    initialSettings
       .withTimeouts(
         initialSettings.timeouts
           .withIdleTimeout(idleTimeout)
@@ -111,15 +130,30 @@ class AkkaHttpServer(
       .withServerHeader(akkaServerConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => headers.Server(s) })
       .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
       .withParserSettings(parserSettings)
+  }
 
+  /**
+   * Create a handler for Akka HTTP requests.
+   *
+   * Called by Play when binding a handler to a server port. Will be called once per port. Called by the
+   * [[createServerBinding()]] method.
+   */
+  protected def createHandler(port: Int, connectionContext: ConnectionContext, secure: Boolean): HttpRequest ⇒ Future[HttpResponse] =
+    handleRequest(_, connectionContext.isSecure)
+
+  /**
+   * Bind Akka HTTP to a port to listen for incoming connections. Calls [[createServerSettings()]] to configure the
+   * binding and [[createHandler()]] to get a handler for the binding.
+   */
+  protected def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] = try {
       Http()
         .bindAndHandleAsync(
-          handler = handleRequest(_, connectionContext.isSecure),
+          handler = createHandler(port, connectionContext, secure),
           interface = config.address, port = port,
           connectionContext = connectionContext,
-          settings = serverSettings)
+          settings = createServerSettings(port, connectionContext, secure))
     } catch {
       // Http2SupportNotPresentException is private[akka] so we need to match the name
       case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
@@ -459,8 +493,7 @@ object AkkaHttpServer extends ServerFromRouter {
  */
 class AkkaHttpServerProvider extends ServerProvider {
   def createServer(context: ServerProvider.Context) =
-    new AkkaHttpServer(context.config, context.appProvider, context.actorSystem, context.materializer,
-      context.stopHook)
+    new AkkaHttpServer(context)
 }
 
 /**
