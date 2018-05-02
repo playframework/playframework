@@ -25,10 +25,10 @@ public class ServerFunctionalTest extends WithServer {
         OptionalInt optHttpsPort = testServer.getRunningHttpsPort();
         String url;
         int port;
-        if(optHttpsPort.isPresent()){
+        if(optHttpsPort.isPresent()) {
             port = optHttpsPort.getAsInt();
             url = "https://localhost:" + port;
-        }else {
+        } else {
             port = testServer.getRunningHttpPort().getAsInt();
             url = "http://localhost:" + port;
         }
