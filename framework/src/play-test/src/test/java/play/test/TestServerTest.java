@@ -23,8 +23,8 @@ public class TestServerTest {
 
     @Test
     public void shouldReturnHttpAndSslPorts() {
-        int port =  play.api.test.Helpers.testServerPort();
-        int sslPort =  port + 1;
+        int port = play.api.test.Helpers.testServerPort();
+        int sslPort = port + 1;
         final TestServer testServer = Helpers.testServer(port, sslPort);
         testServer.start();
         assertTrue("No value for ssl port", testServer.getRunningHttpsPort().isPresent());
