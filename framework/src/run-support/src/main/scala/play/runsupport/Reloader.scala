@@ -424,7 +424,7 @@ class Reloader(
               // they won't trigger a reload.
               val classpathFiles = classpath.iterator.filter(_.exists()).flatMap(_.toScala.listRecursively).map(_.toJava)
               val newLastModified =
-                (0L /: classpathFiles) { (acc, file) => math.max(acc, file.lastModified) }
+                classpathFiles.foldLeft(0L) { (acc, file) => math.max(acc, file.lastModified) }
               val triggered = newLastModified > lastModified
               lastModified = newLastModified
 
