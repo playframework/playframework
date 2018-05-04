@@ -40,32 +40,27 @@ import scala.util.{ Failure, Success, Try }
 /**
  * Starts a Play server using Akka HTTP.
  */
-class AkkaHttpServer(
-    protected val config: ServerConfig,
-    val applicationProvider: ApplicationProvider,
-    protected val actorSystem: ActorSystem,
-    protected val materializer: Materializer,
-    stopHook: () => Future[_]) extends Server {
+class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
-  /**
-   * Construct an Akka HTTP server from a context object.
-   */
-  def this(context: ServerProvider.Context) = this(context.config, context.appProvider, context.actorSystem, context.materializer, context.stopHook)
+  @deprecated("Use new AkkaHttpServer(Context) instead", "2.6.14")
+  def this(config: ServerConfig, applicationProvider: ApplicationProvider, actorSystem: ActorSystem, materializer: Materializer, stopHook: () => Future[_]) =
+    this(AkkaHttpServer.Context(config, applicationProvider, actorSystem, materializer, stopHook))
 
   import AkkaHttpServer._
 
-  assert(config.port.isDefined || config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
+  assert(context.config.port.isDefined || context.config.sslPort.isDefined, "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port")
 
   /** Helper to access server configuration under the `play.server` prefix. */
-  protected val serverConfig = config.configuration.get[Configuration]("play.server")
+  private val serverConfig = context.config.configuration.get[Configuration]("play.server")
   /** Helper to access server configuration under the `play.server.akka` prefix. */
-  protected val akkaServerConfig = config.configuration.get[Configuration]("play.server.akka")
+  private val akkaServerConfig = context.config.configuration.get[Configuration]("play.server.akka")
 
-  override def mode: Mode = config.mode
+  override def mode: Mode = context.config.mode
+  override def applicationProvider: ApplicationProvider = context.appProvider
 
   // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
-  implicit private val system: ActorSystem = actorSystem
-  implicit private val mat: Materializer = materializer
+  implicit private val system: ActorSystem = context.actorSystem
+  implicit private val mat: Materializer = context.materializer
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
 
@@ -133,25 +128,16 @@ class AkkaHttpServer(
   }
 
   /**
-   * Create a handler for Akka HTTP requests.
-   *
-   * Called by Play when binding a handler to a server port. Will be called once per port. Called by the
-   * [[createServerBinding()]] method.
-   */
-  protected def createHandler(port: Int, connectionContext: ConnectionContext, secure: Boolean): HttpRequest ⇒ Future[HttpResponse] =
-    handleRequest(_, connectionContext.isSecure)
-
-  /**
    * Bind Akka HTTP to a port to listen for incoming connections. Calls [[createServerSettings()]] to configure the
-   * binding and [[createHandler()]] to get a handler for the binding.
+   * binding and [[handleRequest()]] as a handler for the binding.
    */
-  protected def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
+  private def createServerBinding(port: Int, connectionContext: ConnectionContext, secure: Boolean): Http.ServerBinding = {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] = try {
       Http()
         .bindAndHandleAsync(
-          handler = createHandler(port, connectionContext, secure),
-          interface = config.address, port = port,
+          handler = handleRequest(_, connectionContext.isSecure),
+          interface = context.config.address, port = port,
           connectionContext = connectionContext,
           settings = createServerSettings(port, connectionContext, secure))
     } catch {
@@ -166,11 +152,11 @@ class AkkaHttpServer(
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption(), secure = false))
+  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption(), secure = false))
 
-  private val httpsServerBinding = config.sslPort.map { port =>
+  private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {
-      val engineProvider = ServerSSLEngine.createSSLEngineProvider(config, applicationProvider)
+      val engineProvider = ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider)
       // There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and
       // couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
@@ -287,7 +273,7 @@ class AkkaHttpServer(
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
       case Success(app) => app.actorSystem.dispatcher
-      case Failure(_) => actorSystem.dispatcher
+      case Failure(_) => system.dispatcher
     }
 
     (handler, upgradeToWebSocket) match {
@@ -295,7 +281,7 @@ class AkkaHttpServer(
       case (action: EssentialAction, _) =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>
-        val bufferLimit = config.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
+        val bufferLimit = context.config.configuration.getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit").toBytes.toInt
 
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
@@ -322,7 +308,7 @@ class AkkaHttpServer(
     action: EssentialAction,
     errorHandler: HttpErrorHandler): Future[HttpResponse] = {
     runAction(applicationProvider.get, request, taggedRequestHeader, requestBodySource,
-      action, errorHandler)(actorSystem.dispatcher)
+      action, errorHandler)(system.dispatcher)
   }
 
   private[play] def runAction(
@@ -396,7 +382,7 @@ class AkkaHttpServer(
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(stopHook(), Duration.Inf)
+    Await.result(context.stopHook(), Duration.Inf)
   }
 
   override lazy val mainAddress: InetSocketAddress = {
@@ -464,6 +450,48 @@ object AkkaHttpServer extends ServerFromRouter {
   private val logger = Logger(classOf[AkkaHttpServer])
 
   /**
+   * The values needed to initialize an [[AkkaHttpServer]].
+   *
+   * @param config Basic server configuration values.
+   * @param appProvider An object which can be queried to get an Application.
+   * @param actorSystem An ActorSystem that the server can use.
+   * @param stopHook A function that should be called by the server when it stops.
+   * This function can be used to close resources that are provided to the server.
+   */
+  final case class Context(
+      config: ServerConfig,
+      appProvider: ApplicationProvider,
+      actorSystem: ActorSystem,
+      materializer: Materializer,
+      stopHook: () => Future[_])
+
+  object Context {
+
+    /**
+     * Create a `Context` object from several common components.
+     */
+    def fromComponents(
+      serverConfig: ServerConfig,
+      application: Application,
+      stopHook: () => Future[_] = () => Future.successful(())): Context =
+      AkkaHttpServer.Context(
+        config = serverConfig,
+        appProvider = ApplicationProvider(application),
+        actorSystem = application.actorSystem,
+        materializer = application.materializer,
+        stopHook = stopHook
+      )
+
+    /**
+     * Create a `Context` object from a `ServerProvider.Context`.
+     */
+    def fromServerProviderContext(serverProviderContext: ServerProvider.Context): Context = {
+      import serverProviderContext._
+      AkkaHttpServer.Context(config, appProvider, actorSystem, materializer, stopHook)
+    }
+  }
+
+  /**
    * A ServerProvider for creating an AkkaHttpServer.
    */
   implicit val provider: AkkaHttpServerProvider = new AkkaHttpServerProvider
@@ -476,8 +504,7 @@ object AkkaHttpServer extends ServerFromRouter {
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): AkkaHttpServer = {
-    new AkkaHttpServer(config, ApplicationProvider(application), application.actorSystem,
-      application.materializer, () => Future.successful(()))
+    new AkkaHttpServer(Context.fromComponents(config, application))
   }
 
   override protected def createServerFromRouter(serverConf: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server = {
@@ -492,8 +519,9 @@ object AkkaHttpServer extends ServerFromRouter {
  * Knows how to create an AkkaHttpServer.
  */
 class AkkaHttpServerProvider extends ServerProvider {
-  def createServer(context: ServerProvider.Context) =
-    new AkkaHttpServer(context)
+  def createServer(context: ServerProvider.Context) = {
+    new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context))
+  }
 }
 
 /**
@@ -503,8 +531,7 @@ trait AkkaHttpServerComponents extends ServerComponents {
   lazy val server: AkkaHttpServer = {
     // Start the application first
     Play.start(application)
-    new AkkaHttpServer(serverConfig, ApplicationProvider(application), application.actorSystem,
-      application.materializer, serverStopHook)
+    new AkkaHttpServer(AkkaHttpServer.Context.fromComponents(serverConfig, application, serverStopHook))
   }
 
   def application: Application
