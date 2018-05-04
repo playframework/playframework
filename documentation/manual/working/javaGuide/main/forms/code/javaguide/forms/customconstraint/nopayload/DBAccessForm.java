@@ -2,12 +2,11 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.forms.customconstraint;
+package javaguide.forms.customconstraint.nopayload;
 
 //#user
 import play.data.validation.Constraints;
 import play.data.validation.ValidationError;
-//import play.data.validation.Constraints.ValidationPayload;
 import play.db.Database;
 
 @ValidateWithDB
@@ -37,12 +36,6 @@ public class DBAccessForm implements ValidatableWithDB<ValidationError> {
         }
         return null;
     }
-
-    // with payload:
-    //@Override
-    //public ValidationError validate(final Database db, final ValidationPayload payload) {
-    //    ...
-    //}
 
     // getters and setters
 
