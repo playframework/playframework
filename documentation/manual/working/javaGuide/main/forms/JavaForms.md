@@ -195,7 +195,7 @@ Using a group sequence is especially a good practice when you have a `validate` 
 
 ### Passing payloads to validators
 
-If needed, you can also pass a `ValidatorPayload` object - which contains useful information sometimes needed for a validation process - to a `validate` method.
+If needed, you can also pass a `ValidationPayload` object - which contains useful information sometimes needed for a validation process - to a `validate` method.
 To pass such a payload just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
 
 @[payload-validate](code/javaguide/forms/JavaForms.java)

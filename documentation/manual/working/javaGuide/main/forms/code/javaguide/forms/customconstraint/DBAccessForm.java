@@ -7,7 +7,7 @@ package javaguide.forms.customconstraint;
 //#user
 import play.data.validation.Constraints;
 import play.data.validation.ValidationError;
-//import play.data.validation.Constraints.ValidatorPayload;
+//import play.data.validation.Constraints.ValidationPayload;
 import play.db.Database;
 
 @ValidateWithDB
@@ -40,7 +40,7 @@ public class DBAccessForm implements ValidatableWithDB<ValidationError> {
 
     // with payload:
     //@Override
-    //public ValidationError validate(final Database db, final ValidatorPayload payload) {
+    //public ValidationError validate(final Database db, final ValidationPayload payload) {
     //    ...
     //}
 

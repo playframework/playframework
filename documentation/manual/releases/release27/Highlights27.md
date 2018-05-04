@@ -59,14 +59,14 @@ You can of course also make your own custom constraints `@Repeatable` as well an
 
 ## Payloads for Java `validate` and `isValid` methods
 
-When using [[advanced validation features|JavaForms#Advanced-validation]] you can now pass a `ValidatorPayload` object, containing useful information sometimes needed for a validation process, to a Java `validate` or `isValid` method.
+When using [[advanced validation features|JavaForms#Advanced-validation]] you can now pass a `ValidationPayload` object, containing useful information sometimes needed for a validation process, to a Java `validate` or `isValid` method.
 To pass such a payload to a `validate` method just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
 
 ```java
 import java.util.Map;
 import play.data.validation.Constraints.ValidatableWithPayload;
 import play.data.validation.Constraints.ValidateWithPayload;
-import play.data.validation.Constraints.ValidatorPayload;
+import play.data.validation.Constraints.ValidationPayload;
 import play.i18n.Lang;
 import play.i18n.Messages;
 
@@ -74,7 +74,7 @@ import play.i18n.Messages;
 public class SomeForm implements ValidatableWithPayload<String> {
 
     @Override
-    public String validate(ValidatorPayload payload) {
+    public String validate(ValidationPayload payload) {
         Lang lang = payload.getLang();
         Messages messages = payload.getMessages();
         Map<String, Object> ctxArgs = payload.getArgs();
@@ -89,7 +89,7 @@ In case you wrote your own [[custom class-level constraint|JavaForms#Custom-clas
 import javax.validation.ConstraintValidatorContext;
 
 import play.data.validation.Constraints.PlayConstraintValidatorWithPayload;
-import play.data.validation.Constraints.ValidatorPayload;
+import play.data.validation.Constraints.ValidationPayload;
 // ...
 
 public class ValidateWithDBValidator implements PlayConstraintValidatorWithPayload<SomeValidatorAnnotation, SomeValidatableInterface<?>> {
@@ -97,7 +97,7 @@ public class ValidateWithDBValidator implements PlayConstraintValidatorWithPaylo
     //...
 
     @Override
-    public boolean isValid(final SomeValidatableInterface<?> value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(final SomeValidatableInterface<?> value, final ValidationPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
         // You can now pass the payload on to your custom validate(...) method:
         return reportValidationStatus(value.validate(...., payload), constraintValidatorContext);
     }

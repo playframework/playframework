@@ -7,13 +7,13 @@ package javaguide.forms.customconstraint;
 //#interface
 import play.db.Database;
 
-//import play.data.validation.Constraints.ValidatorPayload;
+//import play.data.validation.Constraints.ValidationPayload;
 
 public interface ValidatableWithDB<T> {
 
     public T validate(final Database db);
 
     // or, if a payload is needed:
-    // public T validate(final Database db, final ValidatorPayload payload);
+    // public T validate(final Database db, final ValidationPayload payload);
 }
 //#interface

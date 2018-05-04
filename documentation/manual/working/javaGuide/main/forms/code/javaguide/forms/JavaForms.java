@@ -16,7 +16,7 @@ import play.data.validation.Constraints.Validate;
 import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.Validatable;
 import play.data.validation.Constraints.ValidatableWithPayload;
-import play.data.validation.Constraints.ValidatorPayload;
+import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.Messages;
@@ -539,7 +539,7 @@ public class JavaForms extends WithApplication {
     //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
     //###insert: import play.data.validation.Constraints.ValidateWithPayload;
     //###insert: import play.data.validation.ValidationError;
-    //###insert: import play.data.validation.ValidatorPayload;
+    //###insert: import play.data.validation.ValidationPayload;
 
     //###insert: import play.i18n.Lang;
     //###insert: import play.i18n.Messages;
@@ -551,7 +551,7 @@ public class JavaForms extends WithApplication {
         // fields, getters, setters, etc.
 
         @Override
-        public ValidationError validate(ValidatorPayload payload) {
+        public ValidationError validate(ValidationPayload payload) {
             Lang lang = payload.getLang();
             Messages messages = payload.getMessages();
             Map<String, Object> ctxArgs = payload.getArgs();

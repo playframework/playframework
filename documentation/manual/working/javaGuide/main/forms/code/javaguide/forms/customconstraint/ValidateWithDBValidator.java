@@ -10,7 +10,7 @@ import javax.validation.ConstraintValidatorContext;
 
 import play.data.validation.Constraints.PlayConstraintValidator;
 //import play.data.validation.Constraints.PlayConstraintValidatorWithPayload;
-//import play.data.validation.Constraints.ValidatorPayload;
+//import play.data.validation.Constraints.ValidationPayload;
 
 import play.db.Database;
 
@@ -35,7 +35,7 @@ public class ValidateWithDBValidator implements PlayConstraintValidator<Validate
 
     // or, if you want to pass a payload:
     //@Override
-    //public boolean isValid(final ValidatableWithDB<?> value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
+    //public boolean isValid(final ValidatableWithDB<?> value, final ValidationPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
     //    return reportValidationStatus(value.validate(this.db, payload), constraintValidatorContext);
     //}
 }

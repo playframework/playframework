@@ -20,7 +20,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
-import play.data.validation.Constraints.ValidatorPayload;
+import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
@@ -381,7 +381,7 @@ public class Form<T> {
             dataBinder.bind(new MutablePropertyValues(objectData));
             final Http.Context ctx = Http.Context.current.get();
             // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set
-            final ValidatorPayload payload = (ctx != null) ? new ValidatorPayload(ctx.lang(), ctx.messages(), ctx.args) : ValidatorPayload.empty();
+            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args) : ValidationPayload.empty();
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);

@@ -17,11 +17,10 @@ import javax.validation.ConstraintValidator;
 import javax.validation.Payload;
 
 import play.api.i18n.Lang;
-import play.data.validation.Constraints.ValidatorPayload;
+import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.Constraints.ValidatorWithPayload;
 import play.data.validation.Constraints.Validator;
 import play.i18n.MessagesApi;
-import play.mvc.Http;
 
 import org.springframework.context.i18n.LocaleContextHolder;
 
@@ -71,7 +70,7 @@ public class TestConstraints {
         }
 
         @Override
-        public boolean isValid(String object, ValidatorPayload payload) {
+        public boolean isValid(String object, ValidationPayload payload) {
             if(object == null || object.length() == 0) {
                 return true;
             }

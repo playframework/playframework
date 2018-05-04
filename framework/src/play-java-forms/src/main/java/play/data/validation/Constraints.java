@@ -64,7 +64,7 @@ public class Constraints {
          * @param payload   the payload providing validation context information.
          * @return {@code true} if this value is valid.
          */
-        public abstract boolean isValid(T object, ValidatorPayload payload);
+        public abstract boolean isValid(T object, ValidationPayload payload);
 
         /**
          * @param object            the object to check
@@ -72,19 +72,19 @@ public class Constraints {
          * @return {@code true} if this value is valid for the given constraint.
          */
         public boolean isValid(T object, ConstraintValidatorContext constraintContext) {
-            return isValid(object, constraintContext.unwrap(HibernateConstraintValidatorContext.class).getConstraintValidatorPayload(ValidatorPayload.class));
+            return isValid(object, constraintContext.unwrap(HibernateConstraintValidatorContext.class).getConstraintValidatorPayload(ValidationPayload.class));
         }
 
         public abstract Tuple<String, Object[]> getErrorMessageKey();
 
     }
 
-    public static class ValidatorPayload {
+    public static class ValidationPayload {
         private final Lang lang;
         private final Messages messages;
         private final Map<String, Object> args;
 
-        public ValidatorPayload(final Lang lang, final Messages messages, final Map<String, Object> args) {
+        public ValidationPayload(final Lang lang, final Messages messages, final Map<String, Object> args) {
             this.lang = lang;
             this.messages = messages;
             this.args = args;
@@ -111,8 +111,8 @@ public class Constraints {
             return this.args;
         }
 
-        public static ValidatorPayload empty() {
-            return new ValidatorPayload(null, null, null);
+        public static ValidationPayload empty() {
+            return new ValidationPayload(null, null, null);
         }
     }
 
@@ -762,7 +762,7 @@ public class Constraints {
         }
 
         @SuppressWarnings("unchecked")
-        public boolean isValid(Object object, ValidatorPayload payload) {
+        public boolean isValid(Object object, ValidationPayload payload) {
             try {
                 return validator.isValid(object, payload);
             } catch(Exception e) {
@@ -829,7 +829,7 @@ public class Constraints {
     }
 
     public interface ValidatableWithPayload<T> {
-        T validate(ValidatorPayload payload);
+        T validate(ValidationPayload payload);
     }
 
     public static class ValidateValidator implements PlayConstraintValidator<Validate, Validatable<?>> {
@@ -851,7 +851,7 @@ public class Constraints {
         }
 
         @Override
-        public boolean isValid(final ValidatableWithPayload<?> value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
+        public boolean isValid(final ValidatableWithPayload<?> value, final ValidationPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
             return reportValidationStatus(value.validate(payload), constraintValidatorContext);
         }
     }
@@ -877,9 +877,9 @@ public class Constraints {
 
         @Override
         default boolean isValid(final T value, final ConstraintValidatorContext constraintValidatorContext) {
-            return isValid(value, constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).getConstraintValidatorPayload(ValidatorPayload.class), constraintValidatorContext);
+            return isValid(value, constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).getConstraintValidatorPayload(ValidationPayload.class), constraintValidatorContext);
         }
 
-        boolean isValid(final T value, final ValidatorPayload payload, final ConstraintValidatorContext constraintValidatorContext);
+        boolean isValid(final T value, final ValidationPayload payload, final ConstraintValidatorContext constraintValidatorContext);
     }
 }
