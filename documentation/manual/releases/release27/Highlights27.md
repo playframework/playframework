@@ -105,6 +105,8 @@ public class ValidateWithDBValidator implements PlayConstraintValidatorWithPaylo
 }
 ```
 
+> Don't get confused with `ValidationPayload` and `ConstraintValidatorContext`: The former class is provided by Play and is what you use in your day-to-day work when dealing with forms in Play. The latter class is defined by the Bean Validation specification and is used only internally in Play - with one exception: This class emerges when your write your own custom class-level constraints, like in the last example above, where you only need to pass it on to the `reportValidationStatus` method however anyway.
+
 ## Support for Caffeine
 
 Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recommended cache implementation for Play users.
