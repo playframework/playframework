@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 
 # Implementing Hello World
 
@@ -17,7 +17,7 @@ Follow the instructions below to add a new Hello World page to this project.
 
 With any text editor, create a file named `hello.scala.html` and save it in the `app/views` directory of this project. Add the following contents to the file:
 
-@[hello-world-page](code/commonguide/hello/views/hello.scala.html)
+@[hello-world-page](code/javaguide/hello/hello.scala.html)
 
 This Twirl and HTML markup accomplishes the following:
 
@@ -49,7 +49,7 @@ To define a route for the new Hello page:
 
 Open the `conf/routes` file and add the following line:
 
-@[hello-world-hello-route](code/commonguide/routes)
+@[hello-world-hello-route](code/routes)
 
 When you add a route to the `routes` file, Play's routes compiler will automatically generate a router class that calls that action using an instance of your controller. For more information see the [routing documentation](https://www.playframework.com/documentation/2.6.x/ScalaRouting#HTTP-routing). By default, the controller instances are created using dependency injection (see docs for [[Java|JavaDependencyInjection]] and [[Scala|ScalaDependencyInjection]]).
 
@@ -77,13 +77,17 @@ Scala
 
 In the `conf/routes` file, add a (name: String) parameter at the end of the `hello`:
 
-@[hello-world-hello-name-route](code/commonguide/routes)
+@[hello-world-hello-name-route](code/routes)
 
 In Twirl templates, all variables and their types must be declared. In the `app/views/hello.scala.html` file:
 
 1. Insert a new line at the top of the file.
 1. On that line, add an @ directive that declares the name parameter and its type: `@(name: String)`
 1. To use the variable on the page, change the text in the `<h2>` heading from `Hello World!` to `<h2>Hello @name!</h2>`.
+
+The end result will be:
+
+@[](code/javaguide/hello/helloName.scala.html)
 
 In the browser, enter the following URL and pass in any name as a query parameter to the hello method: <http://localhost:9000/hello?name=MyName>. Play responds with a helpful compilation error that lets you know that the render method in the return value requires a typed parameter:
 

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play Application Overview
 
@@ -44,7 +44,7 @@ Scala
 
 To view the route that maps the browser request to the controller method, open the `conf/routes` file. A route consists of an HTTP method, a path, and an action. This control over the URL schema makes it easy to design clean, human-readable, bookmarkable URLs. The following line maps a GET request for the root URL `/` to the `index` action in `HomeController`:
 
-@[hello-world-index-route](code/commonguide/routes)
+@[hello-world-index-route](code/routes)
 
 Open `app/views/index.scala.html` with your text editor. The main directive in this file calls the main template `main.scala.html` with the string Welcome to generate the page. You can open `app/views/main.scala.html` to see how a `String` parameter sets the page title.
 
