@@ -42,7 +42,8 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
         "ScalaJsonTransformers"
       )),
 
-      PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
+      PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "working" / "gettingStarted" ** "code").get,
       PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
           (baseDirectory.value / "manual" / "experimental" ** "code").get,
       PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
