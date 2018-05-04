@@ -63,18 +63,21 @@ When using [[advanced validation features|JavaForms#Advanced-validation]] you ca
 To pass such a payload to a `validate` method just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
 
 ```java
+import java.util.Map;
 import play.data.validation.Constraints.ValidatableWithPayload;
 import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.ValidatorPayload;
+import play.i18n.Lang;
+import play.i18n.Messages;
 
 @ValidateWithPayload
 public class SomeForm implements ValidatableWithPayload<String> {
 
     @Override
     public String validate(ValidatorPayload payload) {
-        payload.getLang(); // language of the current request
-        payload.getMessages(); // messages defined for the current lang
-        payload.getArgs(); // request context args
+        Lang lang = payload.getLang();
+        Messages messages = payload.getMessages();
+        Map<String, Object> ctxArgs = payload.getArgs();
         // ...
     }
 

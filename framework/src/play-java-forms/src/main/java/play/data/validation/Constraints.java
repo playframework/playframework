@@ -110,6 +110,10 @@ public class Constraints {
         public Map<String, Object> getArgs() {
             return this.args;
         }
+
+        public static ValidatorPayload empty() {
+            return new ValidatorPayload(null, null, null);
+        }
     }
 
     /**

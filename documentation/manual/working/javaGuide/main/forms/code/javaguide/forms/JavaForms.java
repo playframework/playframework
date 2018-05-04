@@ -18,6 +18,8 @@ import play.data.validation.Constraints.Validatable;
 import play.data.validation.Constraints.ValidatableWithPayload;
 import play.data.validation.Constraints.ValidatorPayload;
 import play.data.validation.ValidationError;
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
 import play.test.WithApplication;
@@ -532,21 +534,27 @@ public class JavaForms extends WithApplication {
     }
 
     //#payload-validate
+    //###insert: import java.util.Map;
+
     //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
     //###insert: import play.data.validation.Constraints.ValidateWithPayload;
     //###insert: import play.data.validation.ValidationError;
     //###insert: import play.data.validation.ValidatorPayload;
 
+    //###insert: import play.i18n.Lang;
+    //###insert: import play.i18n.Messages;
+
     @ValidateWithPayload
+    //###replace: public class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
     public static class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
 
         // fields, getters, setters, etc.
 
         @Override
         public ValidationError validate(ValidatorPayload payload) {
-            payload.getLang(); // language of the current request
-            payload.getMessages(); // messages defined for the current lang
-            payload.getArgs(); // request context args
+            Lang lang = payload.getLang();
+            Messages messages = payload.getMessages();
+            Map<String, Object> ctxArgs = payload.getArgs();
             // ...
             //###skip: 1
             return null;

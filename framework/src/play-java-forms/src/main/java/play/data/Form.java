@@ -381,7 +381,7 @@ public class Form<T> {
             dataBinder.bind(new MutablePropertyValues(objectData));
             final Http.Context ctx = Http.Context.current.get();
             // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set
-            final ValidatorPayload payload = (ctx != null) ? new ValidatorPayload(ctx.lang(), ctx.messages(), ctx.args) : new ValidatorPayload(null, null, null);
+            final ValidatorPayload payload = (ctx != null) ? new ValidatorPayload(ctx.lang(), ctx.messages(), ctx.args) : ValidatorPayload.empty();
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
