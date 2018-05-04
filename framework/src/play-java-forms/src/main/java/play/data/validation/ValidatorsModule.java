@@ -10,6 +10,7 @@ import play.api.inject.Binding;
 import scala.collection.Seq;
 
 import javax.validation.ConstraintValidatorFactory;
+import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 public class ValidatorsModule extends play.api.inject.Module {
@@ -17,6 +18,7 @@ public class ValidatorsModule extends play.api.inject.Module {
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         return seq(
                 bind(ConstraintValidatorFactory.class).to(DefaultConstraintValidatorFactory.class),
+                bind(Validator.class).toProvider(ValidatorProvider.class),
                 bind(ValidatorFactory.class).toProvider(ValidatorFactoryProvider.class)
         );
     }
