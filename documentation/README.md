@@ -85,7 +85,7 @@ cd $PLAY_HOME/framework
 sbt compile doc package
 ```
 
-All Play projects can see documentation embedded by going to [http://localhost:9000/@documentation](http://localhost:9000/@documentation).  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](https://github.com/playframework/play-doc) for generating HTML from the raw Markdown.  
+All Play projects can see documentation embedded by going to <http://localhost:9000/@documentation>.  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](https://github.com/playframework/play-doc) for generating HTML from the raw Markdown.  
 
 ## Running
 

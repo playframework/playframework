@@ -2,7 +2,7 @@
 
 # Play Application Overview
 
-This tutorial is implemented as a simple Play application that we can examine to start learning about Play. Let's first look at what happens at runtime. When you enter <http://localhost:9000> in your browser:
+This tutorial is implemented as a simple Play application that we can examine to start learning about Play. Let's first look at what happens at runtime. When you enter <a target="play-docs" href="http://localhost:9000/">http://localhost:9000/</a> in your browser:
 
 1. The browser requests the root `/` URI from the HTTP server using the `GET` method.
 1. The Play internal HTTP Server receives the request.

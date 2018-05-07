@@ -55,7 +55,7 @@ When you add a route to the `routes` file, Play's routes compiler will automatic
 
 You are now ready to test the new page. If you stopped the application for some reason, restart it with the `sbt run` command.
 
-Enter the URL <http://localhost:9000/hello> to view the results of your work. The browser should respond with something like the following:
+Enter the URL <a target="play-docs" href="http://localhost:9000">http://localhost:9000</a> to view the results of your work. The browser should respond with something like the following:
 
 [[images/hello-page.png]]
 
@@ -89,7 +89,7 @@ The end result will be:
 
 @[](code/javaguide/hello/helloName.scala.html)
 
-In the browser, enter the following URL and pass in any name as a query parameter to the hello method: <http://localhost:9000/hello?name=MyName>. Play responds with a helpful compilation error that lets you know that the render method in the return value requires a typed parameter:
+In the browser, enter the following URL and pass in any name as a query parameter to the hello method: <a target="play-docs" href="http://localhost:9000/hello?name=MyName">http://localhost:9000/hello?name=MyName</a>. Play responds with a helpful compilation error that lets you know that the render method in the return value requires a typed parameter:
 
 [[images/hello-error.png]]
 
