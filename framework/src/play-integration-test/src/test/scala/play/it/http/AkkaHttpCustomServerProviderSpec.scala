@@ -56,7 +56,7 @@ class AkkaHttpCustomServerProviderSpec extends PlaySpecification
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, supports FOO)")
       .withServerProvider(new ServerProvider {
         def createServer(context: ServerProvider.Context) =
-          new AkkaHttpServer(context) {
+          new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
             override protected def createParserSettings(): ParserSettings = {
               super.createParserSettings.withCustomMethods(HttpMethod.custom("FOO"))
             }
@@ -75,7 +75,7 @@ class AkkaHttpCustomServerProviderSpec extends PlaySpecification
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, long headers)")
       .withServerProvider(new ServerProvider {
         def createServer(context: ServerProvider.Context) =
-          new AkkaHttpServer(context) {
+          new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
             override protected def createParserSettings(): ParserSettings = {
               super.createParserSettings.withMaxHeaderNameLength(100)
             }
