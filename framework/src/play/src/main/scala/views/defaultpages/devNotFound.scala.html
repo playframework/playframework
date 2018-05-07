@@ -2,12 +2,12 @@
  * Default page for 404 Not Found responses, in development mode.
  * This page display the routes file content.
  *@
-@(method: String, uri: String, router: Option[play.api.routing.Router])
+@(method: String, uri: String, router: Option[play.api.routing.Router])(implicit request: play.api.mvc.RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <title>Action Not Found</title>
-        <style>
+        @views.html.helper.style('type -> "text/css") {
             html, body, pre {
                 margin: 0;
                 padding: 0;
@@ -96,7 +96,7 @@
                 color: #fff;
                 text-shadow: 1px 1px 1px rgba(0,0,0,.3);
             }
-        </style>
+        }
     </head>
     <body>
         <h1>Action Not Found</h1>

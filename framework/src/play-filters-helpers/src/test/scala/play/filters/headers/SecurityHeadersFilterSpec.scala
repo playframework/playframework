@@ -63,7 +63,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
       header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
     }
 
@@ -78,7 +78,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
       header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
     }
 
@@ -231,55 +231,55 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     "action-specific headers" should {
       "use provided header instead of config value if allowActionSpecificHeaders=true in config" in withApplication(
         Ok("hello")
-          .withHeaders(CONTENT_SECURITY_POLICY_HEADER → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY → "my action-specific header"),
         """
-          |play.filters.headers.contentSecurityPolicy="some content security policy"
+          |play.filters.headers.referrerPolicy="some policy"
           |play.filters.headers.allowActionSpecificHeaders=true
         """.stripMargin) { app =>
 
           val result = route(app, FakeRequest()).get
 
-          header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("my action-specific header")
+          header(REFERRER_POLICY, result) must beSome("my action-specific header")
           header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
         }
 
       "use provided header instead of default if allowActionSpecificHeaders=true in config" in withApplication(
         Ok("hello")
-          .withHeaders(CONTENT_SECURITY_POLICY_HEADER → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY → "my action-specific header"),
         """
           |play.filters.headers.allowActionSpecificHeaders=true
         """.stripMargin) { app =>
           val result = route(app, FakeRequest()).get
 
-          header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("my action-specific header")
+          header(REFERRER_POLICY, result) must beSome("my action-specific header")
           header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
         }
 
       "reject action-specific override if allowActionSpecificHeaders=false in config" in withApplication(
         Ok("hello")
-          .withHeaders(CONTENT_SECURITY_POLICY_HEADER → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY → "my action-specific header"),
         """
-          |play.filters.headers.contentSecurityPolicy="some content security policy"
+          |play.filters.headers.referrerPolicy="some policy"
           |play.filters.headers.allowActionSpecificHeaders=false
         """.stripMargin) { app =>
           val result = route(app, FakeRequest()).get
 
           // from config
-          header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("some content security policy")
+          header(REFERRER_POLICY, result) must beSome("some policy")
           // default
           header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
         }
 
       "reject action-specific override if allowActionSpecificHeaders is not mentioned in config" in withApplication(
         Ok("hello")
-          .withHeaders(CONTENT_SECURITY_POLICY_HEADER → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY → "my action-specific header"),
         """
-          |play.filters.headers.contentSecurityPolicy="some content security policy"
+          |play.filters.headers.referrerPolicy="some policy"
         """.stripMargin) { app =>
           val result = route(app, FakeRequest()).get
 
           // from config
-          header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("some content security policy")
+          header(REFERRER_POLICY, result) must beSome("some policy")
           // default
           header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
         }

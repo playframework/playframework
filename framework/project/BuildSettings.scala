@@ -217,7 +217,46 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_FRAME_OPTIONS"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_FRAME_OPTIONS_="),
 
-      // private
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_CONTENT_SECURITY_POLICY_NONCE_HEADER_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CONTENT_SECURITY_POLICY_REPORT_ONLY"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CONTENT_SECURITY_POLICY_REPORT_ONLY_="),
+
+      ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Results.TODO"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Controller.TODO"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.devError$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.devError.render"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.devError.apply"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.badRequest$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.badRequest.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.badRequest.render"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.todo$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.todo.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.todo.render"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.devNotFound$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.devNotFound.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.devNotFound.render"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.error$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.error.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.error.render"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.jsloader$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.jsloader.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.jsloader.render"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.notFound$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.notFound.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.notFound.render"),
+
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.unauthorized$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.unauthorized.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.defaultpages.unauthorized.render"),
+
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.akkahttp.AkkaModelConversion.this"),
 
       // Added method to PlayBodyParsers, which is a Play API not meant to be extended by end users.

@@ -5,11 +5,10 @@
 package play.api.mvc
 
 import javax.inject.Inject
-
 import play.api.Logger
 import play.api.http._
 import play.api.i18n.{ Lang, Langs, MessagesApi }
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.ExecutionContext
 
@@ -36,7 +35,7 @@ trait ControllerHelpers extends Results with HttpProtocol with Status with Heade
    *   def action(query: String) = TODO
    * }}}
    */
-  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody {
+  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody { implicit request =>
     NotImplemented[Html](views.html.defaultpages.todo())
   }
 }

@@ -33,6 +33,7 @@ import java.util.List;
 public interface HttpFiltersComponents extends
         AllowedHostsComponents,
         CORSComponents,
+        CSPComponents,
         CSRFComponents,
         GzipFilterComponents,
         RedirectHttpsComponents,

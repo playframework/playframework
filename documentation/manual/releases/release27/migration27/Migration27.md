@@ -89,6 +89,35 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
 
+### SecurityHeadersFilter's contentSecurityPolicy deprecated for CSPFilter
+
+The [[SecurityHeaders filter|SecurityHeaders]] has a `contentSecurityPolicy` property: this is deprecated in 2.7.0.  `contentSecurityPolicy` has been changed from `default-src 'self'` to `null` -- the default setting of `null` means that a `Content-Security-Policy` header will not be added to HTTP responses from the SecurityHeaders filter.  Please use the new [[CSPFilter]] to enable CSP functionality.
+
+If `play.filters.headers.contentSecurityPolicy` is not `null`, you will receive a warning.  It is technically possible to have `contentSecurityPolicy` and the new `CSPFilter` active at the same time, but this is not recommended.
+
+You can enable the new `CSPFilter` by adding it to the `play.filters.enabled` property:
+
+```hocon
+play.filters.enabled += play.filters.csp.CSPFilter
+```
+
+> **NOTE**: You will want to review the Content Security Policy closely to ensure it meets your needs.  The new `CSPFilter` is notably more permissive than `default-src ‘self’`, and is based off the Google Strict CSP configuration.  You can use the `report-only` functionality with a [[CSP report controller|CSPFilter#Configuring-CSP-Report-Only]] to review policy violations.
+
+Please see the documentation in [[CSPFilter]] for more information.
+
+### play.mvc.Results.TODO moved to play.mvc.Controller.TODO
+
+All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO()` method in `play.mvc.Controller` instead:
+
+```java
+public abstract class Controller extends Results implements Status, HeaderNames {
+    public static Result TODO() {
+        play.mvc.Http.Request request = Http.Context.current().request();
+        return status(NOT_IMPLEMENTED, views.html.defaultpages.todo.render(request.asScala()));
+    }
+}
+```
+
 ### `Guava` version updated to 24.0-jre
 
 Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 24.1-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).

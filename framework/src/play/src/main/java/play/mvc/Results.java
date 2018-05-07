@@ -25,14 +25,6 @@ public class Results {
 
     private static final String UTF8 = "utf-8";
 
-    // -- Constructor methods
-
-    /**
-     * Generates a 501 NOT_IMPLEMENTED simple result.
-     */
-    public static final Result TODO = status(NOT_IMPLEMENTED,
-            views.html.defaultpages.todo.render());
-
     // -- Status
 
     /**

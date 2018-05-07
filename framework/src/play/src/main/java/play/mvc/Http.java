@@ -2310,6 +2310,8 @@ public class Http {
         String X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
         String X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies";
         String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
+        String CONTENT_SECURITY_POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only";
+        String X_CONTENT_SECURITY_POLICY_NONCE_HEADER = "X-Content-Security-Policy-Nonce";
         String REFERRER_POLICY = "Referrer-Policy";
     }
 

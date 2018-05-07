@@ -5,7 +5,6 @@
 package play.api.http
 
 import javax.inject._
-
 import play.api._
 import play.api.inject.{ Binding, BindingKey }
 import play.api.mvc.Results._
@@ -130,7 +129,10 @@ class DefaultHttpErrorHandler(
    * @param message The error message.
    */
   protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message)))
+    Future.successful {
+      implicit val ir: RequestHeader = request
+      BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message))
+    }
 
   /**
    * Invoked when a client makes a request that was forbidden.
@@ -139,7 +141,10 @@ class DefaultHttpErrorHandler(
    * @param message The error message.
    */
   protected def onForbidden(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(Forbidden(views.html.defaultpages.unauthorized()))
+    Future.successful {
+      implicit val ir: RequestHeader = request
+      Forbidden(views.html.defaultpages.unauthorized())
+    }
 
   /**
    * Invoked when a handler or resource is not found.
@@ -148,10 +153,14 @@ class DefaultHttpErrorHandler(
    * @param message A message.
    */
   protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(NotFound(
-      if (config.showDevErrors) views.html.defaultpages.devNotFound(request.method, request.uri, router)
-      else views.html.defaultpages.notFound(request.method, request.uri)
-    ))
+    Future.successful {
+      implicit val ir: RequestHeader = request
+      if (config.showDevErrors) {
+        NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, router))
+      } else {
+        NotFound(views.html.defaultpages.notFound(request.method, request.uri))
+      }
+    }
   }
 
   /**
@@ -163,7 +172,10 @@ class DefaultHttpErrorHandler(
    * @param message The error message.
    */
   protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    Future.successful(Results.Status(statusCode)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
+    Future.successful {
+      implicit val ir: RequestHeader = request
+      Results.Status(statusCode)(views.html.defaultpages.badRequest(request.method, request.uri, message))
+    }
   }
 
   /**
@@ -218,8 +230,12 @@ class DefaultHttpErrorHandler(
    * @param request The request that triggered the error.
    * @param exception The exception.
    */
-  protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] =
-    Future.successful(InternalServerError(views.html.defaultpages.devError(playEditor, exception)))
+  protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
+    Future.successful {
+      implicit val ir: RequestHeader = request
+      InternalServerError(views.html.defaultpages.devError(playEditor, exception))
+    }
+  }
 
   /**
    * Invoked in prod mode when a server error occurs.
@@ -231,7 +247,10 @@ class DefaultHttpErrorHandler(
    * @param exception The exception.
    */
   protected def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] =
-    Future.successful(InternalServerError(views.html.defaultpages.error(exception)))
+    Future.successful {
+      implicit val ir: RequestHeader = request
+      InternalServerError(views.html.defaultpages.error(exception))
+    }
 
 }
 
