@@ -1,7 +1,8 @@
 <!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play Requirements
-Play is a series of libraries available in Maven Repository so that you can use any Java or Scala build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by sbt or Gradle.
+
+A Play application only needs to include the Play JAR files to run properly. These JAR files are published to the Maven Repository so you can use any Java or Scala build tool to build a Play project. However, Play provides an enhanced development experience (support for routes, templates compilation and auto-reloading) when using the sbt or Gradle build tools.
 
 Play requires:
 

@@ -75,7 +75,7 @@ Scala
 : 
 @[hello-world-hello-error-action](code/scalaguide/hello/HelloController.scala)
 
-In the `conf/routes` file, add a (name: String) parameter at the end of the `hello`:
+In the `conf/routes` file, add a `(name: String)` parameter at the end of the `hello`:
 
 @[hello-world-hello-name-route](code/routes)
 

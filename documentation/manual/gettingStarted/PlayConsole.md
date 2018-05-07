@@ -45,7 +45,7 @@ And you will see something like:
 
 ## Development mode
 
-In this mode, sbt launches Play with the auto-reload feature enabled. For each request, Play will watch your project files and recompile required sources when they change. If needed the application will restart automatically.
+In this mode, sbt launches Play with the auto-reload feature enabled. When you make a request, Play will automatically recompile and restart your server if any files have changed. If needed the application will restart automatically.
 
 With sbt in interactive mode, run the current application in development mode, use the `run` command:
 

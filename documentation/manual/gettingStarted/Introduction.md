@@ -4,7 +4,7 @@
 
 Play is a high-productivity Java and Scala web application framework that integrates components and APIs for modern web application development. Play was developed by web developers for web application development.
 
-You will find Play's Model-View-Controller (MVC) architecture familiar and easy to learn. Play provides concise and functional programming patterns. And, the large community developing Play applications provides an excellent resource for getting your questions answered.
+You will find Play's Model-View-Controller (MVC) architecture familiar and easy to learn. Play provides concise and functional programming patterns. And the large community developing Play applications provides an excellent resource for getting your questions answered.
 
 As a full-stack framework, it includes all of the components you need to build Web Applications and REST services, such as an integrated HTTP server, form handling, Cross-Site Request Forgery (CSRF) protection, a powerful routing mechanism, I18n support, and more. Play saves precious development time by directly supporting everyday tasks and hot reloading so that you can immediately view the results of your work.
 
