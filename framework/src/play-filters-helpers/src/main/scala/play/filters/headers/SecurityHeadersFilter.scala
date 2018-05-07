@@ -6,7 +6,7 @@ package play.filters.headers
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import play.api.Configuration
+import play.api.{ ConfigLoader, Configuration }
 import play.api.http.HeaderNames
 import play.api.inject._
 import play.api.mvc._
@@ -108,17 +108,10 @@ case class SecurityHeadersConfig(
  */
 object SecurityHeadersConfig {
 
-  def fromConfiguration(conf: Configuration): SecurityHeadersConfig = {
-    val config = conf.get[Configuration]("play.filters.headers")
+  private implicit val configLoader: ConfigLoader[SecurityHeadersConfig] = ConfigLoader.forClass
 
-    SecurityHeadersConfig(
-      frameOptions = config.get[Option[String]]("frameOptions"),
-      xssProtection = config.get[Option[String]]("xssProtection"),
-      contentTypeOptions = config.get[Option[String]]("contentTypeOptions"),
-      permittedCrossDomainPolicies = config.get[Option[String]]("permittedCrossDomainPolicies"),
-      contentSecurityPolicy = config.get[Option[String]]("contentSecurityPolicy"),
-      referrerPolicy = config.get[Option[String]]("referrerPolicy"),
-      allowActionSpecificHeaders = config.get[Option[Boolean]]("allowActionSpecificHeaders").getOrElse(false))
+  def fromConfiguration(conf: Configuration): SecurityHeadersConfig = {
+    conf.get[SecurityHeadersConfig]("play.filters.headers")
   }
 }
 

@@ -7,7 +7,7 @@ package play.filters.hosts
 import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.MarkerContexts.SecurityMarkerContext
-import play.api.{ Configuration, Logger }
+import play.api.{ ConfigLoader, Configuration, Logger }
 import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject._
 import play.api.libs.streams.Accumulator
@@ -75,11 +75,14 @@ case class AllowedHostsConfig(allowed: Seq[String]) {
 }
 
 object AllowedHostsConfig {
+
+  private implicit val configLoader: ConfigLoader[AllowedHostsConfig] = ConfigLoader.forClass
+
   /**
    * Parses out the AllowedHostsConfig from play.api.Configuration (usually this means application.conf).
    */
   def fromConfiguration(conf: Configuration): AllowedHostsConfig = {
-    AllowedHostsConfig(conf.get[Seq[String]]("play.filters.hosts.allowed"))
+    conf.get[AllowedHostsConfig]("play.filters.hosts")
   }
 }
 

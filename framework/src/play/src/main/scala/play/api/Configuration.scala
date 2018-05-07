@@ -1023,6 +1023,29 @@ trait ConfigLoader[A] { self =>
 
 object ConfigLoader {
 
+  import scala.language.experimental.macros
+
+  /**
+   * Generate a ConfigLoader for a class using the parameters of a single public constructor.
+   *
+   * For example:
+   *
+   * {{{
+   *   case class Person(firstName: String, lastName: String, age: Int)
+   *   object Person {
+   *     implicit val configLoader: ConfigLoader[Person] = ConfigLoader.forClass[Person]
+   *   }
+   *
+   *   // assume config is "person { firstName = Arthur, lastName = Dent, age = 42 }"
+   *   val person = config.get[Person]("person")
+   *   // person is Person("Arthur", "Dent", 42)
+   * }}}
+   *
+   * The macro chooses a constructor to determine the property names and types. It will first check to see if there is a
+   * single public constructor. If there are multiple it will use the primary constructor.
+   */
+  def forClass[T]: ConfigLoader[T] = macro ConfigLoaderMacros.forClass[T]
+
   def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
     def load(config: Config, path: String): A = f(config)(path)
   }
