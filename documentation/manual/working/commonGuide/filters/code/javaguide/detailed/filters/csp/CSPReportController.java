@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package javaguide.detailed.filters.csp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
