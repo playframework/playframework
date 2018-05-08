@@ -21,7 +21,7 @@ Please configure any work with blocking APIs off the main rendering thread, usin
 
 ## Configuring Akka HTTP
 
-There are a variety of options that can be configured for the Akka HTTP server. These are given in the [[documentation on configuring Akka HTTP||SettingsAkkaHttp]].
+There are a variety of options that can be configured for the Akka HTTP server. These are given in the [[documentation on configuring Akka HTTP|SettingsAkkaHttp]].
 
 ## HTTP/2 support (experimental)
 
