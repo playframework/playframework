@@ -7,8 +7,11 @@ package play.core.server
 import java.io._
 import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
 
+import akka.Done
+import akka.actor.CoordinatedShutdown
 import play.api._
 
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
@@ -31,10 +34,39 @@ object ProdServerStart {
    * for the server are based on values passed on the command line and in
    * various system properties. Crash out by exiting the given process if there
    * are any problems.
+   *
    * @param process The process (real or abstract) to use for starting the
    * server.
    */
   def start(process: ServerProcess): ReloadableServer = {
+    start(process, true)
+  }
+
+  /**
+   * Starts a Play server and application for the given process. The settings
+   * for the server are based on values passed on the command line and in
+   * various system properties. Crash out by exiting the given process if there
+   * are any problems.
+   *
+   * @param process The process (real or abstract) to use for starting the
+   * server.
+   * @param exitJvmOnStop This method may be invoked from a test trying to
+   *                      simulate Prod in which case the JVM should not be exited.
+   */
+  def start(process: ServerProcess, exitJvmOnStop: Boolean = false): ReloadableServer = {
+
+    //
+    // ProdServerStart uses two modes:
+    //  1) environmentMode is used to control the actual behavior of the application, the server and
+    //     anything started or handled from this class. It should always be `Prod`
+    //  2) actualMode is used to identify the actual context this class was invoked from. The main
+    //     purpose of this Mode is to tune the execution of the shutdown logic depending on whether
+    //     we're simulating a Mode.Prod or actually running in Mode.Prod. For example, some unit
+    //     tests assert the behavior of some code in Mode.Prod but are unit tests nonetheless,
+    //     therefore they must not exit the JVM.
+    //
+    val environmentMode = Mode.Prod
+
     try {
 
       // Read settings
@@ -44,10 +76,25 @@ object ProdServerStart {
       val pidFile = createPidFile(process, config.configuration)
 
       try {
+
+        //
+        // Tuning the behavior of coordinated-shutdown depends on several factors and
+        // `environmentMode` is not always indicating actual Production environment, for
+        // this reason we trust only `actualMode`
+        //
+        val initialSettings: Map[String, AnyRef] =
+          if (exitJvmOnStop) {
+            Map(
+              "akka.coordinated-shutdown.exit-jvm" -> "on"
+            )
+          } else {
+            Map.empty[String, AnyRef]
+          }
+
         // Start the application
         val application: Application = {
-          val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
-          val context = ApplicationLoader.Context.create(environment)
+          val environment = Environment(config.rootDir, process.classLoader, environmentMode)
+          val context = ApplicationLoader.Context.create(environment, initialSettings)
           val loader = ApplicationLoader(context)
           loader.load(context)
         }
@@ -56,11 +103,20 @@ object ProdServerStart {
         // Start the server
         val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
         val server = serverProvider.createServer(config, application)
+
         process.addShutdownHook {
           server.stop()
-          pidFile.foreach(_.delete())
-          assert(!pidFile.exists(_.exists), "PID file should not exist!")
         }
+
+        application.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "remove-pid-file"){
+          () =>
+            // Must delete the PID file after stopping the server not before...
+            // In case of unclean shutdown or failure, leave the PID file there!
+            pidFile.foreach(_.delete())
+            assert(!pidFile.exists(_.exists), "PID file should not exist!")
+            Future successful Done
+        }
+
         server
       } catch {
         case NonFatal(e) =>

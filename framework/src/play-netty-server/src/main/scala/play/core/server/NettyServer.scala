@@ -5,9 +5,10 @@
 package play.core.server
 
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
 
 import akka.Done
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.typesafe.config.{ Config, ConfigValue }
@@ -23,16 +24,19 @@ import io.netty.handler.codec.http._
 import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
+import io.netty.util
 import play.api._
+import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.routing.Router
 import play.core._
+import play.core.server.Server.ServerStoppedReason
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
 import scala.util.control.NonFatal
 
 sealed trait NettyTransport
@@ -47,6 +51,8 @@ class NettyServer(
     val applicationProvider: ApplicationProvider,
     stopHook: () => Future[_],
     val actorSystem: ActorSystem)(implicit val materializer: Materializer) extends Server {
+
+  registerShutdownTasks()
 
   private val serverConfig = config.configuration.get[Configuration]("play.server")
   private val nettyConfig = serverConfig.get[Configuration]("netty")
@@ -228,31 +234,57 @@ class NettyServer(
   }
 
   override def stop(): Unit = {
+    // CoordinatedShutdown may be invoked many times over the same actorSystem but
+    // only the first invocation runs the tasks (later invocations are noop).
+    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem)
+    val cs = CoordinatedShutdown(actorSystem)
+    Await.result(
+      cs.run(ServerStoppedReason, runFromPhase),
+      cs.totalTimeout() + Duration(5, TimeUnit.SECONDS)
+    )
+  }
 
-    // First, close all opened sockets
-    allChannels.close().awaitUninterruptibly()
+  // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
+  // we have to register it as early as possible as CoordinatedShutdown tasks and
+  // then `stop` runs CoordinatedShutdown.
+  private def registerShutdownTasks(): Unit = {
 
-    // Now shutdown the event loop
-    eventLoop.shutdownGracefully()
+    implicit val ctx: ExecutionContext = actorSystem.dispatcher
 
-    // Now shut the application down
-    applicationProvider.current.foreach(Play.stop)
-
-    try {
-      super.stop()
-    } catch {
-      case NonFatal(e) => logger.error("Error while stopping logger", e)
+    val cs = CoordinatedShutdown(actorSystem)
+    cs.addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "trace-server-stop-request") {
+      () =>
+        mode match {
+          case Mode.Test =>
+          case _ => logger.info("Stopping server...")
+        }
+        Future.successful(Done)
     }
 
-    mode match {
-      case Mode.Test =>
-      case _ => logger.info("Stopping server...")
+    val unbindTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
+    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "netty-server-unbind") {
+      () =>
+        // First, close all opened sockets
+        allChannels.close().awaitUninterruptibly(unbindTimeout.toMillis - 100)
+        // Now shutdown the event loop
+        eventLoop.shutdownGracefully().await(unbindTimeout.toMillis - 100)
+        Future.successful(Done)
     }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(stopHook(), Duration.Inf)
+    cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") {
+      () => stopHook().map(_ => Done)
+    }
+    cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") {
+      () =>
+        Future {
+          super.stop()
+          Done
+        }
+    }
+
   }
 
   override lazy val mainAddress: InetSocketAddress = {

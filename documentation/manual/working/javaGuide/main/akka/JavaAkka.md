@@ -127,20 +127,12 @@ A common use case within Akka is to have some computation performed concurrently
 
 ## Akka Coordinated Shutdown
 
-Play terminates the built-in Akka actor system using Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown). By default Play will run the Coordinated Shutdown using only the last phase where the actor system is terminated. You can override that settings using:
+Play handles the shutdown of the `Application` and the `Server` using Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown). Find more information in the [[Coordinated Shutdown|Shutdown]] common section.
 
-```
-# Runs Akka CoordinatedShutdown for Play's actor system
-# from phase "service-stop". See Akka docs on Coordinated 
-# Shutdown for other phase names. In Play, this defaults 
-# to "actor-system-terminate"
-play.akka.run-cs-from-phase = "service-stop" 
-```
-
-If you are using extra actor systems in your Play Application and tests, make sure they are all terminated and feel free to migrate your termination code from the traditional `actorSystem.terminate()` to the new [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown)
+NOTE: Play only handles the shutdown of its internal `ActorSystem`. If you are using extra actor systems, make sure they are all terminated and feel free to migrate your termination code to [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown).
 
 ## Akka Cluster
 
-You can make your Play application join an existing [Akka Cluster](https://doc.akka.io/docs/akka/snapshot/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Akka's Coordinated Shutdown since Play 2.6 which can take care of that graceful leave but it is disabled. 
+You can make your Play application join an existing [Akka Cluster](https://doc.akka.io/docs/akka/current/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Akka's Coordinated Shutdown which will take care of that graceful leave. 
 
-If you are joining an Akka Cluster with your Play application and you already have custom Cluster Leave code it is recommended that you replace it and enable Akka's handling using `play.akka.run-cs-from-phase` described above and set it to run from, at least, `before-cluster-shutdown` phase. See [Akka docs](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown) for more details.
+If you already have custom Cluster Leave code it is recommended that you replace it with Akka's handling. See [Akka docs](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown) for more details.

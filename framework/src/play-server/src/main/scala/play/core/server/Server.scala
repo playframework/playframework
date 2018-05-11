@@ -6,6 +6,7 @@ package play.core.server
 
 import java.util.function.{ Function => JFunction }
 
+import akka.actor.CoordinatedShutdown
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
@@ -39,7 +40,7 @@ trait Server extends ReloadableServer {
   def reload(): Unit = applicationProvider.get
 
   def stop(): Unit = {
-    applicationProvider.current.foreach { app =>
+    applicationProvider.get.foreach { app =>
       LoggerConfigurator(app.classloader).foreach(_.shutdown())
     }
   }
@@ -219,6 +220,8 @@ object Server {
     )
     withApplication(appProducer(context), config)(block)
   }
+
+  case object ServerStoppedReason extends CoordinatedShutdown.Reason
 
 }
 

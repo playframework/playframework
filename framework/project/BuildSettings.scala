@@ -512,6 +512,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServer.getHandlerFor"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.getHandlerFor"),
 
+      // Make Akka's Coordinated Shutdown take over the shutdown process
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.components.AkkaComponents.coordinatedShutdown"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.Application.coordinatedShutdown"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.this"),
+
       // Change signature of Play.privateMaybeApplication to return a Try[Application]
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.Play.privateMaybeApplication"),
 

@@ -29,7 +29,7 @@ private[run] trait PlayRunCompat {
       }(scala.collection.breakOut)
   }
 
-  def kill(pid: String) = s"kill $pid".!
+  def kill(pid: String) = s"kill -15 $pid".!
 
   def createAndRunProcess(args: Seq[String]) = args.!
 

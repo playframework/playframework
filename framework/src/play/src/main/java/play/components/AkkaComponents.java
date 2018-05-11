@@ -5,6 +5,7 @@
 package play.components;
 
 import akka.actor.ActorSystem;
+import akka.actor.CoordinatedShutdown;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import scala.concurrent.ExecutionContext;
@@ -19,6 +20,8 @@ public interface AkkaComponents {
     default Materializer materializer() {
         return ActorMaterializer.create(actorSystem());
     }
+
+    CoordinatedShutdown coordinatedShutdown();
 
     default ExecutionContext executionContext() {
         return actorSystem().dispatcher();
