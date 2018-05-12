@@ -1,12 +1,12 @@
 @**
  * Default page for 400 Bad Request responses.
  *@
-@(method: String, uri: String, error:String)
+@(method: String, uri: String, error:String)(implicit request: play.api.mvc.RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <title>Bad Request</title>
-        <style>
+        @views.html.helper.style('type -> "text/css") {
             html, body, pre {
                 margin: 0;
                 padding: 0;
@@ -32,7 +32,7 @@
                 font-size: 14px;
                 border-bottom: 1px solid #BA7F5B;
             }
-        </style>
+        }
     </head>
     <body>
         <h1>Bad Request</h1>

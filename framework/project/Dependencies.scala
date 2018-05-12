@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
 import Keys._
@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.5.11"
-  val akkaHttpVersion = "10.1.0"
+  val akkaHttpVersion = "10.1.1"
   val playJsonVersion = "2.6.9"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -49,7 +49,7 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava = "com.google.guava" % "guava" % "23.0"
+  val guava = "com.google.guava" % "guava" % "24.1-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
@@ -64,7 +64,7 @@ object Dependencies {
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.0"
 
   val jdbcDeps = Seq(
-    "com.zaxxer" % "HikariCP" % "2.7.8",
+    "com.zaxxer" % "HikariCP" % "3.1.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
@@ -157,7 +157,7 @@ object Dependencies {
       scalaJava8Compat
     ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.22.Final"
+  val nettyVersion = "4.1.24.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -308,14 +308,19 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
+  val salvationVersion = "2.3.0"
+  val playFilterDeps = Seq(
+    "com.shapesecurity" % "salvation" % salvationVersion % Test
+  )
+
 }
 
 /*
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.4", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.4", "2.11.12"),
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.6", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.6", "2.11.12"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka

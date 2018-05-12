@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Crypto Migration Guide
 
 From Play 1.x, Play has come with a Crypto object that provides some cryptographic operations.  This used internally by Play.  The Crypto object is not mentioned in the documentation, but is mentioned as "cryptographic utilities" in the scaladoc:
@@ -53,7 +53,7 @@ Although using AES with an HMAC is considered a secure construction, there is a 
 
 For customers who are using `Crypto.encryptAES`, there is no immediate security vulnerability that results from the mixing of key usage here:
 
-"With HMAC vs AES, no such interference is known. The *general feeling* of cryptographers is that AES and SHA-1 (or SHA-256) are "sufficiently different" that there should be no practical issue with using the same key for AES and HMAC/SHA-1." -- [http://crypto.stackexchange.com/a/8086](http://crypto.stackexchange.com/a/8086)
+"With HMAC vs AES, no such interference is known. The *general feeling* of cryptographers is that AES and SHA-1 (or SHA-256) are "sufficiently different" that there should be no practical issue with using the same key for AES and HMAC/SHA-1." -- <https://crypto.stackexchange.com/a/8086>.
 
 Once the application gets larger, the key separation principle might be also violated in another way: If `Crypto.encryptAES` is used for multiple purposes, using separate keys is also advised.
 

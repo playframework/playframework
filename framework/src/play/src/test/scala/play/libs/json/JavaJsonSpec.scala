@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs
 
 import java.io.ByteArrayInputStream
@@ -28,7 +29,7 @@ class JavaJsonSpec extends Specification {
         |  "a" : 2.5,
         |  "copyright" : "\u00a9",
         |  "baz" : [ 1, 2, 3 ]
-        |}""".stripMargin
+        |}""".stripMargin.replaceAll("\r?\n", System.lineSeparator)
 
     val testJsonInputStream = new ByteArrayInputStream(testJsonString.getBytes("UTF-8"))
 

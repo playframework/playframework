@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.csrf
 
 import org.specs2.matcher.MatchResult
@@ -49,7 +50,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       |Content-Disposition: form-data; name="$tokenName"
       |
       |$tokenValue
-      |--$Boundary--""".stripMargin.replaceAll(System.lineSeparator, "\r\n")
+      |--$Boundary--""".stripMargin.replaceAll("\r?\n", "\r\n")
   }
 
   // This extracts the tests out into different configurations

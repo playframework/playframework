@@ -4,7 +4,9 @@
  * Should only be used in development mode: in production, compiled Javascript should be used
  *@
 @* TODO: Remove the dependency to jQuery? *@
-<script type="text/javascript">
+@()(implicit request: play.api.mvc.RequestHeader)
+
+@script('type -> "text/javascript") {
 var require = function(moduleName) {
   var body = "";
   $.ajax({
@@ -16,4 +18,4 @@ var require = function(moduleName) {
   var fnct = new Function("module", "exports", body);
   return fnct();
 }
-</script>
+}

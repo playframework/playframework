@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc.request
 
 import play.api.libs.typedmap.TypedKey
@@ -38,4 +39,10 @@ object RequestAttrKey {
    * The key for the request attribute storing the server name.
    */
   val Server = TypedKey[String]("Server-Name")
+
+  /**
+   * The CSP nonce key.
+   */
+  val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")
+
 }

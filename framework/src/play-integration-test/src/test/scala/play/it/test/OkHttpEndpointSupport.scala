@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.test
 
 import javax.net.ssl.{ HostnameVerifier, SSLSession }
@@ -37,6 +38,14 @@ trait OkHttpEndpointSupport {
 
     /** Make a request to the endpoint using the given path. */
     def call(path: String): Response = client.newCall(request(path)).execute()
+
+    /** Make a request to the endpoint using the given path and configuration. */
+    def configuredCall(path: String)(configure: Request.Builder => Request.Builder): Response = {
+      val withPath: Request.Builder = requestBuilder(path)
+      val configured: Request.Builder = configure(withPath)
+      val request: Request = configured.build()
+      client.newCall(request).execute()
+    }
   }
 
   /**
@@ -75,6 +84,22 @@ trait OkHttpEndpointSupport {
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllOkHttpEndpoints()]] method.
    */
   implicit class OkHttpApplicationFactory(appFactory: ApplicationFactory) {
+    /**
+     * Helper that creates a specs2 fragment for the given server endpoints.
+     * Each fragment creates an application, starts a server,
+     * starts an [[OkHttpClient]] and runs the given block of code.
+     *
+     * {{{
+     * withResult(Results.Ok("Hello")) withOkHttpEndpoints(myEndpointRecipes) {
+     *   okEndpoint: OkHttpEndpoint =>
+     *     val response = okEndpoint.makeRequest("/")
+     *     response.body.string must_== "Hello"
+     * }
+     * }}}
+     */
+    def withOkHttpEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: OkHttpEndpoint => A): Fragment =
+      appFactory.withEndpoints(endpoints) { endpoint: ServerEndpoint => withOkHttpEndpoint(endpoint)(block) }
+
     /**
      * Helper that creates a specs2 fragment for the server endpoints given in
      * [[allEndpointRecipes]]. Each fragment creates an application, starts a server,

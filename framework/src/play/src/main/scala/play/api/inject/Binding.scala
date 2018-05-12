@@ -1,13 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 
 import java.lang.annotation.Annotation
+import java.lang.reflect.Modifier
+
 import javax.inject.Provider
+import play.api.PlayException
+
 import scala.language.existentials
 import scala.reflect.ClassTag
-
 import play.inject.SourceProvider
 
 /**
@@ -168,8 +172,9 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    *
    * This class will be instantiated and injected by the injection framework.
    */
-  def to(implementation: Class[_ <: T]): Binding[T] =
-    Binding(this, Some(ConstructionTarget(implementation)), None, false, SourceLocator.source)
+  def to(implementation: Class[_ <: T]): Binding[T] = {
+    Binding(this, Some(ConstructionTarget(validateTargetNonAbstract(implementation))), None, false, SourceLocator.source)
+  }
 
   /**
    * Bind this binding key to the given implementation class.
@@ -206,7 +211,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * whenever an instance of the class is needed.
    */
   def toProvider[P <: Provider[_ <: T]](provider: Class[P]): Binding[T] =
-    Binding(this, Some(ProviderConstructionTarget[T](provider)), None, false, SourceLocator.source)
+    Binding(this, Some(ProviderConstructionTarget[T](validateTargetNonAbstract(provider))), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given provider class.
@@ -229,6 +234,16 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
 
   override def toString = {
     s"$clazz${qualifier.fold("")(" qualified with " + _)}"
+  }
+
+  private def validateTargetNonAbstract[T](target: Class[T]): Class[T] = {
+    if (target.isInterface || Modifier.isAbstract(target.getModifiers)) {
+      throw new PlayException(
+        "Cannot bind abstract target",
+        s"""You have attempted to bind $target as a construction target for $this, however, $target is abstract. If you wish to bind this as an alias, bind it to a ${classOf[BindingKey[_]]} instead."""
+      )
+    }
+    target
   }
 }
 

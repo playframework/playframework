@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.io.{ File, InputStream }
@@ -465,7 +466,7 @@ class RangeResultSpec extends Specification {
     path.toFile
   }
 
-  private def closeWithoutError(input: InputStream) {
+  private def closeWithoutError(input: InputStream): Unit = {
     try {
       input.close()
     } catch {

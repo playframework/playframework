@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Dependency Injection
 
 Dependency injection is a widely used design pattern that helps to separate your components' behaviour from dependency resolution.  Components declare their dependencies, usually as constructor parameters, and a dependency injection framework helps you wire together those components so you don't have to do so manually.
@@ -117,7 +117,7 @@ You can also disable the automatic registration of a module named `Module` in th
 
 #### Configurable bindings
 
-Sometimes you might want to read the [`Config`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+Sometimes you might want to read the [`Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
 
 In the example below, the `Hello` binding for each language is read from a configuration file. This allows new `Hello` bindings to be added by adding new settings in your `application.conf` file.
 

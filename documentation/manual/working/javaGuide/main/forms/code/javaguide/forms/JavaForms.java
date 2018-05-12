@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
@@ -315,8 +316,8 @@ public class JavaForms extends WithApplication {
         //#fill
         userForm = userForm.fill(new User("bob@gmail.com", "secret"));
         //#fill
-        assertThat(userForm.field("email").getValue().get(), equalTo("bob@gmail.com"));
-        assertThat(userForm.field("password").getValue().get(), equalTo("secret"));
+        assertThat(userForm.field("email").value().get(), equalTo("bob@gmail.com"));
+        assertThat(userForm.field("password").value().get(), equalTo("secret"));
     }
 
     @Test
@@ -352,7 +353,7 @@ public class JavaForms extends WithApplication {
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
-        assertThat(form.fill(obj).field("time").getValue().get(), equalTo("23:45"));
+        assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
     }
 
     public static class WithLocalTime {

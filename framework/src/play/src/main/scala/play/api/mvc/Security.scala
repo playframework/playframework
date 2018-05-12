@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import play.api._
@@ -21,7 +22,7 @@ object Security {
   /**
    * The default error response for an unauthorized request; used multiple places here
    */
-  private val DefaultUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())
+  private val DefaultUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized())
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -175,7 +176,7 @@ object Security {
   class AuthenticatedBuilder[U](
       userinfo: RequestHeader => Option[U],
       defaultParser: BodyParser[AnyContent],
-      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))(implicit val executionContext: ExecutionContext) extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
+      onUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized()))(implicit val executionContext: ExecutionContext) extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
 
     lazy val parser = defaultParser
 

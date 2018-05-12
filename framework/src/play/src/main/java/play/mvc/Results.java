@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import java.io.File;
@@ -23,14 +24,6 @@ import static play.mvc.Http.Status.*;
 public class Results {
 
     private static final String UTF8 = "utf-8";
-
-    // -- Constructor methods
-
-    /**
-     * Generates a 501 NOT_IMPLEMENTED simple result.
-     */
-    public static final Result TODO = status(NOT_IMPLEMENTED,
-            views.html.defaultpages.todo.render());
 
     // -- Status
 

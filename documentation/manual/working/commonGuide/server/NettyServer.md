@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Netty Server Backend
 
 Prior to Play 2.6.x, Play used the Netty server backend as the default.  In 2.6.x, the default backend was changed to Akka HTTP, but you can still manually select the Netty backend server in your project.
@@ -17,11 +17,23 @@ Now Play should automatically select the Netty server for running in dev mode, p
 
 ## Manually selecting the Netty server
 
-If for some reason you have both the Akka HTTP server and the Netty HTTP server on your classpath, you'll need to manually select it.  This can be done using the `play.server.provider` system property, for example, in dev mode:
+If for some reason you have both the Akka HTTP and the Netty server JARs on your classpath, then Play won't be able to predictably choose a server backend. You'll need to manually select the Netty server. This can be done by explicitly overriding the `play.server.provider` configuration option and setting it to a value of `play.core.server.NettyServerProvider`.
+
+The `play.server.provider` configuration setting can be set in the same way as other configuration options. Different methods of setting configuration are described in the [[configuration file documentation|ConfigFile]]. Several examples of enabling the Netty server are shown below.
+
+The recommended way to do this is to add the setting to two places. First, to enable Netty for the sbt `run` task, add the following to your `build.sbt`:
 
 ```
-run -Dplay.server.provider=play.core.server.NettyServerProvider
+PlayKeys.devSettings += "play.server.provider" -> "play.core.server.NettyServerProvider"
 ```
+
+Second, to enable the Netty backend for when you deploy your application or when you use the sbt `start` task, add the following to your `application.conf` file:
+
+```
+play.server.provider = play.core.server.NettyServerProvider
+```
+
+By adding the setting to both `build.sbt` and `application.conf` you can ensure that the Netty backend will be used in all cases.
 
 ## Verifying that the Netty server is running
 

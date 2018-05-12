@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import com.typesafe.play.docs.sbtplugin.Imports._
@@ -10,9 +10,15 @@ import sbt._
 
 lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
     .settings(
+
+      // We need to publishLocal playDocs since its jar file is
+      // a dependency of `docsJarFile` setting.
+      test in Test <<= (test in Test).dependsOn(publishLocal in playDocs),
+
       resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
       version := PlayVersion.current,
       libraryDependencies ++= Seq(
+        "com.typesafe" % "config" % "1.3.1" % Test,
         "com.h2database" % "h2" % "1.4.191" % Test,
         "org.mockito" % "mockito-core" % "1.9.5" % "test",
         // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
@@ -46,7 +52,9 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
-      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m")
+      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
+
+      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
     )
     .dependsOn(
       playDocs,

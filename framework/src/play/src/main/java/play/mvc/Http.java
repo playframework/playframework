@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import akka.stream.Materializer;
@@ -8,10 +9,10 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
+import play.api.i18n.Messages$;
 import play.api.libs.json.JsValue;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
@@ -225,16 +226,8 @@ public class Http {
          * @return the messages for the current lang
          */
         public Messages messages() {
-            Cookie langCookie = request().cookies().get(messagesApi().langCookieName());
-            Lang cookieLang = langCookie == null ? null : new Lang(play.api.i18n.Lang.apply(langCookie.value()));
-            LinkedList<Lang> langs = Lists.newLinkedList(request().acceptLanguages());
-            if (cookieLang != null) {
-                langs.addFirst(cookieLang);
-            }
-            if (lang != null) {
-                langs.addFirst(lang);
-            }
-            return messagesApi().preferred(langs);
+            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentLang, lang) : request();
+            return messagesApi().preferred(request);
         }
 
         /**
@@ -2317,6 +2310,8 @@ public class Http {
         String X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
         String X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies";
         String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
+        String CONTENT_SECURITY_POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only";
+        String X_CONTENT_SECURITY_POLICY_NONCE_HEADER = "X-Content-Security-Policy-Nonce";
         String REFERRER_POLICY = "Referrer-Policy";
     }
 

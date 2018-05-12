@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Play modules
 
 Play uses public modules to augment built-in functionality.  
@@ -191,6 +191,13 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation**: <https://github.com/tuxBurner/play-akkjobs/blob/master/README.md>
 * **Short description**: A simple Play 2.5 module, which allows you to manage jobs
 
+
+## Settings
+
+### Remote Configuration
+* **Website:** <https://github.com/play-rconf>
+* **Short description:** Loads and apply configuration items (keys & files) from remote providers like etcd, consul, DynamoDB...
+
 ## Templates and View
 
 ### Google Closure Template Plugin
@@ -221,7 +228,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Thymeleaf module (Scala)
 * **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
 * **Documentation:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md>
-* **Short description:** Allows to use [Thymeleaf](http://www.thymeleaf.org/) template engine as an alternative
+* **Short description:** Allows to use [Thymeleaf](https://www.thymeleaf.org/) template engine as an alternative
 to Twirl
 
 ### Handlebars templates (Java and Scala)

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.common
 
 import akka.actor.ActorSystem
@@ -160,6 +161,46 @@ class ServerResultUtilsSpec extends Specification {
       val response = resultUtils.validateResult(header, result, DefaultHttpErrorHandler)
 
       hasNoEntity(response, 304)
+    }
+  }
+
+  "resultUtils.validateHeaderNameChars" should {
+    "accept Foo" in {
+      resultUtils.validateHeaderNameChars("Foo") must not(throwAn[IllegalArgumentException])
+    }
+    "accept allowed chars" in {
+      resultUtils.validateHeaderNameChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[IllegalArgumentException])
+    }
+    "not accept control characters" in {
+      resultUtils.validateHeaderNameChars("\0") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("\u0001") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("\u001f") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("\u00ff") must (throwAn[IllegalArgumentException])
+    }
+    "not accept delimiters" in {
+      resultUtils.validateHeaderNameChars(":") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars(" ") must (throwAn[IllegalArgumentException])
+    }
+  }
+
+  "resultUtils.validateHeaderValueChars" should {
+    "accept bar" in {
+      resultUtils.validateHeaderValueChars("bar") must not(throwAn[IllegalArgumentException])
+    }
+    "accept tokens" in {
+      resultUtils.validateHeaderValueChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[IllegalArgumentException])
+    }
+    "accept separators" in {
+      resultUtils.validateHeaderValueChars("\"(),/:;<=>?@[\\]{}") must not(throwAn[IllegalArgumentException])
+    }
+    "accept space and htab" in {
+      resultUtils.validateHeaderValueChars(" \t") must not(throwAn[IllegalArgumentException])
+    }
+    "not accept control characters" in {
+      resultUtils.validateHeaderValueChars("\0") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("\u0001") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("\u001f") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("\u007f") must (throwAn[IllegalArgumentException])
     }
   }
 }

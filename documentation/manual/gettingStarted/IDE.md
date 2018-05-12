@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -51,7 +51,7 @@ If you want to grab the available source jars (this will take longer and it's po
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
-or from the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
+or from the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
 
 ```bash
 [my-first-app] $ eclipse skip-parents=false
@@ -168,7 +168,7 @@ Start SBT:
 $ sbt
 ```
 
-Enter 'ensimeConfig' at the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
+Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
 [[play-scala-seed] $ ensimeConfig

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.parsers
 
 import scala.annotation.tailrec
@@ -271,7 +272,7 @@ object Multipart {
       new GraphStageLogic(shape) with InHandler with OutHandler {
 
         private var output = collection.immutable.Queue.empty[RawPart]
-        private var state: ByteString ⇒ StateResult = tryParseInitialBoundary
+        private var state: ByteString => StateResult = tryParseInitialBoundary
         private var terminated = false
 
         override def onPush(): Unit = {
@@ -309,7 +310,7 @@ object Multipart {
               else parsePreamble(input, 0)
             } else parsePreamble(input, 0)
           } catch {
-            case NotEnoughDataException ⇒ continue(input, 0)((newInput, _) ⇒ tryParseInitialBoundary(newInput))
+            case NotEnoughDataException => continue(input, 0)((newInput, _) => tryParseInitialBoundary(newInput))
           }
         }
 
@@ -323,7 +324,7 @@ object Multipart {
             }
             rec(offset)
           } catch {
-            case NotEnoughDataException ⇒ continue(input.takeRight(needle.length + 2), 0)(parsePreamble)
+            case NotEnoughDataException => continue(input.takeRight(needle.length + 2), 0)(parsePreamble)
           }
         }
 
@@ -461,17 +462,17 @@ object Multipart {
           head
         }
 
-        def continue(input: ByteString, offset: Int)(next: (ByteString, Int) ⇒ StateResult): StateResult = {
+        def continue(input: ByteString, offset: Int)(next: (ByteString, Int) => StateResult): StateResult = {
           state =
             math.signum(offset - input.length) match {
-              case -1 ⇒ more ⇒ next(input ++ more, offset)
-              case 0 ⇒ next(_, 0)
-              case 1 ⇒ throw new IllegalStateException
+              case -1 => more => next(input ++ more, offset)
+              case 0 => next(_, 0)
+              case 1 => throw new IllegalStateException
             }
           done()
         }
 
-        def continue(next: (ByteString, Int) ⇒ StateResult): StateResult = {
+        def continue(next: (ByteString, Int) => StateResult): StateResult = {
           state = next(_, 0)
           done()
         }
