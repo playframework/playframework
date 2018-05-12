@@ -20,7 +20,6 @@ A few things to note about these configurations:
 * For production, the default config puts the console logger behind the logback [AsyncAppender](https://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](http://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
 * In order to guarantee that logged messages have had a chance to be processed by asynchronous appenders (including the TCP appender) and ensure background threads have been stopped, you'll need to cleanly shut down logback when your application exits.
 
-
 To add a file logger, add the following appender to your `conf/logback.xml` file:
 
 ```xml
