@@ -1,0 +1,19 @@
+@**
+* Generate an inline script with CSP nonce.
+*
+* Example:
+* {{{
+* @script(args = 'type -> "text/javascript") {
+*   ...
+* }
+* }}}
+*
+* See <a href="https://www.w3.org/TR/2016/REC-html51-20161101/semantics-scripting.html">Scripting</a>
+* for more information.
+*
+* @param args Set of extra HTML attributes.
+* @param body The script body.
+*@
+@(args: (Symbol,String)*)(body: => Html)(implicit request: play.api.mvc.RequestHeader)
+
+<script @{CSPNonce.attr} @toHtmlArgs(args.toMap)>@body</script>

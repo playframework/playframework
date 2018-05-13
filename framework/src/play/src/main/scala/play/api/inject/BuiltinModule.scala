@@ -1,24 +1,26 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 
 import java.util.concurrent.Executor
-import javax.inject.{ Inject, Provider, Singleton }
 
+import javax.inject.{ Inject, Provider, Singleton }
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
 import play.api.http.HttpConfiguration._
 import play.api.http._
-import play.api.libs.Files.TemporaryFileReaperConfiguration.TemporaryFileReaperConfigurationProvider
+import play.api.libs.Files.TemporaryFileReaperConfigurationProvider
 import play.api.libs.Files._
 import play.api.libs.concurrent._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
+import play.core.routing.GeneratedRouter
 import play.libs.concurrent.HttpExecutionContext
 
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
@@ -69,21 +71,23 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[Application].to[DefaultApplication],
     bind[play.Application].to[play.DefaultApplication],
 
-    bind[Router].toProvider[RoutesProvider],
     bind[play.routing.Router].to[JavaRouterAdapter],
     bind[ActorSystem].toProvider[ActorSystemProvider],
     bind[Materializer].toProvider[MaterializerProvider],
     bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
-    bind[ExecutionContext].to[ExecutionContextExecutor],
-    bind[Executor].to[ExecutionContextExecutor],
+    bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
+    bind[Executor].to(bind[ExecutionContextExecutor]),
     bind[HttpExecutionContext].toSelf,
 
+    bind[play.core.j.JavaContextComponents].to[play.core.j.DefaultJavaContextComponents],
+    bind[play.core.j.JavaHandlerComponents].to[play.core.j.DefaultJavaHandlerComponents],
     bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
   ) ++ dynamicBindings(
       HttpErrorHandler.bindingsFromConfiguration,
       HttpFilters.bindingsFromConfiguration,
       HttpRequestHandler.bindingsFromConfiguration,
-      ActionCreator.bindingsFromConfiguration
+      ActionCreator.bindingsFromConfiguration,
+      RoutesProvider.bindingsFromConfiguration
     )
 })
 
@@ -103,5 +107,21 @@ class RoutesProvider @Inject() (injector: Injector, environment: Environment, co
     val router = Router.load(environment, configuration)
       .fold[Router](Router.empty)(injector.instanceOf(_))
     router.withPrefix(prefix)
+  }
+}
+
+object RoutesProvider {
+
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    val routerClass = Router.load(environment, configuration)
+
+    // If it's a generated router, then we need to provide a binding for it. Otherwise, it's the users
+    // (or the library that provided the router) job to provide a binding for it.
+    val routerInstanceBinding = routerClass match {
+      case Some(generated) if classOf[GeneratedRouter].isAssignableFrom(generated) =>
+        Seq(bind(generated).toSelf)
+      case _ => Nil
+    }
+    routerInstanceBinding :+ bind[Router].toProvider[RoutesProvider]
   }
 }

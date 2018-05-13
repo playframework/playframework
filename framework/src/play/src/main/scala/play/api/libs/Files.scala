@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs
 
 import java.io.{ File, IOException }
@@ -344,9 +345,15 @@ object Files {
     def createWithDefaults() = apply()
 
     @Singleton
+    @deprecated("On JDK8 and earlier, Class.getSimpleName on doubly nested Scala classes throws an exception. Use Files.TemporaryFileReaperConfigurationProvider instead. See https://github.com/scala/bug/issues/2034.", "2.6.14")
     class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration) extends Provider[TemporaryFileReaperConfiguration] {
       lazy val get = fromConfiguration(configuration)
     }
+  }
+
+  @Singleton
+  class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration) extends Provider[TemporaryFileReaperConfiguration] {
+    lazy val get = TemporaryFileReaperConfiguration.fromConfiguration(configuration)
   }
 
   /**

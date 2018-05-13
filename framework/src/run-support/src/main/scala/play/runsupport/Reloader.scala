@@ -1,23 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.runsupport
 
 import java.io.{ Closeable, File }
 import java.net.{ URL, URLClassLoader }
 import java.security.{ AccessController, PrivilegedAction }
 import java.time.Instant
-import java.util.{ Timer, TimerTask }
 import java.util.concurrent.atomic.AtomicReference
-import java.util.jar.JarFile
+import java.util.{ Timer, TimerTask }
 
+import better.files.{ File => _, _ }
 import play.api.PlayException
 import play.core.{ Build, BuildLink }
-import play.dev.filewatch.{ FileWatchService, SourceModificationWatch, WatchState }
+import play.dev.filewatch.FileWatchService
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
 
 import scala.collection.JavaConverters._
-import better.files.{ File => _, _ }
 
 object Reloader {
 
@@ -218,7 +218,7 @@ object Reloader {
      * to the applicationLoader, creating a full circle for resource loading.
      */
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonClassLoader, Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
-      def get: ClassLoader = { reloader.getClassLoader.orNull }
+      def get: URLClassLoader = { reloader.getClassLoader.orNull }
     })
 
     lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
@@ -291,7 +291,7 @@ object Reloader {
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
       parentClassLoader,
       Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
-        def get: ClassLoader = { applicationLoader }
+        def get: URLClassLoader = { applicationLoader }
       })
 
     lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath),
@@ -333,7 +333,7 @@ object Reloader {
 
 }
 
-import Reloader._
+import play.runsupport.Reloader._
 
 class Reloader(
     reloadCompile: () => CompileResult,
@@ -346,7 +346,7 @@ class Reloader(
     reloadLock: AnyRef) extends BuildLink {
 
   // The current classloader for the application
-  @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None
+  @volatile private var currentApplicationClassLoader: Option[URLClassLoader] = None
   // Flag to force a reload on the next request.
   // This is set if a compile error occurs, and also by the forceReload method on BuildLink, which is called for
   // example when evolutions have been applied.
@@ -431,7 +431,7 @@ class Reloader(
               // they won't trigger a reload.
               val classpathFiles = classpath.iterator.filter(_.exists()).flatMap(_.toScala.listRecursively).map(_.toJava)
               val newLastModified =
-                (0L /: classpathFiles) { (acc, file) => math.max(acc, file.lastModified) }
+                classpathFiles.foldLeft(0L) { (acc, file) => math.max(acc, file.lastModified) }
               val triggered = newLastModified > lastModified
               lastModified = newLastModified
 
@@ -459,7 +459,7 @@ class Reloader(
     devSettings.toMap.asJava
   }
 
-  def forceReload() {
+  def forceReload(): Unit = {
     forceReloadNextTime = true
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 import BuildSettings._
 import Dependencies._
@@ -235,6 +235,7 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
 
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
     .settings(
+      libraryDependencies ++= playFilterDeps,
       parallelExecution in Test := false
     ).dependsOn(PlayProject, PlayTestProject % "test",
         PlayJavaProject % "test", PlaySpecs2Project % "test", PlayAhcWsProject % "test")

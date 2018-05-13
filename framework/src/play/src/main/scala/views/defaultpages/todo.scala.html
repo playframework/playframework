@@ -1,11 +1,13 @@
 @**
  * Default page for 501 Not Implemented responses.
  *@
+@()(implicit request: play.api.mvc.RequestHeader)
+
 <!DOCTYPE html>
 <html>
     <head>
         <title>TODO</title>
-        <style>
+        @views.html.helper.style('type -> "text/css") {
             html, body, pre {
                 margin: 0;
                 padding: 0;
@@ -31,8 +33,7 @@
                 font-size: 14px;
                 border-bottom: 1px solid #39325B;
             }
-        </style>
-        
+        }
     </head>
     <body>
         <h1>TODO</h1>

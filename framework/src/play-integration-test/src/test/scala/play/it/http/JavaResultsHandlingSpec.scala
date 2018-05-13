@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.io.ByteArrayInputStream
@@ -262,7 +263,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         Results.ok("Hello world")
       }
     }) { response =>
-      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=-86400")
+      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=0")
       response.body must_== "Hello world"
     }
 

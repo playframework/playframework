@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import java.util.function.{ Function => JFunction }
@@ -10,6 +11,7 @@ import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, Port }
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core._
@@ -31,23 +33,6 @@ trait WebSocketable {
 trait Server extends ReloadableServer {
 
   def mode: Mode
-
-  /**
-   * Try to get the handler for a request and return it as a `Right`. If we
-   * can't get the handler for some reason then return a result immediately
-   * as a `Left`. Reasons to return a `Left` value:
-   *
-   * - If there's a "web command" installed that intercepts the request.
-   * - If we fail to get the `Application` from the `applicationProvider`,
-   *   i.e. if there's an error loading the application.
-   * - If an exception is thrown.
-   *
-   * NOTE: This will use the ApplicationProvider of the server to get the application instance.
-   *       Use {@code Server.getHandlerFor(request, tryApp)} to pass a specific application instance
-   */
-  @deprecated("Use Server.getHandlerFor(request, tryApp) instead", "2.7.0")
-  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] =
-    Server.getHandlerFor(request, applicationProvider.get)
 
   def applicationProvider: ApplicationProvider
 
@@ -94,10 +79,10 @@ object Server {
    *   i.e. if there's an error loading the application.
    * - If an exception is thrown.
    */
-  def getHandlerFor(
+  private[server] def getHandlerFor(
     request: RequestHeader,
     tryApp: Try[Application]
-  ): Either[Future[Result], (RequestHeader, Handler, Application)] = {
+  ): (RequestHeader, Handler) = {
     try {
       // Get the Application from the try.
       val application = tryApp.get
@@ -106,13 +91,22 @@ object Server {
       // logic to handle that request.
       val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
       val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
-      Right((handlerHeader, handler, application))
+      (handlerHeader, handler)
     } catch {
       case e: ThreadDeath => throw e
       case e: VirtualMachineError => throw e
       case e: Throwable =>
-        Left(DefaultHttpErrorHandler.onServerError(request, e))
+        val errorResult = DefaultHttpErrorHandler.onServerError(request, e)
+        val errorAction = actionForResult(errorResult)
+        (request, errorAction)
     }
+  }
+
+  /**
+   * Create a simple [[Handler]] which sends a [[Result]].
+   */
+  private[server] def actionForResult(errorResult: Future[Result]): Handler = {
+    EssentialAction(_ => Accumulator.done(errorResult))
   }
 
   /**

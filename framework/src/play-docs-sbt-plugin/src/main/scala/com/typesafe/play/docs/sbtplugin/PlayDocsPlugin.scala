@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package com.typesafe.play.docs.sbtplugin
 
 import java.io.Closeable
@@ -254,7 +255,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)
-    def waitEOF() {
+    def waitEOF(): Unit = {
       consoleReader.readCharacter() match {
         case 4 => // STOP
         case 11 =>

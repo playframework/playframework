@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.utils
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
-import java.util.BitSet
+
+import play.core.utils.{ AsciiBitSet, AsciiSet }
 
 /**
  * Provides support for correctly encoding pieces of URIs.
@@ -48,7 +50,7 @@ object UriEncoding {
     val in = s.getBytes(inputCharset)
     val out = new ByteArrayOutputStream()
     for (b <- in) {
-      val allowed = segmentChars.get(b & 0xFF)
+      val allowed = segmentChars.get(b & 0xff)
       if (allowed) {
         out.write(b)
       } else {
@@ -186,30 +188,22 @@ object UriEncoding {
   // segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
   //               ; non-zero-length segment without any colon ":"
   /** The set of ASCII character codes that are allowed in a URI path segment. */
-  private val segmentChars: BitSet = membershipTable(pchar)
+  private val segmentChars: AsciiBitSet = pchar.toBitSet
 
   /** The characters allowed in a path segment; defined in RFC 3986 */
-  private def pchar: Seq[Char] = {
+  private def pchar: AsciiSet = {
     // RFC 3986, 2.3. Unreserved Characters
     // unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
-    val alphaDigit = for ((min, max) <- Seq(('a', 'z'), ('A', 'Z'), ('0', '9')); c <- min to max) yield c
-    val unreserved = alphaDigit ++ Seq('-', '.', '_', '~')
+    val unreserved = AsciiSet.Sets.AlphaDigit ||| AsciiSet('-', '.', '_', '~')
 
     // RFC 3986, 2.2. Reserved Characters
     // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
     //             / "*" / "+" / "," / ";" / "="
-    val subDelims = Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=')
+    val subDelims = AsciiSet('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=')
 
     // RFC 3986, 3.3. Path
     // pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-    unreserved ++ subDelims ++ Seq(':', '@')
-  }
-
-  /** Create a BitSet to act as a membership lookup table for the given characters. */
-  private def membershipTable(chars: Seq[Char]): BitSet = {
-    val bits = new BitSet(256)
-    for (c <- chars) { bits.set(c.toInt) }
-    bits
+    unreserved ||| subDelims ||| AsciiSet(':', '@')
   }
 
   /**

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data
 
 import javax.validation.Validation
@@ -23,7 +24,7 @@ class PartialValidationSpec extends Specification {
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {
       val form = formFactory.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop2" -> "Hello", "prop3" -> "abc").asJava)
-      form.allErrors().asScala must beEmpty
+      form.errors().asScala must beEmpty
     }
 
     "fail when a field in the group fails validation" in {

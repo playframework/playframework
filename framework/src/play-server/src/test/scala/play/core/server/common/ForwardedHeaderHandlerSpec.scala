@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.common
 
 import java.net.InetAddress
@@ -458,7 +459,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
       case _ => None
     }
 
-    new Headers(s.split(System.lineSeparator).flatMap(split(_, ":\\s*")))
+    new Headers(s.split("\r?\n").flatMap(split(_, ":\\s*")))
   }
 
   def processHeaders(config: Map[String, Any], headers: Headers): Seq[(ForwardedEntry, Either[String, ParsedForwardedEntry], Option[Boolean])] = {

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import play.api.Application
@@ -143,7 +144,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       }
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
-      setCookie must contain("PLAY_SESSION=; Max-Age=-86400")
+      setCookie must contain("PLAY_SESSION=; Max-Age=0")
       response.body must_== "foo"
     }
     "ensure context.withRequest in an Action maintains Flash" in makeRequest(new MockController {
@@ -154,7 +155,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       }
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
-      setCookie must contain("PLAY_FLASH=; Max-Age=-86400")
+      setCookie must contain("PLAY_FLASH=; Max-Age=0")
       response.body must_== "foo"
     }
     "ensure context.withRequest in an Action maintains Response" in makeRequest(new MockController {

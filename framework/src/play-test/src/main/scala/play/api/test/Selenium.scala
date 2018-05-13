@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.test
 
 import java.util.concurrent.TimeUnit
@@ -73,7 +74,7 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    */
   def manage: WebDriver.Options = super.getDriver.manage
 
-  def quit() {
+  def quit(): Unit = {
     Option(super.getDriver).foreach(_.quit())
     releaseFluent()
   }

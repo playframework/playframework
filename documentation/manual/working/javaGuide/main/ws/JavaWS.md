@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Calling REST APIs with Play WS
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
@@ -130,7 +130,7 @@ The easiest way to post XML data is to use Play's XML support, using [`play.libs
 
 ### Submitting Streaming data
 
-It's also possible to stream data in the request body using [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html).
+It's also possible to stream data in the request body using [Akka Streams](https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html?language=java).
 
 Here is an example showing how you could stream a large image to a different endpoint for further processing:
 
@@ -164,7 +164,7 @@ Similarly, you can process the response as XML by calling `r.getBody(xml())`, us
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-You can consume the response's body incrementally by using an [Akka Streams](http://doc.akka.io/docs/akka/current/java/stream/stream-flows-and-basics.html) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
+You can consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html?language=java) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
 
 > **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream--) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
 

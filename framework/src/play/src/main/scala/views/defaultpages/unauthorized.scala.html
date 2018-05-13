@@ -1,11 +1,13 @@
 @**
  * Default page for 401 Not Authorized responses.
  *@
+@()(implicit request: play.api.mvc.RequestHeader)
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <title>Unauthorized</title>
-        <style>
+        @views.html.helper.style('type -> "text/css") {
             html, body, pre {
                 margin: 0;
                 padding: 0;
@@ -31,7 +33,7 @@
                 font-size: 14px;
                 border-bottom: 1px solid #333;
             }
-        </style>
+        }
     </head>
     <body>
         <h1>Unauthorized</h1>

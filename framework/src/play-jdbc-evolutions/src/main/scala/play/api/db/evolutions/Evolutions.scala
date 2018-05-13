@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db.evolutions
 
 import java.io.File
@@ -123,7 +124,7 @@ object Evolutions {
   /**
    * Updates a local (file-based) evolution script.
    */
-  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment) {
+  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment): Unit = {
     val evolutions = environment.getFile(fileName(db, revision))
     Files.createDirectory(environment.getFile(directoryName(db)).toPath)
     writeFileIfChanged(

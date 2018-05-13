@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core
 
 import java.io._
@@ -39,6 +40,7 @@ trait ApplicationProvider {
   /**
    * Get the currently loaded application. May be empty in dev mode because of compile failure or before first load.
    */
+  @deprecated("Use ApplicationProvider.get instead", "2.6.13")
   def current: Option[Application] = get.toOption
 
   /**

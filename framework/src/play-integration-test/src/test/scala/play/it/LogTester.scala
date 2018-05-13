@@ -1,58 +1,48 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it
 
-import org.slf4j.LoggerFactory
-import ch.qos.logback.core.AppenderBase
+import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
-import scala.collection.mutable.ListBuffer
-import ch.qos.logback.classic.{ Logger, LoggerContext, Level }
+import ch.qos.logback.core.AppenderBase
+import org.slf4j.LoggerFactory
+
+import scala.collection.immutable
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Test utility for testing Play logs
  */
 object LogTester {
 
-  def withLogBuffer[T](block: LogBuffer => T) = {
-    val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-    val root = ctx.getLogger("ROOT")
-    val rootLevel = root.getLevel
-    val playLogger = play.api.Logger(this.getClass).asInstanceOf[Logger]
-    val playLevel = playLogger.getLevel
-    val appender = new LogBuffer()
-    appender.start()
-    try {
-      root.addAppender(appender)
-      root.setLevel(Level.ALL)
-      playLogger.addAppender(appender)
-      playLogger.setLevel(Level.ALL)
-      block(appender)
-    } finally {
-      root.detachAppender(appender)
-      root.setLevel(rootLevel)
-      playLogger.detachAppender(appender)
-      playLogger.setLevel(playLevel)
+  /** Record log events and return them for analysis. */
+  def recordLogEvents[T](block: => T): (T, immutable.Seq[ILoggingEvent]) = {
 
+    /** Collects all log events that occur */
+    class RecordingAppender extends AppenderBase[ILoggingEvent] {
+      private val eventBuffer = ArrayBuffer[ILoggingEvent]()
+
+      override def append(e: ILoggingEvent): Unit = synchronized {
+        eventBuffer += e
+      }
+
+      def events: immutable.Seq[ILoggingEvent] = synchronized {
+        eventBuffer.to[immutable.Seq]
+      }
     }
+
+    // Get the Logback root logger and attach a RecordingAppender
+    val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val appender = new RecordingAppender()
+    appender.setContext(rootLogger.getLoggerContext)
+    appender.start()
+    rootLogger.addAppender(appender)
+    val result: T = block
+    rootLogger.detachAppender(appender)
+    appender.stop()
+    (result, appender.events)
   }
 
-}
-
-class LogBuffer extends AppenderBase[ILoggingEvent] {
-  private val buffer = ListBuffer.empty[ILoggingEvent]
-
-  def append(eventObject: ILoggingEvent) = buffer.synchronized {
-    buffer.append(eventObject)
-  }
-
-  def find(
-    level: Option[Level] = None,
-    logger: Option[String] = None,
-    messageContains: Option[String] = None): List[ILoggingEvent] = buffer.synchronized {
-    val byLevel = level.fold(buffer) { l => buffer.filter(_.getLevel == l) }
-    val byLogger = logger.fold(byLevel) { l => byLevel.filter(_.getLoggerName == l) }
-    val byMessageContains = logger.fold(byLogger) { m => byLogger.filter(_.getMessage.contains(m)) }
-    byMessageContains.toList
-  }
 }

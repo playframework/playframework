@@ -1,0 +1,19 @@
+@**
+* Generate an inline style with CSP nonce.
+*
+* Example:
+* {{{
+* @style(args = 'type -> "text/css") {
+*   ...
+* }
+* }}}
+*
+* See <a href="https://www.w3.org/TR/html51/document-metadata.html#elementdef-style">style element</a>
+* for more details.
+*
+* @param args Set of extra HTML attributes.
+* @param body The style body.
+*@
+@(args: (Symbol,String)*)(body: => Html)(implicit request: play.api.mvc.RequestHeader)
+
+<style @{CSPNonce.attr} @toHtmlArgs(args.toMap)>@body</style>

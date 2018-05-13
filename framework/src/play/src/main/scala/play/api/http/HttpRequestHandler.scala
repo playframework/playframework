@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.http
 
 import javax.inject.Inject
@@ -47,14 +48,9 @@ object HttpRequestHandler {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
-    val fromConfiguration = Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](
+    Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](
       environment,
       configuration, "play.http.requestHandler", "RequestHandler")
-
-    val javaContextComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaContextComponents]).to[play.core.j.DefaultJavaContextComponents])
-    val javaHandlerComponentsBindings = Seq(BindingKey(classOf[play.core.j.JavaHandlerComponents]).to[play.core.j.DefaultJavaHandlerComponents])
-
-    fromConfiguration ++ javaContextComponentsBindings ++ javaHandlerComponentsBindings
   }
 }
 

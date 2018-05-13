@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # H2 database
 
 > **Note:** From Play 2.6.x onwards you actually need to include the H2 Dependency on your own. To do this you just need to add the following to your build.sbt:
@@ -74,7 +74,7 @@ H2, by default, creates tables with upper case names. Sometimes you don't want t
 
 ## H2 Browser
 
-You can browse the contents of your database by typing `h2-browser` at the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html).  An SQL browser will run in your web browser.
+You can browse the contents of your database by typing `h2-browser` at the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html).  An SQL browser will run in your web browser.
 
 ## H2 Documentation
 

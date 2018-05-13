@@ -2,12 +2,12 @@
  * Default page for 500 Internal Server Error responses, in development mode.
  * This page display the error in the source code context.
  *@
-@(playEditor: Option[String], error: play.api.UsefulException)
+@(playEditor: Option[String], error: play.api.UsefulException)(implicit request: play.api.mvc.RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <title>@error.title</title>
-        <style>
+        @views.html.helper.style('type -> "text/css") {
             html, body, pre {
                 margin: 0;
                 padding: 0;
@@ -111,7 +111,7 @@
                 color: #fff;
                 text-shadow: 1px 1px 1px rgba(0,0,0,.3);
             }
-        </style>
+        }
     </head>
     <body id="play-error-page">
         <h1>@error.title</h1>

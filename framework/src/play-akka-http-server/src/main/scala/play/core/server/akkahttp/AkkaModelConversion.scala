@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.akkahttp
 
 import java.net.{ InetAddress, InetSocketAddress, URI }
 import java.security.cert.X509Certificate
 import java.util.Locale
-import javax.net.ssl.SSLPeerUnverifiedException
 
+import javax.net.ssl.SSLPeerUnverifiedException
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -44,42 +45,10 @@ private[server] class AkkaModelConversion(
    * for its body.
    */
   def convertRequest(requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean, request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
-
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
     )
-
-    //    // FIXME this is if you want to try out avoiding conversion
-    //    (
-    //      new RequestHeaderImpl(
-    //        forwardedHeaderHandler.forwardedConnection(
-    //          new RemoteConnection {
-    //            override def remoteAddress: InetAddress = InetAddress.getLocalHost
-    //            override def secure: Boolean = secureProtocol
-    //            // TODO - Akka does not yet expose the SSLEngine used for the request
-    //            override lazy val clientCertificateChain = None
-    //          },
-    //          Headers()),
-    //        request.method.name,
-    //        new RequestTarget {
-    //          override lazy val uri: URI = new URI(uriString)
-    //          override lazy val uriString: String = request.header[`Raw-Request-URI`] match {
-    //            case None =>
-    //              logger.warn("Can't get raw request URI.")
-    //              request.uri.toString
-    //            case Some(rawUri) =>
-    //              rawUri.uri
-    //          }
-    //          override lazy val path: String = request.uri.path.toString
-    //          override lazy val queryMap: Map[String, Seq[String]] = request.uri.query().toMultiMap
-    //        },
-    //        request.protocol.value,
-    //        Headers(),
-    //        TypedMap.empty
-    //      ),
-    //      None
-    //    )
   }
 
   /**
@@ -300,38 +269,51 @@ private[server] class AkkaModelConversion(
     }
   }
 
+  // These headers are listed in the Akka HTTP's HttpResponseRenderer class as being invalid when given as RawHeaders
+  private val mustParseHeaders: Set[String] = Set(
+    HeaderNames.CONTENT_TYPE, HeaderNames.CONTENT_LENGTH, HeaderNames.TRANSFER_ENCODING, HeaderNames.DATE,
+    HeaderNames.SERVER, HeaderNames.CONNECTION
+  ).map(_.toLowerCase(Locale.ROOT))
+
   private def convertHeaders(headers: Iterable[(String, String)]): immutable.Seq[HttpHeader] = {
     headers.flatMap {
-      case (HeaderNames.SET_COOKIE, value) =>
-        resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
-      case (HeaderNames.CONTENT_DISPOSITION, value) =>
-        RawHeader(HeaderNames.CONTENT_DISPOSITION, value) :: Nil
-      case (name, value) if name != HeaderNames.TRANSFER_ENCODING =>
-        HttpHeader.parse(name, value) match {
-          case HttpHeader.ParsingResult.Ok(header, errors /* errors are ignored if Ok */ ) =>
-            if (!header.renderInResponses()) {
-              // since play did not enforce the http spec when it came to headers
-              // we actually relax it by converting the parsed header to a RawHeader
-              // This will still fail on content-type, content-length, transfer-encoding, date, server and connection headers.
-              illegalResponseHeaderValue match {
-                case ParserSettings.IllegalResponseHeaderValueProcessingMode.Warn =>
-                  logger.warn(s"HTTP Header '$header' is not allowed in responses, you can turn off this warning by setting `play.server.akka.illegal-response-header-value-processing-mode = ignore`")
-                  RawHeader(name, value) :: Nil
-                case ParserSettings.IllegalResponseHeaderValueProcessingMode.Ignore =>
-                  RawHeader(name, value) :: Nil
-                case ParserSettings.IllegalResponseHeaderValueProcessingMode.Error =>
-                  logger.error(s"HTTP Header '$header' is not allowed in responses")
-                  Nil
-              }
-            } else {
-              header :: Nil
-            }
-          case HttpHeader.ParsingResult.Error(error) =>
-            sys.error(s"Error parsing header: $error")
+      case (name, value) =>
+        val lowerName = name.toLowerCase(Locale.ROOT)
+        if (lowerName == "set-cookie") {
+          resultUtils.splitSetCookieHeaderValue(value).map(RawHeader(HeaderNames.SET_COOKIE, _))
+        } else if (mustParseHeaders.contains(lowerName)) {
+          parseHeader(name, value)
+        } else {
+          resultUtils.validateHeaderNameChars(name)
+          resultUtils.validateHeaderValueChars(value)
+          RawHeader(name, value) :: Nil
         }
-
-      case _ => Nil
     }(collection.breakOut): Vector[HttpHeader]
+  }
+
+  private def parseHeader(name: String, value: String): Seq[HttpHeader] = {
+    HttpHeader.parse(name, value) match {
+      case HttpHeader.ParsingResult.Ok(header, errors /* errors are ignored if Ok */ ) =>
+        if (!header.renderInResponses()) {
+          // since play did not enforce the http spec when it came to headers
+          // we actually relax it by converting the parsed header to a RawHeader
+          // This will still fail on content-type, content-length, transfer-encoding, date, server and connection headers.
+          illegalResponseHeaderValue match {
+            case ParserSettings.IllegalResponseHeaderValueProcessingMode.Warn =>
+              logger.warn(s"HTTP Header '$header' is not allowed in responses, you can turn off this warning by setting `play.server.akka.illegal-response-header-value-processing-mode = ignore`")
+              RawHeader(name, value) :: Nil
+            case ParserSettings.IllegalResponseHeaderValueProcessingMode.Ignore =>
+              RawHeader(name, value) :: Nil
+            case ParserSettings.IllegalResponseHeaderValueProcessingMode.Error =>
+              logger.error(s"HTTP Header '$header' is not allowed in responses")
+              Nil
+          }
+        } else {
+          header :: Nil
+        }
+      case HttpHeader.ParsingResult.Error(error) =>
+        sys.error(s"Error parsing header: $error")
+    }
   }
 }
 

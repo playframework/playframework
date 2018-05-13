@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt.run
 
 import annotation.tailrec
@@ -245,7 +246,7 @@ object PlayRun extends PlayRunCompat {
           javaProductionOptions ++
           Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"))
         new Thread {
-          override def run() {
+          override def run(): Unit = {
             if (noExitSbt) {
               createAndRunProcess(args)
             } else {

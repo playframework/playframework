@@ -2,5 +2,6 @@ Filters:Play HTTP filters
 GzipEncoding:Configuring gzip encoding
 SecurityHeaders:Configuring security headers
 CorsFilter:Configuring CORS
+CspFilter:Configuring CSP
 AllowedHostsFilter:Configuring allowed hosts
 RedirectHttpsFilter:Configuring HTTPS redirect

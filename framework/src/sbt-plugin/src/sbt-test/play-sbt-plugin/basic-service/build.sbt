@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
 
     InputKey[Unit]("verifyResourceContains") := {
       val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
