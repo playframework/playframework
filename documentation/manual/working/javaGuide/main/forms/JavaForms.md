@@ -65,9 +65,9 @@ Sometimes you’ll want to fill a form with existing values, typically for editi
 
 > **Tip:** `Form` objects are immutable - calls to methods like `bind()` and `fill()` will return a new object filled with the new data.
 
-## Handling a form that is not related to a Model
+## Handling a form with dynamic fields
 
-You can use a `DynamicForm` if you need to retrieve data from an html form that is not related to a `Model`:
+You can use a `DynamicForm` if you need to retrieve data from an html form with dynamic fields:
 
 @[dynamic](code/javaguide/forms/JavaForms.java)
 
