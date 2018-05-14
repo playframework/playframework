@@ -81,7 +81,7 @@ class DBApiProvider(
     val configs = if (config.hasPath(dbKey)) {
       Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
     } else Map.empty[String, Config]
-    val db = new DefaultDBApi(configs, pool, environment)
+    val db = new DefaultDBApi(configs, pool, environment, maybeInjector.getOrElse(NewInstanceInjector))
     lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
     db.connect(logConnection = environment.mode != Mode.Test)
     db
