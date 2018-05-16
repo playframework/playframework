@@ -52,12 +52,17 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     def defaultResourceUrl = {
       import ContextInitializer._
       // Order specified in https://logback.qos.ch/manual/configuration.html#auto_configuration
-      Stream(
-        TEST_AUTOCONFIG_FILE,
+
+      // We only apply logback-test.xml in Test mode. See https://github.com/playframework/playframework/issues/8361
+      val testConfigs = env.mode match {
+        case Mode.Test => Stream(TEST_AUTOCONFIG_FILE)
+        case _ => Stream.empty
+      }
+      (testConfigs ++ Stream(
         GROOVY_AUTOCONFIG_FILE,
         AUTOCONFIG_FILE,
         if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
-      ).flatMap(env.resource).headOption
+      )).flatMap(env.resource).headOption
     }
 
     val configUrl = explicitResourceUrl orElse explicitFileUrl orElse explicitUrl orElse defaultResourceUrl
