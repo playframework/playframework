@@ -13,6 +13,7 @@ import play.api.inject.BindingKey
 import play.api.mvc.{ RequestHeader, Results }
 import play.api.routing._
 import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
+import play.core.j._
 import play.core.test.{ FakeRequest, Fakes }
 import play.i18n.{ Langs, MessagesApi }
 
@@ -94,7 +95,8 @@ class HttpErrorHandlerSpec extends Specification {
         BindingKey(classOf[Environment]).to(env),
         BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
         BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
-        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider]
+        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
+        BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
       )).instanceOf[HttpErrorHandler]
   }
 
