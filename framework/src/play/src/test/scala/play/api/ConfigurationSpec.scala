@@ -28,7 +28,9 @@ class ConfigurationSpec extends Specification {
         "blah3" -> Map(
           "blah4" -> "value6"
         )
-      )
+      ),
+      "longlong" -> 79219707376851105L,
+      "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
     )
   )
 
@@ -116,6 +118,11 @@ class ConfigurationSpec extends Specification {
       exampleConfig.get[Seq[Double]]("blah.2") must ===(Seq(1.1, 2.2, 3.3))
       exampleConfig.get[Seq[Long]]("blah.3") must ===(Seq(1L, 2L, 3L))
       exampleConfig.get[Seq[String]]("blah.4") must contain(exactly("one", "two", "three"))
+    }
+
+    "handle longs of very large magnitude" in {
+      exampleConfig.get[Long]("longlong") must ===(79219707376851105L)
+      exampleConfig.get[Seq[Long]]("longlonglist") must ===(Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L))
     }
 
     "handle invalid and null configuration values" in {
