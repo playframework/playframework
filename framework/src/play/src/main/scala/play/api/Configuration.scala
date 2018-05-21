@@ -1064,7 +1064,7 @@ object ConfigLoader {
 
   implicit val longLoader: ConfigLoader[Long] = ConfigLoader(_.getLong)
   implicit val seqLongLoader: ConfigLoader[Seq[Long]] =
-    ConfigLoader(_.getDoubleList).map(_.asScala.map(_.longValue))
+    ConfigLoader(_.getLongList).map(_.asScala.map(_.longValue))
 
   implicit val bytesLoader: ConfigLoader[ConfigMemorySize] = ConfigLoader(_.getMemorySize)
   implicit val seqBytesLoader: ConfigLoader[Seq[ConfigMemorySize]] = ConfigLoader(_.getMemorySizeList).map(_.asScala)
