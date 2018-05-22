@@ -6,8 +6,6 @@ package play.it.test
 import org.specs2.execute.{ AsResult, PendingUntilFixed, Result, ResultExecution }
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.core.Fragment
-import play.api.Configuration
-import play.core.server._
 
 /**
  * Mixin class for integration tests that want to run over different
@@ -29,7 +27,7 @@ trait EndpointIntegrationSpecification
      * and runs the given block of code.
      *
      * {{{
-     * withResult(Results.Ok("Hello")) withAllEndpoints { endpoint: ServerEndpoint =>
+     * withResult(Results.Ok("Hello")) withEndpoints(myEndpointRecipes) { endpoint: ServerEndpoint =>
      *   val response = ... connect to endpoint.port ...
      *   response.status must_== 200
      * }
