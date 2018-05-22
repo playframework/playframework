@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
       guice,
       component("play-akka-http-server")
     ),
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
 
     InputKey[Unit]("verifyResourceContains") := {
       val args = Def.spaceDelimited("<path> <status> <words> ...").parsed

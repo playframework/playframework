@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
     // actually it should fail on any warning so that we can check that packageBin won't include any documentation
     scalacOptions in Compile := Seq("-Xfatal-warnings", "-deprecation"),
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
     play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false,
     packageDoc in Compile := { new File(".") }
   )

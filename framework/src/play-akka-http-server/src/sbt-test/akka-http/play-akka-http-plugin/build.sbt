@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
 
 name := "compiled-class"
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.4")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6")
 
 // Change our tests directory because the usual "test" directory clashes
 // with the scripted "test" file.
