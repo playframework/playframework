@@ -32,6 +32,9 @@ trait ServerEndpointRecipe {
   /** The provider used to create the server instance. */
   def serverProvider: ServerProvider
 
+  def withDescription(newDescription: String): ServerEndpointRecipe
+  def withServerProvider(newProvider: ServerProvider): ServerEndpointRecipe
+
   /**
    * Once a server has been started using this recipe, the running instance
    * can be queried to create an endpoint. Usually this just involves asking
@@ -41,7 +44,7 @@ trait ServerEndpointRecipe {
 }
 
 /** Provides a recipe for making an [[HttpEndpoint]]. */
-protected class HttpServerEndpointRecipe(
+class HttpServerEndpointRecipe(
     override val description: String,
     override val serverProvider: ServerProvider,
     extraServerConfiguration: Configuration = Configuration.empty,
@@ -61,11 +64,15 @@ protected class HttpServerEndpointRecipe(
       override def expectedServerAttr: Option[String] = recipe.expectedServerAttr
     }
   }
+  def withDescription(newDescription: String): HttpServerEndpointRecipe =
+    new HttpServerEndpointRecipe(newDescription, serverProvider, extraServerConfiguration, expectedHttpVersions, expectedServerAttr)
+  def withServerProvider(newProvider: ServerProvider): HttpServerEndpointRecipe =
+    new HttpServerEndpointRecipe(description, newProvider, extraServerConfiguration, expectedHttpVersions, expectedServerAttr)
   override def toString: String = s"HttpServerEndpointRecipe($description)"
 }
 
 /** Provides a recipe for making an [[HttpsEndpoint]]. */
-protected class HttpsServerEndpointRecipe(
+class HttpsServerEndpointRecipe(
     override val description: String,
     override val serverProvider: ServerProvider,
     extraServerConfiguration: Configuration = Configuration.empty,
@@ -91,6 +98,8 @@ protected class HttpsServerEndpointRecipe(
       )
     }
   }
+  def withDescription(newDescription: String) = new HttpsServerEndpointRecipe(newDescription, serverProvider, extraServerConfiguration, expectedHttpVersions, expectedServerAttr)
+  def withServerProvider(newProvider: ServerProvider) = new HttpsServerEndpointRecipe(description, newProvider, extraServerConfiguration, expectedHttpVersions, expectedServerAttr)
   override def toString: String = s"HttpsServerEndpointRecipe($description)"
 }
 
