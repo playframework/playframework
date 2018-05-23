@@ -94,7 +94,7 @@ trait Action[A] extends EssentialAction {
       val request = Request(rh, a)
       logger.trace("Invoking action with request: " + request)
       apply(request)
-  }(executionContext)
+  }(executionContext.prepare)
 
   /**
    * The execution context to run this action in
