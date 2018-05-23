@@ -9,7 +9,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Generate configuration
 
-Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
+Play provides a command to simplify Eclipse configuration. Before running the command, you need to add below plugin in your plugin.sbt:
+
+```
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
+```
+
+To transform a Play application into a working Eclipse project, use the `eclipse` command :
 
 ```
 [my-first-app] $ eclipse
