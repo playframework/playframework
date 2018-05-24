@@ -188,6 +188,38 @@ If you want to reference properties that are defined in the `application.conf` f
 </appender>
 ```
 
+This would also allow you to, for example, customize the location of the log files, perhaps placing them in a location external to the application home to protect them against app upgrades. You might set an environment variable:
+
+```
+$ start -Dlogger.path=/opt/log/my.app
+```
+
+Next, provide a default and overridden value in application.conf:
+
+```
+play.logger {
+  path = "/tmp/log/my.app"
+  path = ${?logger.path}
+  includeConfigProperties = true
+}
+
+```
+
+And finally, use the value in your logback configuration file:
+
+```
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${play.logger.path}/app.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${play.logger.path}/application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} [%level] from %logger in %thread - %message%n%xException</pattern>
+    </encoder>
+  </appender>
+```
+
 ## Akka logging configuration
 
 Akka system logging can be done by changing the `akka` logger to INFO.
