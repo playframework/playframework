@@ -5,6 +5,8 @@ import play.dev.filewatch.FileWatchService
 import play.sbt.run.toLoggerProxy
 import sbt._
 
+import javax.net.ssl.{SSLContext, HttpsURLConnection, TrustManager, X509TrustManager}
+import java.security.cert.X509Certificate
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.Properties
@@ -28,29 +30,35 @@ object DevModeBuild {
   val ConnectTimeout = 10000
   val ReadTimeout = 10000
 
+  private val trustAllManager = {
+    val manager = new X509TrustManager() {
+      def getAcceptedIssuers: Array[X509Certificate] = null
+      def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+      def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+    }
+    Array[TrustManager](manager)
+  }
+
+
   @tailrec
   def verifyResourceContains(path: String, status: Int, assertions: Seq[String], attempts: Int, headers: (String, String)*): Unit = {
     println(s"Attempt $attempts at $path")
     val messages = ListBuffer.empty[String]
     try {
-      val url = new java.net.URL("http://localhost:9000" + path)
+      val sc = SSLContext.getInstance("SSL")
+      sc.init(null, trustAllManager, null)
+      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory)
+
+      val url = new java.net.URL("https://localhost:9443" + path)
       val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
       conn.setConnectTimeout(ConnectTimeout)
       conn.setReadTimeout(ReadTimeout)
 
       headers.foreach(h => conn.setRequestProperty(h._1, h._2))
 
-      if (status == conn.getResponseCode) {
-        messages += s"Resource at $path returned $status as expected"
-      } else {
-        throw new RuntimeException(s"Resource at $path returned ${conn.getResponseCode} instead of $status")
-      }
+      if (status == conn.getResponseCode) messages += s"Resource at $path returned $status as expected" else throw new RuntimeException(s"Resource at $path returned ${conn.getResponseCode} instead of $status")
 
-      val is = if (conn.getResponseCode >= 400) {
-        conn.getErrorStream
-      } else {
-        conn.getInputStream
-      }
+      val is = if (conn.getResponseCode >= 400) conn.getErrorStream else conn.getInputStream
 
       // The input stream may be null if there's no body
       val contents = if (is != null) {
@@ -61,11 +69,7 @@ object DevModeBuild {
       conn.disconnect()
 
       assertions.foreach { assertion =>
-        if (contents.contains(assertion)) {
-          messages += s"Resource at $path contained $assertion"
-        } else {
-          throw new RuntimeException(s"Resource at $path didn't contain '$assertion':\n$contents")
-        }
+        if (contents.contains(assertion)) messages += s"Resource at $path contained $assertion" else throw new RuntimeException(s"Resource at $path didn't contain '$assertion':\n$contents")
       }
 
       messages.foreach(println)

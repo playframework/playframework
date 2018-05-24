@@ -10,11 +10,9 @@ lazy val root = (project in file("."))
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
 
-    InputKey[Unit]("verifyResourceContains") := {
-      val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
-      val path = args.head
-      val status = args.tail.head.toInt
-      val assertions = args.tail.tail
-      DevModeBuild.verifyResourceContains(path, status, assertions, 0)
+    InputKey[Unit]("makeRequest") := {
+      val args = Def.spaceDelimited("<path> <status> ...").parsed
+      val path :: status :: headers = args
+      DevModeBuild.verifyResourceContains(path, status.toInt, Seq.empty, 0)
     }
   )
