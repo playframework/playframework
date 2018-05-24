@@ -10,6 +10,8 @@ import java.util
 import java.util.Optional
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 
+import akka.NotUsed
+import akka.stream.javadsl
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
 import akka.util.ByteString
 import org.specs2.concurrent.{ ExecutionEnv, FutureAwait }
@@ -138,7 +140,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
     }
 
     "sending a simple multipart form body" in withServer { ws =>
-      val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava
+      val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava[Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], NotUsed]
       val res = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().asJson()
 
