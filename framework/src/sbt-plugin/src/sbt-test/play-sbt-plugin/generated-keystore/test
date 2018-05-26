@@ -1,0 +1,5 @@
+# runs the devmode and checks that a generated-keystore file is created
+> run -Dhttps.port=9443
+$ exists generated.keystore
+> makeRequest / 200
+> playStop

@@ -20,7 +20,7 @@ import java.security.interfaces.RSAPublicKey
  */
 object FakeKeyStore {
   private val logger = Logger(FakeKeyStore.getClass)
-  val GeneratedKeyStore = "conf/generated.keystore"
+  val GeneratedKeyStore = "generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
   val SignatureAlgorithmOID = AlgorithmId.sha256WithRSAEncryption_oid
   val SignatureAlgorithmName = "SHA256withRSA"
