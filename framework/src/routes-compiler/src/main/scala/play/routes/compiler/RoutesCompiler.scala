@@ -94,6 +94,10 @@ object RoutesCompiler {
       generated.map {
         case (filename, content) =>
           val file = new File(generatedDir, filename)
+          if (!file.exists()) {
+            file.getParentFile.mkdirs()
+            file.createNewFile()
+          }
           Files.write(file.toPath, content.getBytes(implicitly[Codec].name))
           file
       }
