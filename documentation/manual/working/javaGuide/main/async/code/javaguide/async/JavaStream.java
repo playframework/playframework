@@ -12,7 +12,6 @@ import akka.stream.OverflowStrategy;
 import akka.NotUsed;
 
 import javaguide.testhelpers.MockJavaAction;
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpEntity;
@@ -125,7 +124,9 @@ public class JavaStream extends WithApplication {
         File file = new File("/tmp/fileToServe.pdf");
         file.deleteOnExit();
         try (OutputStream os = java.nio.file.Files.newOutputStream(file.toPath())) {
-            IOUtils.write("hi", os, "UTF-8");
+            os.write("hi".getBytes("UTF-8"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
         assertThat(contentAsString(result, mat), equalTo("hi"));

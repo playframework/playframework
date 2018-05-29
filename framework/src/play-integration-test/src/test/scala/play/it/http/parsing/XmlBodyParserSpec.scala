@@ -14,8 +14,8 @@ import scala.xml.NodeSeq
 import java.io.File
 import java.nio.charset.StandardCharsets
 
-import org.apache.commons.io.FileUtils
 import play.api.Application
+import java.nio.file.Files
 
 class XmlBodyParserSpec extends PlaySpecification {
 
@@ -104,7 +104,7 @@ class XmlBodyParserSpec extends PlaySpecification {
 
     "parse XML bodies without loading in a related schema" in new WithApplication() {
       val f = File.createTempFile("xxe", ".txt")
-      FileUtils.writeStringToFile(f, "I shouldn't be there!", StandardCharsets.UTF_8)
+      Files.write(f.toPath, "I shouldn't be there!".getBytes(StandardCharsets.UTF_8))
       f.deleteOnExit()
       val xml = s"""<?xml version="1.0" encoding="ISO-8859-1"?>
                   | <!DOCTYPE foo [
@@ -117,13 +117,14 @@ class XmlBodyParserSpec extends PlaySpecification {
     "parse XML bodies without loading in a related schema from a parameter" in new WithApplication() {
       val externalParameterEntity = File.createTempFile("xep", ".dtd")
       val externalGeneralEntity = File.createTempFile("xxe", ".txt")
-      FileUtils.writeStringToFile(
-        externalParameterEntity,
+      Files.write(
+        externalParameterEntity.toPath,
         s"""
-          |<!ENTITY % xge SYSTEM "${externalGeneralEntity.toURI}">
-          |<!ENTITY % pe "<!ENTITY xxe '%xge;'>">
-        """.stripMargin, StandardCharsets.UTF_8)
-      FileUtils.writeStringToFile(externalGeneralEntity, "I shouldnt be there!", StandardCharsets.UTF_8)
+           |<!ENTITY % xge SYSTEM "${externalGeneralEntity.toURI}">
+           |<!ENTITY % pe "<!ENTITY xxe '%xge;'>">
+        """.stripMargin.getBytes(StandardCharsets.UTF_8)
+      )
+      Files.write(externalGeneralEntity.toPath, "I shouldnt be there!".getBytes(StandardCharsets.UTF_8))
       externalGeneralEntity.deleteOnExit()
       externalParameterEntity.deleteOnExit()
       val xml = s"""<?xml version="1.0" encoding="ISO-8859-1"?>
