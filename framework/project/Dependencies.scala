@@ -145,15 +145,11 @@ object Dependencies {
     Seq("akka-testkit").map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
     jacksons ++
     Seq(
-      "commons-codec" % "commons-codec" % "1.10",
-
       playJson,
 
       guava,
       jjwt,
       jaxbApi,
-
-      "org.apache.commons" % "commons-lang3" % "3.6",
 
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",

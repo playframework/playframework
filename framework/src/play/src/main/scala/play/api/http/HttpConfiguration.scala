@@ -5,10 +5,9 @@
 package play.api.http
 
 import javax.inject.{ Inject, Provider, Singleton }
-
 import com.typesafe.config.ConfigMemorySize
-import org.apache.commons.codec.digest.DigestUtils
 import play.api._
+import play.api.libs.Codecs
 import play.api.mvc.Cookie.SameSite
 import play.core.cookie.encoding.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
@@ -259,7 +258,7 @@ object HttpConfiguration {
           // No application.conf?  Oh well, just use something hard coded.
           "she sells sea shells on the sea shore"
         )(_.toString)
-        val md5Secret = DigestUtils.md5Hex(secret)
+        val md5Secret = Codecs.md5(secret)
         logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
         md5Secret
       case Some(s) => s

@@ -10,7 +10,7 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import akka.util.ByteStringBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.StringEscapeUtils;
+import play.twirl.api.utils.StringEscapeUtils;
 
 import java.util.Arrays;
 

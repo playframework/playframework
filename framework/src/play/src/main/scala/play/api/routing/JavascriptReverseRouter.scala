@@ -40,7 +40,7 @@ object JavaScriptReverseRouter {
   }
 
   def apply(name: String, ajaxMethod: Option[String], host: String, routes: JavaScriptReverseRoute*): JavaScript = JavaScript {
-    import org.apache.commons.lang3.StringEscapeUtils.{ escapeEcmaScript => esc }
+    import play.twirl.api.utils.StringEscapeUtils.{ escapeEcmaScript => esc }
     val ajaxField = ajaxMethod.fold("")(m => s"ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return $m(c)},")
     val routesStr = routes.map { route =>
       val nameParts = route.name.split('.')

@@ -4,7 +4,6 @@
 
 package play.i18n;
 
-import org.apache.commons.lang3.ArrayUtils;
 import play.libs.Scala;
 import play.mvc.Http;
 import scala.collection.Seq;
@@ -15,6 +14,7 @@ import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The messages API.
@@ -57,7 +57,7 @@ public class MessagesApi {
     @SafeVarargs
     private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
         List<T> out;
-        if (ArrayUtils.isNotEmpty(args)
+        if (Optional.ofNullable(args).filter(a -> a.length > 0).isPresent()
                 && args.length == 1
                 && args[0] instanceof List){
             out = (List<T>) args[0];

@@ -197,7 +197,7 @@ object HttpBinApplication {
       Action { request =>
         request.headers.get("Authorization").flatMap { authorization =>
           authorization.split(" ").drop(1).headOption.filter { encoded =>
-            new String(org.apache.commons.codec.binary.Base64.decodeBase64(encoded.getBytes)).split(":").toList match {
+            new String(java.util.Base64.getDecoder.decode(encoded.getBytes)).split(":").toList match {
               case u :: p :: Nil if u == username && password == p => true
               case _ => false
             }
