@@ -103,9 +103,9 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     "not gzip HEAD requests" in withApplication(Ok) { implicit app =>
       checkNotGzipped(
         route(
-        app,
-        FakeRequest("HEAD", "/").withHeaders(
-          ACCEPT_ENCODING -> "gzip")).get,
+          app,
+          FakeRequest("HEAD", "/").withHeaders(
+            ACCEPT_ENCODING -> "gzip")).get,
         "")(app.materializer)
     }
 
