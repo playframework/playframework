@@ -40,11 +40,9 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX = classOf[FirefoxDriver]
 
   /**
-   * Returns `true` if this application needs to run sequentially, rather than in parallel with other applications.
-   * Typically that means the application and/or test relies on some global state, so this defaults to the
-   * globalApplicationEnabled setting. This method is provided so the behavior can be customized if needed.
+   * Tests using servers share a test server port so we default to true.
    */
-  protected def shouldRunSequentially(app: Application): Boolean = app.globalApplicationEnabled
+  protected def shouldRunSequentially(app: Application): Boolean = true
 
   private[play] def runSynchronized[T](app: Application)(block: => T): T = {
     val needsLock = shouldRunSequentially(app)

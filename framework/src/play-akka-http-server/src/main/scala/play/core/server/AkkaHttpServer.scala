@@ -6,13 +6,12 @@ package play.core.server
 
 import java.net.InetSocketAddress
 import java.security.{ Provider, SecureRandom }
-import javax.net.ssl._
 
 import akka.actor.ActorSystem
 import akka.http.play.WebSocketHandler
-import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
 import akka.http.scaladsl.{ ConnectionContext, Http }
@@ -20,16 +19,17 @@ import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.{ Config, ConfigMemorySize }
+import javax.net.ssl._
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.routing.Router
+import play.core.ApplicationProvider
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerDebugInfo, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
-import play.core.ApplicationProvider
 import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
@@ -419,17 +419,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 }
 
 /**
- * Creates an AkkaHttpServer from the given router:
- *
- * {{{
- *   val server = AkkaHttpServer.fromRouter(ServerConfig(port = Some(9002))) {
- *     case GET(p"/") => Action {
- *       Results.Ok("Hello")
- *     }
- *   }
- * }}}
- *
- * Or from a given router using [[BuiltInComponents]]:
+ * Creates an AkkaHttpServer from a given router using [[BuiltInComponents]]:
  *
  * {{{
  *   val server = AkkaHttpServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
@@ -536,3 +526,20 @@ trait AkkaHttpServerComponents extends ServerComponents {
 
   def application: Application
 }
+
+/**
+ * A convenient helper trait for constructing an AkkaHttpServer, for example:
+ *
+ * {{{
+ *   val components = new DefaultAkkaHttpServerComponents {
+ *     override lazy val router = {
+ *       case GET(p"/") => Action(parse.json) { body =>
+ *         Ok("Hello")
+ *       }
+ *     }
+ *   }
+ *   val server = components.server
+ * }}}
+ */
+trait DefaultAkkaHttpServerComponents
+  extends AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents

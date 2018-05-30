@@ -13,9 +13,12 @@ import play.api.libs.json.Json
 class ExampleEssentialActionSpec extends PlaySpecification {
 
   "An essential action" should {
-    "can parse a JSON body" in new WithApplication() {
-      val action: EssentialAction = Action { request =>
-        val value = (request.body.asJson.get \ "field").as[String]
+    "can parse a JSON body" in new WithApplication() with Injecting {
+      val Action = inject[DefaultActionBuilder]
+      val parse = inject[PlayBodyParsers]
+
+      val action: EssentialAction = Action(parse.json) { request =>
+        val value = (request.body \ "field").as[String]
         Ok(value)
       }
 

@@ -13,8 +13,10 @@ import java.net.URL
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
+import play.api.http.ParserConfiguration
 import play.api.libs.concurrent.Futures
 import play.api.libs.json.JsValue
+import play.api.mvc
 
 //#dependency
 import javax.inject.Inject
@@ -57,7 +59,12 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   val url = s"http://localhost:$testServerPort/"
 
   val system = ActorSystem()
+
   implicit val materializer = ActorMaterializer()(system)
+  implicit val ec = materializer.executionContext
+
+  val parse = PlayBodyParsers()
+  val Action = new DefaultActionBuilderImpl(new BodyParsers.Default())
 
   def afterAll(): Unit = system.terminate()
 
@@ -195,7 +202,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "when posting data" should {
 
       "post with form url encoded body" in withServer {
-        case ("POST", "/") => Action(BodyParsers.parse.formUrlEncoded)(r => Ok(r.body("key").head))
+        case ("POST", "/") => Action(parse.formUrlEncoded)(r => Ok(r.body("key").head))
         case other => Action { NotFound }
       } { ws =>
         val response =
@@ -207,7 +214,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       }
 
       "post with multipart/form encoded body" in withServer {
-          case("POST", "/") => Action(BodyParsers.parse.multipartFormData)(r => Ok(r.body.asFormUrlEncoded("key").head))
+          case("POST", "/") => Action(parse.multipartFormData)(r => Ok(r.body.asFormUrlEncoded("key").head))
           case other => Action { NotFound }
         } { ws =>
         import play.api.mvc.MultipartFormData._
@@ -220,7 +227,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       }
 
       "post with multipart/form encoded body from a file" in withServer {
-        case("POST", "/") => Action(BodyParsers.parse.multipartFormData){r =>
+        case("POST", "/") => Action(parse.multipartFormData){r =>
             val file = r.body.file("hello").head
           Ok(scala.io.Source.fromFile(file.ref).mkString)
         }
@@ -239,7 +246,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       }
 
       "post with JSON body" in  withServer {
-        case ("POST", "/") => Action(BodyParsers.parse.json)(r => Ok(r.body))
+        case ("POST", "/") => Action(parse.json)(r => Ok(r.body))
         case other => Action { NotFound }
       } { ws =>
         // #scalaws-post-json
@@ -255,7 +262,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       }
 
       "post with XML data" in withServer {
-        case ("POST", "/") => Action(BodyParsers.parse.xml)(r => Ok(r.body))
+        case ("POST", "/") => Action(parse.xml)(r => Ok(r.body))
         case other => Action { NotFound }
       } { ws =>
         // #scalaws-post-xml
