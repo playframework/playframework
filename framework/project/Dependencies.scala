@@ -175,10 +175,7 @@ object Dependencies {
       case Some((2, v)) if v >= 12 => specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test)
       case _ => specs2DepsForSbt.map(_ % Test) ++ Seq(specsMatcherExtraForSbt % Test)
     }
-    deps ++ scalaParserCombinators(scalaVersion) ++ Seq(
-      "commons-io" % "commons-io" % "2.6",
-      logback % Test
-    )
+    deps ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {

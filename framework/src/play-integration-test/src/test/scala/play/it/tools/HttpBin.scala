@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-import org.apache.commons.io.FileUtils
+import play.api.libs.Files
 import play.api.libs.json.{ JsObject, _ }
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Results._
@@ -37,6 +37,9 @@ object HttpBinApplication {
   }
 
   private def requestWriter[A] = new Writes[Request[A]] {
+    def readFileToString(ref: Files.TemporaryFile): String = {
+      new String(java.nio.file.Files.readAllBytes(ref), StandardCharsets.UTF_8)
+    }
     def writes(r: Request[A]): JsValue =
       requestHeaderWriter.writes(r).as[JsObject] ++
         Json.obj(
@@ -54,7 +57,7 @@ object HttpBinApplication {
             case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
               Json.obj(
                 "form" -> m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
-                "file" -> JsString(m.mfd.file("upload").map(v => FileUtils.readFileToString(v.ref, StandardCharsets.UTF_8)).getOrElse(""))
+                "file" -> JsString(m.mfd.file("upload").map(v => readFileToString(v.ref)).getOrElse(""))
               )
             case b =>
               Json.obj("data" -> JsString(b.toString))

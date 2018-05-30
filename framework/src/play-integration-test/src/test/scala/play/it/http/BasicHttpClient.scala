@@ -7,10 +7,10 @@ package play.it.http
 import java.net.{ Socket, SocketTimeoutException }
 import java.io._
 import java.security.cert.X509Certificate
+
+import com.google.common.io.CharStreams
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-
-import org.apache.commons.io.IOUtils
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
@@ -258,7 +258,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
   private def consumeRemaining(reader: BufferedReader): String = {
     val writer = new StringWriter()
     try {
-      IOUtils.copy(reader, writer)
+      CharStreams.copy(reader, writer)
     } catch {
       case timeout: SocketTimeoutException => throw timeout
     }
