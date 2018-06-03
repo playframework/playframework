@@ -707,7 +707,7 @@ package controllers {
   @Singleton
   class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
-  protected class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
+  protected[controllers] class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
 
     import meta._
     import Assets._
