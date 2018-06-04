@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
