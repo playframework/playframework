@@ -127,7 +127,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
 
 ### Removed libraries
 
-In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.6, so you will need to manually add them to your build if you use them.
+In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.7, so you will need to manually add them to your build if you use them.
 
 #### Apache Commons (`commons-lang3` and `commons-codec`)
 
