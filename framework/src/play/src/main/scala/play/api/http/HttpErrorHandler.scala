@@ -306,6 +306,7 @@ object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(
 /**
  * A lazy HTTP error handler, that looks up the error handler from the current application
  */
+@deprecated("Access the global state. Inject a HttpErrorHandler instead", "2.7.0")
 object LazyHttpErrorHandler extends HttpErrorHandler {
 
   private def errorHandler = Play.privateMaybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)

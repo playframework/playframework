@@ -8,6 +8,7 @@ import play.api._
 import play.api.libs.crypto._
 
 // Keep Crypto around to manage global state for now...
+@deprecated("Access global state. Inject a CookieSigner instead", "2.7.0")
 private[play] object Crypto {
 
   private val cookieSignerCache: (Application) => CookieSigner = Application.instanceCache[CookieSigner]
