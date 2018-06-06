@@ -57,11 +57,9 @@ public class MessagesApi {
     @SafeVarargs
     private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
         List<T> out;
-        if (Optional.ofNullable(args).filter(a -> a.length > 0).isPresent()
-                && args.length == 1
-                && args[0] instanceof List){
+        if (args != null && args.length == 1 && args[0] instanceof List) {
             out = (List<T>) args[0];
-        }else{
+        } else {
             out = Arrays.asList(args);
         }
         return out;
