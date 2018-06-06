@@ -66,16 +66,12 @@ object Play {
 
   /**
    * Returns the currently running application, or `null` if not defined.
-   *
-   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI", "2.5.0")
   def unsafeApplication: Application = privateMaybeApplication.orNull
 
   /**
    * Optionally returns the current running application.
-   *
-   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
   def maybeApplication: Option[Application] = privateMaybeApplication
@@ -97,8 +93,6 @@ object Play {
    *
    * Note that by relying on this, your code will only work properly in
    * the context of a running application.
-   *
-   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
   implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
