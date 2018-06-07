@@ -307,7 +307,7 @@ case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCr
  */
 trait BodyParsers {
 
-  @inline private def maybeApp = Play.privateMaybeApplication
+  @inline private def maybeApp = Play.privateMaybeApplication.toOption
 
   private val hcCache = Application.instanceCache[HttpConfiguration]
   private lazy val mat: Materializer = ActorMaterializer()(ActorSystem("play-body-parsers"))

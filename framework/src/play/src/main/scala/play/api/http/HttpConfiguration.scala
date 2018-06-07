@@ -5,7 +5,6 @@
 package play.api.http
 
 import javax.inject.{ Inject, Provider, Singleton }
-
 import com.typesafe.config.ConfigMemorySize
 import org.apache.commons.codec.digest.DigestUtils
 import play.api._
@@ -13,6 +12,7 @@ import play.api.mvc.Cookie.SameSite
 import play.core.cookie.encoding.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
 import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
 
 /**
  * HTTP related configuration of a Play application
@@ -273,7 +273,10 @@ object HttpConfiguration {
   /**
    * Don't use this - only exists for transition from global state
    */
-  private[play] def current = Play.privateMaybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
+  private[play] def current: HttpConfiguration = Play.privateMaybeApplication match {
+    case Success(app) => httpConfigurationCache(app)
+    case Failure(_) => HttpConfiguration()
+  }
 
   /**
    * For calling from Java.

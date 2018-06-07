@@ -11,6 +11,7 @@ import play.api.mvc.Results._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
+import scala.util.{ Failure, Success }
 
 /**
  * Helpers to create secure actions.
@@ -76,7 +77,7 @@ object Security {
    */
   @deprecated("Security.username is deprecated.", "2.6.0")
   lazy val username: String = {
-    Play.privateMaybeApplication.flatMap(_.configuration.getOptional[String]("session.username")) match {
+    Play.privateMaybeApplication.toOption.flatMap(_.configuration.getOptional[String]("session.username")) match {
       case Some(usernameKey) =>
         logger.warn("The session.username configuration key is no longer supported.")
         logger.warn("Inject Configuration into your controller or component and call get[String](\"session.username\")")
