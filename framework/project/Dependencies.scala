@@ -56,6 +56,10 @@ object Dependencies {
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
+  // currently jjwt needs the JAXB Api package in JDK 9+
+  // since it actually uses javax/xml/bind/DatatypeConverter
+  // See: https://github.com/jwtk/jjwt/issues/317
+  val jaxbApi = "javax.xml.bind" % "jaxb-api" % "2.3.0"
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
@@ -143,6 +147,7 @@ object Dependencies {
 
       guava,
       jjwt,
+      jaxbApi,
 
       "org.apache.commons" % "commons-lang3" % "3.6",
 
