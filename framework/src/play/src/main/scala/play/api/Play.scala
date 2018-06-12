@@ -79,18 +79,13 @@ object Play {
 
   private[play] def privateMaybeApplication: Try[Application] = {
     if (_currentApp != null) {
-      logger.warn(
-        """
-          |You are accessing the application using deprecated methods that exists only to access
-          |global state. If you need an instance of Application, use Dependency Injection.
-        """.stripMargin)
       Success(_currentApp)
     } else {
       Failure(sys.error(
         s"""
-           |The global application is disabled. Set $GlobalAppConfigKey to allow global state here.
-           |If $GlobalAppConfigKey is already configured to allow global state, then you need to start
-           |the application too.
+           |The global application reference is disabled. Play's global state is deprecated and will
+           |be removed in a future release. You should use dependency injection instead. To enable
+           |the global application anyway, set $GlobalAppConfigKey = true.
        """.stripMargin
       ))
 
@@ -138,6 +133,11 @@ object Play {
     // Set the current app if the global application is enabled
     // Also set it if the current app is null, in order to display more useful errors if we try to use the app
     if (globalApp) {
+      logger.warn(
+        s"""
+          |You are using the deprecated global state to set and access the current running application. If you
+          |need an instance of Application, set $GlobalAppConfigKey = false and use Dependency Injection instead.
+        """.stripMargin)
       _currentApp = app
     }
 
