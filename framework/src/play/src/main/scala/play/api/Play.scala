@@ -119,7 +119,7 @@ object Play {
     val globalApp = app.globalApplicationEnabled
 
     // Stop the current app if the new app needs to replace the current app instance
-    if (globalApp && _currentApp != null && _currentApp.globalApplicationEnabled) {
+    if (globalApp && _currentApp != null) {
       logger.info("Stopping current application")
       stop(_currentApp)
     }

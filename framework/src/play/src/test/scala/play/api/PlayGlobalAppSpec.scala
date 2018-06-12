@@ -77,5 +77,22 @@ class PlayGlobalAppSpec extends Specification {
       Play.stop(app2)
       success
     }
+    "should stop an app with global state disabled" in {
+      val app = testApp(false)
+      Play.start(app)
+      Play.privateMaybeApplication must throwA[RuntimeException]
+
+      Play.stop(app)
+      app.isTerminated must beTrue
+    }
+    "should unset current app when stopping with global state enabled" in {
+      val app = testApp(true)
+      Play.start(app)
+      Play.privateMaybeApplication must beSuccessfulTry.withValue(app)
+
+      Play.stop(app)
+      app.isTerminated must beTrue
+      Play.privateMaybeApplication must throwA[RuntimeException]
+    }
   }
 }
