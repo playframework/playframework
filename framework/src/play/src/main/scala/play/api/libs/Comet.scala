@@ -7,7 +7,7 @@ package play.api.libs
 import akka.NotUsed
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.util.{ ByteString, ByteStringBuilder }
-import org.apache.commons.lang3.StringEscapeUtils
+import play.twirl.api.utils.StringEscapeUtils
 import play.api.libs.json.{ JsValue, Json }
 import play.twirl.api._
 

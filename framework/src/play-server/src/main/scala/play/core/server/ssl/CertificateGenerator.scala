@@ -44,8 +44,7 @@ object CertificateGenerator {
   }
 
   def toPEM(certificate: X509Certificate) = {
-    import org.apache.commons.codec.binary.Base64
-    val encoder = new Base64(64)
+    val encoder = java.util.Base64.getMimeEncoder(64, Array('\r', '\n'))
     val certBegin = "-----BEGIN CERTIFICATE-----\n"
     val certEnd = "-----END CERTIFICATE-----"
 

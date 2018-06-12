@@ -8,11 +8,11 @@ import java.util.Optional
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.stream.scaladsl.Flow
-import org.apache.commons.lang3.reflect.MethodUtils
 import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
+import play.libs.reflect.MethodUtils
 import play.mvc.Http.{ Context, RequestBody }
 
 import scala.compat.java8.{ FutureConverters, OptionConverters }

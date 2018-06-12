@@ -124,6 +124,25 @@ public abstract class Controller extends Results implements Status, HeaderNames 
 }
 ```
 
+
+### Removed libraries
+
+In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.7, so you will need to manually add them to your build if you use them.
+
+#### Apache Commons (`commons-lang3` and `commons-codec`)
+
+Play had some internal uses of `commons-codec` and `commons-lang3` if you used it in your project you need to add it to your `build.sbt`:
+
+```scala
+libraryDependencies += "commons-codec" % "commons-codec" % "1.10"
+```
+
+or:
+
+```scala
+libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.6"
+```
+
 ### `Guava` version updated to 24.0-jre
 
 Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 24.1-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).
