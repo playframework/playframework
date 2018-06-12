@@ -3,8 +3,11 @@
  */
 
 import org.specs2.mutable.Specification
+import play.api.{ApplicationLoader, BuiltInComponentsFromContext, Environment}
+import play.api.routing.Router
 import play.core.server.DefaultAkkaHttpServerComponents
 import play.api.test.WsTestClient
+import play.filters.HttpFiltersComponents
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -108,17 +111,20 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
     "allow usage from a running application" in {
       //#application-akka-http
-      import play.api.inject.guice.GuiceApplicationBuilder
       import play.api.mvc._
-      import play.api.routing.SimpleRouterImpl
       import play.api.routing.sird._
       import play.core.server.{AkkaHttpServer, ServerConfig}
 
-      val server = AkkaHttpServer.fromApplication(GuiceApplicationBuilder().router(new SimpleRouterImpl({
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
+      val context = ApplicationLoader.Context.create(Environment.simple())
+      val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
+        override def router: Router = Router.from {
+          case GET(p"/hello/$to") => Action {
+            Results.Ok(s"Hello $to")
+          }
         }
-      })).build(), ServerConfig(
+      }
+
+      val server = AkkaHttpServer.fromApplication(components.application, ServerConfig(
         port = Some(19000),
         address = "127.0.0.1"
       ))

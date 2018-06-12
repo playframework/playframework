@@ -4,6 +4,8 @@
 
 package play.api.http
 
+import java.util.concurrent.CompletionStage
+
 import javax.inject._
 import play.api._
 import play.api.inject.Binding
@@ -18,6 +20,7 @@ import play.utils.{ PlayIO, Reflect }
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
+import scala.util.{ Failure, Success }
 import scala.util.control.NonFatal
 
 /**
@@ -293,11 +296,11 @@ object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(
     val conf = Configuration.load(Environment.simple())
     conf.getOptional[String]("play.editor") foreach setPlayEditor
   }
-  override def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     setEditor
     super.onClientError(request, statusCode, message)
   }
-  override def onServerError(request: RequestHeader, exception: Throwable) = {
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     setEditor
     super.onServerError(request, exception)
   }
@@ -306,14 +309,18 @@ object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(
 /**
  * A lazy HTTP error handler, that looks up the error handler from the current application
  */
+@deprecated("Access the global state. Inject a HttpErrorHandler instead", "2.7.0")
 object LazyHttpErrorHandler extends HttpErrorHandler {
 
-  private def errorHandler = Play.privateMaybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+  private def errorHandler: HttpErrorHandler = Play.privateMaybeApplication match {
+    case Success(app) => app.errorHandler
+    case Failure(_) => DefaultHttpErrorHandler
+  }
 
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
     errorHandler.onClientError(request, statusCode, message)
 
-  def onServerError(request: RequestHeader, exception: Throwable) =
+  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     errorHandler.onServerError(request, exception)
 }
 
@@ -324,9 +331,9 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
 private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorHandler) extends play.http.HttpErrorHandler {
   import play.core.Execution.Implicits.trampoline
 
-  def onClientError(request: Http.RequestHeader, statusCode: Int, message: String) =
+  def onClientError(request: Http.RequestHeader, statusCode: Int, message: String): CompletionStage[play.mvc.Result] =
     FutureConverters.toJava(delegate.onClientError(request.asScala(), statusCode, message).map(_.asJava))
 
-  def onServerError(request: Http.RequestHeader, exception: Throwable) =
+  def onServerError(request: Http.RequestHeader, exception: Throwable): CompletionStage[play.mvc.Result] =
     FutureConverters.toJava(delegate.onServerError(request.asScala(), exception).map(_.asJava))
 }

@@ -12,9 +12,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
-
 import play.libs.XML.Constants
 import javax.xml.XMLConstants
+
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Application mode, either `Dev`, `Test`, or `Prod`.
@@ -66,39 +67,39 @@ object Play {
 
   /**
    * Returns the currently running application, or `null` if not defined.
-   *
-   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI", "2.5.0")
-  def unsafeApplication: Application = privateMaybeApplication.orNull
+  def unsafeApplication: Application = privateMaybeApplication.get
 
   /**
    * Optionally returns the current running application.
-   *
-   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
-  def maybeApplication: Option[Application] = privateMaybeApplication
+  def maybeApplication: Option[Application] = privateMaybeApplication.toOption
 
-  private[play] def privateMaybeApplication: Option[Application] = {
-    Option(_currentApp) match {
-      case Some(app) if !app.globalApplicationEnabled =>
-        (new RuntimeException).printStackTrace()
-        sys.error(s"The global application is disabled. Set $GlobalAppConfigKey to allow global state here.")
-      case opt => opt
+  private[play] def privateMaybeApplication: Try[Application] = {
+    if (_currentApp != null) {
+      Success(_currentApp)
+    } else {
+      Failure(sys.error(
+        s"""
+           |The global application reference is disabled. Play's global state is deprecated and will
+           |be removed in a future release. You should use dependency injection instead. To enable
+           |the global application anyway, set $GlobalAppConfigKey = true.
+       """.stripMargin
+      ))
+
     }
   }
 
   /* Used by the routes compiler to resolve an application for the injector.  Treat as private. */
-  def routesCompilerMaybeApplication: Option[Application] = privateMaybeApplication
+  def routesCompilerMaybeApplication: Option[Application] = privateMaybeApplication.toOption
 
   /**
    * Implicitly import the current running application in the context.
    *
    * Note that by relying on this, your code will only work properly in
    * the context of a running application.
-   *
-   * @deprecated This is a static reference to application, use DI, since 2.5.0
    */
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
   implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
@@ -118,7 +119,7 @@ object Play {
     val globalApp = app.globalApplicationEnabled
 
     // Stop the current app if the new app needs to replace the current app instance
-    if (globalApp && _currentApp != null && _currentApp.globalApplicationEnabled) {
+    if (globalApp && _currentApp != null) {
       logger.info("Stopping current application")
       stop(_currentApp)
     }
@@ -131,7 +132,12 @@ object Play {
 
     // Set the current app if the global application is enabled
     // Also set it if the current app is null, in order to display more useful errors if we try to use the app
-    if (globalApp || _currentApp == null) {
+    if (globalApp) {
+      logger.warn(
+        s"""
+          |You are using the deprecated global state to set and access the current running application. If you
+          |need an instance of Application, set $GlobalAppConfigKey = false and use Dependency Injection instead.
+        """.stripMargin)
       _currentApp = app
     }
 

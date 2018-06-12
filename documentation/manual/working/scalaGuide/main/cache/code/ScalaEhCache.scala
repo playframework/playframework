@@ -10,7 +10,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.execute.AsResult
 
-import play.api.Play.current
 import play.api.test._
 import play.api.mvc._
 import play.api.libs.json.Json
