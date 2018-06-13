@@ -20,21 +20,21 @@ Guice was upgraded to version [4.2.0](https://github.com/google/guice/wiki/Guice
 
 `play.Logger` has been deprecated in favor of using SLF4J directly. You can create an SLF4J logger with `private static final Logger logger = LoggerFactory.getLogger(YourClass.class);`. If you'd like a more concise solution, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
 
-If you have a in your logback.xml referencing the `application` logger, you may remove it.
+If you have a `logger` entry in your logback.xml referencing the `application` logger, you may remove it.
 
     <logger name="application" level="DEBUG" />
 
-Each logger should have a unique name matching the name of the class it is in. In this way, you can configure a different log level for each class. You can also set the log level for a given package. E.g. to set the log level for all of Play's internal classes to the info level, you can set:
+Each logger should have a unique name matching the name of the class where it is used. In this way, you can configure a different log level for each class. You can also set the log level for a given package. For example, to set the log level for all of Play's internal classes to the info level, you can set:
 
     <logger name="play" level="INFO" />
 
 ## Evolutions comment syntax changes
 
-Play Evolutions now properly supports SQL92 comment syntax. This means you can write evolutions using `--` at the beginning of a line instead of `#` wherever you choose. Newly generated evolutions using the Evolutions API will now also use SQL92-style comment syntax in all areas. Documentation has also been updated accordingly to prefer the SQL92 style, though the older comment style is still fully supported.
+Play Evolutions now correctly supports SQL92 comment syntax. It means you can write evolutions using `--` at the beginning of a line instead of `#` wherever you choose. Newly generated evolutions using the Evolutions API will now also use SQL92-style comment syntax in all areas. Documentation has also been updated accordingly to prefer the SQL92 style, though the older comment style is still fully supported.
 
 ## StaticRoutesGenerator removed
 
-The `StaticRoutesGenerator`, which was deprecated in 2.6.0, has been removed. If you are still using it, you will likely have to remove a line like this so your build compiles:
+The `StaticRoutesGenerator`, which was deprecated in 2.6.0, has been removed. If you are still using it, you will likely have to remove a line like this, so your build compiles:
 
 ```scala
 routesGenerator := StaticRoutesGenerator
@@ -49,11 +49,11 @@ If you were using the `StaticRoutesGenerator` with dependency-injected controlle
 
 `application/javascript` is now the default content-type returned for JavaScript instead of `text/javascript`. For generated `<script>` tags, we are now also omitting the `type` attribute. See more details about omitting `type` attribute at the [HTML 5 specification](https://www.w3.org/TR/html51/semantics-scripting.html#element-attrdef-script-type).  
 
-## `Router#withPrefix` should always add prefix
+## `Router#withPrefix` should always add a prefix
 
 Previously, `router.withPrefix(prefix)` was meant to add a prefix to a router, but still allowed "legacy implementations" to update their existing prefix. Play's `SimpleRouter` and other classes followed this behavior. Now all implementations have been updated to add the prefix, so `router.withPrefix(prefix)` should always return a router that routes `s"$prefix/$path"` the same way `router` routes `path`.
 
-By default routers are unprefixed, so this will only cause a change in behavior if you are calling `withPrefix` on a router that has already been returned by `withPrefix`. To replace a prefix that has already been set on a router, you must call `withPrefix` on the original unprefixed router rather than the prefixed version.
+By default, routers are unprefixed, so this will only cause a change in behavior if you are calling `withPrefix` on a router that has already been returned by `withPrefix`. To replace a prefix that has already been set on a router, you must call `withPrefix` on the original unprefixed router rather than the prefixed version.
 
 ## Play WS Updates
 
@@ -94,7 +94,7 @@ Other methods that were added to improve Java API:
 
 ## HikariCP update and new configuration
 
-HikariCP was updated to the latest version which finally removed the configuration `initializationFailFast` which was replaced by `initializationFailTimeout`. See [HikariCP changelog](https://github.com/brettwooldridge/HikariCP/blob/dev/CHANGES) and [documentation for `initializationFailTimeout`](https://github.com/brettwooldridge/HikariCP#infrequently-used) to better understand how to use this configuration.
+HikariCP was updated to the latest version which finally removed the configuration `initializationFailFast`, replaced by `initializationFailTimeout`. See [HikariCP changelog](https://github.com/brettwooldridge/HikariCP/blob/dev/CHANGES) and [documentation for `initializationFailTimeout`](https://github.com/brettwooldridge/HikariCP#infrequently-used) to better understand how to use this configuration.
 
 ## BoneCP removed
 
@@ -106,7 +106,7 @@ play.db.pool = "hikaricp" # Use HikariCP
 
 ```
 
-You may need to reconfigure the pool to use HikariCP. For example, if you want to configure maximum number of connections for HikariCP, it would be as follows.
+You may need to reconfigure the pool to use HikariCP. For example, if you want to configure the maximum number of connections for HikariCP, it would be as follows.
 
 ```
 play.db.prototype.hikaricp.maximumPoolSize = 15
@@ -151,7 +151,7 @@ Please see the documentation in [[CSPFilter]] for more information.
 
 ## play.mvc.Results.TODO moved to play.mvc.Controller.TODO
 
-All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO()` method in `play.mvc.Controller` instead:
+All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  It means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO()` method in `play.mvc.Controller` instead:
 
 ```java
 public abstract class Controller extends Results implements Status, HeaderNames {
@@ -164,7 +164,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
 
 ## Removed libraries
 
-In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.7, so you will need to manually add them to your build if you use them.
+To make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.7, so you will need to add them manually to your build if you use them.
 
 ### Apache Commons (`commons-lang3` and `commons-codec`)
 
@@ -180,9 +180,25 @@ or:
 libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.6"
 ```
 
-## `Guava` version updated to 25.1-jre
+## Other libraries updates
+
+This section lists significant updates made to our dependencies.
+
+### `Guava` version updated to 25.1-jre
 
 Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 25.1-jre. Lots of changes were made in library, you can see the full changelog [here](https://github.com/google/guava/releases).
+
+### specs2 updated to 4.2.0
+
+The previous version was `3.8.x`. There are many changes and improvements, so we recommend that you read [the release notes](https://github.com/etorreborre/specs2/releases) for the recent versions of Specs2. The used version updated the [Mockito](http://site.mockito.org/) version used to `2.18.x`, so we also have updated it.
+
+### Jackson updated to 2.9
+
+Jackson version was updated from 2.8 to 2.9. The release notes for this version are [here](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.9). It is a release that keeps compatibility, so your application should not be affected. But you may be interested in the new features.
+
+### Hibernate Validator updated to 6.0
+
+[Hibernate Validator](http://hibernate.org/validator) was updated to version 6.0 which is now compatible with [Bean Validation](http://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](http://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
 
 ## Internal changes
 
