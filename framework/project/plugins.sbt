@@ -5,11 +5,11 @@ enablePlugins(BuildInfoPlugin)
 val Versions = new {
   // when updating sbtNativePackager version, be sure to also update the documentation links in
   // documentation/manual/working/commonGuide/production/Deploying.md
-  val sbtNativePackager = "1.3.4"
+  val sbtNativePackager = "1.3.5"
   val mima = "0.3.0"
   val sbtScalariform = "1.8.2"
   val sbtJavaAgent = "0.1.4"
-  val sbtJmh = "0.2.27"
+  val sbtJmh = "0.3.3"
   val sbtDoge = "0.1.5"
   val webjarsLocatorCore = "0.33"
   val sbtHeader = "5.0.0"
