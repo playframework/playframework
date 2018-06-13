@@ -30,7 +30,7 @@ object Dependencies {
 
   // We need to use an older version of specs2 for sbt
   // because we need Scala 2.10 support (sbt 0.13).
-  val specs2VersionForSbt = "3.10.0"
+  val specs2VersionForSbt = "3.9.5"
   val specs2DepsForSbt = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
