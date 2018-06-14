@@ -18,6 +18,7 @@ A few things to note about these configurations:
 * These default configs specify only a console logger which outputs only 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
 * For production, the default config puts the console logger behind the logback [AsyncAppender](https://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* In order to guarantee that logged messages have had a chance to be processed by asynchronous appenders (including the TCP appender) and ensure background threads have been stopped, you'll need to cleanly shut down logback when your application exits. For details on a shutdown hook, see this [documentation](https://logback.qos.ch/manual/configuration.html#shutdownHook). Also [you must specify](https://jira.qos.ch/browse/LOGBACK-1090) DelayingShutdownHook explicitly: `<shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>` .
 
 To add a file logger, add the following appender to your `conf/logback.xml` file:
 
