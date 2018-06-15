@@ -146,7 +146,7 @@ You can do additional processing on a [`WSRequest`](api/java/play/libs/ws/WSRequ
 
 A sample request filter that logs the request in [cURL](https://curl.haxx.se/) format to SLF4J has been added in `play.libs.ws.ahc.AhcCurlRequestLogger`.
 
-@[curl-logger-filter](code/javaguide/ws/JavaWS.java)
+@[ws-curl-logger-filter](code/javaguide/ws/JavaWS.java)
 
 will output:
 

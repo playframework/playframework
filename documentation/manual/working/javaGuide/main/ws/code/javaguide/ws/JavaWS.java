@@ -33,6 +33,7 @@ import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.Optional;
 import java.util.stream.*;
 
@@ -141,7 +142,7 @@ public class JavaWS {
             // #ws-post-multipart
 
             // #ws-post-multipart2
-            Source<ByteString, ?> file = FileIO.fromFile(new File("hello.txt"));
+            Source<ByteString, ?> file = FileIO.fromPath(Paths.get("hello.txt"));
             FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
             DataPart dp = new DataPart("key", "value");
 
