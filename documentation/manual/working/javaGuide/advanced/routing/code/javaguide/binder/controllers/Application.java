@@ -5,6 +5,7 @@
 package javaguide.binder.controllers;
 
 //#javascript-router-resource-imports
+import play.mvc.Http;
 import play.routing.JavaScriptReverseRouter;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -19,7 +20,7 @@ public class Application extends Controller {
                 routes.javascript.Users.list(),
                 routes.javascript.Users.get()
             )
-        ).as("text/javascript");
+        ).as(Http.MimeTypes.JAVASCRIPT);
     }
     //#javascript-router-resource
 
@@ -31,6 +32,6 @@ public class Application extends Controller {
                 routes.javascript.Users.get()
             )
             //#javascript-router-resource-custom-method
-        ).as("text/javascript");
+        ).as(Http.MimeTypes.JAVASCRIPT);
     }
 }
