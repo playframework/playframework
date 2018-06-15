@@ -92,9 +92,9 @@ public final class Databases {
      * @return a configured in-memory h2 database
      */
     public static Database inMemory(String name, Map<String, String> urlOptions, Map<String, ? extends Object> config) {
-        String urlExtra = "";
+        StringBuilder urlExtra = new StringBuilder();
         for (Map.Entry<String, String> option : urlOptions.entrySet()) {
-            urlExtra += ";" + option.getKey() + "=" + option.getValue();
+            urlExtra.append(';').append(option.getKey()).append('=').append(option.getValue());
         }
         String url = "jdbc:h2:mem:" + name + urlExtra;
         return inMemory(name, url, config);

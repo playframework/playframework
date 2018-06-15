@@ -244,7 +244,7 @@ public class DefaultCookie implements Cookie {
             buf.append(", HTTPOnly");
         }
         if (sameSite() != null) {
-            buf.append(", SameSite=" + sameSite);
+            buf.append(", SameSite=").append(sameSite);
         }
         return buf.toString();
     }
