@@ -14,7 +14,7 @@ val Versions = new {
   val webjarsLocatorCore = "0.33"
   val sbtHeader = "5.0.0"
   val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.4.0-M2")
-  val interplay: String = sys.props.getOrElse("interplay.version", "2.0.1")
+  val interplay: String = sys.props.getOrElse("interplay.version", "2.0.3")
 }
 
 buildInfoKeys := Seq[BuildInfoKey](

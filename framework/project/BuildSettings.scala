@@ -539,6 +539,13 @@ object BuildSettings {
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
+  ) ++ Seq(
+    // TODO: Remove this when updating to Scala 2.13.0-M4
+    // Interplay 2.0.3 adds Scala 2.13.0-M4 to crossScalaVersions, but we don't want
+    // that right because some dependencies don't have a build to M4 yet. As soon as
+    // we decide that we could release to M4, than we can remove this setting and use
+    // the one provided by interplay.
+    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, "2.13.0-M3")
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
