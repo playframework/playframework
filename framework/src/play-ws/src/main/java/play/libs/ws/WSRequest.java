@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -564,56 +563,4 @@ public interface WSRequest extends StandaloneWSRequest {
      */
     @Override
     Map<String, List<String>> getQueryParameters();
-
-    /**
-     * @return the auth username, null if not an authenticated request.
-     */
-    @Override
-    String getUsername();
-
-    /**
-     * @return the auth password, null if not an authenticated request
-     */
-    @Override
-    String getPassword();
-
-    /**
-     * @return the auth scheme, null if not an authenticated request.
-     */
-    @Override
-    WSAuthScheme getScheme();
-
-    /**
-     * @return the signature calculator (example: OAuth), null if none is set.
-     */
-    @Override
-    WSSignatureCalculator getCalculator();
-
-    /**
-     * Gets the original request timeout.
-     *
-     * @deprecated use {@link #getRequestTimeoutDuration()}
-     * @return the timeout
-     */
-    @Override
-    @Deprecated
-    Duration getRequestTimeoutDuration();
-
-    /**
-     * Gets the original request timeout in milliseconds, passed into the
-     * request as input.
-     *
-     * @deprecated use {@link #getRequestTimeoutDuration()}
-     * @return the timeout
-     */
-    @Deprecated
-    long getRequestTimeout();
-
-    /**
-     * If the {@link #setFollowRedirects(boolean)} method has been called, then returns true.
-     *
-     * @return true if the request is configured to follow redirect, false otherwise.
-     */
-    @Override
-    boolean getFollowRedirects();
 }

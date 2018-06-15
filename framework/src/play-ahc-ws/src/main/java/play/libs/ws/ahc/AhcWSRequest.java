@@ -8,17 +8,7 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
-import play.libs.ws.BodyWritable;
-import play.libs.ws.DefaultWSCookie;
-import play.libs.ws.StandaloneWSRequest;
-import play.libs.ws.StandaloneWSResponse;
-import play.libs.ws.WSAuthScheme;
-import play.libs.ws.WSBodyWritables;
-import play.libs.ws.WSCookie;
-import play.libs.ws.WSRequest;
-import play.libs.ws.WSRequestFilter;
-import play.libs.ws.WSResponse;
-import play.libs.ws.WSSignatureCalculator;
+import play.libs.ws.*;
 import play.mvc.Http;
 
 import java.io.File;
@@ -282,11 +272,11 @@ public class AhcWSRequest implements WSRequest {
         return converter.apply(request.addCookie(asCookie(cookie)));
     }
 
-    public WSCookie asCookie(Http.Cookie cookie) {
+    private WSCookie asCookie(Http.Cookie cookie) {
         return new DefaultWSCookie(cookie.name(), cookie.value(),
                 cookie.domain(),
                 cookie.path(),
-                Optional.ofNullable(cookie.maxAge()).map(c -> c.longValue()).filter(f -> f > -1L).orElse(null),
+                Optional.ofNullable(cookie.maxAge()).map(Integer::longValue).filter(f -> f > -1L).orElse(null),
                 cookie.secure(),
                 cookie.httpOnly());
     }
@@ -314,6 +304,11 @@ public class AhcWSRequest implements WSRequest {
     @Override
     public WSRequest setAuth(String username, String password, WSAuthScheme scheme) {
         return converter.apply(request.setAuth(username, password, scheme));
+    }
+
+    @Override
+    public StandaloneWSRequest setAuth(WSAuthInfo authInfo) {
+        return converter.apply(request.setAuth(authInfo));
     }
 
     @Override
@@ -363,6 +358,31 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public Optional<WSAuthInfo> getAuth() {
+        return request.getAuth();
+    }
+
+    @Override
+    public Optional<BodyWritable> getBody() {
+        return request.getBody();
+    }
+
+    @Override
+    public Optional<WSSignatureCalculator> getCalculator() {
+        return request.getCalculator();
+    }
+
+    @Override
+    public Optional<String> getContentType() {
+        return request.getContentType();
+    }
+
+    @Override
+    public Optional<Boolean> getFollowRedirects() {
+        return request.getFollowRedirects();
+    }
+
+    @Override
     public String getUrl() {
         return request.getUrl();
     }
@@ -383,51 +403,13 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public Optional<Duration> getRequestTimeout() {
+        return request.getRequestTimeout();
+    }
+
+    @Override
     public Map<String, List<String>> getQueryParameters() {
         return request.getQueryParameters();
-    }
-
-    @Override
-    public String getUsername() {
-        return request.getUsername();
-    }
-
-    @Override
-    public String getPassword() {
-        return request.getPassword();
-    }
-
-    @Override
-    public WSAuthScheme getScheme() {
-        return request.getScheme();
-    }
-
-    @Override
-    public WSSignatureCalculator getCalculator() {
-        return request.getCalculator();
-    }
-
-    /**
-     * @deprecated use {@link #getRequestTimeoutDuration()}
-     */
-    @Deprecated
-    public long getRequestTimeout() {
-        return request.getRequestTimeoutDuration().get(ChronoUnit.MILLIS);
-    }
-
-    @Override
-    public Duration getRequestTimeoutDuration() {
-        return request.getRequestTimeoutDuration();
-    }
-
-    @Override
-    public boolean getFollowRedirects() {
-        return request.getFollowRedirects();
-    }
-
-    @Override
-    public String getContentType() {
-        return request.getContentType();
     }
 
 }

@@ -140,9 +140,23 @@ The `largeImage` in the code snippet above is a `Source<ByteString, ?>`.
 
 ### Request Filters
 
-You can do additional processing on a [`WSRequest`](api/java/play/libs/ws/WSRequest.html) by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` trait, and then adding it to the request with [`request.withRequestFilter(filter)`](api/java/play/libs/ws/WSRequest.html#setRequestFilter-play.libs.ws.WSRequestFilter-).
+You can do additional processing on a [`WSRequest`](api/java/play/libs/ws/WSRequest.html) by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` interface, and then adding it to the request with [`request.setRequestFilter(filter)`](api/java/play/libs/ws/WSRequest.html#setRequestFilter-play.libs.ws.WSRequestFilter-).
 
 @[ws-request-filter](code/javaguide/ws/JavaWS.java)
+
+A sample request filter that logs the request in [cURL](https://curl.haxx.se/) format to SLF4J has been added in `play.libs.ws.ahc.AhcCurlRequestLogger`.
+
+@[curl-logger-filter](code/javaguide/ws/JavaWS.java)
+
+will output:
+
+```
+curl \
+  --verbose \
+  --request GET \
+  --header 'Header-Key: Header value' \
+  'https://www.playframework.com'
+```
 
 ## Processing the Response
 
