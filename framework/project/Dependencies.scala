@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion = "2.5.12"
-  val akkaHttpVersion = "10.1.1"
+  val akkaHttpVersion = "10.1.3"
   val playJsonVersion = "2.6.9"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
