@@ -1073,9 +1073,9 @@ public class Time {
 
         protected ValueSet getValue(int v, String s, int i) {
             char c = s.charAt(i);
-            String s1 = String.valueOf(v);
+            StringBuilder s1 = new StringBuilder(String.valueOf(v));
             while (c >= '0' && c <= '9') {
-                s1 += c;
+                s1.append(c);
                 i++;
                 if (i >= s.length()) {
                     break;
@@ -1085,7 +1085,7 @@ public class Time {
             ValueSet val = new ValueSet();
 
             val.pos = (i < s.length()) ? i : i + 1;
-            val.value = Integer.parseInt(s1);
+            val.value = Integer.parseInt(s1.toString());
             return val;
         }
 
