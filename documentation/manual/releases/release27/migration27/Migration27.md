@@ -46,7 +46,8 @@ If you were using the `StaticRoutesGenerator` with dependency-injected controlle
 
 
 ### `application/javascript` as default content type for JavaScript
-`application/javascript` is now the default content-type returned for JavaScript instead of `text/javascript`.
+
+`application/javascript` is now the default content-type returned for JavaScript instead of `text/javascript`. For generated `<script>` tags, we are now also omitting the `type` attribute. See more details about omitting `type` attribute at the [HTML 5 specification](https://www.w3.org/TR/html51/semantics-scripting.html#element-attrdef-script-type).  
 
 ### `Router#withPrefix` should always add prefix
 

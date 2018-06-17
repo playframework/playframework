@@ -297,7 +297,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script type=\"text/javascript\">callback('a');</script><script type=\"text/javascript\">callback('b');</script><script type=\"text/javascript\">callback('c');</script>")
+      response.body must contain("<html><body><script>callback('a');</script><script>callback('b');</script><script>callback('c');</script>")
     }
 
     "chunk comet results from json" in makeRequest(new MockController {
@@ -311,7 +311,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script type=\"text/javascript\">callback({\"foo\":\"bar\"});</script>")
+      response.body must contain("<html><body><script>callback({\"foo\":\"bar\"});</script>")
     }
 
     "chunk event source results" in makeRequest(new MockController {

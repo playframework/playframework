@@ -84,7 +84,7 @@ public abstract class Comet {
 
     private static ByteString formatted(ByteString callbackName, ByteString javascriptMessage) {
         ByteStringBuilder b = new ByteStringBuilder();
-        b.append(ByteString.fromString("<script type=\"text/javascript\">"));
+        b.append(ByteString.fromString("<script>"));
         b.append(callbackName);
         b.append(ByteString.fromString("("));
         b.append(javascriptMessage);
