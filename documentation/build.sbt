@@ -18,11 +18,11 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
       version := PlayVersion.current,
       libraryDependencies ++= Seq(
-        "com.typesafe" % "config" % "1.3.1" % Test,
-        "com.h2database" % "h2" % "1.4.191" % Test,
-        "org.mockito" % "mockito-core" % "1.9.5" % "test",
+        "com.typesafe" % "config" % "1.3.3" % Test,
+        "com.h2database" % "h2" % "1.4.197" % Test,
+        "org.mockito" % "mockito-core" % "2.18.3" % "test",
         // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
-        "net.logstash.logback" % "logstash-logback-encoder" % "4.9" % "test"
+        "net.logstash.logback" % "logstash-logback-encoder" % "5.1" % "test"
       ),
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
