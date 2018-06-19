@@ -28,7 +28,7 @@ Guice, the default dependency injection framework used by Play, was upgraded to 
 
 ## Constraint annotations offered for Play Java are now @Repeatable
 
-All of the constraint annotations defined by `play.data.validation.Constraints` are now `@Repeatable`. It lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`:
+All of the constraint annotations defined by `play.data.validation.Constraints` are now `@Repeatable`. This change lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`:
 
 ```java
 @Validate(groups={GroupA.class})
