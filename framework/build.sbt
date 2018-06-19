@@ -29,6 +29,14 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "rout
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
+      // TODO: Remove when updating to Scala 2.13.0-M4
+      // Should be removed when we update to Scala 2.13.0-M4 since this is the
+      // version added by interplay.
+      //
+      // See also:
+      // 1. the root project at build.sbt file.
+      // 2. RoutesCompilerProject project
+      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
@@ -403,10 +411,13 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     .settings(playCommonSettings: _*)
     .settings(
       scalaVersion := (scalaVersion in PlayProject).value,
+      // TODO: Remove when updating to Scala 2.13.0-M4
       // Should be removed when we update to Scala 2.13.0-M4 since this is the
       // version added by interplay.
       //
-      // See also playRuntimeSettings in project/BuildSettings.scala
+      // See also:
+      // 1. playRuntimeSettings in project/BuildSettings.scala
+      // 2. RoutesCompilerProject project
       crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
       playBuildRepoName in ThisBuild := "playframework",
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
