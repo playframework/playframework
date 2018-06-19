@@ -5,6 +5,7 @@ import BuildSettings._
 import Dependencies._
 import Generators._
 import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
+import interplay.ScalaVersions._
 import interplay.PlayBuildBase.autoImport._
 import sbt.Keys.parallelExecution
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.{javaAgents, resolvedJavaAgents}
@@ -402,6 +403,11 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     .settings(playCommonSettings: _*)
     .settings(
       scalaVersion := (scalaVersion in PlayProject).value,
+      // Should be removed when we update to Scala 2.13.0-M4 since this is the
+      // version added by interplay.
+      //
+      // See also playRuntimeSettings in project/BuildSettings.scala
+      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
       playBuildRepoName in ThisBuild := "playframework",
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),

@@ -545,6 +545,8 @@ object BuildSettings {
     // that right because some dependencies don't have a build to M4 yet. As soon as
     // we decide that we could release to M4, than we can remove this setting and use
     // the one provided by interplay.
+    //
+    // See also the root project at build.sbt file.
     crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, "2.13.0-M3")
   )
 
