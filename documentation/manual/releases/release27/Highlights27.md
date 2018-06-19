@@ -4,7 +4,7 @@ This page highlights the new features of Play 2.7. If you want to learn about th
 
 ## Scala 2.13 support
 
-Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. Many dependencies we updated so that we can have support for both versions.
+Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. Many dependencies were updated so that we can have support for both versions.
 
 You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
 
