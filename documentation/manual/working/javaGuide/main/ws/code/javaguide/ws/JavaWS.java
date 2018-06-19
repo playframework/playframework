@@ -28,10 +28,12 @@ import play.libs.Json;
 // #json-imports
 
 // #multipart-imports
+import play.libs.ws.ahc.AhcCurlRequestLogger;
 import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.Optional;
 import java.util.stream.*;
 
@@ -140,7 +142,7 @@ public class JavaWS {
             // #ws-post-multipart
 
             // #ws-post-multipart2
-            Source<ByteString, ?> file = FileIO.fromFile(new File("hello.txt"));
+            Source<ByteString, ?> file = FileIO.fromPath(Paths.get("hello.txt"));
             FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
             DataPart dp = new DataPart("key", "value");
 
@@ -155,6 +157,13 @@ public class JavaWS {
             // #ws-stream-request
             CompletionStage<WSResponse> wsResponse = ws.url(url).setBody(body(largeImage)).execute("PUT");
             // #ws-stream-request
+
+            // #ws-curl-logger-filter
+            ws.url("https://www.playframework.com")
+              .setRequestFilter(new AhcCurlRequestLogger())
+              .addHeader("Header-Name", "Header value")
+              .get();
+            // #ws-curl-logger-filter
         }
 
         public void responseExamples() {

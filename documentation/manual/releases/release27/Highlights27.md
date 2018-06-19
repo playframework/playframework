@@ -68,3 +68,26 @@ The CSP filter uses Google's [Strict CSP policy](https://csp.withgoogle.com/docs
 ## HikariCP upgraded
 
 [HikariCP](https://github.com/brettwooldridge/HikariCP) was updated to its latest major version. Have a look at the [[Migration Guide|Migration27#HikariCP]] to see what changed.
+
+## Play WS `curl` filter for Java
+
+Play WS enables you to create `play.libs.ws.WSRequestFilter` to inspect or enrich the requests made. Play provides a "log as `curl`" filter, but this was lacking for Java developers. You can now write something like:
+
+```java
+ws.url("https://www.playframework.com")
+  .setRequestFilter(new AhcCurlRequestLogger())
+  .addHeader("My-Header", "Header value")
+  .get();
+```
+
+And then the following log will be printed:
+
+```
+curl \
+  --verbose \
+  --request GET \
+  --header 'My-Header: Header Value' \\
+  'https://www.playframework.com'
+```
+
+This can be specially useful if you want to reproduce the request in isolation and also change `curl` parameters to see how it goes.

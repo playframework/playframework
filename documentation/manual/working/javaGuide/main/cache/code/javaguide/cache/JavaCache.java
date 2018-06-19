@@ -106,7 +106,7 @@ public class JavaCache extends WithApplication {
 
         assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("Hello world"));
         assertThat(cache.sync().get("homePage"), notNullValue());
-        cache.set("homePage", Results.ok("something else"));
+        cache.sync().set("homePage", Results.ok("something else"));
         assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("something else"));
     }
 

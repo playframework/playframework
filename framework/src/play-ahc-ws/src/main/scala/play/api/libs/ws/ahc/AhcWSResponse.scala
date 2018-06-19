@@ -4,6 +4,8 @@
 
 package play.api.libs.ws.ahc
 
+import java.net.URI
+
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }
@@ -63,6 +65,8 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
   override def cookie(name: String): Option[WSCookie] = underlying.cookie(name)
 
   override def body: String = underlying.body
+
+  override def uri: URI = underlying.uri
 
   /**
    * The response body as a byte string.
