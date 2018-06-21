@@ -513,13 +513,43 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.getHandlerFor"),
 
       // Change signature of Play.privateMaybeApplication to return a Try[Application]
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.Play.privateMaybeApplication")
-    ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.Play.privateMaybeApplication"),
+
+      // Update Play WS to version 2.0.0
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.ws.WSRequest.getRequestTimeoutDuration"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.WSRequest.getRequestTimeout"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.WSRequest.getFollowRedirects"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.WSRequest.getPassword"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.WSRequest.getCalculator"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.WSRequest.getUsername"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.WSRequest.getScheme"),
+      // Updates Play WS to version 2.0.0 has impact on AHC implementation
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.ws.ahc.AhcWSRequest.getRequestTimeoutDuration"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.ws.ahc.AhcWSRequest.asCookie"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.ws.ahc.AhcWSRequest.getPassword"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.ws.ahc.AhcWSRequest.getUsername"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.ws.ahc.AhcWSRequest.getScheme"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getRequestTimeout"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getCalculator"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getContentType"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getFollowRedirects")
+  ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
+  ) ++ Seq(
+    // TODO: Remove when updating to Scala 2.13.0-M4
+    // Interplay 2.0.3 adds Scala 2.13.0-M4 to crossScalaVersions, but we don't want
+    // that right because some dependencies don't have a build to M4 yet. As soon as
+    // we decide that we could release to M4, than we can remove this setting and use
+    // the one provided by interplay.
+    //
+    // See also:
+    // 1. the root project at build.sbt file.
+    // 2. RoutesCompilerProject project
+    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, "2.13.0-M3")
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(

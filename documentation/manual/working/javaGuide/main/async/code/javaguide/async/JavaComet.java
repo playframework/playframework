@@ -63,15 +63,15 @@ public class JavaComet extends WithApplication {
     @Test
     public void foreverIframe() {
         String content = contentAsString(MockJavaActionHelper.call(new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('kiki');</script>"));
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('foo');</script>"));
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('bar');</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage('kiki');</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage('foo');</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage('bar');</script>"));
     }
 
     @Test
     public void foreverIframeWithJson() {
         String content = contentAsString(MockJavaActionHelper.call(new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage({\"foo\":\"bar\"});</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage({\"foo\":\"bar\"});</script>"));
     }
 
 }

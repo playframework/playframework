@@ -191,7 +191,7 @@ public class Result {
     public Optional<String> contentType() {
         return body.contentType().map(h -> {
             if (h.contains(";")) {
-                return h.substring(0, h.indexOf(";")).trim();
+                return h.substring(0, h.indexOf(';')).trim();
             } else {
                 return h.trim();
             }

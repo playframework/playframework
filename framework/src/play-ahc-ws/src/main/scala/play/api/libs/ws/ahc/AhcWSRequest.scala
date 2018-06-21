@@ -74,7 +74,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   /**
    * The timeout for the request
    */
-  override def requestTimeout: Option[Int] = underlying.requestTimeout
+  override def requestTimeout: Option[Duration] = underlying.requestTimeout
 
   /**
    * The virtual host this request will use
