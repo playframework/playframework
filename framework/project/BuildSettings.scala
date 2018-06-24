@@ -532,7 +532,13 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getRequestTimeout"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getCalculator"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getContentType"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getFollowRedirects")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.ws.ahc.AhcWSRequest.getFollowRedirects"),
+
+      // PlayConfig is private[play]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ConfigLoader.seqPlayConfigLoader"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ConfigLoader.playConfigLoader"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
