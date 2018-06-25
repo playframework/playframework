@@ -44,7 +44,7 @@ public class JavaFileUploadTest extends WithApplication {
                 .bodyMultipart(
                         Collections.singletonList(part),
                         play.libs.Files.singletonTemporaryFileCreator(),
-                        app.getWrappedApplication().materializer()
+                        app.asScala().materializer()
                 );
 
         Result result = Helpers.route(app, request);

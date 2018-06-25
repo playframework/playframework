@@ -538,7 +538,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ConfigLoader.seqPlayConfigLoader"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.ConfigLoader.playConfigLoader"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig$"),
-      ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig")
+      ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig"),
+
+      // Add play.Application environmnent() method
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.Application.environment")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

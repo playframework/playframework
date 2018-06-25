@@ -386,7 +386,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             return routes.route(request).map(handler ->
-                invokeHandler(app.getWrappedApplication(), handler, request, timeout)
+                invokeHandler(app.asScala(), handler, request, timeout)
             ).orElse(null);
         } catch (RuntimeException e) {
             throw e;
@@ -420,7 +420,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         try {
             Request request = requestBuilder.build();
             return router.route(request).map(handler ->
-                    invokeHandler(app.getWrappedApplication(), handler, request, timeout)
+                    invokeHandler(app.asScala(), handler, request, timeout)
             ).orElse(null);
         } catch (RuntimeException e) {
             throw e;
@@ -476,7 +476,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
         final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
-                app.getWrappedApplication(),
+                app.asScala(),
                 requestBuilder.build().asScala(),
                 requestBuilder.body()
         );
@@ -489,7 +489,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param application the application to start.
      */
     public static void start(Application application) {
-        play.api.Play.start(application.getWrappedApplication());
+        play.api.Play.start(application.asScala());
     }
 
     /**
@@ -498,7 +498,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param application the application to stop.
      */
     public static void stop(Application application) {
-        play.api.Play.stop(application.getWrappedApplication());
+        play.api.Play.stop(application.asScala());
     }
 
     /**
@@ -508,7 +508,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param block       the block to run after the Play app is started.
      */
     public static void running(Application application, final Runnable block) {
-        Helpers$.MODULE$.running(application.getWrappedApplication(), asScala(() -> { block.run(); return null; }));
+        Helpers$.MODULE$.running(application.asScala(), asScala(() -> { block.run(); return null; }));
     }
 
     /**
