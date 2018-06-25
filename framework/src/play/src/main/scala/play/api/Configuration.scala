@@ -1080,9 +1080,6 @@ object ConfigLoader {
   private def javaDurationToScala(javaDuration: java.time.Duration): FiniteDuration =
     Duration.fromNanos(javaDuration.toNanos)
 
-  private[play] implicit val playConfigLoader: ConfigLoader[PlayConfig] = configLoader.map(PlayConfig(_))
-  private[play] implicit val seqPlayConfigLoader: ConfigLoader[Seq[PlayConfig]] = seqConfigLoader.map(_.map(PlayConfig(_)))
-
   /**
    * Loads a value, interpreting a null value as None and any other value as Some(value).
    */
@@ -1107,44 +1104,4 @@ object ConfigLoader {
       }(scala.collection.breakOut)
     }
   }
-}
-
-// TODO: remove when play projects (play-slick et al.) stop depending on PlayConfig
-@deprecated("Use play.api.Configuration", "2.6.0")
-private[play] class PlayConfig(val underlying: Config) {
-  def get[A](path: String)(implicit loader: ConfigLoader[A]): A = {
-    loader.load(underlying, path)
-  }
-
-  def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
-    Configuration(underlying).getPrototypedSeq(path, prototypePath).map(c => PlayConfig(c.underlying))
-  }
-
-  def getPrototypedMap(path: String, prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
-    Configuration(underlying).getPrototypedMap(path, prototypePath).mapValues(c => PlayConfig(c.underlying))
-  }
-
-  def getDeprecated[A: ConfigLoader](path: String, deprecatedPaths: String*): A = {
-    Configuration(underlying).getDeprecated(path, deprecatedPaths: _*)
-  }
-
-  def getDeprecatedWithFallback(path: String, deprecated: String, parent: String = ""): PlayConfig = {
-    PlayConfig(Configuration(underlying).getDeprecatedWithFallback(path, deprecated, parent).underlying)
-  }
-
-  def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
-    Configuration(underlying).reportError(path, message, e)
-  }
-
-  def subKeys: Set[String] = Configuration(underlying).subKeys
-
-  private[play] def reportDeprecation(path: String, deprecated: String): Unit = {
-    Configuration(underlying).reportDeprecation(path, deprecated)
-  }
-}
-
-@deprecated("Use play.api.Configuration", "2.6.0")
-private[play] object PlayConfig {
-  def apply(underlying: Config) = new PlayConfig(underlying)
-  def apply(configuration: Configuration) = new PlayConfig(configuration.underlying)
 }
