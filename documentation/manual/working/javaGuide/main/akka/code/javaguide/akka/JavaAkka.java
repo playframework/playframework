@@ -111,7 +111,7 @@ public class JavaAkka {
                 public CompletionStage<Result> index() {
                     return new javaguide.akka.async.Application().index();
                 }
-            }, fakeRequest(), app.getWrappedApplication().materializer());
+            }, fakeRequest(), app.asScala().materializer());
             assertThat(contentAsString(result), equalTo("Got 2"));
         });
 

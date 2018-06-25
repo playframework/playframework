@@ -52,11 +52,11 @@ public class HttpTest {
         Application app = new GuiceApplicationBuilder()
           .withConfigLoader(HttpTest::addLangs)
           .build();
-        play.api.Play.start(app.getWrappedApplication());
+        play.api.Play.start(app.asScala());
         try {
             r.accept(app);
         } finally {
-            play.api.Play.stop(app.getWrappedApplication());
+            play.api.Play.stop(app.asScala());
         }
     }
 

@@ -47,7 +47,7 @@ public class WithApplication {
     public void startPlay() {
         app = provideApplication();
         Helpers.start(app);
-        mat = app.getWrappedApplication().materializer();
+        mat = app.asScala().materializer();
     }
 
     @After

@@ -24,7 +24,10 @@ public interface Application {
      *
      * @return the application
      * @see Application#asScala() method
+     *
+     * @deprecated Use {@link #asScala()} instead.
      */
+    @Deprecated
     play.api.Application getWrappedApplication();
 
     /**
@@ -34,6 +37,13 @@ public interface Application {
      * @see play.api.Application
      */
     play.api.Application asScala();
+
+    /**
+     * Get the application environment.
+     *
+     * @return the environment.
+     */
+    Environment environment();
 
     /**
      * Get the application configuration.
@@ -56,7 +66,7 @@ public interface Application {
      * @return the application path
      */
     default File path() {
-        return getWrappedApplication().path();
+        return asScala().path();
     }
 
     /**
@@ -65,7 +75,7 @@ public interface Application {
      * @return the application classloader
      */
     default ClassLoader classloader() {
-        return getWrappedApplication().classloader();
+        return asScala().classloader();
     }
 
     /**
@@ -74,7 +84,7 @@ public interface Application {
      * @return true if the application is in DEV mode
      */
     default boolean isDev() {
-        return getWrappedApplication().isDev();
+        return asScala().isDev();
     }
 
     /**
@@ -83,7 +93,7 @@ public interface Application {
      * @return true if the application is in PROD mode
      */
     default boolean isProd() {
-        return getWrappedApplication().isProd();
+        return asScala().isProd();
     }
 
     /**
@@ -92,7 +102,7 @@ public interface Application {
      * @return true if the application is in TEST mode
      */
     default boolean isTest() {
-        return getWrappedApplication().isTest();
+        return asScala().isTest();
     }
 
 }

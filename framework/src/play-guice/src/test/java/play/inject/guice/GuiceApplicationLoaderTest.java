@@ -73,7 +73,7 @@ public class GuiceApplicationLoaderTest {
                 .withConfig(config);
         Application app = loader.load(context);
 
-        assertThat(app.getWrappedApplication().httpConfiguration().context(), equalTo("/tests"));
+        assertThat(app.asScala().httpConfiguration().context(), equalTo("/tests"));
     }
 
     public interface A {}
