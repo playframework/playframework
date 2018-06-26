@@ -9,6 +9,9 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
+import play.api.http.HeaderNames.CONTENT_TYPE
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -149,6 +152,44 @@ class HelpersSpec extends Specification {
         val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
         request.queryString must beEmpty
       }
+      "set Content-Type header to application/json" in {
+        val request = FakeRequest(GET, "/testCall")
+          .withJsonBody(Json.obj("foo" -> "bar"))
+        request.headers.get(CONTENT_TYPE) must beSome.which(_.contains("application/json"))
+      }
+      "set Content-Type header to application/x-www-form-urlencoded" in {
+        val request = FakeRequest(GET, "/testCall")
+          .withFormUrlEncodedBody("foo" -> "bar")
+        request.headers.get(CONTENT_TYPE) must beSome.which(_.contains("application/x-www-form-urlencoded"))
+      }
+      "set Content-Type header to application/xml" in {
+        val request = FakeRequest(GET, "/testCall")
+          .withXmlBody(<foo>bar</foo>)
+        request.headers.get(CONTENT_TYPE) must beSome.which(_.contains("application/xml"))
+      }
+      "set Content-Type header to text/plain" in {
+        val request = FakeRequest(GET, "/testCall")
+          .withTextBody("foo := bar")
+        request.headers.get(CONTENT_TYPE) must beSome.which(_.contains("text/plain"))
+      }
+      "set Content-Type header to application/octet-stream" in {
+        val byteString = ByteString("foo := bar")
+        val request = FakeRequest(GET, "/testCall")
+          .withRawBody(byteString)
+        request.headers.get(CONTENT_TYPE) must beSome.which(_.contains("application/octet-stream"))
+      }
+      //      "set Content-Type header to multipart/form-data" in {
+      //        val multipartBody = MultipartFormData[TemporaryFile](
+      //          dataParts = Map(
+      //            "foo" -> Seq("bar")
+      //          ),
+      //          files = Seq.empty,
+      //          badParts = Seq.empty
+      //        )
+      //        val request = FakeRequest(GET, "/testCall")
+      //          .withMultipartFormDataBody(multipartBody)
+      //        request.headers.get(CONTENT_TYPE) must beSome.which(_.contains("multipart/form-data"))
+      //      }
     }
   }
 

@@ -8,7 +8,9 @@ import java.util.concurrent.TimeUnit
 
 import akka.stream.Materializer
 import akka.util.ByteString
+import play.api.http.Writeable
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -39,6 +41,7 @@ class FakesSpec extends PlaySpecification {
       val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
+        .withHeaders(FakeHeaders())
       route(app, req) aka "response" must beSome.which { resp =>
         contentAsString(resp) aka "content" must_== "application/octet-stream"
       }
@@ -65,6 +68,7 @@ class FakesSpec extends PlaySpecification {
     "set a Content-Type header when one is unspecified and required" in new WithApplication() {
       val request = FakeRequest(GET, "/testCall")
         .withJsonBody(Json.obj("foo" -> "bar"))
+        .withHeaders(FakeHeaders())
 
       contentTypeForFakeRequest(request) must contain("application/json")
     }
@@ -75,9 +79,52 @@ class FakesSpec extends PlaySpecification {
 
       contentTypeForFakeRequest(request) must contain("application/test+json")
     }
+    "set Content-Type header to application/json" in new WithApplication() {
+      val request = FakeRequest(GET, "/testCall")
+        .withJsonBody(Json.obj("foo" -> "bar"))
+
+      contentTypeForFakeRequest(request) must contain("application/json")
+    }
+    "set Content-Type header to application/x-www-form-urlencoded" in new WithApplication() {
+      val request = FakeRequest(GET, "/testCall")
+        .withFormUrlEncodedBody("foo" -> "bar")
+
+      contentTypeForFakeRequest(request) must contain("application/x-www-form-urlencoded")
+    }
+    "set Content-Type header to application/xml" in new WithApplication() {
+      val request = FakeRequest(GET, "/testCall")
+        .withXmlBody(<foo>bar</foo>)
+
+      contentTypeForFakeRequest(request) must contain("application/xml")
+    }
+    "set Content-Type header to text/plain" in new WithApplication() {
+      val request = FakeRequest(GET, "/testCall")
+        .withTextBody("foo := bar")
+
+      contentTypeForFakeRequest(request) must contain("text/plain")
+    }
+    "set Content-Type header to application/octet-stream" in new WithApplication() {
+      val request = FakeRequest(GET, "/testCall")
+        .withRawBody(ByteString("foo := bar"))
+
+      contentTypeForFakeRequest(request) must contain("application/octet-stream")
+    }
+    //    "set Content-Type header to multipart/form-data" in new WithApplication() {
+    //      val multipartBody = MultipartFormData[TemporaryFile](
+    //        dataParts = Map(
+    //          "foo" -> Seq("bar")
+    //        ),
+    //        files = Seq.empty,
+    //        badParts = Seq.empty
+    //      )
+    //      val request = FakeRequest(GET, "/testCall")
+    //        .withMultipartFormDataBody(multipartBody)
+    //
+    //      contentTypeForFakeRequest(request) must contain("multipart/form-data")
+    //    }
   }
 
-  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: Materializer): String = {
+  def contentTypeForFakeRequest[T: Writeable](request: FakeRequest[T])(implicit mat: Materializer): String = {
     var testContentType: Option[String] = None
     val action = Action { request: Request[_] => testContentType = request.headers.get(CONTENT_TYPE); Ok }
     val headers = new WrappedRequest(request)
