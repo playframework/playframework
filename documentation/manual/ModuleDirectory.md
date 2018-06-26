@@ -224,7 +224,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 * **Website (live demo, user guide, other docs):** <https://www.dmanchester.com/playfop>
 * **Repository:** <https://github.com/dmanchester/playfop>
-* **Short description:** A library for creating PDFs, images, and other types of output in Play applications.
+* **Short description:** A library for creating PDFs, images, and other types of output in Play applications. Accepts XSL-FO that an application has generated and processes it with [Apache FOP](https://xmlgraphics.apache.org/fop/).
 
 ### Play-Bootstrap (Java and Scala)
 * **Website:** <https://adrianhurt.github.io/play-bootstrap/>
