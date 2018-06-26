@@ -11,7 +11,7 @@ The main steps include:
 1. Define a route
 1. Customize the greeting
 
-## Create the Hello World page
+## 1. Create the Hello World page
 
 Follow the instructions below to add a new Hello World page to this project.
 
@@ -27,7 +27,7 @@ This Twirl and HTML markup accomplishes the following:
 
 Now we are ready to add an action method that will render the new page.
 
-## Add an action method
+## 2. Add an action method
 
 To add an action method for the new page:
 
@@ -43,7 +43,7 @@ Scala
 
 To have Play call the new action method when the browser requests the `hello` page, we need to add a route that maps the page to the method.
 
-## Define a route
+## 3. Define a route
 
 To define a route for the new Hello page:
 
@@ -59,7 +59,7 @@ Enter the URL <a target="play-docs" href="http://localhost:9000">http://localhos
 
 [[images/hello-page.png]]
 
-## Customize the greeting
+## 4. Customize the greeting
 
 As the final part of this tutorial, we'll modify the hello page to accept an HTTP request parameter. The steps include a deliberate mistake to demonstrate how Play provides useful feedback.
 
