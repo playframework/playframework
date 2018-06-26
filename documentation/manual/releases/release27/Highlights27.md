@@ -4,7 +4,7 @@ This page highlights the new features of Play 2.7. If you want to learn about th
 
 ## Scala 2.13 support
 
-Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. A number of dependencies we updated so that we can have support for both versions.
+Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. Many dependencies were updated so that we can have support for both versions.
 
 You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
 
@@ -28,7 +28,7 @@ Guice, the default dependency injection framework used by Play, was upgraded to 
 
 ## Constraint annotations offered for Play Java are now @Repeatable
 
-All of the constraint annotations defined by `play.data.validation.Constraints` are now `@Repeatable`. This lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`:
+All of the constraint annotations defined by `play.data.validation.Constraints` are now `@Repeatable`. This change lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`:
 
 ```java
 @Validate(groups={GroupA.class})
@@ -53,7 +53,7 @@ You can of course also make your own custom constraints `@Repeatable` as well an
 
 Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recommended cache implementation for Play users.
 
-To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine`. To customize the settings from the defaults you will also need to update the configuration in application.conf as explained in the documentation.
+To migrate from EhCache to Caffeine you will have to remove `ehcache` from your dependencies and replace it with `caffeine`. To customize the settings from the defaults, you will also need to update the configuration in application.conf as explained in the documentation.
 
 Read the documentation for the [[Java cache API|JavaCache]] and [[Scala cache API|ScalaCache]] to learn more about configuring caching with Play.
 
@@ -68,3 +68,26 @@ The CSP filter uses Google's [Strict CSP policy](https://csp.withgoogle.com/docs
 ## HikariCP upgraded
 
 [HikariCP](https://github.com/brettwooldridge/HikariCP) was updated to its latest major version. Have a look at the [[Migration Guide|Migration27#HikariCP]] to see what changed.
+
+## Play WS `curl` filter for Java
+
+Play WS enables you to create `play.libs.ws.WSRequestFilter` to inspect or enrich the requests made. Play provides a "log as `curl`" filter, but this was lacking for Java developers. You can now write something like:
+
+```java
+ws.url("https://www.playframework.com")
+  .setRequestFilter(new AhcCurlRequestLogger())
+  .addHeader("My-Header", "Header value")
+  .get();
+```
+
+And then the following log will be printed:
+
+```
+curl \
+  --verbose \
+  --request GET \
+  --header 'My-Header: Header Value' \\
+  'https://www.playframework.com'
+```
+
+This can be specially useful if you want to reproduce the request in isolation and also change `curl` parameters to see how it goes.

@@ -68,7 +68,7 @@ public final class Paths {
         String[] urlPath = toSegments(url);
         Stack<String> canonical = new Stack<>();
         for (String comp : urlPath) {
-            if (comp.equals("") || comp.equals(CURRENT_DIR))
+            if (comp.isEmpty() || comp.equals(CURRENT_DIR))
                 continue;
             if (!comp.equals(PARENT_DIR) || (!canonical.empty() && canonical.peek().equals(PARENT_DIR)))
                 canonical.push(comp);

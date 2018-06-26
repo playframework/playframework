@@ -135,7 +135,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   /**
    * The timeout for the request
    */
-  override def requestTimeout: Option[Int]
+  override def requestTimeout: Option[Duration]
 
   /**
    * The virtual host this request will use

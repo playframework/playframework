@@ -11,6 +11,7 @@ import org.w3c.dom.Document;
 import play.libs.ws.*;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -90,6 +91,11 @@ public class AhcWSResponse implements WSResponse {
     @Override
     public String getBody() {
         return underlying.getBody();
+    }
+
+    @Override
+    public URI getUri() {
+        return underlying.getUri();
     }
 
     /**

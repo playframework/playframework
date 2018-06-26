@@ -4,8 +4,6 @@
 
 package play.it.libs
 
-import java.util.Locale
-
 import org.specs2.matcher.MatchResult
 import play.api.http.HeaderNames
 import play.api.libs.ws.{ WSBodyReadables, WSBodyWritables }
