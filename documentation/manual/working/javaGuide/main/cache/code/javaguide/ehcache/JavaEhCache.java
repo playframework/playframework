@@ -20,6 +20,7 @@ import java.lang.Throwable;
 import java.util.Collections;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;
@@ -62,9 +63,9 @@ public class JavaEhCache extends WithApplication {
         block(result);
         }
         //#get
-        CompletionStage<News> news = cache.get("item.key");
+        CompletionStage<Optional<News>> news = cache.getOptional("item.key");
         //#get
-        assertThat(block(news), equalTo(frontPageNews));
+        assertThat(block(news).get(), equalTo(frontPageNews));
         //#get-or-else
         CompletionStage<News> maybeCached = cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
         //#get-or-else
@@ -79,7 +80,7 @@ public class JavaEhCache extends WithApplication {
         //#removeAll
         block(result);
         }
-        assertThat(cache.sync().get("item.key"), nullValue());
+        assertThat(cache.sync().getOptional("item.key"), equalTo(Optional.empty()));
     }
 
     private CompletionStage<News> lookUpFrontPageNews() {
@@ -105,7 +106,7 @@ public class JavaEhCache extends WithApplication {
         AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
         assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("Hello world"));
-        assertThat(cache.sync().get("homePage"), notNullValue());
+        assertThat(cache.sync().getOptional("homePage").get(), notNullValue());
         cache.set("homePage", Results.ok("something else"));
         assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)), equalTo("something else"));
     }

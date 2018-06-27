@@ -133,6 +133,22 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
 
+## The Java Cache API `get` method has been deprecated in favor of `getOptional`
+
+The `getOptional` methods of the Java `cacheApi` return their results wrapped in an `Optional`.
+
+Changes in `play.cache.SyncCacheApi`:
+
+| **deprecated method**                      | **new method**
+|------------------------------------------|----------------------------------------------------
+| `<T> T get(String key)`                  | `<T> Optional<T> getOptional(String key)`
+
+Changes in `play.cache.AsyncCacheApi`:
+
+| **deprecated method**                      | **new method**
+|------------------------------------------|----------------------------------------------------
+| `<T> CompletionStage<T> get(String key)` | `<T> CompletionStage<Optional<T>> getOptional(String key)`
+
 ## SecurityHeadersFilter's contentSecurityPolicy deprecated for CSPFilter
 
 The [[SecurityHeaders filter|SecurityHeaders]] has a `contentSecurityPolicy` property: this is deprecated in 2.7.0.  `contentSecurityPolicy` has been changed from `default-src 'self'` to `null` -- the default setting of `null` means that a `Content-Security-Policy` header will not be added to HTTP responses from the SecurityHeaders filter.  Please use the new [[CSPFilter]] to enable CSP functionality.

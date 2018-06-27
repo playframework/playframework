@@ -10,6 +10,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -32,8 +33,14 @@ public class DefaultSyncCacheApi implements SyncCacheApi {
     }
 
     @Override
+    @Deprecated
     public <T> T get(String key) {
         return blocking(cacheApi.get(key));
+    }
+
+    @Override
+    public <T> Optional<T> getOptional(String key) {
+        return blocking(cacheApi.getOptional(key));
     }
 
     @Override

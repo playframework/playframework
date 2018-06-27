@@ -5,6 +5,7 @@
 package play.cache;
 
 import java.util.concurrent.Callable;
+import java.util.Optional;
 
 /**
  * A synchronous API to access a Cache.
@@ -16,8 +17,20 @@ public interface SyncCacheApi {
      * @param <T> the type of the stored object
      * @param key the key to look up
      * @return the object or null
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead.
      */
+    @Deprecated
     <T> T get(String key);
+
+    /**
+     * Retrieves an object by key.
+     *
+     * @param <T> the type of the stored object
+     * @param key the key to look up
+     * @return the object wrapped in an Optional
+     */
+    <T> Optional<T> getOptional(String key);
 
     /**
      * Retrieve a value from the cache, or set it from a default Callable function.
