@@ -7,11 +7,12 @@ package common.build.controllers {
   import javax.inject._
 
   import play.api.http.HttpErrorHandler
+  import scalaguide.common.build.controllers.AssetsBuilder
 
   class Assets @Inject() (
     errorHandler: HttpErrorHandler,
     assetsMetadata: controllers.AssetsMetadata
-  ) extends controllers.AssetsBuilder(errorHandler, assetsMetadata)
+  ) extends AssetsBuilder(errorHandler, assetsMetadata)
   //#assets-builder
 
   package admin {
