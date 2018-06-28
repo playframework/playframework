@@ -86,6 +86,7 @@ object BuildSettings {
         Resolver.typesafeRepo("releases"),
         Resolver.typesafeIvyRepo("releases")
       ),
+      javacOptions ++= Seq("-encoding",  "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
       scalacOptions in(Compile, doc) := {
         // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
         CrossVersion.partialVersion(scalaVersion.value) match {
