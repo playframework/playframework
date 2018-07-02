@@ -28,6 +28,28 @@ class DefaultApplicationLifecycleSpec extends Specification {
       Await.result(lifecycle.stop(), 10.seconds)
       buffer.toList must beEqualTo(List(3, 2, 1))
     }
+
+    "continue when a hook returns a failed future" in {
+      val lifecycle = new DefaultApplicationLifecycle()
+      val buffer = mutable.ListBuffer[Int]()
+      lifecycle.addStopHook(() => Future(buffer.append(1)))
+      lifecycle.addStopHook(() => Future.failed(new RuntimeException("Failed stop hook")))
+      lifecycle.addStopHook(() => Future(buffer.append(3)))
+      Await.result(lifecycle.stop(), 10.seconds)
+      Await.result(lifecycle.stop(), 10.seconds)
+      buffer.toList must beEqualTo(List(3, 1))
+    }
+
+    "continue when a hook throws an exception" in {
+      val lifecycle = new DefaultApplicationLifecycle()
+      val buffer = mutable.ListBuffer[Int]()
+      lifecycle.addStopHook(() => Future(buffer.append(1)))
+      lifecycle.addStopHook(() => throw new RuntimeException("Failed stop hook"))
+      lifecycle.addStopHook(() => Future(buffer.append(3)))
+      Await.result(lifecycle.stop(), 10.seconds)
+      Await.result(lifecycle.stop(), 10.seconds)
+      buffer.toList must beEqualTo(List(3, 1))
+    }
   }
 
 }
