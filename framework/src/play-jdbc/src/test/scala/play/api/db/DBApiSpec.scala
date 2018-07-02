@@ -5,26 +5,20 @@
 package play.api.db
 
 import org.specs2.mutable.Specification
-import play.api.inject._
 import play.api.test.WithApplication
 
 class DBApiSpec extends Specification {
 
   "DBApi" should {
 
-    "not avoid application start when there is a configuration error" in new WithApplication(_.configure(
+    "start the application even when database is not available" in new WithApplication(_.configure(
       // a bogus URL which is not accepted by H2, just to prove that
       // the application will start without a proper database config.
       "db.default.url" -> "jdbc:bogus://localhost:1234",
       "db.default.driver" -> "org.h2.Driver"
-    ).bindings(
-        // We then add some component that we will try to access
-        // to check that other components are successfully instanced
-        // when there is a database misconfiguration.
-        bind[EagerComponent].toInstance(EagerComponent(true)))
-    ) {
-      val eagerComponent = app.injector.instanceOf[EagerComponent]
-      eagerComponent.started must beTrue
+    )) {
+      val dependsOnDbApi = app.injector.instanceOf[DependsOnDbApi]
+      dependsOnDbApi.dBApi must not beNull
     }
 
     "create all the configured databases" in new WithApplication(_.configure(
@@ -48,4 +42,4 @@ class DBApiSpec extends Specification {
   }
 }
 
-case class EagerComponent(started: Boolean)
+case class DependsOnDbApi(dBApi: DBApi)
