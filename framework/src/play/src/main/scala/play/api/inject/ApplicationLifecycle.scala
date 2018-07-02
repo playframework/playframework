@@ -11,6 +11,7 @@ import play.api.Logger
 import scala.annotation.tailrec
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Application lifecycle register.
@@ -102,7 +103,11 @@ class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
     def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
       val hook = hooks.poll()
       if (hook != null) clearHooks(previous.flatMap { _ =>
-        hook().recover {
+        val hookFuture = Try(hook()) match {
+          case Success(f) => f
+          case Failure(e) => Future.failed(e)
+        }
+        hookFuture.recover {
           case e => Logger.error("Error executing stop hook", e)
         }
       })
