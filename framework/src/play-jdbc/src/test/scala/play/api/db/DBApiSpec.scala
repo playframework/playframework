@@ -4,7 +4,9 @@
 
 package play.api.db
 
+import javax.inject.Inject
 import org.specs2.mutable.Specification
+import play.api.PlayException
 import play.api.test.WithApplication
 
 class DBApiSpec extends Specification {
@@ -12,13 +14,33 @@ class DBApiSpec extends Specification {
   "DBApi" should {
 
     "start the application even when database is not available" in new WithApplication(_.configure(
-      // a bogus URL which is not accepted by H2, just to prove that
-      // the application will start without a proper database config.
-      "db.default.url" -> "jdbc:bogus://localhost:1234",
+      // Here we have a URL that is valid for H2, but the database is not available.
+      // We should not fail to start the application here.
+      "db.default.url" -> "jdbc:h2:tcp://localhost/~/bogus",
       "db.default.driver" -> "org.h2.Driver"
     )) {
       val dependsOnDbApi = app.injector.instanceOf[DependsOnDbApi]
       dependsOnDbApi.dBApi must not beNull
+    }
+
+    "fail to start the application even when there is a database misconfiguration" in {
+      new WithApplication(_.configure(
+        // Having a wrong configuration like a invalid url is different from having
+        // a valid configuration where the database is not available yet. We should
+        // fail fast and report this since it is a programming error.
+        "db.default.url" -> "jdbc:bogus://localhost",
+        "db.default.driver" -> "org.h2.Driver"
+      )) {} must throwA[PlayException]
+    }
+
+    "fail to start the application even when database is not available and configured to fail fast" in {
+      new WithApplication(_.configure(
+        // Here we have a URL that is valid for H2, but the database is not available.
+        "db.default.url" -> "jdbc:bogus://localhost",
+        "db.default.driver" -> "org.h2.Driver",
+        // This overrides the default configuration and makes HikariCP fails fast.
+        "play.db.prototype.hikaricp.initializationFailTimeout" -> "1"
+      )) {} must throwA[PlayException]
     }
 
     "create all the configured databases" in new WithApplication(_.configure(
@@ -42,4 +64,7 @@ class DBApiSpec extends Specification {
   }
 }
 
-case class DependsOnDbApi(dBApi: DBApi)
+case class DependsOnDbApi @Inject() (dBApi: DBApi) {
+  // eagerly access the database but without trying to connect to it.
+  dBApi.database("default").dataSource
+}

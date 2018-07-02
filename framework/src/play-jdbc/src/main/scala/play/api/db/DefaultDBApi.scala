@@ -48,6 +48,12 @@ class DefaultDBApi(
     }
   }
 
+  def initialize(logInitialization: Boolean = false): Unit = {
+    // Accessing the dataSource for the database makes the connection pool to
+    // initialize. We will them be able to check for configuration errors.
+    databases.foreach(_.dataSource)
+  }
+
   def shutdown(): Unit = databases.foreach(_.shutdown())
 }
 
