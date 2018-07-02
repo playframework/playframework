@@ -30,7 +30,7 @@ class DriverRegistrationSpec extends Specification {
     }
 
     "be registered for both Acolyte & H2 when databases are connected" in {
-      dbApi.initialize()
+      dbApi.initialize(logInitialization = true)
 
       (DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must not(beNull)).
         and(DriverManager.getDriver("jdbc:h2:mem:").

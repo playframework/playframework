@@ -32,7 +32,7 @@ class DefaultDBApi(
     databaseByName.getOrElse(name, throw new IllegalArgumentException(s"Could not find database for $name"))
   }
 
-  def initialize(logInitialization: Boolean = false): Unit = {
+  def initialize(logInitialization: Boolean): Unit = {
     // Accessing the dataSource for the database makes the connection pool to
     // initialize. We will them be able to check for configuration errors.
     databases.foreach(_.dataSource)
