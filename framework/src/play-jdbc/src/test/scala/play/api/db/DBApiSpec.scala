@@ -25,7 +25,7 @@ class DBApiSpec extends Specification {
 
     "fail to start the application even when there is a database misconfiguration" in {
       new WithApplication(_.configure(
-        // Having a wrong configuration like a invalid url is different from having
+        // Having a wrong configuration like an invalid url is different from having
         // a valid configuration where the database is not available yet. We should
         // fail fast and report this since it is a programming error.
         "db.default.url" -> "jdbc:bogus://localhost",

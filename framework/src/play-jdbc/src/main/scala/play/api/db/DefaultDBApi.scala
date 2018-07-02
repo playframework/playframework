@@ -34,7 +34,7 @@ class DefaultDBApi(
 
   def initialize(logInitialization: Boolean): Unit = {
     // Accessing the dataSource for the database makes the connection pool to
-    // initialize. We will them be able to check for configuration errors.
+    // initialize. We will then be able to check for configuration errors.
     databases.foreach(_.dataSource)
   }
 
