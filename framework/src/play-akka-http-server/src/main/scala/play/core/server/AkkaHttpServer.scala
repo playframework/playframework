@@ -487,11 +487,11 @@ object AkkaHttpServer extends ServerFromRouter {
   implicit val provider: AkkaHttpServerProvider = new AkkaHttpServerProvider
 
   /**
-   * Create a Netty server from the given application and server configuration.
+   * Create a Akka HTTP server from the given application and server configuration.
    *
    * @param application The application.
    * @param config The server configuration.
-   * @return A started Netty server, serving the application.
+   * @return A started Akka HTTP server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): AkkaHttpServer = {
     new AkkaHttpServer(Context.fromComponents(config, application))
