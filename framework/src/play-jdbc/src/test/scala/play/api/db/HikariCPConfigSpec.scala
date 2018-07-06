@@ -73,8 +73,8 @@ class HikariCPConfigSpec extends Specification {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.isInitializationFailFast must beTrue
       }
 
-      "initializationFailTimeout to 1" in new Configs {
-        new HikariCPConfig(dbConfig, reference).toHikariConfig.getInitializationFailTimeout must beEqualTo(1)
+      "initializationFailTimeout to -1" in new Configs {
+        new HikariCPConfig(dbConfig, reference).toHikariConfig.getInitializationFailTimeout must beEqualTo(-1)
       }
 
       "isolateInternalQueries to false" in new Configs {

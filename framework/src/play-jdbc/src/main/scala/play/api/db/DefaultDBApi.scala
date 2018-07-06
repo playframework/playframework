@@ -4,9 +4,9 @@
 package play.api.db
 
 import com.typesafe.config.Config
-import play.api.inject.{ NewInstanceInjector, Injector }
+import play.api.inject.{ Injector, NewInstanceInjector }
 import scala.util.control.NonFatal
-import play.api.{ Environment, Configuration, Logger }
+import play.api.{ Configuration, Environment, Logger }
 
 /**
  * Default implementation of the DB API.
@@ -38,6 +38,7 @@ class DefaultDBApi(
   /**
    * Try to connect to all data sources.
    */
+  @deprecated("Use initialize instead which check the configuration but don't try to connect", "2.6.16")
   def connect(logConnection: Boolean = false): Unit = {
     databases foreach { db =>
       try {
@@ -47,6 +48,22 @@ class DefaultDBApi(
         case NonFatal(e) =>
           throw Configuration(configuration(db.name)).reportError("url", s"Cannot connect to database [${db.name}]", Some(e))
       }
+    }
+  }
+
+  /**
+   * Try to initialize all the configured databases. This ensures that the configurations will be checked, but the application
+   * initialization will not be affected if one of the databases is offline.
+   *
+   * @param logInitialization if we need to log all the database initialization.
+   */
+  def initialize(logInitialization: Boolean): Unit = {
+    // Accessing the dataSource for the database makes the connection pool to
+    // initialize. We will then be able to check for configuration errors.
+    databases.foreach { db =>
+      if (logInitialization) logger.info(s"Database [${db.name}] initialized at ${db.url}")
+      // Calling db.dataSource forces the underlying pool to initialize
+      db.dataSource
     }
   }
 

@@ -3,15 +3,14 @@
  */
 package play.api.db
 
-import javax.inject.{ Inject, Provider, Singleton }
-
 import com.typesafe.config.Config
+import javax.inject.{ Inject, Provider, Singleton }
+import play.api._
+import play.api.inject._
+import play.db.NamedDatabaseImpl
 
 import scala.concurrent.Future
-
-import play.api.inject._
-import play.api._
-import play.db.NamedDatabaseImpl
+import scala.util.Try
 
 /**
  * DB runtime inject module.
@@ -82,8 +81,8 @@ class DBApiProvider(
       Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
     } else Map.empty[String, Config]
     val db = new DefaultDBApi(configs, pool, environment, maybeInjector.getOrElse(NewInstanceInjector))
-    lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
-    db.connect(logConnection = environment.mode != Mode.Test)
+    lifecycle.addStopHook { () => Future.fromTry(Try(db.shutdown())) }
+    db.initialize(logInitialization = environment.mode != Mode.Test)
     db
   }
 }
