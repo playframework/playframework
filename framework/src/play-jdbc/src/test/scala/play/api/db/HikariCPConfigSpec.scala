@@ -70,7 +70,7 @@ class HikariCPConfigSpec extends Specification {
       }
 
       "initializationFailFast to true" in new Configs {
-        new HikariCPConfig(dbConfig, reference).toHikariConfig.isInitializationFailFast must beTrue
+        new HikariCPConfig(dbConfig, reference).toHikariConfig.isInitializationFailFast must beFalse
       }
 
       "initializationFailTimeout to -1" in new Configs {
