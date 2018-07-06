@@ -23,7 +23,7 @@ object WebSocketHandler {
    */
   def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse = upgrade match {
     case lowLevel: UpgradeToWebSocketLowLevel =>
-      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit))
+      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit), upgrade.requestedProtocols.headOption)
     case other => throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
   }
 
