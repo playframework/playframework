@@ -540,12 +540,16 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig$"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.PlayConfig"),
 
-      // Add play.Application environmnent() method
+      // Add play.Application environment() method
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.Application.environment"),
 
       // Added getOptional to Java (async)cacheApi
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOptional"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOptional")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOptional"),
+
+      // Remove DefaultDBApi.connect method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
