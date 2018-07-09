@@ -7,9 +7,8 @@ import java.util.function.{ Function => JFunction }
 
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
-import play.api.http.{ DefaultHttpErrorHandler, Port }
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, Port }
 import play.api.routing.Router
-
 import play.api._
 import play.api.mvc._
 import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
@@ -22,7 +21,6 @@ import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
 import scala.util.{ Failure, Success }
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.util.Try
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -106,9 +104,11 @@ object Server {
     applicationProvider: ApplicationProvider
   ): Either[Future[Result], (RequestHeader, Handler)] = {
 
-    // Common code for handling an exception and returning an error result
-    def logExceptionAndGetResult(e: Throwable): Left[Future[Result], Nothing] = {
-      Left(DefaultHttpErrorHandler.onServerError(request, e))
+    def handleErrors(errorHandler: HttpErrorHandler): Throwable => Left[Future[Result], Nothing] = {
+      case e: ThreadDeath => throw e
+      case e: VirtualMachineError => throw e
+      case e: Throwable =>
+        Left(errorHandler.onServerError(request, e))
     }
 
     try {
@@ -124,21 +124,22 @@ object Server {
               // We managed to get an Application, now make a fresh request
               // using the Application's RequestFactory, then use the Application's
               // logic to handle that request.
-              val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
-              val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
-              Right((handlerHeader, handler))
+              try {
+                val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+                val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+                Right((handlerHeader, handler))
+              } catch {
+                case e: Throwable => handleErrors(application.errorHandler)(e)
+              }
             case Failure(e) =>
               // The ApplicationProvider couldn't give us an application.
               // This usually means there was a compile error or a problem
               // starting the application.
-              logExceptionAndGetResult(e)
+              handleErrors(DefaultHttpErrorHandler)(e)
           }
       }
     } catch {
-      case e: ThreadDeath => throw e
-      case e: VirtualMachineError => throw e
-      case e: Throwable =>
-        logExceptionAndGetResult(e)
+      case e: Throwable => handleErrors(DefaultHttpErrorHandler)(e)
     }
   }
 
