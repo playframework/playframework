@@ -9,7 +9,7 @@ import java.util.function.{ Function => JFunction }
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, Port }
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, Port }
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -79,26 +79,32 @@ object Server {
    *   i.e. if there's an error loading the application.
    * - If an exception is thrown.
    */
-  private[server] def getHandlerFor(
-    request: RequestHeader,
-    tryApp: Try[Application]
-  ): (RequestHeader, Handler) = {
-    try {
-      // Get the Application from the try.
-      val application = tryApp.get
-      // We managed to get an Application, now make a fresh request
-      // using the Application's RequestFactory, then use the Application's
-      // logic to handle that request.
-      val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
-      val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
-      (handlerHeader, handler)
-    } catch {
+  private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
+
+    @inline def handleErrors(errorHandler: HttpErrorHandler): PartialFunction[Throwable, (RequestHeader, Handler)] = {
       case e: ThreadDeath => throw e
       case e: VirtualMachineError => throw e
       case e: Throwable =>
-        val errorResult = DefaultHttpErrorHandler.onServerError(request, e)
+        val errorResult = errorHandler.onServerError(request, e)
         val errorAction = actionForResult(errorResult)
         (request, errorAction)
+    }
+
+    try {
+      // Get the Application from the try.
+      val application = tryApp.get
+      try {
+        // We managed to get an Application, now make a fresh request
+        // using the Application's RequestFactory, then use the Application's
+        // logic to handle that request.
+        val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+        val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+        (handlerHeader, handler)
+      } catch {
+        handleErrors(application.errorHandler)
+      }
+    } catch {
+      handleErrors(DefaultHttpErrorHandler)
     }
   }
 
