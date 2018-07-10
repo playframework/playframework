@@ -16,7 +16,6 @@ public abstract class EssentialFilter implements play.api.mvc.EssentialFilter {
         return this;
     }
 
-    @Override
     public play.api.mvc.EssentialFilter asScala() {
         return this;
     }
