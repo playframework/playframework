@@ -55,8 +55,6 @@ object ProdServerStart {
    */
   def start(process: ServerProcess, exitJvmOnStop: Boolean = false): ReloadableServer = {
 
-    val environmentMode = Mode.Prod
-
     try {
 
       // Read settings
@@ -78,7 +76,7 @@ object ProdServerStart {
 
         // Start the application
         val application: Application = {
-          val environment = Environment(config.rootDir, process.classLoader, environmentMode)
+          val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
           val context = ApplicationLoader.Context.create(environment, initialSettings)
           val loader = ApplicationLoader(context)
           loader.load(context)
