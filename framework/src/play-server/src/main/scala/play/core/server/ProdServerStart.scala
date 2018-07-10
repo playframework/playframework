@@ -55,16 +55,6 @@ object ProdServerStart {
    */
   def start(process: ServerProcess, exitJvmOnStop: Boolean = false): ReloadableServer = {
 
-    //
-    // ProdServerStart uses two modes:
-    //  1) environmentMode is used to control the actual behavior of the application, the server and
-    //     anything started or handled from this class. It should always be `Prod`
-    //  2) actualMode is used to identify the actual context this class was invoked from. The main
-    //     purpose of this Mode is to tune the execution of the shutdown logic depending on whether
-    //     we're simulating a Mode.Prod or actually running in Mode.Prod. For example, some unit
-    //     tests assert the behavior of some code in Mode.Prod but are unit tests nonetheless,
-    //     therefore they must not exit the JVM.
-    //
     val environmentMode = Mode.Prod
 
     try {
@@ -77,11 +67,6 @@ object ProdServerStart {
 
       try {
 
-        //
-        // Tuning the behavior of coordinated-shutdown depends on several factors and
-        // `environmentMode` is not always indicating actual Production environment, for
-        // this reason we trust only `actualMode`
-        //
         val initialSettings: Map[String, AnyRef] =
           if (exitJvmOnStop) {
             Map(
