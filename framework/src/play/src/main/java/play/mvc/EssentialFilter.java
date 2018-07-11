@@ -15,4 +15,8 @@ public abstract class EssentialFilter implements play.api.mvc.EssentialFilter {
     public EssentialFilter asJava() {
         return this;
     }
+
+    public play.api.mvc.EssentialFilter asScala() {
+        return this;
+    }
 }
