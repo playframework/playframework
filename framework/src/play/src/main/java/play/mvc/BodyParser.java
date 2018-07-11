@@ -457,17 +457,7 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
-            Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request.asScala()).asJava();
-
-            return javaAccumulator.map(result -> {
-                        if (result.isLeft()) {
-                            return F.Either.Left(result.left().get().asJava());
-                        } else {
-                            return F.Either.Right(transform.apply(result.right().get()));
-                        }
-                    },
-                    JavaParsers.trampoline()
-            );
+            return BodyParsers.delegate(delegate, transform, request);
         }
     }
 
