@@ -18,11 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
@@ -33,11 +29,8 @@ import play.test.WithApplication;
 
 import javax.inject.Inject;
 
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static play.mvc.Results.ok;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
 
@@ -108,9 +101,7 @@ public class JavaFileUpload extends WithApplication {
          */
         private File generateTempFile() {
             try {
-                final EnumSet<PosixFilePermission> attrs = EnumSet.of(OWNER_READ, OWNER_WRITE);
-                final FileAttribute<?> attr = PosixFilePermissions.asFileAttribute(attrs);
-                final Path path = Files.createTempFile("multipartBody", "tempFile", attr);
+                final Path path = Files.createTempFile("multipartBody", "tempFile");
                 return path.toFile();
             } catch (IOException e) {
                 throw new IllegalStateException(e);
