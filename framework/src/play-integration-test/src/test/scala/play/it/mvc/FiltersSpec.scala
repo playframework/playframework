@@ -209,12 +209,12 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
 
     "Scala EssentialFilter should work when converting from Scala to Java" in withServer()(ScalaEssentialFilter.asJava) { ws =>
       val result = Await.result(ws.url("/ok").get(), Duration.Inf)
-      result.header(ScalaEssentialFilter.header).getOrElse("") must_== ScalaEssentialFilter.expectedValue
+      result.header(ScalaEssentialFilter.header) must beSome(ScalaEssentialFilter.expectedValue)
     }
 
     "Java EssentialFilter should work when converting from Java to Scala" in withServer()(JavaEssentialFilter.asScala) { ws =>
       val result = Await.result(ws.url("/ok").get(), Duration.Inf)
-      result.header(JavaEssentialFilter.header).getOrElse("") must_== JavaEssentialFilter.expectedValue
+      result.header(JavaEssentialFilter.header) must beSome(JavaEssentialFilter.expectedValue)
     }
 
     "Scala EssentialFilter should preserve the same type when converting from Scala to Java then back to Scala" in {
