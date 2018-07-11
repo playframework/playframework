@@ -60,9 +60,14 @@ class DefaultDBApi(
     // Accessing the dataSource for the database makes the connection pool to
     // initialize. We will then be able to check for configuration errors.
     databases.foreach { db =>
-      if (logInitialization) logger.info(s"Database [${db.name}] initialized at ${db.url}")
-      // Calling db.dataSource forces the underlying pool to initialize
-      db.dataSource
+      try {
+        if (logInitialization) logger.info(s"Database [${db.name}] initialized at ${db.url}")
+        // Calling db.dataSource forces the underlying pool to initialize
+        db.dataSource
+      } catch {
+        case NonFatal(e) =>
+          throw Configuration(configuration(db.name)).reportError("url", s"Cannot initialize to database [${db.name}]", Some(e))
+      }
     }
   }
 
