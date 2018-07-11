@@ -12,17 +12,28 @@ class DBApiSpec extends Specification {
 
   "DBApi" should {
 
-    "start the application even when database is not available" in new WithApplication(_.configure(
+    "start the application when database is not available but configured to not fail fast" in new WithApplication(_.configure(
       // Here we have a URL that is valid for H2, but the database is not available.
       // We should not fail to start the application here.
       "db.default.url" -> "jdbc:h2:tcp://localhost/~/bogus",
-      "db.default.driver" -> "org.h2.Driver"
+      "db.default.driver" -> "org.h2.Driver",
+
+      // This overrides the default configuration and makes HikariCP fails fast.
+      "play.db.prototype.hikaricp.initializationFailTimeout" -> "-1"
     )) {
       val dependsOnDbApi = app.injector.instanceOf[DependsOnDbApi]
       dependsOnDbApi.dBApi must not beNull
     }
 
-    "fail to start the application even when there is a database misconfiguration" in {
+    "fail to start the application when database is not available and configured to fail fast" in {
+      new WithApplication(_.configure(
+        // Here we have a URL that is valid for H2, but the database is not available.
+        "db.default.url" -> "jdbc:bogus://localhost",
+        "db.default.driver" -> "org.h2.Driver"
+      )) {} must throwA[PlayException]
+    }
+
+    "fail to start the application when there is a database misconfiguration" in {
       new WithApplication(_.configure(
         // Having a wrong configuration like an invalid url is different from having
         // a valid configuration where the database is not available yet. We should
