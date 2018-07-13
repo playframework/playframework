@@ -39,7 +39,7 @@ class DefaultDBApi(
   /**
    * Try to connect to all data sources.
    */
-  @deprecated("Use initialize instead which does not tries to connect to the database", "2.7.0")
+  @deprecated("Use initialize instead, which does not try to connect to the database", "2.7.0")
   def connect(logConnection: Boolean = false): Unit = {
     databases foreach { db =>
       try {
