@@ -69,6 +69,26 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
+    "not serve an asset outside of assets directory" in withServer() { client =>
+      val result = await(client.url("/../logback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "not serve an asset outside of assets directory when using encoded encoded slashes" in withServer() { client =>
+      val result = await(client.url("/..%2flogback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "not serve an asset outside of assets directory when using Windows slashes" in withServer() { client =>
+      val result = await(client.url("/..\\logback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "not serve an asset outside of assets directory when using Windows encoded slashes" in withServer() { client =>
+      val result = await(client.url("/..%5Clogback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
     "serve an asset as JSON with UTF-8 charset" in withServer() { client =>
       val result = await(client.url("/test.json").get())
 
