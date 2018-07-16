@@ -13,7 +13,7 @@ class DBApiSpec extends Specification {
 
   "DBApi" should {
 
-    "start the application even when database is not available" in new WithApplication(_.configure(
+    "start the application when database is not available" in new WithApplication(_.configure(
       // Here we have a URL that is valid for H2, but the database is not available.
       // We should not fail to start the application here.
       "db.default.url" -> "jdbc:h2:tcp://localhost/~/bogus",
@@ -23,7 +23,7 @@ class DBApiSpec extends Specification {
       dependsOnDbApi.dBApi must not beNull
     }
 
-    "fail to start the application even when there is a database misconfiguration" in {
+    "fail to start the application when there is a database misconfiguration" in {
       new WithApplication(_.configure(
         // Having a wrong configuration like an invalid url is different from having
         // a valid configuration where the database is not available yet. We should
@@ -33,7 +33,7 @@ class DBApiSpec extends Specification {
       )) {} must throwA[PlayException]
     }
 
-    "fail to start the application even when database is not available and configured to fail fast" in {
+    "fail to start the application when database is not available and configured to fail fast" in {
       new WithApplication(_.configure(
         // Here we have a URL that is valid for H2, but the database is not available.
         "db.default.url" -> "jdbc:bogus://localhost",
@@ -41,6 +41,22 @@ class DBApiSpec extends Specification {
         // This overrides the default configuration and makes HikariCP fails fast.
         "play.db.prototype.hikaricp.initializationFailTimeout" -> "1"
       )) {} must throwA[PlayException]
+    }
+
+    "correct report the configuration error" in {
+      new WithApplication(_.configure(
+        // The configuration is correct, but the database is not available
+        "db.default.url" -> "jdbc:h2:tcp://localhost/~/notavailable",
+        "db.default.driver" -> "org.h2.Driver",
+
+        // The configuration is correct and the database is available
+        "db.test.url" -> "jdbc:h2:mem:test",
+        "db.test.driver" -> "org.h2.Driver",
+
+        // The configuration is incorrect, so we should report an error
+        "db.bogus.url" -> "jdbc:bogus://localhost",
+        "db.bogus.driver" -> "org.h2.Driver"
+      )) {} must throwA[PlayException]("Configuration error\\[Cannot initialize to database \\[bogus\\]\\]")
     }
 
     "create all the configured databases" in new WithApplication(_.configure(
