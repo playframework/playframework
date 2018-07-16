@@ -879,10 +879,16 @@ package controllers {
             normalizePathSegments(accumulated :+ segment, rest)
         }
       }
-      val splitPath: List[String] = path.split('/').toList
+      val splitPath: List[String] = path.split(filePathSeparators).toList
       val splitNormalized: Seq[String] = normalizePathSegments(Vector.empty, splitPath)
       splitNormalized.mkString("/")
     }
+
+    // Ideally, this should be only '/' (which is a valid separator in Windows) and File.separatorChar, but we
+    // need to keep '/', '\' and File.separatorChar so that we can test for Windows '\' separator when running
+    // the tests on Linux/macOS.
+    private val filePathSeparators = Array('/', '\\', File.separatorChar).distinct
+
     /** Cache this compiled regular expression. */
     private val extraSlashPattern: Regex = """//+""".r
 
