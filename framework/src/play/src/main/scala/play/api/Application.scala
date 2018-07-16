@@ -5,16 +5,17 @@
 package play.api
 
 import java.io._
-import javax.inject.{ Inject, Singleton }
 
-import akka.actor.ActorSystem
+import akka.Done
+import javax.inject.{ Inject, Singleton }
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.{ ActorMaterializer, Materializer }
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
-import play.api.inject._
+import play.api.inject.{ ApplicationLifecycle, _ }
 import play.api.libs.Files._
-import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider }
 import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
@@ -81,6 +82,11 @@ trait Application {
    * The default Materializer used by the application.
    */
   implicit def materializer: Materializer
+
+  /**
+   * The default CoordinatedShutdown to stop the Application
+   */
+  def coordinatedShutdown: CoordinatedShutdown
 
   /**
    * The factory used to create requests for this application.
@@ -239,14 +245,42 @@ class DefaultApplication @Inject() (
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
-    override val materializer: Materializer) extends Application {
+    override val materializer: Materializer,
+    override val coordinatedShutdown: CoordinatedShutdown) extends Application {
+
+  def this(
+    environment: Environment,
+    applicationLifecycle: ApplicationLifecycle,
+    injector: Injector,
+    configuration: Configuration,
+    requestFactory: RequestFactory,
+    requestHandler: HttpRequestHandler,
+    errorHandler: HttpErrorHandler,
+    actorSystem: ActorSystem,
+    materializer: Materializer) = this(
+    environment,
+    applicationLifecycle,
+    injector,
+    configuration,
+    requestFactory,
+    requestHandler,
+    errorHandler,
+    actorSystem,
+    materializer,
+    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
+  )
 
   override def path: File = environment.rootPath
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] = applicationLifecycle.stop()
+  override def stop(): Future[_] = {
+    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem)
+    coordinatedShutdown.run(ApplicationStoppedReason, runFromPhase)
+  }
 }
+
+private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason
 
 /**
  * Helper to provide the Play built in components.
@@ -337,10 +371,11 @@ trait BuiltInComponents extends I18nComponents {
     httpFilters)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
+    configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer, coordinatedShutdown)
 
-  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
+  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
+  lazy val coordinatedShutdown: CoordinatedShutdown = new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
   implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 
   lazy val cookieSigner: CookieSigner = new CookieSignerProvider(httpConfiguration.secret).get

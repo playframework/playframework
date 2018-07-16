@@ -4,11 +4,15 @@
 
 package play.api
 
+import java.util.concurrent.atomic.AtomicReference
+
+import akka.Done
+import akka.actor.CoordinatedShutdown
 import akka.stream.Materializer
 import play.api.i18n.MessagesApi
 import play.utils.Threads
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
@@ -78,8 +82,8 @@ object Play {
   def maybeApplication: Option[Application] = privateMaybeApplication.toOption
 
   private[play] def privateMaybeApplication: Try[Application] = {
-    if (_currentApp != null) {
-      Success(_currentApp)
+    if (_currentApp.get != null) {
+      Success(_currentApp.get)
     } else {
       Failure(sys.error(
         s"""
@@ -104,7 +108,11 @@ object Play {
   @deprecated("This is a static reference to application, use DI instead", "2.5.0")
   implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
 
-  @volatile private var _currentApp: Application = _
+  // _currentApp is an AtomicReference so that `start()` can invoke `stop()`
+  // without causing a deadlock. That potential deadlock (and this derived complexity)
+  // was introduced when using CoordinatedShutdown because `unsetGlobalApp(app)`
+  // may run from a different thread.
+  private val _currentApp: AtomicReference[Application] = new AtomicReference[Application]()
 
   /**
    * Sets the global application instance.
@@ -119,9 +127,9 @@ object Play {
     val globalApp = app.globalApplicationEnabled
 
     // Stop the current app if the new app needs to replace the current app instance
-    if (globalApp && _currentApp != null) {
+    if (globalApp && _currentApp.get != null) {
       logger.info("Stopping current application")
-      stop(_currentApp)
+      stop(_currentApp.get())
     }
 
     app.mode match {
@@ -138,7 +146,14 @@ object Play {
           |You are using the deprecated global state to set and access the current running application. If you
           |need an instance of Application, set $GlobalAppConfigKey = false and use Dependency Injection instead.
         """.stripMargin)
-      _currentApp = app
+      _currentApp.set(app)
+
+      // It's possible to stop the Application using Coordinated Shutdown, when that happens the Application
+      // should no longer be considered the current App
+      app.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "unregister-global-app"){ () =>
+        unsetGlobalApp(app)
+        Future.successful(Done)
+      }
     }
 
   }
@@ -152,11 +167,11 @@ object Play {
         try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
-    synchronized {
-      if (app == _currentApp) { // Don't bother un-setting the current app unless it's our app
-        _currentApp = null
-      }
-    }
+  }
+
+  private def unsetGlobalApp(app: Application) = {
+    // Don't bother un-setting the current app unless it's our app
+    _currentApp.compareAndSet(app, null)
   }
 
   /**

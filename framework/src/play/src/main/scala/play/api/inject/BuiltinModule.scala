@@ -7,7 +7,7 @@ package play.api.inject
 import java.util.concurrent.Executor
 
 import javax.inject.{ Inject, Provider, Singleton }
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
@@ -74,6 +74,7 @@ class BuiltinModule extends SimpleModule((env, conf) => {
     bind[play.routing.Router].to[JavaRouterAdapter],
     bind[ActorSystem].toProvider[ActorSystemProvider],
     bind[Materializer].toProvider[MaterializerProvider],
+    bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
     bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
     bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
     bind[Executor].to(bind[ExecutionContextExecutor]),

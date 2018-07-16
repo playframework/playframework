@@ -5,17 +5,20 @@
 package play.core.server
 
 import java.io._
-import akka.actor.ActorSystem
+
+import akka.Done
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.ActorMaterializer
 import play.api._
+import play.api.inject.DefaultApplicationLifecycle
 import play.core._
 import play.utils.Threads
+
 import scala.collection.JavaConverters._
-import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
-import play.api.inject.DefaultApplicationLifecycle
 
 /**
  * Used to start servers in 'dev' mode, a mode where the application
@@ -221,13 +224,19 @@ object DevServerStart {
             .withFallback(serverConfig.configuration.underlying)
         }
         val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
+        val serverCs = CoordinatedShutdown(actorSystem)
+
+        // Registering a task that invokes `Play.stop` is necessary for the scenarios where
+        // the Application and the Server use separate ActorSystems (e.g. DevMode).
+        serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") {
+          () =>
+            implicit val ctx = actorSystem.dispatcher
+            val stoppedApp = appProvider.get.map(Play.stop)
+            Future.fromTry(stoppedApp).map(_ => Done)
+        }
 
         val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
-          ActorMaterializer()(actorSystem), () => {
-            actorSystem.terminate()
-            Await.result(actorSystem.whenTerminated, Duration.Inf)
-            Future.successful(())
-          })
+          ActorMaterializer()(actorSystem), () => Future.successful(()))
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
         serverProvider.createServer(serverContext)
       } catch {

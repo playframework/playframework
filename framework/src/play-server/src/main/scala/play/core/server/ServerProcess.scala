@@ -14,6 +14,7 @@ import java.util.Properties
  * `System.getProperties()`, `System.exit()`, etc.
  */
 trait ServerProcess {
+
   /** The ClassLoader that should be used */
   def classLoader: ClassLoader
   /** The command line arguments the process as invoked with */
@@ -36,6 +37,8 @@ trait ServerProcess {
  */
 class RealServerProcess(val args: Seq[String]) extends ServerProcess {
   def classLoader: ClassLoader = Thread.currentThread.getContextClassLoader
+
+  // These properties are used in Prod mode and for the Server in Dev Mode (not the Application).
   def properties: Properties = System.getProperties
   def pid: Option[String] = {
     ManagementFactory.getRuntimeMXBean.getName.split('@').headOption
@@ -48,8 +51,10 @@ class RealServerProcess(val args: Seq[String]) extends ServerProcess {
   def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
     System.err.println(message)
     cause.foreach(_.printStackTrace())
+    // this System.exit is using a return code and could also cause CoordinatedShutdown to run.
     System.exit(returnCode)
     // Code never reached, but throw an exception to give a type of Nothing
     throw new Exception("SystemProcess.exit called")
   }
+
 }

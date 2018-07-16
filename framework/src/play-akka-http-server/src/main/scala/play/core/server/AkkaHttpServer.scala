@@ -6,8 +6,10 @@ package play.core.server
 
 import java.net.InetSocketAddress
 import java.security.{ Provider, SecureRandom }
+import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
+import akka.Done
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
@@ -22,11 +24,13 @@ import com.typesafe.config.{ Config, ConfigMemorySize }
 import javax.net.ssl._
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.routing.Router
 import play.core.ApplicationProvider
+import play.core.server.Server.ServerStoppedReason
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerDebugInfo, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
@@ -41,6 +45,8 @@ import scala.util.{ Failure, Success, Try }
  * Starts a Play server using Akka HTTP.
  */
 class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
+
+  registerShutdownTasks()
 
   @deprecated("Use new AkkaHttpServer(Context) instead", "2.6.14")
   def this(config: ServerConfig, applicationProvider: ApplicationProvider, actorSystem: ActorSystem, materializer: Materializer, stopHook: () => Future[_]) =
@@ -67,7 +73,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
    *
-   * Note that the rest of the [[ActorSystem]] outside Akka HTTP is initialized by the configuration in [[config]].
+   * Note that the rest of the [[ActorSystem]] outside Akka HTTP is initialized by the configuration in [[context.config]].
    */
   protected val akkaHttpConfig: Config = createAkkaHttpConfig()
 
@@ -361,28 +367,67 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   }
 
   override def stop(): Unit = {
+    // CoordinatedShutdown may be invoked many times over the same actorSystem but
+    // only the first invocation runs the tasks (later invocations are noop).
+    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(context.actorSystem)
+    val cs = CoordinatedShutdown(context.actorSystem)
+    // The await operation should last at most the total timeout of the coordinated shutdown.
+    // We're adding a few extra seconds of margin (5 sec) to make sure the coordinated shutdown
+    // has enough room to complete and yet we will timeout in case something goes wrong (invalid setup,
+    // failed task, bug, etc...) preventing the coordinated shutdown from completing.
+    val shutdownTimeout = cs.totalTimeout() + Duration(5, TimeUnit.SECONDS)
+    Await.result(
+      cs.run(ServerStoppedReason, runFromPhase),
+      shutdownTimeout
+    )
+  }
 
-    mode match {
-      case Mode.Test =>
-      case _ => logger.info("Stopping server...")
+  // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
+  // we have to register it as early as possible as CoordinatedShutdown tasks and
+  // then `stop` runs CoordinatedShutdown.
+  private def registerShutdownTasks(): Unit = {
+
+    implicit val exCtx: ExecutionContext = context.actorSystem.dispatcher
+
+    // Register all shutdown tasks
+    val cs = CoordinatedShutdown(context.actorSystem)
+    cs.addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "trace-server-stop-request") {
+      () =>
+        mode match {
+          case Mode.Test =>
+          case _ => logger.info("Stopping server...")
+        }
+        Future.successful(Done)
     }
 
-    // First, stop listening
-    def unbind(binding: Http.ServerBinding) = Await.result(binding.unbind(), Duration.Inf)
-    httpServerBinding.foreach(unbind)
-    httpsServerBinding.foreach(unbind)
-    applicationProvider.current.foreach(Play.stop)
+    // Stop listening.
+    // TODO: this can be improved so unbind is deferred until `service-stop`. We could
+    // respond 503 in the meantime.
+    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") {
+      () =>
+        def unbind(binding: Option[Http.ServerBinding]): Future[Done] =
+          binding.map(_.unbind()).getOrElse(Future.successful(Done))
 
-    try {
-      super.stop()
-    } catch {
-      case NonFatal(e) => logger.error("Error while stopping logger", e)
+        for {
+          _ <- unbind(httpServerBinding)
+          _ <- unbind(httpsServerBinding)
+        } yield Done
     }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(context.stopHook(), Duration.Inf)
+    cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") {
+      () => context.stopHook().map(_ => Done)
+    }
+    cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") {
+      () =>
+        Future {
+          super.stop()
+          Done
+        }
+    }
+
   }
 
   override lazy val mainAddress: InetSocketAddress = {

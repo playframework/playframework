@@ -10,6 +10,7 @@ import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import org.specs2.mutable.Specification
+import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.{ Configuration, Environment }
 
 import scala.concurrent.duration.Duration
@@ -71,21 +72,23 @@ class ActorSystemProviderSpec extends Specification {
           "play.akka.run-cs-from-phase",
           ConfigValueFactory.fromAnyRef(mustRunPhase))
 
-      val (actorSystem, stopHook) = ActorSystemProvider.start(
+      val (actorSystem, _) = ActorSystemProvider.start(
         this.getClass.getClassLoader,
         Configuration(config)
       )
+      val lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
 
       val promise = Promise[Done]()
       val terminated = promise.future
       val isRun = new AtomicBoolean(false)
 
-      CoordinatedShutdown(actorSystem).addTask(mustRunPhase, "termination-promise") {
+      val cs = new CoordinatedShutdownProvider(actorSystem, lifecycle).get
+      cs.addTask(mustRunPhase, "termination-promise") {
         () =>
           promise.complete(Success(Done))
           Future.successful(Done)
       }
-      CoordinatedShutdown(actorSystem).addTask(mustNotRunPhase, "is-ignored-promise") {
+      cs.addTask(mustNotRunPhase, "is-ignored-promise") {
         () =>
           isRun.set(true)
           Future.successful(Done)
@@ -98,8 +101,10 @@ class ActorSystemProviderSpec extends Specification {
         case _: Throwable =>
       }
 
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val completeShutdown = stopHook().flatMap(_ => terminated)
+      implicit val ctx = actorSystem.dispatcher
+      // lifecycle.stop is deprecated, use CS instead.
+      //      val completeShutdown = lifecycle.stop().flatMap(_ => terminated)
+      val completeShutdown = cs.run(CoordinatedShutdown.UnknownReason, CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem))
 
       Await.result(completeShutdown, fiveSec) must equalTo(Done)
       isRun.get() must equalTo(false)

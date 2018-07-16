@@ -22,6 +22,14 @@ scalaVersion := "2.13.0-M3"
 
 > **Note**: Keep in mind Scala 2.13 still does not have a final version.
 
+## Lifecycle managed by Akka's Coordinated Shutdown
+
+Play 2.6 introduced the usage of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.5/scala/actors.html#coordinated-shutdown) but still didn't use it all across the core framework or exposed it to the end user. Coordinated Shutdown is an Akka Extension with a registry of tasks that can be run in an ordered fashion during the shutdown of the Actor System.
+
+Coordinated Shutdown internally handles Play 2.7 Play's lifecycle and an instance of `CoordinatedShutdown` is available for injection. Coordinated Shutdown gives you fine grained phases - organized as a [directed acyclic graph (DAG)](https://en.wikipedia.org/wiki/Directed_acyclic_graph) - where you can register tasks instead of just having a single phase like Play's application lifecycle. For example, you can add tasks to run before or after server binding, or after all the current requests finishes. Also, you will have better integration with [Akka Cluster](https://doc.akka.io/docs/akka/2.5/common/cluster.html).
+
+You can find more details on the new section on [[Coordinated Shutdown on the Play manual|Shutdown]], or you can have a look at Akka's [reference docs on Coordinated Shutdown](https://doc.akka.io/docs/akka/2.5/scala/actors.html#coordinated-shutdown).
+
 ## Guice was upgraded to 4.2.0
 
 Guice, the default dependency injection framework used by Play, was upgraded to 4.2.0 (from 4.1.0). Have a look at its [release notes](https://github.com/google/guice/wiki/Guice42). This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].
