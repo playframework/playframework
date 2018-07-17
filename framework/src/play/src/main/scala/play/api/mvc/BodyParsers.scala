@@ -487,7 +487,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def text(maxLength: Int): BodyParser[String] = when(
+  def text(maxLength: Long): BodyParser[String] = when(
     _.contentType.exists(_.equalsIgnoreCase("text/plain")),
     tolerantText(maxLength),
     createBadResult("Expecting text/plain body", UNSUPPORTED_MEDIA_TYPE)
@@ -503,7 +503,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def byteString(maxLength: Int): BodyParser[ByteString] = {
+  def byteString(maxLength: Long): BodyParser[ByteString] = {
     tolerantBodyParser("byteString", maxLength, "Error decoding byte string body")((_, bytes) => bytes)
   }
 
@@ -551,7 +551,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def tolerantJson(maxLength: Int): BodyParser[JsValue] =
+  def tolerantJson(maxLength: Long): BodyParser[JsValue] =
     tolerantBodyParser[JsValue]("json", maxLength, "Invalid Json") { (request, bytes) =>
       // Encoding notes: RFC 4627 requires that JSON be encoded in Unicode, and states that whether that's
       // UTF-8, UTF-16 or UTF-32 can be auto detected by reading the first two bytes. So we ignore the declared
@@ -569,7 +569,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def json(maxLength: Int): BodyParser[JsValue] = when(
+  def json(maxLength: Long): BodyParser[JsValue] = when(
     _.contentType.exists(m => m.equalsIgnoreCase("text/json") || m.equalsIgnoreCase("application/json")),
     tolerantJson(maxLength),
     createBadResult("Expecting text/json or application/json body", UNSUPPORTED_MEDIA_TYPE)
@@ -642,7 +642,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def tolerantXml(maxLength: Int): BodyParser[NodeSeq] =
+  def tolerantXml(maxLength: Long): BodyParser[NodeSeq] =
     tolerantBodyParser[NodeSeq]("xml", maxLength, "Invalid XML") { (request, bytes) =>
       val inputSource = new InputSource(bytes.iterator.asInputStream)
 
@@ -677,7 +677,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def xml(maxLength: Int): BodyParser[NodeSeq] = when(
+  def xml(maxLength: Long): BodyParser[NodeSeq] = when(
     _.contentType.exists { t =>
       val tl = t.toLowerCase(Locale.ENGLISH)
       tl.startsWith("text/xml") || tl.startsWith("application/xml") || ApplicationXmlMatcher.pattern.matcher(tl).matches()
@@ -718,7 +718,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
+  def tolerantFormUrlEncoded(maxLength: Long): BodyParser[Map[String, Seq[String]]] =
     tolerantBodyParser("formUrlEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
       import play.core.parsers._
       val charset = request.charset.getOrElse("UTF-8")
@@ -733,7 +733,7 @@ trait PlayBodyParsers extends BodyParserUtils {
     tolerantFormUrlEncoded(DefaultMaxTextLength)
 
   @deprecated("Use formUrlEncoded", "2.6.0")
-  def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = formUrlEncoded(maxLength)
+  def urlFormEncoded(maxLength: Long): BodyParser[Map[String, Seq[String]]] = formUrlEncoded(maxLength)
 
   @deprecated("Use formUrlEncoded", "2.6.0")
   def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = formUrlEncoded
@@ -743,7 +743,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def formUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
+  def formUrlEncoded(maxLength: Long): BodyParser[Map[String, Seq[String]]] = when(
     _.contentType.exists(_.equalsIgnoreCase("application/x-www-form-urlencoded")),
     tolerantFormUrlEncoded(maxLength),
     createBadResult("Expecting application/x-www-form-urlencoded body", UNSUPPORTED_MEDIA_TYPE)
