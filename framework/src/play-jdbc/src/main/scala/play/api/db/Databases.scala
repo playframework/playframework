@@ -125,11 +125,13 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
   }
 
   lazy val url: String = {
-    val connection = dataSource.getConnection
-    try {
-      connection.getMetaData.getURL
-    } finally {
-      connection.close()
+    databaseConfig.url.getOrElse {
+      val connection = dataSource.getConnection
+      try {
+        connection.getMetaData.getURL
+      } finally {
+        connection.close()
+      }
     }
   }
 
