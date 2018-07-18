@@ -48,12 +48,16 @@ public class DatabaseTest {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
+
+        // Forces the data source initialization, and then JNDI registration.
+        db.getDataSource();
+
         assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
 
     @Test
-    public void createDefaultInMemoryDatabase() throws Exception {
+    public void createDefaultInMemoryDatabase() {
         Database db = Databases.inMemory();
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
@@ -85,6 +89,10 @@ public class DatabaseTest {
         Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
+
+        // Forces the data source initialization, and then JNDI registration.
+        db.getDataSource();
+
         assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
