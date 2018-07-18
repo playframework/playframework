@@ -75,7 +75,7 @@ public class DatabaseTest {
         Database db = Databases.inMemory("test", options, config);
 
         assertThat(db.getName(), equalTo("test"));
-        assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
+        assertThat(db.getUrl(), startsWith("jdbc:h2:mem:test"));
 
         db.shutdown();
     }
