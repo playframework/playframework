@@ -13,6 +13,8 @@
         </encoder>
     </appender>
 
+    <logger name="play" level="INFO" />
+
     <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>
