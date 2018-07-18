@@ -27,7 +27,7 @@ public class DatabaseTest {
     public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void createDatabase() throws Exception {
+    public void createDatabase() {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test");
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
@@ -35,7 +35,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void createDefaultDatabase() throws Exception {
+    public void createDefaultDatabase() {
         Database db = Databases.createFrom("org.h2.Driver", "jdbc:h2:mem:default");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
@@ -65,7 +65,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void createNamedInMemoryDatabase() throws Exception {
+    public void createNamedInMemoryDatabase() {
         Database db = Databases.inMemory("test");
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
@@ -124,7 +124,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void provideConnectionHelpers() throws Exception {
+    public void provideConnectionHelpers() {
         Database db = Databases.inMemory("test-withConnection");
 
         db.withConnection(c -> {
@@ -145,7 +145,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void provideTransactionHelper() throws Exception {
+    public void provideTransactionHelper() {
         Database db = Databases.inMemory("test-withTransaction");
 
         boolean created = db.withTransaction(c -> {
