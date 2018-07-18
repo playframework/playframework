@@ -69,13 +69,13 @@ public class DatabaseTest {
     }
 
     @Test
-    public void createInMemoryDatabaseWithUrlOptions() throws Exception {
+    public void createInMemoryDatabaseWithUrlOptions() {
         Map<String, String> options = ImmutableMap.of("MODE", "MySQL");
         Map<String, Object> config = ImmutableMap.<String, Object>of();
         Database db = Databases.inMemory("test", options, config);
 
         assertThat(db.getName(), equalTo("test"));
-        assertThat(db.getUrl(), startsWith("jdbc:h2:mem:test"));
+        assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test;MODE=MySQL"));
 
         db.shutdown();
     }

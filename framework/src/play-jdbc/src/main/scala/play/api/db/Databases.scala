@@ -43,7 +43,7 @@ object Databases {
    */
   def inMemory(name: String = "default", urlOptions: Map[String, String] = Map.empty, config: Map[String, _ <: Any] = Map.empty): Database = {
     val driver = "org.h2.Driver"
-    val urlExtra = urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+    val urlExtra = if (urlOptions.nonEmpty) urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "") else ""
     val url = "jdbc:h2:mem:" + name + urlExtra
     Databases(driver, url, name, config)
   }

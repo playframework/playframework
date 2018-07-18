@@ -5,7 +5,7 @@
 package play.api.db
 
 import java.sql.SQLException
-import com.zaxxer.hikari.HikariDataSource
+
 import org.jdbcdslog.LogSqlDataSource
 import org.specs2.mutable.{ After, Specification }
 
@@ -52,11 +52,13 @@ class DatabasesSpec extends Specification {
     "create in-memory database with url options" in new WithDatabase {
       val db = Databases.inMemory(urlOptions = Map("MODE" -> "MySQL"))
       db.name must_== "default"
-      db.url must startWith("jdbc:h2:mem:default")
-      db.dataSource match {
-        case ds: HikariDataSource => ds.getJdbcUrl must_== "jdbc:h2:mem:default;MODE=MySQL"
-        case _ =>
-      }
+      db.url must_== "jdbc:h2:mem:default;MODE=MySQL"
+    }
+
+    "create in-memory database with url as is when there are no additional options" in new WithDatabase {
+      val db = Databases.inMemory()
+      db.name must_== "default"
+      db.url must_== "jdbc:h2:mem:default"
     }
 
     "supply connections" in new WithDatabase {
