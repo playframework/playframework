@@ -40,13 +40,13 @@ class DatabasesSpec extends Specification {
     "create default in-memory database" in new WithDatabase {
       val db = Databases.inMemory()
       db.name must_== "default"
-      db.url must startWith("jdbc:h2:mem:default")
+      db.url must beEqualTo("jdbc:h2:mem:default")
     }
 
     "create named in-memory database" in new WithDatabase {
       val db = Databases.inMemory(name = "test")
       db.name must_== "test"
-      db.url must startWith("jdbc:h2:mem:test")
+      db.url must beEqualTo("jdbc:h2:mem:test")
     }
 
     "create in-memory database with url options" in new WithDatabase {
