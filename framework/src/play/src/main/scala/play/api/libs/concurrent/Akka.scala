@@ -4,18 +4,20 @@
 
 package play.api.libs.concurrent
 
+import java.util.concurrent.TimeUnit
+
 import akka.Done
-import javax.inject.{ Inject, Provider, Singleton }
-import akka.actor.{ CoordinatedShutdown, _ }
 import akka.actor.setup.{ ActorSystemSetup, Setup }
+import akka.actor.{ CoordinatedShutdown, _ }
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.{ Config, ConfigValueFactory }
+import javax.inject.{ Inject, Provider, Singleton }
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
+import play.api.inject._
 import play.core.ClosableLazy
 
+import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -243,18 +245,53 @@ object CoordinatedShutdownProvider {
 
   /**
    * Reads the phase the Coordinated shutdown should run from using the `config`
-   * in the `actorsystem` provided. When the setting is blank, null or empty
+   * in the `ActorSystem` provided. When the setting is blank, `null` or empty
    * all phases should be run.
-   * @param actorSystem
-   * @return
+   *
+   * @param actorSystem the actor system whose configuration is read
+   * @return the name of the configured coordinated shutdown phase, if present and non-empty, or `None`
    */
   def loadRunFromPhaseConfig(actorSystem: ActorSystem): Option[String] =
-    Try {
-      actorSystem.settings.config
-        .getString("play.akka.run-cs-from-phase")
-    }
+    Try(actorSystem.settings.config.getString("play.akka.run-cs-from-phase"))
       .toOption
       .filterNot(_.isEmpty)
+
+  /**
+   * Shuts down the provided `ActorSystem` asynchronously, starting from the configured phase.
+   *
+   * @param actorSystem the actor system to shut down
+   * @param reason the reason the actor system is shutting down
+   * @return a future that completes with `Done` when the actor system has fully shut down
+   */
+  def asyncShutdown(actorSystem: ActorSystem, reason: CoordinatedShutdown.Reason): Future[Done] = {
+    val runFromPhase = loadRunFromPhaseConfig(actorSystem)
+    // CoordinatedShutdown may be invoked many times over the same actorSystem but
+    // only the first invocation runs the tasks (later invocations are noop).
+    CoordinatedShutdown(actorSystem).run(reason, runFromPhase)
+  }
+
+  /**
+   * Shuts down the provided `ActorSystem` synchronously, starting from the configured phase. This method blocks until
+   * the actor system has fully shut down, or the duration exceeds timeouts for all coordinated shutdown phases.
+   *
+   * @param actorSystem the actor system to shut down
+   * @param reason      the reason the actor system is shutting down
+   * @throws InterruptedException if the current thread is interrupted while waiting
+   * @throws TimeoutException if after waiting for the specified time `awaitable` is still not ready
+   */
+  @throws(classOf[TimeoutException])
+  @throws(classOf[InterruptedException])
+  def syncShutdown(actorSystem: ActorSystem, reason: CoordinatedShutdown.Reason): Unit = {
+    // The await operation should last at most the total timeout of the coordinated shutdown.
+    // We're adding a few extra seconds of margin (5 sec) to make sure the coordinated shutdown
+    // has enough room to complete and yet we will timeout in case something goes wrong (invalid setup,
+    // failed task, bug, etc...) preventing the coordinated shutdown from completing.
+    val shutdownTimeout = CoordinatedShutdown(actorSystem).totalTimeout() + Duration(5, TimeUnit.SECONDS)
+    Await.result(
+      asyncShutdown(actorSystem, reason),
+      shutdownTimeout
+    )
+  }
 
 }
 
