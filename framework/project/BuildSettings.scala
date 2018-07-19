@@ -553,9 +553,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOptional"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOptional"),
 
-      // Remove DefaultDBApi.connect method
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect$default$1"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect")
+      // Add configuration to set max header value length
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.REQUEST_HEADER_FIELDS_TOO_LARGE"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_=")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
