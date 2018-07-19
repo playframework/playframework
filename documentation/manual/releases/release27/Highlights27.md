@@ -99,3 +99,13 @@ curl \
 ```
 
 This can be specially useful if you want to reproduce the request in isolation and also change `curl` parameters to see how it goes.
+
+## Gzip Filter now supports compression level configuration
+
+When using [[gzip encoding|GzipEncoding]], you can now configure the compression level to use. You can configure it using `play.filters.gzip.compressionLevel`, for example:
+
+```
+play.filters.gzip.compressionLevel = 9
+```
+
+See more details at [[GzipEncoding]].
