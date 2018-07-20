@@ -18,7 +18,7 @@ The gzip filter supports a small number of tuning configuration options, which c
 
 ## Compression Level
 
-You can configure the compression level by using `play.fiilters.gzip.compressionLevel`. The values must be between `-1` and `9`, inclusive, and they follow the semantics defined by [``](https://docs.oracle.com/javase/8/docs/api/java/util/zip/Deflater.html). For example, the default configuration is `-1`, which is the [default compression level](https://docs.oracle.com/javase/8/docs/api/java/util/zip/Deflater.html#DEFAULT_COMPRESSION) and `9` is the [best compression](https://docs.oracle.com/javase/8/docs/api/java/util/zip/Deflater.html#BEST_COMPRESSION). For example:
+You can configure the compression level by using `play.filters.gzip.compressionLevel`. The values must be between `-1` and `9`, inclusive, and they follow the semantics defined by [``](https://docs.oracle.com/javase/8/docs/api/java/util/zip/Deflater.html). For example, the default configuration is `-1`, which is the [default compression level](https://docs.oracle.com/javase/8/docs/api/java/util/zip/Deflater.html#DEFAULT_COMPRESSION) and `9` is the [best compression](https://docs.oracle.com/javase/8/docs/api/java/util/zip/Deflater.html#BEST_COMPRESSION). For example:
 
 ```
 play.filters.gzip.compressionLevel = 9
