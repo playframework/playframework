@@ -6,7 +6,7 @@ package play.core.server.common
 
 import java.net.InetAddress
 
-import com.google.common.net.InetAddresses
+import com.comcast.ip4s.IpAddress
 
 private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
 
@@ -34,8 +34,8 @@ private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
 
 private[common] object Subnet {
   def apply(s: String): Subnet = s.split("/") match {
-    case Array(ip, subnet) => Subnet(InetAddresses.forString(ip), Some(subnet.toInt))
-    case Array(ip) => Subnet(InetAddresses.forString(ip))
+    case Array(ip, subnet) => Subnet(IpAddress(ip).get.toInetAddress, Some(subnet.toInt))
+    case Array(ip) => Subnet(IpAddress(ip).get.toInetAddress)
     case _ => throw new IllegalArgumentException(s"$s contains more than one '/'.")
   }
 

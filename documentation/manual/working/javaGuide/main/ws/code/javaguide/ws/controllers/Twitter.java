@@ -14,8 +14,6 @@ import play.libs.ws.WSClient;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import com.google.common.base.Strings;
-
 import javax.inject.Inject;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +50,7 @@ public class Twitter extends Controller {
 
     public Result auth() {
         String verifier = request().getQueryString("oauth_verifier");
-        if (Strings.isNullOrEmpty(verifier)) {
+        if (verifier == null || verifier == "") {
             String url = routes.Twitter.auth().absoluteURL(request());
             RequestToken requestToken = TWITTER.retrieveRequestToken(url);
             saveSessionTokenPair(requestToken);

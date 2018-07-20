@@ -7,8 +7,6 @@ package play.inject.guice;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Rule;
@@ -18,6 +16,9 @@ import play.Application;
 import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.inject.Injector;
 import play.libs.Scala;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -48,7 +49,7 @@ public class GuiceApplicationBuilderTest {
                 // override the scala api configuration, which should underlie the java api configuration
                 bind(play.api.Configuration.class).to(new GuiceApplicationBuilderSpec.ExtendConfiguration(Scala.varargs(Scala.Tuple("a", 1)))),
                 // also override the java api configuration
-                bind(Config.class).to(new ExtendConfiguration(ConfigFactory.parseMap(ImmutableMap.of("b", 2)))),
+                bind(Config.class).to(new ExtendConfiguration(ConfigFactory.parseMap(Collections.singletonMap("b", 2)))),
                 bind(A.class).to(A2.class))
             .injector()
             .instanceOf(Application.class);
@@ -71,7 +72,7 @@ public class GuiceApplicationBuilderTest {
 
     @Test
     public void setInitialConfigurationLoader() {
-        Config extra = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
+        Config extra = ConfigFactory.parseMap(Collections.singletonMap("a", 1));
         Application app = new GuiceApplicationBuilder()
             .withConfigLoader(env -> extra.withFallback(ConfigFactory.load(env.classLoader())))
             .build();
@@ -82,7 +83,7 @@ public class GuiceApplicationBuilderTest {
     @Test
     public void setModuleLoader() {
         Injector injector = new GuiceApplicationBuilder()
-            .withModuleLoader((env, conf) -> ImmutableList.of(
+            .withModuleLoader((env, conf) -> Arrays.asList(
                 Guiceable.modules(new play.api.inject.BuiltinModule(), new play.api.i18n.I18nModule(), new play.api.mvc.CookiesModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class))))
             .injector();

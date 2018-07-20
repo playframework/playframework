@@ -4,10 +4,10 @@
 
 package play.inject.guice;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collections;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -62,8 +62,8 @@ public class GuiceInjectorBuilderTest {
     @Test
     public void setConfiguration() {
         Config conf = new GuiceInjectorBuilder()
-            .configure(ConfigFactory.parseMap(ImmutableMap.of("a", 1)))
-            .configure(ImmutableMap.of("b", 2))
+            .configure(ConfigFactory.parseMap(Collections.singletonMap("a", 1)))
+            .configure(Collections.singletonMap("b", 2))
             .configure("c", 3)
             .configure("d.1", 4)
             .configure("d.2", 5)

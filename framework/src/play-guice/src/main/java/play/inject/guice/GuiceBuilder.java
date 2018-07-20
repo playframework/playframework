@@ -4,7 +4,6 @@
 
 package play.inject.guice;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -15,6 +14,7 @@ import play.inject.Injector;
 import play.libs.Scala;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -99,7 +99,7 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      * @return a copy of this builder configured with the key=value
      */
     public final Self configure(String key, Object value) {
-        return configure(ImmutableMap.of(key, value));
+        return configure(Collections.singletonMap(key, value));
     }
 
     /**

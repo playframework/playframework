@@ -4,10 +4,9 @@
 
 package play.api.mvc.request
 
+import com.comcast.ip4s.IpAddress
 import java.net.InetAddress
 import java.security.cert.X509Certificate
-
-import com.google.common.net.InetAddresses
 
 /**
  * Contains information about the connection from the remote client to the server.
@@ -55,7 +54,7 @@ object RemoteConnection {
     val ras = remoteAddressString
     val ccc = clientCertificateChain
     new RemoteConnection {
-      override lazy val remoteAddress: InetAddress = InetAddresses.forString(ras)
+      override lazy val remoteAddress: InetAddress = IpAddress(ras).get.toInetAddress
       override val remoteAddressString: String = ras
       override val secure: Boolean = s
       override val clientCertificateChain: Option[Seq[X509Certificate]] = ccc

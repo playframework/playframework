@@ -6,7 +6,7 @@ package play.core.server.common
 
 import java.net.{ Inet4Address, Inet6Address, InetAddress }
 
-import com.google.common.net.InetAddresses
+import com.comcast.ip4s.{IpAddress => SIpAddress}
 import play.core.server.common.ForwardedHeaderHandler.{ ForwardedHeaderVersion, Rfc7239, Xforwarded }
 import play.core.server.common.NodeIdentifierParser._
 
@@ -68,8 +68,8 @@ private[common] class NodeIdentifierParser(version: ForwardedHeaderVersion) exte
   private def obfport = regex("_[\\p{Alnum}\\._-]+".r)
 
   private def inetAddress = new PartialFunction[String, InetAddress] {
-    def isDefinedAt(s: String) = Try { InetAddresses.forString(s) }.isSuccess
-    def apply(s: String) = Try { InetAddresses.forString(s) }.get
+    def isDefinedAt(s: String) = SIpAddress(s).isDefined
+    def apply(s: String) = Try { SIpAddress(s).get.toInetAddress }.get
   }
 }
 

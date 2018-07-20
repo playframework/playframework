@@ -9,12 +9,13 @@ import java.lang.ref.Reference
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{ Files => JFiles, _ }
 import java.time.{ Clock, Instant }
+import java.util.{Collections => JCollections}
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
-import javax.inject.{ Inject, Provider, Singleton }
 
+import javax.inject.{ Inject, Provider, Singleton }
 import akka.actor.{ ActorSystem, Cancellable }
 import com.google.common.base.{ FinalizablePhantomReference, FinalizableReferenceQueue }
-import com.google.common.collect.Sets
 import org.slf4j.LoggerFactory
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
@@ -153,7 +154,7 @@ object Files {
     //
     // https://google.github.io/guava/releases/19.0/api/docs/com/google/common/base/FinalizableReferenceQueue.html
     // Keeping references ensures that the FinalizablePhantomReference itself is not garbage-collected.
-    private val references = Sets.newConcurrentHashSet[Reference[TemporaryFile]]()
+    private val references = JCollections.newSetFromMap[Reference[TemporaryFile]](new ConcurrentHashMap())
 
     private val TempDirectoryPrefix = "playtemp"
     private val playTempFolder: Path = {

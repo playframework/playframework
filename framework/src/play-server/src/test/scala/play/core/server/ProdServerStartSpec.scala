@@ -10,10 +10,8 @@ import java.nio.file.Files
 import java.util.Properties
 import java.util.concurrent._
 
-import com.google.common.io.{ Files => GFiles }
-import org.specs2.matcher.EventuallyMatchers
 import org.specs2.mutable.Specification
-import play.api.{ Mode, Play }
+import play.api.Play
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
@@ -72,10 +70,8 @@ class StartupErrorServerProvider extends ServerProvider {
 
 class ProdServerStartSpec extends Specification {
 
-  sequential
-
   def withTempDir[T](block: File => T) = {
-    val temp = GFiles.createTempDir()
+    val temp = Files.createTempDirectory(System.currentTimeMillis() + "-1")
     try {
       block(temp)
     } finally {

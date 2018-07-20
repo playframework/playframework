@@ -145,6 +145,7 @@ object Dependencies {
     Seq("akka-testkit").map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
     jacksons ++
     Seq(
+      "com.comcast" %% "ip4s" % "1.0.1",
       playJson,
 
       guava,

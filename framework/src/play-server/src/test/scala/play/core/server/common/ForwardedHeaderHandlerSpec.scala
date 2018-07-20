@@ -6,7 +6,7 @@ package play.core.server.common
 
 import java.net.InetAddress
 
-import com.google.common.net.InetAddresses
+import com.comcast.ip4s.IpAddress
 import org.specs2.mutable.Specification
 import play.api.mvc.Headers
 import org.specs2.mutable.Specification
@@ -474,7 +474,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
     }
   }
 
-  def addr(ip: String): InetAddress = InetAddresses.forString(ip)
+  def addr(ip: String): InetAddress = IpAddress(ip).get.toInetAddress
 
   val localhost: InetAddress = addr("127.0.0.1")
 

@@ -7,7 +7,7 @@ package play.core.server.common
 import org.specs2.mutable.Specification
 import ForwardedHeaderHandler.{ ForwardedHeaderVersion, Rfc7239, Xforwarded }
 import NodeIdentifierParser._
-import com.google.common.net.InetAddresses
+import com.comcast.ip4s.IpAddress
 
 class NodeIdentifierParserSpec extends Specification {
 
@@ -16,7 +16,7 @@ class NodeIdentifierParserSpec extends Specification {
     parser.parseNode(str)
   }
 
-  private def ip(s: String): Ip = Ip(InetAddresses.forString(s))
+  private def ip(s: String): Ip = Ip(IpAddress(s).get.toInetAddress)
 
   "NodeIdentifierParser" should {
 
