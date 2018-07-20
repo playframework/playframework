@@ -251,7 +251,7 @@ object CoordinatedShutdownProvider {
    * @param actorSystem the actor system whose configuration is read
    * @return the name of the configured coordinated shutdown phase, if present and non-empty, or `None`
    */
-  def loadRunFromPhaseConfig(actorSystem: ActorSystem): Option[String] =
+  private def loadRunFromPhaseConfig(actorSystem: ActorSystem): Option[String] =
     Try(actorSystem.settings.config.getString("play.akka.run-cs-from-phase"))
       .toOption
       .filterNot(_.isEmpty)
