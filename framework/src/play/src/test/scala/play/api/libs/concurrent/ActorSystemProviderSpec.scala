@@ -104,9 +104,8 @@ class ActorSystemProviderSpec extends Specification {
       implicit val ctx = actorSystem.dispatcher
       // lifecycle.stop is deprecated, use CS instead.
       //      val completeShutdown = lifecycle.stop().flatMap(_ => terminated)
-      val completeShutdown = cs.run(CoordinatedShutdown.UnknownReason, CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem))
+      CoordinatedShutdownProvider.syncShutdown(actorSystem, CoordinatedShutdown.UnknownReason)
 
-      Await.result(completeShutdown, fiveSec) must equalTo(Done)
       isRun.get() must equalTo(false)
     }
 

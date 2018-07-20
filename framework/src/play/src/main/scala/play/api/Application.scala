@@ -274,10 +274,7 @@ class DefaultApplication @Inject() (
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] = {
-    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem)
-    coordinatedShutdown.run(ApplicationStoppedReason, runFromPhase)
-  }
+  override def stop(): Future[_] = CoordinatedShutdownProvider.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
 
 private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason

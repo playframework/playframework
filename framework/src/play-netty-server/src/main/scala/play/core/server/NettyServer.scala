@@ -233,16 +233,7 @@ class NettyServer(
     serverChannel
   }
 
-  override def stop(): Unit = {
-    // CoordinatedShutdown may be invoked many times over the same actorSystem but
-    // only the first invocation runs the tasks (later invocations are noop).
-    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem)
-    val cs = CoordinatedShutdown(actorSystem)
-    Await.result(
-      cs.run(ServerStoppedReason, runFromPhase),
-      cs.totalTimeout() + Duration(5, TimeUnit.SECONDS)
-    )
-  }
+  override def stop(): Unit = CoordinatedShutdownProvider.syncShutdown(actorSystem, ServerStoppedReason)
 
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and

@@ -366,21 +366,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       }
   }
 
-  override def stop(): Unit = {
-    // CoordinatedShutdown may be invoked many times over the same actorSystem but
-    // only the first invocation runs the tasks (later invocations are noop).
-    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(context.actorSystem)
-    val cs = CoordinatedShutdown(context.actorSystem)
-    // The await operation should last at most the total timeout of the coordinated shutdown.
-    // We're adding a few extra seconds of margin (5 sec) to make sure the coordinated shutdown
-    // has enough room to complete and yet we will timeout in case something goes wrong (invalid setup,
-    // failed task, bug, etc...) preventing the coordinated shutdown from completing.
-    val shutdownTimeout = cs.totalTimeout() + Duration(5, TimeUnit.SECONDS)
-    Await.result(
-      cs.run(ServerStoppedReason, runFromPhase),
-      shutdownTimeout
-    )
-  }
+  override def stop(): Unit = CoordinatedShutdownProvider.syncShutdown(context.actorSystem, ServerStoppedReason)
 
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and
