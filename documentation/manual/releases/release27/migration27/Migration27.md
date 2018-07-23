@@ -227,3 +227,21 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 ### `Server.getHandlerFor` has moved to `Server#getHandlerFor`
 
 The `getHandlerFor` method on the `Server` trait was used internally by the Play server code when routing requests. It has been removed and replaced with a method of the same name on the `Server` object.
+
+## CoordinatedShutdown `play.akka.run-cs-from-phase` configuration
+
+The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it has no effect. A warning is logged if it is present. Play now run all the phases to ensure that all hooks registered in `ApplicationLifecycle` or all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
+
+```scala
+val reason = CoordinatedShutdown.UnknownReason
+val runFromPhase = Some(CoordinatedShutdown.PhaseBeforeClusterShutdown)
+val coordinatedShutdown = CoodinatedShutdown(actorSystem).run(reason, runFromPhase)
+```
+
+And for Java:
+
+```java
+CoordinatedShutdown.Reason reason = CoordinatedShutdown.unknownReason();
+Optional<String> runFromPhase = Optional.of("");
+CoordinatedShutdown.get(actorSystem).run(reason, runFromPhase);
+```

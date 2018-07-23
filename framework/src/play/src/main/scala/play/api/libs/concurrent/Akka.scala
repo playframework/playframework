@@ -12,6 +12,7 @@ import akka.actor.{ CoordinatedShutdown, _ }
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import javax.inject.{ Inject, Provider, Singleton }
+import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._
 import play.core.ClosableLazy
@@ -243,18 +244,7 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
 
 object CoordinatedShutdownProvider {
 
-  /**
-   * Reads the phase the Coordinated shutdown should run from using the `config`
-   * in the `ActorSystem` provided. When the setting is blank, `null` or empty
-   * all phases should be run.
-   *
-   * @param actorSystem the actor system whose configuration is read
-   * @return the name of the configured coordinated shutdown phase, if present and non-empty, or `None`
-   */
-  private def loadRunFromPhaseConfig(actorSystem: ActorSystem): Option[String] =
-    Try(actorSystem.settings.config.getString("play.akka.run-cs-from-phase"))
-      .toOption
-      .filterNot(_.isEmpty)
+  private[play] lazy val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
 
   /**
    * Shuts down the provided `ActorSystem` asynchronously, starting from the configured phase.
@@ -264,10 +254,9 @@ object CoordinatedShutdownProvider {
    * @return a future that completes with `Done` when the actor system has fully shut down
    */
   def asyncShutdown(actorSystem: ActorSystem, reason: CoordinatedShutdown.Reason): Future[Done] = {
-    val runFromPhase = loadRunFromPhaseConfig(actorSystem)
     // CoordinatedShutdown may be invoked many times over the same actorSystem but
     // only the first invocation runs the tasks (later invocations are noop).
-    CoordinatedShutdown(actorSystem).run(reason, runFromPhase)
+    CoordinatedShutdown(actorSystem).run(reason)
   }
 
   /**
@@ -301,7 +290,12 @@ object CoordinatedShutdownProvider {
 @Singleton
 class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
 
+  import CoordinatedShutdownProvider.logger
+
   lazy val get: CoordinatedShutdown = {
+
+    logWarningWhenRunPhaseConfigIsPresent()
+
     val cs = CoordinatedShutdown(actorSystem)
     implicit val exCtx: ExecutionContext = actorSystem.dispatcher
 
@@ -313,6 +307,13 @@ class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicati
       }
 
     cs
+  }
+
+  private def logWarningWhenRunPhaseConfigIsPresent(): Unit = {
+    val config = actorSystem.settings.config
+    if (config.hasPath("play.akka.run-cs-from-phase")) {
+      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now run all the CoordinatedShutdown phases.")
+    }
   }
 
 }
