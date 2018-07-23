@@ -230,7 +230,7 @@ The `getHandlerFor` method on the `Server` trait was used internally by the Play
 
 ## CoordinatedShutdown `play.akka.run-cs-from-phase` configuration
 
-The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it has no effect. A warning is logged if it is present. Play now run all the phases to ensure that all hooks registered in `ApplicationLifecycle` or all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
+The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it has no effect. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
 ```scala
 val reason = CoordinatedShutdown.UnknownReason
