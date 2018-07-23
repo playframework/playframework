@@ -242,7 +242,7 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
   }
 }
 
-object CoordinatedShutdownProvider {
+private[play] object CoordinatedShutdownProvider {
 
   private[play] lazy val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
 
@@ -288,7 +288,7 @@ object CoordinatedShutdownProvider {
  * Provider for the coordinated shutdown
  */
 @Singleton
-class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
+private[play] class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
 
   import CoordinatedShutdownProvider.logger
 
