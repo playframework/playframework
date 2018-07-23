@@ -100,7 +100,7 @@ class ActorSystemProviderSpec extends Specification {
       cs.addTask(PhaseActorSystemTerminate, "test-ActorSystemTerminateExecuted")(run(phaseActorSystemTerminateExecuted))
       cs.addTask(PhaseCustomDefinedPhase, "test-PhaseCustomDefinedPhaseExecuted")(run(phaseCustomDefinedPhaseExecuted))
 
-      CoordinatedShutdownProvider.syncShutdown(actorSystem, CoordinatedShutdown.UnknownReason)
+      CoordinatedShutdownSupport.syncShutdown(actorSystem, CoordinatedShutdown.UnknownReason)
 
       phaseBeforeServiceUnbindExecuted.get() must equalTo(true)
       phaseActorSystemTerminateExecuted.get() must equalTo(true)

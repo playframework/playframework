@@ -24,7 +24,7 @@ import com.typesafe.config.{ Config, ConfigMemorySize }
 import javax.net.ssl._
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.libs.concurrent.CoordinatedShutdownProvider
+import play.api.libs.concurrent.{ CoordinatedShutdownProvider, CoordinatedShutdownSupport }
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
@@ -366,7 +366,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       }
   }
 
-  override def stop(): Unit = CoordinatedShutdownProvider.syncShutdown(context.actorSystem, ServerStoppedReason)
+  override def stop(): Unit = CoordinatedShutdownSupport.syncShutdown(context.actorSystem, ServerStoppedReason)
 
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and

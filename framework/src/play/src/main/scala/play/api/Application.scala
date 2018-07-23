@@ -15,7 +15,7 @@ import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject.{ ApplicationLifecycle, _ }
 import play.api.libs.Files._
-import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider }
+import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider, CoordinatedShutdownSupport }
 import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
@@ -274,7 +274,7 @@ class DefaultApplication @Inject() (
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] = CoordinatedShutdownProvider.asyncShutdown(actorSystem, ApplicationStoppedReason)
+  override def stop(): Future[_] = CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
 
 private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason
