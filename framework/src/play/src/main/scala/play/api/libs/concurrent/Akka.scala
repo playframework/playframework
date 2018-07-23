@@ -288,7 +288,7 @@ private[play] object CoordinatedShutdownProvider {
  * Provider for the coordinated shutdown
  */
 @Singleton
-private[play] class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
+class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
 
   import CoordinatedShutdownProvider.logger
 
