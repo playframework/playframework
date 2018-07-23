@@ -62,23 +62,26 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     "run all the phases for coordinated shutdown" in {
+      // The default phases of Akka CoordinatedShutdown are ordered as a DAG by defining the
+      // dependencies between the phases. That means we don't need to test each phase, but
+      // just the first and the last one. We are then adding a custom phase so that we
+      // can assert that Play is correctly executing CoordinatedShutdown.
 
+      // First phase is PhaseBeforeServiceUnbind
       val phaseBeforeServiceUnbindExecuted = new AtomicBoolean(false)
-      val phaseServiceUnbindExecuted = new AtomicBoolean(false)
-      val phaseServiceRequestsDoneExecuted = new AtomicBoolean(false)
-      val phaseServiceStopExecuted = new AtomicBoolean(false)
-      val phaseBeforeClusterShutdownExecuted = new AtomicBoolean(false)
-      val phaseClusterShardingShutdownRegionExecuted = new AtomicBoolean(false)
-      val phaseClusterLeaveExecuted = new AtomicBoolean(false)
-      val phaseClusterExitingExecuted = new AtomicBoolean(false)
-      val phaseClusterExitingDoneExecuted = new AtomicBoolean(false)
-      val phaseClusterShutdownExecuted = new AtomicBoolean(false)
-      val phaseBeforeActorSystemTerminateExecuted = new AtomicBoolean(false)
+
+      // Last phase is PhaseActorSystemTerminate
       val phaseActorSystemTerminateExecuted = new AtomicBoolean(false)
 
       val config = Configuration
         .load(Environment.simple())
         .underlying
+        // Add a custom phase which executes after the last one defined by Akka.
+        .withValue("akka.coordinated-shutdown.phases.custom-defined-phase.depends-on", ConfigValueFactory.fromIterable(java.util.Arrays.asList("actor-system-terminate")))
+
+      // Custom phase CustomDefinedPhase
+      val PhaseCustomDefinedPhase = "custom-defined-phase"
+      val phaseCustomDefinedPhaseExecuted = new AtomicBoolean(false)
 
       val (actorSystem, _) = ActorSystemProvider.start(
         this.getClass.getClassLoader,
@@ -86,7 +89,6 @@ class ActorSystemProviderSpec extends Specification {
       )
 
       val lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
-
       val cs = new CoordinatedShutdownProvider(actorSystem, lifecycle).get
 
       def run(atomicBoolean: AtomicBoolean) = () => {
@@ -95,33 +97,14 @@ class ActorSystemProviderSpec extends Specification {
       }
 
       cs.addTask(PhaseBeforeServiceUnbind, "test-BeforeServiceUnbindExecuted")(run(phaseBeforeServiceUnbindExecuted))
-      cs.addTask(PhaseServiceUnbind, "test-ServiceUnbindExecuted")(run(phaseServiceUnbindExecuted))
-      cs.addTask(PhaseServiceRequestsDone, "test-ServiceRequestsDoneExecuted")(run(phaseServiceRequestsDoneExecuted))
-      cs.addTask(PhaseServiceStop, "test-ServiceStopExecuted")(run(phaseServiceStopExecuted))
-      cs.addTask(PhaseBeforeClusterShutdown, "test-BeforeClusterShutdownExecuted")(run(phaseBeforeClusterShutdownExecuted))
-      cs.addTask(PhaseClusterShardingShutdownRegion, "test-ClusterShardingShutdownRegionExecuted")(run(phaseClusterShardingShutdownRegionExecuted))
-      cs.addTask(PhaseClusterLeave, "test-ClusterLeaveExecuted")(run(phaseClusterLeaveExecuted))
-      cs.addTask(PhaseClusterExiting, "test-ClusterExitingExecuted")(run(phaseClusterExitingExecuted))
-      cs.addTask(PhaseClusterExitingDone, "test-ClusterExitingDoneExecuted")(run(phaseClusterExitingDoneExecuted))
-      cs.addTask(PhaseClusterShutdown, "test-ClusterShutdownExecuted")(run(phaseClusterShutdownExecuted))
-      cs.addTask(PhaseBeforeActorSystemTerminate, "test-BeforeActorSystemTerminateExecuted")(run(phaseBeforeActorSystemTerminateExecuted))
       cs.addTask(PhaseActorSystemTerminate, "test-ActorSystemTerminateExecuted")(run(phaseActorSystemTerminateExecuted))
+      cs.addTask(PhaseCustomDefinedPhase, "test-PhaseCustomDefinedPhaseExecuted")(run(phaseCustomDefinedPhaseExecuted))
 
       CoordinatedShutdownProvider.syncShutdown(actorSystem, CoordinatedShutdown.UnknownReason)
 
       phaseBeforeServiceUnbindExecuted.get() must equalTo(true)
-      phaseServiceUnbindExecuted.get() must equalTo(true)
-      phaseServiceRequestsDoneExecuted.get() must equalTo(true)
-      phaseServiceStopExecuted.get() must equalTo(true)
-      phaseBeforeClusterShutdownExecuted.get() must equalTo(true)
-      phaseClusterShardingShutdownRegionExecuted.get() must equalTo(true)
-      phaseClusterLeaveExecuted.get() must equalTo(true)
-      phaseClusterExitingExecuted.get() must equalTo(true)
-      phaseClusterExitingDoneExecuted.get() must equalTo(true)
-      phaseClusterShutdownExecuted.get() must equalTo(true)
-      phaseBeforeActorSystemTerminateExecuted.get() must equalTo(true)
       phaseActorSystemTerminateExecuted.get() must equalTo(true)
-
+      phaseCustomDefinedPhaseExecuted.get() must equalTo(true)
     }
 
   }
