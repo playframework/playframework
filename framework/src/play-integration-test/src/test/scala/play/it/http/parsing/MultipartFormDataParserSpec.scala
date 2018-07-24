@@ -56,7 +56,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |Content-Disposition: file; name="file3"; filename="file3.txt"
       |Content-Type: text/plain
       |
-      |the third file (with 'Content-Disposition: file' instead of 'form-data', see issue #8527)
+      |the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)
       |
       |--aabbccddee--
       |""".stripMargin.lines.mkString("\r\n")
@@ -78,7 +78,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the second file\r\n"
         }
         parts.file("file3") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data', see issue #8527)\r\n"
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
         }
     }
   }
@@ -222,7 +222,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       result.get must equalTo(("document", "hello.txt", None))
     }
 
-    "accept also 'Content-Disposition: file' for file (see issue #8527)" in {
+    "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """file; name=document; filename=hello.txt"""))
       result must not(beEmpty)
       result.get must equalTo(("document", "hello.txt", None))
