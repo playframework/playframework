@@ -8,22 +8,20 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.actor.CoordinatedShutdown._
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import org.specs2.mutable.Specification
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.{ Configuration, Environment }
 
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future, Promise }
-import scala.util.Success
 
 class ActorSystemProviderSpec extends Specification {
 
   val akkaMaxDelayInSec = 2147483
   val fiveSec = Duration(5, "seconds")
   val oneSec = Duration(100, "milliseconds")
-  val mustRunPhase = CoordinatedShutdown.PhaseServiceStop
-  val mustNotRunPhase = CoordinatedShutdown.PhaseBeforeServiceUnbind
 
   val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
   val playTimeoutKey = "play.akka.shutdown-timeout"
@@ -31,15 +29,15 @@ class ActorSystemProviderSpec extends Specification {
   "ActorSystemProvider" should {
 
     "use Play's 'play.akka.shutdown-timeout' if defined " in {
-      withOverridenTimeout {
+      withOverriddenTimeout {
         _.withValue(playTimeoutKey, ConfigValueFactory.fromAnyRef("12 s"))
       } { actorSystem =>
         actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(12)
       }
     }
 
-    "use an infinite timeout if usingg Play's 'play.akka.shutdown-timeout = null' " in {
-      withOverridenTimeout {
+    "use an infinite timeout if using Play's 'play.akka.shutdown-timeout = null' " in {
+      withOverriddenTimeout {
         _.withFallback(ConfigFactory.parseResources("src/test/resources/application-infinite-timeout.conf"))
       } { actorSystem =>
         actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(akkaMaxDelayInSec)
@@ -47,7 +45,7 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     "use Play's 'Duration.Inf' when no 'play.akka.shutdown-timeout' is defined and user overwrites Akka's default" in {
-      withOverridenTimeout {
+      withOverriddenTimeout {
         _.withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef("21 s"))
       } { actorSystem =>
         actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(akkaMaxDelayInSec)
@@ -55,7 +53,7 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     "use infinite when 'play.akka.shutdown-timeout = null' and user overwrites Akka's default" in {
-      withOverridenTimeout {
+      withOverriddenTimeout {
         _.withFallback(ConfigFactory.parseResources("src/test/resources/application-infinite-timeout.conf"))
           .withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef("17 s"))
       } { actorSystem =>
@@ -63,55 +61,55 @@ class ActorSystemProviderSpec extends Specification {
       }
     }
 
-    "run the CoordinatedShutdown from the configured phase system when the stopHook is run" in {
+    "run all the phases for coordinated shutdown" in {
+      // The default phases of Akka CoordinatedShutdown are ordered as a DAG by defining the
+      // dependencies between the phases. That means we don't need to test each phase, but
+      // just the first and the last one. We are then adding a custom phase so that we
+      // can assert that Play is correctly executing CoordinatedShutdown.
+
+      // First phase is PhaseBeforeServiceUnbind
+      val phaseBeforeServiceUnbindExecuted = new AtomicBoolean(false)
+
+      // Last phase is PhaseActorSystemTerminate
+      val phaseActorSystemTerminateExecuted = new AtomicBoolean(false)
 
       val config = Configuration
         .load(Environment.simple())
         .underlying
-        .withValue(
-          "play.akka.run-cs-from-phase",
-          ConfigValueFactory.fromAnyRef(mustRunPhase))
+        // Add a custom phase which executes after the last one defined by Akka.
+        .withValue("akka.coordinated-shutdown.phases.custom-defined-phase.depends-on", ConfigValueFactory.fromIterable(java.util.Arrays.asList("actor-system-terminate")))
+
+      // Custom phase CustomDefinedPhase
+      val PhaseCustomDefinedPhase = "custom-defined-phase"
+      val phaseCustomDefinedPhaseExecuted = new AtomicBoolean(false)
 
       val (actorSystem, _) = ActorSystemProvider.start(
         this.getClass.getClassLoader,
         Configuration(config)
       )
+
       val lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
-
-      val promise = Promise[Done]()
-      val terminated = promise.future
-      val isRun = new AtomicBoolean(false)
-
       val cs = new CoordinatedShutdownProvider(actorSystem, lifecycle).get
-      cs.addTask(mustRunPhase, "termination-promise") {
-        () =>
-          promise.complete(Success(Done))
-          Future.successful(Done)
-      }
-      cs.addTask(mustNotRunPhase, "is-ignored-promise") {
-        () =>
-          isRun.set(true)
-          Future.successful(Done)
+
+      def run(atomicBoolean: AtomicBoolean) = () => {
+        atomicBoolean.set(true)
+        Future.successful(Done)
       }
 
-      try {
-        Await.result(terminated, oneSec)
-        failure
-      } catch {
-        case _: Throwable =>
-      }
+      cs.addTask(PhaseBeforeServiceUnbind, "test-BeforeServiceUnbindExecuted")(run(phaseBeforeServiceUnbindExecuted))
+      cs.addTask(PhaseActorSystemTerminate, "test-ActorSystemTerminateExecuted")(run(phaseActorSystemTerminateExecuted))
+      cs.addTask(PhaseCustomDefinedPhase, "test-PhaseCustomDefinedPhaseExecuted")(run(phaseCustomDefinedPhaseExecuted))
 
-      implicit val ctx = actorSystem.dispatcher
-      // lifecycle.stop is deprecated, use CS instead.
-      //      val completeShutdown = lifecycle.stop().flatMap(_ => terminated)
       CoordinatedShutdownProvider.syncShutdown(actorSystem, CoordinatedShutdown.UnknownReason)
 
-      isRun.get() must equalTo(false)
+      phaseBeforeServiceUnbindExecuted.get() must equalTo(true)
+      phaseActorSystemTerminateExecuted.get() must equalTo(true)
+      phaseCustomDefinedPhaseExecuted.get() must equalTo(true)
     }
 
   }
 
-  private def withOverridenTimeout[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
+  private def withOverriddenTimeout[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
     val config: Config = reconfigure(Configuration
       .load(Environment.simple())
       .underlying
