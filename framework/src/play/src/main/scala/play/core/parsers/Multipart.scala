@@ -191,7 +191,7 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
 
-        _ <- values.get("name")
+        _ <- values.get("form-data").orElse(values.get("file"))
         partName <- values.get("name")
         fileName <- values.get("filename")
         contentType = headers.get("content-type")

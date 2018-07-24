@@ -227,12 +227,6 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       result must not(beEmpty)
       result.get must equalTo(("document", "hello.txt", None))
     }
-
-    "accept also 'Content-Disposition: arbitrary' for file (see issue #8527)" in {
-      val result = FileInfoMatcher.unapply(Map("content-disposition" -> """arbitrary; name=document; filename=hello.txt"""))
-      result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
-    }
   }
 
 }
