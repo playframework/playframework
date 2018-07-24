@@ -25,6 +25,8 @@ Although Play 2.7 still supports sbt 0.13 series, we recommend that you use sbt 
 sbt.version=1.1.6
 ```
 
+At the time of this writing `1.1.6` is the latest version in the sbt 1 family, you may be able to use newer versions too. Check for details in the release notes of your minor version of Play 2.7.x. More details at the list of [sbt releases](https://github.com/sbt/sbt/releases).
+
 ## Deprecated APIs were removed
 
 Many deprecated APIs were removed in Play 2.7. If you are still using them, we recommend migrating to the new APIs before upgrading to Play 2.7. Both Javadocs and Scaladocs usually have good documentation on how to migrate.
@@ -156,7 +158,7 @@ play.db.pool=your.own.ConnectionPool
 
 ## Application Loader API changes
 
-If you are using a custom `ApplicationLoader` there is a change you are manually creating instances of this loader when running the tests. To do that, you first need to create an instance of `ApplicationLoader.Context`, for example:
+If you are using a custom `ApplicationLoader` there is a chance you are manually creating instances of this loader when running the tests. To do that, you first need to create an instance of `ApplicationLoader.Context`, for example:
 
 ```scala
 val env = Environment.simple()
