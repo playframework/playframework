@@ -6,10 +6,9 @@ package play.api
 
 import java.io._
 
-import akka.Done
-import javax.inject.{ Inject, Singleton }
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.{ ActorMaterializer, Materializer }
+import javax.inject.{ Inject, Singleton }
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
@@ -107,7 +106,7 @@ trait Application {
    * Return the application as a Java application.
    */
   def asJava: play.Application = {
-    new play.DefaultApplication(this, configuration.underlying, injector.asJava)
+    new play.DefaultApplication(this, configuration.underlying, injector.asJava, environment.asJava)
   }
 
   /**
