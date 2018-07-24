@@ -5,6 +5,7 @@
 package play.api.mvc
 
 import java.security.cert.X509Certificate
+import java.util
 
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
@@ -12,6 +13,8 @@ import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
+
+import scala.collection.JavaConverters._
 
 class RequestHeaderSpec extends Specification {
 
@@ -25,6 +28,44 @@ class RequestHeaderSpec extends Specification {
       "keep the headers accessible case insensitively" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
         rh.asJava.getHeaders.contains("host") must beTrue
+      }
+      "add new headers" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
+        rh.asJava.getHeaders.addHeader("New-Header", "Value").contains("New-Header") must beTrue
+      }
+      "add value to an existing header" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com", "Header" -> "1"))
+        rh.asJava
+          .getHeaders
+          .addHeader("Header", "2")
+          .getAll("Header")
+          .asScala must containAllOf(Seq("1", "2"))
+      }
+      "add multiple values to an existing header" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com", "Header" -> "1"))
+        rh.asJava
+          .getHeaders
+          .addHeader("Header", util.Arrays.asList("2", "3"))
+          .getAll("Header")
+          .asScala must containAllOf(Seq("1", "2", "3"))
+      }
+      "add new header when using toMap" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com", "Header" -> "1"))
+        val headersMap = rh.asJava
+          .getHeaders
+          .toMap
+
+        headersMap.put("New-Header", util.Arrays.asList("Value"))
+        headersMap.get("New-Header").contains("Value") must beTrue
+      }
+      "add value to an existing header when using toMap" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com", "Header" -> "1"))
+        val headersMap = rh.asJava
+          .getHeaders
+          .toMap
+
+        headersMap.get("Header").add("2")
+        headersMap.get("Header").asScala must containAllOf(Seq("1", "2"))
       }
     }
 

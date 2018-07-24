@@ -103,7 +103,11 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    */
   lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse(""))
 
-  lazy val asJava: play.mvc.Http.Headers = new play.mvc.Http.Headers(this.toMap.mapValues(_.asJava).asJava)
+  lazy val asJava: play.mvc.Http.Headers = {
+    val mappedValues: Map[String, java.util.List[String]] = this.toMap
+      .mapValues(v => new java.util.ArrayList[String](v.asJava))
+    new play.mvc.Http.Headers(mappedValues.asJava)
+  }
 
   /**
    * A headers map with all keys normalized to lowercase
