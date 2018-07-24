@@ -210,7 +210,7 @@ object Multipart {
             case KeyValue(key, v) => (key.trim, v.trim)
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
-        _ <- values.get("name")
+        _ <- values.get("form-data")
         partName <- values.get("name")
       } yield partName
     }
