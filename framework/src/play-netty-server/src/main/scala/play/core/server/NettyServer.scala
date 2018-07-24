@@ -5,7 +5,6 @@
 package play.core.server
 
 import java.net.InetSocketAddress
-import java.util.concurrent.TimeUnit
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
@@ -24,9 +23,8 @@ import io.netty.handler.codec.http._
 import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
-import io.netty.util
 import play.api._
-import play.api.libs.concurrent.CoordinatedShutdownProvider
+import play.api.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
 import play.core.server.Server.ServerStoppedReason
@@ -36,7 +34,7 @@ import play.server.SSLEngineProvider
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.control.NonFatal
 
 sealed trait NettyTransport
@@ -233,7 +231,7 @@ class NettyServer(
     serverChannel
   }
 
-  override def stop(): Unit = CoordinatedShutdownProvider.syncShutdown(actorSystem, ServerStoppedReason)
+  override def stop(): Unit = CoordinatedShutdownSupport.syncShutdown(actorSystem, ServerStoppedReason)
 
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and

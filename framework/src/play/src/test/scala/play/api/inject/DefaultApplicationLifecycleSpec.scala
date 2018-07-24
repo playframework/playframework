@@ -56,11 +56,10 @@ class DefaultApplicationLifecycleSpec extends Specification {
     "runs stop() only once" in {
       val counter = new AtomicInteger(0)
       val lifecycle = new DefaultApplicationLifecycle()
-      val buffer = mutable.ListBuffer[Int]()
       lifecycle.addStopHook{
         () =>
           counter.incrementAndGet()
-          Future.successful()
+          Future.successful(())
       }
 
       val f1 = lifecycle.stop()
