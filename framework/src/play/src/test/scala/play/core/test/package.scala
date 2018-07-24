@@ -6,6 +6,7 @@ package play.core
 
 import com.typesafe.config.{ Config, ConfigFactory }
 import play.api._
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.routing.Router
 
 package object test {
@@ -34,12 +35,31 @@ package object test {
   }
 
   def withApplicationAndConfig[T](environment: Environment, extraConfig: Config)(block: Application => T): T = {
-    val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(environment)) with NoHttpFiltersComponents {
+
+    // So that we don't need a `application.conf` file.
+    // There are tests to verify the application fails to start
+    // if application.conf is not present in the classpath. So
+    // adding it will conflict with those tests.
+    val underlyingConfig = Configuration.load(
+      environment.classLoader,
+      new java.util.Properties(),
+      Map.empty,
+      allowMissingApplicationConf = true
+    ).underlying
+
+    val initialConfiguration = new Configuration(
+      underlyingConfig.withFallback(extraConfig)
+    )
+
+    val context = ApplicationLoader.Context(
+      environment,
+      initialConfiguration,
+      new DefaultApplicationLifecycle(),
+      None
+    )
+
+    val app = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
       override def router: Router = play.api.routing.Router.empty
-      override def configuration: Configuration = {
-        val underlyingConfig = super.configuration.underlying
-        new Configuration(underlyingConfig.withFallback(extraConfig))
-      }
     }.application
     Play.start(app)
     try {
