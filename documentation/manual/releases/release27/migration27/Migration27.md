@@ -3,11 +3,39 @@
 
 This is a guide for migrating from Play 2.6 to Play 2.7. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.6 Migration Guide|Migration26]].
 
+## How to migrate
+
+The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
+
+### Play upgrade
+
+Update the Play version number in `project/plugins.sbt` to upgrade Play:
+
+```scala
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.7.x")
+```
+
+Where the "x" in `2.7.x` is the minor version of Play you want to use, for instance `2.7.0`.
+
+### sbt upgrade to 1.1.6
+
+Although Play 2.7 still supports sbt 0.13 series, we recommend that you use sbt 1 from now. This new version is actively maintained and supported. To update, change your `project/build.properties` so that it reads:
+
+```
+sbt.version=1.1.6
+```
+
+At the time of this writing `1.1.6` is the latest version in the sbt 1 family, you may be able to use newer versions too. Check for details in the release notes of your minor version of Play 2.7.x. More information at the list of [sbt releases](https://github.com/sbt/sbt/releases).
+
+## Deprecated APIs were removed
+
+Many deprecated APIs were removed in Play 2.7. If you are still using them, we recommend migrating to the new APIs before upgrading to Play 2.7. Both Javadocs and Scaladocs usually have proper documentation on how to migrate.
+
 ## `play.allowGlobalApplication` defaults to `false`
 
 `play.allowGlobalApplication = false` is set by default in Play 2.7.0. This means `Play.current` will throw an exception when called. You can set this to `true` to make `Play.current` and other deprecated static helpers work again, but be aware that this feature will be removed in future versions.
 
-In the future, if you still need to use static instances of application components, you can use [static injection](https://github.com/google/guice/wiki/Injections#static-injections) to inject them using Guice, or manually set static fields on startup in your application loader. These approaches should be forward compatible with future versions of Play, as long as you are careful never to run apps concurrently (e.g. in tests).
+In the future, if you still need to use static instances of application components, you can use [static injection](https://github.com/google/guice/wiki/Injections#static-injections) to inject them using Guice, or manually set static fields on startup in your application loader. These approaches should be forward compatible with future versions of Play, as long as you are careful never to run apps concurrently (e.g., in tests).
 
 ## Guice compatibility changes
 
@@ -24,7 +52,7 @@ If you have a `logger` entry in your logback.xml referencing the `application` l
 
     <logger name="application" level="DEBUG" />
 
-Each logger should have a unique name matching the name of the class where it is used. In this way, you can configure a different log level for each class. You can also set the log level for a given package. For example, to set the log level for all of Play's internal classes to the info level, you can set:
+Each logger should have a unique name matching the name of the class where it is used. In this way, you can configure a different log level for each class. You can also set the log level for a given package. For example, to set the log level for all of the Play's internal classes to the info level, you can set:
 
     <logger name="play" level="INFO" />
 
@@ -57,7 +85,7 @@ By default, routers are unprefixed, so this will only cause a change in behavior
 
 ## Play WS Updates
 
-In Play 2.6, we extracted most of Play-WS into a [standalone project](https://github.com/playframework/play-ws) that has an independent release cycle. This project now has a major release that requires some changes in Play itself.
+In Play 2.6, we extracted most of Play-WS into a [standalone project](https://github.com/playframework/play-ws) that has an independent release cycle. Play-WS now has a significant release that requires some changes in Play itself.
 
 ### Scala API
 
@@ -98,7 +126,11 @@ HikariCP was updated to the latest version which finally removed the configurati
 
 ### HikariCP will not fail fast
 
-Play 2.7 changes the default value for HikariCP's `initializationFailTimeout` to `-1`. That means your application will start even if the database is not available. You can revert to the old behavior by configuring `initializationFailTimeout` to `1` which will make the pool to fail fast. See more details at [[SettingsJDBC]].
+Play 2.7 changes the default value for HikariCP's `initializationFailTimeout` to `-1`. That means your application will start even if the database is not available. You can revert to the old behavior by configuring `initializationFailTimeout` to `1` which will make the pool to fail fast.
+
+If the application is using database [[Evolutions]], then a connection is requested at application startup to verify if there are new evolutions to apply. So this will make the startup fail if the database is not available since a connection is being required. The timeout then will be defined by `connectionTimeout` (default to 30 seconds).
+
+See more details at [[SettingsJDBC]].
 
 ## BoneCP removed
 
@@ -122,6 +154,32 @@ Also, you can use your own pool that implements `play.api.db.ConnectionPool` by 
 
 ```
 play.db.pool=your.own.ConnectionPool
+```
+
+## Application Loader API changes
+
+If you are using a custom `ApplicationLoader` there is a chance you are manually creating instances of this loader when running the tests. To do that, you first need to create an instance of `ApplicationLoader.Context`, for example:
+
+```scala
+val env = Environment.simple()
+val context = ApplicationLoader.Context(
+  environment = env,
+  sourceMapper = None,
+  webCommands = new DefaultWebCommands(),
+  initialConfiguration = Configuration.load(env),
+  lifecycle = new DefaultApplicationLifecycle()
+)
+val loader = new MyApplicationLoader()
+val application = loader.load(context)
+```
+
+But the `ApplicationLoader.Context` apply method used in the code above is now deprecated and throws an exception when `webCommands` is not null. The new code should be:
+
+```scala
+val env = Environment.simple()
+val context = ApplicationLoader.Context.create(env)
+val loader = new GreetingApplicationLoader()
+val application = loader.load(context)
 ```
 
 ## Java `Http.Context` changed
@@ -230,7 +288,7 @@ The `getHandlerFor` method on the `Server` trait was used internally by the Play
 
 ## CoordinatedShutdown `play.akka.run-cs-from-phase` configuration
 
-The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it has no effect. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
+The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
 ```scala
 val reason = CoordinatedShutdown.UnknownReason
