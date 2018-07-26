@@ -96,6 +96,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings = ParserSettings(akkaHttpConfig)
     .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+    .withMaxHeaderValueLength(akkaServerConfig.get[ConfigMemorySize]("max-header-value-length").toBytes.toInt)
     .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
     .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 

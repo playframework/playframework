@@ -3,7 +3,6 @@
  */
 package play.it.http
 
-import org.specs2.execute.AsResult
 import org.specs2.matcher.MatchResult
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
@@ -12,9 +11,13 @@ import play.api.{ Configuration, Mode }
 import play.core.server.ServerConfig
 import play.it._
 
-class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
+class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification {
+  override def maxHeaderValueConfigurationKey: String = "play.server.netty.maxHeaderSize"
+}
 
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification {
+
+  override def maxHeaderValueConfigurationKey: String = "play.server.akka.max-header-value-length"
 
   "Akka HTTP request header handling" should {
 
@@ -56,7 +59,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
 
   sequential
 
-  def withServerAndConfig[T](configuration: (String, Any)*)(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+  def withServerAndConfig[T](configuration: (String, Any)*)(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T): T = {
     val port = testServerPort
 
     val serverConfig: ServerConfig = {
@@ -74,9 +77,11 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
   }
 
-  def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
+  def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T): T = {
     withServerAndConfig()(action)(block)
   }
+
+  def maxHeaderValueConfigurationKey: String
 
   "Play request header handling" should {
 
@@ -193,6 +198,25 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       "'User-Agent' header with invalid value" in headerNameInRequest(
         "User-Agent",
         """Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_2 like Mac OS X) AppleWebKit/604.4.7 (KHTML, like Gecko) Mobile/15C202 [FBAN/FBIOS;FBAV/155.0.0.36.93;FBBV/87992437;FBDV/iPhone9,3;FBMD/iPhone;FBSN/iOS;FBSV/11.2.2;FBSS/2;FBCR/3Ireland;FBID/phone;FBLC/en_US;FBOP/5;FBRV/0]""")
+    }
+
+    "respect max header value setting" in {
+      withServerAndConfig(maxHeaderValueConfigurationKey -> "64")((Action, _) => Action(Results.Ok)) { port =>
+        val responses = BasicHttpClient.makeRequests(port)(
+          // Only has valid headers that don't exceed 64 chars
+          BasicRequest("GET", "/", "HTTP/1.1", Map("h" -> "valid"), ""),
+          // Has a header that exceeds 64 bytes
+          BasicRequest("GET", "/", "HTTP/1.1", Map("h" -> "invalid" * 64), "")
+        )
+
+        responses.head.status must beEqualTo(OK)
+        responses.last.status must beOneOf(
+          // Akka-HTTP returns a "431 Request Header Fields Too Large" when the header value exceeds
+          // the max value length configured. And Netty returns a 414 URI Too Long.
+          REQUEST_HEADER_FIELDS_TOO_LARGE,
+          REQUEST_URI_TOO_LONG
+        )
+      }
     }
 
   }

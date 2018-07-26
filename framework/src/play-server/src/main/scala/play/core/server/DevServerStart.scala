@@ -46,7 +46,7 @@ object DevServerStart {
     buildLink: BuildLink,
     httpPort: Int,
     httpAddress: String): ReloadableServer = {
-    mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
+    mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt), httpAddress)
   }
 
   private def mainDev(
