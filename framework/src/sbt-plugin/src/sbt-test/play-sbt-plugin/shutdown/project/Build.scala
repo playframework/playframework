@@ -11,6 +11,8 @@ import scala.util.Properties
 
 object DevModeBuild {
 
+  lazy val initialFileWatchService = play.dev.filewatch.FileWatchService.polling(500)
+
   def jdk7WatchService = Def.setting {
     FileWatchService.jdk7(Keys.sLog.value)
   }
