@@ -7,6 +7,7 @@ def Grunt(base: File) = {
   //#grunt-before-started
   import play.sbt.PlayRunHook
   import sbt._
+  import scala.sys.process.Process
 
   object Grunt {
     def apply(base: File): PlayRunHook = {
@@ -34,6 +35,7 @@ def Grunt2(base: File) = {
   import play.sbt.PlayRunHook
   import sbt._
   import java.net.InetSocketAddress
+  import scala.sys.process.Process
 
   object Grunt {
     def apply(base: File): PlayRunHook = {
