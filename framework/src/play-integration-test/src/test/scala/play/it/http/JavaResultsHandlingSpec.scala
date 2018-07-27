@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{ DefaultWSCookie, WSCookie, WSResponse }
 import play.http.HttpEntity
 import play.it._
 import play.libs.{ Comet, EventSource, Json }
@@ -29,7 +29,11 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
   sequential
 
   "Java results handling" should {
-    def makeRequest[T](controller: MockController, additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(block: WSResponse => T) = {
+    def makeRequest[T](
+      controller: MockController,
+      additionalConfig: Map[String, String] = Map.empty,
+      followRedirects: Boolean = true
+    )(block: WSResponse => T) = {
       implicit val port = testServerPort
       lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
         case _ => JAction(app, controller)
@@ -147,6 +151,48 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header("Server") must beSome("bar")
       response.header("Other") must beSome("bar")
       response.body must_== "Hello world"
+    }
+
+    "discard cookies from result" in {
+      "on the default path with no domain and that's not secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard")
+          Results.ok("Hello world").discardCookie("Result-Discard")
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+      }
+
+      "on the given path with no domain and not that's secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard", "/path")
+          Results.ok("Hello world").discardCookie("Result-Discard", "/path")
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+      }
+
+      "on the given path and domain that's not secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard", "/path", "playframework.com")
+          Results.ok("Hello world").discardCookie("Result-Discard", "/path", "playframework.com")
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
+      }
+
+      "on the given path and domain that's is secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard", "/path", "playframework.com", true)
+          Results.ok("Hello world").discardCookie("Result-Discard", "/path", "playframework.com", true)
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
+      }
     }
 
     "add cookies in Result" in makeRequest(new MockController {
