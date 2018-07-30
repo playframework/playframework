@@ -202,7 +202,7 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   override def environment = context.environment
   override def devContext = context.devContext
   override def applicationLifecycle: ApplicationLifecycle = context.lifecycle
-  override def configuration = context.initialConfiguration
+  override def configuration: Configuration = context.initialConfiguration
 
   lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
     defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
