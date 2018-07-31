@@ -578,6 +578,10 @@ Play removed the `tomcat-servlet-api` since it was of no use. If you still use i
 libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 ```
 
+### fork-run removal
+
+The `sbt-fork-run-plugin` will no longer be generated, as it was only needed for the now end-of-life activator utility. As it will no longer resolve for 2.6 it can safely be removed altogether. 
+
 ## Request attributes
 
 All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, whereas tags only supported storing Strings.
