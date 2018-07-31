@@ -183,17 +183,14 @@ object Dependencies {
     Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
-  def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
-    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.7"
-    case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
-  }
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.7"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     (CrossVersion.binarySbtVersion(sbtVersion) match {
       case "1.0" => specs2Deps.map(_ % Test)
       case "0.13" => specs2DepsForSbt.map(_ % Test)
     }) ++ Seq(
-      playFileWatch(sbtVersion),
+      playFileWatch,
       logback % Test
     )
   }
@@ -213,7 +210,7 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
       slf4jSimple,
-      playFileWatch(sbtVersion),
+      playFileWatch,
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
