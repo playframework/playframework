@@ -6,6 +6,7 @@ package play.mvc;
 
 import play.i18n.Lang;
 
+import play.i18n.MessagesApi;
 import play.mvc.Http.HeaderNames;
 import play.mvc.Http.Response;
 import play.mvc.Http.Context;
@@ -59,7 +60,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param code New lang code to use (e.g. "fr", "en-US", etc.)
      * @return true if the requested lang was supported by the application, otherwise false.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)} or {@link Result#withLang(Lang, MessagesApi)}.
      */
+    @Deprecated
     public static boolean changeLang(String code) {
         return Http.Context.current().changeLang(code);
     }
@@ -69,14 +73,20 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param lang New Lang object to use
      * @return true if the requested lang was supported by the application, otherwise false.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)} or {@link Result#withLang(Lang, MessagesApi)}.
      */
+    @Deprecated
     public static boolean changeLang(Lang lang) {
         return Http.Context.current().changeLang(lang);
     }
 
     /**
      * Clear the lang for the current user.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)} or {@link Result#clearingLang(MessagesApi)}.
      */
+    @Deprecated
     public static void clearLang() {
         Http.Context.current().clearLang();
     }

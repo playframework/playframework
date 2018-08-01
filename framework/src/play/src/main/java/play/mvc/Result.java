@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
+import play.i18n.Lang;
+import play.i18n.MessagesApi;
 import play.libs.Scala;
 
 import static play.mvc.Http.Cookie;
@@ -352,6 +354,51 @@ public class Result {
      */
     public Result as(String contentType) {
         return new Result(header, body.as(contentType));
+    }
+
+    /**
+     * Returns a new result with the given lang cookie. For example:
+     *
+     * <pre>
+     * {@code
+     * public Result action() {
+     *     ok("Hello").withLang(Lang.forCode("es"), messagesApi);
+     * }
+     * }
+     * </pre>
+     *
+     * Where {@code messagesApi} were injected.
+     *
+     * @param lang the new lang
+     * @param messagesApi the messages api implementation
+     * @return a new result with the given lang.
+     *
+     * @see MessagesApi#setLang(Result, Lang)
+     */
+    public Result withLang(Lang lang, MessagesApi messagesApi) {
+        return messagesApi.setLang(this, lang);
+    }
+
+    /**
+     * Clears the lang from this result. For example:
+     *
+     * <pre>
+     * {@code
+     * public Result action() {
+     *     ok("Hello").clearingLang(messagesApi);
+     * }
+     * }
+     * </pre>
+     *
+     * Where {@code messagesApi} were injected.
+     *
+     * @param messagesApi the messages api implementation
+     * @return a new result without the lang
+     *
+     * @see MessagesApi#clearLang(Result)
+     */
+    public Result clearingLang(MessagesApi messagesApi) {
+        return messagesApi.clearLang(this);
     }
 
     /**

@@ -245,7 +245,7 @@ Like already mentioned in the Play 2.6 JPA migration notes, please use a `JPAApi
 
 ## Java `Http` changes
 
-Multiple changes were made to `Http.Context`.
+Multiple changes were made to `Http.Context`. The idea is to move more and more away from `Http.Context` which has needs a Thread Local and it is hard to test and to misuse.
 
 ### `Http.Context` Request tags removed from `args` 
 
@@ -268,6 +268,7 @@ public Result index1() {
 ```
 
 Should be written as:
+
 ```java
 public Result index2() {
     return ok("Hello World")
@@ -292,6 +293,7 @@ public class MyAction extends Action.Simple {
     public CompletionStage<Result> call(Http.Context ctx) {
         ctx.response().setHeader("Name", "Value");
         return delegate.call(ctx);
+
     }
 }
 ```
@@ -311,6 +313,95 @@ public class MyAction extends Action.Simple {
     public CompletionStage<Result> call(Http.Context ctx) {
         return delegate.call(ctx)
                 .thenApply(result -> result.withHeader("Name", "Value"));
+    }
+}
+```
+
+### `Http.Context.changeLang` and `Http.Context.clearLang` deprecated
+
+That means other methods that depends directly on these two were also deprecated:
+
+1. `play.mvc.Controller.changeLang`
+1. `play.mvc.Controller.clearLang`
+
+The new way of changing lang now is to have a instance of [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) injected and call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
+
+#### Before
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+import play.i18n.MessagesApi;
+
+public class FooController extends Controller {
+    public Result action() {
+        changeLang(Lang.forCode("es"));
+        return Results.ok("Hello");
+    }
+}
+```
+
+#### After
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+import play.i18n.MessagesApi;
+
+public class FooController extends Controller {
+    private final MessagesApi messagesApi;
+
+    public FooController(MessagesApi messagesApi) {
+        this.messagesApi = messagesApi;
+    }
+
+    public Result action() {
+        return Results.ok("Hello").withLang(Lang.forCode("es"), messagesApi);
+    }
+}
+```
+
+And the same applies to `clearLang`:
+
+#### Before
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+import play.i18n.MessagesApi;
+
+public class FooController extends Controller {
+    public Result action() {
+        clearLang();
+        return Results.ok("Hello");
+    }
+}
+```
+
+#### After
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+import play.i18n.MessagesApi;
+
+public class FooController extends Controller {
+    private final MessagesApi messagesApi;
+
+    public FooController(MessagesApi messagesApi) {
+        this.messagesApi = messagesApi;
+    }
+
+    public Result action() {
+        return Results.ok("Hello").clearingLang(messagesApi);
     }
 }
 ```
