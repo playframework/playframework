@@ -149,6 +149,7 @@ object Dependencies {
 
       guava,
       jjwt,
+      jaxbApi,
 
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
