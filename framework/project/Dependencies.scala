@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.13"
+  val akkaVersion = "2.5.14"
   val akkaHttpVersion = "10.1.3"
   val playJsonVersion = "2.6.9"
 
@@ -51,12 +51,12 @@ object Dependencies {
 
   val guava = "com.google.guava" % "guava" % "25.1-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-core" % "2.18.3"
+  val mockitoAll = "org.mockito" % "mockito-core" % "2.20.1"
 
   val h2database = "com.h2database" % "h2" % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.47"
+  val acolyteVersion = "1.0.48"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
@@ -78,7 +78,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate" % "hibernate-core" % "5.3.1.Final" % "test"
+    "org.hibernate" % "hibernate-core" % "5.3.3.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
@@ -87,7 +87,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "5.0.7.RELEASE"
+  val springFrameworkVersion = "5.0.8.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -103,7 +103,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate" % "hibernate-validator" % "6.0.10.Final",
+    "org.hibernate" % "hibernate-validator" % "6.0.11.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
@@ -158,7 +158,7 @@ object Dependencies {
       scalaJava8Compat
     ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.25.Final"
+  val nettyVersion = "4.1.28.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -169,7 +169,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.10.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.11.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -243,10 +243,10 @@ object Dependencies {
     logback % Test
   )
 
-  val fluentleniumVersion = "3.5.2"
+  val fluentleniumVersion = "3.6.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
-  val seleniumVersion = "3.9.1"
+  val seleniumVersion = "3.13.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     "org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion exclude("org.jboss.netty", "netty"),
