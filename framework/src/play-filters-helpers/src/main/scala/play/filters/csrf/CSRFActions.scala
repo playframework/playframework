@@ -389,9 +389,11 @@ class CSRFActionHelper(
    */
   def getTokenToValidate(request: RequestHeader): Option[String] = {
     val attrToken = CSRF.getToken(request).map(_.value)
-    val cookieToken = csrfConfig.cookieName.flatMap(cookie => request.cookies.get(cookie).map(_.value))
-    val sessionToken = request.session.get(csrfConfig.tokenName)
-    cookieToken orElse sessionToken orElse attrToken filter { token =>
+    val cookieOrSessionToken = csrfConfig.cookieName match {
+      case Some(cookieName) => request.cookies.get(cookieName).map(_.value)
+      case None => request.session.get(csrfConfig.tokenName)
+    }
+    cookieOrSessionToken orElse attrToken filter { token =>
       // return None if the token is invalid
       !csrfConfig.signTokens || tokenSigner.extractSignedToken(token).isDefined
     }

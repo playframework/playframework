@@ -135,6 +135,17 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         response.cookies must beEmpty
       }
     }
+    "add a cookie token if configured to use a cookie even if a session token already exists" in {
+      buildCsrfAddToken(
+        "play.filters.csrf.cookie.name" -> "csrf",
+        "play.filters.csrf.token.name" -> "csrf"
+      )({ req =>
+          req
+            .addHttpHeaders(ACCEPT -> "text/html")
+            .withSession("csrf" -> signedTokenProvider.generateToken)
+            .get()
+        })(_.cookies must not be empty)
+    }
   }
 
   "a CSRF filter" should {
