@@ -555,7 +555,14 @@ object BuildSettings {
 
       // Add configuration to set max header value length
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.REQUEST_HEADER_FIELDS_TOO_LARGE"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_=")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_="),
+
+      // https://github.com/playframework/playframework/issues/8534
+      // Removed StopHook from ActorSystemProvider.start methods return values
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      // Removed private[play] class CloseableLazy
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ClosableLazy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.lazyStart")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
