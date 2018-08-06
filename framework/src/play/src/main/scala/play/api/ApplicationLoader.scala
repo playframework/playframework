@@ -50,7 +50,7 @@ object ApplicationLoader {
   }
 
   private[play] final class NoApplicationLoader extends ApplicationLoader {
-    override def load(context: Context) = loaderNotFound()
+    override def load(context: Context): Nothing = loaderNotFound()
   }
 
   /**
@@ -107,7 +107,7 @@ object ApplicationLoader {
       environment: Environment,
       initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
       lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle(),
-      devContext: Option[DevContext] = None) = {
+      devContext: Option[DevContext] = None): Context = {
       Context(
         environment = environment,
         devContext = devContext,
@@ -183,7 +183,7 @@ object ApplicationLoader {
     initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
     sourceMapper: Option[SourceMapper] = None,
     webCommands: WebCommands = null,
-    lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()) = {
+    lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()): Context = {
     require(sourceMapper == None, "sourceMapper parameter is no longer supported by createContext; use create method's devContext parameter instead")
     require(webCommands == null, "webCommands parameter is no longer supported by ApplicationLoader.Context")
     Context.create(
@@ -199,8 +199,8 @@ object ApplicationLoader {
  * Helper that provides all the built in components dependencies from the application loader context
  */
 abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
-  override def environment = context.environment
-  override def devContext = context.devContext
+  override def environment: Environment = context.environment
+  override def devContext: Option[DevContext] = context.devContext
   override def applicationLifecycle: ApplicationLifecycle = context.lifecycle
   override def configuration: Configuration = context.initialConfiguration
 
