@@ -37,7 +37,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
   def withApplicationProvider[A](ap: ApplicationProvider)(block: Port => A): A = {
     val classLoader = Thread.currentThread.getContextClassLoader
     val configuration = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
-    val (actorSystem, stopActorSystem) = ActorSystemProvider.start(classLoader, configuration)
+    val actorSystem = ActorSystemProvider.start(classLoader, configuration)
     val materializer = ActorMaterializer()(actorSystem)
 
     val server = integrationServerProvider.createServer(ServerProvider.Context(
@@ -47,7 +47,6 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 
     try block(port) finally {
       server.stop()
-      stopActorSystem()
     }
   }
 

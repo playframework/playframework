@@ -15,7 +15,6 @@ import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._
-import play.core.ClosableLazy
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
@@ -102,7 +101,7 @@ trait AkkaComponents {
 @Singleton
 class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration) extends Provider[ActorSystem] {
 
-  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)._1
+  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
 
 }
 
@@ -135,7 +134,7 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
     start(classLoader, config, additionalSetup = None)
   }
 
@@ -144,11 +143,11 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): ActorSystem = {
     start(classLoader, config, Some(additionalSetup))
   }
 
-  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): (ActorSystem, StopHook) = {
+  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 
@@ -187,23 +186,7 @@ object ActorSystemProvider {
     val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
 
-    // noop. This is no longer necessary since we've reversed the dependency between
-    // ActorSystem and ApplicationLifecycle.
-    val stopHook = { () => Future.successful(Done) }
-
-    (system, stopHook)
-  }
-
-  /**
-   * A lazy wrapper around `start`. Useful when the `ActorSystem` may
-   * not be needed.
-   */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
-    new ClosableLazy[ActorSystem, Future[_]] {
-      protected def create() = start(classLoader, configuration)
-
-      protected def closeNotNeeded = Future.successful(())
-    }
+    system
   }
 
 }
