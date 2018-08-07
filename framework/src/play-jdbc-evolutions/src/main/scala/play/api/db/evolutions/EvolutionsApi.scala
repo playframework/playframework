@@ -209,7 +209,12 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
         applying = script.evolution.revision
         logBefore(script)
         // Execute script
-        script.statements.foreach(execute)
+        script.statements.foreach { statement =>
+          logger.debug(s"Execute: $statement")
+          val start = System.currentTimeMillis()
+          execute(statement)
+          logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
+        }
         logAfter(script)
       }
 
