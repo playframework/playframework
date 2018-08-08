@@ -38,7 +38,7 @@ class RequestHeaderSpec extends Specification {
 
       "check if the header exists" in {
         headers().contains("a") must beTrue
-        headers().contains("non-existed") must beFalse
+        headers().contains("non-existent") must beFalse
       }
 
       "get a single header value" in {
