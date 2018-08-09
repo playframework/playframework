@@ -33,4 +33,12 @@ private[run] trait PlayRunCompat {
 
   def createAndRunProcess(args: Seq[String]) = args.!
 
+  def watchCountinously(state: State): Option[Watched] = {
+    // If we have Watched.ContinuousEventMonitor attribute and its state.count
+    // is > 0 then we assume we're in ~ run mode
+    state.get(Watched.ContinuousEventMonitor)
+      .map(_.state())
+      .filter(_.count > 0)
+      .flatMap(_ => state.get(Watched.Configuration))
+  }
 }
