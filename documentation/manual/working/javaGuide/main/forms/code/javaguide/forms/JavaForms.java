@@ -374,7 +374,7 @@ public class JavaForms extends WithApplication {
 
         //#validation-error-examples
         // Global error without internationalization:
-        new ValidationError("", "Errors occured. Please check your input!");
+        new ValidationError("", "Errors occurred. Please check your input!");
         // Global error; "validationFailed" should be defined in `conf/messages` - taking two arguments:
         new ValidationError("", "validationFailed", Arrays.asList(arg1, arg2));
         // Error for the email field; "emailUsedAlready" should be defined in `conf/messages` - taking the email as argument:
