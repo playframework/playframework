@@ -87,7 +87,7 @@ Since you will typically use CSRF in conjunction with form helpers that require 
 @(...)(implicit request: MessagesRequestHeader)
 ```
 
-Or, if you are using a controller with [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) you can pass in the messages as a seperate implicit parameter:
+Or, if you are using a controller with [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) you can pass in the messages as a separate implicit parameter:
 
 ```html
 @(...)(implicit request: RequestHeader, messages: Messages)
