@@ -158,7 +158,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
-      val sslContext = mockSslContext(ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider))
+      val sslContext = mockSslContext()
       ConnectionContext.https(sslContext = sslContext)
     } catch {
       case NonFatal(e) =>
@@ -419,8 +419,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    * order to pass an SSLContext, we need to implement our own mock one that delegates to the SSLEngineProvider
    * when creating an SSLEngine.
    */
-  private def mockSslContext(sslEngineProvider: => SSLEngineProvider): SSLContext = {
+  private def mockSslContext(): SSLContext = {
     new SSLContext(new SSLContextSpi() {
+      private lazy val sslEngineProvider = ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider)
       override def engineCreateSSLEngine(): SSLEngine = sslEngineProvider.createSSLEngine()
       override def engineCreateSSLEngine(s: String, i: Int): SSLEngine = engineCreateSSLEngine()
 
