@@ -5,21 +5,33 @@ package play.api.inject
 package guice
 
 import javax.inject.{ Inject, Provider, Singleton }
+import java.util.Collections
 
 import com.google.inject.{ CreationException, ProvisionException }
+import com.typesafe.config.Config
 import org.specs2.mutable.Specification
+import play.{ Environment => JavaEnvironment }
 import play.api.i18n.I18nModule
 import play.api.mvc.CookiesModule
 import play.api.{ Configuration, Environment }
+import play.inject.{ Module => JavaModule }
 
 class GuiceApplicationBuilderSpec extends Specification {
 
   "GuiceApplicationBuilder" should {
 
-    "add bindings" in {
+    "add bindings with Scala" in {
+      addBindings(new GuiceApplicationBuilderSpec.AModule)
+    }
+
+    "add bindings with Java" in {
+      addBindings(new GuiceApplicationBuilderSpec.JavaAModule)
+    }
+
+    def addBindings(module: Module) = {
       val injector = new GuiceApplicationBuilder()
         .bindings(
-          new GuiceApplicationBuilderSpec.AModule,
+          module,
           bind[GuiceApplicationBuilderSpec.B].to[GuiceApplicationBuilderSpec.B1])
         .injector()
 
@@ -27,9 +39,17 @@ class GuiceApplicationBuilderSpec extends Specification {
       injector.instanceOf[GuiceApplicationBuilderSpec.B] must beAnInstanceOf[GuiceApplicationBuilderSpec.B1]
     }
 
-    "override bindings" in {
+    "override bindings with Scala" in {
+      overrideBindings(new GuiceApplicationBuilderSpec.AModule)
+    }
+
+    "override bindings with Java" in {
+      overrideBindings(new GuiceApplicationBuilderSpec.JavaAModule)
+    }
+
+    def overrideBindings(module: Module) = {
       val app = new GuiceApplicationBuilder()
-        .bindings(new GuiceApplicationBuilderSpec.AModule)
+        .bindings(module)
         .overrides(
           bind[Configuration] to new GuiceApplicationBuilderSpec.ExtendConfiguration("a" -> 1),
           bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A2])
@@ -39,10 +59,18 @@ class GuiceApplicationBuilderSpec extends Specification {
       app.injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A2]
     }
 
-    "disable modules" in {
+    "disable modules with Scala" in {
+      disableModules(new GuiceApplicationBuilderSpec.AModule)
+    }
+
+    "disable modules with Java" in {
+      disableModules(new GuiceApplicationBuilderSpec.JavaAModule)
+    }
+
+    def disableModules(module: Module) = {
       val injector = new GuiceApplicationBuilder()
-        .bindings(new GuiceApplicationBuilderSpec.AModule)
-        .disable(classOf[GuiceApplicationBuilderSpec.AModule])
+        .bindings(module)
+        .disable(module.getClass)
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must throwA[com.google.inject.ConfigurationException]
@@ -142,6 +170,10 @@ object GuiceApplicationBuilderSpec {
   @Singleton
   class C1 extends C {
     throw new EagerlyLoadedException
+  }
+
+  class JavaAModule extends JavaModule {
+    override def bindings(environment: JavaEnvironment, config: Config) = Collections.singletonList(JavaModule.bindClass(classOf[A]).to(classOf[A1]))
   }
 
   class EagerlyLoadedException extends RuntimeException
