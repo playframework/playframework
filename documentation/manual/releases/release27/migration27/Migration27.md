@@ -373,6 +373,24 @@ public abstract class Controller extends Results implements Status, HeaderNames 
 }
 ```
 
+## Java DI-agnostic Play `Module` API support added and all built-in Java `Module`s type changed
+
+You can now create DI-agnostic Play `Module` with Java by extending `play.inject.Module`, which is more Java friendly as it is using Java APIs and coded in Java as well. Besides, all the existing built-in Java `Module`s, for example, `play.inject.BuiltInModule` and `play.libs.ws.ahc.AhcWSModule`, are no longer extending Scala `play.api.inject.Module` but Java `play.inject.Module`.
+
+Since Java `play.inject.Module` is a subclass of Scala `play.api.inject.Module`, the `Module` instances can still be used in the same way, except the interface is a little different:
+
+```java
+public class MyModule extends play.inject.Module {
+    @Override
+    public java.util.List<play.inject.Binding<?>> bindings(final play.Environment environment, final com.typesafe.config.Config config) {
+        return java.util.Collections.singletonList(
+            // Note: it is bindClass() but not bind()
+            bindClass(MyApi.class).toProvider(MyApiProvider.class)
+        );
+    }
+}
+```
+
 ## Removed libraries
 
 To make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.7, so you will need to add them manually to your build if you use them.

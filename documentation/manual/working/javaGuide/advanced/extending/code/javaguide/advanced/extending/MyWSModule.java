@@ -9,13 +9,14 @@ import java.util.Collections;
 import java.util.List;
 import play.Environment;
 import play.inject.Binding;
+import play.libs.ws.WSClient;
 
-// #module-class-definition
-public class MyModule extends play.inject.Module {
+// #builtin-module-definition
+public class MyWSModule extends play.inject.Module {
     public List<Binding<?>> bindings(Environment environment, Config config) {
         return Collections.singletonList(
-            bindClass(MyApi.class).toSelf()
+            bindClass(WSClient.class).toProvider(MyWSClientProvider.class)
         );
     }
 }
-// #module-class-definition
+// #builtin-module-definition
