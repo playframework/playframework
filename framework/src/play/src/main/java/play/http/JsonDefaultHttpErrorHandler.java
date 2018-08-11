@@ -123,7 +123,7 @@ public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
     }
 
     /**
-     * Format a [[Throwable]] as a JSON value.
+     * Format a {@link Throwable} as a JSON value.
      *
      * Override this method if you want to change how exceptions are rendered in Dev mode.
      *
@@ -141,7 +141,7 @@ public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
     /**
      * Invoked in prod mode when a server error occurs.
      *
-     * Override this rather than [[onServerError]] if you don't want to change Play's debug output when logging errors
+     * Override this rather than {@link #onServerError(RequestHeader, Throwable)} if you don't want to change Play's debug output when logging errors
      * in dev mode.
      *
      * @param request The request that triggered the error.
