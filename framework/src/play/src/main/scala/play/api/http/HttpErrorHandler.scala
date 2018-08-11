@@ -113,7 +113,7 @@ class DefaultHttpErrorHandler(
    * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
    * @param message The error message.
    */
-  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = statusCode match {
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = statusCode match {
     case BAD_REQUEST => onBadRequest(request, message)
     case FORBIDDEN => onForbidden(request, message)
     case NOT_FOUND => onNotFound(request, message)
@@ -188,7 +188,7 @@ class DefaultHttpErrorHandler(
    * @param request The request that triggered the server error.
    * @param exception The server error.
    */
-  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     try {
       val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
         sourceMapper,
