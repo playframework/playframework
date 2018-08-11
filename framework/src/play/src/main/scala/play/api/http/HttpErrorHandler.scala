@@ -9,12 +9,17 @@ import java.util.concurrent.CompletionStage
 import javax.inject._
 import play.api._
 import play.api.inject.Binding
+import javax.inject._
+import org.apache.commons.lang3.exception.ExceptionUtils
+import play.api._
+import play.api.http.Status._
+import play.api.inject.{ Binding, BindingKey }
+import play.api.libs.json._
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.http.Status._
 import play.api.routing.Router
-import play.core.j.JavaHttpErrorHandlerAdapter
 import play.core.SourceMapper
+import play.core.j.JavaHttpErrorHandlerAdapter
 import play.mvc.Http
 import play.utils.{ PlayIO, Reflect }
 
@@ -88,8 +93,7 @@ class DefaultHttpErrorHandler(
     this(HttpErrorConfig(environment.mode != Mode.Prod, configuration.getOptional[String]("play.editor")), sourceMapper, router)
 
   @Inject
-  def this(environment: Environment, configuration: Configuration, sourceMapper: OptionalSourceMapper,
-    router: Provider[Router]) =
+  def this(environment: Environment, configuration: Configuration, sourceMapper: OptionalSourceMapper, router: Provider[Router]) =
     this(environment, configuration, sourceMapper.sourceMapper, Some(router.get))
 
   // Hyperlink string to wrap around Play error messages.
@@ -281,6 +285,115 @@ object HttpErrorHandlerExceptions {
         def sourceName = source.map(_._1.getAbsolutePath).orNull
       }
   }
+}
+
+/**
+ * An alternative default HTTP error handler which will render errors as JSON messages instead of HTML pages.
+ *
+ * In Dev mode, exceptions thown by the server code will be rendered in JSON messages.
+ * In Prod mode, they will not be rendered.
+ *
+ * You could override how exceptions are rendered in Dev mode by extending this class and overriding
+ * the [[formatDevServerErrorException]] method.
+ */
+@Singleton
+class JsonDefaultHttpErrorHandler(
+    config: HttpErrorConfig = HttpErrorConfig(),
+    sourceMapper: Option[SourceMapper] = None) extends DefaultHttpErrorHandler(config, sourceMapper, None) {
+
+  def this(environment: Environment, configuration: Configuration, sourceMapper: Option[SourceMapper]) =
+    this(HttpErrorConfig(environment.mode != Mode.Prod, configuration.getOptional[String]("play.editor")), sourceMapper)
+
+  @Inject
+  def this(environment: Environment, configuration: Configuration, sourceMapper: OptionalSourceMapper) =
+    this(environment, configuration, sourceMapper.sourceMapper)
+
+  @inline
+  private final def error(content: JsObject): JsObject = Json.obj("error" -> content)
+
+  /**
+   * Invoked when a client makes a bad request.
+   *
+   * @param request The request that was bad.
+   * @param message The error message.
+   */
+  override protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
+    Future.successful(BadRequest(error(Json.obj("requestId" -> request.id, "message" -> message))))
+
+  /**
+   * Invoked when a client makes a request that was forbidden.
+   *
+   * @param request The forbidden request.
+   * @param message The error message.
+   */
+  override protected def onForbidden(request: RequestHeader, message: String): Future[Result] =
+    Future.successful(Forbidden(error(Json.obj("requestId" -> request.id, "message" -> message))))
+
+  /**
+   * Invoked when a handler or resource is not found.
+   *
+   * @param request The request that no handler was found to handle.
+   * @param message A message.
+   */
+  override protected def onNotFound(request: RequestHeader, message: String): Future[Result] =
+    Future.successful(NotFound(error(Json.obj("requestId" -> request.id, "message" -> message))))
+
+  /**
+   * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled by any of
+   * the other methods in this class already.
+   *
+   * @param request The request that caused the client error.
+   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
+   * @param message The error message.
+   */
+  override protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
+    Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
+
+  /**
+   * Invoked in dev mode when a server error occurs.
+   *
+   * @param request The request that triggered the error.
+   * @param exception The exception.
+   */
+  override protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
+    val res =
+      InternalServerError(
+        error(
+          Json.obj(
+            "requestId" -> request.id,
+            "id" -> exception.id,
+            "exception" -> Json.obj(
+              "title" -> exception.title,
+              "description" -> exception.description,
+              "stacktrace" -> formatDevServerErrorException(exception.cause)
+            )
+          )))
+
+    Future.successful(res)
+  }
+
+  /**
+   * Format a [[Throwable]] as a JSON value.
+   *
+   * Override this method if you want to change how exceptions are rendered in Dev mode.
+   *
+   * @param exception
+   * @return
+   */
+  protected def formatDevServerErrorException(exception: Throwable): JsValue =
+    JsArray(ExceptionUtils.getStackFrames(exception).map(s => JsString(s.trim)))
+
+  /**
+   * Invoked in prod mode when a server error occurs.
+   *
+   * Override this rather than [[onServerError]] if you don't want to change Play's debug output when logging errors
+   * in dev mode.
+   *
+   * @param request The request that triggered the error.
+   * @param exception The exception.
+   */
+  override protected def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] =
+    Future.successful(InternalServerError(error(Json.obj("id" -> exception.id))))
 }
 
 /**

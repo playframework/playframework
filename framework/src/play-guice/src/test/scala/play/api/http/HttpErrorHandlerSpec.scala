@@ -6,12 +6,15 @@ package play.api.http
 
 import java.util.concurrent.CompletableFuture
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._
 import play.api.inject.BindingKey
-import play.api.mvc.{ RequestHeader, Results }
+import play.api.libs.json._
+import play.api.mvc.{ RequestHeader, Result, Results }
 import play.api.routing._
 import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
 import play.core.test.{ FakeRequest, Fakes }
@@ -19,12 +22,14 @@ import play.i18n.{ Langs, MessagesApi }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
-
 import scala.collection.JavaConverters._
 
 class HttpErrorHandlerSpec extends Specification {
 
-  def await[T](future: Future[T]) = Await.result(future, Duration.Inf)
+  def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
+
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   "HttpErrorHandler" should {
     def sharedSpecs(errorHandler: HttpErrorHandler) = {
@@ -49,6 +54,59 @@ class HttpErrorHandlerSpec extends Specification {
       }
     }
 
+    def jsonResponsesSpecs(errorHandler: HttpErrorHandler, isProdMode: Boolean)(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+      def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)
+
+      "answer a JSON error message on bad request" in {
+        val json = responseBody(errorHandler.onClientError(FakeRequest(), 400))
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+      }
+      "answer a JSON error message on forbidden" in {
+        val json = responseBody(errorHandler.onClientError(FakeRequest(), 403))
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+      }
+      "answer a JSON error message on not found" in {
+        val json = responseBody(errorHandler.onClientError(FakeRequest(), 404))
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+      }
+      "answer a JSON error message on a generic client error" in {
+        val json = responseBody(errorHandler.onClientError(FakeRequest(), 418))
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+      }
+      "refuse to render something that isn't a client error" in {
+        responseBody(errorHandler.onClientError(FakeRequest(), 500)) must throwAn[IllegalArgumentException]
+        responseBody(errorHandler.onClientError(FakeRequest(), 399)) must throwAn[IllegalArgumentException]
+      }
+      "answer a JSON error message on a server error" in {
+        val json = responseBody(errorHandler.onServerError(FakeRequest(), new RuntimeException()))
+        val id = json \ "error" \ "id"
+        val requestId = json \ "error" \ "requestId"
+        val exceptionTitle = json \ "error" \ "exception" \ "title"
+        val exceptionDescription = json \ "error" \ "exception" \ "description"
+        val exceptionCause = json \ "error" \ "exception" \ "stacktrace"
+
+        if (isProdMode) {
+          id.get must beAnInstanceOf[JsString]
+          requestId.toOption must beEmpty
+          exceptionTitle.toOption must beEmpty
+          exceptionDescription.toOption must beEmpty
+          exceptionCause.toOption must beEmpty
+        } else {
+          id.get must beAnInstanceOf[JsString]
+          requestId.get must beAnInstanceOf[JsNumber]
+          exceptionTitle.get must beAnInstanceOf[JsString]
+          exceptionDescription.get must beAnInstanceOf[JsString]
+          exceptionCause.get must beAnInstanceOf[JsArray]
+          exceptionCause.get.as[List[String]].forall(!_.contains("""\n""")) must_== true
+          exceptionCause.get.as[List[String]].forall(!_.contains("""\t""")) must_== true
+        }
+      }
+    }
+
     "work if a scala handler is defined" in {
       "in dev mode" in sharedSpecs(handler(classOf[DefaultHttpErrorHandler].getName, Mode.Dev))
       "in prod mode" in sharedSpecs(handler(classOf[DefaultHttpErrorHandler].getName, Mode.Prod))
@@ -57,6 +115,32 @@ class HttpErrorHandlerSpec extends Specification {
     "work if a java handler is defined" in {
       "in dev mode" in sharedSpecs(handler(classOf[play.http.DefaultHttpErrorHandler].getName, Mode.Dev))
       "in prod mode" in sharedSpecs(handler(classOf[play.http.DefaultHttpErrorHandler].getName, Mode.Prod))
+    }
+
+    "work if a scala JSON handler is defined" in {
+      "in dev mode" in {
+        val errorHandler = handler(classOf[JsonDefaultHttpErrorHandler].getName, Mode.Dev)
+        sharedSpecs(errorHandler)
+        jsonResponsesSpecs(errorHandler, isProdMode = false)
+      }
+      "in prod mode" in {
+        val errorHandler = handler(classOf[JsonDefaultHttpErrorHandler].getName, Mode.Prod)
+        sharedSpecs(errorHandler)
+        jsonResponsesSpecs(errorHandler, isProdMode = true)
+      }
+    }
+
+    "work if a java JSON handler is defined" in {
+      "in dev mode" in {
+        val errorHandler = handler(classOf[play.http.JsonDefaultHttpErrorHandler].getName, Mode.Dev)
+        sharedSpecs(errorHandler)
+        jsonResponsesSpecs(errorHandler, isProdMode = false)
+      }
+      "in prod mode" in {
+        val errorHandler = handler(classOf[play.http.JsonDefaultHttpErrorHandler].getName, Mode.Prod)
+        sharedSpecs(errorHandler)
+        jsonResponsesSpecs(errorHandler, isProdMode = true)
+      }
     }
 
     "work with a custom scala handler" in {
@@ -114,3 +198,4 @@ class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
   def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
     CompletableFuture.completedFuture(play.mvc.Results.ok())
 }
+
