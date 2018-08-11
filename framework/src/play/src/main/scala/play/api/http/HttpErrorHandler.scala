@@ -8,24 +8,21 @@ import java.util.concurrent.CompletionStage
 
 import javax.inject._
 import play.api._
-import play.api.inject.Binding
-import javax.inject._
-import org.apache.commons.lang3.exception.ExceptionUtils
-import play.api._
 import play.api.http.Status._
-import play.api.inject.{ Binding, BindingKey }
+import play.api.inject.Binding
 import play.api.libs.json._
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
 import play.core.SourceMapper
 import play.core.j.JavaHttpErrorHandlerAdapter
+import play.libs.exception.ExceptionUtils
 import play.mvc.Http
-import play.utils.{ PlayIO, Reflect }
+import play.utils.{PlayIO, Reflect}
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 /**
