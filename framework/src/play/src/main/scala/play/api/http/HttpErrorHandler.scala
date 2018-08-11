@@ -18,12 +18,12 @@ import play.core.SourceMapper
 import play.core.j.JavaHttpErrorHandlerAdapter
 import play.libs.exception.ExceptionUtils
 import play.mvc.Http
-import play.utils.{PlayIO, Reflect}
+import play.utils.{ PlayIO, Reflect }
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
+import scala.util.{ Failure, Success }
 
 /**
  * Component for handling HTTP errors in Play.
