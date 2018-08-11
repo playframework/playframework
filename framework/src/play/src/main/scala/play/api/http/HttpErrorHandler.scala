@@ -287,7 +287,7 @@ object HttpErrorHandlerExceptions {
 /**
  * An alternative default HTTP error handler which will render errors as JSON messages instead of HTML pages.
  *
- * In Dev mode, exceptions thown by the server code will be rendered in JSON messages.
+ * In Dev mode, exceptions thrown by the server code will be rendered in JSON messages.
  * In Prod mode, they will not be rendered.
  *
  * You could override how exceptions are rendered in Dev mode by extending this class and overriding
