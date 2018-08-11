@@ -128,7 +128,7 @@ public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
      * Override this method if you want to change how exceptions are rendered in Dev mode.
      *
      * @param exception an exception
-     * @return a JSON representation of the passed expcetion
+     * @return a JSON representation of the passed exception
      */
     protected JsonNode formatDevServerErrorException(Throwable exception) {
         ArrayNode res = Json.newArray();
