@@ -106,7 +106,7 @@ object PlayRun extends PlayRunCompat {
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-        val maybeContinuous: Option[Watched] = watchCountinously(state)
+        val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
 
         maybeContinuous match {
           case Some(watched) =>

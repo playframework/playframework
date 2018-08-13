@@ -32,7 +32,7 @@ private[run] trait PlayRunCompat {
     Process(builder).!
   }
 
-  def watchCountinously(state: State): Option[Watched] = {
+  protected def watchContinuously(state: State, sbtVersion: String): Option[Watched] = {
     // If we have both Watched.Configuration and Watched.ContinuousState
     // attributes and if Watched.ContinuousState.count is 1 then we assume
     // we're in ~ run mode
