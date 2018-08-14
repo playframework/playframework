@@ -290,7 +290,7 @@ public class Result {
      * Discard a cookie on the given path with no domain and not that's secure.
      *
      * @param name The name of the cookie to discard, must not be null
-     * @param path The path of the cookie te discard, may be null
+     * @param path The path of the cookie to discard, may be null
      */
     public Result discardCookie(String name, String path) {
         return discardCookie(name, path, null, false);
