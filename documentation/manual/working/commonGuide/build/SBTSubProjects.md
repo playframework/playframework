@@ -3,7 +3,7 @@
 
 A complex project is not necessarily composed of a single Play application. You may want to split a large project into several smaller applications, or even extract some logic into a standard Java or Scala library that has nothing to do with a Play application.
 
-It will be helpful to read the [SBT documentation on multi-project builds](https://www.scala-sbt.org/release/docs/Getting-Started/Multi-Project).  Sub-projects do not have their own build file, but share the parent project's build file.
+It will be helpful to read the [SBT documentation on multi-project builds](https://www.scala-sbt.org/release/docs/Getting-Started/Multi-Project).  Sub-projects can be fully defined in the parent project's build file, although here we put sub-projects' settings in their own build file. 
 
 ## Adding a simple library sub-project
 
