@@ -105,14 +105,7 @@ object PlayRun extends PlayRunCompat {
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-        // If we have both Watched.Configuration and Watched.ContinuousState
-        // attributes and if Watched.ContinuousState.count is 1 then we assume
-        // we're in ~ run mode
-        val maybeContinuous = for {
-          watched <- state.get(Watched.Configuration)
-          watchState <- state.get(Watched.ContinuousState)
-          if watchState.count == 1
-        } yield watched
+        val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
 
         maybeContinuous match {
           case Some(watched) =>

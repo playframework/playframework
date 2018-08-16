@@ -195,7 +195,7 @@ object Dependencies {
     case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.3.1"
+  val typesafeConfig = "com.typesafe" % "config" % "1.3.3"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
