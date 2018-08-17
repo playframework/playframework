@@ -3,7 +3,7 @@
 //
 
 //#plugins.sbt
-addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.2.2")
 //#plugins.sbt
 
 //#disable-project
