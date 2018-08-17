@@ -32,4 +32,38 @@ private[run] trait PlayRunCompat {
 
   def createAndRunProcess(args: Seq[String]) = args.!
 
+  def watchContinuously(state: State, sbtVersion: String): Option[Watched] = {
+
+    // sbt 1.1.5+ uses Watched.ContinuousEventMonitor while watching the file system.
+    def watchUsingEvenMonitor = {
+      // If we have Watched.ContinuousEventMonitor attribute and its state.count
+      // is > 0 then we assume we're in ~ run mode
+      state.get(Watched.ContinuousEventMonitor)
+        .map(_.state())
+        .filter(_.count > 0)
+        .flatMap(_ => state.get(Watched.Configuration))
+    }
+
+    // sbt 1.1.4 and earlier uses Watched.ContinuousState while watching the file system.
+    def watchUsingContinuousState = {
+      // If we have both Watched.Configuration and Watched.ContinuousState
+      // attributes and if Watched.ContinuousState.count is 1 then we assume
+      // we're in ~ run mode
+      for {
+        watched <- state.get(Watched.Configuration)
+        watchState <- state.get(Watched.ContinuousState)
+        if watchState.count == 1
+      } yield watched
+    }
+
+    val _ :: minor :: patch :: Nil = sbtVersion.split("\\.").map(_.toInt).toList
+
+    if (minor >= 2) { // sbt 1.2.x and later
+      watchUsingEvenMonitor
+    } else if (minor == 1 && patch >= 5) { // sbt 1.1.5+
+      watchUsingEvenMonitor
+    } else { // sbt 1.1.4 and earlier
+      watchUsingContinuousState
+    }
+  }
 }
