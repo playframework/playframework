@@ -260,7 +260,7 @@ object ValidationError {
    * Conversion from a JsonValidationError to a Play ValidationError.
    */
   def fromJsonValidationError(jve: JsonValidationError): ValidationError = {
-    ValidationError(jve.message, jve.args)
+    ValidationError(jve.message, jve.args: _*)
   }
 
   def apply(message: String, args: Any*) = new ValidationError(Seq(message), args: _*)
