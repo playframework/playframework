@@ -358,6 +358,9 @@ trait FormSpec extends Specification {
         val validationErrors = form.errors("skinColor")
         validationErrors.size() must beEqualTo(1)
         validationErrors.get(0).message must beEqualTo("notblue")
+        validationErrors.get(0).arguments().size must beEqualTo(2)
+        validationErrors.get(0).arguments().get(0) must beEqualTo("argOne")
+        validationErrors.get(0).arguments().get(1) must beEqualTo("argTwo")
       }
 
       "that returns customized message in annotation when validator fails" in {
