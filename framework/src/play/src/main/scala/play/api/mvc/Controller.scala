@@ -5,7 +5,6 @@
 package play.api.mvc
 
 import javax.inject.Inject
-import play.api.Logger
 import play.api.http._
 import play.api.i18n.{ Lang, Langs, MessagesApi }
 import play.twirl.api.{ Html, HtmlFormat }
@@ -171,8 +170,6 @@ abstract class AbstractController(protected val controllerComponents: Controller
  * A variation of [[BaseController]] that gets its components via method injection.
  */
 trait InjectedController extends BaseController {
-
-  private val logger = Logger(getClass)
 
   private[this] var _components: ControllerComponents = _
 
