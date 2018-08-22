@@ -562,7 +562,12 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
       // Removed private[play] class CloseableLazy
       ProblemFilters.exclude[MissingClassProblem]("play.core.ClosableLazy"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.lazyStart")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.lazyStart"),
+
+      // Merge Lagom changes to KeyStore generation
+      // https://github.com/playframework/playframework/pull/8574
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.DnName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
