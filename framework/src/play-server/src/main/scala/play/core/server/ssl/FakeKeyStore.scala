@@ -25,8 +25,8 @@ import sun.security.util.ObjectIdentifier
 object FakeKeyStore {
   private val logger = Logger(FakeKeyStore.getClass)
 
-  val GeneratedKeyStore = "target/dev-mode/generated.keystore"
-  val ExportedCert = "target/dev-mode/service.crt"
+  val GeneratedKeyStore: String = fileInDevModeDir("generated.keystore")
+  val ExportedCert: String = fileInDevModeDir("service.crt")
   val TrustedAlias = "playgeneratedtrusted"
   val DistinguishedName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
   val SignatureAlgorithmName = "SHA256withRSA"
@@ -36,6 +36,10 @@ object FakeKeyStore {
     val ExportedCertificate = "target/dev-mode/ca.crt"
     val TrustedAlias = "playgeneratedCAtrusted"
     val DistinguishedName = "CN=localhost-CA, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
+  }
+
+  def fileInDevModeDir(filename: String): String = {
+    "target" + File.separatorChar + "dev-mode" + File.separatorChar + filename
   }
 
   /**
@@ -75,9 +79,9 @@ object FakeKeyStore {
 
   def createKeyStore(appPath: File): KeyStore = {
     val keyStoreFile = new File(appPath, GeneratedKeyStore)
+    val keyStoreDir = keyStoreFile.getParentFile
 
-    // Ensure directory for keystore exists
-    keyStoreFile.getParentFile.mkdirs()
+    createKeystoreParentDirectory(keyStoreDir)
 
     val keyStore: KeyStore = if (shouldGenerate(keyStoreFile)) {
       logger.info(s"Generating HTTPS key pair in ${keyStoreFile.getAbsolutePath} - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
@@ -104,6 +108,23 @@ object FakeKeyStore {
       loadedKeystore
     }
     keyStore
+  }
+
+  private def createKeystoreParentDirectory(keyStoreDir: File) = {
+    if (keyStoreDir.mkdirs()) {
+      logger.debug(s"Parent directory for keystore successfully created at ${keyStoreDir.getAbsolutePath}")
+    } else if (keyStoreDir.exists() && keyStoreDir.isDirectory) {
+      // File.mkdirs returns false when the directory already exists.
+      logger.debug(s"No need to create $keyStoreDir since it already exists.")
+    } else if (keyStoreDir.exists() && keyStoreDir.isFile) {
+      // File.mkdirs also returns false when there is a file for that path.
+      // Play will then fail to write the keystore file later, so we fail fast here.
+      throw new IllegalStateException(s"$keyStoreDir exists, but it is NOT a directory. Play won't be able to generate a key store file.")
+    } else {
+      // Not being able to create a directory inside target folder is weird, but if it happens
+      // Play will then fail to write the keystore file later, so we fail fast here.
+      throw new IllegalStateException(s"Play was not able to create $keyStoreDir. Check if there is permission to create such folder.")
+    }
   }
 
   private[play] def keyManagerFactory(appPath: File): KeyManagerFactory = {
