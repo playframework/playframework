@@ -4,7 +4,7 @@
 Play can be configured to serve HTTPS.  To enable this, simply tell Play which port to listen to using the `https.port` system property.  For example:
 
 ```bash
-sbt -Dhttps.port=9443 run
+./bin/your-app -Dhttps.port=9443
 ```
 
 ## Providing configuration
@@ -43,7 +43,7 @@ Having created an implementation for `play.server.SSLEngineProvider` or `play.se
 Example:
 
 ```bash
-sbt -Dhttps.port=9443 -Dplay.server.https.engineProvider=mypackage.CustomSSLEngineProvider run
+./bin/your-app -Dhttps.port=9443 -Dplay.server.https.engineProvider=mypackage.CustomSSLEngineProvider
 ```
 
 ## Turning HTTP off
@@ -51,7 +51,7 @@ sbt -Dhttps.port=9443 -Dplay.server.https.engineProvider=mypackage.CustomSSLEngi
 To disable binding on the HTTP port, set the `http.port` system property to be `disabled`, eg:
 
 ```bash
-sbt -Dhttp.port=disabled -Dhttps.port=9443 -Dplay.server.https.keyStore.path=/path/to/keystore -Dplay.server.https.keyStore.password=changeme run
+./bin/your-app -Dhttp.port=disabled -Dhttps.port=9443 -Dplay.server.https.keyStore.path=/path/to/keystore -Dplay.server.https.keyStore.password=changeme
 ```
 
 ## Production usage of HTTPS
