@@ -78,7 +78,7 @@ object FakeKeyStore {
   }
 
   def createKeyStore(appPath: File): KeyStore = {
-    val keyStoreFile = new File(appPath, GeneratedKeyStore)
+    val keyStoreFile = getKeyStoreFilePath(appPath)
     val keyStoreDir = keyStoreFile.getParentFile
 
     createKeystoreParentDirectory(keyStoreDir)
