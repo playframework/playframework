@@ -96,16 +96,9 @@ object FakeKeyStore {
       freshKeyStore
     } else {
       // Load a KeyStore from a file
-      val loadedKeystore: KeyStore = KeyStore.getInstance("JKS")
-      val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
-      try {
-        loadedKeystore.load(in, Array.emptyCharArray)
-      } finally {
-        PlayIO.closeQuietly(in)
-      }
-
+      val loadedKeyStore = loadKeyStore(keyStoreFile)
       logger.info(s"HTTPS key pair generated in ${keyStoreFile.getAbsolutePath}.")
-      loadedKeystore
+      loadedKeyStore
     }
     keyStore
   }
