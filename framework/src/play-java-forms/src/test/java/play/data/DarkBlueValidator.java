@@ -9,13 +9,13 @@ import play.data.validation.Constraints;
 import play.libs.F;
 
 
-public class BlueValidator extends Constraints.Validator<String> {
+public class DarkBlueValidator extends Constraints.Validator<String> {
 
     public boolean isValid(String value) {
-        return "blue".equals(value);
+        return "darkblue".equals(value);
     }
 
     public F.Tuple<String, Object[]> getErrorMessageKey() {
-        return F.Tuple("notblue", new Object[] {"argOne", "argTwo"});
+        return F.Tuple("notdarkblue", null);
     }
 }

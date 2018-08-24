@@ -275,13 +275,29 @@ public class Form<T> {
         internalAnnotationAttributes.add("payload");
     }
 
-    protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
+    protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintViolation<Object> violation) {
+        Annotation annotation = violation.getConstraintDescriptor().getAnnotation();
+        if (annotation instanceof Constraints.ValidateWith) {
+            Constraints.ValidateWith validateWithAnnotation = (Constraints.ValidateWith)annotation;
+            if (violation.getMessage().equals(Constraints.ValidateWithValidator.defaultMessage)) {
+                Constraints.ValidateWithValidator validateWithValidator = new Constraints.ValidateWithValidator();
+                validateWithValidator.initialize(validateWithAnnotation);
+                Tuple<String, Object[]> errorMessageKey = validateWithValidator.getErrorMessageKey();
+                if (errorMessageKey != null && errorMessageKey._2 != null) {
+                    return errorMessageKey._2;
+                } else {
+                    return new Object[0];
+                }
+            } else {
+                return new Object[0];
+            }
+        }
         List<Object> arguments = new LinkedList<>();
         String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};
         arguments.add(new DefaultMessageSourceResolvable(codes, field));
         // Using a TreeMap for alphabetical ordering of attribute names
         Map<String, Object> attributesToExpose = new TreeMap<>();
-        descriptor.getAttributes().forEach((attributeName, attributeValue) -> {
+        violation.getConstraintDescriptor().getAttributes().forEach((attributeName, attributeValue) -> {
             if (!internalAnnotationAttributes.contains(attributeName)) {
                 attributesToExpose.put(attributeName, attributeValue);
             }
@@ -392,7 +408,7 @@ public class Form<T> {
                     result.rejectValue(
                         field,
                         violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                        getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                        getArgumentsForConstraint(result.getObjectName(), field, violation),
                         getMessageForConstraintViolation(violation)
                     );
                 }
