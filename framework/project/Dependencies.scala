@@ -30,7 +30,7 @@ object Dependencies {
 
   // We need to use an older version of specs2 for sbt
   // because we need Scala 2.10 support (sbt 0.13).
-  val specs2VersionForSbt = "3.9.5"
+  val specs2VersionForSbt = "3.10.0"
   val specs2DepsForSbt = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
@@ -51,12 +51,12 @@ object Dependencies {
 
   val guava = "com.google.guava" % "guava" % "25.1-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-core" % "2.20.1"
+  val mockitoAll = "org.mockito" % "mockito-core" % "2.21.0"
 
   val h2database = "com.h2database" % "h2" % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.48"
+  val acolyteVersion = "1.0.49"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
@@ -78,7 +78,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate" % "hibernate-core" % "5.3.3.Final" % "test"
+    "org.hibernate" % "hibernate-core" % "5.3.5.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
@@ -103,7 +103,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate" % "hibernate-validator" % "6.0.11.Final",
+    "org.hibernate" % "hibernate-validator" % "6.0.12.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
