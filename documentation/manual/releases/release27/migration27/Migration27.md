@@ -369,3 +369,7 @@ CoordinatedShutdown.Reason reason = CoordinatedShutdown.unknownReason();
 Optional<String> runFromPhase = Optional.of("");
 CoordinatedShutdown.get(actorSystem).run(reason, runFromPhase);
 ```
+
+## Change in self-signed HTTPS certificate
+
+It is now generated under `target/dev-mode/generated.keystore` instead of directly on the root folder.

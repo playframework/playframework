@@ -24,7 +24,7 @@ object CertificateGenerator {
    * Generates a certificate using RSA (which is available in 1.6).
    */
   def generateRSAWithSHA256(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Duration.ofDays(365)): X509Certificate = {
-    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
@@ -34,7 +34,7 @@ object CertificateGenerator {
   }
 
   def generateRSAWithSHA1(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Duration.ofDays(365)): X509Certificate = {
-    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
@@ -55,7 +55,7 @@ object CertificateGenerator {
   }
 
   def generateRSAWithMD5(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Duration.ofDays(365)): X509Certificate = {
-    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
