@@ -38,7 +38,7 @@ object FakeKeyStore {
     val DistinguishedName = "CN=localhost-CA, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
   }
 
-  def fileInDevModeDir(filename: String): String = {
+  private def fileInDevModeDir(filename: String): String = {
     "target" + File.separatorChar + "dev-mode" + File.separatorChar + filename
   }
 
@@ -166,7 +166,7 @@ object FakeKeyStore {
     keyStore
   }
 
-  def createSelfSignedCertificate(keyPair: KeyPair, certificateAuthorityKeyPair: KeyPair): X509Certificate = {
+  private def createSelfSignedCertificate(keyPair: KeyPair, certificateAuthorityKeyPair: KeyPair): X509Certificate = {
     val certInfo = new X509CertInfo()
 
     // Serial number and version
