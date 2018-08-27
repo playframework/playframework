@@ -225,7 +225,14 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
   }
 }
 
-private[play] object CoordinatedShutdownSupport {
+/**
+ * INTERNAL API: provides ways to call Akka's CoordinatedShutdown.
+ *
+ * This should not be necessary by user code and it is an internal API subject to change without following our
+ * deprecation policy.
+ */
+// This is public so that it can be used in Lagom without any hacks or copy-and-paste.
+object CoordinatedShutdownSupport {
 
   private[play] lazy val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
 
