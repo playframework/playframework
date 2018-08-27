@@ -24,7 +24,7 @@ import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
-import play.api.libs.concurrent.CoordinatedShutdownSupport
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
 import play.core.server.Server.ServerStoppedReason

@@ -23,7 +23,7 @@ import com.typesafe.config.{ Config, ConfigMemorySize }
 import javax.net.ssl._
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.libs.concurrent.CoordinatedShutdownSupport
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
