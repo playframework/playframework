@@ -12,6 +12,7 @@ import akka.actor.CoordinatedShutdown._
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import org.specs2.mutable.Specification
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.{ Configuration, Environment }
 
 import scala.concurrent.{ Await, Future }

@@ -13,8 +13,9 @@ import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject.{ ApplicationLifecycle, _ }
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
-import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider, CoordinatedShutdownSupport }
+import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider }
 import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
