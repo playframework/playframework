@@ -119,7 +119,7 @@ The simplest way to bind an implementation to an interface is to use the Guice [
 
 #### Programmatic bindings
 
-In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
+In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one interface, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
 
 @[guice-module](code/javaguide/di/guice/Module.java)
 
