@@ -14,9 +14,10 @@ import play.api._
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
+import play.internal.utils.PlayIO
 import play.libs.Scala
 import play.mvc.Http
-import play.utils.{ PlayIO, Resources }
+import play.utils.Resources
 
 import scala.annotation.implicitNotFound
 import scala.collection.mutable

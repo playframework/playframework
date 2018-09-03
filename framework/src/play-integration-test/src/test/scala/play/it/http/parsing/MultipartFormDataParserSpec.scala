@@ -12,7 +12,7 @@ import play.api.libs.Files.{ TemporaryFile, TemporaryFileCreator }
 import play.api.mvc._
 import play.api.test._
 import play.core.parsers.Multipart.{ FileInfoMatcher, PartInfoMatcher }
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 import play.api.libs.ws.WSClient
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.routing.Router

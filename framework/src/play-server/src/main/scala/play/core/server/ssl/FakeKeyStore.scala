@@ -14,7 +14,7 @@ import java.security.cert.X509Certificate
 import java.io.File
 
 import javax.net.ssl.KeyManagerFactory
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 import java.security.interfaces.RSAPublicKey
 
 import sun.security.util.ObjectIdentifier

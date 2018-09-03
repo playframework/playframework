@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config._
 import com.typesafe.config.impl.ConfigImpl
 import play.twirl.api.utils.StringEscapeUtils
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{ Duration, FiniteDuration, _ }
