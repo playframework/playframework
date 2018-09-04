@@ -13,7 +13,7 @@ import javax.inject.{ Inject, Singleton }
 import play.api.db.{ DBApi, Database }
 import play.api.libs.Collections
 import play.api.{ Environment, Logger, PlayException }
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 
 import scala.annotation.tailrec
 import scala.io.Codec

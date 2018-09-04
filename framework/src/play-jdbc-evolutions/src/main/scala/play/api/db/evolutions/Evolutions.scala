@@ -13,7 +13,7 @@ import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.libs.Codecs.sha1
 import play.api.{ Configuration, Environment, Logger, Mode, Play }
 import play.core.DefaultWebCommands
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 
 /**
  * An SQL evolution - database changes associated with a software version.

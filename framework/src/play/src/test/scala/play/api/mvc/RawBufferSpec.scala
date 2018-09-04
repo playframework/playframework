@@ -7,7 +7,7 @@ package play.api.mvc
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.libs.Files.SingletonTemporaryFileCreator
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 
 class RawBufferSpec extends Specification {
 

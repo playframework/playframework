@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.utils
+package play.internal.utils
 
 import java.nio.charset.Charset
 import java.nio.file.{ Path, Files => JFiles }

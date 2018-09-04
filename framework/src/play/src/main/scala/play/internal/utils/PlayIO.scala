@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.utils
+package play.internal.utils
 
 import java.io._
 
@@ -10,14 +10,18 @@ import scala.io.Codec
 import java.net.URL
 import java.nio.file.{ Files, Path }
 
+import akka.annotation.InternalApi
 import play.api.Logger
 
 /**
- * IO utilities for internal use by Play projects.
+ * INTERNAL API: IO utilities for internal use by Play projects.
  *
- * This is intentionally not public API.
+ * This should not be necessary by user code and it is an internal API subject to change without following our
+ * deprecation policy.
  */
-private[play] object PlayIO {
+// This is public so that it can be used in Lagom without any hacks or copy-and-paste.
+@InternalApi
+object PlayIO {
 
   private val logger = Logger(this.getClass)
 

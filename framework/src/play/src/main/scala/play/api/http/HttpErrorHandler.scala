@@ -15,8 +15,9 @@ import play.api.http.Status._
 import play.api.routing.Router
 import play.core.j.JavaHttpErrorHandlerAdapter
 import play.core.SourceMapper
+import play.internal.utils.PlayIO
 import play.mvc.Http
-import play.utils.{ PlayIO, Reflect }
+import play.utils.Reflect
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._

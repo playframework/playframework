@@ -13,7 +13,7 @@ import java.security.cert.X509Certificate
 import java.io.File
 import play.api.Logger
 import scala.util.control.NonFatal
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 
 /**
  * This class calls sslContext.createSSLEngine() with no parameters and returns the result.

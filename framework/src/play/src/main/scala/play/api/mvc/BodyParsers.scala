@@ -23,7 +23,7 @@ import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
 import play.core.parsers.Multipart
-import play.utils.PlayIO
+import play.internal.utils.PlayIO
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.control.NonFatal
