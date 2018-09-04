@@ -15,23 +15,40 @@ Instead you can use the `contextObj.request().attrs()` method now, which provide
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
 
 ```java
-// This uses the deprecated response() APIs
-public Result index1() {
-    response().setHeader("Header", "Value");
-    response().setCookie(Http.Cookie.builder("Cookie", "cookie value").build());
-    response().discardCookie("CookieName");
-    return ok("Hello World");
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Controller;
+
+public class FooController extends Controller {
+
+    // This uses the deprecated response() APIs
+    public Result index() {
+        response().setHeader("Header", "Value");
+        response().setCookie(Http.Cookie.builder("Cookie", "cookie value").build());
+        response().discardCookie("CookieName");
+        return ok("Hello World");
+    }
+
 }
 ```
 
 Should be written as:
 
 ```java
-public Result index2() {
-    return ok("Hello World")
-            .withHeader("Header", "value")
-            .withCookies(Http.Cookie.builder("Cookie", "cookie value").build())
-            .discardCookie("CookieName");
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Controller;
+
+public class FooController extends Controller {
+
+    // This uses the deprecated response() APIs
+    public Result index() {
+        return ok("Hello World")
+                .withHeader("Header", "value")
+                .withCookies(Http.Cookie.builder("Cookie", "cookie value").build())
+                .discardCookie("CookieName");
+    }
+
 }
 ```
 
