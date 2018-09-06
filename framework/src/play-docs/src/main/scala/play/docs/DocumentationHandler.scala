@@ -31,7 +31,7 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
       "js" -> "application/javascript",
       "ico" -> "application/javascript",
       "jpg" -> "image/jpeg",
-      "ico" -> "ico=image/x-icon"
+      "ico" -> "image/x-icon"
     ))
     new DefaultFileMimeTypes(mimeTypesConfiguration)
   }
