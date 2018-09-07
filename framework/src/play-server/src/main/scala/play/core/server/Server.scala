@@ -46,6 +46,13 @@ trait Server extends ReloadableServer {
   }
 
   /**
+   * Get the address of the server.
+   *
+   * @return The address of the server.
+   */
+  def mainAddress: java.net.InetSocketAddress
+
+  /**
    * Returns the HTTP port of the server.
    *
    * This is useful when the port number has been automatically selected (by setting a port number of 0).

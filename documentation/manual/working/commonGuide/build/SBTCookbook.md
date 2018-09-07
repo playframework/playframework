@@ -6,7 +6,7 @@
 When Play runs in dev mode, that is, when using `sbt run`, it's often useful to hook into this to start up additional processes that are required for development.  This can be done by defining a `PlayRunHook`, which is a trait with the following methods:
 
  * `beforeStarted(): Unit` - called before the play application is started, but after all "before run" tasks have been completed.
- * `afterStarted(addr: InetSocketAddress): Unit` - called after the play application has been started.
+ * `afterStarted(): Unit` - called after the play application has been started.
  * `afterStopped(): Unit` - called after the play process has been stopped.
 
 Now let's say you want to build a Web application with `grunt` before the application is started.  First, you need to create a Scala object in the `project/` directory to extend `PlayRunHook`.  Let's name it `Grunt.scala`:

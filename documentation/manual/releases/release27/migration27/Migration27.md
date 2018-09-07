@@ -87,6 +87,10 @@ By default, routers are unprefixed, so this will only cause a change in behavior
 
 In Play 2.6, we extracted most of Play-WS into a [standalone project](https://github.com/playframework/play-ws) that has an independent release cycle. Play-WS now has a significant release that requires some changes in Play itself.
 
+## Run Hooks
+
+`RunHook.afterStarted()` no longer takes an `InetSocketAddress` as a parameter.
+
 ### Scala API
 
 1. `play.api.libs.ws.WSRequest.requestTimeout` now returns an `Option[Duration]` instead of an `Option[Int]`.

@@ -567,7 +567,11 @@ object BuildSettings {
       // Merge Lagom changes to KeyStore generation
       // https://github.com/playframework/playframework/pull/8574
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.DnName"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate"),
+
+      // Simplify ReloadableServer interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.mainAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ReloadableServer.mainAddress")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
