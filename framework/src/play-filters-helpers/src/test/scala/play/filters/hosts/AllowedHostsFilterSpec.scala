@@ -5,20 +5,21 @@
 package play.filters.hosts
 
 import javax.inject.Inject
-
 import com.typesafe.config.ConfigFactory
 import play.api.http.{ HeaderNames, HttpFilters }
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results._
-import play.api.mvc.{ DefaultActionBuilder, RequestHeader, Result }
-import play.api.routing.{ Router, SimpleRouterImpl }
+import play.api.mvc._
+import play.api.mvc.Handler.Stage
+import play.api.routing.{ HandlerDef, Router, SimpleRouterImpl }
 import play.api.test.{ FakeRequest, PlaySpecification, TestServer }
-import play.api.{ Application, Configuration }
+import play.api.{ Application, Configuration, Environment }
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 object AllowedHostsFilterSpec {
   class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
@@ -69,6 +70,21 @@ class AllowedHostsFilterSpec extends PlaySpecification {
   def withServer[T](result: RequestHeader => Result, config: String)(block: WSClient => T): T = {
     val app = newApplication(result, config)
     running(TestServer(TestServerPort, app))(block(app.injector.instanceOf[WSClient]))
+  }
+
+  def inject[T: ClassTag](implicit app: Application) =
+    app.injector.instanceOf[T]
+
+  def withActionServer[T](config: String)(
+    router: Application => PartialFunction[(String, String), Handler])(
+    block: WSClient => T): T = {
+    implicit val app = GuiceApplicationBuilder()
+      .configure(Configuration(ConfigFactory.parseString(config)))
+      .appRoutes(app => router(app))
+      .overrides(bind[HttpFilters].to[Filters])
+      .build()
+    val ws = inject[WSClient]
+    running(TestServer(testServerPort, app))(block(ws))
   }
 
   "the allowed hosts filter" should {
@@ -175,6 +191,110 @@ class AllowedHostsFilterSpec extends PlaySpecification {
         val wsResponse = Await.result(wsRequest, 5.seconds)
         wsResponse.status must_== OK
         wsResponse.body must_== s"localhost:$TestServerPort"
+      }
+
+    "protect untagged routes when using a route modifier whiteList" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = ["good.com"]
+        |play.filters.hosts.routeModifiers.whiteList = [anyhost]
+        |      """.stripMargin
+    ) { app =>
+        status(request(app, "good.com")) must_== OK
+        status(request(app, "evil.com")) must_== BAD_REQUEST
+      }
+
+    "not protect tagged routes when using a route modifier whiteList" in
+      withActionServer("""
+          |play.filters.hosts.allowed = [good.com]
+          |play.filters.hosts.routeModifiers.whiteList = [anyhost]
+        """.stripMargin)(implicit app => {
+        case _ =>
+          val env = inject[Environment]
+          val Action = inject[DefaultActionBuilder]
+          new Stage {
+            override def apply(
+              requestHeader: RequestHeader): (RequestHeader, Handler) = {
+              (
+                requestHeader.addAttr(
+                  Router.Attrs.HandlerDef,
+                  HandlerDef(
+                    env.classLoader,
+                    "routes",
+                    "FooController",
+                    "foo",
+                    Seq.empty,
+                    "GET",
+                    "/foo",
+                    "comments",
+                    Seq("anyhost")
+                  )),
+                  Action { _ =>
+                    Ok("allowed")
+                  })
+            }
+          }
+      }) { ws =>
+        await(
+          ws.url("http://localhost:" + testServerPort + "/foo")
+            .withHttpHeaders("Host" -> "evil.com")
+            .get()).status mustEqual OK
+      }
+
+    "protect tagged routes when using a route modifier blackList" in
+      withActionServer(
+        """
+          |play.filters.hosts.allowed = [good.com]
+          |play.filters.hosts.routeModifiers.whiteList = []
+          |play.filters.hosts.routeModifiers.blackList = [filter-hosts]
+        """.stripMargin
+      )(implicit app => {
+          case _ =>
+            val env = inject[Environment]
+            val Action = inject[DefaultActionBuilder]
+            new Stage {
+              override def apply(
+                requestHeader: RequestHeader): (RequestHeader, Handler) = {
+                (
+                  requestHeader.addAttr(
+                    Router.Attrs.HandlerDef,
+                    HandlerDef(
+                      env.classLoader,
+                      "routes",
+                      "FooController",
+                      "foo",
+                      Seq.empty,
+                      "GET",
+                      "/foo",
+                      "comments",
+                      Seq("filter-hosts")
+                    )),
+                    Action { _ =>
+                      Ok("allowed")
+                    })
+              }
+            }
+        }) { ws =>
+          await(
+            ws.url("http://localhost:" + testServerPort + "/foo")
+              .withHttpHeaders("Host" -> "good.com")
+              .get()).status mustEqual OK
+          await(
+            ws.url("http://localhost:" + testServerPort + "/foo")
+              .withHttpHeaders("Host" -> "evil.com")
+              .get()).status mustEqual BAD_REQUEST
+        }
+
+    "not protect untagged routes when using a route modifier blackList" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = [good.com]
+        |play.filters.hosts.routeModifiers.whiteList = []
+        |play.filters.hosts.routeModifiers.blackList = [filter-hosts]
+        |""".stripMargin
+    ) { app =>
+        status(request(app, "good.com")) must_== OK
+        status(request(app, "evil.com")) must_== OK
       }
   }
 }
