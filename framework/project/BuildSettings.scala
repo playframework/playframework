@@ -630,7 +630,7 @@ object BuildSettings {
    */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
+        .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(
