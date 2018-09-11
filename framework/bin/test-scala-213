@@ -4,11 +4,17 @@
 
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-cd ${FRAMEWORK}
+# We are not running Scala 2.13 job for scheduled builds because they use
+# Akka snapshots which aren't being published for Scala 2.13 yet.
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    printMessage "SKIPPING TESTS FOR SCALA 2.13.0-M3"
+else
+    cd ${FRAMEWORK}
 
-printMessage "RUNNING TESTS FOR SCALA 2.13.0-M3"
+    printMessage "RUNNING TESTS FOR SCALA 2.13.0-M3"
 
-# Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
-runSbt "+++2.13.0-M3 test"
+    # Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
+    runSbt "+++2.13.0-M3 test"
 
-printMessage "ALL TESTS PASSED"
+    printMessage "ALL TESTS PASSED"
+fi

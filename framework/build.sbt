@@ -4,16 +4,14 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
-import interplay.ScalaVersions._
-import interplay.PlayBuildBase.autoImport._
-import sbt.Keys.parallelExecution
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.{javaAgents, resolvedJavaAgents}
-import com.lightbend.sbt.javaagent.JavaAgent.ResolvedAgent
+import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
+import interplay.PlayBuildBase.autoImport._
+import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
+import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
-import sbt.complete.Parser
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
     .dependsOn(PlayExceptionsProject)
