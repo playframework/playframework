@@ -15,7 +15,8 @@ import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
-import akka.http.scaladsl.{ ConnectionContext, Http }
+import akka.http.scaladsl.{ ConnectionContext, Http, HttpConnectionContext }
+import akka.http.scaladsl.UseHttp2._
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
@@ -157,7 +158,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption(), secure = false))
+  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, HttpConnectionContext(http2 = if (http2Enabled) Always else Never), secure = false))
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {
