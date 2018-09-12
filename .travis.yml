@@ -10,7 +10,7 @@ env:
   matrix:
     - SCRIPT=test-scala-211
     - SCRIPT=test-scala-212
-  # - SCRIPT=test-scala-213 # akka-http doesn't support Scala 2.13: https://github.com/akka/akka-http/issues/2166
+    - SCRIPT=test-scala-213
     - SCRIPT=test-docs
     - SCRIPT=test-sbt-plugins-0_13
     - SCRIPT=test-sbt-plugins-1_0
