@@ -7,7 +7,7 @@
 # We are not running Scala 2.11 job for scheduled builds because they use
 # Akka snapshots which aren't being published for Scala 2.11 anymore.
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-    printMessage "SKIPPING TESTS FOR SCALA 2.13.0-M3"
+    printMessage "SKIPPING TESTS FOR SCALA 2.11"
     exit
 fi
 
