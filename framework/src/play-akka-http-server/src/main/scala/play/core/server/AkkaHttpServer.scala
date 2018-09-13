@@ -68,6 +68,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   implicit private val mat: Materializer = context.materializer
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
+  private val http2AlwaysForInsecure: Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure") getOrElse false)
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -158,7 +159,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, HttpConnectionContext(http2 = if (http2Enabled) Always else Never), secure = false))
+  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never), secure = false))
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {

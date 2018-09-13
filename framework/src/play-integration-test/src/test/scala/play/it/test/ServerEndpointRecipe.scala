@@ -106,12 +106,16 @@ class HttpsServerEndpointRecipe(
 
 object ServerEndpointRecipe {
 
-  private def http2Conf(enabled: Boolean): Configuration = Configuration("play.server.akka.http2.enabled" -> enabled)
+  private def http2Conf(enabled: Boolean, alwaysForInsecure: Boolean = false): Configuration = Configuration(
+    "play.server.akka.http2.enabled" -> enabled,
+    "play.server.akka.http2.alwaysForInsecure" -> alwaysForInsecure
+  )
 
   val Netty11Plaintext = new HttpServerEndpointRecipe("Netty HTTP/1.1 (plaintext)", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty"))
   val Netty11Encrypted = new HttpsServerEndpointRecipe("Netty HTTP/1.1 (encrypted)", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty"))
   val AkkaHttp11Plaintext = new HttpServerEndpointRecipe("Akka HTTP HTTP/1.1 (plaintext)", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None)
   val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe("Akka HTTP HTTP/1.1 (encrypted)", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None)
+  val AkkaHttp20Plaintext = new HttpServerEndpointRecipe("Akka HTTP HTTP/2 (plaintext)", AkkaHttpServer.provider, http2Conf(true, false), Set("1.0", "1.1", "2"), None)
   val AkkaHttp20Encrypted = new HttpsServerEndpointRecipe("Akka HTTP HTTP/2 (encrypted)", AkkaHttpServer.provider, http2Conf(true), Set("1.0", "1.1", "2"), None)
 
   /**
@@ -122,6 +126,7 @@ object ServerEndpointRecipe {
     Netty11Encrypted,
     AkkaHttp11Plaintext,
     AkkaHttp11Encrypted,
+    AkkaHttp20Plaintext,
     AkkaHttp20Encrypted
   )
 }
