@@ -348,6 +348,12 @@ Jackson version was updated from 2.8 to 2.9. The release notes for this version 
 
 [Hibernate Validator](http://hibernate.org/validator) was updated to version 6.0 which is now compatible with [Bean Validation](http://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](http://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
 
+> **Note**: Keep in mind that this version may not be fully compatible with other Hibernate dependencies you may have in your project. For example, if you are using [hibernate-jpamodelgen](https://mvnrepository.com/artifact/org.hibernate/hibernate-jpamodelgen) it is required that you use the latest version to ensure everything will work together:
+>
+> ```scala
+> libraryDependencies += "org.hibernate" % "hibernate-jpamodelgen" % "5.3.6.Final" % "provided"
+> ```
+
 ## Internal changes
 
 Many changes have been made to Play's internal APIs. These APIs are used internally and don't follow a normal deprecation process. Changes may be mentioned below to help those who integrate directly with Play internal APIs.
