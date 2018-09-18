@@ -5,24 +5,24 @@
 package scalaguide.json
 
 import javax.inject.Inject
-
-import scala.concurrent.Future
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import play.api.mvc._
 import play.api.test._
+
+import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class ScalaJsonHttpSpec extends PlaySpecification with Results {
 
   "JSON with HTTP" should {
-    "allow serving JSON" in {
+    "allow serving JSON" in new WithApplication() with Injecting {
+      val Action = inject[DefaultActionBuilder]
 
       //#serve-json-imports
       //###insert: import play.api.mvc._
-      import play.api.libs.json._
       import play.api.libs.functional.syntax._
+      import play.api.libs.json._
       //#serve-json-imports
 
       //#serve-json-implicits
@@ -50,11 +50,13 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       contentAsString(result) === """[{"name":"Sandleford","location":{"lat":51.377797,"long":-1.318965}},{"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197}}]"""
     }
 
-    "allow handling JSON" in {
+    "allow handling JSON" in new WithApplication() with Injecting {
+
+      val Action = inject[DefaultActionBuilder]
 
       //#handle-json-imports
-      import play.api.libs.json._
       import play.api.libs.functional.syntax._
+      import play.api.libs.json._
       //#handle-json-imports
 
       //#handle-json-implicits
@@ -107,8 +109,8 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
 
     "allow handling JSON with BodyParser" in new WithApplication() with Injecting {
 
-      import play.api.libs.json._
       import play.api.libs.functional.syntax._
+      import play.api.libs.json._
 
       implicit val locationReads: Reads[Location] = (
         (JsPath \ "lat").read[Double] and
@@ -121,6 +123,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       )(Place.apply _)
 
       val parse = inject[PlayBodyParsers]
+      val Action = inject[DefaultActionBuilder]
 
       //#handle-json-bodyparser
       def savePlace = Action(parse.json) { request =>
@@ -158,11 +161,12 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       import scala.concurrent.ExecutionContext.Implicits.global
 
       val parse = inject[PlayBodyParsers]
+      val Action = inject[DefaultActionBuilder]
 
       //#handle-json-bodyparser-concise
-      import play.api.libs.json._
-      import play.api.libs.json.Reads._
       import play.api.libs.functional.syntax._
+      import play.api.libs.json.Reads._
+      import play.api.libs.json._
 
       implicit val locationReads: Reads[Location] = (
         (JsPath \ "lat").read[Double](min(-90.0) keepAnd max(90.0)) and
@@ -239,8 +243,6 @@ object Place {
 
 //#controller
 import play.api.mvc._
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
 
 class HomeController @Inject()(cc:ControllerComponents) extends AbstractController(cc)  {
 

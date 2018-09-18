@@ -90,7 +90,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
         override lazy val httpErrorHandler = new DefaultHttpErrorHandler(
           environment,
           configuration,
-          sourceMapper,
+          devContext.map(_.sourceMapper),
           Some(router)
         ) {
 

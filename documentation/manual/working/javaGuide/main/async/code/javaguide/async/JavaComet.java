@@ -4,12 +4,14 @@
 
 package javaguide.async;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 
 //#comet-imports
+import akka.NotUsed;
 import akka.stream.javadsl.Source;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Comet;
@@ -38,7 +40,9 @@ public class JavaComet extends WithApplication {
 
         //#comet-string
         public static Result index() {
-            final Source source = Source.from(Arrays.asList("kiki", "foo", "bar"));
+            final Source<String, NotUsed> source = Source.from(
+                Arrays.asList("kiki", "foo", "bar")
+            );
             return ok().chunked(source.via(Comet.string("parent.cometMessage"))).as(Http.MimeTypes.HTML);
         }
         //#comet-string
@@ -54,7 +58,7 @@ public class JavaComet extends WithApplication {
         public static Result index() {
             final ObjectNode objectNode = Json.newObject();
             objectNode.put("foo", "bar");
-            final Source source = Source.from(Collections.singletonList(objectNode));
+            final Source<JsonNode, NotUsed> source = Source.from(Collections.singletonList(objectNode));
             return ok().chunked(source.via(Comet.json("parent.cometMessage"))).as(Http.MimeTypes.HTML);
         }
         //#comet-json
