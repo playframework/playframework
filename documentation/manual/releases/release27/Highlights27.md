@@ -105,7 +105,7 @@ public class ValidateWithDBValidator implements PlayConstraintValidatorWithPaylo
 }
 ```
 
-> Don't get confused with `ValidationPayload` and `ConstraintValidatorContext`: The former class is provided by Play and is what you use in your day-to-day work when dealing with forms in Play. The latter class is defined by the Bean Validation specification and is used only internally in Play - with one exception: This class emerges when your write your own custom class-level constraints, like in the last example above, where you only need to pass it on to the `reportValidationStatus` method however anyway.
+> **Note:** Don't get confused with `ValidationPayload` and `ConstraintValidatorContext`: The former class is provided by Play and is what you use in your day-to-day work when dealing with forms in Play. The latter class is defined by the [Bean Validation specification](https://beanvalidation.org/2.0/spec/) and is used only internally in Play - with one exception: This class emerges when your write your own custom class-level constraints, like in the last example above, where you only need to pass it on to the `reportValidationStatus` method however anyway.
 
 ## Support for Caffeine
 
