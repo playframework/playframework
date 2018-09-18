@@ -33,7 +33,7 @@ If you have a request available in the scope, you can bind directly from the req
 
 ## Defining constraints
 
-You can define additional constraints that will be checked during the binding phase using [`JSR-303` (Bean Validation 1.0)](http://beanvalidation.org/1.0/spec/) annotations:
+You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 2.0)](http://beanvalidation.org/2.0/spec/) annotations:
 
 @[user](code/javaguide/forms/u2/User.java)
 
@@ -96,11 +96,11 @@ The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs
 
 ## Advanced validation
 
-Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-303` (Bean Validation 1.0)](http://beanvalidation.org/1.0/spec/) and [`JSR-349` (Bean Validation 1.1)](http://beanvalidation.org/1.1/spec/1.1.0.cr3/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/).
+Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-380` (Bean Validation 2.0)](http://beanvalidation.org/2.0/spec/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/).
 
 ### Cross field validation
 
-To validate the state of an entire object we can make use of [class-level constraints](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-class-level-constraints).
+To validate the state of an entire object we can make use of [class-level constraints](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-class-level-constraints).
 To free you from the burden of implementing your own class-level constraint(s), Play out-of-the-box already provides a generic implementation of such constraint which should cover at least the most common use cases.
 
 Now let's see how this works: To define an ad-hoc validation, all you need to do is annotate your form class with Play's provided class-level constraint (`@Validate`) and implement the corresponding interface (in this case `Validatable<String>`) - which forces you to override a `validate` method:
@@ -137,7 +137,7 @@ Or think about the sign-up and the login process of a web application. Usually f
 
 Using three different forms for such a case isn't really a good idea because you would use the same constraint annotations for most of the form fields anyway. What if you have defined a max-length constraint of 255 for a `name` field and then want to change it to a limit of just 100? You would have to change this for each form. As you can imagine this would be error prone in case you forget to update one of the forms.
 
-Luckily we can simply [group constraints](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#chapter-groups):
+Luckily we can simply [group constraints](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#chapter-groups):
 
 @[user](code/javaguide/forms/groups/PartialUserForm.java)
 
@@ -175,11 +175,11 @@ But as soon you pass any other group(s) you would also have to pass the `Default
 
 > **Tip:** You can pass as many groups as you like to the `form(...)` method (not just one). Just to be clear: These groups will then be validated all at once - *not* one after the other.
 
-For advanced usage a group of constraints can include another group. You can do that using [group inheritance](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-group-inheritance).
+For advanced usage a group of constraints can include another group. You can do that using [group inheritance](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-group-inheritance).
 
 ### Defining the order of constraint groups
 
-You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this is part](https://hibernate.atlassian.net/browse/BVAL-248) of `JSR-380` - Bean Validation 2.0 - which is still [in draft](http://beanvalidation.org/proposals/BVAL-248/))
+You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this will be part](https://hibernate.atlassian.net/browse/BVAL-248) of a [future version of Bean Validation](http://beanvalidation.org/proposals/BVAL-248/))
 
 Based on the example above let's define a group sequence:
 
