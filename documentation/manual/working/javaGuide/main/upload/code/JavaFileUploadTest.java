@@ -35,7 +35,7 @@ public class JavaFileUploadTest extends WithApplication {
     @Test
     public void testFileUpload() throws IOException {
         File file = getFile();
-        Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromFile(file));
+        Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromPath(file.toPath()));
 
         //###replace:     Http.RequestBuilder request = Helpers.fakeRequest().uri(routes.MyController.upload().url())
         Http.RequestBuilder request = Helpers.fakeRequest().uri("/upload")
