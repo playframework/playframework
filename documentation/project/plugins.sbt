@@ -15,3 +15,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")
 
 // Add headers to example sources
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.0.0")
+
+// Required for Tutorial
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.4.0-M2")

@@ -18,7 +18,6 @@ package scalaguide.hello {
     //#hello-world-index-action
     def index = Action {
       Ok(views.html.index())
-
     }
     //#hello-world-index-action
 

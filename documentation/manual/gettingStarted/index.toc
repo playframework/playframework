@@ -1,11 +1,6 @@
 Introduction: What is Play
 Requirements:Requirements to work with Play
 NewApplication:Creating a new application
-HelloWorldTutorial: Hello World Tutorial
-PlayApplicationOverview: Play Application Overview
-ImplementingHelloWorld: Implementing Hello World Action
 Anatomy:Anatomy of a Play application
 PlayConsole:Using the Play console
 IDE:Setting-up your preferred IDE
-
-Tutorials:Play Tutorials

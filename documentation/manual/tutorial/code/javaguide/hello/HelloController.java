@@ -6,14 +6,14 @@ public class HelloController extends Controller {
 
     //#hello-world-index-action
     public Result index() {
-        // ###replace:         ok(views.html.index.render());
+        // ###replace:    ok(views.html.index.render());
         return ok(javaguide.hello.html.index.render());
     }
     //#hello-world-index-action
 
     //#hello-world-hello-action
     public Result hello() {
-        // ###replace:         return ok(views.html.hello.render());
+        // ###replace:     return ok(views.html.hello.render());
         return ok(javaguide.hello.html.hello.render());
     }
     //#hello-world-hello-action
@@ -28,7 +28,7 @@ public class HelloController extends Controller {
 
     //#hello-world-hello-correct-action
     public Result hello(String name) {
-        // ###replace:         return ok(views.html.hello.render(name));
+        // ###replace:    return ok(views.html.hello.render(name));
         return ok(javaguide.hello.html.helloName.render(name));
     }
     //#hello-world-hello-correct-action
