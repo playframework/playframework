@@ -232,7 +232,7 @@ With Payload
 
 As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`. When using runtime Dependency Injection, Guice will automatically inject the `Database` object, but for compile-time Dependency Injection you need to do that by yourself:
 
-@[constraint-compile-timed-di](code/javaguide/forms/customconstraint/nopayload/ValidateWithDBComponents.java)
+@[constraint-compile-timed-di](code/javaguide/forms/customconstraint/ValidateWithDBComponents.java)
 
 > **Note**: you don't need to create the `database` instance by yourself, it is already defined in the implemented interfaces.
 

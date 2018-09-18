@@ -2,8 +2,9 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.forms.customconstraint.nopayload;
+package javaguide.forms.customconstraint;
 
+import javaguide.forms.customconstraint.nopayload.ValidateWithDBValidator;
 // #constraint-compile-timed-di
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
