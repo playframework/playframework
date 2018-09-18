@@ -232,7 +232,13 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.core.server.netty.PlayRequestHandler$ReloadCacheValues$"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.apply"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.copy"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler#ReloadCacheValues.this"),
+
+      // Add play.api.inject.BindingTarget asJava method
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.inject.BindingTarget.asJava"),
+
+      // Add play.api.inject.QualifierAnnotation asJava method
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.inject.QualifierAnnotation.asJava")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
