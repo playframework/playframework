@@ -37,6 +37,45 @@ Many deprecated APIs were removed in Play 2.7. If you are still using them, we r
 
 In the future, if you still need to use static instances of application components, you can use [static injection](https://github.com/google/guice/wiki/Injections#static-injections) to inject them using Guice, or manually set static fields on startup in your application loader. These approaches should be forward compatible with future versions of Play, as long as you are careful never to run apps concurrently (e.g., in tests).
 
+Since `Play.current` is still called by some deprecated APIs, when using such APIs, you need to add the following line to your `application.conf` file:
+
+```hocon
+play.allowGlobalApplication = true
+```
+
+For example, when using `play.api.mvc.Action` object with embedded Play and [[Scala Sird Router|ScalaSirdRouter]], it access the global state:
+
+```scala
+import play.api.mvc._
+import play.api.routing.sird._
+import play.core.server._
+
+// It can also be NettyServer
+val server = AkkaHttpServer.fromRouter() {
+  // `Action` in this case is the `Action` object which access global state
+  case GET(p"/") => Action {
+    Results.Ok(s"Hello World")
+  }
+}
+```
+
+The example above either needs you to configure `play.allowGlobalApplication = true` as explained before, or to be rewritten to:
+
+```scala
+import play.api._
+import play.api.mvc._
+import play.api.routing.sird._
+import play.core.server._
+
+// It can also be NettyServer
+val server = AkkaHttpServer.fromRouterWithComponents() { components: BuiltInComponents => {
+    case GET(p"/") => components.defaultActionBuilder {
+      Results.Ok(s"Hello World")
+    }
+  }
+}
+```
+
 ## Guice compatibility changes
 
 Guice was upgraded to version [4.2.0](https://github.com/google/guice/wiki/Guice42), which causes the following breaking changes:
