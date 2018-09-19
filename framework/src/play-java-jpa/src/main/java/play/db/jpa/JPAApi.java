@@ -22,7 +22,7 @@ public interface JPAApi {
     public JPAApi start();
 
     /**
-     * Get the EntityManager for the specified persistence unit name.
+     * Get a newly created EntityManager for the specified persistence unit name.
      *
      * @param name The persistence unit name
      * @return EntityManager for the specified persistence unit name
@@ -37,7 +37,7 @@ public interface JPAApi {
     public EntityManager em();
 
     /**
-     * Run a block of code with a given EntityManager.
+     * Run a block of code with a newly created EntityManager for the default Persistence Unit.
      *
      * @param block Block of code to execute
      * @param <T> type of result
@@ -46,7 +46,7 @@ public interface JPAApi {
     public <T> T withTransaction(Function<EntityManager, T> block);
 
     /**
-     * Run a block of code with a given EntityManager.
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param block Block of code to execute
@@ -56,7 +56,7 @@ public interface JPAApi {
     public <T> T withTransaction(String name, Function<EntityManager, T> block);
 
     /**
-     * Run a block of code with a given EntityManager.
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?

@@ -69,7 +69,7 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Get the EntityManager for the specified persistence unit name.
+     * Get a newly created EntityManager for the specified persistence unit name.
      *
      * @param name The persistence unit name
      */
@@ -91,7 +91,7 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Run a block of code with the EntityManager for the named Persistence Unit.
+     * Run a block of code with a newly created EntityManager for the default Persistence Unit.
      *
      * @param block Block of code to execute
      * @param <T> type of result
@@ -102,7 +102,7 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Run a block of code with the EntityManager for the named Persistence Unit.
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param block Block of code to execute
@@ -114,7 +114,7 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Run a block of code with the EntityManager for the named Persistence Unit.
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
@@ -130,7 +130,7 @@ public class DefaultJPAApi implements JPAApi {
             entityManager = em(name);
 
             if (entityManager == null) {
-                throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
+                throw new RuntimeException("Could not create JPA entity manager for '" + name + "'");
             }
 
             entityManagerContext.push(entityManager, true);
