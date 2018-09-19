@@ -580,7 +580,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.apply"),
 
       // Add ValidationPayload to Java isValid/validate methods
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this"),
+
+      // Remove JPA class + add more withTransaction(...) methods
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPA"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
