@@ -33,7 +33,10 @@ public interface JPAApi {
      * Get the EntityManager for a particular persistence unit for this thread.
      *
      * @return EntityManager for the specified persistence unit name
+     *
+     * @deprecated The EntityManager is supplied as lambda parameter instead when using {@link #withTransaction(Function)}
      */
+    @Deprecated
     public EntityManager em();
 
     /**
@@ -72,14 +75,20 @@ public interface JPAApi {
      * @param block Block of code to execute
      * @param <T> type of result
      * @return code execution result
+     *
+     * @deprecated Use {@link #withTransaction(Function)}
      */
+    @Deprecated
     public <T> T withTransaction(Supplier<T> block);
 
     /**
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute
+     *
+     * @deprecated Use {@link #withTransaction(Function)}
      */
+    @Deprecated
     public void withTransaction(Runnable block);
 
     /**
@@ -90,7 +99,10 @@ public interface JPAApi {
      * @param block Block of code to execute
      * @param <T> type of result
      * @return code execution result
+     *
+     * @deprecated Use {@link #withTransaction(String, boolean, Function)}
      */
+    @Deprecated
     public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block);
 
     /**
