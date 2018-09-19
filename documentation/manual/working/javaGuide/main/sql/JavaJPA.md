@@ -97,13 +97,13 @@ The following methods are available to execute arbitrary code inside a JPA trans
 
 ### Examples:
 
-Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-.html):
+Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-):
 
 @[jpa-withTransaction-function](code/JPARepository.java)
 
-Using [`JPAApi.withTransaction(Runnable)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.lang.Runnable-.html) to run a batch update:
+Using [`JPAApi.withTransaction(Consumer<EntityManager>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Consumer-) to run a batch update:
 
-@[jpa-withTransaction-runnable](code/JPARepository.java)
+@[jpa-withTransaction-consumer](code/JPARepository.java)
 
 ## Enabling Play database evolutions
 

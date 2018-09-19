@@ -4,6 +4,7 @@
 
 package play.db.jpa;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -49,6 +50,13 @@ public interface JPAApi {
     public <T> T withTransaction(Function<EntityManager, T> block);
 
     /**
+     * Run a block of code with a newly created EntityManager for the default Persistence Unit.
+     *
+     * @param block Block of code to execute
+     */
+    public void withTransaction(Consumer<EntityManager> block);
+
+    /**
      * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
@@ -62,12 +70,29 @@ public interface JPAApi {
      * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
+     * @param block Block of code to execute
+     */
+    public void withTransaction(String name, Consumer<EntityManager> block);
+
+    /**
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
+     *
+     * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
      * @param <T> type of result
      * @return code execution result
      */
     public <T> T withTransaction(String name, boolean readOnly, Function<EntityManager, T> block);
+
+    /**
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute
+     */
+    public void withTransaction(String name, boolean readOnly, Consumer<EntityManager> block);
 
     /**
      * Run a block of code in a JPA transaction.
@@ -86,7 +111,7 @@ public interface JPAApi {
      *
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(Function)}
+     * @deprecated Use {@link #withTransaction(Consumer)}
      */
     @Deprecated
     public void withTransaction(Runnable block);
