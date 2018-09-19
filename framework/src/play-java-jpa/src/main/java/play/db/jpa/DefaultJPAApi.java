@@ -102,7 +102,7 @@ public class DefaultJPAApi implements JPAApi {
      * @return code execution result
      */
     public <T> T withTransaction(Function<EntityManager, T> block) {
-        return withTransaction("default", false, block);
+        return withTransaction("default", block);
     }
 
     /**
@@ -236,7 +236,7 @@ public class DefaultJPAApi implements JPAApi {
     @Deprecated
     public void withTransaction(final Runnable block) {
         try {
-            withTransaction("default", false, () -> {
+            withTransaction(() -> {
                 block.run();
                 return null;
             });
