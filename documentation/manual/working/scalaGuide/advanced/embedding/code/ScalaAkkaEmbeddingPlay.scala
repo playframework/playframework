@@ -5,9 +5,6 @@
 import org.specs2.mutable.Specification
 import play.api.routing.Router
 import play.api.test.WsTestClient
-import play.api.{ApplicationLoader, BuiltInComponentsFromContext, Environment}
-import play.core.server.DefaultAkkaHttpServerComponents
-import play.filters.HttpFiltersComponents
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -74,6 +71,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
       import play.api.routing.Router
       import play.api.routing.sird._
+      import play.core.server.DefaultAkkaHttpServerComponents
 
       import scala.concurrent.Future
 
@@ -112,6 +110,8 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server.{AkkaHttpServer, ServerConfig}
+      import play.filters.HttpFiltersComponents
+      import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
 
       val context = ApplicationLoader.Context.create(Environment.simple())
       val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
@@ -137,10 +137,11 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
     "allow usage from with logger configurator" in {
       //#logger-akka-http
-      import play.api.{ Environment, ApplicationLoader, LoggerConfigurator }
       import play.api.mvc._
       import play.api.routing.sird._
+      import play.filters.HttpFiltersComponents
       import play.core.server.{AkkaHttpServer, ServerConfig}
+      import play.api.{ Environment, ApplicationLoader, LoggerConfigurator, BuiltInComponentsFromContext }
 
       val context = ApplicationLoader.Context.create(Environment.simple())
       // Do the logging configuration
