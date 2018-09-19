@@ -265,6 +265,12 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
 
+## Java `Form`, `DynamicForm` and `FormFactory` constructors changed
+
+Constructors of the `Form`, `DynamicForm` and `FormFactory` classes (inside `play.data`) that were using a [`Validator`](https://docs.jboss.org/hibernate/stable/beanvalidation/api/javax/validation/Validator.html) param use a [`ValidatorFactory`](https://docs.jboss.org/hibernate/stable/beanvalidation/api/javax/validation/ValidatorFactory.html) param instead now.
+E.g. `new Form(..., validator)` becomes `new Form(..., validatorFactory)` now.
+This change only effects you if you use the constructors to instantiate a form instead of just using `formFactory.form(SomeForm.class)` - most likely in tests.
+
 ## The Java Cache API `get` method has been deprecated in favor of `getOptional`
 
 The `getOptional` methods of the Java `cacheApi` return their results wrapped in an `Optional`.

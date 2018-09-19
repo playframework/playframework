@@ -5,6 +5,7 @@
 package play.data;
 
 import com.google.common.collect.ImmutableList;
+import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -19,6 +20,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
+import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
@@ -31,6 +33,8 @@ import javax.validation.groups.Default;
 import javax.validation.metadata.BeanDescriptor;
 import javax.validation.metadata.ConstraintDescriptor;
 import javax.validation.metadata.PropertyDescriptor;
+import javax.validation.ValidatorFactory;
+import javax.validation.Validator;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -93,7 +97,7 @@ public class Form<T> {
     private final Class<?>[] groups;
     final MessagesApi messagesApi;
     final Formatters formatters;
-    final javax.validation.Validator validator;
+    final ValidatorFactory validatorFactory;
 
     public Class<T> getBackedType() {
         return backedType;
@@ -113,30 +117,30 @@ public class Form<T> {
      * @param clazz wrapped class
      * @param messagesApi    messagesApi component.
      * @param formatters     formatters component.
-     * @param validator      validator component.
+     * @param validatorFactory      validatorFactory component.
      */
-    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(null, clazz, messagesApi, formatters, validator);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(null, clazz, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory);
     }
 
     /**
@@ -150,9 +154,9 @@ public class Form<T> {
      * @param groups    the array of classes with the groups.
      * @param messagesApi needed to look up various messages
      * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
+     * @param validatorFactory the validatorFactory component.
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -161,7 +165,7 @@ public class Form<T> {
         this.groups = groups;
         this.messagesApi = messagesApi;
         this.formatters = formatters;
-        this.validator = validator;
+        this.validatorFactory = validatorFactory;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -307,7 +311,7 @@ public class Form<T> {
     }
 
     /**
-     * When dealing with @ValidateWith annotations, and message parameter is not used in
+     * When dealing with @ValidateWith or @ValidatePayloadWith annotations, and message parameter is not used in
      * the annotation, extract the message from validator's getErrorMessageKey() method
      *
      * @param violation the constraint violation.
@@ -327,6 +331,17 @@ public class Form<T> {
                 }
             }
         }
+        if (annotation instanceof Constraints.ValidatePayloadWith) {
+            Constraints.ValidatePayloadWith validatePayloadWithAnnotation = (Constraints.ValidatePayloadWith)annotation;
+            if (violation.getMessage().equals(Constraints.ValidatePayloadWithValidator.defaultMessage)) {
+                Constraints.ValidatePayloadWithValidator validatePayloadWithValidator = new Constraints.ValidatePayloadWithValidator();
+                validatePayloadWithValidator.initialize(validatePayloadWithAnnotation);
+                Tuple<String, Object[]> errorMessageKey = validatePayloadWithValidator.getErrorMessageKey();
+                if (errorMessageKey != null && errorMessageKey._1 != null) {
+                    errorMessage = errorMessageKey._1;
+                }
+            }
+        }
 
         return errorMessage;
     }
@@ -341,7 +356,7 @@ public class Form<T> {
         if (allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
-        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validatorFactory.getValidator());
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
@@ -364,6 +379,10 @@ public class Form<T> {
     private Set<ConstraintViolation<Object>> runValidation(DataBinder dataBinder, Map<String, String> objectData) {
         return withRequestLocale(() -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
+            final Http.Context ctx = Http.Context.current.get();
+            // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set
+            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args) : ValidationPayload.empty();
+            final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
             } else {
@@ -483,9 +502,9 @@ public class Form<T> {
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory);
         }
-        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory);
     }
 
     /**
@@ -541,7 +560,7 @@ public class Form<T> {
                 groups,
                 messagesApi,
                 formatters,
-                validator
+                validatorFactory
         );
     }
 
@@ -712,7 +731,7 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validator);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory);
     }
 
     /**
@@ -759,7 +778,7 @@ public class Form<T> {
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validator);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory);
     }
 
     /**
@@ -846,8 +865,8 @@ public class Form<T> {
             classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
             leafKey = leafKey.substring(p + 1);
         }
-        if (classType != null && this.validator != null) {
-            BeanDescriptor beanDescriptor = this.validator.getConstraintsForClass(classType);
+        if (classType != null && this.validatorFactory != null) {
+            BeanDescriptor beanDescriptor = this.validatorFactory.getValidator().getConstraintsForClass(classType);
             if (beanDescriptor != null) {
                 PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
                 if (property != null) {

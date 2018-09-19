@@ -57,6 +57,56 @@ public class MyForm {
 
 You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognise that.
 
+## Payloads for Java `validate` and `isValid` methods
+
+When using [[advanced validation features|JavaForms#Advanced-validation]] you can now pass a `ValidationPayload` object, containing useful information sometimes needed for a validation process, to a Java `validate` or `isValid` method.
+To pass such a payload to a `validate` method just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
+
+```java
+import java.util.Map;
+import play.data.validation.Constraints.ValidatableWithPayload;
+import play.data.validation.Constraints.ValidateWithPayload;
+import play.data.validation.Constraints.ValidationPayload;
+import play.i18n.Lang;
+import play.i18n.Messages;
+
+@ValidateWithPayload
+public class SomeForm implements ValidatableWithPayload<String> {
+
+    @Override
+    public String validate(ValidationPayload payload) {
+        Lang lang = payload.getLang();
+        Messages messages = payload.getMessages();
+        Map<String, Object> ctxArgs = payload.getArgs();
+        // ...
+    }
+
+}
+```
+
+In case you wrote your own [[custom class-level constraint|JavaForms#Custom-class-level-constraints-with-DI-support]], you can also pass a payload to an `isValid` method by implementing `PlayConstraintValidatorWithPayload` (instead of just `PlayConstraintValidator`):
+```java
+import javax.validation.ConstraintValidatorContext;
+
+import play.data.validation.Constraints.PlayConstraintValidatorWithPayload;
+import play.data.validation.Constraints.ValidationPayload;
+// ...
+
+public class ValidateWithDBValidator implements PlayConstraintValidatorWithPayload<SomeValidatorAnnotation, SomeValidatableInterface<?>> {
+
+    //...
+
+    @Override
+    public boolean isValid(final SomeValidatableInterface<?> value, final ValidationPayload payload, final ConstraintValidatorContext constraintValidatorContext) {
+        // You can now pass the payload on to your custom validate(...) method:
+        return reportValidationStatus(value.validate(...., payload), constraintValidatorContext);
+    }
+
+}
+```
+
+> **Note:** Don't get confused with `ValidationPayload` and `ConstraintValidatorContext`: The former class is provided by Play and is what you use in your day-to-day work when dealing with forms in Play. The latter class is defined by the [Bean Validation specification](https://beanvalidation.org/2.0/spec/) and is used only internally in Play - with one exception: This class emerges when your write your own custom class-level constraints, like in the last example above, where you only need to pass it on to the `reportValidationStatus` method however anyway.
+
 ## Support for Caffeine
 
 Play now offers a CacheApi implementation based on [Caffeine](https://github.com/ben-manes/caffeine/). Caffeine is the recommended cache implementation for Play users.
