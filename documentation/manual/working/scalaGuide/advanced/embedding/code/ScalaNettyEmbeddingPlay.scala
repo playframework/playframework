@@ -5,7 +5,6 @@
 package scalaguide.advanced.embedding
 
 import org.specs2.mutable.Specification
-import play.api.BuiltInComponentsFromContext
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
@@ -107,7 +106,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
       import play.api.routing.Router
       import play.api.routing.sird._
-      import play.api.{ApplicationLoader, Environment, LoggerConfigurator, Mode}
+      import play.api._
       import play.core.server._
 
       val environment = Environment.simple(mode = Mode.Prod)
@@ -118,7 +117,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
         _.configure(context.environment, context.initialConfiguration, Map.empty)
       }
 
-      val components = new BuiltInComponentsFromContext(context) with DefaultNettyServerComponents {
+      val components = new DefaultNettyServerComponents {
         override def router: Router = Router.from {
           case GET(p"/hello/$to") => Action {
             Results.Ok(s"Hello $to")
