@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package scalaguide.hello {
   import play.api.mvc._
   import javax.inject.Inject
