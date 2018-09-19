@@ -4,6 +4,8 @@
 
 package play.data
 
+import com.typesafe.config.ConfigFactory
+
 import javax.validation.Validation
 
 import org.specs2.mutable.Specification
@@ -19,7 +21,7 @@ class PartialValidationSpec extends Specification {
   val messagesApi = new DefaultMessagesApi()
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory())
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory(), ConfigFactory.empty())
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {

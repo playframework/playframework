@@ -5,6 +5,7 @@
 package play.data;
 
 import com.google.common.collect.ImmutableList;
+import com.typesafe.config.Config;
 import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
 import org.springframework.beans.BeanWrapper;
@@ -98,6 +99,7 @@ public class Form<T> {
     final MessagesApi messagesApi;
     final Formatters formatters;
     final ValidatorFactory validatorFactory;
+    final Config config;
 
     public Class<T> getBackedType() {
         return backedType;
@@ -118,29 +120,30 @@ public class Form<T> {
      * @param messagesApi    messagesApi component.
      * @param formatters     formatters component.
      * @param validatorFactory      validatorFactory component.
+     * @param config      config component.
      */
-    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        this(null, clazz, messagesApi, formatters, validatorFactory);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(null, clazz, messagesApi, formatters, validatorFactory, config);
     }
 
-    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validatorFactory);
+    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validatorFactory, config);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory);
+    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory, config);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validatorFactory);
+    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validatorFactory, config);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validatorFactory);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validatorFactory, config);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory, config);
     }
 
     /**
@@ -155,8 +158,9 @@ public class Form<T> {
      * @param messagesApi needed to look up various messages
      * @param formatters used for parsing and printing form fields
      * @param validatorFactory the validatorFactory component.
+     * @param config the config component.
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -166,6 +170,7 @@ public class Form<T> {
         this.messagesApi = messagesApi;
         this.formatters = formatters;
         this.validatorFactory = validatorFactory;
+        this.config = config;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -380,8 +385,8 @@ public class Form<T> {
         return withRequestLocale(() -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
             final Http.Context ctx = Http.Context.current.get();
-            // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set
-            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args) : ValidationPayload.empty();
+            // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set, the config however always will
+            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args, this.config) : ValidationPayload.empty(this.config);
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
@@ -502,9 +507,9 @@ public class Form<T> {
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config);
         }
-        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory);
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config);
     }
 
     /**
@@ -560,7 +565,8 @@ public class Form<T> {
                 groups,
                 messagesApi,
                 formatters,
-                validatorFactory
+                validatorFactory,
+                config
         );
     }
 
@@ -731,7 +737,7 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
     /**
@@ -778,7 +784,7 @@ public class Form<T> {
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
     /**
