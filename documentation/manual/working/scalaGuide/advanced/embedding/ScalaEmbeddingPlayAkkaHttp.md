@@ -31,7 +31,7 @@ Another way is to create a Play Application via [`GuiceApplicationBuilder`](api/
 
 ## Logging configuration
 
-When using Akka HTTP as an embedded server, it does not brings any logging dependencies, then, if you want to also add logging to the embedded application, you need to first add the dependency:
+When using Akka HTTP as an embedded server, no logging dependencies are included by default. If you want to also add logging to the embedded application, you can add the Play logback module:
 
 @[embed-logging-sbt-dependencies](code/embedded.sbt)
 
