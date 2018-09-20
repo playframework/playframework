@@ -25,8 +25,8 @@ private[sbt] trait PlaySettingsCompat {
     compileValue.asInstanceOf[sbt.internal.inc.Analysis]
   }
 
-  def getPlayExternalizedResources(rdirs: Seq[File], unmanagedResourcesValue: Seq[File], externalizeResourcesExcludes: Seq[String]): Seq[(File, String)] = {
-    (unmanagedResourcesValue --- rdirs) pair (relativeTo(rdirs) | flat) filterNot (r => externalizeResourcesExcludes.map(_.toLowerCase).contains(r._2.toLowerCase))
+  def getPlayExternalizedResources(rdirs: Seq[File], unmanagedResourcesValue: Seq[File], externalizeResourcesExcludes: Seq[File]): Seq[(File, String)] = {
+    (unmanagedResourcesValue --- rdirs --- externalizeResourcesExcludes) pair (relativeTo(rdirs) | flat)
   }
 
 }

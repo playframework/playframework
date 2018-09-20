@@ -59,7 +59,7 @@ in `build.sbt`. Sometimes this behaviour is needed for cases where a library req
 
 Since Play 2.7 another configuration key exists that allows you to exclude specific resources so they won't be externalized, even though when `PlayKeys.externalizeResources := true`:
 ```
-PlayKeys.externalizeResourcesExcludes += "folder-inside-conf/file.xml"
+PlayKeys.externalizeResourcesExcludes += baseDirectory.value / "conf" / "somefolder" / "somefile.xml"
 ```
 Thanks to this configuration key you don't have to put all the files of the `conf` folder into the `jar` file anymore when that is needed only for some specific files.
 
