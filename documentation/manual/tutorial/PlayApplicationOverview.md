@@ -2,11 +2,11 @@
 
 # Play Application Overview
 
-This tutorial is implemented as a simple Play application that we can examine to start learning about Play. Let's first look at what happens at runtime. When you enter <a target="play-docs" href="http://localhost:9000/">http://localhost:9000/</a> in your browser:
+This tutorial is implemented as a simple Play application that we can examine to start learning about Play. Let's first look at what happens at runtime. When you enter <http://localhost:9000/> in your browser:
 
 1. The browser requests the root `/` URI from the HTTP server using the `GET` method.
 1. The Play internal HTTP Server receives the request.
-1. Play resolves the request using the routes file, which maps URIs to controller action methods.
+1. Play resolves the request using the `routes` file, which maps URIs to controller action methods.
 1. The action method renders the `index` page, using Twirl templates.
 1. The HTTP server returns the response as an HTML page.
 
@@ -18,8 +18,8 @@ At a high level, the flow looks something like this:
 
 Next, let's look at the tutorial project to locate the implementation for:
 
-1. The controller action method that defines how to handle a request to the root URI.
 1. The routes file that maps the request to the controller method.
+1. The controller action method that defines how to handle a request to the root URI.
 1. The Twirl template that the action method calls to render the HTML markup.
 
 Follow these steps to drill down into the source files:

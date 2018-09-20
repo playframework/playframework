@@ -35,4 +35,4 @@ Here are just a few of the reasons developers love using Play Framework:
   - Provides type safety
   - Is compiled so that errors display in the browser
 
-To learn more about Play's benefits, visit the [Play website](https://www.playframework.com). Now, let's dive into what a Play application looks like.
+To learn more about Play's benefits, see Play's [[Introduction]] and [[Philosophy]]. Now, let's dive into what a Play application looks like.

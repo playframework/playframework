@@ -33,7 +33,11 @@ To launch sbt in interactive mode, change into the top level of your project and
 ```bash
 $ cd my-first-app
 my-first-app $  sbt
+```
+
 And you will see something like:
+
+```
 [info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Updating {file:/Users/play-developer/my-first-app/project/}my-first-app-build...

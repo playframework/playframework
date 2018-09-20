@@ -69,7 +69,7 @@ $ sbt run
 Documentation server started, you can now view the docs by going to http://0:0:0:0:0:0:0:0:9000
 ```
 
-Now open <a target="play-docs" href="http://localhost:9000/">http://localhost:9000/</a> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.
+Now open <http://localhost:9000/> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.
 
 Copy a markdown page from the Play repository into your project.  It is important to ensure that the directory structure in your project matches the directory in Play, this will ensure that the code samples work.
 
@@ -109,7 +109,7 @@ sbt validateExternalLinks
 
 Another very helpful tool provided by Play is a translation report, which shows which files have not been translated, and also tries to detect issues, for example, if the translation introduces new files, or if the translation is missing code samples.  This can particularly help when translating a new version of the documentation, since the addition or removal of code samples will often be a good signal that something has changed.
 
-To view the translation report, run the documentation server (like normal), and then visit <a target="play-docs" href="http://localhost:9000/@report">http://localhost:9000/@report</a> in your browser.  By default it will serve a cached version of the report if it has been generated in the past, you can rerun the report by clicking the rerun report link.
+To view the translation report, run the documentation server (like normal), and then visit <http://localhost:9000/@report> in your browser.  By default it will serve a cached version of the report if it has been generated in the past, you can rerun the report by clicking the rerun report link.
 
 ## Deploying documentation to playframework.com
 
