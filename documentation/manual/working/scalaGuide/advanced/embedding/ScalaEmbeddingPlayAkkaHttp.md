@@ -1,7 +1,9 @@
 <!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 #  Embedding an Akka Http server in your application
 
-While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application. This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary. A common use case is an application with only a few simple routes.
+While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application. This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary. A common use case is an application with only a few simple routes. To use Akka HTTP Server embedded, you will need the following dependency:
+
+@[akka-http-sbt-dependencies](code/embedded.sbt)
 
 One way start a Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouterWithComponents` method:
 
@@ -26,3 +28,13 @@ To stop the server once you've started it, simply call the `stop` method:
 Another way is to create a Play Application via [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) in combination with the `fromApplication` method:
  
 @[application-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
+
+## Logging configuration
+
+When using Akka HTTP as an embedded server, no logging dependencies are included by default. If you want to also add logging to the embedded application, you can add the Play logback module:
+
+@[embed-logging-sbt-dependencies](code/embedded.sbt)
+
+And later call the [`LoggerConfigurator`](api/scala/play/api/LoggerConfigurator.html) API:
+
+@[logger-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
