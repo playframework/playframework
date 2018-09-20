@@ -580,7 +580,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.apply"),
 
       // Add ValidationPayload to Java isValid/validate methods
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.FormFactory.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.this"),
+      ProblemFilters.exclude[InheritedNewAbstractMethodProblem]("play.data.FormFactoryComponents.config"),
 
       // Remove JPA class + add more withTransaction(...) methods
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPA"),
