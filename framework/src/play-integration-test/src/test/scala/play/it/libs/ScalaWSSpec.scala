@@ -139,7 +139,7 @@ trait ScalaWSSpec extends PlaySpecification with ServerIntegrationSpecification 
         }
         "expect title-case header with signed request" in withAuthorizationCheck { ws =>
           val body = await(ws.url("/").sign(oauthCalc).execute()).body
-          body must_== ("Authorization")
+          body must beEqualTo("Authorization").ignoreCase
         }
       }
 

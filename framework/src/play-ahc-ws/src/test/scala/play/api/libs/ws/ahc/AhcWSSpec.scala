@@ -473,7 +473,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
   }
 
   def createCookie(name: String, value: String, wrap: Boolean, domain: String, path: String, maxAge: Long, secure: Boolean, httpOnly: Boolean): NettyCookie = {
-    val ahcCookie = new NettyDefaultCookie(ahcCookie, value)
+    val ahcCookie = new NettyDefaultCookie(name, value)
     ahcCookie.setWrap(wrap)
     ahcCookie.setDomain(domain)
     ahcCookie.setPath(path)
