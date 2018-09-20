@@ -17,21 +17,21 @@ public class TestEntity {
 
     public String name;
 
-    public void save() {
-        JPA.em().persist(this);
+    public void save(EntityManager em) {
+        em.persist(this);
     }
 
-    public void delete() {
-        JPA.em().remove(this);
+    public void delete(EntityManager em) {
+        em.remove(this);
     }
 
-    public static TestEntity find(Long id) {
-        return JPA.em().find(TestEntity.class, id);
+    public static TestEntity find(Long id, EntityManager em) {
+        return em.find(TestEntity.class, id);
     }
 
-    public static List<String> allNames() {
+    public static List<String> allNames(EntityManager em) {
         @SuppressWarnings("unchecked")
-        List<TestEntity> results = JPA.em().createQuery("from TestEntity order by name").getResultList();
+        List<TestEntity> results = em.createQuery("from TestEntity order by name").getResultList();
         return results.stream().map(entity -> entity.name).collect(toList());
     }
 

@@ -225,6 +225,20 @@ val loader = new GreetingApplicationLoader()
 val application = loader.load(context)
 ```
 
+## JPA removals and deprecations
+
+The class `play.db.jpa.JPA`, which has been deprecated in Play 2.6 already, has finally been removed. Have a look at the [[Play 2.6 JPA Migration notes|JPAMigration26]] if you haven't yet.
+
+With this Play release even more JPA related methods and annotations have been deprecated:
+
+* `@play.db.jpa.Transactional`
+* `play.db.jpa.JPAApi.em()`
+* `play.db.jpa.JPAApi.withTransaction(final Runnable block)`
+* `play.db.jpa.JPAApi.withTransaction(Supplier<T> block)`
+* `play.db.jpa.JPAApi.withTransaction(String name, boolean readOnly, Supplier<T> block)`
+
+Like already mentioned in the Play 2.6 JPA migration notes, please use a `JPAApi` injected instance as described in [[Using play.db.jpa.JPAApi|JavaJPA#Using-play.db.jpa.JPAApi]] instead of these deprecated methods and annotations.
+
 ## Java `Http` changes
 
 Multiple changes were made to `Http.Context`.
