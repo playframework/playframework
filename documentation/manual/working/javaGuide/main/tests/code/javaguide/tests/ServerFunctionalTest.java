@@ -4,6 +4,7 @@
 
 package javaguide.tests;
 
+import java.util.OptionalInt;
 import java.util.concurrent.*;
 
 import org.junit.*;
@@ -21,9 +22,17 @@ public class ServerFunctionalTest extends WithServer {
 
     @Test
     public void testInServer() throws Exception {
-        int timeout = 5000;
-        String url = "http://localhost:" + this.testServer.port() + "/";
-        try (WSClient ws = play.test.WSTestClient.newClient(this.testServer.port())) {
+        OptionalInt optHttpsPort = testServer.getRunningHttpsPort();
+        String url;
+        int port;
+        if (optHttpsPort.isPresent()) {
+            port = optHttpsPort.getAsInt();
+            url = "https://localhost:" + port;
+        } else {
+            port = testServer.getRunningHttpPort().getAsInt();
+            url = "http://localhost:" + port;
+        }
+        try (WSClient ws = play.test.WSTestClient.newClient(port)) {
             CompletionStage<WSResponse> stage = ws.url(url).get();
             WSResponse response = stage.toCompletableFuture().get();
             assertEquals(NOT_FOUND, response.getStatus());
