@@ -553,6 +553,28 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOptional"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOptional"),
 
+      // Remove DefaultDBApi.connect method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect"),
+
+      // Make all BodyParser maxLength args Long
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.text"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.xml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.tolerantJson"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.formUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.tolerantFormUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.json"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.tolerantXml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.text"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.xml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.formUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantJson"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantFormUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.json"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantXml"),
+
       // Add configuration to set max header value length
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.REQUEST_HEADER_FIELDS_TOO_LARGE"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_="),
