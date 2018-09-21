@@ -28,7 +28,7 @@ public class TestServer extends play.api.test.TestServer {
      */
     public TestServer(int port, Application application) {
         super(createServerConfig(Optional.of(port), Optional.empty()), application.asScala(),
-                play.libs.Scala.<ServerProvider>None());
+                play.libs.Scala.None());
     }
 
     /**
@@ -40,9 +40,10 @@ public class TestServer extends play.api.test.TestServer {
      */
     public TestServer(int port, Application application, int sslPort) {
         super(createServerConfig(Optional.of(port), Optional.of(sslPort)), application.asScala(),
-                play.libs.Scala.<ServerProvider>None());
+                play.libs.Scala.None());
     }
 
+    @SuppressWarnings("unchecked")
     private static ServerConfig createServerConfig(Optional<Integer> port, Optional<Integer> sslPort) {
         return ServerConfig.apply(TestServer.class.getClassLoader(), new File("."),
                 (Option) OptionConverters.toScala(port), (Option) OptionConverters.toScala(sslPort), "0.0.0.0",
