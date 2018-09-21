@@ -10,6 +10,7 @@ import play.api.Logger
 import play.libs.F
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 /**
  * Application lifecycle register.
@@ -92,8 +93,14 @@ class DefaultApplicationLifecycle extends ApplicationLifecycle {
 
     hooks.foldLeft(Future.successful(())) { (future, hook) =>
       future.flatMap { _ =>
-        hook().recover {
-          case e => Logger.error("Error executing stop hook", e)
+        try {
+          hook().recover {
+            case e => Logger.error("Error executing stop hook", e)
+          }
+        } catch {
+          case NonFatal(shutdownHookSynchronousError) =>
+            Logger.error("Error creating stop hook Future", shutdownHookSynchronousError)
+            Future.successful(Unit)
         }
       }
     }
