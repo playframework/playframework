@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.collection.breakOut
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
+import scala.util.Failure
 
 import akka.stream.Materializer
 import akka.stream.scaladsl._
@@ -38,7 +38,7 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param partHandler The accumulator to handle the parts.
    */
-  def partParser[A](maxMemoryBufferSize: Int, errorHandler: HttpErrorHandler)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
+  def partParser[A](maxMemoryBufferSize: Long, errorHandler: HttpErrorHandler)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
 
     val maybeBoundary = for {
       mt <- request.mediaType
@@ -77,7 +77,7 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param filePartHandler The accumulator to handle the file parts.
    */
-  def multipartParser[A](maxMemoryBufferSize: Int, filePartHandler: FilePartHandler[A], errorHandler: HttpErrorHandler)(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
+  def multipartParser[A](maxMemoryBufferSize: Long, filePartHandler: FilePartHandler[A], errorHandler: HttpErrorHandler)(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
     partParser(maxMemoryBufferSize, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
@@ -240,7 +240,7 @@ object Multipart {
    *
    * see: http://tools.ietf.org/html/rfc2046#section-5.1.1
    */
-  private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Int, maxHeaderSize: Int)
+  private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int)
     extends GraphStage[FlowShape[ByteString, RawPart]] {
 
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
