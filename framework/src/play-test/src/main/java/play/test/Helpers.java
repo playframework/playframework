@@ -543,6 +543,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server.
      *
+     * @param port    the port to run the server on.
+     * @param sslPort the port to run the server on.
+     * @return the test server.
+     */
+    public static TestServer testServer(int port, int sslPort) {
+        return new TestServer(port, fakeApplication(), sslPort);
+    }
+
+    /**
+     * Creates a new Test server.
+     *
      *
      * @param port    the port to run the server on.
      * @param app     the Play application.

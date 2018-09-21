@@ -8,9 +8,10 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.13"
-  val akkaHttpVersion = "10.1.3"
-  val playJsonVersion = "2.6.9"
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.16")
+  val akkaHttpVersion = "10.1.5"
+  val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
+  val playJsonVersion = "2.6.10"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -30,7 +31,7 @@ object Dependencies {
 
   // We need to use an older version of specs2 for sbt
   // because we need Scala 2.10 support (sbt 0.13).
-  val specs2VersionForSbt = "3.9.5"
+  val specs2VersionForSbt = "3.10.0"
   val specs2DepsForSbt = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
@@ -49,14 +50,14 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava = "com.google.guava" % "guava" % "25.1-jre"
+  val guava = "com.google.guava" % "guava" % "26.0-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-core" % "2.18.3"
+  val mockitoAll = "org.mockito" % "mockito-core" % "2.21.0"
 
   val h2database = "com.h2database" % "h2" % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.47"
+  val acolyteVersion = "1.0.49"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
@@ -78,7 +79,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate" % "hibernate-core" % "5.3.1.Final" % "test"
+    "org.hibernate" % "hibernate-core" % "5.3.5.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
@@ -87,7 +88,7 @@ object Dependencies {
     case _ => Nil
   }
 
-  val springFrameworkVersion = "5.0.7.RELEASE"
+  val springFrameworkVersion = "5.0.8.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -103,7 +104,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate" % "hibernate-validator" % "6.0.10.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.0.13.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
@@ -158,7 +159,7 @@ object Dependencies {
       scalaJava8Compat
     ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.25.Final"
+  val nettyVersion = "4.1.29.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
@@ -169,7 +170,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.10.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.11.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -183,25 +184,16 @@ object Dependencies {
     Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
-  def playFileWatch(sbtVersion: String): ModuleID = CrossVersion.binarySbtVersion(sbtVersion) match {
-    case "1.0" => "com.lightbend.play" %% "play-file-watch" % "1.1.7"
-    case "0.13" => "com.lightbend.play" %% "play-file-watch" % "1.0.0"
-  }
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.7"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     (CrossVersion.binarySbtVersion(sbtVersion) match {
       case "1.0" => specs2Deps.map(_ % Test)
       case "0.13" => specs2DepsForSbt.map(_ % Test)
     }) ++ Seq(
-      playFileWatch(sbtVersion),
+      playFileWatch,
       logback % Test
     )
-  }
-
-  // use partial version so that non-standard scala binary versions from dbuild also work
-  def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.16" % "provided"
-    case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
   val typesafeConfig = "com.typesafe" % "config" % "1.3.3"
@@ -213,7 +205,7 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
       slf4jSimple,
-      playFileWatch(sbtVersion),
+      playFileWatch,
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
@@ -246,10 +238,10 @@ object Dependencies {
     logback % Test
   )
 
-  val fluentleniumVersion = "3.5.2"
+  val fluentleniumVersion = "3.6.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
-  val seleniumVersion = "3.9.1"
+  val seleniumVersion = "3.13.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     "org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion exclude("org.jboss.netty", "netty"),
@@ -284,7 +276,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.0-M2"
+  val playWsStandaloneVersion = "2.0.0-M3"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
@@ -339,11 +331,17 @@ object Dependencies {
 
         project.dependsOn(withConfig)
       } else {
-        val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
-        val withConfig =
-          if (config == "") dep
-          else dep % config
-        project.settings(libraryDependencies += withConfig)
+        project.settings(libraryDependencies += {
+          val akkaHttpVersion = CrossVersion.partialVersion(scalaVersion.value) match {
+            case Some((2, 13)) => Dependencies.akkaHttpVersion_2_13
+            case _ => Dependencies.akkaHttpVersion
+          }
+          val dep = "com.typesafe.akka" %% module % akkaHttpVersion
+          val withConfig =
+            if (config == "") dep
+            else dep % config
+          withConfig
+        })
       }
   }
 }

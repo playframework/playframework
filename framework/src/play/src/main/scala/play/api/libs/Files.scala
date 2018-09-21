@@ -173,10 +173,10 @@ object Files {
     }
 
     private def createReference(tempFile: TemporaryFile) = {
+      val path = tempFile.path
       val reference = new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
         override def finalizeReferent(): Unit = {
           references.remove(this)
-          val path = tempFile.path
           deletePath(path)
         }
       }

@@ -1,4 +1,6 @@
 # Build the distribution and ensure that the files we expect are indeed there
+# Note: externalizeResources is true by default
+> set PlayKeys.externalizeResourcesExcludes += baseDirectory.value / '"conf"' / '"META-INF"' / '"persistence.xml"'
 > stage
 $ exists target/universal/stage/README
 $ exists target/universal/stage/SomeFile.txt
@@ -8,6 +10,7 @@ $ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT-sans-ex
 
 > checkStartScript
 $ exists target/universal/stage/conf/application.conf
+-$ exists target/universal/stage/conf/META-INF/persistence.xml
 $ exists target/universal/stage/lib
 $ exists target/universal/stage/share/doc/api
 
@@ -27,6 +30,8 @@ $ copy-file conf/alternate.conf target/universal/stage/conf/application.conf
 > set PlayKeys.externalizeResources := false
 > stage
 -$ exists target/dist/conf/application.conf
+-$ exists target/universal/stage/conf/application.conf
+-$ exists target/universal/stage/conf/META-INF/persistence.xml
 -$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT-sans-externalized.jar
 $ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT.jar
 > checkStartScript no-conf

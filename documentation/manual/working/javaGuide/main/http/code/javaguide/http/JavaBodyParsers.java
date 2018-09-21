@@ -214,7 +214,7 @@ public class JavaBodyParsers extends WithApplication {
     }
     //#csv
 
-    @Test
+    @Test @SuppressWarnings("unchecked")
     public void testCsv() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                 @BodyParser.Of(CsvBodyParser.class)

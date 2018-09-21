@@ -16,6 +16,6 @@ public class BlueValidator extends Constraints.Validator<String> {
     }
 
     public F.Tuple<String, Object[]> getErrorMessageKey() {
-        return F.Tuple("notblue", new Object[] {});
+        return F.Tuple("notblue", new Object[] {"argOne", "argTwo"});
     }
 }

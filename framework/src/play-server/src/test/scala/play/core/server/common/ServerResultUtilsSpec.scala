@@ -172,7 +172,7 @@ class ServerResultUtilsSpec extends Specification {
       resultUtils.validateHeaderNameChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[IllegalArgumentException])
     }
     "not accept control characters" in {
-      resultUtils.validateHeaderNameChars("\0") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("\u0000") must (throwAn[IllegalArgumentException])
       resultUtils.validateHeaderNameChars("\u0001") must (throwAn[IllegalArgumentException])
       resultUtils.validateHeaderNameChars("\u001f") must (throwAn[IllegalArgumentException])
       resultUtils.validateHeaderNameChars("\u00ff") must (throwAn[IllegalArgumentException])
@@ -197,7 +197,7 @@ class ServerResultUtilsSpec extends Specification {
       resultUtils.validateHeaderValueChars(" \t") must not(throwAn[IllegalArgumentException])
     }
     "not accept control characters" in {
-      resultUtils.validateHeaderValueChars("\0") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("\u0000") must (throwAn[IllegalArgumentException])
       resultUtils.validateHeaderValueChars("\u0001") must (throwAn[IllegalArgumentException])
       resultUtils.validateHeaderValueChars("\u001f") must (throwAn[IllegalArgumentException])
       resultUtils.validateHeaderValueChars("\u007f") must (throwAn[IllegalArgumentException])

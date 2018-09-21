@@ -6,17 +6,28 @@ package play.api.db
 
 import javax.inject.Inject
 import org.specs2.mutable.Specification
-import play.api.PlayException
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.{ Application, Environment, Mode, PlayException }
 import play.api.test.WithApplication
 
-class DBApiSpec extends Specification {
+class TestDBApiSpec extends DBApiSpec(Mode.Test)
+class DevDBApiSpec extends DBApiSpec(Mode.Dev)
+class ProdDBApiSpec extends DBApiSpec(Mode.Prod)
+
+abstract class DBApiSpec(mode: Mode) extends Specification {
+
+  def app(conf: (String, Any)*): Application = {
+    GuiceApplicationBuilder(environment = Environment.simple(mode = mode))
+      .configure(conf: _*)
+      .build()
+  }
 
   "DBApi" should {
 
-    "start the application when database is not available" in new WithApplication(_.configure(
+    "start the application when database is not available" in new WithApplication(app(
       // Here we have a URL that is valid for H2, but the database is not available.
       // We should not fail to start the application here.
-      "db.default.url" -> "jdbc:h2:tcp://localhost/~/bogus",
+      "db.default.url" -> "jdbc:h2:tcp://localhost/~/notavailable",
       "db.default.driver" -> "org.h2.Driver"
     )) {
       val dependsOnDbApi = app.injector.instanceOf[DependsOnDbApi]
@@ -24,7 +35,7 @@ class DBApiSpec extends Specification {
     }
 
     "fail to start the application when there is a database misconfiguration" in {
-      new WithApplication(_.configure(
+      new WithApplication(app(
         // Having a wrong configuration like an invalid url is different from having
         // a valid configuration where the database is not available yet. We should
         // fail fast and report this since it is a programming error.
@@ -34,7 +45,7 @@ class DBApiSpec extends Specification {
     }
 
     "fail to start the application when database is not available and configured to fail fast" in {
-      new WithApplication(_.configure(
+      new WithApplication(app(
         // Here we have a URL that is valid for H2, but the database is not available.
         "db.default.url" -> "jdbc:bogus://localhost",
         "db.default.driver" -> "org.h2.Driver",
@@ -44,7 +55,7 @@ class DBApiSpec extends Specification {
     }
 
     "correct report the configuration error" in {
-      new WithApplication(_.configure(
+      new WithApplication(app(
         // The configuration is correct, but the database is not available
         "db.default.url" -> "jdbc:h2:tcp://localhost/~/notavailable",
         "db.default.driver" -> "org.h2.Driver",
@@ -59,7 +70,14 @@ class DBApiSpec extends Specification {
       )) {} must throwA[PlayException]("Configuration error\\[Cannot initialize to database \\[bogus\\]\\]")
     }
 
-    "create all the configured databases" in new WithApplication(_.configure(
+    "correct report the configuration error when there is not URL configured" in {
+      new WithApplication(app(
+        // Missing url configuration
+        "db.test.driver" -> "org.h2.Driver"
+      )) {} must throwA[PlayException]("Configuration error\\[Cannot initialize to database \\[test\\]\\]")
+    }
+
+    "create all the configured databases" in new WithApplication(app(
       // default
       "db.default.url" -> "jdbc:h2:mem:default",
       "db.default.driver" -> "org.h2.Driver",
@@ -73,9 +91,9 @@ class DBApiSpec extends Specification {
       "db.other.driver" -> "org.h2.Driver"
     )) {
       val dbApi = app.injector.instanceOf[DBApi]
-      dbApi.database("default").url must beEqualTo("jdbc:h2:mem:default")
-      dbApi.database("test").url must beEqualTo("jdbc:h2:mem:test")
-      dbApi.database("other").url must beEqualTo("jdbc:h2:mem:other")
+      dbApi.database("default").url must startingWith("jdbc:h2:mem:default")
+      dbApi.database("test").url must startingWith("jdbc:h2:mem:test")
+      dbApi.database("other").url must startingWith("jdbc:h2:mem:other")
     }
   }
 }

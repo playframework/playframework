@@ -58,7 +58,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
       }
     } else {
       // Load a generated key store
-      logger.warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
+      logger.warn("Using generated key with self signed certificate for HTTPS. This should NOT be used in production.")
       FakeKeyStore.keyManagerFactory(serverConfig.rootDir)
     }
 

@@ -19,7 +19,7 @@ class PartialValidationSpec extends Specification {
   val messagesApi = new DefaultMessagesApi()
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validator())
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory())
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {

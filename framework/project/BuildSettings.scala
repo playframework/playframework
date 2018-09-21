@@ -573,7 +573,40 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantFormUrlEncoded"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.json"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantXml")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantXml"),
+
+      // Add configuration to set max header value length
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.REQUEST_HEADER_FIELDS_TOO_LARGE"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_="),
+
+      // https://github.com/playframework/playframework/issues/8534
+      // Removed StopHook from ActorSystemProvider.start methods return values
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      // Removed private[play] class CloseableLazy
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ClosableLazy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.lazyStart"),
+
+      // Merge Lagom changes to KeyStore generation
+      // https://github.com/playframework/playframework/pull/8574
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.DnName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate"),
+
+      // Simplify ReloadableServer interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.mainAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ReloadableServer.mainAddress"),
+
+      // Add route modifier whitelist / blacklist to AllowedHostsFilter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.apply"),
+
+      // Add ValidationPayload to Java isValid/validate methods
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this"),
+
+      // Remove JPA class + add more withTransaction(...) methods
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPA"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
@@ -632,7 +665,7 @@ object BuildSettings {
    */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
+        .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(

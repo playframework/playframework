@@ -7,7 +7,7 @@ package play.data
 import java.util
 import java.util.Optional
 import java.time.{ LocalDate, ZoneId }
-import javax.validation.{ Validation, Validator, Configuration => vConfiguration }
+import javax.validation.{ Validation, ValidatorFactory, Configuration => vConfiguration }
 import javax.validation.groups.Default
 
 import com.typesafe.config.{ Config, ConfigFactory }
@@ -352,22 +352,40 @@ trait FormSpec extends Specification {
 
       "that returns customized message when validator fails" in {
         val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava)
+          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue", "nailColor" -> "darkblue").asJava)
         form.hasErrors must beEqualTo(true)
         form.errors("hairColor").asScala must beEmpty
+        form.errors("nailColor").asScala must beEmpty
         val validationErrors = form.errors("skinColor")
         validationErrors.size() must beEqualTo(1)
         validationErrors.get(0).message must beEqualTo("notblue")
+        validationErrors.get(0).arguments().size must beEqualTo(2)
+        validationErrors.get(0).arguments().get(0) must beEqualTo("argOne")
+        validationErrors.get(0).arguments().get(1) must beEqualTo("argTwo")
       }
 
       "that returns customized message in annotation when validator fails" in {
         val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava)
+          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white", "nailColor" -> "darkblue").asJava)
         form.errors("skinColor").asScala must beEmpty
+        form.errors("nailColor").asScala must beEmpty
         form.hasErrors must beEqualTo(true)
         val validationErrors = form.errors("hairColor")
         validationErrors.size() must beEqualTo(1)
         validationErrors.get(0).message must beEqualTo("i-am-blue")
+        validationErrors.get(0).arguments().size must beEqualTo(0)
+      }
+
+      "that returns customized message when validator fails even when args param from getErrorMessageKey is null" in {
+        val form = formFactory.form(classOf[MyBlueUser]).bind(
+          Map("name" -> "Nemo", "skinColor" -> "blue", "hairColor" -> "blue", "nailColor" -> "yellow").asJava)
+        form.errors("skinColor").asScala must beEmpty
+        form.errors("hairColor").asScala must beEmpty
+        form.hasErrors must beEqualTo(true)
+        val validationErrors = form.errors("nailColor")
+        validationErrors.size() must beEqualTo(1)
+        validationErrors.get(0).message must beEqualTo("notdarkblue")
+        validationErrors.get(0).arguments().size must beEqualTo(0)
       }
 
     }
@@ -505,7 +523,7 @@ trait FormSpec extends Specification {
       // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
       // used come from the form, not the input data
       new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validator())
+        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validatorFactory())
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {
@@ -739,9 +757,9 @@ object FormSpec {
       .build()
   }
 
-  def validator(): Validator = {
+  def validatorFactory(): ValidatorFactory = {
     val validationConfig: vConfiguration[_] = Validation.byDefaultProvider().configure().messageInterpolator(new ParameterMessageInterpolator())
-    validationConfig.buildValidatorFactory().getValidator()
+    validationConfig.buildValidatorFactory()
   }
 
 }

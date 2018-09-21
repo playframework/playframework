@@ -237,7 +237,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       java.lang.Integer.valueOf(port)).asInstanceOf[ReloadableServer]
 
     println()
-    println(Colors.green("Documentation server started, you can now view the docs by going to http://" + server.mainAddress()))
+    println(Colors.green("Documentation server started, you can now view the docs in your web browser"))
     println()
 
     waitForKey()

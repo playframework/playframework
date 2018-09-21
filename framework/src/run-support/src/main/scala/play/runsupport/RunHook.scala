@@ -22,9 +22,8 @@ trait RunHook {
 
   /**
    * Called after the play application has been started.
-   * @param addr The address/socket that play is listening to
    */
-  def afterStarted(addr: InetSocketAddress): Unit = ()
+  def afterStarted(): Unit = ()
 
   /**
    * Called after the play process has been stopped.

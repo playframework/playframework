@@ -11,6 +11,7 @@ import play.inject.ApplicationLifecycle;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -69,7 +70,7 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Get the EntityManager for the specified persistence unit name.
+     * Get a newly created EntityManager for the specified persistence unit name.
      *
      * @param name The persistence unit name
      */
@@ -85,24 +86,39 @@ public class DefaultJPAApi implements JPAApi {
      * Get the EntityManager for a particular persistence unit for this thread.
      *
      * @return EntityManager for the specified persistence unit name
+     *
+     * @deprecated The EntityManager is supplied as lambda parameter instead when using {@link #withTransaction(Function)}
      */
+    @Deprecated
     public EntityManager em() {
         return entityManagerContext.em();
     }
 
     /**
-     * Run a block of code with the EntityManager for the named Persistence Unit.
+     * Run a block of code with a newly created EntityManager for the default Persistence Unit.
      *
      * @param block Block of code to execute
      * @param <T> type of result
      * @return code execution result
      */
     public <T> T withTransaction(Function<EntityManager, T> block) {
-        return withTransaction("default", false, block);
+        return withTransaction("default", block);
     }
 
     /**
-     * Run a block of code with the EntityManager for the named Persistence Unit.
+     * Run a block of code with a newly created EntityManager for the default Persistence Unit.
+     *
+     * @param block Block of code to execute
+     */
+    public void withTransaction(Consumer<EntityManager> block) {
+        withTransaction(em -> {
+            block.accept(em);
+            return null;
+        });
+    }
+
+    /**
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param block Block of code to execute
@@ -114,7 +130,20 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
-     * Run a block of code with the EntityManager for the named Persistence Unit.
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
+     *
+     * @param name The persistence unit name
+     * @param block Block of code to execute
+     */
+    public void withTransaction(String name, Consumer<EntityManager> block) {
+        withTransaction(name, em -> {
+            block.accept(em);
+            return null;
+        });
+    }
+
+    /**
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
@@ -130,7 +159,7 @@ public class DefaultJPAApi implements JPAApi {
             entityManager = em(name);
 
             if (entityManager == null) {
-                throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
+                throw new RuntimeException("Could not create JPA entity manager for '" + name + "'");
             }
 
             entityManagerContext.push(entityManager, true);
@@ -172,10 +201,27 @@ public class DefaultJPAApi implements JPAApi {
     }
 
     /**
+     * Run a block of code with a newly created EntityManager for the named Persistence Unit.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute
+     */
+    public void withTransaction(String name, boolean readOnly, Consumer<EntityManager> block) {
+        withTransaction(name, readOnly, em -> {
+            block.accept(em);
+            return null;
+        });
+    }
+
+    /**
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute
+     *
+     * @deprecated Use {@link #withTransaction(Function)}
      */
+    @Deprecated
     public <T> T withTransaction(Supplier<T> block) {
         return withTransaction("default", false, block);
     }
@@ -184,10 +230,13 @@ public class DefaultJPAApi implements JPAApi {
      * Run a block of code in a JPA transaction.
      *
      * @param block Block of code to execute
+     *
+     * @deprecated Use {@link #withTransaction(Consumer)}
      */
+    @Deprecated
     public void withTransaction(final Runnable block) {
         try {
-            withTransaction("default", false, () -> {
+            withTransaction(() -> {
                 block.run();
                 return null;
             });
@@ -202,7 +251,10 @@ public class DefaultJPAApi implements JPAApi {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
+     *
+     * @deprecated Use {@link #withTransaction(String, boolean, Function)}
      */
+    @Deprecated
     public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
         return withTransaction(name, readOnly, entityManager -> {
             return block.get();

@@ -10,6 +10,7 @@ import org.junit.Test;
 import play.core.j.JavaContextComponents;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Http.Cookie;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -65,44 +66,50 @@ public class JavaResponse extends WithApplication {
         Map<String, String> headers = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#response-headers
             public Result index() {
-                response().setHeader(CACHE_CONTROL, "max-age=3600");
-                response().setHeader(ETAG, "xxx");
-                return ok("<h1>Hello World!</h1>").as("text/html");
+                return ok("<h1>Hello World!</h1>").as("text/html")
+                        .withHeader(CACHE_CONTROL, "max-age=3600")
+                        .withHeader(ETAG, "some-etag-calculated-value");
             }
             //#response-headers
         }, fakeRequest(), mat).headers();
         assertThat(headers.get(CACHE_CONTROL), equalTo("max-age=3600"));
-        assertThat(headers.get(ETAG), equalTo("xxx"));
+        assertThat(headers.get(ETAG), equalTo("some-etag-calculated-value"));
     }
 
     @Test
     public void setCookie() {
-        setContext(fakeRequest(), contextComponents());
-        //#set-cookie
-        response().setCookie(Cookie.builder("theme", "blue").build());
-        //#set-cookie
-        Cookie cookie = response().cookies().iterator().next();
-        assertThat(cookie.name(), equalTo("theme"));
-        assertThat(cookie.value(), equalTo("blue"));
-        removeContext();
+        Http.Cookies cookies = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            //#set-cookie
+            public Result index() {
+                return ok("<h1>Hello World!</h1>").as("text/html")
+                        .withCookies(Cookie.builder("theme", "blue").build());
+            }
+            //#set-cookie
+        }, fakeRequest(), mat).cookies();
+
+        assertThat(cookies.get("theme").value(), equalTo("blue"));
     }
 
     @Test
     public void detailedSetCookie() {
-        setContext(fakeRequest(), contextComponents());
-        //#detailed-set-cookie
-        response().setCookie(
-            Cookie.builder("theme", "blue")
-                .withMaxAge(Duration.ofSeconds(3600))
-                .withPath("/some/path")
-                .withDomain(".example.com")
-                .withSecure(false)
-                .withHttpOnly(true)
-                .withSameSite(Cookie.SameSite.STRICT)
-                .build()
-        );
-        //#detailed-set-cookie
-        Cookie cookie = response().cookies().iterator().next();
+        Http.Cookies cookies = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            //#detailed-set-cookie
+            public Result index() {
+                return ok("<h1>Hello World!</h1>").as("text/html")
+                        .withCookies(
+                                Cookie.builder("theme", "blue")
+                                        .withMaxAge(Duration.ofSeconds(3600))
+                                        .withPath("/some/path")
+                                        .withDomain(".example.com")
+                                        .withSecure(false)
+                                        .withHttpOnly(true)
+                                        .withSameSite(Cookie.SameSite.STRICT)
+                                        .build()
+                        );
+            }
+            //#detailed-set-cookie
+        }, fakeRequest(), mat).cookies();
+        Cookie cookie = cookies.get("theme");
         assertThat(cookie.name(), equalTo("theme"));
         assertThat(cookie.value(), equalTo("blue"));
         assertThat(cookie.maxAge(), equalTo(3600));
@@ -111,19 +118,21 @@ public class JavaResponse extends WithApplication {
         assertThat(cookie.secure(), equalTo(false));
         assertThat(cookie.httpOnly(), equalTo(true));
         assertThat(cookie.sameSite(), equalTo(Optional.of(Cookie.SameSite.STRICT)));
-        removeContext();
     }
 
     @Test
     public void discardCookie() {
-        setContext(fakeRequest(), contextComponents());
-        //#discard-cookie
-        response().discardCookie("theme");
-        //#discard-cookie
-        Cookie cookie = response().cookies().iterator().next();
+        Http.Cookies cookies = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            //#discard-cookie
+            public Result index() {
+                return ok("<h1>Hello World!</h1>").as("text/html")
+                        .discardCookie("theme");
+            }
+            //#discard-cookie
+        }, fakeRequest(), mat).cookies();
+        Cookie cookie = cookies.get("theme");
         assertThat(cookie.name(), equalTo("theme"));
         assertThat(cookie.value(), equalTo(""));
-        removeContext();
     }
 
     @Test

@@ -13,8 +13,13 @@ import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
 import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.Validatable;
+import play.data.validation.Constraints.ValidatableWithPayload;
+import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
 import play.test.WithApplication;
@@ -375,7 +380,7 @@ public class JavaForms extends WithApplication {
 
         //#validation-error-examples
         // Global error without internationalization:
-        new ValidationError("", "Errors occured. Please check your input!");
+        new ValidationError("", "Errors occurred. Please check your input!");
         // Global error; "validationFailed" should be defined in `conf/messages` - taking two arguments:
         new ValidationError("", "validationFailed", Arrays.asList(arg1, arg2));
         // Error for the email field; "emailUsedAlready" should be defined in `conf/messages` - taking the email as argument:
@@ -527,5 +532,34 @@ public class JavaForms extends WithApplication {
             }
         }
     }
+
+    //#payload-validate
+    //###insert: import java.util.Map;
+
+    //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
+    //###insert: import play.data.validation.Constraints.ValidateWithPayload;
+    //###insert: import play.data.validation.ValidationError;
+    //###insert: import play.data.validation.ValidationPayload;
+
+    //###insert: import play.i18n.Lang;
+    //###insert: import play.i18n.Messages;
+
+    @ValidateWithPayload
+    //###replace: public class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
+    public static class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
+
+        // fields, getters, setters, etc.
+
+        @Override
+        public ValidationError validate(ValidationPayload payload) {
+            Lang lang = payload.getLang();
+            Messages messages = payload.getMessages();
+            Map<String, Object> ctxArgs = payload.getArgs();
+            // ...
+            //###skip: 1
+            return null;
+        }
+    }
+    //#payload-validate
 
 }

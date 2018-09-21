@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
-    PlayKeys.fileWatchService := FileWatchServiceInitializer.initialFileWatchService,
+    PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
 
     TaskKey[Unit]("resetReloads") := {
       (target.value / "reload.log").delete()
@@ -29,8 +29,8 @@ lazy val root = (project in file("."))
     InputKey[Unit]("makeRequestWithHeader") := {
       val args = Def.spaceDelimited("<path> <status> <headers> ...").parsed
       val path :: status :: headers = args
-      val headerValue = headers.mkString
-      DevModeBuild.verifyResourceContains(path, status.toInt, Seq.empty, 0, "Header" -> headerValue)
+      val headerName = headers.mkString
+      DevModeBuild.verifyResourceContains(path, status.toInt, Seq.empty, 0, headerName -> "Header-Value")
     },
 
     InputKey[Unit]("verifyResourceContains") := {

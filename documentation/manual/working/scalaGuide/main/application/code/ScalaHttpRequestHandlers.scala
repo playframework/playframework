@@ -12,11 +12,11 @@ import play.api.http._
 import play.api.mvc._
 import play.api.routing.Router
 
-class SimpleHttpRequestHandler @Inject() (router: Router) extends HttpRequestHandler {
+class SimpleHttpRequestHandler @Inject() (router: Router, action: DefaultActionBuilder) extends HttpRequestHandler {
   def handlerForRequest(request: RequestHeader) = {
     router.routes.lift(request) match {
       case Some(handler) => (request, handler)
-      case None => (request, Action(Results.NotFound))
+      case None => (request, action(Results.NotFound))
     }
   }
 }
@@ -25,7 +25,10 @@ class SimpleHttpRequestHandler @Inject() (router: Router) extends HttpRequestHan
 
 package virtualhost {
 
+import play.api.OptionalDevContext
+import play.api.mvc.Handler
 import play.api.routing.Router
+import play.core.WebCommands
 object bar {
   type Routes = Router
 }
@@ -38,14 +41,17 @@ import javax.inject.Inject
 import play.api.http._
 import play.api.mvc.RequestHeader
 
-class VirtualHostRequestHandler @Inject() (errorHandler: HttpErrorHandler,
+class VirtualHostRequestHandler @Inject() (
+    webCommands: WebCommands,
+    optionalDevContext: OptionalDevContext,
+    errorHandler: HttpErrorHandler,
     configuration: HttpConfiguration, filters: HttpFilters,
     fooRouter: foo.Routes, barRouter: bar.Routes
   ) extends DefaultHttpRequestHandler(
-    fooRouter, errorHandler, configuration, filters
+    webCommands, optionalDevContext, fooRouter, errorHandler, configuration, filters
   ) {
 
-  override def routeRequest(request: RequestHeader) = {
+  override def routeRequest(request: RequestHeader): Option[Handler] = {
     request.host match {
       case "foo.example.com" => fooRouter.routes.lift(request)
       case "bar.example.com" => barRouter.routes.lift(request)

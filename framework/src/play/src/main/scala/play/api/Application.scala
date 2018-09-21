@@ -6,14 +6,14 @@ package play.api
 
 import java.io._
 
-import akka.Done
-import javax.inject.{ Inject, Singleton }
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.{ ActorMaterializer, Materializer }
+import javax.inject.{ Inject, Singleton }
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject.{ ApplicationLifecycle, _ }
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
 import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider }
 import play.api.libs.crypto._
@@ -107,7 +107,7 @@ trait Application {
    * Return the application as a Java application.
    */
   def asJava: play.Application = {
-    new play.DefaultApplication(this, configuration.underlying, injector.asJava)
+    new play.DefaultApplication(this, configuration.underlying, injector.asJava, environment.asJava)
   }
 
   /**
@@ -274,10 +274,7 @@ class DefaultApplication @Inject() (
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] = {
-    val runFromPhase = CoordinatedShutdownProvider.loadRunFromPhaseConfig(actorSystem)
-    coordinatedShutdown.run(ApplicationStoppedReason, runFromPhase)
-  }
+  override def stop(): Future[_] = CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
 
 private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason

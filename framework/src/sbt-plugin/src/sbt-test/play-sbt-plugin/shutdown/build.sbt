@@ -18,7 +18,7 @@ lazy val root = (project in file("."))
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
-    PlayKeys.fileWatchService := FileWatchServiceInitializer.initialFileWatchService,
+    PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
 
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"

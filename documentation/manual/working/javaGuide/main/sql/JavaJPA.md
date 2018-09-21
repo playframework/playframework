@@ -54,7 +54,9 @@ Running Play in development mode while using JPA will work fine, but in order to
 
 @[jpa-externalize-resources](code/jpa.sbt)
 
-> **Note:** Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. The content of conf directory will still be available in the classpath due to it being included in the application's jar file.
+> **Note:** More information on how to configure externalized resources can be found [[here|SBTCookbook#Configure-externalized-resources]].
+The above settings makes sure the `persistence.xml` file will always stay *inside* the generated application `jar` file.
+This is a requirement by the [JPA specification](http://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf). According to it the `persistence.xml` file has to be in the *same* `jar` file where its persistence-units' entities live, otherwise these entities won't be availabe for the persistence-units. (You could, however, explicitly add a `jar` file containing entities via `<jar-file>xxx.jar</jar-file>` to a persistence-unit - but that doesn't work well with Play as it would fail with a `FileNotFoundException` in development mode because there is no `jar` file that will be generated in that mode. Further that wouldn't work well in production mode too because when deploying an application, the name of the generated application `jar` file changes with each new release as the current version of the application gets appended to it.)
 
 ## Using `play.db.jpa.JPAApi`
 
@@ -93,17 +95,17 @@ database.dispatcher {
 
 ### Running JPA transactions
 
-The following methods are available to execute arbitrary code inside a JPA transaction, but 
+The `JPAApi` provides you various `withTransaction(...)` methods to execute arbitrary code inside a JPA transaction. These methods however do not include a custom execution context and therefore must be wrapped inside a `CompletableFuture` with an IO bound execution context.
 
 ### Examples:
 
-Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-.html):
+Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-):
 
 @[jpa-withTransaction-function](code/JPARepository.java)
 
-Using [`JPAApi.withTransaction(Runnable)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.lang.Runnable-.html) to run a batch update:
+Using [`JPAApi.withTransaction(Consumer<EntityManager>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Consumer-) to run a batch update:
 
-@[jpa-withTransaction-runnable](code/JPARepository.java)
+@[jpa-withTransaction-consumer](code/JPARepository.java)
 
 ## Enabling Play database evolutions
 

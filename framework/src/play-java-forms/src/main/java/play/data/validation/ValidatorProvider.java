@@ -18,6 +18,10 @@ import play.inject.ApplicationLifecycle;
 
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
+/**
+ * @deprecated Deprecated since 2.7.0. Use {@link ValidatorFactoryProvider} instead.
+ */
+@Deprecated
 @Singleton
 public class ValidatorProvider implements Provider<Validator> {
 

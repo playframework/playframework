@@ -20,7 +20,7 @@ import play.mvc.Http.Context;
 import play.mvc.Http.Cookie;
 import play.mvc.Http.RequestBuilder;
 
-import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -60,7 +60,7 @@ public class HttpFormsTest {
 
     private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
         return new Form<T>(formToCopy.name(), formToCopy.getBackedType(), null, formToCopy.errors(), formToCopy.value(),
-            (Class[])null, app.injector().instanceOf(MessagesApi.class), app.injector().instanceOf(Formatters.class), app.injector().instanceOf(Validator.class));
+            (Class[])null, app.injector().instanceOf(MessagesApi.class), app.injector().instanceOf(Formatters.class), app.injector().instanceOf(ValidatorFactory.class));
     }
 
     @Test
@@ -129,7 +129,7 @@ public class HttpFormsTest {
         withApplication((app) -> {
             MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
             Formatters formatters = app.injector().instanceOf(Formatters.class);
-            Validator validator = app.injector().instanceOf(Validator.class);
+            ValidatorFactory validatorFactory = app.injector().instanceOf(ValidatorFactory.class);
 
             RequestBuilder rb = new RequestBuilder();
             Context ctx = new Context(rb, contextComponents(app));
@@ -142,7 +142,7 @@ public class HttpFormsTest {
             args.add("error.customarg");
             List<ValidationError> errors = new ArrayList<>();
             errors.add(new ValidationError("foo", msgs, args));
-            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
+            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validatorFactory);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });

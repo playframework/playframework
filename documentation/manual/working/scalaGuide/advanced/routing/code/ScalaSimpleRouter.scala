@@ -14,7 +14,7 @@ import play.api.routing.sird._
 import play.api.routing.{ Router, SimpleRouter }
 
 //#load-guice
-class ScalaSimpleRouter @Inject()() extends SimpleRouter {
+class ScalaSimpleRouter @Inject()(val Action: DefaultActionBuilder) extends SimpleRouter {
 
   override def routes: Routes = {
     case GET(p"/") => Action {

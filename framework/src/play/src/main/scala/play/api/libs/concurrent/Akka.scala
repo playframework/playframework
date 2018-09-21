@@ -5,17 +5,17 @@
 package play.api.libs.concurrent
 
 import akka.Done
-import javax.inject.{ Inject, Provider, Singleton }
-import akka.actor.{ CoordinatedShutdown, _ }
 import akka.actor.setup.{ ActorSystemSetup, Setup }
+import akka.actor.{ CoordinatedShutdown, _ }
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.{ Config, ConfigValueFactory }
+import javax.inject.{ Inject, Provider, Singleton }
+import org.slf4j.LoggerFactory
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
-import play.core.ClosableLazy
+import play.api.inject._
 
+import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor, Future }
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -99,7 +99,7 @@ trait AkkaComponents {
 @Singleton
 class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration) extends Provider[ActorSystem] {
 
-  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)._1
+  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
 
 }
 
@@ -123,7 +123,7 @@ object ActorSystemProvider {
 
   type StopHook = () => Future[_]
 
-  private val logger = Logger(classOf[ActorSystemProvider])
+  private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
 
   case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
 
@@ -132,7 +132,7 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
     start(classLoader, config, additionalSetup = None)
   }
 
@@ -141,11 +141,11 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): ActorSystem = {
     start(classLoader, config, Some(additionalSetup))
   }
 
-  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): (ActorSystem, StopHook) = {
+  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 
@@ -184,23 +184,7 @@ object ActorSystemProvider {
     val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
 
-    // noop. This is no longer necessary since we've reversed the dependency between
-    // ActorSystem and ApplicationLifecycle.
-    val stopHook = { () => Future.successful(Done) }
-
-    (system, stopHook)
-  }
-
-  /**
-   * A lazy wrapper around `start`. Useful when the `ActorSystem` may
-   * not be needed.
-   */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
-    new ClosableLazy[ActorSystem, Future[_]] {
-      protected def create() = start(classLoader, configuration)
-
-      protected def closeNotNeeded = Future.successful(())
-    }
+    system
   }
 
 }
@@ -239,23 +223,8 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
   }
 }
 
-object CoordinatedShutdownProvider {
-
-  /**
-   * Reads the phase the Coordinated shutdown should run from using the `config`
-   * in the `actorsystem` provided. When the setting is blank, null or empty
-   * all phases should be run.
-   * @param actorSystem
-   * @return
-   */
-  def loadRunFromPhaseConfig(actorSystem: ActorSystem): Option[String] =
-    Try {
-      actorSystem.settings.config
-        .getString("play.akka.run-cs-from-phase")
-    }
-      .toOption
-      .filterNot(_.isEmpty)
-
+private object CoordinatedShutdownProvider {
+  private val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
 }
 
 /**
@@ -264,7 +233,12 @@ object CoordinatedShutdownProvider {
 @Singleton
 class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
 
+  import CoordinatedShutdownProvider.logger
+
   lazy val get: CoordinatedShutdown = {
+
+    logWarningWhenRunPhaseConfigIsPresent()
+
     val cs = CoordinatedShutdown(actorSystem)
     implicit val exCtx: ExecutionContext = actorSystem.dispatcher
 
@@ -276,6 +250,13 @@ class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicati
       }
 
     cs
+  }
+
+  private def logWarningWhenRunPhaseConfigIsPresent(): Unit = {
+    val config = actorSystem.settings.config
+    if (config.hasPath("play.akka.run-cs-from-phase")) {
+      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now run all the CoordinatedShutdown phases.")
+    }
   }
 
 }
