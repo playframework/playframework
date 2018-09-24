@@ -12,7 +12,7 @@ import akka.stream.javadsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
-import play.api.http.{ DefaultHttpErrorHandler, ParserConfiguration }
+import play.api.http.ParserConfiguration
 import play.api.mvc.{ PlayBodyParsers, RawBuffer }
 import play.core.j.JavaParsers
 import play.core.test.FakeRequest
@@ -36,7 +36,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
   def javaParser(p: play.api.mvc.BodyParser[RawBuffer]): BodyParser[RawBuffer] = new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](p, java.util.function.Function.identity[RawBuffer]) {}
 
-  def parse[B](body: ByteString, memoryThreshold: Int = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(javaParser: B => BodyParser[RawBuffer], parserInit: B = parsers.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
+  def parse[B](body: ByteString, memoryThreshold: Long = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(javaParser: B => BodyParser[RawBuffer], parserInit: B = parsers.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
     val request = req(FakeRequest(method = "GET", "/x"))
     val parser = javaParser(parserInit)
 

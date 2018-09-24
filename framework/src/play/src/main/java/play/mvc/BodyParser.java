@@ -513,7 +513,7 @@ public interface BodyParser<A> {
          */
         private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
             ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
-            return Multipart.multipartParser((int) maxLength, filePartHandler, errorHandler, materializer);
+            return Multipart.multipartParser(maxLength, filePartHandler, errorHandler, materializer);
         }
 
         private class ScalaFilePartHandler extends AbstractFunction1<Multipart.FileInfo, play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>>> {

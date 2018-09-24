@@ -31,7 +31,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
   val config = ParserConfiguration()
   val parse = PlayBodyParsers()
 
-  def parse(body: ByteString, memoryThreshold: Int = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
+  def parse(body: ByteString, memoryThreshold: Long = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
     val request = FakeRequest(method = "GET", "/x")
 
     Await.result(parser(request).run(Source.single(body)), Duration.Inf)
