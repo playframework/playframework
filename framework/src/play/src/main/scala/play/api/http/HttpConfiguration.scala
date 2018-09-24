@@ -128,7 +128,7 @@ case class FlashConfiguration(
  * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
  */
 case class ParserConfiguration(
-    maxMemoryBuffer: Int = 102400,
+    maxMemoryBuffer: Long = 102400,
     maxDiskBuffer: Long = 10485760)
 
 /**
@@ -190,8 +190,7 @@ object HttpConfiguration {
     HttpConfiguration(
       context = context,
       parser = ParserConfiguration(
-        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength")
-          .toBytes.toInt,
+        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
         maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
       ),
       actionComposition = ActionCompositionConfiguration(

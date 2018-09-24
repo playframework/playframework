@@ -76,6 +76,10 @@ val server = AkkaHttpServer.fromRouterWithComponents() { components: BuiltInComp
 }
 ```
 
+## BodyParsers API consistency
+
+The API for body parser was mixing `Integer` and `Long` to define buffer lengths which could lead to overflow of values. The configuration is now uniformed to use `Long`. It means that if you are depending on `play.api.mvc.PlayBodyParsers.DefaultMaxTextLength` for example, you then need to use a `Long`. As such, `play.api.http.ParserConfiguration.maxMemoryBuffer` is now a `Long` too.
+
 ## Guice compatibility changes
 
 Guice was upgraded to version [4.2.0](https://github.com/google/guice/wiki/Guice42), which causes the following breaking changes:
