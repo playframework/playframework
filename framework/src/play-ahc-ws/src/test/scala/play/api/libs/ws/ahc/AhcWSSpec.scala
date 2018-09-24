@@ -20,7 +20,7 @@ import play.api.mvc._
 import play.api.test.{ DefaultAwaitTimeout, FutureAwaits, Helpers, WithServer }
 import play.shaded.ahc.io.netty.handler.codec.http.DefaultHttpHeaders
 import play.shaded.ahc.org.asynchttpclient.Realm.AuthScheme
-import play.shaded.ahc.org.asynchttpclient.cookie.{ Cookie => AHCCookie }
+import play.shaded.ahc.io.netty.handler.codec.http.cookie.{ Cookie => NettyCookie, DefaultCookie => NettyDefaultCookie }
 import play.shaded.ahc.org.asynchttpclient.{ Param, Request => AHCRequest, Response => AHCResponse }
 
 import scala.concurrent.Await
@@ -395,7 +395,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
+      val ahcCookie = createCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = makeAhcResponse(ahcResponse)
@@ -416,7 +416,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
+      val ahcCookie = createCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = makeAhcResponse(ahcResponse)
@@ -436,7 +436,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     "return -1 values of expires and maxAge as None" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
 
-      val ahcCookie: AHCCookie = new AHCCookie("someName", "value", true, "domain", "path", -1L, false, false)
+      val ahcCookie = createCookie("someName", "value", true, "domain", "path", -1L, false, false)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = makeAhcResponse(ahcResponse)
@@ -470,6 +470,18 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       headers.contains("BAR") must beTrue
       headers.contains("Bar") must beTrue
     }
+  }
+
+  def createCookie(name: String, value: String, wrap: Boolean, domain: String, path: String, maxAge: Long, secure: Boolean, httpOnly: Boolean): NettyCookie = {
+    val ahcCookie = new NettyDefaultCookie(name, value)
+    ahcCookie.setWrap(wrap)
+    ahcCookie.setDomain(domain)
+    ahcCookie.setPath(path)
+    ahcCookie.setMaxAge(maxAge)
+    ahcCookie.setSecure(secure)
+    ahcCookie.setHttpOnly(httpOnly)
+
+    ahcCookie
   }
 
   def makeAhcResponse(ahcResponse: AHCResponse): AhcWSResponse = {

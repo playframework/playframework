@@ -148,6 +148,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
 
   override def withBody[T: BodyWritable](body: T): Self = toWSRequest(underlying.withBody(body))
 
+  override def withUrl(url: String): WSRequest = toWSRequest(underlying.withUrl(url))
+
   //-------------------------------------------------
   // PATCH
   //-------------------------------------------------

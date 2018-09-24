@@ -263,6 +263,11 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    public StandaloneWSRequest setUrl(String url) {
+        return converter.apply(request.setUrl(url));
+    }
+
+    @Override
     public WSRequest addCookie(WSCookie cookie) {
         return converter.apply(request.addCookie(cookie));
     }
