@@ -4,6 +4,7 @@ sudo: true
 group: beta
 jdk:
   - oraclejdk8
+  - openjdk11
 env:
   global:
     secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
