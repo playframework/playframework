@@ -218,7 +218,7 @@ object MultipartFormData {
  * @param temporaryFileCreator the temporary file creator to store the content as file.
  * @param initialData the initial data, ByteString.empty by default.
  */
-case class RawBuffer(memoryThreshold: Int, temporaryFileCreator: TemporaryFileCreator, initialData: ByteString = ByteString.empty) {
+case class RawBuffer(memoryThreshold: Long, temporaryFileCreator: TemporaryFileCreator, initialData: ByteString = ByteString.empty) {
 
   import play.api.libs.Files._
 
@@ -450,7 +450,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * play.http.parser.maxMemoryBuffer = 512k
    * }}}
    */
-  def DefaultMaxTextLength: Int = config.maxMemoryBuffer
+  def DefaultMaxTextLength: Long = config.maxMemoryBuffer
 
   /**
    * Default max length allowed for disk based body.
@@ -525,7 +525,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * @see [[DefaultMaxDiskLength]]
    * @see [[Results.EntityTooLarge]]
    */
-  def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
+  def raw(memoryThreshold: Long = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
     BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
       import play.core.Execution.Implicits.trampoline
       enforceMaxLength(request, maxLength, Accumulator.strict[ByteString, RawBuffer]({ maybeStrictBytes =>

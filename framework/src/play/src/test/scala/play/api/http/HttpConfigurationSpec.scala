@@ -101,6 +101,13 @@ class HttpConfigurationSpec extends Specification {
       httpConfiguration.parser.maxMemoryBuffer must beEqualTo(10 * 1024)
     }
 
+    "configure max memory buffer to be more than Integer.MAX_VALUE" in {
+      val testConfig = configuration ++ Configuration("play.http.parser.maxMemoryBuffer" -> s"${Int.MaxValue + 1L}")
+      val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(testConfig, environment).get
+      val expectedMaxMemoryBuffer: Long = Int.MaxValue + 1L
+      httpConfiguration.parser.maxMemoryBuffer must beEqualTo(expectedMaxMemoryBuffer)
+    }
+
     "configure max disk buffer" in {
       val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
       httpConfiguration.parser.maxDiskBuffer must beEqualTo(20 * 1024)
