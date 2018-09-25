@@ -317,7 +317,7 @@ class JsonDefaultHttpErrorHandler(
    * @param request The request that triggered the server error.
    * @param exception The server error.
    */
-  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     try {
       val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
         sourceMapper,
