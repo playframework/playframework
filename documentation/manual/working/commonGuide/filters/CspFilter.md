@@ -285,7 +285,7 @@ CSP is a powerful tool, but it also combines a number of disparate directives th
 
 ### Unintuitive Directives
 
-Some directives are not covered by `default-src`, for example `form-action` is defined seperately.  An attack on a website omitting `form-action` was detailed in [I’m harvesting credit card numbers and passwords from your site. Here’s how](https://hackernoon.com/im-harvesting-credit-card-numbers-and-passwords-from-your-site-here-s-how-9a8cb347c5b5).
+Some directives are not covered by `default-src`, for example `form-action` is defined separately.  An attack on a website omitting `form-action` was detailed in [I’m harvesting credit card numbers and passwords from your site. Here’s how](https://hackernoon.com/im-harvesting-credit-card-numbers-and-passwords-from-your-site-here-s-how-9a8cb347c5b5).
 
 In particular, there are a number of subtle interactions with CSP that are unintuitive.  For example, if you are using websockets, you should enable the `connect-src` with the exact URL (i.e. `ws://localhost:9000 wss://localhost:9443`) as [declaring a CSP with connect-src ‘self’ will not allow websockets back to the same host/port, since they're not same origin](https://github.com/w3c/webappsec-csp/issues/7).  If you do not set `connect-src`, then you should check the `Origin` header to protect against [Cross-Site WebSocket Hijacking](http://www.christian-schneider.net/CrossSiteWebSocketHijacking.html).
 

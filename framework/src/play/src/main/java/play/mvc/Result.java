@@ -278,6 +278,48 @@ public class Result {
     }
 
     /**
+     * Discard a cookie on the default path ("/") with no domain and that's not secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     */
+    public Result discardCookie(String name) {
+        return discardCookie(name, "/", null, false);
+    }
+
+    /**
+     * Discard a cookie on the given path with no domain and not that's secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie to discard, may be null
+     */
+    public Result discardCookie(String name, String path) {
+        return discardCookie(name, path, null, false);
+    }
+
+    /**
+     * Discard a cookie on the given path and domain that's not secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie te discard, may be null
+     * @param domain The domain of the cookie to discard, may be null
+     */
+    public Result discardCookie(String name, String path, String domain) {
+        return discardCookie(name, path, domain, false);
+    }
+
+    /**
+     * Discard a cookie in this result
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie te discard, may be null
+     * @param domain The domain of the cookie to discard, may be null
+     * @param secure Whether the cookie to discard is secure
+     */
+    public Result discardCookie(String name, String path, String domain, boolean secure) {
+        return withCookies(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
+    }
+
+    /**
      * Return a copy of this result with the given header.
      *
      * @param name the header name

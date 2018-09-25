@@ -553,9 +553,81 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOptional"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOptional"),
 
+      // Remove DefaultDBApi.connect method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.DefaultDBApi.connect"),
+
+      // Make all BodyParser maxLength args Long
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.text"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.xml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.tolerantJson"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.formUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.tolerantFormUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.json"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.tolerantXml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.text"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.xml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.formUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantJson"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantFormUrlEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.json"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.tolerantXml"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.parsers.Multipart#BodyPartParser.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.parsers.Multipart.partParser"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.parsers.Multipart.multipartParser"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.raw"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.DefaultMaxTextLength"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.DefaultPlayBodyParsers.raw$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.PlayBodyParsers.raw"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.PlayBodyParsers.DefaultMaxTextLength"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.PlayBodyParsers.raw$default$1"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.RawBuffer.memoryThreshold"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.RawBuffer.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.RawBuffer.copy$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.RawBuffer.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.RawBuffer.apply"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.ParserConfiguration.apply$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.ParserConfiguration.apply"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.ParserConfiguration.<init>$default$1"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.ParserConfiguration.maxMemoryBuffer"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.ParserConfiguration.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.http.ParserConfiguration.copy$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.ParserConfiguration.this"),
+
       // Add configuration to set max header value length
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.REQUEST_HEADER_FIELDS_TOO_LARGE"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_=")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.Status.play$api$http$Status$_setter_$REQUEST_HEADER_FIELDS_TOO_LARGE_="),
+
+      // https://github.com/playframework/playframework/issues/8534
+      // Removed StopHook from ActorSystemProvider.start methods return values
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      // Removed private[play] class CloseableLazy
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ClosableLazy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.lazyStart"),
+
+      // Merge Lagom changes to KeyStore generation
+      // https://github.com/playframework/playframework/pull/8574
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.DnName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate"),
+
+      // Simplify ReloadableServer interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.mainAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ReloadableServer.mainAddress"),
+
+      // Add route modifier whitelist / blacklist to AllowedHostsFilter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.apply"),
+
+      // Add ValidationPayload to Java isValid/validate methods
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this"),
+
+      // Remove JPA class + add more withTransaction(...) methods
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPA"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
@@ -614,7 +686,7 @@ object BuildSettings {
    */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-        .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
+        .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(

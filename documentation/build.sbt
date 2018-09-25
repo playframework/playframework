@@ -10,6 +10,9 @@ import sbt._
 
 lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
     .settings(
+      // Avoid the use of deprecated APIs in the docs
+      scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
+      javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-parameters", "-Xlint:unchecked", "-Xlint:deprecation", "-Werror"),
 
       // We need to publishLocal playDocs since its jar file is
       // a dependency of `docsJarFile` setting.

@@ -37,6 +37,49 @@ Many deprecated APIs were removed in Play 2.7. If you are still using them, we r
 
 In the future, if you still need to use static instances of application components, you can use [static injection](https://github.com/google/guice/wiki/Injections#static-injections) to inject them using Guice, or manually set static fields on startup in your application loader. These approaches should be forward compatible with future versions of Play, as long as you are careful never to run apps concurrently (e.g., in tests).
 
+Since `Play.current` is still called by some deprecated APIs, when using such APIs, you need to add the following line to your `application.conf` file:
+
+```hocon
+play.allowGlobalApplication = true
+```
+
+For example, when using `play.api.mvc.Action` object with embedded Play and [[Scala Sird Router|ScalaSirdRouter]], it access the global state:
+
+```scala
+import play.api.mvc._
+import play.api.routing.sird._
+import play.core.server._
+
+// It can also be NettyServer
+val server = AkkaHttpServer.fromRouter() {
+  // `Action` in this case is the `Action` object which access global state
+  case GET(p"/") => Action {
+    Results.Ok(s"Hello World")
+  }
+}
+```
+
+The example above either needs you to configure `play.allowGlobalApplication = true` as explained before, or to be rewritten to:
+
+```scala
+import play.api._
+import play.api.mvc._
+import play.api.routing.sird._
+import play.core.server._
+
+// It can also be NettyServer
+val server = AkkaHttpServer.fromRouterWithComponents() { components: BuiltInComponents => {
+    case GET(p"/") => components.defaultActionBuilder {
+      Results.Ok(s"Hello World")
+    }
+  }
+}
+```
+
+## BodyParsers API consistency
+
+The API for body parser was mixing `Integer` and `Long` to define buffer lengths which could lead to overflow of values. The configuration is now uniformed to use `Long`. It means that if you are depending on `play.api.mvc.PlayBodyParsers.DefaultMaxTextLength` for example, you then need to use a `Long`. As such, `play.api.http.ParserConfiguration.maxMemoryBuffer` is now a `Long` too.
+
 ## Guice compatibility changes
 
 Guice was upgraded to version [4.2.0](https://github.com/google/guice/wiki/Guice42), which causes the following breaking changes:
@@ -86,6 +129,10 @@ By default, routers are unprefixed, so this will only cause a change in behavior
 ## Play WS Updates
 
 In Play 2.6, we extracted most of Play-WS into a [standalone project](https://github.com/playframework/play-ws) that has an independent release cycle. Play-WS now has a significant release that requires some changes in Play itself.
+
+## Run Hooks
+
+`RunHook.afterStarted()` no longer takes an `InetSocketAddress` as a parameter.
 
 ### Scala API
 
@@ -182,11 +229,91 @@ val loader = new GreetingApplicationLoader()
 val application = loader.load(context)
 ```
 
-## Java `Http.Context` changed
+## JPA removals and deprecations
+
+The class `play.db.jpa.JPA`, which has been deprecated in Play 2.6 already, has finally been removed. Have a look at the [[Play 2.6 JPA Migration notes|JPAMigration26]] if you haven't yet.
+
+With this Play release even more JPA related methods and annotations have been deprecated:
+
+* `@play.db.jpa.Transactional`
+* `play.db.jpa.JPAApi.em()`
+* `play.db.jpa.JPAApi.withTransaction(final Runnable block)`
+* `play.db.jpa.JPAApi.withTransaction(Supplier<T> block)`
+* `play.db.jpa.JPAApi.withTransaction(String name, boolean readOnly, Supplier<T> block)`
+
+Like already mentioned in the Play 2.6 JPA migration notes, please use a `JPAApi` injected instance as described in [[Using play.db.jpa.JPAApi|JavaJPA#Using-play.db.jpa.JPAApi]] instead of these deprecated methods and annotations.
+
+## Java `Http` changes
+
+Multiple changes were made to `Http.Context`.
+
+### `Http.Context` Request tags removed from `args` 
 
 Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
 Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
 Instead you can use the `contextObj.request().attrs()` method now, which provides you the equivalent request attributes.
+
+### `Http.Response` deprecated
+
+`Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
+
+```java
+// This uses the deprecated response() APIs
+public Result index1() {
+    response().setHeader("Header", "Value");
+    response().setCookie(Http.Cookie.builder("Cookie", "cookie value").build());
+    response().discardCookie("CookieName");
+    return ok("Hello World");
+}
+```
+
+Should be written as:
+```java
+public Result index2() {
+    return ok("Hello World")
+            .withHeader("Header", "value")
+            .withCookies(Http.Cookie.builder("Cookie", "cookie value").build())
+            .discardCookie("CookieName");
+}
+```
+
+If you have action composition that depends on `Http.Context.response`, you can also rewrite it like. For example, the code below:
+
+```java
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
+
+public class MyAction extends Action.Simple {
+
+    @Override
+    public CompletionStage<Result> call(Http.Context ctx) {
+        ctx.response().setHeader("Name", "Value");
+        return delegate.call(ctx);
+    }
+}
+```
+
+Should be written as:
+
+```java
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
+
+public class MyAction extends Action.Simple {
+
+    @Override
+    public CompletionStage<Result> call(Http.Context ctx) {
+        return delegate.call(ctx)
+                .thenApply(result -> result.withHeader("Name", "Value"));
+    }
+}
+```
 
 ## All Java form `validate` methods need to be migrated to class-level constraints
 
@@ -194,6 +321,12 @@ The "old" `validate` methods of a Java form will not be executed anymore.
 Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]] you have to migrate such `validate` methods to [[class-level constraints|JavaForms#advanced-validation]].
 
 > **Important**: When upgrading to Play 2.7 you will not see any compiler warnings indicating that you have to migrate your `validate` methods (because Play executed them via reflection).
+
+## Java `Form`, `DynamicForm` and `FormFactory` constructors changed
+
+Constructors of the `Form`, `DynamicForm` and `FormFactory` classes (inside `play.data`) that were using a [`Validator`](https://docs.jboss.org/hibernate/stable/beanvalidation/api/javax/validation/Validator.html) param use a [`ValidatorFactory`](https://docs.jboss.org/hibernate/stable/beanvalidation/api/javax/validation/ValidatorFactory.html) param instead now.
+E.g. `new Form(..., validator)` becomes `new Form(..., validatorFactory)` now.
+This change only effects you if you use the constructors to instantiate a form instead of just using `formFactory.form(SomeForm.class)` - most likely in tests.
 
 ## The Java Cache API `get` method has been deprecated in favor of `getOptional`
 
@@ -262,9 +395,9 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.6"
 
 This section lists significant updates made to our dependencies.
 
-### `Guava` version updated to 25.1-jre
+### `Guava` version updated to 26.0-jre
 
-Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 25.1-jre. Lots of changes were made in the library, and you can see the full changelog [here](https://github.com/google/guava/releases).
+Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 26.0-jre. Lots of changes were made in the library, and you can see the full changelog [here](https://github.com/google/guava/releases).
 
 ### specs2 updated to 4.2.0
 
@@ -277,6 +410,12 @@ Jackson version was updated from 2.8 to 2.9. The release notes for this version 
 ### Hibernate Validator updated to 6.0
 
 [Hibernate Validator](http://hibernate.org/validator) was updated to version 6.0 which is now compatible with [Bean Validation](http://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](http://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
+
+> **Note**: Keep in mind that this version may not be fully compatible with other Hibernate dependencies you may have in your project. For example, if you are using [hibernate-jpamodelgen](https://mvnrepository.com/artifact/org.hibernate/hibernate-jpamodelgen) it is required that you use the latest version to ensure everything will work together:
+>
+> ```scala
+> libraryDependencies += "org.hibernate" % "hibernate-jpamodelgen" % "5.3.6.Final" % "provided"
+> ```
 
 ## Internal changes
 
@@ -303,3 +442,7 @@ CoordinatedShutdown.Reason reason = CoordinatedShutdown.unknownReason();
 Optional<String> runFromPhase = Optional.of("");
 CoordinatedShutdown.get(actorSystem).run(reason, runFromPhase);
 ```
+
+## Change in self-signed HTTPS certificate
+
+It is now generated under `target/dev-mode/generated.keystore` instead of directly on the root folder.

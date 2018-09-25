@@ -4,14 +4,10 @@
 
 package scalaguide.tests.specs2
 
-import javax.inject.{Inject, Provider}
-
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
 import play.api.mvc._
-import play.api.routing._
-import play.api.routing.sird._
 
 // #scalafunctionaltest-imports
 import play.api.test._
@@ -137,7 +133,7 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       val ws = app.injector.instanceOf[WSClient]
 
       // await is from play.api.test.FutureAwaits
-      val response = await(ws.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
+      val response = await(ws.url(testPaymentGatewayURL).withQueryStringParameters("callbackURL" -> callbackURL).get())
 
       response.status must equalTo(OK)
     }

@@ -34,7 +34,7 @@ import akka.util.ByteString
 
 import scala.concurrent.ExecutionContext
 
-class Application @Inject() (ws: WSClient) extends Controller {
+class Application @Inject() (ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {
 
 }
 //#dependency

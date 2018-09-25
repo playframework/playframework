@@ -2,9 +2,8 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import sbt._
 import sbt.Keys._
-import sbt.complete.Parsers
+import sbt._
 
 object Generators {
   // Generates a scala file that contains the play version for use at runtime.
@@ -39,7 +38,7 @@ object Generators {
 }
 
 object Commands {
-  val quickPublish = Command("quickPublish", Help.more("quickPublish", "Toggles quick publish mode, disabling/enabling build of documentation/source jars"))(_ => Parsers.EOF) { (state, _) =>
+  val quickPublish = Command.command("quickPublish", Help.more("quickPublish", "Toggles quick publish mode, disabling/enabling build of documentation/source jars")) { state =>
     val x = Project.extract(state)
     import x._
 

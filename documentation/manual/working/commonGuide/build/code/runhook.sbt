@@ -48,7 +48,7 @@ def Grunt2(base: File) = {
           Process("grunt dist", base).run
         }
 
-        override def afterStarted(addr: InetSocketAddress): Unit = {
+        override def afterStarted(): Unit = {
           watchProcess = Some(Process("grunt watch", base).run)
         }
 

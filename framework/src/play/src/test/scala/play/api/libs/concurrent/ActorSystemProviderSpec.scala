@@ -12,9 +12,10 @@ import akka.actor.CoordinatedShutdown._
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import org.specs2.mutable.Specification
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.{ Configuration, Environment }
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 
 class ActorSystemProviderSpec extends Specification {
@@ -83,7 +84,7 @@ class ActorSystemProviderSpec extends Specification {
       val PhaseCustomDefinedPhase = "custom-defined-phase"
       val phaseCustomDefinedPhaseExecuted = new AtomicBoolean(false)
 
-      val (actorSystem, _) = ActorSystemProvider.start(
+      val actorSystem = ActorSystemProvider.start(
         this.getClass.getClassLoader,
         Configuration(config)
       )
@@ -115,14 +116,14 @@ class ActorSystemProviderSpec extends Specification {
       .underlying
       .withoutPath(playTimeoutKey)
     )
-    val (actorSystem, stopHook) = ActorSystemProvider.start(
+    val actorSystem = ActorSystemProvider.start(
       this.getClass.getClassLoader,
       Configuration(config)
     )
     try {
       block(actorSystem)
     } finally {
-      stopHook()
+      Await.ready(CoordinatedShutdown(actorSystem).run(CoordinatedShutdown.UnknownReason), fiveSec)
     }
   }
 

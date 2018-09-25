@@ -6,7 +6,6 @@ package play.core.server
 
 import java.net.InetSocketAddress
 import java.security.{ Provider, SecureRandom }
-import java.util.concurrent.TimeUnit
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
@@ -24,7 +23,7 @@ import com.typesafe.config.{ Config, ConfigMemorySize }
 import javax.net.ssl._
 import play.api._
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.api.libs.concurrent.{ CoordinatedShutdownProvider, CoordinatedShutdownSupport }
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
@@ -34,7 +33,6 @@ import play.core.server.Server.ServerStoppedReason
 import play.core.server.akkahttp.{ AkkaModelConversion, HttpRequestDecoder }
 import play.core.server.common.{ ReloadCache, ServerDebugInfo, ServerResultUtils }
 import play.core.server.ssl.ServerSSLEngine
-import play.server.SSLEngineProvider
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
@@ -163,12 +161,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {
-      val engineProvider = ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider)
       // There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and
       // couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
-      val sslContext = mockSslContext(engineProvider)
+      val sslContext = mockSslContext()
       ConnectionContext.https(sslContext = sslContext)
     } catch {
       case NonFatal(e) =>
@@ -432,16 +429,17 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    * order to pass an SSLContext, we need to implement our own mock one that delegates to the SSLEngineProvider
    * when creating an SSLEngine.
    */
-  private def mockSslContext(sslEngineProvider: SSLEngineProvider): SSLContext = {
+  private def mockSslContext(): SSLContext = {
     new SSLContext(new SSLContextSpi() {
-      def engineCreateSSLEngine() = sslEngineProvider.createSSLEngine()
-      def engineCreateSSLEngine(s: String, i: Int) = engineCreateSSLEngine()
+      private lazy val sslEngineProvider = ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider)
+      override def engineCreateSSLEngine(): SSLEngine = sslEngineProvider.createSSLEngine()
+      override def engineCreateSSLEngine(s: String, i: Int): SSLEngine = engineCreateSSLEngine()
 
-      def engineInit(keyManagers: Array[KeyManager], trustManagers: Array[TrustManager], secureRandom: SecureRandom) = ()
-      def engineGetClientSessionContext() = SSLContext.getDefault.getClientSessionContext
-      def engineGetServerSessionContext() = SSLContext.getDefault.getServerSessionContext
-      def engineGetSocketFactory() = SSLSocketFactory.getDefault.asInstanceOf[SSLSocketFactory]
-      def engineGetServerSocketFactory() = SSLServerSocketFactory.getDefault.asInstanceOf[SSLServerSocketFactory]
+      override def engineInit(keyManagers: Array[KeyManager], trustManagers: Array[TrustManager], secureRandom: SecureRandom): Unit = ()
+      override def engineGetClientSessionContext(): SSLSessionContext = SSLContext.getDefault.getClientSessionContext
+      override def engineGetServerSessionContext(): SSLSessionContext = SSLContext.getDefault.getServerSessionContext
+      override def engineGetSocketFactory(): SSLSocketFactory = SSLSocketFactory.getDefault.asInstanceOf[SSLSocketFactory]
+      override def engineGetServerSocketFactory(): SSLServerSocketFactory = SSLServerSocketFactory.getDefault.asInstanceOf[SSLServerSocketFactory]
     }, new Provider("Play SSlEngineProvider delegate", 1d,
       "A provider that only implements the creation of SSL engines, and delegates to Play's SSLEngineProvider") {},
       "Play SSLEngineProvider delegate") {

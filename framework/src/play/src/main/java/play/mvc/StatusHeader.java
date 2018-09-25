@@ -198,7 +198,7 @@ public class StatusHeader extends Result {
         }
         try {
             return doSendResource(
-                    FileIO.fromFile(path.toFile()),
+                    FileIO.fromPath(path),
                     Optional.of(Files.size(path)),
                     Optional.of(filename),
                     inline
@@ -230,7 +230,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null file");
         }
         return doSendResource(
-                FileIO.fromFile(file),
+                FileIO.fromPath(file.toPath()),
                 Optional.of(file.length()),
                 Optional.of(file.getName()),
                 inline
@@ -261,7 +261,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null file");
         }
         return doSendResource(
-                FileIO.fromFile(file),
+                FileIO.fromPath(file.toPath()),
                 Optional.of(file.length()),
                 Optional.of(fileName),
                 inline

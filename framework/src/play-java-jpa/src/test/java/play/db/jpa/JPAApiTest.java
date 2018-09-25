@@ -100,7 +100,7 @@ public class JPAApiTest {
         });
 
         db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L);
+            TestEntity entity = TestEntity.find(1L, db.jpa.em());
             assertThat(entity.name, equalTo("alice"));
         });
     }
@@ -125,7 +125,7 @@ public class JPAApiTest {
         });
 
         db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L);
+            TestEntity entity = TestEntity.find(1L, db.jpa.em());
             assertThat(entity.name, equalTo("alice"));
         });
     }
@@ -139,7 +139,7 @@ public class JPAApiTest {
         });
 
         db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L);
+            TestEntity entity = TestEntity.find(1L, db.jpa.em());
             assertThat(entity, nullValue());
         });
     }
@@ -159,11 +159,11 @@ public class JPAApiTest {
     public void shouldExecuteASupplierBlockInsideATransaction() throws Exception {
         db.jpa.withTransaction(() -> {
             TestEntity entity = createTestEntity();
-            entity.save();
+            entity.save(db.jpa.em());
         });
 
         db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L);
+            TestEntity entity = TestEntity.find(1L, db.jpa.em());
             assertThat(entity.name, equalTo("alice"));
         });
     }
@@ -174,15 +174,15 @@ public class JPAApiTest {
             TestEntity entity = new TestEntity();
             entity.id = 2L;
             entity.name = "test2";
-            entity.save();
+            entity.save(db.jpa.em());
 
             db.jpa.withTransaction(() -> {
-                TestEntity entity2 = TestEntity.find(2L);
+                TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
                 assertThat(entity2, nullValue());
             });
 
             // Verify that we can still access the EntityManager
-            TestEntity entity3 = TestEntity.find(2L);
+            TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
             assertThat(entity3, equalTo(entity));
         });
     }
@@ -192,26 +192,26 @@ public class JPAApiTest {
         db.jpa.withTransaction(() -> {
             // Parent transaction creates entity 2
             TestEntity entity = createTestEntity(2L);
-            entity.save();
+            entity.save(db.jpa.em());
 
             db.jpa.withTransaction(() -> {
                 // Nested transaction creates entity 3, but rolls back
                 TestEntity entity2 = createTestEntity(3L);
-                entity2.save();
+                entity2.save(db.jpa.em());
 
-                JPA.em().getTransaction().setRollbackOnly();
+                db.jpa.em().getTransaction().setRollbackOnly();
             });
 
             // Verify that we can still access the EntityManager
-            TestEntity entity3 = TestEntity.find(2L);
+            TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
             assertThat(entity3, equalTo(entity));
         });
 
         db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(3L);
+            TestEntity entity = TestEntity.find(3L, db.jpa.em());
             assertThat(entity, nullValue());
 
-            TestEntity entity2 = TestEntity.find(2L);
+            TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
             assertThat(entity2.name, equalTo("alice"));
         });
     }
@@ -221,26 +221,26 @@ public class JPAApiTest {
         db.jpa.withTransaction(() -> {
             // Parent transaction creates entity 2, but rolls back
             TestEntity entity = createTestEntity(2L);
-            entity.save();
+            entity.save(db.jpa.em());
 
             db.jpa.withTransaction(() -> {
                 // Nested transaction creates entity 3
                 TestEntity entity2 = createTestEntity(3L);
-                entity2.save();
+                entity2.save(db.jpa.em());
             });
 
             // Verify that we can still access the EntityManager
-            TestEntity entity3 = TestEntity.find(2L);
+            TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
             assertThat(entity3, equalTo(entity));
 
             db.jpa.em().getTransaction().setRollbackOnly();
         });
 
         db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(3L);
+            TestEntity entity = TestEntity.find(3L, db.jpa.em());
             assertThat(entity.name, equalTo("alice"));
 
-            TestEntity entity2 = TestEntity.find(2L);
+            TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
             assertThat(entity2, nullValue());
         });
     }
@@ -248,6 +248,8 @@ public class JPAApiTest {
     public static class TestDatabase extends ExternalResource {
         Database database;
         JPAApi jpa;
+
+        static JPAEntityManagerContext entityManagerContext = new JPAEntityManagerContext();
 
         public void execute(final String sql) {
             database.withConnection(connection -> {
@@ -259,7 +261,7 @@ public class JPAApiTest {
         public void before() {
             database = Databases.inMemoryWith("jndiName", "DefaultDS");
             execute("create table TestEntity (id bigint not null, name varchar(255));");
-            jpa = JPA.createFor("defaultPersistenceUnit");
+            jpa = new DefaultJPAApi(DefaultJPAConfig.of("default", "defaultPersistenceUnit"), entityManagerContext).start();
         }
 
         @Override

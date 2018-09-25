@@ -19,11 +19,4 @@ public interface ReloadableServer {
    */
   void reload();
 
-  /**
-   * Get the address of the server.
-   *
-   * @return The address of the server.
-   */
-  java.net.InetSocketAddress mainAddress(); 
-
 }

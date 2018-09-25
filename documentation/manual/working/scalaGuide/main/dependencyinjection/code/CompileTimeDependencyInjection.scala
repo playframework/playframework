@@ -17,7 +17,7 @@ class CompileTimeDependencyInjection extends Specification {
 
   "compile time dependency injection" should {
     "allow creating an application with the built in components from context" in {
-      val context = ApplicationLoader.createContext(environment,
+      val context = ApplicationLoader.Context.create(environment,
         Map("play.application.loader" -> classOf[basic.MyApplicationLoader].getName)
       )
       val components = new messages.MyComponents(context)
@@ -26,13 +26,13 @@ class CompileTimeDependencyInjection extends Specification {
       components.router.documentation must beEmpty
     }
     "allow using other components" in {
-      val context = ApplicationLoader.createContext(environment)
+      val context = ApplicationLoader.Context.create(environment)
       val components = new messages.MyComponents(context)
       components.application must beAnInstanceOf[Application]
       components.myComponent must beAnInstanceOf[messages.MyComponent]
     }
     "allow declaring a custom router" in {
-      val context = ApplicationLoader.createContext(environment)
+      val context = ApplicationLoader.Context.create(environment)
       val components = new routers.MyComponents(context)
       components.application must beAnInstanceOf[Application]
       components.router must beAnInstanceOf[scalaguide.dependencyinjection.Routes]

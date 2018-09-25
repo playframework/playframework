@@ -85,7 +85,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * Returns the current HTTP response.
      *
      * @return the response
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static Response response() {
         return Http.Context.current().response();
     }

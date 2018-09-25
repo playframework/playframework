@@ -4,8 +4,6 @@
 
 package play.api.libs.concurrent
 
-import java.util.concurrent.TimeUnit
-
 import akka.Done
 import akka.actor.setup.{ ActorSystemSetup, Setup }
 import akka.actor.{ CoordinatedShutdown, _ }
@@ -15,7 +13,6 @@ import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._
-import play.core.ClosableLazy
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
@@ -102,7 +99,7 @@ trait AkkaComponents {
 @Singleton
 class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration) extends Provider[ActorSystem] {
 
-  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)._1
+  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
 
 }
 
@@ -126,7 +123,7 @@ object ActorSystemProvider {
 
   type StopHook = () => Future[_]
 
-  private val logger = Logger(classOf[ActorSystemProvider])
+  private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
 
   case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
 
@@ -135,7 +132,7 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
     start(classLoader, config, additionalSetup = None)
   }
 
@@ -144,11 +141,11 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): (ActorSystem, StopHook) = {
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): ActorSystem = {
     start(classLoader, config, Some(additionalSetup))
   }
 
-  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): (ActorSystem, StopHook) = {
+  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 
@@ -187,23 +184,7 @@ object ActorSystemProvider {
     val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
 
-    // noop. This is no longer necessary since we've reversed the dependency between
-    // ActorSystem and ApplicationLifecycle.
-    val stopHook = { () => Future.successful(Done) }
-
-    (system, stopHook)
-  }
-
-  /**
-   * A lazy wrapper around `start`. Useful when the `ActorSystem` may
-   * not be needed.
-   */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
-    new ClosableLazy[ActorSystem, Future[_]] {
-      protected def create() = start(classLoader, configuration)
-
-      protected def closeNotNeeded = Future.successful(())
-    }
+    system
   }
 
 }
@@ -242,46 +223,8 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
   }
 }
 
-private[play] object CoordinatedShutdownSupport {
-
-  private[play] lazy val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
-
-  /**
-   * Shuts down the provided `ActorSystem` asynchronously, starting from the configured phase.
-   *
-   * @param actorSystem the actor system to shut down
-   * @param reason the reason the actor system is shutting down
-   * @return a future that completes with `Done` when the actor system has fully shut down
-   */
-  def asyncShutdown(actorSystem: ActorSystem, reason: CoordinatedShutdown.Reason): Future[Done] = {
-    // CoordinatedShutdown may be invoked many times over the same actorSystem but
-    // only the first invocation runs the tasks (later invocations are noop).
-    CoordinatedShutdown(actorSystem).run(reason)
-  }
-
-  /**
-   * Shuts down the provided `ActorSystem` synchronously, starting from the configured phase. This method blocks until
-   * the actor system has fully shut down, or the duration exceeds timeouts for all coordinated shutdown phases.
-   *
-   * @param actorSystem the actor system to shut down
-   * @param reason      the reason the actor system is shutting down
-   * @throws InterruptedException if the current thread is interrupted while waiting
-   * @throws TimeoutException if after waiting for the specified time `awaitable` is still not ready
-   */
-  @throws(classOf[TimeoutException])
-  @throws(classOf[InterruptedException])
-  def syncShutdown(actorSystem: ActorSystem, reason: CoordinatedShutdown.Reason): Unit = {
-    // The await operation should last at most the total timeout of the coordinated shutdown.
-    // We're adding a few extra seconds of margin (5 sec) to make sure the coordinated shutdown
-    // has enough room to complete and yet we will timeout in case something goes wrong (invalid setup,
-    // failed task, bug, etc...) preventing the coordinated shutdown from completing.
-    val shutdownTimeout = CoordinatedShutdown(actorSystem).totalTimeout() + Duration(5, TimeUnit.SECONDS)
-    Await.result(
-      asyncShutdown(actorSystem, reason),
-      shutdownTimeout
-    )
-  }
-
+private object CoordinatedShutdownProvider {
+  private val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
 }
 
 /**
@@ -290,7 +233,7 @@ private[play] object CoordinatedShutdownSupport {
 @Singleton
 class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
 
-  import CoordinatedShutdownSupport.logger
+  import CoordinatedShutdownProvider.logger
 
   lazy val get: CoordinatedShutdown = {
 

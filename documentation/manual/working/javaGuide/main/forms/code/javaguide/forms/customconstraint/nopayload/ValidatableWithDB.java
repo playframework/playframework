@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.forms.customconstraint;
+package javaguide.forms.customconstraint.nopayload;
 
 //#interface
 import play.db.Database;

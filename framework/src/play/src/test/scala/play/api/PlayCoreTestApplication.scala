@@ -28,8 +28,7 @@ private[play] case class PlayCoreTestApplication(
 
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
-  private val lazyActorSystem = ActorSystemProvider.lazyStart(classloader, configuration)
-  def actorSystem = lazyActorSystem.get()
+  lazy val actorSystem = ActorSystemProvider.start(classloader, configuration)
   lazy val materializer = ActorMaterializer()(actorSystem)
   lazy val coordinatedShutdown = CoordinatedShutdown(actorSystem)
   lazy val requestFactory = new DefaultRequestFactory(httpConfiguration)
@@ -43,9 +42,6 @@ private[play] case class PlayCoreTestApplication(
       .run(CoordinatedShutdown.UnknownReason)
       .map(_ =>
         _terminated = true
-      )
-      .flatMap(_ =>
-        lazyActorSystem.close()
       )
   }
 }

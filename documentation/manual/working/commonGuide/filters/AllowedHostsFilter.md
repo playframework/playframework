@@ -34,6 +34,38 @@ play.filters.hosts {
 }
 ```
 
+## Applying to routes via route modifiers
+
+You may find that some of your routes can not be used properly with allowed hosts filtering. This is commonly the case for load balancer health checks, which often use the IP address of the server as the host name. Rather than completely disabling this important safety feature, you can use the route modifier whitelist to exclude the problematic routes from the filter while leaving it on by default.
+
+For example, the default configuration defines an `anyhost` route tag, which can be used to exclude one or more routes from the filter.
+
+```
+play.filters.hosts.routeModifiers.whiteList = [anyhost]
+```
+
+With this configuration, routes tagged with `anyhost` will be exempt from the allowed hosts filter, for instance, your routes file may look like this:
+
+```
++anyhost
+GET           /healthcheck          controllers.HealthController.healthcheck
+```
+
+If the whitelist is empty and the blacklist is defined, the allowed hosts filter will only be applied to hosts defined in the blacklist. For example, the following config will only apply the allowed hosts filter to routes tagged with `external`.
+
+```
+play.filters.hosts.routeModifiers.whiteList = []
+play.filters.hosts.routeModifiers.blackList = [external]
+```
+
+With this configuration,  your routes file might look like this:
+
+```
++external
+GET           /                     controllers.HomeController.index
+GET           /healthcheck          controllers.HealthController.healthcheck
+```
+
 ## Testing 
 
 Because the AllowedHostsFilter filter is added automatically, functional tests need to have the Host HTTP header added.

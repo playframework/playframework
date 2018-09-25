@@ -144,8 +144,9 @@ object ScalaRoutingSpec extends Specification {
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version Some(3.0)"
     }
     "support reverse routing" in {
-      import reverse.controllers.routes
       import Results.Redirect
+      import reverse.controllers.routes
+      val Action = Helpers.stubControllerComponents().actionBuilder
       // #reverse-router
       // Redirect to /hello/Bob
       def helloBob = Action {

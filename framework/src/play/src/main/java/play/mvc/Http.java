@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
-import play.api.i18n.Messages$;
 import play.api.libs.json.JsValue;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
@@ -40,7 +39,6 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -176,7 +174,10 @@ public class Http {
          * Returns the current response.
          *
          * @return the response
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
          */
+        @Deprecated
         public Response response() {
             return response;
         }
@@ -353,7 +354,10 @@ public class Http {
              * Returns the current response.
              *
              * @return the current response.
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Response response() {
                 return Context.current().response();
             }
@@ -460,7 +464,11 @@ public class Http {
             return wrapped.request();
         }
 
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
+         */
         @Override
+        @Deprecated
         public Response response() {
             return wrapped.response();
         }
@@ -1771,7 +1779,10 @@ public class Http {
 
     /**
      * The HTTP response.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead which has methods to add headers and cookies.
      */
+    @Deprecated
     public static class Response implements HeaderNames {
 
         private final Map<String, String> headers = new TreeMap<>((Comparator<String>) String::compareToIgnoreCase);
@@ -1858,7 +1869,7 @@ public class Http {
         }
 
         public Optional<Cookie> cookie(String name) {
-            return cookies.stream().filter(x -> { return x.name().equals(name); }).findFirst();
+            return cookies.stream().filter(x -> x.name().equals(name)).findFirst();
         }
 
     }

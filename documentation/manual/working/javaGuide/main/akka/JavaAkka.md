@@ -136,3 +136,20 @@ NOTE: Play only handles the shutdown of its internal `ActorSystem`. If you are u
 You can make your Play application join an existing [Akka Cluster](https://doc.akka.io/docs/akka/current/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Akka's Coordinated Shutdown which will take care of that graceful leave. 
 
 If you already have custom Cluster Leave code it is recommended that you replace it with Akka's handling. See [Akka docs](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown) for more details.
+
+## Updating Akka version
+
+If you want to use a newer version of Akka, one that is not used by Play yet, you can add the following to your `build.sbt` file:
+
+@[akka-update](code/javaguide.akkaupdate.sbt)
+
+Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
+
+If you also want to update Akka HTTP, you should also add its dependencies explicitly:
+
+@[akka-http-update](code/javaguide.akkaupdate.sbt)
+
+> **Note:** When doing such updates, keep in mind that you need to follow Akka's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html). And if you are manually adding other Akka artifacts, remember to keep the version of all the Akka artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
+
+> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Akka (or Akka HTTP) version than the one you are declaring, Play version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).
+

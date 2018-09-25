@@ -15,6 +15,9 @@ public class MyBlueUser {
     @ValidateWith(value=BlueValidator.class, message="i-am-blue")
     private String hairColor;
     
+    @ValidateWith(value=DarkBlueValidator.class)
+    private String nailColor;
+    
     public String getSkinColor() {
         return skinColor;
     }
@@ -29,5 +32,13 @@ public class MyBlueUser {
     
     public void setHairColor(String value) {
         hairColor = value;
+    }
+    
+    public String getNailColor() {
+        return nailColor;
+    }
+    
+    public void setNailColor(String value) {
+        nailColor = value;
     }
 }

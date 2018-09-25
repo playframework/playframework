@@ -1,7 +1,9 @@
 <!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Embedding a Netty server in your application
 
-While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application. This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary. A common use case is an application with only a few simple routes.
+While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application. This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary. A common use case is an application with only a few simple routes. To use Netty Server embedded, you will need the following dependency:
+
+@[netty-sbt-dependencies](code/embedded.sbt)
 
 One way to start a Play Netty Server is to use the [`NettyServer`](api/scala/play/core/server/NettyServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouterWithComponents` method:
 
@@ -22,3 +24,13 @@ To stop the server once you've started it, simply call the `stop` method:
 @[stop](code/ScalaNettyEmbeddingPlay.scala)
 
 > **Note:** Play requires an application secret to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
+
+## Logging configuration
+
+When using Netty as an embedded server, no logging dependencies are included by default. If you want to also add logging to the embedded application, you can add the Play logback module:
+
+@[embed-logging-sbt-dependencies](code/embedded.sbt)
+
+And later call the [`LoggerConfigurator`](api/scala/play/api/LoggerConfigurator.html) API:
+
+@[logger-configurator](code/ScalaNettyEmbeddingPlay.scala)
