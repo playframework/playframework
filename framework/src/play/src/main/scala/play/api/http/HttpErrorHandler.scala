@@ -328,9 +328,9 @@ class JsonDefaultHttpErrorHandler(
       Future.successful(
         InternalServerError(
           if (config.showDevErrors) {
-            devServerErrorJson(request, usefulException)
+            onDevServerError(request, usefulException)
           } else {
-            serverErrorJson(request, usefulException)
+            onProdServerError(request, usefulException)
           }
         )
       )
@@ -340,7 +340,7 @@ class JsonDefaultHttpErrorHandler(
         Future.successful(InternalServerError)
     }
 
-  protected def devServerErrorJson(request: RequestHeader, exception: UsefulException): JsValue = {
+  protected def onDevServerError(request: RequestHeader, exception: UsefulException): JsValue = {
     error(Json.obj(
       "id" -> exception.id,
       "requestId" -> request.id,
@@ -363,7 +363,7 @@ class JsonDefaultHttpErrorHandler(
   protected def formatDevServerErrorException(exception: Throwable): JsValue =
     JsArray(ExceptionUtils.getStackFrames(exception).map(s => JsString(s.trim)))
 
-  protected def serverErrorJson(request: RequestHeader, exception: UsefulException): JsValue =
+  protected def onProdServerError(request: RequestHeader, exception: UsefulException): JsValue =
     error(Json.obj("id" -> exception.id))
 
   /**
