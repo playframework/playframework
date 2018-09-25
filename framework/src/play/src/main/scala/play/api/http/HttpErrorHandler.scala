@@ -367,13 +367,13 @@ class JsonDefaultHttpErrorHandler(
     error(Json.obj("id" -> exception.id))
 
   /**
-    * Responsible for logging server errors.
-    *
-    * This can be overridden to add additional logging information, eg. the id of the authenticated user.
-    *
-    * @param request The request that triggered the server error.
-    * @param usefulException The server error.
-    */
+   * Responsible for logging server errors.
+   *
+   * This can be overridden to add additional logging information, eg. the id of the authenticated user.
+   *
+   * @param request The request that triggered the server error.
+   * @param usefulException The server error.
+   */
   protected def logServerError(request: RequestHeader, usefulException: UsefulException): Unit = {
     Logger.error(
       """
