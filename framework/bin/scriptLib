@@ -19,7 +19,10 @@ EXTRA_OPTS=""
 # Check if it is a scheduled build
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
     # `sort` is not necessary, but it is good to make it predictable.
-    AKKA_VERSION=$(curl -s https://repo.akka.io/snapshots/com/typesafe/akka/akka-actor_2.12/ | grep -oEi '[0-9]\.[0-9]-[0-9]{8}-[0-9]{6}' | sort | tail -n 1)
+    AKKA_VERSION=$(curl -s https://repo.akka.io/snapshots/com/typesafe/akka/akka-actor_2.12/ | grep -oEi '2\.5-[0-9]{8}-[0-9]{6}' | sort | tail -n 1)
+
+    echo "Using Akka SNAPSHOT ${AKKA_VERSION}"
+
     EXTRA_OPTS="-Dakka.version=${AKKA_VERSION}"
 fi
 
