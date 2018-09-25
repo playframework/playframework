@@ -7,11 +7,11 @@ package play.http;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.typesafe.config.Config;
 import play.Environment;
+import play.Logger;
 import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
-import play.api.routing.Router;
+import play.api.http.HttpErrorHandlerExceptions;
 import play.libs.Json;
 import play.libs.exception.ExceptionUtils;
 import play.mvc.Http.RequestHeader;
@@ -19,7 +19,6 @@ import play.mvc.Result;
 import play.mvc.Results;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -32,73 +31,71 @@ import java.util.concurrent.CompletionStage;
  * You could override how exceptions are rendered in Dev mode by extending this class and overriding
  * the [[formatDevServerErrorException]] method.
  */
-public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
+public class JsonDefaultHttpErrorHandler implements HttpErrorHandler {
+
+    private final Environment environment;
+    private final OptionalSourceMapper sourceMapper;
 
     @Inject
-    public JsonDefaultHttpErrorHandler(Config config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes) {
-        super(config, environment, sourceMapper, routes);
+    public JsonDefaultHttpErrorHandler(Environment environment, OptionalSourceMapper sourceMapper) {
+        this.environment = environment;
+        this.sourceMapper = sourceMapper;
     }
 
-    /**
-     * Invoked when a client makes a bad request.
-     *
-     * @param request The request that was bad.
-     * @param message The error message.
-     */
     @Override
-    protected CompletionStage<Result> onBadRequest(RequestHeader request, String message) {
-        ObjectNode result = Json.newObject();
-        result.put("requestId", request.asScala().id());
-        result.put("message", message);
-
-        return CompletableFuture.completedFuture(Results.badRequest(error(result)));
-    }
-
-    /**
-     * Invoked when a client makes a request that was forbidden.
-     *
-     * @param request The forbidden request.
-     * @param message The error message.
-     */
-    @Override
-    protected CompletionStage<Result> onForbidden(RequestHeader request, String message) {
-        ObjectNode result = Json.newObject();
-        result.put("requestId", request.asScala().id());
-        result.put("message", message);
-
-        return CompletableFuture.completedFuture(Results.forbidden(error(result)));
-    }
-
-    /**
-     * Invoked when a handler or resource is not found.
-     *
-     * @param request The request that no handler was found to handle.
-     * @param message A message.
-     */
-    @Override
-    protected CompletionStage<Result> onNotFound(RequestHeader request, String message) {
-        ObjectNode result = Json.newObject();
-        result.put("requestId", request.asScala().id());
-        result.put("message", message);
-
-        return CompletableFuture.completedFuture(Results.notFound(error(result)));
-    }
-
-    /**
-     * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled by any of
-     * the other methods in this class already.
-     *
-     * @param request The request that caused the client error.
-     * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-     * @param message The error message.
-     */
-    @Override
-    protected CompletionStage<Result> onOtherClientError(RequestHeader request, int statusCode, String message) {
+    public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
         ObjectNode result = Json.newObject();
         result.put("requestId", request.asScala().id());
         result.put("message", message);
 
         return CompletableFuture.completedFuture(Results.status(statusCode, error(result)));
+    }
+
+
+    @Override
+    public CompletionStage<Result> onServerError(RequestHeader request, Throwable exception) {
+        try {
+            UsefulException usefulException = throwableToUsefulException(exception);
+
+            logServerError(request, usefulException);
+
+            switch (environment.mode()) {
+                case PROD:
+                    return CompletableFuture.completedFuture(Results.internalServerError(onProdServerError(request, usefulException)));
+                default:
+                    return CompletableFuture.completedFuture(Results.internalServerError(onDevServerError(request, usefulException)));
+            }
+        } catch (Exception e) {
+            Logger.error("Error while handling error", e);
+            return CompletableFuture.completedFuture(Results.internalServerError());
+        }
+    }
+
+    /**
+     * Convert the given exception to an exception that Play can report more information about.
+     * <p>
+     * This will generate an id for the exception, and in dev mode, will load the source code for the code that threw the
+     * exception, making it possible to report on the location that the exception was thrown from.
+     */
+    protected final UsefulException throwableToUsefulException(final Throwable throwable) {
+        return HttpErrorHandlerExceptions.throwableToUsefulException(sourceMapper.sourceMapper(), environment.isProd(), throwable);
+    }
+
+    /**
+     * Responsible for logging server errors.
+     * <p>
+     * The base implementation uses play.Logger.error to log, which uses the SLF4J "application" logger.  If a special annotation is desired for internal server errors, you may want to use SLF4J directly with the Marker API to distinguish server errors from application errors.
+     * <p>
+     * This can also be overridden to add additional logging information, eg. the id of the authenticated user.
+     *
+     * @param request         The request that triggered the server error.
+     * @param usefulException The server error.
+     */
+    protected void logServerError(RequestHeader request, UsefulException usefulException) {
+        Logger.error(String.format("\n\n! @%s - Internal server error, for (%s) [%s] ->\n",
+                usefulException.id, request.method(), request.uri()),
+                usefulException
+        );
     }
 
     /**
@@ -107,8 +104,7 @@ public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
      * @param request The request that triggered the error.
      * @param exception The exception.
      */
-    @Override
-    protected CompletionStage<Result> onDevServerError(RequestHeader request, UsefulException exception) {
+    protected JsonNode onDevServerError(RequestHeader request, UsefulException exception) {
         ObjectNode exceptionJson = Json.newObject();
         exceptionJson.put("title", exception.title);
         exceptionJson.put("description", exception.description);
@@ -119,7 +115,7 @@ public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
         result.put("requestId", request.asScala().id());
         result.set("exception", exceptionJson);
 
-        return CompletableFuture.completedFuture(Results.internalServerError(error(result)));
+        return error(result);
     }
 
     /**
@@ -147,12 +143,11 @@ public class JsonDefaultHttpErrorHandler extends DefaultHttpErrorHandler {
      * @param request The request that triggered the error.
      * @param exception The exception.
      */
-    @Override
-    protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception) {
+    protected JsonNode onProdServerError(RequestHeader request, UsefulException exception) {
         ObjectNode result = Json.newObject();
         result.put("id", exception.id);
 
-        return CompletableFuture.completedFuture(Results.internalServerError(error(result)));
+        return error(result);
     }
 
     private JsonNode error(JsonNode content) {
