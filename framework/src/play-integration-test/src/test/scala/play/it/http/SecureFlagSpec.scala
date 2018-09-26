@@ -12,7 +12,7 @@ import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrat
  * Specs for the "secure" flag on requests
  */
 class SecureFlagSpec extends PlaySpecification
-    with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+  with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
   /** An ApplicationFactory with a single action that returns the request's `secure` flag. */
   val secureFlagAppFactory: ApplicationFactory = withAction { actionBuilder =>
