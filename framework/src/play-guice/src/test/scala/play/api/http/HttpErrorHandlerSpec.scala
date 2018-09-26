@@ -8,21 +8,21 @@ import java.util.concurrent.CompletableFuture
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._
 import play.api.inject.BindingKey
 import play.api.libs.json._
-import play.api.mvc.{RequestHeader, Result, Results}
+import play.api.mvc.{ RequestHeader, Result, Results }
 import play.api.routing._
-import play.api.{Configuration, Environment, Mode, OptionalSourceMapper}
-import play.core.test.{FakeRequest, Fakes}
+import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
+import play.core.test.{ FakeRequest, Fakes }
 import play.http
-import play.i18n.{Langs, MessagesApi}
+import play.i18n.{ Langs, MessagesApi }
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.collection.JavaConverters._
 
 class HttpErrorHandlerSpec extends Specification {
