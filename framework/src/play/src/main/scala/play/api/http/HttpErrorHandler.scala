@@ -294,7 +294,7 @@ object HttpErrorHandlerExceptions {
  * the [[formatDevServerErrorException]] method.
  */
 @Singleton
-class JsonDefaultHttpErrorHandler(
+class JsonHttpErrorHandler(
     config: HttpErrorConfig = HttpErrorConfig(),
     sourceMapper: Option[SourceMapper] = None) extends HttpErrorHandler {
 
@@ -328,9 +328,9 @@ class JsonDefaultHttpErrorHandler(
       Future.successful(
         InternalServerError(
           if (config.showDevErrors) {
-            onDevServerError(request, usefulException)
+            devServerError(request, usefulException)
           } else {
-            onProdServerError(request, usefulException)
+            prodServerError(request, usefulException)
           }
         )
       )
@@ -340,7 +340,7 @@ class JsonDefaultHttpErrorHandler(
         Future.successful(InternalServerError)
     }
 
-  protected def onDevServerError(request: RequestHeader, exception: UsefulException): JsValue = {
+  protected def devServerError(request: RequestHeader, exception: UsefulException): JsValue = {
     error(Json.obj(
       "id" -> exception.id,
       "requestId" -> request.id,
@@ -363,7 +363,7 @@ class JsonDefaultHttpErrorHandler(
   protected def formatDevServerErrorException(exception: Throwable): JsValue =
     JsArray(ExceptionUtils.getStackFrames(exception).map(s => JsString(s.trim)))
 
-  protected def onProdServerError(request: RequestHeader, exception: UsefulException): JsValue =
+  protected def prodServerError(request: RequestHeader, exception: UsefulException): JsValue =
     error(Json.obj("id" -> exception.id))
 
   /**

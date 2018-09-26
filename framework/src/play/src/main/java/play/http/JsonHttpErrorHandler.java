@@ -31,13 +31,13 @@ import java.util.concurrent.CompletionStage;
  * You could override how exceptions are rendered in Dev mode by extending this class and overriding
  * the [[formatDevServerErrorException]] method.
  */
-public class JsonDefaultHttpErrorHandler implements HttpErrorHandler {
+public class JsonHttpErrorHandler implements HttpErrorHandler {
 
     private final Environment environment;
     private final OptionalSourceMapper sourceMapper;
 
     @Inject
-    public JsonDefaultHttpErrorHandler(Environment environment, OptionalSourceMapper sourceMapper) {
+    public JsonHttpErrorHandler(Environment environment, OptionalSourceMapper sourceMapper) {
         this.environment = environment;
         this.sourceMapper = sourceMapper;
     }
@@ -61,9 +61,9 @@ public class JsonDefaultHttpErrorHandler implements HttpErrorHandler {
 
             switch (environment.mode()) {
                 case PROD:
-                    return CompletableFuture.completedFuture(Results.internalServerError(onProdServerError(request, usefulException)));
+                    return CompletableFuture.completedFuture(Results.internalServerError(prodServerError(request, usefulException)));
                 default:
-                    return CompletableFuture.completedFuture(Results.internalServerError(onDevServerError(request, usefulException)));
+                    return CompletableFuture.completedFuture(Results.internalServerError(devServerError(request, usefulException)));
             }
         } catch (Exception e) {
             Logger.error("Error while handling error", e);
@@ -104,7 +104,7 @@ public class JsonDefaultHttpErrorHandler implements HttpErrorHandler {
      * @param request The request that triggered the error.
      * @param exception The exception.
      */
-    protected JsonNode onDevServerError(RequestHeader request, UsefulException exception) {
+    protected JsonNode devServerError(RequestHeader request, UsefulException exception) {
         ObjectNode exceptionJson = Json.newObject();
         exceptionJson.put("title", exception.title);
         exceptionJson.put("description", exception.description);
@@ -143,7 +143,7 @@ public class JsonDefaultHttpErrorHandler implements HttpErrorHandler {
      * @param request The request that triggered the error.
      * @param exception The exception.
      */
-    protected JsonNode onProdServerError(RequestHeader request, UsefulException exception) {
+    protected JsonNode prodServerError(RequestHeader request, UsefulException exception) {
         ObjectNode result = Json.newObject();
         result.put("id", exception.id);
 

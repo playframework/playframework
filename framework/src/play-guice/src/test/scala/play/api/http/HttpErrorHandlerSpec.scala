@@ -8,20 +8,21 @@ import java.util.concurrent.CompletableFuture
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._
 import play.api.inject.BindingKey
 import play.api.libs.json._
-import play.api.mvc.{ RequestHeader, Result, Results }
+import play.api.mvc.{RequestHeader, Result, Results}
 import play.api.routing._
-import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
-import play.core.test.{ FakeRequest, Fakes }
-import play.i18n.{ Langs, MessagesApi }
+import play.api.{Configuration, Environment, Mode, OptionalSourceMapper}
+import play.core.test.{FakeRequest, Fakes}
+import play.http
+import play.i18n.{Langs, MessagesApi}
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.collection.JavaConverters._
 
 class HttpErrorHandlerSpec extends Specification {
@@ -119,12 +120,12 @@ class HttpErrorHandlerSpec extends Specification {
 
     "work if a scala JSON handler is defined" in {
       "in dev mode" in {
-        val errorHandler = handler(classOf[JsonDefaultHttpErrorHandler].getName, Mode.Dev)
+        val errorHandler = handler(classOf[JsonHttpErrorHandler].getName, Mode.Dev)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = false)
       }
       "in prod mode" in {
-        val errorHandler = handler(classOf[JsonDefaultHttpErrorHandler].getName, Mode.Prod)
+        val errorHandler = handler(classOf[JsonHttpErrorHandler].getName, Mode.Prod)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = true)
       }
@@ -132,12 +133,12 @@ class HttpErrorHandlerSpec extends Specification {
 
     "work if a java JSON handler is defined" in {
       "in dev mode" in {
-        val errorHandler = handler(classOf[play.http.JsonDefaultHttpErrorHandler].getName, Mode.Dev)
+        val errorHandler = handler(classOf[http.JsonHttpErrorHandler].getName, Mode.Dev)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = false)
       }
       "in prod mode" in {
-        val errorHandler = handler(classOf[play.http.JsonDefaultHttpErrorHandler].getName, Mode.Prod)
+        val errorHandler = handler(classOf[http.JsonHttpErrorHandler].getName, Mode.Prod)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = true)
       }
