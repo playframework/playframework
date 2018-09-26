@@ -3,7 +3,7 @@
 
 While it is possible to write [[functional tests|JavaFunctionalTest]] that test database access code by starting up a full application including the database, starting up a full application is not often desirable, due to the complexity of having many more components started and running just to test one small part of your application.
 
-Play provides a number of utilities for helping to test database access code that allow it to be tested with a database but in isolation from the rest of your app.  These utilities can easily be used with either ScalaTest or specs2, and can make your database tests much closer to lightweight and fast running unit tests than heavy weight and slow functional tests.
+Play provides a number of utilities for helping to test database access code that allow it to be tested with a database but in isolation from the rest of your app.  These utilities can easily be used with either [[ScalaTest|ScalaFunctionalTestingWithScalaTest]] or [[specs2|ScalaFunctionalTestingWithSpecs2]], and can make your database tests much closer to lightweight and fast running unit tests than heavy weight and slow functional tests.
 
 ## Using a database
 
