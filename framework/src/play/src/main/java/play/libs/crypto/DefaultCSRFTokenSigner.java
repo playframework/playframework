@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.crypto;
 
 import javax.inject.Inject;
@@ -44,11 +45,6 @@ public class DefaultCSRFTokenSigner implements CSRFTokenSigner {
 
     public boolean compareSignedTokens(String tokenA, String tokenB) {
         return csrfTokenSigner.compareSignedTokens(tokenA, tokenB);
-    }
-
-    @Deprecated
-    public boolean constantTimeEquals(String a, String b) {
-        return csrfTokenSigner.constantTimeEquals(a, b);
     }
 
     @Override

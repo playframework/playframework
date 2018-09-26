@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db
 
 import java.sql.{ DriverManager, SQLException }
@@ -29,7 +30,7 @@ class DriverRegistrationSpec extends Specification {
     }
 
     "be registered for both Acolyte & H2 when databases are connected" in {
-      dbApi.connect()
+      dbApi.initialize(logInitialization = true)
 
       (DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must not(beNull)).
         and(DriverManager.getDriver("jdbc:h2:mem:").

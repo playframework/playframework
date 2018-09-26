@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.common
 
 import akka.NotUsed
@@ -185,7 +186,7 @@ object WebSocketFlowHandler {
                         push(remoteOut, close)
                         // And complete both remote out and remote in
                         complete(remoteOut)
-                        cancel(appIn)
+                        cancel(remoteIn)
                       } else {
                         // Store so we can send later
                         state = ClientInitiatedClose(close)

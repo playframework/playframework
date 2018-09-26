@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.mvc
 
 import java.util.concurrent.CompletionStage
@@ -36,7 +37,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
   // `withServer` method that allows filters to be constructed with a Materializer
   def withFlexibleServer[T](settings: Map[String, String], errorHandler: Option[HttpErrorHandler], makeFilters: Materializer => Seq[EssentialFilter])(block: WSClient => T) = {
 
-    val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(
+    val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(
       environment = Environment.simple(),
       initialSettings = settings
     )) with HttpFiltersComponents {
@@ -207,6 +208,24 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       threadName must startWith("application-akka.actor.default-dispatcher-")
     }
 
+    "Scala EssentialFilter should work when converting from Scala to Java" in withServer()(ScalaEssentialFilter.asJava) { ws =>
+      val result = Await.result(ws.url("/ok").get(), Duration.Inf)
+      result.header(ScalaEssentialFilter.header) must beSome(ScalaEssentialFilter.expectedValue)
+    }
+
+    "Java EssentialFilter should work when converting from Java to Scala" in withServer()(JavaEssentialFilter.asScala) { ws =>
+      val result = Await.result(ws.url("/ok").get(), Duration.Inf)
+      result.header(JavaEssentialFilter.header) must beSome(JavaEssentialFilter.expectedValue)
+    }
+
+    "Scala EssentialFilter should preserve the same type when converting from Scala to Java then back to Scala" in {
+      ScalaEssentialFilter.asJava.asScala.getClass.isAssignableFrom(ScalaEssentialFilter.getClass) must_== true
+    }
+
+    "Java EssentialFilter should preserve the same type when converting from Java to Scala then back Java" in {
+      JavaEssentialFilter.asScala.asJava.getClass.isAssignableFrom(JavaEssentialFilter.getClass) must_== true
+    }
+
     val filterAddedHeaderKey = "CUSTOM_HEADER"
     val filterAddedHeaderVal = "custom header val"
 
@@ -291,6 +310,31 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       next(request).map { _ =>
         throw new RuntimeException(expectedText)
       }(ec)
+    }
+  }
+
+  object ScalaEssentialFilter extends EssentialFilter {
+    val header = "Scala"
+    val expectedValue = "1"
+
+    def apply(next: EssentialAction) = EssentialAction { request =>
+      next(request).map { result =>
+        result.withHeaders(header -> expectedValue)
+      }(ec)
+    }
+  }
+
+  object JavaEssentialFilter extends play.mvc.EssentialFilter {
+    import play.mvc._
+    val header = "Java"
+    val expectedValue = "1"
+
+    override def apply(next: EssentialAction) = new EssentialAction {
+      override def apply(request: Http.RequestHeader) = {
+        next.apply(request).map(new java.util.function.Function[Result, Result]() {
+          def apply(result: Result) = result.withHeader(header, expectedValue)
+        }, ec)
+      }
     }
   }
 

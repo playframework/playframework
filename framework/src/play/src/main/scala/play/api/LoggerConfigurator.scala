@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api
 
 import java.net.URL
@@ -91,7 +92,7 @@ object LoggerConfigurator {
   def apply(loggerConfiguratorClassName: String, classLoader: ClassLoader): Option[LoggerConfigurator] = {
     try {
       val loggerConfiguratorClass: Class[_] = classLoader.loadClass(loggerConfiguratorClassName)
-      Some(loggerConfiguratorClass.newInstance().asInstanceOf[LoggerConfigurator])
+      Some(loggerConfiguratorClass.getDeclaredConstructor().newInstance().asInstanceOf[LoggerConfigurator])
     } catch {
       case ex: Exception =>
         val msg =

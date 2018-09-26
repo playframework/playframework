@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt
 
 import sbt._
@@ -21,6 +22,14 @@ object PlayImport extends PlayImportCompat {
     class ComponentExternalisedException extends RuntimeException(msg) with FeedbackProvidedException
     throw new ComponentExternalisedException
   }
+
+  val playCore = component("play")
+
+  val nettyServer = component("play-netty-server")
+
+  val akkaHttpServer = component("play-akka-http-server")
+
+  val logback = component("play-logback")
 
   val evolutions = component("play-jdbc-evolutions")
 
@@ -56,6 +65,8 @@ object PlayImport extends PlayImportCompat {
 
   val ehcache = component("play-ehcache")
 
+  val caffeine = component("play-caffeine-cache")
+
   def json = movedExternal(
     """play-json module has been moved to a separate project.
       |See https://playframework.com/documentation/2.6.x/Migration26 for details.""".stripMargin)
@@ -83,6 +94,7 @@ object PlayImport extends PlayImportCompat {
 
     val externalizeResources = SettingKey[Boolean]("playExternalizeResources", "Whether resources should be externalized into the conf directory when Play is packaged as a distribution.")
     val playExternalizedResources = TaskKey[Seq[(File, String)]]("playExternalizedResources", "The resources to externalize")
+    val externalizeResourcesExcludes = SettingKey[Seq[File]]("externalizeResourcesExcludes", "Resources that should not be externalized but stay in the generated jar")
     val playJarSansExternalized = TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
 
     val playOmnidoc = SettingKey[Boolean]("playOmnidoc", "Determines whether to use the aggregated Play documentation")

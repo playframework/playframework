@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import org.specs2.mock.Mockito
@@ -12,20 +13,23 @@ import play.core.j.JavaHelpers
 import play.mvc.Http
 import play.mvc.Http.{ Context, RequestBody, RequestImpl }
 
+import scala.collection.JavaConverters._
+
 class JavaRequestsSpec extends PlaySpecification with Mockito {
 
   "JavaHelpers" should {
 
     "create a request with case insensitive headers" in {
-      val requestHeader: RequestHeader = FakeRequest().withHeaders("Content-type" -> "application/json")
-      val javaRequest: Http.Request = new RequestImpl(requestHeader)
+      val request = FakeRequest().withHeaders("Content-type" -> "application/json")
+      val javaRequest: Http.Request = new RequestImpl(request)
 
-      val ct = javaRequest.getHeader("Content-Type")
-      val headers = javaRequest.headers()
-      ct must_== "application/json"
-      headers.get("content-type") must_== Array(ct)
-      headers.get("Content-Type") must_== Array(ct)
-      javaRequest.getHeader("content-type") must_== ct
+      val ct: String = javaRequest.getHeaders.get("Content-Type").get()
+      val headers = javaRequest.getHeaders
+      ct must beEqualTo("application/json")
+
+      headers.getAll("content-type").asScala must_== List(ct)
+      headers.getAll("Content-Type").asScala must_== List(ct)
+      headers.get("content-type").get must_== ct
     }
 
     "create a request with a helper that can do cookies" in {

@@ -1,14 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.async;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 
 //#comet-imports
+import akka.NotUsed;
 import akka.stream.javadsl.Source;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Comet;
@@ -37,7 +40,9 @@ public class JavaComet extends WithApplication {
 
         //#comet-string
         public static Result index() {
-            final Source source = Source.from(Arrays.asList("kiki", "foo", "bar"));
+            final Source<String, NotUsed> source = Source.from(
+                Arrays.asList("kiki", "foo", "bar")
+            );
             return ok().chunked(source.via(Comet.string("parent.cometMessage"))).as(Http.MimeTypes.HTML);
         }
         //#comet-string
@@ -53,7 +58,7 @@ public class JavaComet extends WithApplication {
         public static Result index() {
             final ObjectNode objectNode = Json.newObject();
             objectNode.put("foo", "bar");
-            final Source source = Source.from(Collections.singletonList(objectNode));
+            final Source<JsonNode, NotUsed> source = Source.from(Collections.singletonList(objectNode));
             return ok().chunked(source.via(Comet.json("parent.cometMessage"))).as(Http.MimeTypes.HTML);
         }
         //#comet-json
@@ -62,15 +67,15 @@ public class JavaComet extends WithApplication {
     @Test
     public void foreverIframe() {
         String content = contentAsString(MockJavaActionHelper.call(new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('kiki');</script>"));
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('foo');</script>"));
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('bar');</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage('kiki');</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage('foo');</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage('bar');</script>"));
     }
 
     @Test
     public void foreverIframeWithJson() {
         String content = contentAsString(MockJavaActionHelper.call(new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
-        assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage({\"foo\":\"bar\"});</script>"));
+        assertThat(content, containsString("<script>parent.cometMessage({\"foo\":\"bar\"});</script>"));
     }
 
 }

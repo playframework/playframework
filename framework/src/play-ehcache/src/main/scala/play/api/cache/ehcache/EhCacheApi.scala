@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.cache.ehcache
 
 import javax.inject.{ Inject, Provider, Singleton }
@@ -13,7 +14,7 @@ import net.sf.ehcache.{ CacheManager, Ehcache, Element, ObjectExistsException }
 import play.api.cache._
 import play.api.inject._
 import play.api.{ Configuration, Environment }
-import play.cache.{ NamedCacheImpl, AsyncCacheApi => JavaAsyncCacheApi, CacheApi => JavaCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApiAdapter, SyncCacheApi => JavaSyncCacheApi }
+import play.cache.{ NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi }
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -65,8 +66,6 @@ class EhCacheModule extends SimpleModule((environment, configuration) => {
     bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
     bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
     bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
-    bind[CacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
-    bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey)),
     bind[JavaSyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey))
   )
 
@@ -91,8 +90,6 @@ class EhCacheModule extends SimpleModule((environment, configuration) => {
     bindDefault[AsyncCacheApi],
     bindDefault[JavaAsyncCacheApi],
     bindDefault[SyncCacheApi],
-    bindDefault[CacheApi],
-    bindDefault[JavaCacheApi],
     bindDefault[JavaSyncCacheApi]
   ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
 })
@@ -114,14 +111,14 @@ private[play] class NamedEhCacheProvider(name: String, create: Boolean) extends 
 }
 
 private[play] object NamedEhCacheProvider {
-  def getNamedCache(name: String, manager: CacheManager, create: Boolean) = try {
+  def getNamedCache(name: String, manager: CacheManager, create: Boolean): Ehcache = try {
     if (create) {
       manager.addCache(name)
     }
     manager.getEhcache(name)
   } catch {
     case e: ObjectExistsException =>
-      throw new EhCacheExistsException(
+      throw EhCacheExistsException(
         s"""An EhCache instance with name '$name' already exists.
            |
            |This usually indicates that multiple instances of a dependent component (e.g. a Play application) have been started at the same time.
@@ -140,14 +137,13 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
-    extends Provider[SyncCacheApi with CacheApi] {
+  extends Provider[SyncCacheApi] {
   @Inject private var injector: Injector = _
 
-  // TODO: remove "with CacheApi" hacks for 2.7.0
-  lazy val get: SyncCacheApi with CacheApi = {
+  lazy val get: SyncCacheApi = {
     val async = injector.instanceOf(key)
     async.sync match {
-      case sync: SyncCacheApi with CacheApi => sync
+      case sync: SyncCacheApi => sync
       case _ => new DefaultSyncCacheApi(async)
     }
   }
@@ -159,11 +155,9 @@ private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi
     new JavaDefaultAsyncCacheApi(injector.instanceOf(key))
 }
 
-private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi])
-    extends Provider[JavaSyncCacheApi with JavaCacheApi] {
+private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaSyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: JavaSyncCacheApi with JavaCacheApi =
-    new SyncCacheApiAdapter(injector.instanceOf(key).sync)
+  lazy val get: JavaSyncCacheApi = new SyncCacheApiAdapter(injector.instanceOf(key).sync)
 }
 
 private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
@@ -174,7 +168,7 @@ private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends 
 
 private[play] case class EhCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 
-class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi with CacheApi {
+class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi {
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
@@ -205,9 +199,6 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
         value
     }
   }
-
-  override def getOrElse[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A =
-    getOrElseUpdate(key, expiration)(orElse)
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
     Option(cache.get(key)).map(_.getObjectValue).filter { v =>

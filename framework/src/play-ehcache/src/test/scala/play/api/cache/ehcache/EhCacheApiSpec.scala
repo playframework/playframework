@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.cache.ehcache
 
 import java.util.concurrent.Executors
@@ -18,7 +19,7 @@ import scala.concurrent.{ Await, ExecutionContext, Future }
 class EhCacheApiSpec extends PlaySpecification {
   sequential
 
-  "CacheApi" should {
+  "SyncCacheApi" should {
     "bind named caches" in new WithApplication(
       _.configure(
         "play.cache.bindCaches" -> Seq("custom")
@@ -37,9 +38,9 @@ class EhCacheApiSpec extends PlaySpecification {
       _.overrides(
         bind[CacheManager].toProvider[CustomCacheManagerProvider]
       ).configure(
-        "play.cache.createBoundCaches" -> false,
-        "play.cache.bindCaches" -> Seq("custom")
-      )
+          "play.cache.createBoundCaches" -> false,
+          "play.cache.bindCaches" -> Seq("custom")
+        )
     ) {
       app.injector.instanceOf[NamedCacheController]
     }
@@ -91,6 +92,6 @@ class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerPr
 }
 
 class NamedCacheController @Inject() (
-  @NamedCache("custom") val cache: SyncCacheApi,
-  @NamedCache("custom") val asyncCache: AsyncCacheApi
+    @NamedCache("custom") val cache: SyncCacheApi,
+    @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

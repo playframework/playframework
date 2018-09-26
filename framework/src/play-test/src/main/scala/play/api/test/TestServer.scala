@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.test
 
 import play.api._
@@ -34,7 +35,7 @@ case class TestServer(
   /**
    * Starts this server.
    */
-  def start() {
+  def start(): Unit = {
     if (testServerProcess != null) {
       sys.error("Server already started!")
     }
@@ -61,7 +62,7 @@ case class TestServer(
   /**
    * Stops this server.
    */
-  def stop() {
+  def stop(): Unit = {
     if (testServerProcess != null) {
       val p = testServerProcess
       testServerProcess = null // Clear field before shutting, in case an error occurs
@@ -137,6 +138,6 @@ private[play] class TestServerProcess extends ServerProcess {
 }
 
 private[play] case class TestServerExitException(
-  message: String,
-  cause: Option[Throwable] = None,
-  returnCode: Int = -1) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)
+    message: String,
+    cause: Option[Throwable] = None,
+    returnCode: Int = -1) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)

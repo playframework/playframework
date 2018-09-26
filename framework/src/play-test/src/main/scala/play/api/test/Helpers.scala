@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.test
 
 import java.nio.file.Path
+import java.util.concurrent.locks.{ Lock, ReentrantLock }
 
 import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
@@ -38,17 +40,17 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX = classOf[FirefoxDriver]
 
   /**
-   * Returns `true` if this application needs to run sequentially, rather than in parallel with other applications.
-   * Typically that means the application and/or test relies on some global state, so this defaults to the
-   * globalApplicationEnabled setting. This method is provided so the behavior can be customized if needed.
+   * Tests using servers share a test server port so we default to true.
    */
-  protected def shouldRunSequentially(app: Application): Boolean = app.globalApplicationEnabled
+  protected def shouldRunSequentially(app: Application): Boolean = true
 
   private[play] def runSynchronized[T](app: Application)(block: => T): T = {
-    if (shouldRunSequentially(app)) {
-      PlayRunners.mutex.synchronized(block)
-    } else {
+    val needsLock = shouldRunSequentially(app)
+    if (needsLock) { PlayRunners.mutex.lock() }
+    try {
       block
+    } finally {
+      if (needsLock) { PlayRunners.mutex.unlock() }
     }
   }
 
@@ -145,7 +147,7 @@ object PlayRunners {
   /**
    * This mutex is used to ensure that no two tests that set the global application can run at the same time.
    */
-  private[play] val mutex: AnyRef = new AnyRef()
+  private[play] val mutex: Lock = new ReentrantLock()
 }
 
 trait Writeables {

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Actions, Controllers and Results
 
 ## What is an Action?
@@ -9,7 +9,7 @@ An action is basically a Java method that processes the request parameters, and 
 
 @[simple-action](code/javaguide/http/JavaActions.java)
 
-An action returns a `play.mvc.Result` value, representing the HTTP response to send to the web client. In this example `ok` constructs a **200 OK** response containing a **text/plain** response body.
+An action returns a `play.mvc.Result` value, representing the HTTP response to send to the web client. In this example `ok` constructs a **200 OK** response containing a **text/plain** response body. For more examples of HTTP responses see [`play.mvc.Results` methods](api/java/play/mvc/Results.html#method.summary).
 
 ## Controllers 
 

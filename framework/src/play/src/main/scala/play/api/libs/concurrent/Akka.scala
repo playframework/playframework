@@ -1,21 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.concurrent
 
-import java.util.concurrent.TimeoutException
-import javax.inject.{ Inject, Provider, Singleton }
-
-import akka.actor._
+import akka.Done
+import akka.actor.setup.{ ActorSystemSetup, Setup }
+import akka.actor.{ CoordinatedShutdown, _ }
 import akka.stream.{ ActorMaterializer, Materializer }
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigValueFactory }
+import javax.inject.{ Inject, Provider, Singleton }
+import org.slf4j.LoggerFactory
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, Binding, Injector, bind }
-import play.core.ClosableLazy
+import play.api.inject._
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
+import scala.concurrent._
+import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
  * Helper to access the application defined Akka Actor system.
@@ -31,7 +33,8 @@ object Akka {
    * Typically, you will want to use this in combination with a named qualifier, so that multiple ActorRefs can be
    * bound, and the scope should be set to singleton or eager singleton.
    * *
-   * @param name The name of the actor.
+   *
+   * @param name  The name of the actor.
    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
    *              actor, this function can be used to provide additional configuration such as router and dispatcher
    *              configuration.
@@ -64,7 +67,7 @@ object Akka {
    *   }
    * }}}
    *
-   * @param name The name of the actor.
+   * @param name  The name of the actor.
    * @param props A function to provide props for the actor. The props passed in will just describe how to create the
    *              actor, this function can be used to provide additional configuration such as router and dispatcher
    *              configuration.
@@ -81,25 +84,22 @@ object Akka {
 trait AkkaComponents {
 
   def environment: Environment
+
   def configuration: Configuration
+
+  @deprecated("Since Play 2.7.0 this is no longer required to create an ActorSystem.", "2.7.0")
   def applicationLifecycle: ApplicationLifecycle
 
-  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
+  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
 }
 
 /**
  * Provider for the actor system
  */
 @Singleton
-class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration, applicationLifecycle: ApplicationLifecycle) extends Provider[ActorSystem] {
+class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration) extends Provider[ActorSystem] {
 
-  private val logger = Logger(classOf[ActorSystemProvider])
-
-  lazy val get: ActorSystem = {
-    val (system, stopHook) = ActorSystemProvider.start(environment.classLoader, configuration)
-    applicationLifecycle.addStopHook(stopHook)
-    system
-  }
+  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
 
 }
 
@@ -123,56 +123,68 @@ object ActorSystemProvider {
 
   type StopHook = () => Future[_]
 
-  private val logger = Logger(classOf[ActorSystemProvider])
+  private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
+
+  case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
 
   /**
    * Start an ActorSystem, using the given configuration and ClassLoader.
+   *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration): (ActorSystem, StopHook) = {
-    val akkaConfig: Config = {
-      val akkaConfigRoot = config.get[String]("play.akka.config")
-      // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
-      config.get[Config](akkaConfigRoot).withFallback(config.underlying)
-    }
-
-    val name = config.get[String]("play.akka.actor-system")
-    val system = ActorSystem(name, akkaConfig, classLoader)
-    logger.debug(s"Starting application default Akka system: $name")
-
-    val stopHook = { () =>
-      logger.debug(s"Shutdown application default Akka system: $name")
-      system.terminate()
-
-      config.get[Duration]("play.akka.shutdown-timeout") match {
-        case timeout: FiniteDuration =>
-          try {
-            Await.result(system.whenTerminated, timeout)
-          } catch {
-            case te: TimeoutException =>
-              // oh well.  We tried to be nice.
-              logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
-          }
-        case _ =>
-          // wait until it is shutdown
-          Await.result(system.whenTerminated, Duration.Inf)
-      }
-
-      Future.successful(())
-    }
-
-    (system, stopHook)
+  def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
+    start(classLoader, config, additionalSetup = None)
   }
 
   /**
-   * A lazy wrapper around `start`. Useful when the `ActorSystem` may
-   * not be needed.
+   * Start an ActorSystem, using the given configuration, ClassLoader, and additional ActorSystem Setup.
+   *
+   * @return The ActorSystem and a function that can be used to stop it.
    */
-  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[_]] = {
-    new ClosableLazy[ActorSystem, Future[_]] {
-      protected def create() = start(classLoader, configuration)
-      protected def closeNotNeeded = Future.successful(())
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): ActorSystem = {
+    start(classLoader, config, Some(additionalSetup))
+  }
+
+  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
+    val akkaConfig: Config = {
+      val akkaConfigRoot = config.get[String]("play.akka.config")
+
+      // normalize timeout values for Akka's use
+      // TODO: deprecate this setting (see https://github.com/playframework/playframework/issues/8442)
+      val playTimeoutKey = "play.akka.shutdown-timeout"
+      val playTimeoutDuration = Try(config.get[Duration](playTimeoutKey)).getOrElse(Duration.Inf)
+
+      // Typesafe config used internally by Akka doesn't support "infinite".
+      // Also, the value expected is an integer so can't use Long.MaxValue.
+      // Finally, Akka requires the delay to be less than a certain threshold.
+      val akkaMaxDelay = Int.MaxValue / 1000
+      val akkaMaxDuration = Duration(akkaMaxDelay, "seconds")
+      val normalisedDuration =
+        if (playTimeoutDuration > akkaMaxDuration) akkaMaxDuration else playTimeoutDuration
+
+      val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
+      config.get[Config](akkaConfigRoot)
+        // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
+        .withFallback(config.underlying)
+        // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
+        .withValue(
+          akkaTimeoutKey,
+          ConfigValueFactory.fromAnyRef(java.time.Duration.ofMillis(normalisedDuration.toMillis))
+        )
     }
+
+    val name = config.get[String]("play.akka.actor-system")
+
+    val bootstrapSetup = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
+    val actorSystemSetup = additionalSetup match {
+      case Some(setup) => ActorSystemSetup(bootstrapSetup, setup)
+      case None => ActorSystemSetup(bootstrapSetup)
+    }
+
+    val system = ActorSystem(name, actorSystemSetup)
+    logger.debug(s"Starting application default Akka system: $name")
+
+    system
   }
 
 }
@@ -185,11 +197,11 @@ trait InjectedActorSupport {
   /**
    * Create an injected child actor.
    *
-   * @param create A function to create the actor.
-   * @param name The name of the actor.
-   * @param props A function to provide props for the actor. The props passed in will just describe how to create the
-   *              actor, this function can be used to provide additional configuration such as router and dispatcher
-   *              configuration.
+   * @param create  A function to create the actor.
+   * @param name    The name of the actor.
+   * @param props   A function to provide props for the actor. The props passed in will just describe how to create the
+   *                actor, this function can be used to provide additional configuration such as router and dispatcher
+   *                configuration.
    * @param context The context to create the actor from.
    * @return An ActorRef for the created actor.
    */
@@ -210,3 +222,42 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
     actorSystem.actorOf(props(creation), name)
   }
 }
+
+private object CoordinatedShutdownProvider {
+  private val logger = LoggerFactory.getLogger(classOf[CoordinatedShutdownProvider])
+}
+
+/**
+ * Provider for the coordinated shutdown
+ */
+@Singleton
+class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
+
+  import CoordinatedShutdownProvider.logger
+
+  lazy val get: CoordinatedShutdown = {
+
+    logWarningWhenRunPhaseConfigIsPresent()
+
+    val cs = CoordinatedShutdown(actorSystem)
+    implicit val exCtx: ExecutionContext = actorSystem.dispatcher
+
+    // Once the ActorSystem is built we can register the ApplicationLifecycle stopHooks as a CoordinatedShutdown phase.
+    CoordinatedShutdown(actorSystem).addTask(
+      CoordinatedShutdown.PhaseServiceStop,
+      "application-lifecycle-stophook") { () =>
+        applicationLifecycle.stop().map(_ => Done)
+      }
+
+    cs
+  }
+
+  private def logWarningWhenRunPhaseConfigIsPresent(): Unit = {
+    val config = actorSystem.settings.config
+    if (config.hasPath("play.akka.run-cs-from-phase")) {
+      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now run all the CoordinatedShutdown phases.")
+    }
+  }
+
+}
+

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.scalaactions {
 
 import akka.util.ByteString
@@ -53,6 +54,20 @@ class ScalaActionsSpec extends AbstractController(Helpers.stubControllerComponen
         }
         //#implicit-request-action
       )
+    }
+
+    "pass the request implicitly to the action with more methods" in {
+       //#implicit-request-action-with-more-methods
+       def action = Action { implicit request =>
+          anotherMethod("Some para value")
+          Ok("Got request [" + request + "]")
+        }
+
+       def anotherMethod(p: String)(implicit request: Request[_]) = {
+        // do something that needs access to the request
+        }
+       //#implicit-request-action-with-more-methods
+       testAction(action)
     }
 
     "allow specifying a parser" in {

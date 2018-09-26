@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.common
 
 import akka.stream.Materializer
@@ -11,14 +12,14 @@ import play.api.mvc._
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.request.RequestAttrKey
+import play.core.utils.{ AsciiBitSet, AsciiRange, AsciiSet }
 
+import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 private[play] final class ServerResultUtils(
-    httpConfiguration: HttpConfiguration,
     sessionBaker: SessionCookieBaker,
     flashBaker: FlashCookieBaker,
     cookieHeaderEncoding: CookieHeaderEncoding) {
@@ -78,6 +79,52 @@ private[play] final class ServerResultUtils(
     } else {
       Future.successful(result)
     }
+  }
+
+  /** Set of characters that are allowed in a header name. */
+  private[this] val allowedHeaderNameChars: AsciiBitSet = {
+    /*
+     * From https://tools.ietf.org/html/rfc7230#section-3.2:
+     *   field-name     = token
+     * From https://tools.ietf.org/html/rfc7230#section-3.2.6:
+     *   token          = 1*tchar
+     *   tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+     *                  / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+     *                  / DIGIT / ALPHA
+     */
+    val TChar = AsciiSet('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha
+    TChar.toBitSet
+  }
+
+  def validateHeaderNameChars(headerName: String): Unit = validateString(allowedHeaderNameChars, "header name", headerName)
+
+  /** Set of characters that are allowed in a header name. */
+  private[this] val allowedHeaderValueChars: AsciiBitSet = {
+    /*
+     * From https://tools.ietf.org/html/rfc7230#section-3.2:
+     *   field-value    = *( field-content / obs-fold )
+     *   field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+     *   field-vchar    = VCHAR / obs-text
+     * From https://tools.ietf.org/html/rfc7230#section-3.2.6:
+     *   obs-text       = %x80-FF
+     */
+    val ObsText = new AsciiRange(0x80, 0xFF)
+    val FieldVChar = AsciiSet.Sets.VChar ||| ObsText
+    val FieldContent = FieldVChar ||| AsciiSet(' ', '\t')
+    FieldContent.toBitSet
+  }
+
+  def validateHeaderValueChars(headerValue: String): Unit = validateString(allowedHeaderValueChars, "header value", headerValue)
+
+  private def validateString(allowedSet: AsciiBitSet, setDescription: String, string: String): Unit = {
+    @tailrec def loop(i: Int): Unit = {
+      if (i < string.length) {
+        val c = string.charAt(i)
+        if (!allowedSet.get(c)) throw new IllegalArgumentException(s"Invalid $setDescription character: '$c' (${c.toInt})")
+        loop(i + 1)
+      }
+    }
+    loop(0)
   }
 
   /**

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routes.compiler
 
 import java.io.File
@@ -21,7 +22,7 @@ sealed trait Rule extends Positional
  * @param comments The comments above the route
  */
 case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall,
-  comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
+    comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
 
 /**
  * An include for another router

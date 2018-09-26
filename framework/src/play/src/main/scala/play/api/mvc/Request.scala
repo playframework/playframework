@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
-import play.api.libs.typedmap.{ TypedEntry, TypedKey, TypedMap }
+import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 
 import scala.annotation.{ implicitNotFound, tailrec }
@@ -73,10 +74,10 @@ object Request {
  * @tparam A The type of the body content.
  */
 private[play] class RequestImpl[+A](
-  override val connection: RemoteConnection,
-  override val method: String,
-  override val target: RequestTarget,
-  override val version: String,
-  override val headers: Headers,
-  override val attrs: TypedMap,
-  override val body: A) extends Request[A]
+    override val connection: RemoteConnection,
+    override val method: String,
+    override val target: RequestTarget,
+    override val version: String,
+    override val headers: Headers,
+    override val attrs: TypedMap,
+    override val body: A) extends Request[A]

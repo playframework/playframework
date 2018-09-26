@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.net.{ Socket, SocketTimeoutException }
 import java.io._
 import java.security.cert.X509Certificate
+
+import com.google.common.io.CharStreams
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-
-import org.apache.commons.io.IOUtils
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
@@ -232,7 +233,6 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         } getOrElse {
           val httpConfig = HttpConfiguration()
           val serverResultUtils = new ServerResultUtils(
-            httpConfig,
             new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
             new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
             new DefaultCookieHeaderEncoding(httpConfig.cookies)
@@ -258,7 +258,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
   private def consumeRemaining(reader: BufferedReader): String = {
     val writer = new StringWriter()
     try {
-      IOUtils.copy(reader, writer)
+      CharStreams.copy(reader, writer)
     } catch {
       case timeout: SocketTimeoutException => throw timeout
     }
@@ -281,7 +281,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
  *             trailers
  */
 case class BasicResponse(version: String, status: Int, reasonPhrase: String, headers: Map[String, String],
-  body: Either[String, (Seq[String], Map[String, String])])
+    body: Either[String, (Seq[String], Map[String, String])])
 
 /**
  * A basic request
@@ -300,9 +300,9 @@ case class BasicRequest(method: String, uri: String, version: String, headers: M
 class MockTrustManager() extends X509TrustManager {
   val nullArray = Array[X509Certificate]()
 
-  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
 
-  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
 
   def getAcceptedIssuers = nullArray
 }

@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play;
 
 import akka.actor.ActorSystem;
+import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
 
 import play.api.OptionalSourceMapper;
@@ -13,6 +15,7 @@ import play.api.i18n.DefaultLangsProvider;
 import play.api.inject.NewInstanceInjector$;
 import play.api.inject.SimpleInjector;
 import play.api.libs.concurrent.ActorSystemProvider;
+import play.api.libs.concurrent.CoordinatedShutdownProvider;
 import play.api.mvc.request.DefaultRequestFactory;
 import play.api.mvc.request.RequestFactory;
 
@@ -57,6 +60,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     private final Supplier<FileMimeTypes> _fileMimeTypes = lazy(this::createFileMimeTypes);
     private final Supplier<HttpRequestHandler> _httpRequestHandler = lazy(this::createHttpRequestHandler);
     private final Supplier<ActorSystem> _actorSystem = lazy(this::createActorSystem);
+    private final Supplier<CoordinatedShutdown> _coordinatedShutdown = lazy(this::createCoordinatedShutdown);
     private final Supplier<CookieSigner> _cookieSigner = lazy(this::createCookieSigner);
     private final Supplier<CSRFTokenSigner> _csrfTokenSigner = lazy(this::createCsrfTokenSigner);
     private final Supplier<Files.TemporaryFileCreator> _tempFileCreator = lazy(this::createTempFileCreator);
@@ -105,7 +109,8 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
                 httpRequestHandler().asScala(),
                 scalaHttpErrorHandler(),
                 actorSystem(),
-                materializer()
+                materializer(),
+                coordinatedShutdown()
         ).asJava();
     }
 
@@ -202,7 +207,18 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     private ActorSystem createActorSystem() {
         return new ActorSystemProvider(
                 environment().asScala(),
-                configuration(),
+                configuration()
+        ).get();
+    }
+
+    @Override
+    public CoordinatedShutdown coordinatedShutdown() {
+        return this._coordinatedShutdown.get();
+    }
+
+    private CoordinatedShutdown createCoordinatedShutdown() {
+        return new CoordinatedShutdownProvider(
+                actorSystem(),
                 applicationLifecycle().asScala()
         ).get();
     }

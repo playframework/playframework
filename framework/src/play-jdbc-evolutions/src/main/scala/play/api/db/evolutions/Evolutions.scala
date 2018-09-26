@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db.evolutions
 
 import java.io.File
@@ -102,10 +103,14 @@ object Evolutions {
    */
   def fileName(db: String, revision: Int): String = s"${directoryName(db)}/${revision}.sql"
 
+  def fileName(db: String, revision: String): String = s"${directoryName(db)}/${revision}.sql"
+
   /**
    * Default evolution resource name.
    */
   def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
+
+  def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
 
   /**
    * Apply pending evolutions for the given database.
@@ -119,17 +124,17 @@ object Evolutions {
   /**
    * Updates a local (file-based) evolution script.
    */
-  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment) {
+  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment): Unit = {
     val evolutions = environment.getFile(fileName(db, revision))
     Files.createDirectory(environment.getFile(directoryName(db)).toPath)
     writeFileIfChanged(
       evolutions,
-      """|# --- %s
+      """|-- %s
          |
-         |# --- !Ups
+         |-- !Ups
          |%s
          |
-         |# --- !Downs
+         |-- !Downs
          |%s
          |
          |""".stripMargin.format(comment, ups, downs))
@@ -155,12 +160,12 @@ object Evolutions {
    */
   def toHumanReadableScript(scripts: Seq[Script]): String = {
     val txt = scripts.map {
-      case UpScript(ev) => "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + ev.sql_up + "\n"
-      case DownScript(ev) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + ev.sql_down + "\n"
+      case UpScript(ev) => "-- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + ev.sql_up + "\n"
+      case DownScript(ev) => "-- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + ev.sql_down + "\n"
     }.mkString("\n")
 
     val hasDownWarning =
-      "# !!! WARNING! This script contains DOWNS evolutions that are likely destructive\n\n"
+      "-- !!! WARNING! This script contains DOWNS evolutions that are likely destructive\n\n"
 
     if (scripts.exists(_.isInstanceOf[DownScript])) hasDownWarning + txt else txt
   }

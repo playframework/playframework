@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.io.IOException
@@ -29,7 +30,7 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         case Duration(t, u) => s"${u.toMillis(t)}ms"
       }
       val props = new Properties(System.getProperties)
-      props.putAll(Map(
+      (props: java.util.Map[Object, Object]).putAll(Map(
         "play.server.akka.requestTimeout" -> getTimeout(httpTimeout)
       ).asJava)
       val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)

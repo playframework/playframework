@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.cache
 
 import java.time.Instant
@@ -277,7 +278,7 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
-  "CacheApi" should {
+  "AsyncCacheApi" should {
     "get items from cache" in new WithApplication() {
       val defaultCache = app.injector.instanceOf[AsyncCacheApi].sync
       defaultCache.set("foo", "bar")

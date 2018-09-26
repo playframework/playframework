@@ -1,0 +1,8 @@
+# Build the distribution and ensure that the files we expect are indeed there
+> stage
+$ exists target/universal/stage/README
+$ exists target/universal/stage/bin/root
+
+> runProd --no-exit-sbt
+> verifyResourceContains / 200 Hello
+> stopProd --no-exit-sbt

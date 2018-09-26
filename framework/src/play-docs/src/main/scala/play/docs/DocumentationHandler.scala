@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.docs
 
 import java.io.Closeable
@@ -30,7 +31,7 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
       "js" -> "application/javascript",
       "ico" -> "application/javascript",
       "jpg" -> "image/jpeg",
-      "ico" -> "ico=image/x-icon"
+      "ico" -> "image/x-icon"
     ))
     new DefaultFileMimeTypes(mimeTypesConfiguration)
   }

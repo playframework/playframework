@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.utils
 
 import org.specs2.mutable._
@@ -162,7 +163,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    differ only in the case of hexadecimal digits used in percent-encoded
    octets, they are equivalent.  For consistency, URI producers and
    normalizers should use uppercase hexadecimal digits for all percent-
-   encodings.    
+   encodings.
 */
     "percent-encode to triplets with upper-case hex" in {
       encodingFor("\u0000", "ISO-8859-1") must_== PercentEncoded("%00")

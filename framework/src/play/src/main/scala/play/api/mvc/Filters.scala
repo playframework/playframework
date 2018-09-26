@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import akka.stream.Materializer
@@ -13,6 +14,8 @@ trait EssentialFilter {
 
   def asJava: play.mvc.EssentialFilter = new play.mvc.EssentialFilter {
     override def apply(next: play.mvc.EssentialAction) = EssentialFilter.this(next).asJava
+
+    override def asScala: EssentialFilter = EssentialFilter.this
   }
 }
 
@@ -99,10 +102,7 @@ object Filter {
  * Compose the action and the Filters to create a new Action
  */
 object Filters {
-  def apply(h: EssentialAction, filters: EssentialFilter*) = h match {
-    case a: EssentialAction => FilterChain(a, filters.toList)
-    case h => h
-  }
+  def apply(h: EssentialAction, filters: EssentialFilter*): EssentialAction = FilterChain(h, filters.toList)
 }
 
 /**

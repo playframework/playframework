@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.errorhandling
 
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.Action
+import play.api.mvc.DefaultActionBuilder
 import play.api.test._
 
 import scala.reflect.ClassTag
@@ -14,8 +15,11 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     GuiceApplicationBuilder()
       .configure("play.http.errorHandler" -> ct.runtimeClass.getName)
-      .routes {
-        case (_, "/error") => Action(_ => throw new RuntimeException("foo"))
+      .appRoutes { app =>
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        ({
+          case (_, "/error") => Action(_ => throw new RuntimeException("foo"))
+        })
       }
       .build()
   }
@@ -50,18 +54,18 @@ import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.mvc.Results._
 import scala.concurrent._
-import javax.inject.Singleton;
+import javax.inject.Singleton
 
 @Singleton
 class ErrorHandler extends HttpErrorHandler {
 
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
+  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     Future.successful(
       Status(statusCode)("A client error occurred: " + message)
     )
   }
 
-  def onServerError(request: RequestHeader, exception: Throwable) = {
+  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     Future.successful(
       InternalServerError("A server error occurred: " + exception.getMessage)
     )

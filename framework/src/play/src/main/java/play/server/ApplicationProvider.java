@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.server;
 
 import play.Application;
@@ -28,16 +29,6 @@ public class ApplicationProvider {
      */
     public play.core.ApplicationProvider asScala() {
         return underlying;
-    }
-
-    /**
-     * @return the application.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #get()} instead.
-     */
-    @Deprecated
-    public Application getApplication() {
-        return application;
     }
 
     /**

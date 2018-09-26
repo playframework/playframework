@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.http
 
 import java.io.File
@@ -100,6 +101,13 @@ class HttpConfigurationSpec extends Specification {
       httpConfiguration.parser.maxMemoryBuffer must beEqualTo(10 * 1024)
     }
 
+    "configure max memory buffer to be more than Integer.MAX_VALUE" in {
+      val testConfig = configuration ++ Configuration("play.http.parser.maxMemoryBuffer" -> s"${Int.MaxValue + 1L}")
+      val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(testConfig, environment).get
+      val expectedMaxMemoryBuffer: Long = Int.MaxValue + 1L
+      httpConfiguration.parser.maxMemoryBuffer must beEqualTo(expectedMaxMemoryBuffer)
+    }
+
     "configure max disk buffer" in {
       val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
       httpConfiguration.parser.maxDiskBuffer must beEqualTo(20 * 1024)
@@ -139,7 +147,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie samesite" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.session.sameSite must beSome(SameSite.Lax)
+        httpConfiguration.session.sameSite must be some (SameSite.Lax)
       }
     }
 
@@ -162,7 +170,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie samesite" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.flash.sameSite must beSome(SameSite.Lax)
+        httpConfiguration.flash.sameSite must be some (SameSite.Lax)
       }
     }
 

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db
 
 import java.sql.{ Connection, Driver, DriverManager }
@@ -42,7 +43,7 @@ object Databases {
    */
   def inMemory(name: String = "default", urlOptions: Map[String, String] = Map.empty, config: Map[String, _ <: Any] = Map.empty): Database = {
     val driver = "org.h2.Driver"
-    val urlExtra = urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+    val urlExtra = if (urlOptions.nonEmpty) urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "") else ""
     val url = "jdbc:h2:mem:" + name + urlExtra
     Databases(driver, url, name, config)
   }
@@ -124,11 +125,13 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
   }
 
   lazy val url: String = {
-    val connection = dataSource.getConnection
-    try {
-      connection.getMetaData.getURL
-    } finally {
-      connection.close()
+    databaseConfig.url.getOrElse {
+      val connection = dataSource.getConnection
+      try {
+        connection.getMetaData.getURL
+      } finally {
+        connection.close()
+      }
     }
   }
 
@@ -140,7 +143,13 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   def getConnection(autocommit: Boolean): Connection = {
     val connection = dataSource.getConnection
-    connection.setAutoCommit(autocommit)
+    try {
+      connection.setAutoCommit(autocommit)
+    } catch {
+      case e: Throwable =>
+        connection.close()
+        throw e
+    }
     connection
   }
 
@@ -190,8 +199,8 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 /**
  * Default implementation of the database API using a connection pool.
  */
-class PooledDatabase(name: String, configuration: Config, environment: Environment, pool: ConnectionPool)
-    extends DefaultDatabase(name, configuration, environment) {
+class PooledDatabase(name: String, configuration: Config, environment: Environment, private[play] val pool: ConnectionPool)
+  extends DefaultDatabase(name, configuration, environment) {
 
   def this(name: String, configuration: Configuration) = this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 

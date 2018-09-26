@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import play.inject.Injector;
@@ -94,7 +95,7 @@ public class Security {
          * @return a <code>401 Not Authorized</code> result
          */
         public Result onUnauthorized(Context ctx) {
-            return unauthorized(views.html.defaultpages.unauthorized.render());
+            return unauthorized(views.html.defaultpages.unauthorized.render(ctx.request().asScala()));
         }
 
     }

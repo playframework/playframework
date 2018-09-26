@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 
 import java.lang.reflect.Constructor
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
 
-import org.apache.commons.lang3.reflect.ConstructorUtils
+import play.{ Environment => JavaEnvironment }
 import play.api._
+import play.libs.reflect.ConstructorUtils
 
 import scala.annotation.varargs
 import scala.reflect.ClassTag
@@ -147,8 +148,6 @@ object Modules {
         tryConstruct(environment, configuration)
       } orElse {
         tryConstruct(new JavaEnvironment(environment), configuration.underlying)
-      } orElse {
-        tryConstruct(new JavaEnvironment(environment), new JavaConfiguration(configuration))
       } orElse {
         tryConstruct()
       } getOrElse {

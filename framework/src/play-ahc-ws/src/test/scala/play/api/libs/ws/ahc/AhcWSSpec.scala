@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.ws.ahc
 
 import java.util
@@ -19,7 +20,7 @@ import play.api.mvc._
 import play.api.test.{ DefaultAwaitTimeout, FutureAwaits, Helpers, WithServer }
 import play.shaded.ahc.io.netty.handler.codec.http.DefaultHttpHeaders
 import play.shaded.ahc.org.asynchttpclient.Realm.AuthScheme
-import play.shaded.ahc.org.asynchttpclient.cookie.{ Cookie => AHCCookie }
+import play.shaded.ahc.io.netty.handler.codec.http.cookie.{ Cookie => NettyCookie, DefaultCookie => NettyDefaultCookie }
 import play.shaded.ahc.org.asynchttpclient.{ Param, Request => AHCRequest, Response => AHCResponse }
 
 import scala.concurrent.Await
@@ -30,7 +31,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
 
   sequential
 
-  "Ahc WS" should {
+  "Ahc WSClient" should {
 
     "support several query string values for a parameter" in {
       val client = mock[StandaloneAhcWSClient]
@@ -38,7 +39,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val req: AHCRequest = r.underlying.buildRequest()
 
       import scala.collection.JavaConverters._
-      val paramsList: Seq[Param] = req.getQueryParams.asScala.toSeq
+      val paramsList: Seq[Param] = req.getQueryParams.asScala
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo1")) must beTrue
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo2")) must beTrue
       paramsList.count(p => p.getName == "foo") must beEqualTo(2)
@@ -394,7 +395,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
+      val ahcCookie = createCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = makeAhcResponse(ahcResponse)
@@ -415,7 +416,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
-      val ahcCookie: AHCCookie = new AHCCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
+      val ahcCookie = createCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = makeAhcResponse(ahcResponse)
@@ -435,7 +436,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
     "return -1 values of expires and maxAge as None" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
 
-      val ahcCookie: AHCCookie = new AHCCookie("someName", "value", true, "domain", "path", -1L, false, false)
+      val ahcCookie = createCookie("someName", "value", true, "domain", "path", -1L, false, false)
       ahcResponse.getCookies returns util.Arrays.asList(ahcCookie)
 
       val response = makeAhcResponse(ahcResponse)
@@ -469,6 +470,18 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       headers.contains("BAR") must beTrue
       headers.contains("Bar") must beTrue
     }
+  }
+
+  def createCookie(name: String, value: String, wrap: Boolean, domain: String, path: String, maxAge: Long, secure: Boolean, httpOnly: Boolean): NettyCookie = {
+    val ahcCookie = new NettyDefaultCookie(name, value)
+    ahcCookie.setWrap(wrap)
+    ahcCookie.setDomain(domain)
+    ahcCookie.setPath(path)
+    ahcCookie.setMaxAge(maxAge)
+    ahcCookie.setSecure(secure)
+    ahcCookie.setHttpOnly(httpOnly)
+
+    ahcCookie
   }
 
   def makeAhcResponse(ahcResponse: AHCResponse): AhcWSResponse = {

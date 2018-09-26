@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 ## Overview
@@ -14,6 +14,10 @@ Typically forms are used directly from a [`BaseController`](api/scala/play/api/m
 To use forms, import the following packages into your class:
 
 @[form-imports](code/ScalaForms.scala)
+
+To make use of validation and constraints, import the following packages into your class:
+
+@[validation-imports](code/ScalaForms.scala)
 
 ## Form Basics
 
@@ -84,7 +88,7 @@ The out of the box constraints are defined on the [Forms object](api/scala/play/
 
 ### Defining ad-hoc constraints
 
-You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/).
+You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/index.html).
 
 @[userForm-constraints](code/ScalaForms.scala)
 
@@ -130,7 +134,7 @@ The first thing is to be able to create the [form tag](api/scala/views/html/help
 
 @[form-user](code/scalaguide/forms/scalaforms/views/user.scala.html)
 
-You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
+You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/index.html) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
 
 > **Note:** You can use `@import helper._` in the template to avoid prefixing helpers with `@helper.`
 

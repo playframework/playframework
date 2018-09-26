@@ -1,42 +1,22 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.test
 
 import org.specs2.execute.{ AsResult, PendingUntilFixed, Result, ResultExecution }
 import org.specs2.mutable.SpecLike
 import org.specs2.specification.core.Fragment
-import play.api.Configuration
-import play.core.server._
 
 /**
  * Mixin class for integration tests that want to run over different
  * backend servers and protocols.
  *
- * @see [[ServerEndpoints]]
+ * @see [[ServerEndpoint]]
  */
 trait EndpointIntegrationSpecification
-    extends SpecLike with PendingUntilFixed
-    with ServerEndpoints with ApplicationFactories {
-
-  private def http2Conf(enabled: Boolean): Configuration = Configuration("play.server.akka.http2.enabled" -> enabled)
-
-  private val Netty11Plaintext = new HttpServerEndpointRecipe("Netty HTTP/1.1 (plaintext)", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty"))
-  private val Netty11Encrypted = new HttpsServerEndpointRecipe("Netty HTTP/1.1 (encrypted)", NettyServer.provider, Configuration.empty, Set("1.0", "1.1"), Option("netty"))
-  private val AkkaHttp11Plaintext = new HttpServerEndpointRecipe("Akka HTTP HTTP/1.1 (plaintext)", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None)
-  private val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe("Akka HTTP HTTP/1.1 (encrypted)", AkkaHttpServer.provider, http2Conf(false), Set("1.0", "1.1"), None)
-  private val AkkaHttp20Encrypted = new HttpsServerEndpointRecipe("Akka HTTP HTTP/2 (encrypted)", AkkaHttpServer.provider, http2Conf(true), Set("1.0", "1.1", "2"), None)
-
-  /**
-   * The list of server endpoints supported by this specification.
-   */
-  private val allEndpointRecipes: Seq[ServerEndpointRecipe] = Seq(
-    Netty11Plaintext,
-    Netty11Encrypted,
-    AkkaHttp11Plaintext,
-    AkkaHttp11Encrypted,
-    AkkaHttp20Encrypted
-  )
+  extends SpecLike with PendingUntilFixed
+  with ApplicationFactories {
 
   /**
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllEndpoints()]] method.
@@ -48,7 +28,7 @@ trait EndpointIntegrationSpecification
      * and runs the given block of code.
      *
      * {{{
-     * withResult(Results.Ok("Hello")) withAllEndpoints { endpoint: ServerEndpoint =>
+     * withResult(Results.Ok("Hello")) withEndpoints(myEndpointRecipes) { endpoint: ServerEndpoint =>
      *   val response = ... connect to endpoint.port ...
      *   response.status must_== 200
      * }
@@ -57,7 +37,7 @@ trait EndpointIntegrationSpecification
     def withEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: ServerEndpoint => A): Fragment = {
       endpoints.map { endpointRecipe: ServerEndpointRecipe =>
         s"with ${endpointRecipe.description}" >> {
-          withEndpoint(endpointRecipe, appFactory)(block)
+          ServerEndpoint.withEndpoint(endpointRecipe, appFactory)(block)
         }
       }.last
     }
@@ -75,7 +55,7 @@ trait EndpointIntegrationSpecification
      * }}}
      */
     def withAllEndpoints[A: AsResult](block: ServerEndpoint => A): Fragment =
-      withEndpoints(allEndpointRecipes)(block)
+      withEndpoints(ServerEndpointRecipe.AllRecipes)(block)
   }
 
   /**

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.security.cert.X509Certificate
@@ -31,13 +32,6 @@ trait RequestHeader {
    * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
    */
   final def id: Long = attrs(RequestAttrKey.Id)
-
-  /**
-   * The request Tags. The request's tags are stored in an optional attribute indexed by
-   * [[play.api.mvc.request.RequestAttrKey.Tags]]. If the attribute is not present then the tags are assumed to be empty.
-   */
-  @deprecated("Use typed attributes instead, see `attrs`", "2.6.0")
-  final def tags: Map[String, String] = attrs.get(RequestAttrKey.Tags).getOrElse(Map.empty)
 
   /**
    * The HTTP method.
@@ -257,15 +251,6 @@ trait RequestHeader {
   } yield charset
 
   /**
-   * Convenience method for adding a single tag to this request
-   *
-   * @return the tagged request
-   */
-  def withTag(tagName: String, tagValue: String): RequestHeader = {
-    copy(tags = tags + (tagName -> tagValue))
-  }
-
-  /**
    * Attach a body to this header.
    *
    * @param body The body to attach.
@@ -281,7 +266,6 @@ trait RequestHeader {
   @deprecated("Use the with* methods instead", "2.6.0")
   def copy(
     id: java.lang.Long = null,
-    tags: Map[String, String] = null,
     uri: String = null,
     path: String = null,
     method: String = this.method,
@@ -297,9 +281,6 @@ trait RequestHeader {
     // We only need to modify the request when an argument is non-null.
     if (id != null) {
       newHeader = newHeader.addAttr(RequestAttrKey.Id, (id: Long))
-    }
-    if (tags != null) {
-      newHeader = newHeader.addAttr(RequestAttrKey.Tags, tags)
     }
     if (uri != null) {
       newHeader = newHeader.withTarget(newHeader.target.withUriString(uri))
@@ -366,9 +347,9 @@ object RequestHeader {
  * A standard implementation of a RequestHeader.
  */
 private[play] class RequestHeaderImpl(
-  override val connection: RemoteConnection,
-  override val method: String,
-  override val target: RequestTarget,
-  override val version: String,
-  override val headers: Headers,
-  override val attrs: TypedMap) extends RequestHeader
+    override val connection: RemoteConnection,
+    override val method: String,
+    override val target: RequestTarget,
+    override val version: String,
+    override val headers: Headers,
+    override val attrs: TypedMap) extends RequestHeader

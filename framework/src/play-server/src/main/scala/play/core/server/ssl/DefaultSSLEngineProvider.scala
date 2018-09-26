@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.ssl
 
 import play.core.server.ServerConfig
@@ -57,7 +58,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
       }
     } else {
       // Load a generated key store
-      logger.warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
+      logger.warn("Using generated key with self signed certificate for HTTPS. This should NOT be used in production.")
       FakeKeyStore.keyManagerFactory(serverConfig.rootDir)
     }
 
@@ -85,7 +86,7 @@ object DefaultSSLEngineProvider {
 
 object noCATrustManager extends X509TrustManager {
   val nullArray = Array[X509Certificate]()
-  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
-  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
   def getAcceptedIssuers() = nullArray
 }

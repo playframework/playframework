@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.ws.ahc;
 
 import akka.stream.javadsl.Source;
@@ -90,6 +91,11 @@ public class AhcWSResponse implements WSResponse {
     @Override
     public String getBody() {
         return underlying.getBody();
+    }
+
+    @Override
+    public URI getUri() {
+        return underlying.getUri();
     }
 
     /**

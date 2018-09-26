@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.inject;
 
 import play.api.Configuration;
@@ -20,7 +21,6 @@ public class BuiltInModule extends play.api.inject.Module {
         return seq(
             bind(ApplicationLifecycle.class).to(DelegateApplicationLifecycle.class),
             bind(play.Environment.class).toSelf(),
-            bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
             bind(CookieSigner.class).to(DefaultCookieSigner.class),
             bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
             bind(FileMimeTypes.class).toSelf(),

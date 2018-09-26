@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 public abstract class EssentialFilter implements play.api.mvc.EssentialFilter {
@@ -13,6 +14,10 @@ public abstract class EssentialFilter implements play.api.mvc.EssentialFilter {
 
     @Override
     public EssentialFilter asJava() {
+        return this;
+    }
+
+    public play.api.mvc.EssentialFilter asScala() {
         return this;
     }
 }

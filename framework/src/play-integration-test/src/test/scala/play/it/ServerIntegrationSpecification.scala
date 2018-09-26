@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it
 
 import org.specs2.execute._
@@ -83,11 +84,11 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Override the standard WithServer class.
    */
   abstract class WithServer(
-    app: play.api.Application = GuiceApplicationBuilder().build(),
-    port: Int = play.api.test.Helpers.testServerPort)
-      extends play.api.test.WithServer(
-        app, port, serverProvider = Some(integrationServerProvider)
-      )
+      app: play.api.Application = GuiceApplicationBuilder().build(),
+      port: Int = play.api.test.Helpers.testServerPort)
+    extends play.api.test.WithServer(
+      app, port, serverProvider = Some(integrationServerProvider)
+    )
 
 }
 

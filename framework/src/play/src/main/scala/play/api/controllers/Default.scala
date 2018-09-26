@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package controllers
 
 import javax.inject.Inject
 
 import play.api.mvc._
-import play.twirl.api.Html
 
 @deprecated("Use Default class instead", "2.6.0")
 object Default extends Default

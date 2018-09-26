@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.http;
 
 import org.slf4j.Logger;
@@ -9,7 +10,7 @@ import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
-import play.cache.ehcache.EhCacheComponents;
+import play.cache.caffeine.CaffeineCacheComponents;
 import play.core.j.MappedJavaHandlerComponents;
 import play.filters.components.NoHttpFiltersComponents;
 import play.libs.Json;
@@ -135,7 +136,7 @@ public class JavaActionsComposition extends Controller {
 
     // #action-composition-compile-time-di
     public class MyComponents extends BuiltInComponentsFromContext
-            implements NoHttpFiltersComponents, EhCacheComponents {
+            implements NoHttpFiltersComponents, CaffeineCacheComponents {
 
         public MyComponents(ApplicationLoader.Context context) {
             super(context);

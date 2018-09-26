@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs
 
 import java.io.File
@@ -146,7 +147,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "works when using compile time dependency injection" in {
-      val context = ApplicationLoader.createContext(
+      val context = ApplicationLoader.Context.create(
         new Environment(new File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
       val appLoader = new ApplicationLoader {
         def load(context: Context) = {

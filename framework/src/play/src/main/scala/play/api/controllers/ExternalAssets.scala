@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package controllers
 
 import java.io._
@@ -30,7 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  *
  */
 class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
-    extends ControllerHelpers {
+  extends ControllerHelpers {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 

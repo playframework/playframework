@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.http;
 
 import play.api.mvc.Handler;
@@ -16,15 +17,6 @@ public class HandlerForRequest {
   public HandlerForRequest(RequestHeader request, Handler handler) {
     this.request = request;
     this.handler = handler;
-  }
-
-  /**
-   * @return the request header.
-   * @deprecated As of release 2.6.0. Use {@link #getRequestHeader()}
-   */
-  @Deprecated
-  public RequestHeader getRequest() {
-    return request;
   }
 
   /**

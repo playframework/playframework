@@ -1,17 +1,18 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.routing
 
 import java.util.Optional
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.stream.scaladsl.Flow
-import org.apache.commons.lang3.reflect.MethodUtils
 import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
+import play.libs.reflect.MethodUtils
 import play.mvc.Http.{ Context, RequestBody }
 
 import scala.compat.java8.{ FutureConverters, OptionConverters }
@@ -79,8 +80,7 @@ object HandlerInvokerFactory {
   }
 
   /**
-   * Create a `HandlerInvokerFactory` for a Java action. Caches the
-   * tags and annotations.
+   * Create a `HandlerInvokerFactory` for a Java action. Caches the annotations.
    */
   private abstract class JavaActionInvokerFactory[A] extends HandlerInvokerFactory[A] {
 

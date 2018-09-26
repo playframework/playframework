@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -113,6 +115,22 @@ public class JavaJsonActions extends WithApplication {
         //#json-request-as-anycontent
     }
 
+    static class JsonRequestAsAnyClazzAction extends MockJavaAction {
+
+        JsonRequestAsAnyClazzAction(JavaHandlerComponents javaHandlerComponents) {
+            super(javaHandlerComponents);
+        }
+
+        //#json-request-as-anyclazz
+        public Result sayHello() {
+            Optional<Person> person = request().body().parseJson(Person.class);
+            return person
+              .map(p -> ok("Hello, " + p.firstName))
+              .orElse(badRequest("Expecting Json data"));
+        }
+        //#json-request-as-anyclazz
+    }
+
     static class JsonRequestAsJsonAction extends MockJavaAction {
 
         JsonRequestAsJsonAction(JavaHandlerComponents javaHandlerComponents) {
@@ -124,7 +142,7 @@ public class JavaJsonActions extends WithApplication {
         public Result sayHello() {
             JsonNode json = request().body().asJson();
             String name = json.findPath("name").textValue();
-            if(name == null) {
+            if (name == null) {
                 return badRequest("Missing parameter [name]");
             } else {
                 return ok("Hello " + name);
@@ -177,5 +195,3 @@ public class JavaJsonActions extends WithApplication {
         //#json-response-dao
     }
 }
-
-

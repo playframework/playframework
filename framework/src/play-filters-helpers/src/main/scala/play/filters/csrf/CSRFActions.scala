@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.csrf
 
 import java.net.{ URLDecoder, URLEncoder }
@@ -388,9 +389,11 @@ class CSRFActionHelper(
    */
   def getTokenToValidate(request: RequestHeader): Option[String] = {
     val attrToken = CSRF.getToken(request).map(_.value)
-    val cookieToken = csrfConfig.cookieName.flatMap(cookie => request.cookies.get(cookie).map(_.value))
-    val sessionToken = request.session.get(csrfConfig.tokenName)
-    cookieToken orElse sessionToken orElse attrToken filter { token =>
+    val cookieOrSessionToken = csrfConfig.cookieName match {
+      case Some(cookieName) => request.cookies.get(cookieName).map(_.value)
+      case None => request.session.get(csrfConfig.tokenName)
+    }
+    cookieOrSessionToken orElse attrToken filter { token =>
       // return None if the token is invalid
       !csrfConfig.signTokens || tokenSigner.extractSignedToken(token).isDefined
     }

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
@@ -26,7 +26,7 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3"),
+  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
   libraryDependencies += guice
 )
 

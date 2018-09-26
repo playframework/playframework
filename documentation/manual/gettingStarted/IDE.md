@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -9,13 +9,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases).
+Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases) in your project/plugins.sbt file or follow [sbteclipse docs](https://github.com/typesafehub/sbteclipse#for-sbt-013-and-up) to install globally.
 
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.2")
 ```
 
-You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting in build.sbt:
 
 ```scala
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
@@ -24,7 +24,7 @@ EclipseKeys.preTasks := Seq(compile in Compile, compile in Test)
 
 If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
 
-If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
+If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following build.sbt (assuming you have no Scala sources)::
 
 ```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
@@ -51,7 +51,7 @@ If you want to grab the available source jars (this will take longer and it's po
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
-or from the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
+or from the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
 
 ```bash
 [my-first-app] $ eclipse skip-parents=false
@@ -168,7 +168,7 @@ Start SBT:
 $ sbt
 ```
 
-Enter 'ensimeConfig' at the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
+Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
 [[play-scala-seed] $ ensimeConfig

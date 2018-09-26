@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject.guice
 
-import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle, bind }
-import play.core.WebCommands
+import play.api._
+import play.api.inject.{ ApplicationLifecycle, bind }
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.
@@ -49,8 +49,8 @@ object GuiceApplicationLoader {
    */
   def defaultOverrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     Seq(
-      bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
-      bind[WebCommands] to context.webCommands,
-      bind[ApplicationLifecycle] to context.lifecycle)
+      bind[OptionalDevContext] to new OptionalDevContext(context.devContext),
+      bind[ApplicationLifecycle] to context.lifecycle
+    )
   }
 }

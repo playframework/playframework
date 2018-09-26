@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.auth
 
 import javax.inject.Inject
@@ -91,14 +92,14 @@ class SecuritySpec extends PlaySpecification {
 case class User(name: String)
 
 class AuthMessagesRequest[A](
-  val user: User,
-  messagesApi: MessagesApi,
-  request: Request[A]) extends MessagesRequest[A](request, messagesApi)
+    val user: User,
+    messagesApi: MessagesApi,
+    request: Request[A]) extends MessagesRequest[A](request, messagesApi)
 
 class UserAuthenticatedBuilder(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
-    extends AuthenticatedBuilder[User]({ req: RequestHeader =>
-      req.session.get("user").map(User)
-    }, parser) {
+  extends AuthenticatedBuilder[User]({ req: RequestHeader =>
+    req.session.get("user").map(User)
+  }, parser) {
   @Inject()
   def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = {
     this(parser: BodyParser[AnyContent])
@@ -106,10 +107,10 @@ class UserAuthenticatedBuilder(parser: BodyParser[AnyContent])(implicit ec: Exec
 }
 
 class AuthenticatedActionBuilder(
-  val parser: BodyParser[AnyContent],
-  messagesApi: MessagesApi,
-  builder: AuthenticatedBuilder[User])(implicit val executionContext: ExecutionContext)
-    extends ActionBuilder[AuthMessagesRequest, AnyContent] {
+    val parser: BodyParser[AnyContent],
+    messagesApi: MessagesApi,
+    builder: AuthenticatedBuilder[User])(implicit val executionContext: ExecutionContext)
+  extends ActionBuilder[AuthMessagesRequest, AnyContent] {
 
   type ResultBlock[A] = (AuthMessagesRequest[A]) => Future[Result]
 

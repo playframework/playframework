@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring Security Headers
 
 Play provides a security headers filter that can be used to configure some default headers in the HTTP response to mitigate security issues and provide an extra level of defense for new applications.
@@ -15,7 +15,7 @@ play.filters.enabled += "play.filters.headers.SecurityHeadersFilter"
 
 ## Configuring the security headers
 
-Scaladoc is available in the [play.filters.headers](api/scala/play/filters/headers/) package.
+Scaladoc is available in the [play.filters.headers](api/scala/play/filters/headers/index.html) package.
 
 The filter will set headers in the HTTP response automatically.  The settings can be configured through the following settings in `application.conf`
 
@@ -24,8 +24,10 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 * `play.filters.headers.contentTypeOptions` - sets [X-Content-Type-Options](https://blogs.msdn.microsoft.com/ie/2008/09/02/ie8-security-part-vi-beta-2-update/), "nosniff" by default.
 * `play.filters.headers.permittedCrossDomainPolicies` - sets [X-Permitted-Cross-Domain-Policies](https://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html), "master-only" by default.
 * `play.filters.headers.referrerPolicy` - sets [Referrer Policy](https://www.w3.org/TR/referrer-policy/),  "origin-when-cross-origin, strict-origin-when-cross-origin" by default.
-* `play.filters.headers.contentSecurityPolicy` - sets [Content-Security-Policy](https://www.html5rocks.com/en/tutorials/security/content-security-policy/), "default-src 'self'" by default.
+* `play.filters.headers.contentSecurityPolicy` - sets [Content-Security-Policy](https://developers.google.com/web/fundamentals/security/csp/), "default-src 'self'" by default.
 
+> **Note:** The `contentSecurityPolicy` property has been deprecated and the default value has been set to `null` in Play 2.7.  Please see [[CSPFilter]] for details.
+ 
 Any of the headers can be disabled by setting a configuration value of `null`, for example:
 
 ```

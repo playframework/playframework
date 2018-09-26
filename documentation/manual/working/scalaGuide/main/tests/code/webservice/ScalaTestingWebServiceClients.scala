@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.tests.webservice
 
 package client {
@@ -72,9 +73,8 @@ import client._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 import play.api.routing.Router
-import play.api.{BuiltInComponents, BuiltInComponentsFromContext}
+import play.api.BuiltInComponentsFromContext
 import play.api.routing.sird._
 import play.filters.HttpFiltersComponents
 

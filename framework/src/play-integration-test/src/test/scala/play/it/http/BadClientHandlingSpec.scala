@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import play.api._
@@ -24,7 +25,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
     def withServer[T](errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
       val port = testServerPort
 
-      val app = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with HttpFiltersComponents {
+      val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with HttpFiltersComponents {
         def router = {
           import sird._
           Router.from {

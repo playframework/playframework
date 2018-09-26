@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 import Common._
 
@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6")
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs;
 
 import akka.NotUsed;
@@ -9,7 +10,7 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import akka.util.ByteStringBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.StringEscapeUtils;
+import play.twirl.api.utils.StringEscapeUtils;
 
 import java.util.Arrays;
 
@@ -83,7 +84,7 @@ public abstract class Comet {
 
     private static ByteString formatted(ByteString callbackName, ByteString javascriptMessage) {
         ByteStringBuilder b = new ByteStringBuilder();
-        b.append(ByteString.fromString("<script type=\"text/javascript\">"));
+        b.append(ByteString.fromString("<script>"));
         b.append(callbackName);
         b.append(ByteString.fromString("("));
         b.append(javascriptMessage);

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt.run
 
 import annotation.tailrec
@@ -61,7 +62,8 @@ object PlayRun extends PlayRunCompat {
     runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath],
     reloaderClasspath: TaskKey[Classpath],
-    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
+    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
+  ): Def.Initialize[InputTask[Unit]] = Def.inputTask {
 
     val args = Def.spaceDelimited().parsed
 
@@ -104,14 +106,7 @@ object PlayRun extends PlayRunCompat {
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-        // If we have both Watched.Configuration and Watched.ContinuousState
-        // attributes and if Watched.ContinuousState.count is 1 then we assume
-        // we're in ~ run mode
-        val maybeContinuous = for {
-          watched <- state.get(Watched.Configuration)
-          watchState <- state.get(Watched.ContinuousState)
-          if watchState.count == 1
-        } yield watched
+        val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
 
         maybeContinuous match {
           case Some(watched) =>
@@ -200,7 +195,7 @@ object PlayRun extends PlayRunCompat {
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
     state.log.warn("The start command is deprecated, and will be removed in a future version of Play.")
     state.log.warn("To run Play in production mode, run 'stage' instead, and then execute the generated start script in target/universal/stage/bin.")
-    state.log.warn("To test your application using production mode, run 'testProd' instead.")
+    state.log.warn("To test your application using production mode, run 'runProd' instead.")
 
     testProd(state, args)
   }
@@ -244,7 +239,7 @@ object PlayRun extends PlayRunCompat {
           javaProductionOptions ++
           Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"))
         new Thread {
-          override def run() {
+          override def run(): Unit = {
             if (noExitSbt) {
               createAndRunProcess(args)
             } else {

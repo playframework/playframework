@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.hosts
 
 import javax.inject.{ Inject, Provider, Singleton }
@@ -10,14 +11,14 @@ import play.api.{ Configuration, Logger }
 import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject._
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{ EssentialAction, EssentialFilter }
+import play.api.mvc.{ EssentialAction, EssentialFilter, RequestHeader }
 import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
 
 /**
  * A filter that denies requests by hosts that do not match a configured list of allowed hosts.
  */
 case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandler: HttpErrorHandler)
-    extends EssentialFilter {
+  extends EssentialFilter {
 
   private val logger = Logger(this.getClass)
 
@@ -29,7 +30,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
   private val hostMatchers: Seq[HostMatcher] = config.allowed map HostMatcher.apply
 
   override def apply(next: EssentialAction) = EssentialAction { req =>
-    if (hostMatchers.exists(_(req.host))) {
+    if (!config.shouldProtect(req) || hostMatchers.exists(_(req.host))) {
       next(req)
     } else {
       logger.warn(s"Host not allowed: ${req.host}")(SecurityMarkerContext)
@@ -64,13 +65,14 @@ private[hosts] case class HostMatcher(pattern: String) {
   }
 }
 
-case class AllowedHostsConfig(allowed: Seq[String]) {
-  def this() {
-    this(Seq.empty)
-  }
-
+case class AllowedHostsConfig(allowed: Seq[String], shouldProtect: RequestHeader => Boolean = _ => true) {
   import scala.collection.JavaConverters._
-  def withHostPatterns(hosts: java.util.List[String]): AllowedHostsConfig = copy(hosts.asScala.toSeq)
+  import play.mvc.Http.{ RequestHeader => JRequestHeader }
+  import scala.compat.java8.FunctionConverters._
+
+  def withHostPatterns(hosts: java.util.List[String]): AllowedHostsConfig = copy(allowed = hosts.asScala)
+  def withShouldProtect(shouldProtect: java.util.function.Predicate[JRequestHeader]): AllowedHostsConfig =
+    copy(shouldProtect = shouldProtect.asScala.compose(_.asJava))
 }
 
 object AllowedHostsConfig {
@@ -78,7 +80,21 @@ object AllowedHostsConfig {
    * Parses out the AllowedHostsConfig from play.api.Configuration (usually this means application.conf).
    */
   def fromConfiguration(conf: Configuration): AllowedHostsConfig = {
-    AllowedHostsConfig(conf.get[Seq[String]]("play.filters.hosts.allowed"))
+    val whiteListRouteModifiers = conf.get[Seq[String]]("play.filters.hosts.routeModifiers.whiteList")
+    val blackListRouteModifiers = conf.get[Seq[String]]("play.filters.hosts.routeModifiers.blackList")
+
+    @inline def shouldProtectViaRouteModifiers(rh: RequestHeader): Boolean = {
+      import play.api.routing.Router.RequestImplicits._
+      if (whiteListRouteModifiers.nonEmpty)
+        !whiteListRouteModifiers.exists(rh.hasRouteModifier)
+      else
+        blackListRouteModifiers.isEmpty || blackListRouteModifiers.exists(rh.hasRouteModifier)
+    }
+
+    AllowedHostsConfig(
+      allowed = conf.get[Seq[String]]("play.filters.hosts.allowed"),
+      shouldProtect = shouldProtectViaRouteModifiers
+    )
   }
 }
 

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.io.IOException
@@ -30,7 +31,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
   val config = ParserConfiguration()
   val parse = PlayBodyParsers()
 
-  def parse(body: ByteString, memoryThreshold: Int = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
+  def parse(body: ByteString, memoryThreshold: Long = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
     val request = FakeRequest(method = "GET", "/x")
 
     Await.result(parser(request).run(Source.single(body)), Duration.Inf)

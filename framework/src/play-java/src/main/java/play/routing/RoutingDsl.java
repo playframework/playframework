@@ -1,20 +1,19 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routing;
 
 import net.jodah.typetools.TypeResolver;
 import play.BuiltInComponents;
-import play.Logger;
-import play.api.Application;
-import play.api.mvc.AnyContent;
 import play.api.mvc.BodyParser;
 import play.api.mvc.PathBindable;
 import play.api.mvc.PathBindable$;
-import play.api.mvc.PlayBodyParsers;
 import play.core.j.JavaContextComponents;
+import play.core.routing.HandlerInvokerFactory$;
 import play.libs.F;
 import play.libs.Scala;
+import play.mvc.Http;
 import play.mvc.Result;
 import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
@@ -90,49 +89,19 @@ import java.util.stream.StreamSupport;
  */
 public class RoutingDsl {
 
-    private static final Logger.ALogger logger = Logger.of(RoutingDsl.class);
-
-    private final BodyParser<AnyContent> bodyParser;
+    private final BodyParser<Http.RequestBody> bodyParser;
     private final JavaContextComponents contextComponents;
 
     final List<Route> routes = new ArrayList<>();
 
-    /**
-     * Construct a new builder.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use an injected version instead.
-     *
-     * @see #RoutingDsl(PlayBodyParsers, JavaContextComponents)
-     */
-    @Deprecated
-    public RoutingDsl() {
-        logger.warn(
-            "RoutingDsl default constructor was deprecated in favor of using Dependency Injection. " +
-            "You should migrate to use a version that uses the #RoutingDsl(BodyParser, JavaContextComponents) constructor " +
-            "or just inject an instance of play.routing.RoutingDsl."
-        );
-        this.bodyParser = app().injector().instanceOf(PlayBodyParsers.class).defaultBodyParser();
-        this.contextComponents = app().injector().instanceOf(JavaContextComponents.class);
-    }
-
-    public RoutingDsl(BodyParser<AnyContent> bodyParser, JavaContextComponents contextComponents) {
-        this.bodyParser = bodyParser;
+    @Inject
+    public RoutingDsl(play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {
+        this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
         this.contextComponents = contextComponents;
     }
 
-    @Inject
-    public RoutingDsl(PlayBodyParsers bodyParsers, JavaContextComponents contextComponents) {
-        this(bodyParsers.defaultBodyParser(), contextComponents);
-    }
-
     public static RoutingDsl fromComponents(BuiltInComponents components) {
-        return new RoutingDsl(components.defaultScalaBodyParser(), components.javaContextComponents());
-    }
-
-    private Application app() {
-        // If testing an embedded application we may not have a Guice injector, therefore we can't rely on
-        // it to instantiate the default body parser, we have to instantiate it ourselves.
-        return play.api.Play.maybeApplication().get(); // throw exception if no current app
+        return new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents());
     }
 
     /**

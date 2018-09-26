@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.cache {
 
 import akka.Done
@@ -9,7 +10,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.execute.AsResult
 
-import play.api.Play.current
 import play.api.test._
 import play.api.mvc._
 import play.api.libs.json.Json

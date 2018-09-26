@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package com.typesafe.play.docs.sbtplugin
 
 import java.io.Closeable
@@ -233,10 +234,10 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     }
     val docServerStart = constructor.newInstance()
     val server: ReloadableServer = startMethod.invoke(docServerStart, manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
-      new java.lang.Integer(port)).asInstanceOf[ReloadableServer]
+      java.lang.Integer.valueOf(port)).asInstanceOf[ReloadableServer]
 
     println()
-    println(Colors.green("Documentation server started, you can now view the docs by going to http://" + server.mainAddress()))
+    println(Colors.green("Documentation server started, you can now view the docs in your web browser"))
     println()
 
     waitForKey()
@@ -254,7 +255,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)
-    def waitEOF() {
+    def waitEOF(): Unit = {
       consoleReader.readCharacter() match {
         case 4 => // STOP
         case 11 =>

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs;
 
 import scala.util.Try;
@@ -35,13 +36,6 @@ public final class Files {
 
         /** @return the path to the temporary file. */
         Path path();
-
-        /**
-         * @return the temporaryFile as a java.io.File.
-         * @deprecated Use path() over file().
-         */
-        @Deprecated
-        File file();
 
         TemporaryFileCreator temporaryFileCreator();
 
@@ -109,11 +103,6 @@ public final class Files {
         @Override
         public Path path() {
             return temporaryFile.path();
-        }
-
-        @Override
-        public File file() {
-            return temporaryFile.path().toFile();
         }
 
         @Override

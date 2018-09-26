@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.routing
 
 import play.api.mvc.RequestHeader
@@ -39,7 +40,7 @@ object JavaScriptReverseRouter {
   }
 
   def apply(name: String, ajaxMethod: Option[String], host: String, routes: JavaScriptReverseRoute*): JavaScript = JavaScript {
-    import org.apache.commons.lang3.StringEscapeUtils.{ escapeEcmaScript => esc }
+    import play.twirl.api.utils.StringEscapeUtils.{ escapeEcmaScript => esc }
     val ajaxField = ajaxMethod.fold("")(m => s"ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return $m(c)},")
     val routesStr = routes.map { route =>
       val nameParts = route.name.split('.')

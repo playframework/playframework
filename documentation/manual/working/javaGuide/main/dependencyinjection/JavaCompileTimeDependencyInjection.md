@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Compile Time Dependency Injection
 
 Out of the box, Play provides a mechanism for runtime dependency injection - that is, dependency injection where dependencies aren't wired until runtime.  This approach has both advantages and disadvantages, the main advantages being around minimisation of boilerplate code, the main disadvantage being that the construction of the application is not validated at compile time.
@@ -103,7 +103,6 @@ Other helper traits are also available as the [CSRFComponents](api/java/play/fil
 - [`play.routing.RoutingDslComponents`](api/java/play/routing/RoutingDslComponents.html)
 - [`play.data.FormFactoryComponents`](api/java/play/data/FormFactoryComponents.html)
 - [`play.data.validation.ValidatorsComponents`](api/java/play/data/validation/ValidatorsComponents.html)
-- [`play.db.BoneCPComponents`](api/java/play/db/BoneCPComponents.html)
 - [`play.db.ConnectionPoolComponents`](api/java/play/db/ConnectionPoolComponents.html)
 - [`play.db.DBComponents`](api/java/play/db/DBComponents.html)
 - [`play.db.HikariCPComponents`](api/java/play/db/HikariCPComponents.html)

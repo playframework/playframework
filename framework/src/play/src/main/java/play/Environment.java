@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play;
 
 import play.libs.Scala;
@@ -10,6 +11,9 @@ import javax.inject.Singleton;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Optional;
+
+import scala.compat.java8.OptionConverters;
 
 /**
  * The environment for the application.
@@ -106,6 +110,17 @@ public class Environment {
     }
 
     /**
+     * Retrieves a file relative to the application root path.
+     * This method returns an Optional, using empty if the file was not found.
+     *
+     * @param relativePath relative path of the file to fetch
+     * @return an existing file
+     */
+    public Optional<File> getExistingFile(String relativePath) {
+        return OptionConverters.toJava(env.getExistingFile(relativePath));
+    }
+
+    /**
      * Retrieves a resource from the classpath.
      *
      * @param relativePath relative path of the resource to fetch
@@ -135,18 +150,6 @@ public class Environment {
      */
     public static Environment simple() {
         return new Environment(new File("."), Environment.class.getClassLoader(), Mode.TEST);
-    }
-
-    /**
-     * The underlying Scala API Environment object that this Environment
-     * wraps.
-     *
-     * @return the environment
-     * @deprecated As of release 2.6.0. Use {@link #asScala()}
-     */
-    @Deprecated
-    public play.api.Environment underlying() {
-        return env;
     }
 
     /**

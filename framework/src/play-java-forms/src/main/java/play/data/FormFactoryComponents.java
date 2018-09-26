@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data;
 
 import play.i18n.I18nComponents;
@@ -17,6 +18,6 @@ public interface FormFactoryComponents extends ValidatorsComponents, I18nCompone
     }
 
     default FormFactory formFactory() {
-        return new FormFactory(messagesApi(), formatters(), validator());
+        return new FormFactory(messagesApi(), formatters(), validatorFactory());
     }
 }

@@ -1,7 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.streams
+
+import java.util.zip.Deflater
 
 import akka.stream.scaladsl.{ Compression, Flow }
 import akka.stream.stage._
@@ -18,8 +21,8 @@ object GzipFlow {
   /**
    * Create a Gzip Flow with the given buffer size.
    */
-  def gzip(bufferSize: Int = 512): Flow[ByteString, ByteString, _] = {
-    Flow[ByteString].via(new Chunker(bufferSize)).via(Compression.gzip)
+  def gzip(bufferSize: Int = 512, compressionLevel: Int = Deflater.DEFAULT_COMPRESSION): Flow[ByteString, ByteString, _] = {
+    Flow[ByteString].via(new Chunker(bufferSize)).via(Compression.gzip(compressionLevel))
   }
 
   // http://doc.akka.io/docs/akka/2.4.14/scala/stream/stream-cookbook.html#Chunking_up_a_stream_of_ByteStrings_into_limited_size_ByteStrings

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring the JDBC pool.
 
 The Play JDBC datasource is managed by [HikariCP](https://brettwooldridge.github.io/HikariCP/).
@@ -31,9 +31,8 @@ In addition to the classical `driver`, `url`, `username`, `password` configurati
 
 @[](/confs/play-jdbc/reference.conf)
 
-When you need to specify some settings for a connection pool, you can override the prototype settings.  For example, to set the default connection pool for BoneCP and set maxConnectionsPerPartition for the default pool, you would set the following in your `application.conf` file:
+When you need to specify some settings for a connection pool, you can override the prototype settings.  For example, to set maximumPoolSize for HikariCP, you would set the following in your `application.conf` file:
 
 ```
-play.db.pool=bonecp
-play.db.prototype.bonecp.maxConnectionsPerPartition = 50
+play.db.prototype.hikaricp.maximumPoolSize = 15
 ```

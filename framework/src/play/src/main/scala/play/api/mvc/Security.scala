@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import play.api._
@@ -10,6 +11,7 @@ import play.api.mvc.Results._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
+import scala.util.{ Failure, Success }
 
 /**
  * Helpers to create secure actions.
@@ -21,7 +23,7 @@ object Security {
   /**
    * The default error response for an unauthorized request; used multiple places here
    */
-  private val DefaultUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())
+  private val DefaultUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized())
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -75,7 +77,7 @@ object Security {
    */
   @deprecated("Security.username is deprecated.", "2.6.0")
   lazy val username: String = {
-    Play.privateMaybeApplication.flatMap(_.configuration.getOptional[String]("session.username")) match {
+    Play.privateMaybeApplication.toOption.flatMap(_.configuration.getOptional[String]("session.username")) match {
       case Some(usernameKey) =>
         logger.warn("The session.username configuration key is no longer supported.")
         logger.warn("Inject Configuration into your controller or component and call get[String](\"session.username\")")
@@ -117,7 +119,7 @@ object Security {
    *
    * @param user The user that made the request
    */
-  class AuthenticatedRequest[A, U](val user: U, request: Request[A]) extends WrappedRequest[A](request) {
+  class AuthenticatedRequest[+A, U](val user: U, request: Request[A]) extends WrappedRequest[A](request) {
     override protected def newWrapper[B](newRequest: Request[B]): AuthenticatedRequest[B, U] = new AuthenticatedRequest[B, U](user, newRequest)
   }
 
@@ -175,7 +177,7 @@ object Security {
   class AuthenticatedBuilder[U](
       userinfo: RequestHeader => Option[U],
       defaultParser: BodyParser[AnyContent],
-      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))(implicit val executionContext: ExecutionContext) extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
+      onUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized()))(implicit val executionContext: ExecutionContext) extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
 
     lazy val parser = defaultParser
 

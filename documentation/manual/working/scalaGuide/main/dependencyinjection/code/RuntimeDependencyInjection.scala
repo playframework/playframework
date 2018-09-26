@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.dependencyinjection
 
 import play.api.test._
@@ -105,7 +106,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
 class Module extends AbstractModule {
-  def configure() = {
+  override def configure() = {
 
     bind(classOf[Hello])
       .annotatedWith(Names.named("en"))
@@ -131,7 +132,7 @@ import play.api.{ Configuration, Environment }
 class Module(
   environment: Environment,
   configuration: Configuration) extends AbstractModule {
-  def configure() = {
+  override def configure() = {
     // Expect configuration like:
     // hello.en = "myapp.EnglishHello"
     // hello.de = "myapp.GermanHello"
@@ -251,8 +252,9 @@ class HelloModule extends Module {
 //#eager-play-module
 }
 package injected.controllers {
+  import javax.inject.Inject
   import play.api.mvc._
-  class Application {
+  class Application @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
     def index = Action(Results.Ok)
   }
 }

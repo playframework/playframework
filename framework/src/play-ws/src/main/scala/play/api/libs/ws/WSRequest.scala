@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.ws
 
 import java.io.File
@@ -134,7 +135,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   /**
    * The timeout for the request
    */
-  override def requestTimeout: Option[Int]
+  override def requestTimeout: Option[Duration]
 
   /**
    * The virtual host this request will use

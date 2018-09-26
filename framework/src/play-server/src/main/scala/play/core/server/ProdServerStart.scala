@@ -1,13 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import java.io._
 import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
 
+import akka.Done
+import akka.actor.CoordinatedShutdown
 import play.api._
 
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
@@ -20,7 +24,7 @@ object ProdServerStart {
   /**
    * Start a prod mode server from the command line.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val process = new RealServerProcess(args)
     start(process)
   }
@@ -30,10 +34,27 @@ object ProdServerStart {
    * for the server are based on values passed on the command line and in
    * various system properties. Crash out by exiting the given process if there
    * are any problems.
+   *
    * @param process The process (real or abstract) to use for starting the
    * server.
    */
   def start(process: ServerProcess): ReloadableServer = {
+    start(process, true)
+  }
+
+  /**
+   * Starts a Play server and application for the given process. The settings
+   * for the server are based on values passed on the command line and in
+   * various system properties. Crash out by exiting the given process if there
+   * are any problems.
+   *
+   * @param process The process (real or abstract) to use for starting the
+   * server.
+   * @param exitJvmOnStop This method may be invoked from a test trying to
+   *                      simulate Prod in which case the JVM should not be exited.
+   */
+  def start(process: ServerProcess, exitJvmOnStop: Boolean = false): ReloadableServer = {
+
     try {
 
       // Read settings
@@ -43,10 +64,20 @@ object ProdServerStart {
       val pidFile = createPidFile(process, config.configuration)
 
       try {
+
+        val initialSettings: Map[String, AnyRef] =
+          if (exitJvmOnStop) {
+            Map(
+              "akka.coordinated-shutdown.exit-jvm" -> "on"
+            )
+          } else {
+            Map.empty[String, AnyRef]
+          }
+
         // Start the application
         val application: Application = {
           val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
-          val context = ApplicationLoader.createContext(environment)
+          val context = ApplicationLoader.Context.create(environment, initialSettings)
           val loader = ApplicationLoader(context)
           loader.load(context)
         }
@@ -55,11 +86,20 @@ object ProdServerStart {
         // Start the server
         val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
         val server = serverProvider.createServer(config, application)
+
         process.addShutdownHook {
           server.stop()
-          pidFile.foreach(_.delete())
-          assert(!pidFile.exists(_.exists), "PID file should not exist!")
         }
+
+        application.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "remove-pid-file"){
+          () =>
+            // Must delete the PID file after stopping the server not before...
+            // In case of unclean shutdown or failure, leave the PID file there!
+            pidFile.foreach(_.delete())
+            assert(!pidFile.exists(_.exists), "PID file should not exist!")
+            Future successful Done
+        }
+
         server
       } catch {
         case NonFatal(e) =>

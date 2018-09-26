@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
@@ -7,10 +7,10 @@ lazy val root = (project in file("."))
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.3"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
-    PlayKeys.fileWatchService := FileWatchServiceInitializer.initialFileWatchService,
+    PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
 
     TaskKey[Unit]("resetReloads") := {
       (target.value / "reload.log").delete()
@@ -26,11 +26,16 @@ lazy val root = (project in file("."))
       }
     },
 
+    InputKey[Unit]("makeRequestWithHeader") := {
+      val args = Def.spaceDelimited("<path> <status> <headers> ...").parsed
+      val path :: status :: headers = args
+      val headerName = headers.mkString
+      DevModeBuild.verifyResourceContains(path, status.toInt, Seq.empty, 0, headerName -> "Header-Value")
+    },
+
     InputKey[Unit]("verifyResourceContains") := {
       val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
-      val path = args.head
-      val status = args.tail.head.toInt
-      val assertions = args.tail.tail
-      DevModeBuild.verifyResourceContains(path, status, assertions, 0)
+      val path :: status :: assertions = args
+      DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
     }
   )

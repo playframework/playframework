@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with JPA
 
 ## Adding dependencies to your project
@@ -54,7 +54,9 @@ Running Play in development mode while using JPA will work fine, but in order to
 
 @[jpa-externalize-resources](code/jpa.sbt)
 
-> **Note:** Since Play 2.4 the contents of the `conf` directory are added to the classpath by default. This option will disable that behavior and allow a JPA application to be deployed. The content of conf directory will still be available in the classpath due to it being included in the application's jar file.
+> **Note:** More information on how to configure externalized resources can be found [[here|SBTCookbook#Configure-externalized-resources]].
+The above settings makes sure the `persistence.xml` file will always stay *inside* the generated application `jar` file.
+This is a requirement by the [JPA specification](http://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf). According to it the `persistence.xml` file has to be in the *same* `jar` file where its persistence-units' entities live, otherwise these entities won't be availabe for the persistence-units. (You could, however, explicitly add a `jar` file containing entities via `<jar-file>xxx.jar</jar-file>` to a persistence-unit - but that doesn't work well with Play as it would fail with a `FileNotFoundException` in development mode because there is no `jar` file that will be generated in that mode. Further that wouldn't work well in production mode too because when deploying an application, the name of the generated application `jar` file changes with each new release as the current version of the application gets appended to it.)
 
 ## Using `play.db.jpa.JPAApi`
 
@@ -74,7 +76,7 @@ This may mean that your domain object (aggregate root, in DDD terms) has an inte
 
 You should always use a custom execution context when using JPA, to ensure that Play's rendering thread pool is completely focused on rendering pages and using cores to their full extent.  You can use Play's `CustomExecutionContext` class to configure a custom execution context dedicated to serving JDBC operations.  See [[JavaAsync]] and [[ThreadPools]] for more details.
 
-All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/master/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
+All of the Play example templates on [Play's download page](https://playframework.com/download#examples) that use blocking APIs (i.e. Anorm, JPA) have been updated to use custom execution contexts where appropriate.  For example, going to https://github.com/playframework/play-java-jpa-example/ shows that the [JPAPersonRepository](https://github.com/playframework/play-java-jpa-example/blob/2.6.x/app/models/JPAPersonRepository.java) class takes a `DatabaseExecutionContext` that wraps all the database operations.
 
 For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page]( https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles, i.e. if you have a four core CPU and one disk, you have a total of 9 JDBC connections in the pool:
 
@@ -93,17 +95,17 @@ database.dispatcher {
 
 ### Running JPA transactions
 
-The following methods are available to execute arbitrary code inside a JPA transaction, but 
+The `JPAApi` provides you various `withTransaction(...)` methods to execute arbitrary code inside a JPA transaction. These methods however do not include a custom execution context and therefore must be wrapped inside a `CompletableFuture` with an IO bound execution context.
 
 ### Examples:
 
-Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-.html):
+Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-):
 
 @[jpa-withTransaction-function](code/JPARepository.java)
 
-Using [`JPAApi.withTransaction(Runnable)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.lang.Runnable-.html) to run a batch update:
+Using [`JPAApi.withTransaction(Consumer<EntityManager>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Consumer-) to run a batch update:
 
-@[jpa-withTransaction-runnable](code/JPARepository.java)
+@[jpa-withTransaction-consumer](code/JPARepository.java)
 
 ## Enabling Play database evolutions
 

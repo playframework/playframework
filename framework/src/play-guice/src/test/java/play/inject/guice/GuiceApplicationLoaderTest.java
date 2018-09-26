@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.inject.guice;
 
 import com.typesafe.config.Config;
@@ -72,7 +73,7 @@ public class GuiceApplicationLoaderTest {
                 .withConfig(config);
         Application app = loader.load(context);
 
-        assertThat(app.getWrappedApplication().httpConfiguration().context(), equalTo("/tests"));
+        assertThat(app.asScala().httpConfiguration().context(), equalTo("/tests"));
     }
 
     public interface A {}

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server;
 
 /**
@@ -17,12 +18,5 @@ public interface ReloadableServer {
    * Reload the server if necessary.
    */
   void reload();
-
-  /**
-   * Get the address of the server.
-   *
-   * @return The address of the server.
-   */
-  java.net.InetSocketAddress mainAddress(); 
 
 }

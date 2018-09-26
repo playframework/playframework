@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.http
 
 import java.io.File
@@ -58,7 +59,7 @@ class WriteableSpec extends Specification {
           Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType)
         )
 
-        writeable.contentType must beSome.which(_.startsWith("multipart/form-data; boundary="))
+        writeable.contentType must beSome(startWith("multipart/form-data; boundary="))
       }
     }
   }

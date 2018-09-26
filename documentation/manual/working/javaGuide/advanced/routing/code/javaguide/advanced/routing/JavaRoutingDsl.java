@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.advanced.routing;
 
 import org.junit.Before;
@@ -124,7 +125,7 @@ public class JavaRoutingDsl extends WithApplication {
 
     @Test
     public void createNewRoutingDsl() {
-        BodyParser<AnyContent> bodyParser = app.injector().instanceOf(PlayBodyParsers.class).defaultBodyParser();
+        play.mvc.BodyParser.Default bodyParser = app.injector().instanceOf(play.mvc.BodyParser.Default.class);
         JavaContextComponents javaContextComponents = app.injector().instanceOf(JavaContextComponents.class);
 
         //#new-routing-dsl

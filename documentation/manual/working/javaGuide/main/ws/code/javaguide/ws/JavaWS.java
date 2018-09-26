@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import play.libs.ws.*;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -27,10 +29,12 @@ import play.libs.Json;
 // #json-imports
 
 // #multipart-imports
+import play.libs.ws.ahc.AhcCurlRequestLogger;
 import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.Optional;
 import java.util.stream.*;
 
@@ -139,7 +143,7 @@ public class JavaWS {
             // #ws-post-multipart
 
             // #ws-post-multipart2
-            Source<ByteString, ?> file = FileIO.fromFile(new File("hello.txt"));
+            Source<ByteString, ?> file = FileIO.fromPath(Paths.get("hello.txt"));
             FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
             DataPart dp = new DataPart("key", "value");
 
@@ -154,6 +158,13 @@ public class JavaWS {
             // #ws-stream-request
             CompletionStage<WSResponse> wsResponse = ws.url(url).setBody(body(largeImage)).execute("PUT");
             // #ws-stream-request
+
+            // #ws-curl-logger-filter
+            ws.url("https://www.playframework.com")
+              .setRequestFilter(new AhcCurlRequestLogger())
+              .addHeader("Header-Name", "Header value")
+              .get();
+            // #ws-curl-logger-filter
         }
 
         public void responseExamples() {
@@ -305,7 +316,7 @@ public class JavaWS {
                             materializer);
             // #ws-client
 
-            org.slf4j.Logger logger = play.Logger.underlying();
+            org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
             // #ws-close-client
             try {
                 customWSClient.close();

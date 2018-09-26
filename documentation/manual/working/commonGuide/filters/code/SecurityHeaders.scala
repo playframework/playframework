@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package detailedtopics.configuration.securityheaders
 
 //#filters
@@ -15,7 +16,7 @@ class SecurityHeaders @Inject()(val controllerComponents: ControllerComponents) 
 
   def index = Action {
   //#allowActionSpecificHeaders
-  	Ok("Index").withHeaders(SecurityHeadersFilter.CONTENT_SECURITY_POLICY_HEADER -> "my page-specific header")
+  	Ok("Index").withHeaders(SecurityHeadersFilter.REFERRER_POLICY -> "my page-specific header")
   //#allowActionSpecificHeaders
   }
 }

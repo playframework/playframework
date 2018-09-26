@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.netty
 
 import java.net.{ InetAddress, InetSocketAddress, URI }
@@ -27,11 +28,13 @@ import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 import scala.util.{ Failure, Try }
 
 private[server] class NettyModelConversion(
     resultUtils: ServerResultUtils,
-    forwardedHeaderHandler: ForwardedHeaderHandler) {
+    forwardedHeaderHandler: ForwardedHeaderHandler,
+    serverHeader: Option[String]) {
 
   private val logger = Logger(classOf[NettyModelConversion])
 
@@ -109,9 +112,13 @@ private[server] class NettyModelConversion(
       override val queryString: String = parsedQueryString.stripPrefix("?")
       override lazy val queryMap: Map[String, Seq[String]] = {
         val decoder = new QueryStringDecoder(parsedQueryString)
-        val decodedParameters = decoder.parameters()
-        if (decodedParameters.isEmpty) Map.empty
-        else decodedParameters.asScala.mapValues(_.asScala.toList).toMap
+        try {
+          decoder.parameters().asScala.mapValues(_.asScala.toList).toMap
+        } catch {
+          case NonFatal(e) =>
+            logger.warn("Failed to parse query string; returning empty map.", e)
+            Map.empty
+        }
       }
     }
   }
@@ -268,12 +275,17 @@ private[server] class NettyModelConversion(
         response.headers().add(DATE, dateHeader)
       }
 
+      if (!response.headers().contains(SERVER)) {
+        serverHeader.foreach(response.headers().add(SERVER, _))
+      }
+
       Future.successful(response)
     } {
       // Fallback response
       val response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.EMPTY_BUFFER)
       HttpUtil.setContentLength(response, 0)
       response.headers().add(DATE, dateHeader)
+      serverHeader.foreach(response.headers().add(SERVER, _))
       response.headers().add(CONNECTION, "close")
       response
     }

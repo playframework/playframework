@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring WS SSL
 
 [[Play WS|ScalaWS]] allows you to set up HTTPS completely from a configuration file, without the need to write code.  It does this by layering the Java Secure Socket Extension (JSSE) with a configuration layer and with reasonable defaults.
@@ -10,21 +10,21 @@ unlimited strength java cryptography extension.  You can download the policy fil
 
 ## Table of Contents
 
-The Play WS configuration is based on [Typesafe SSLConfig](https://typesafehub.github.io/ssl-config).  For convenience, a table of contents to SSLConfig is provided:
+The Play WS configuration is based on [Typesafe SSLConfig](https://lightbend.github.io/ssl-config).  For convenience, a table of contents to SSLConfig is provided:
 
-- [Quick Start to WS SSL](https://typesafehub.github.io/ssl-config/WSQuickStart.html)
-- [Generating X.509 Certificates](https://typesafehub.github.io/ssl-config/CertificateGeneration.html)
-- [Configuring Trust Stores and Key Stores](https://typesafehub.github.io/ssl-config/KeyStores.html)
-- [Configuring Protocols](https://typesafehub.github.io/ssl-config/Protocols.html)
-- [Configuring Cipher Suites](https://typesafehub.github.io/ssl-config/CipherSuites.html)
-- [Configuring Certificate Validation](https://typesafehub.github.io/ssl-config/CertificateValidation.html)
-- [Configuring Certificate Revocation](https://typesafehub.github.io/ssl-config/CertificateRevocation.html)
-- [Configuring Hostname Verification](https://typesafehub.github.io/ssl-config/HostnameVerification.html)
-- [Example Configurations](https://typesafehub.github.io/ssl-config/ExampleSSLConfig.html)
-- [Using the Default SSLContext](https://typesafehub.github.io/ssl-config/DefaultContext.html)
-- [Debugging SSL Connections](https://typesafehub.github.io/ssl-config/DebuggingSSL.html)
-- [Loose Options](https://typesafehub.github.io/ssl-config/LooseSSL.html)
-- [Testing SSL](https://typesafehub.github.io/ssl-config/TestingSSL.html)
+- [Quick Start to WS SSL](https://lightbend.github.io/ssl-config/WSQuickStart.html)
+- [Generating X.509 Certificates](https://lightbend.github.io/ssl-config/CertificateGeneration.html)
+- [Configuring Trust Stores and Key Stores](https://lightbend.github.io/ssl-config/KeyStores.html)
+- [Configuring Protocols](https://lightbend.github.io/ssl-config/Protocols.html)
+- [Configuring Cipher Suites](https://lightbend.github.io/ssl-config/CipherSuites.html)
+- [Configuring Certificate Validation](https://lightbend.github.io/ssl-config/CertificateValidation.html)
+- [Configuring Certificate Revocation](https://lightbend.github.io/ssl-config/CertificateRevocation.html)
+- [Configuring Hostname Verification](https://lightbend.github.io/ssl-config/HostnameVerification.html)
+- [Example Configurations](https://lightbend.github.io/ssl-config/ExampleSSLConfig.html)
+- [Using the Default SSLContext](https://lightbend.github.io/ssl-config/DefaultContext.html)
+- [Debugging SSL Connections](https://lightbend.github.io/ssl-config/DebuggingSSL.html)
+- [Loose Options](https://lightbend.github.io/ssl-config/LooseSSL.html)
+- [Testing SSL](https://lightbend.github.io/ssl-config/TestingSSL.html)
 
 ## Further Reading
 

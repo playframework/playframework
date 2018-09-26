@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.data
 
 import play.api.{ Configuration, Environment }
@@ -354,6 +355,19 @@ class FormSpec extends Specification {
     (form.errorsAsJson \ "foo")(0).asOpt[String] must beSome("This is a custom error")
   }
 
+  "correctly format error messages with arguments" in {
+    val messagesApi: MessagesApi = {
+      val config = Configuration.reference
+      val langs = new DefaultLangsProvider(config).get
+      new DefaultMessagesApiProvider(Environment.simple(), config, langs, HttpConfiguration()).get
+    }
+    implicit val messages = messagesApi.preferred(Seq.empty)
+
+    val filled = ScalaForms.parameterizederrorMessageForm.fillAndValidate("john")
+    filled.errors("name").find(_.message == "error.minLength").map(_.format) must beSome("Minimum length is 5")
+
+  }
+
   "render form using java.time.LocalDate" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate)
@@ -528,4 +542,7 @@ object ScalaForms {
   val byteNumberForm = Form("byteNumber" -> shortNumber(10, 42))
 
   val charForm = Form("gender" -> char)
+
+  val parameterizederrorMessageForm = Form("name" -> nonEmptyText(minLength = 5))
+
 }

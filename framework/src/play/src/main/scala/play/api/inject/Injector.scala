@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 
 import scala.reflect.ClassTag
@@ -53,7 +54,7 @@ object NewInstanceInjector extends Injector {
   /**
    * Get an instance of the given class from the injector.
    */
-  def instanceOf[T](clazz: Class[T]) = clazz.newInstance()
+  def instanceOf[T](clazz: Class[T]) = clazz.getDeclaredConstructor().newInstance()
 
   /**
    * Get an instance bound to the given binding key.

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import java.io.File
@@ -10,11 +11,13 @@ import java.util.Properties
 import java.util.concurrent._
 
 import com.google.common.io.{ Files => GFiles }
+import org.specs2.matcher.EventuallyMatchers
 import org.specs2.mutable.Specification
+import play.api.{ Mode, Play }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Random, Success, Try }
 
 case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1) extends Exception(s"Exit with $message, $returnCode", cause.orNull)
 
@@ -51,6 +54,7 @@ class FakeServer(context: ServerProvider.Context) extends Server with Reloadable
   def mainAddress = ???
   @volatile var stopCallCount = 0
   override def stop() = {
+    applicationProvider.get.map(Play.stop)
     stopCallCount += 1
     super.stop()
   }
@@ -67,6 +71,8 @@ class StartupErrorServerProvider extends ServerProvider {
 }
 
 class ProdServerStartSpec extends Specification {
+
+  sequential
 
   def withTempDir[T](block: File => T) = {
     val temp = GFiles.createTempDir()
@@ -99,7 +105,7 @@ class ProdServerStartSpec extends Specification {
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process)
+      val server = ProdServerStart.start(process, false)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -127,7 +133,7 @@ class ProdServerStartSpec extends Specification {
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process)
+      val server = ProdServerStart.start(process, false)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -156,7 +162,7 @@ class ProdServerStartSpec extends Specification {
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process)
+      val server = ProdServerStart.start(process, false)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -175,7 +181,7 @@ class ProdServerStartSpec extends Specification {
     "exit with an error if no root dir defined" in withTempDir { tempDir =>
       val process = new FakeServerProcess()
       exitResult {
-        ProdServerStart.start(process)
+        ProdServerStart.start(process, false)
       } must beLeft
     }
 
@@ -188,13 +194,13 @@ class ProdServerStartSpec extends Specification {
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
 
-      def startServer = { ProdServerStart.start(process) }
+      def startServer = { ProdServerStart.start(process, false) }
       startServer must throwA[ExitException]
 
       pidFile.exists must beFalse
     }
 
-    "not have a race condition when creating a pid file" in withTempDir { tempDir =>
+    "not have a race condition when creating a pidfile" in withTempDir { tempDir =>
 
       // This test creates several fake server processes and starts them concurrently,
       // checking whether or not PID file creation behaves properly. The test is

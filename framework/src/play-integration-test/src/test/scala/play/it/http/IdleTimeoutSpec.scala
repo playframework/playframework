@@ -1,8 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
+import java.io.IOException
 import java.net.SocketException
 import java.util.Properties
 
@@ -104,7 +106,9 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
     "support sub-second timeouts" in withServer(300.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
-      doRequests(port, trickle = 400L) must throwA[SocketException]
+      doRequests(port, trickle = 400L) must throwA[IOException].like {
+        case e => (e must beAnInstanceOf[SocketException]) or (e.getCause must beAnInstanceOf[SocketException])
+      }
     }.skipOnSlowCIServer
 
     "support a separate timeout for https" in withServer(1.second, httpsPort = Some(httpsPort), httpsTimeout = 400.millis)(EssentialAction { req =>
@@ -115,13 +119,17 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses(0).status must_== 200
       responses(1).status must_== 200
 
-      doRequests(httpsPort, trickle = 600L, secure = true) must throwA[SocketException]
+      doRequests(httpsPort, trickle = 600L, secure = true) must throwA[IOException].like {
+        case e => (e must beAnInstanceOf[SocketException]) or (e.getCause must beAnInstanceOf[SocketException])
+      }
     }.skipOnSlowCIServer
 
     "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
-      doRequests(port, trickle = 1600L) must throwA[SocketException]
+      doRequests(port, trickle = 1600L) must throwA[IOException].like {
+        case e => (e must beAnInstanceOf[SocketException]) or (e.getCause must beAnInstanceOf[SocketException])
+      }
     }.skipOnSlowCIServer
 
     "not timeout for slow requests with a sub-second timeout" in withServer(700.millis)(EssentialAction { req =>

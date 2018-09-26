@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.cors
 
 import java.util.Locale
@@ -107,13 +108,15 @@ private[cors] trait AbstractCORSPolicy {
      * headers and terminate this set of steps.
      */
     if (!corsConfig.allowedOrigins(origin)) {
-      handleInvalidCORSRequest(request)
+      if (corsConfig.serveForbiddenOrigins)
+        next(request)
+      else
+        handleInvalidCORSRequest(request)
     } else {
       import play.core.Execution.Implicits.trampoline
 
       val taggedRequest = request
         .addAttr(CORSFilter.Attrs.Origin, origin)
-        .copy(tags = request.tags + (CORSFilter.RequestTag -> origin))
 
       // We must recover any errors so that we can add the headers to them to allow clients to see the result
       val result = try {

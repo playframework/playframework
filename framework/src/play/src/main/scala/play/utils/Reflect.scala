@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.utils
 
 import play.api.inject.{ Binding, BindingKey }
@@ -158,7 +159,7 @@ object Reflect {
   }
 
   def createInstance[T: ClassTag](clazz: Class[_]): T = {
-    val o = clazz.newInstance
+    val o = clazz.getDeclaredConstructor().newInstance()
     val t = implicitly[ClassTag[T]].runtimeClass
     if (t.isInstance(o)) o.asInstanceOf[T]
     else throw new ClassCastException(clazz.getName + " is not an instance of " + t)

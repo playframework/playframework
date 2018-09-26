@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.scalaactionscomposition {
 
 import javax.inject.Inject
 
 import akka.actor._
 import akka.stream.ActorMaterializer
-import play.api.http._
 import play.api.test._
 import play.api.test.Helpers._
-import play.api.mvc.{AbstractController, BodyParsers, Controller, ControllerHelpers}
-import org.specs2.mutable.{Specification, SpecificationLike}
+import play.api.mvc._
+import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.Logger
@@ -19,7 +19,6 @@ import play.api.Logger
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import org.specs2.execute.AsResult
-import play.api.libs.Files.SingletonTemporaryFileCreator
 
 case class User(name: String)
 object User {
@@ -30,6 +29,13 @@ object User {
 class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
 
   "an action composition" should {
+
+    implicit val system = ActorSystem()
+    implicit val mat = ActorMaterializer()
+    implicit val ec: ExecutionContext = system.dispatcher
+    val parse = PlayBodyParsers()
+    val defaultParser = new BodyParsers.Default(parse)
+    val actionBuilder = new DefaultActionBuilderImpl(new BodyParsers.Default(parse))
 
     "Basic action composition" in {
       //#basic-logging
@@ -42,12 +48,8 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
         }
       }
       //#basic-logging
-      implicit val system = ActorSystem()
-      implicit val mat = ActorMaterializer()
-      implicit val ec: ExecutionContext = system.dispatcher
-      val parse = PlayBodyParsers()
-      val parser = new BodyParsers.Default(parse)
-      val loggingAction = new LoggingAction(parser)
+
+      val loggingAction = new LoggingAction(defaultParser)
 
       //#basic-logging-index
       class MyController @Inject()(loggingAction: LoggingAction,
@@ -97,12 +99,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       }
       //#actions-wrapping-builder
 
-      implicit val system = ActorSystem()
-      implicit val mat = ActorMaterializer()
-      implicit val ec: ExecutionContext = system.dispatcher
-      val parse = PlayBodyParsers()
-      val parser = new BodyParsers.Default(parse)
-      val loggingAction = new LoggingAction(parser)
+      val loggingAction = new LoggingAction(defaultParser)
 
       {
         //#actions-wrapping-index
@@ -115,6 +112,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       }
 
       {
+        val Action = actionBuilder
         //#actions-wrapping-direct
         def index = Logging {
           Action {
@@ -132,7 +130,9 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       //#actions-def-wrapping
       import play.api.mvc._
 
-      def logging[A](action: Action[A])= Action.async(action.parser) { request =>
+      //###skip:1
+      val Action = actionBuilder
+      def logging[A](action: Action[A]) = Action.async(action.parser) { request =>
         Logger.info("Calling action")
         action(request)
       }
@@ -151,6 +151,8 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       import play.api.mvc._
       import play.api.mvc.request.RemoteConnection
 
+      //###skip:1
+      val Action = actionBuilder
       def xForwardedFor[A](action: Action[A]) = Action.async(action.parser) { request =>
         val newRequest = request.headers.get("X-Forwarded-For") match {
           case None => request
@@ -168,7 +170,10 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
     "allow blocking the request" in {
       //#block-request
       import play.api.mvc._
+      //###insert: import play.api.mvc.Results._
 
+      //###skip:1
+      val Action = actionBuilder
       def onlyHttps[A](action: Action[A]) = Action.async(action.parser) { request =>
         request.headers.get("X-Forwarded-Proto").collect {
           case "https" => action(request)
@@ -182,11 +187,11 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
     }
 
     "allow modifying the result" in {
-      implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-
       //#modify-result
       import play.api.mvc._
 
+      //###skip:1
+      val Action = actionBuilder
       def addUaHeader[A](action: Action[A]) = Action.async(action.parser) { request =>
         action(request).map(_.withHeaders("X-UA-Compatible" -> "Chrome=1"))
       }
@@ -211,11 +216,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
         }
       }
       //#authenticated-action-builder
-      implicit val system = ActorSystem()
-      implicit val mat = ActorMaterializer()
-      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-      val parser = new BodyParsers.Default()
-      val userAction = new UserAction(parser)
+      val userAction = new UserAction(defaultParser)
 
       def currentUser = userAction { request =>
         Ok("The current user is " + request.username.getOrElse("anonymous"))

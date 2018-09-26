@@ -1,19 +1,14 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.concurrent;
+
 import akka.Done;
-import play.Play;
-import play.libs.F;
-import play.libs.Scala;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
-
-import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
  * Utilities for creating {@link java.util.concurrent.CompletionStage} operations.
@@ -127,7 +122,7 @@ public interface Futures {
      * @param <A> the type of the completion's result.
      * @return A single CompletionStage whose methods act on the list of redeemed CompletionStages
      */
-    public static <A> CompletionStage<List<A>> sequence(Iterable<? extends CompletionStage<A>> promises) {
+    static <A> CompletionStage<List<A>> sequence(Iterable<? extends CompletionStage<A>> promises) {
         CompletableFuture<List<A>> result = CompletableFuture.completedFuture(new ArrayList<>());
         for (CompletionStage<A> promise: promises) {
             result = result.thenCombine(promise, (list, a) -> {
@@ -146,79 +141,7 @@ public interface Futures {
      * @param <A> the type of the completion's result.
      * @return A single CompletionStage whose methods act on the list of redeemed CompletionStage
      */
-    public static <A> CompletionStage<List<A>> sequence(CompletionStage<A>... promises) {
+    static <A> CompletionStage<List<A>> sequence(CompletionStage<A>... promises) {
         return sequence(Arrays.asList(promises));
     }
-
-    /**
-     * Create a CompletionStage that is redeemed after a timeout.  This method
-     * is useful for returning fallback values on futures.
-     *
-     * The underlying implementation uses TimerTask, which has a
-     * resolution in milliseconds.
-     *
-     * @deprecated Use injected {@link #timeout(CompletionStage, long, TimeUnit)}, since 2.6.0
-     * @param value The result value to use to complete the CompletionStage.
-     * @param amount The amount (expressed with the corresponding unit).
-     * @param unit The time unit, i.e. java.util.concurrent.TimeUnit.MILLISECONDS
-     * @param <A> the type of the completion's result.
-     * @return the CompletionStage wrapping the result value
-     */
-    @Deprecated
-    public static <A> CompletionStage<A> timeout(A value, long amount, TimeUnit unit) {
-        final Futures futures = Play.application().injector().instanceOf(Futures.class);
-        CompletableFuture<A> future = CompletableFuture.completedFuture(value);
-        return futures.timeout(future, amount, unit);
-    }
-
-    /**
-     * Creates a {@link CompletionStage} timer that throws a PromiseTimeoutException after
-     * a given timeout.
-     *
-     * The returned CompletionStage is usually combined with other CompletionStage,
-     * i.e. {@code completionStage.applyToEither(Futures.timeout(delay, unit), Function.identity()) }
-     *
-     * The underlying implementation uses TimerTask, which has a
-     * resolution in milliseconds.
-     *
-     * A previous implementation used {@code CompletionStage<Void>} which made
-     * it unsuitable for composition.  Cast with {@code Futures.<Void>timeout} if
-     * necessary.
-     *
-     * @deprecated Use injected {@link #timeout(CompletionStage, long, TimeUnit)}, since 2.6.0
-     * @param delay The delay (expressed with the corresponding unit).
-     * @param unit The time Unit.
-     * @param <A> the type of the completion's result.
-     * @return a CompletionStage that failed exceptionally
-     */
-    @Deprecated
-    public static <A> CompletionStage<A> timeout(final long delay, final TimeUnit unit) {
-        requireNonNull(unit, "Null unit");
-        final Futures futures = Play.application().injector().instanceOf(Futures.class);
-        String msg = "Timeout in promise after " + delay + " " + unit.toString();
-        final CompletableFuture<A> future = new CompletableFuture<>();
-        final F.PromiseTimeoutException ex = new F.PromiseTimeoutException(msg);
-        future.completeExceptionally(ex);
-        return futures.timeout(future, delay, unit);
-    }
-
-    /**
-     * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a
-     * given supplier. The completion stage will be called after the delay.
-     *
-     * @deprecated Use injected {@link #delayed(Callable, long, TimeUnit)}, since 2.6.0
-     * @param supplier The supplier to call to fulfill the CompletionStage.
-     * @param delay The time to wait.
-     * @param unit The units to use for the delay.
-     * @param executor The executor to run the supplier in.
-     * @param <A> the type of the completion's result.
-     * @return the delayed CompletionStage wrapping supplier.
-     */
-    @Deprecated
-    public static <A> CompletionStage<A> delayed(Supplier<A> supplier, long delay, TimeUnit unit, Executor executor) {
-        final Futures futures = Play.application().injector().instanceOf(Futures.class);
-
-        return futures.delayed((() -> supplyAsync(supplier, executor)), delay, unit);
-    }
-
 }

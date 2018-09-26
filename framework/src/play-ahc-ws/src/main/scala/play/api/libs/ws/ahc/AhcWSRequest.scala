@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.ws.ahc
 
 import java.io.File
@@ -73,7 +74,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   /**
    * The timeout for the request
    */
-  override def requestTimeout: Option[Int] = underlying.requestTimeout
+  override def requestTimeout: Option[Duration] = underlying.requestTimeout
 
   /**
    * The virtual host this request will use
@@ -146,6 +147,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   }
 
   override def withBody[T: BodyWritable](body: T): Self = toWSRequest(underlying.withBody(body))
+
+  override def withUrl(url: String): WSRequest = toWSRequest(underlying.withUrl(url))
 
   //-------------------------------------------------
   // PATCH

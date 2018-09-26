@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.libs
 
 import java.io.File
@@ -9,6 +10,8 @@ import java.nio.charset.{ Charset, StandardCharsets }
 import java.util
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 
+import akka.NotUsed
+import akka.stream.javadsl
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
 import akka.util.ByteString
 import org.specs2.concurrent.{ ExecutionEnv, FutureAwait }
@@ -24,7 +27,6 @@ import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification
 import play.libs.ws.{ WSBodyReadables, WSBodyWritables, WSRequest, WSResponse }
 import play.mvc.Http
 
-import scala.compat.java8.OptionConverters
 import scala.concurrent.Future
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
@@ -42,7 +44,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
 
   sequential
 
-  "WS@java" should {
+  "WSClient@java" should {
 
     "make GET Requests" in withServer { ws =>
       val request: WSRequest = ws.url("/get")
@@ -59,7 +61,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
       val future = futureResponse.toCompletableFuture
       val rep: WSResponse = future.get(10, TimeUnit.SECONDS)
 
-      (rep.getStatus() aka "status" must_== 200) and (rep.asJson().path("origin").textValue must not beNull)
+      (rep.getStatus aka "status" must_== 200) and (rep.asJson().path("origin").textValue must not beNull)
     }
 
     "use queryString in url" in withServer { ws =>
@@ -134,7 +136,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
     }
 
     "sending a simple multipart form body" in withServer { ws =>
-      val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava
+      val source = Source.single(new Http.MultipartFormData.DataPart("hello", "world")).asJava[Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], NotUsed]
       val res = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().asJson()
 

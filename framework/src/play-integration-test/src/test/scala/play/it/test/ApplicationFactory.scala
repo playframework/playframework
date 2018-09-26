@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.test
 
 import play.api._
@@ -29,7 +30,7 @@ trait ApplicationFactories {
   def withRouter(createRouter: BuiltInComponents => Router): ApplicationFactory =
     withConfigAndRouter(Map.empty)(createRouter)
   def withConfigAndRouter(extraConfig: Map[String, Any])(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
-    val context = ApplicationLoader.createContext(
+    val context = ApplicationLoader.Context.create(
       environment = Environment.simple(),
       initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig.asInstanceOf[Map[String, AnyRef]]
     )

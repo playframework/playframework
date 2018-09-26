@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data.validation;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -62,8 +64,8 @@ public class MappedConstraintValidatorFactory implements ConstraintValidatorFact
     // need to do so.
     private <T extends ConstraintValidator<?, ?>> T newInstance(Class<T> key) {
         try {
-            return key.newInstance();
-        } catch (InstantiationException | RuntimeException | IllegalAccessException ex) {
+            return key.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | RuntimeException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }

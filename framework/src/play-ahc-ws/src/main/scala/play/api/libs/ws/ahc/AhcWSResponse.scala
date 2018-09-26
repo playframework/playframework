@@ -1,7 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.ws.ahc
+
+import java.net.URI
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -62,6 +65,8 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
   override def cookie(name: String): Option[WSCookie] = underlying.cookie(name)
 
   override def body: String = underlying.body
+
+  override def uri: URI = underlying.uri
 
   /**
    * The response body as a byte string.

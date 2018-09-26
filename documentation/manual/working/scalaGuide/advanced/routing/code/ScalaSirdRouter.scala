@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.advanced.routing
 
-import controllers.Assets
 import org.specs2.mutable.Specification
 import play.api.test.{FakeRequest, WithApplication}
 
@@ -19,6 +19,7 @@ class ScalaSirdRouter extends Specification {
 
   "sird router" should {
     "allow a simple match" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#simple
       val router = Router.from {
         case GET(p"/hello/$to") => Action {
@@ -32,6 +33,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow a full path match" in new WithApplication {
+      val Assets = app.injector.instanceOf[controllers.Assets]
       //#full-path
       val router = Router.from {
         case GET(p"/assets/$file*") =>
@@ -44,6 +46,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow a regex match" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#regexp
       val router = Router.from {
         case GET(p"/items/$id<[0-9]+>") => Action {
@@ -57,6 +60,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow extracting required query parameters" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#required
       val router = Router.from {
         case GET(p"/search" ? q"query=$query") => Action {
@@ -70,6 +74,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow extracting optional query parameters" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#optional
       val router = Router.from {
         case GET(p"/items" ? q_o"page=$page") => Action {
@@ -84,6 +89,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow extracting multi value query parameters" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#many
       val router = Router.from {
         case GET(p"/items" ? q_s"tag=$tags") => Action {
@@ -98,6 +104,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow extracting multiple query parameters" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#multiple
       val router = Router.from {
         case GET(p"/items" ? q_o"page=$page"
@@ -115,6 +122,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow sub extractor" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#int
       val router = Router.from {
         case GET(p"/items/${int(id)}") => Action {
@@ -128,6 +136,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow sub extractor on a query parameter" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#query-int
       val router = Router.from {
         case GET(p"/items" ? q_o"page=${int(page)}") => Action {
@@ -143,6 +152,7 @@ class ScalaSirdRouter extends Specification {
     }
 
     "allow complex extractors" in new WithApplication {
+      val Action = app.injector.instanceOf[DefaultActionBuilder]
       //#complex
       val router = Router.from {
         case rh @ GET(p"/items/${idString @ int(id)}" ?

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.io.{ File, InputStream }
@@ -246,21 +247,21 @@ class RangeSetSpec extends Specification {
     "bytes=0-5,100-110" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=0-5,100-110"))
       rangeSet must beAnInstanceOf[SatisfiableRangeSet]
-      rangeSet.entityLength must beSome.which(_ == 120)
+      rangeSet.entityLength must beSome(120)
       rangeSet.toString must beEqualTo("bytes 0-5,100-110/120")
     }
 
     "bytes=0-0,-1" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=0-0,-1"))
       rangeSet must beAnInstanceOf[SatisfiableRangeSet]
-      rangeSet.entityLength must beSome.which(_ == 120)
+      rangeSet.entityLength must beSome(120)
       rangeSet.toString must beEqualTo("bytes 0-0,119-119/120")
     }
 
     "bytes=500-600,801-999" in {
       val rangeSet = RangeSet(entityLength = Some(1200), rangeHeader = Some("bytes=500-600,801-999"))
       rangeSet must beAnInstanceOf[SatisfiableRangeSet]
-      rangeSet.entityLength must beSome.which(_ == 1200)
+      rangeSet.entityLength must beSome(1200)
       rangeSet.toString must beEqualTo("bytes 500-600,801-999/1200")
     }
 
@@ -289,7 +290,7 @@ class RangeSetSpec extends Specification {
 
     "No header present" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = None)
-      rangeSet.entityLength must beSome.which(_ == 120)
+      rangeSet.entityLength must beSome(120)
       rangeSet must beAnInstanceOf[NoHeaderRangeSet]
     }
   }
@@ -298,12 +299,12 @@ class RangeSetSpec extends Specification {
 
     "When last-byte-pos less than first-byte-pos" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=20-30,40-10"))
-      rangeSet.entityLength must beSome.which(_ == 120)
+      rangeSet.entityLength must beSome(120)
       rangeSet must beAnInstanceOf[UnsatisfiableRangeSet]
     }
     "When first-byte-pos more than entity length" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=0-0,200-210"))
-      rangeSet.entityLength must beSome.which(_ == 120)
+      rangeSet.entityLength must beSome(120)
       rangeSet must beAnInstanceOf[UnsatisfiableRangeSet]
     }
   }
@@ -465,7 +466,7 @@ class RangeResultSpec extends Specification {
     path.toFile
   }
 
-  private def closeWithoutError(input: InputStream) {
+  private def closeWithoutError(input: InputStream): Unit = {
     try {
       input.close()
     } catch {

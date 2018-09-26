@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import akka.stream.Materializer;
@@ -456,17 +457,7 @@ public interface BodyParser<A> {
 
         @Override
         public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
-            Accumulator<ByteString, scala.util.Either<play.api.mvc.Result, B>> javaAccumulator = delegate.apply(request.asScala()).asJava();
-
-            return javaAccumulator.map(result -> {
-                        if (result.isLeft()) {
-                            return F.Either.Left(result.left().get().asJava());
-                        } else {
-                            return F.Either.Right(transform.apply(result.right().get()));
-                        }
-                    },
-                    JavaParsers.trampoline()
-            );
+            return BodyParsers.delegate(delegate, transform, request);
         }
     }
 
@@ -522,7 +513,7 @@ public interface BodyParser<A> {
          */
         private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
             ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
-            return Multipart.multipartParser((int) maxLength, filePartHandler, errorHandler, materializer);
+            return Multipart.multipartParser(maxLength, filePartHandler, errorHandler, materializer);
         }
 
         private class ScalaFilePartHandler extends AbstractFunction1<Multipart.FileInfo, play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>>> {
@@ -548,7 +539,7 @@ public interface BodyParser<A> {
          */
         @Override
         public play.libs.streams.Accumulator<ByteString, F.Either<Result, Http.MultipartFormData<A>>> apply(Http.RequestHeader request) {
-            return delegate.apply(request._underlyingHeader())
+            return delegate.apply(request.asScala())
                     .asJava()
                     .map(result -> {
                                 if (result.isLeft()) {

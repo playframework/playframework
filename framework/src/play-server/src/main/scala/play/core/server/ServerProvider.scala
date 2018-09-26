@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import akka.actor.ActorSystem
@@ -37,11 +38,11 @@ object ServerProvider {
    * This function can be used to close resources that are provided to the server.
    */
   final case class Context(
-    config: ServerConfig,
-    appProvider: ApplicationProvider,
-    actorSystem: ActorSystem,
-    materializer: Materializer,
-    stopHook: () => Future[_])
+      config: ServerConfig,
+      appProvider: ApplicationProvider,
+      actorSystem: ActorSystem,
+      materializer: Materializer,
+      stopHook: () => Future[_])
 
   /**
    * Load a server provider from the configuration and classloader.
@@ -54,15 +55,18 @@ object ServerProvider {
   def fromConfiguration(classLoader: ClassLoader, configuration: Configuration): ServerProvider = {
     val ClassNameConfigKey = "play.server.provider"
     val className: String = configuration.getOptional[String](ClassNameConfigKey)
-      .getOrElse(throw new ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
+      .getOrElse(throw ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
+
     val clazz = try classLoader.loadClass(className) catch {
-      case _: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'")
+      case ex: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'", cause = Some(ex))
     }
+
     if (!classOf[ServerProvider].isAssignableFrom(clazz)) throw ServerStartException(s"Class ${clazz.getName} must implement ServerProvider interface")
-    val ctor = try clazz.getConstructor() catch {
-      case _: NoSuchMethodException => throw ServerStartException(s"ServerProvider class ${clazz.getName} must have a public default constructor")
+    val constructor = try clazz.getConstructor() catch {
+      case ex: NoSuchMethodException => throw ServerStartException(s"ServerProvider class ${clazz.getName} must have a public default constructor", cause = Some(ex))
     }
-    ctor.newInstance().asInstanceOf[ServerProvider]
+
+    constructor.newInstance().asInstanceOf[ServerProvider]
   }
 
   /**
@@ -70,7 +74,7 @@ object ServerProvider {
    */
   implicit lazy val defaultServerProvider: ServerProvider = {
     val classLoader = this.getClass.getClassLoader
-    val config = Configuration.load(classLoader, System.getProperties, Map.empty, true)
+    val config = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     fromConfiguration(classLoader, config)
   }
 

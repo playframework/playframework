@@ -11,18 +11,38 @@ You can select which version of Scala you would like to use by setting the `scal
 For Scala 2.12:
 
 ```scala
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.6"
 ```
 
 For Scala 2.11:
 
 ```scala
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
 ```
+
+## PlayService sbt plugin (experimental)
+
+As of Play 2.6.8, Play also offers a `PlayService` plugin. This is a much more minimal Play configuration oriented towards microservices. It uses the standard Maven layout instead of the traditional Play layout, and does not include twirl templates or the sbt-web functionality. For example:
+
+```scala
+lazy val root = (project in file("."))
+  .enablePlugins(PlayService)
+  .enablePlugins(RoutesCompiler) // place routes in src/main/resources, or remove if using SIRD/RoutingDsl
+  .settings(
+    scalaVersion := "2.12.6",
+    libraryDependencies ++= Seq(
+      guice, // remove if not using Play's Guice loader
+      akkaHttpServer, // or use nettyServer for Netty
+      logback // add Play logging support
+    )
+  )
+```
+
+**Note**: this plugin is considered *experimental*, which means the API may change. We expect it to be stable in Play 2.7.0.
 
 ## "Global-State-Free" Applications
 
-The biggest under the hood change is that Play no longer relies on global state under the hood.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all. 
+The biggest under the hood change is that Play no longer relies on global state.  You can still access the global application through `play.api.Play.current` / `play.Play.application()` in Play 2.6, but it is deprecated.  This sets the stage for Play 3.0, where there is no global state at all.
 
 You can disable access to global application entirely by setting the following configuration value:
 
@@ -34,7 +54,7 @@ The above setting will cause an exception on any invocation of `Play.current`.
 
 ## Akka HTTP Server Backend
 
-Play now uses the [Akka-HTTP](http://doc.akka.io/docs/akka-http/current/scala.html) server engine as the default backend.  More detail about Play's integration with Akka-HTTP can be found [[on the Akka HTTP Server page|AkkaHttpServer]].  There is an additional page on [[configuring Akka HTTP|SettingsAkkaHttp]].
+Play now uses the [Akka-HTTP](https://doc.akka.io/docs/akka-http/current/?language=scala) server engine as the default backend.  More detail about Play's integration with Akka-HTTP can be found [[on the Akka HTTP Server page|AkkaHttpServer]].  There is an additional page on [[configuring Akka HTTP|SettingsAkkaHttp]].
 
 The Netty backend is still available, and has been upgraded to use Netty 4.1.  You can explicitly configure your project to use Netty [[on the NettyServer page|NettyServer]].
 
@@ -90,7 +110,7 @@ Request tags have now been deprecated and you should migrate to use attributes i
 The routes file syntax now allows you to add "modifiers" to each route that provide custom behavior. We have implemented one such tag in the CSRF filter, the "nocsrf" tag. By default, the following route will not have the CSRF filter applied.
 
 ```
-+ nocsrf # Don't CSRF protect this route 
++ nocsrf # Don't CSRF protect this route
 POST /api/foo/bar ApiController.foobar
 ```
 
@@ -539,7 +559,7 @@ All of the Play example templates on [Play's download page](https://playframewor
 
 For thread pool sizing involving JDBC connection pools, you want a fixed thread pool size matching the connection pool, using a thread pool executor.  Following the advice in [HikariCP's pool sizing page](https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing), you should configure your JDBC connection pool to double the number of physical cores, plus the number of disk spindles.
 
-The dispatcher settings used here come from [Akka dispatcher](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html):
+The dispatcher settings used here come from [Akka dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=java):
 
 ```
 # db connections = ((physical_core_count * 2) + effective_spindle_count)
@@ -697,9 +717,9 @@ val stubParser = stubBodyParser(AnyContent("hello"))
 
 ## File Upload Improvements
 
-Uploading files uses a `TemporaryFile` API which relies on storing files in a temporary filesystem, as specified in [[ScalaFileUpload]] / [[JavaFileUpload]], accessible through the `ref` attribute.  
+Uploading files uses a `TemporaryFile` API which relies on storing files in a temporary filesystem, as specified in [[ScalaFileUpload]] / [[JavaFileUpload]], accessible through the `ref` attribute.
 
-Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind `TemporaryFile` is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted. 
+Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind `TemporaryFile` is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted.
 
 In 2.5.x, TemporaryFile were deleted as the file references were garbage collected, using `finalize`.   However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection did not occur in a timely fashion.  The background cleanup has been moved to use [FinalizableReferenceQueue](https://google.github.io/guava/releases/20.0/api/docs/com/google/common/base/FinalizableReferenceQueue.html) and PhantomReferences rather than use `finalize`.
 

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuration file syntax and features
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
@@ -25,7 +25,11 @@ These system properties specify a replacement for `application.conf`, not an add
 
 The configuration can be available in your controller (or your component), to use the default settings or your custom one, thanks to Dependency Injection (in [[Scala|ScalaDependencyInjection]] or in [[Java|JavaDependencyInjection]]).
 
-@[dependency-injection](code/Configuration.scala)
+Scala
+: @[dependency-injection](code/Configuration.scala)
+
+Java
+: @[dependency-injection](code/javaguide/configuration/MyController.java)
 
 ## Using with Akka
 
@@ -40,7 +44,7 @@ There are a couple of special things to know about configuration when running yo
 You can configure extra settings for the `run` command in your `build.sbt`. These settings won't be used when you deploy your application.
 
 ```
-PlayKeys.devSettings := Seq("play.server.http.port" -> "8080")
+PlayKeys.devSettings += "play.server.http.port" -> "8080"
 ```
 
 ### HTTP server settings in `application.conf`
@@ -50,6 +54,12 @@ In `run` mode the HTTP server part of Play starts before the application has bee
 ```
 > run -Dhttp.port=1234
 ```
+
+There is also a specific *namespace* if you need to customize Akka configuration for development mode (the mode used with `run` command). You need to prefix your configuration in `PlayKeys.devSettings` with `play.akka.dev-mode`, for example:
+
+@[prefix-with-play-akka-dev-mode](code/build.sbt)
+
+This is specially useful if there is some conflict between the Akka ActorSystem used run development mode and the ActorSystem used by the application itself.
 
 ## HOCON Syntax
 

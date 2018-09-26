@@ -1,17 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.runsupport.classloader;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.net.URLClassLoader;
+import java.util.*;
 
 public class DelegatingClassLoader extends ClassLoader {
 
@@ -37,24 +33,10 @@ public class DelegatingClassLoader extends ClassLoader {
 
   @Override
   public URL getResource(String name) {
-    // -- Delegate resource loading. We have to hack here because the default implementation is already recursive.
-    Method findResource;
-    try {
-      findResource = ClassLoader.class.getDeclaredMethod("findResource", String.class);
-    } catch (NoSuchMethodException e) {
-      throw new IllegalStateException(e);
-    }
-    findResource.setAccessible(true);
-    ClassLoader appClassLoader = applicationClassLoaderProvider.get();
+    URLClassLoader appClassLoader = applicationClassLoaderProvider.get();
     URL resource = null;
     if (appClassLoader != null) {
-      try {
-        resource = (URL) findResource.invoke(appClassLoader, name);
-      } catch (IllegalAccessException e) {
-        throw new IllegalStateException(e);
-      } catch (InvocationTargetException e) {
-        throw new IllegalStateException(e);
-      }
+      resource = appClassLoader.findResource(name);
     }
     return resource != null ? resource : super.getResource(name);
   }
@@ -62,23 +44,10 @@ public class DelegatingClassLoader extends ClassLoader {
   @SuppressWarnings("unchecked")
   @Override
   public Enumeration<URL> getResources(String name) throws IOException {
-    Method findResources;
-    try {
-      findResources = ClassLoader.class.getDeclaredMethod("findResources", String.class);
-    } catch (NoSuchMethodException e) {
-      throw new IllegalStateException(e);
-    }
-    findResources.setAccessible(true);
-    ClassLoader appClassLoader = applicationClassLoaderProvider.get();
+    URLClassLoader appClassLoader = applicationClassLoaderProvider.get();
     Enumeration<URL> resources1;
     if (appClassLoader != null) {
-      try {
-        resources1 = (Enumeration<URL>) findResources.invoke(appClassLoader, name);
-      } catch (IllegalAccessException e) {
-        throw new IllegalStateException(e);
-      } catch (InvocationTargetException e) {
-        throw new IllegalStateException(e);
-      }
+      resources1 = appClassLoader.findResources(name);
     } else {
       resources1 = new Vector<URL>().elements();
     }

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.typedmap;
 
 import play.api.libs.typedmap.TypedKey$;
@@ -20,8 +21,18 @@ public final class TypedKey<A> {
 
     /**
      * @return the underlying Scala TypedKey which this instance wraps.
+     *
+     * @deprecated As of release 2.6.8. Use {@link #asScala()}
      */
+    @Deprecated
     public play.api.libs.typedmap.TypedKey<A> underlying() {
+        return underlying;
+    }
+
+    /**
+     * @return the underlying Scala TypedKey which this instance wraps.
+     */
+    public play.api.libs.typedmap.TypedKey<A> asScala() {
         return underlying;
     }
 

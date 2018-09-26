@@ -1,16 +1,18 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.parsers
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.collection.breakOut
 import scala.concurrent.Future
+import scala.util.Failure
 
 import akka.stream.Materializer
 import akka.stream.scaladsl._
-import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import akka.stream.{ Attributes, FlowShape, Inlet, IOResult, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
 
@@ -36,7 +38,7 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param partHandler The accumulator to handle the parts.
    */
-  def partParser[A](maxMemoryBufferSize: Int, errorHandler: HttpErrorHandler)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
+  def partParser[A](maxMemoryBufferSize: Long, errorHandler: HttpErrorHandler)(partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]])(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
 
     val maybeBoundary = for {
       mt <- request.mediaType
@@ -75,7 +77,7 @@ object Multipart {
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param filePartHandler The accumulator to handle the file parts.
    */
-  def multipartParser[A](maxMemoryBufferSize: Int, filePartHandler: FilePartHandler[A], errorHandler: HttpErrorHandler)(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
+  def multipartParser[A](maxMemoryBufferSize: Long, filePartHandler: FilePartHandler[A], errorHandler: HttpErrorHandler)(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
     partParser(maxMemoryBufferSize, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
@@ -122,20 +124,21 @@ object Multipart {
   def handleFilePartAsTemporaryFile(temporaryFileCreator: TemporaryFileCreator): FilePartHandler[TemporaryFile] = {
     case FileInfo(partName, filename, contentType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
-      Accumulator(FileIO.toPath(tempFile.path)).map { _ =>
-        FilePart(partName, filename, contentType, tempFile)
+      Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
+        case IOResult(_, Failure(error)) => Future.failed(error)
+        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile))
       }
   }
 
   case class FileInfo(
-    /** Name of the part in HTTP request (e.g. field name) */
-    partName: String,
+      /** Name of the part in HTTP request (e.g. field name) */
+      partName: String,
 
-    /** Name of the file */
-    fileName: String,
+      /** Name of the file */
+      fileName: String,
 
-    /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
-    contentType: Option[String])
+      /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
+      contentType: Option[String])
 
   private[play] object FileInfoMatcher {
 
@@ -188,7 +191,7 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
 
-        _ <- values.get("form-data")
+        _ <- values.get("form-data").orElse(values.get("file"))
         partName <- values.get("name")
         fileName <- values.get("filename")
         contentType = headers.get("content-type")
@@ -237,8 +240,8 @@ object Multipart {
    *
    * see: http://tools.ietf.org/html/rfc2046#section-5.1.1
    */
-  private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Int, maxHeaderSize: Int)
-      extends GraphStage[FlowShape[ByteString, RawPart]] {
+  private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int)
+    extends GraphStage[FlowShape[ByteString, RawPart]] {
 
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
     require(boundary.charAt(boundary.length - 1) != ' ', "'boundary' parameter of multipart Content-Type must not end with a space char")
@@ -269,7 +272,7 @@ object Multipart {
       new GraphStageLogic(shape) with InHandler with OutHandler {
 
         private var output = collection.immutable.Queue.empty[RawPart]
-        private var state: ByteString ⇒ StateResult = tryParseInitialBoundary
+        private var state: ByteString => StateResult = tryParseInitialBoundary
         private var terminated = false
 
         override def onPush(): Unit = {
@@ -307,7 +310,7 @@ object Multipart {
               else parsePreamble(input, 0)
             } else parsePreamble(input, 0)
           } catch {
-            case NotEnoughDataException ⇒ continue(input, 0)((newInput, _) ⇒ tryParseInitialBoundary(newInput))
+            case NotEnoughDataException => continue(input, 0)((newInput, _) => tryParseInitialBoundary(newInput))
           }
         }
 
@@ -321,7 +324,7 @@ object Multipart {
             }
             rec(offset)
           } catch {
-            case NotEnoughDataException ⇒ continue(input.takeRight(needle.length + 2), 0)(parsePreamble)
+            case NotEnoughDataException => continue(input.takeRight(needle.length + 2), 0)(parsePreamble)
           }
         }
 
@@ -459,17 +462,17 @@ object Multipart {
           head
         }
 
-        def continue(input: ByteString, offset: Int)(next: (ByteString, Int) ⇒ StateResult): StateResult = {
+        def continue(input: ByteString, offset: Int)(next: (ByteString, Int) => StateResult): StateResult = {
           state =
             math.signum(offset - input.length) match {
-              case -1 ⇒ more ⇒ next(input ++ more, offset)
-              case 0 ⇒ next(_, 0)
-              case 1 ⇒ throw new IllegalStateException
+              case -1 => more => next(input ++ more, offset)
+              case 0 => next(_, 0)
+              case 1 => throw new IllegalStateException
             }
           done()
         }
 
-        def continue(next: (ByteString, Int) ⇒ StateResult): StateResult = {
+        def continue(next: (ByteString, Int) => StateResult): StateResult = {
           state = next(_, 0)
           done()
         }

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package com.typesafe.play.docs.sbtplugin
 
 import java.io.{ BufferedReader, InputStreamReader, InputStream }
@@ -35,12 +36,12 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
    * This is the main markdown report for validating markdown docs.
    */
   case class MarkdownRefReport(
-    markdownFiles: Seq[File],
-    wikiLinks: Seq[LinkRef],
-    resourceLinks: Seq[LinkRef],
-    codeSamples: Seq[CodeSampleRef],
-    relativeLinks: Seq[LinkRef],
-    externalLinks: Seq[LinkRef])
+      markdownFiles: Seq[File],
+      wikiLinks: Seq[LinkRef],
+      resourceLinks: Seq[LinkRef],
+      codeSamples: Seq[CodeSampleRef],
+      relativeLinks: Seq[LinkRef],
+      externalLinks: Seq[LinkRef])
 
   case class LinkRef(link: String, file: File, position: Int)
   case class CodeSampleRef(source: String, segment: String, file: File, sourcePosition: Int, segmentPosition: Int)
@@ -65,20 +66,20 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
   }
   case class FileWithCodeSamples(name: String, source: String, codeSamples: Seq[CodeSample])
   case class CodeSample(source: String, segment: String,
-    sourcePosition: Int, segmentPosition: Int)
+      sourcePosition: Int, segmentPosition: Int)
 
   case class TranslationReport(
-    missingFiles: Seq[String],
-    introducedFiles: Seq[String],
-    changedPathFiles: Seq[(String, String)],
-    codeSampleIssues: Seq[TranslationCodeSamples],
-    okFiles: Seq[String],
-    total: Int)
+      missingFiles: Seq[String],
+      introducedFiles: Seq[String],
+      changedPathFiles: Seq[(String, String)],
+      codeSampleIssues: Seq[TranslationCodeSamples],
+      okFiles: Seq[String],
+      total: Int)
   case class TranslationCodeSamples(
-    name: String,
-    missingCodeSamples: Seq[CodeSample],
-    introducedCodeSamples: Seq[CodeSample],
-    totalCodeSamples: Int)
+      name: String,
+      missingCodeSamples: Seq[CodeSample],
+      introducedCodeSamples: Seq[CodeSample],
+      totalCodeSamples: Int)
 
   /**
    * Configuration for validation.

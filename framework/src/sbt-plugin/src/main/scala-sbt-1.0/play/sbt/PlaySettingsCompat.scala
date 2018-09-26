@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt
 
 import sbt.Path._
@@ -25,8 +26,8 @@ private[sbt] trait PlaySettingsCompat {
     compileValue.asInstanceOf[sbt.internal.inc.Analysis]
   }
 
-  def getPlayExternalizedResources(rdirs: Seq[File], unmanagedResourcesValue: Seq[File]): Seq[(File, String)] = {
-    (unmanagedResourcesValue --- rdirs) pair (relativeTo(rdirs) | flat)
+  def getPlayExternalizedResources(rdirs: Seq[File], unmanagedResourcesValue: Seq[File], externalizeResourcesExcludes: Seq[File]): Seq[(File, String)] = {
+    (unmanagedResourcesValue --- rdirs --- externalizeResourcesExcludes) pair (relativeTo(rdirs) | flat)
   }
 
 }

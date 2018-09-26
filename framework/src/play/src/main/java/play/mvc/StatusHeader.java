@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import java.io.File;
@@ -8,11 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
@@ -27,9 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import play.core.utils.HttpHeaderParameterEncoding;
 import play.http.HttpEntity;
 import play.libs.Json;
-import play.utils.UriEncoding;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import play.mvc.Http.MimeTypes;
 
 /**
  * A status with no body
@@ -39,7 +36,7 @@ public class StatusHeader extends Result {
     private static final int DEFAULT_CHUNK_SIZE = 1024 * 8;
     private static final boolean DEFAULT_INLINE_MODE = true;
 
-    private static final FileMimeTypes fileMimeTypes() {
+    private static FileMimeTypes fileMimeTypes() {
         return Http.Context.current().fileMimeTypes();
     }
 
@@ -201,7 +198,7 @@ public class StatusHeader extends Result {
         }
         try {
             return doSendResource(
-                    FileIO.fromFile(path.toFile()),
+                    FileIO.fromPath(path),
                     Optional.of(Files.size(path)),
                     Optional.of(filename),
                     inline
@@ -233,7 +230,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null file");
         }
         return doSendResource(
-                FileIO.fromFile(file),
+                FileIO.fromPath(file.toPath()),
                 Optional.of(file.length()),
                 Optional.of(file.getName()),
                 inline
@@ -264,7 +261,7 @@ public class StatusHeader extends Result {
             throw new NullPointerException("null file");
         }
         return doSendResource(
-                FileIO.fromFile(file),
+                FileIO.fromPath(file.toPath()),
                 Optional.of(file.length()),
                 Optional.of(fileName),
                 inline
@@ -319,25 +316,6 @@ public class StatusHeader extends Result {
      * Send a json result.
      *
      * @param json the json to send
-     * @param charset the charset in which to encode the json (e.g. "UTF-8")
-     * @return a '200 OK' result containing the json encoded with the given charset
-     *
-     * @deprecated As of 2.6.0, use sendJson(JsonNode, JsonEncoding)
-     */
-    @Deprecated
-    public Result sendJson(JsonNode json, String charset) {
-        JsonEncoding encoding = Arrays.stream(JsonEncoding.values())
-                .filter(enc -> enc.getJavaName().equalsIgnoreCase(charset)).findFirst()
-                .orElseGet(() -> {
-                    throw new IllegalArgumentException(charset + " is not a valid JsonEncoding");
-                });
-        return sendJson(json, encoding);
-    }
-
-    /**
-     * Send a json result.
-     *
-     * @param json the json to send
      * @param encoding the encoding in which to encode the json (e.g. "UTF-8")
      * @return a '200 OK' result containing the json encoded with the given charset
      */
@@ -353,7 +331,7 @@ public class StatusHeader extends Result {
             JsonGenerator jgen = mapper.getFactory().createGenerator(builder.asOutputStream(), encoding);
 
             mapper.writeValue(jgen, json);
-            String contentType = "application/json; charset=" + encoding.getJavaName();
+            String contentType = MimeTypes.JSON;
             return new Result(status(), new HttpEntity.Strict(builder.result(), Optional.of(contentType)));
         } catch (IOException e) {
             throw new RuntimeException(e);

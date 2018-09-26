@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.test
 
 import java.io.Closeable
@@ -23,7 +24,7 @@ import scala.concurrent.{ Await, Future }
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but
- * connects to an integration test's [[ServerEndpoints.ServerEndpoint]] instead of an
+ * connects to an integration test's [[ServerEndpoint]] instead of an
  * arbitrary scheme and port.
  */
 trait WSEndpointSupport {

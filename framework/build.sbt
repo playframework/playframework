@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 import BuildSettings._
 import Dependencies._
 import Generators._
+import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.{javaAgents, resolvedJavaAgents}
 import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
 import interplay.PlayBuildBase.autoImport._
+import interplay.ScalaVersions._
+import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.Keys.parallelExecution
-import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 import sbt.ScriptedPlugin._
 import sbt._
 
@@ -25,6 +27,14 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "rout
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
+      // TODO: Remove when updating to Scala 2.13.0-M4
+      // Should be removed when we update to Scala 2.13.0-M4 since this is the
+      // version added by interplay.
+      //
+      // See also:
+      // 1. the root project at build.sbt file.
+      // 2. RoutesCompilerProject project
+      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
@@ -50,7 +60,8 @@ lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "play-j
 lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
-      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies,
+      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
+        jimfs % Test,
 
       sourceGenerators in Compile += Def.task(PlayVersion(
         version.value,
@@ -96,7 +107,9 @@ import AkkaDependency._
 lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server", "play-akka-http-server")
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
-    .addAkkaModuleDependency("akka-http-core")
+    .settings(
+      libraryDependencies ++= specs2Deps.map(_ % "test")
+    ).addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject = PlayCrossBuiltProject("Play-Akka-Http2-Support", "play-akka-http2-support")
     .dependsOn(PlayAkkaHttpServerProject)
@@ -138,7 +151,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
     .settings(
-      libraryDependencies ++= specsBuild,
+      libraryDependencies ++= specs2Deps,
       parallelExecution in Test := false
     ).dependsOn(PlayTestProject)
 
@@ -166,7 +179,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "play-docs")
     ).dependsOn(PlayAkkaHttpServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "play-guice")
-    .settings(libraryDependencies ++= guiceDeps ++ specsBuild.map(_ % "test"))
+    .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
     .dependsOn(
       PlayProject % "compile;test->test"
     )
@@ -215,9 +228,9 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "play-ahc-ws")
     parallelExecution in Test := false,
     // quieten deprecation warnings in tests
     scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
-  ).dependsOn(PlayWsProject, PlayEhcacheProject % "test")
-  .dependsOn(PlaySpecs2Project % "test")
-  .dependsOn(PlayTestProject % "test->test")
+  ).dependsOn(PlayWsProject, PlayCaffeineCacheProject % "test")
+    .dependsOn(PlaySpecs2Project % "test")
+    .dependsOn(PlayTestProject % "test->test")
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
   .settings(
@@ -229,6 +242,7 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "play-openid")
 
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
     .settings(
+      libraryDependencies ++= playFilterDeps,
       parallelExecution in Test := false
     ).dependsOn(PlayProject, PlayTestProject % "test",
         PlayJavaProject % "test", PlaySpecs2Project % "test", PlayAhcWsProject % "test")
@@ -241,6 +255,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty,
       fork in Test := true,
+      javaOptions in Test += "-Dfile.encoding=UTF8",
       javaAgents += jettyAlpnAgent % "test"
     )
     .dependsOn(
@@ -260,15 +275,46 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
 // This project is just for microbenchmarking Play. Not published.
 // NOTE: this project depends on JMH, which is GPLv2.
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
-    .enablePlugins(JmhPlugin)
+    .enablePlugins(JmhPlugin, JavaAgent)
     .settings(
+      // Change settings so that IntelliJ can handle dependencies
+      // from JMH to the integration tests. We can't use "compile->test"
+      // when we depend on the integration test project, we have to use
+      // "test->test" so that IntelliJ can handle it. This means that
+      // we need to put our JMH sources into src/test so they can pick
+      // up the integration test files.
+      // See: https://github.com/ktoso/sbt-jmh/pull/73#issue-163891528
+
+      classDirectory in Jmh := (classDirectory in Test).value,
+      dependencyClasspath in Jmh := (dependencyClasspath in Test).value,
+      generateJmhSourcesAndResources in Jmh := ((generateJmhSourcesAndResources in Jmh) dependsOn(compile in Test)).value,
+
+      // Add the Jetty ALPN agent to the list of agents. This will cause the JAR to
+      // be downloaded and available. We need to tell JMH to use this agent when it
+      // forks its benchmark processes. We use a custom runner to read a system
+      // property and add the agent JAR to JMH's forked process JVM arguments.
+      javaAgents += jettyAlpnAgent,
+      javaOptions in (Jmh, run) += {
+        val javaAgents = (resolvedJavaAgents in Jmh).value
+        assert(javaAgents.length == 1)
+        val jettyAgentPath = javaAgents.head.artifact.absString
+        s"-Djetty.anlp.agent.jar=$jettyAgentPath"
+      },
+      mainClass in (Jmh, run) := Some("play.microbenchmark.PlayJmhRunner"),
+
       parallelExecution in Test := false,
       mimaPreviousArtifacts := Set.empty
     )
-    .dependsOn(PlayProject % "test->test", PlayLogback % "test->test", PlayAhcWsProject, PlaySpecs2Project)
-    .dependsOn(PlayFiltersHelpersProject)
-    .dependsOn(PlayJavaProject)
-    .dependsOn(PlayNettyServerProject)
+    .dependsOn(
+      PlayProject % "test->test",
+      PlayLogback % "test->test",
+      PlayIntegrationTestProject % "test->test",
+      PlayAhcWsProject,
+      PlaySpecs2Project,
+      PlayFiltersHelpersProject,
+      PlayJavaProject,
+      PlayNettyServerProject
+    )
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
     .settings(
@@ -279,9 +325,21 @@ lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "play-cache")
       PlaySpecs2Project % "test"
     )
 
+
 lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcache")
     .settings(
       libraryDependencies ++= playEhcacheDeps
+    )
+    .dependsOn(
+      PlayProject,
+      PlayCacheProject,
+      PlaySpecs2Project % "test"
+    )
+
+lazy val PlayCaffeineCacheProject = PlayCrossBuiltProject("Play-Caffeine-Cache", "play-caffeine-cache")
+    .settings(
+      mimaPreviousArtifacts := Set.empty,
+      libraryDependencies ++= playCaffeineDeps
     )
     .dependsOn(
       PlayProject,
@@ -296,7 +354,7 @@ lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "play-jcache")
     )
     .dependsOn(
       PlayProject,
-      PlayEhcacheProject % "test", // provide a cachemanager implementation
+      PlayCaffeineCacheProject % "test", // provide a cachemanager implementation
       PlaySpecs2Project % "test"
     )
 
@@ -316,6 +374,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
   PlayEhcacheProject,
+  PlayCaffeineCacheProject,
   PlayJCacheProject,
   PlayJdbcApiProject,
   PlayJdbcProject,
@@ -350,14 +409,20 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     .settings(playCommonSettings: _*)
     .settings(
       scalaVersion := (scalaVersion in PlayProject).value,
+      // TODO: Remove when updating to Scala 2.13.0-M4
+      // Should be removed when we update to Scala 2.13.0-M4 since this is the
+      // version added by interplay.
+      //
+      // See also:
+      // 1. playRuntimeSettings in project/BuildSettings.scala
+      // 2. RoutesCompilerProject project
+      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
       playBuildRepoName in ThisBuild := "playframework",
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
       mimaReportBinaryIssues := (),
-      commands += Commands.quickPublish,
-      whitesourceAggregateProjectName := "playframework-master",
-      whitesourceAggregateProjectToken := "f21388d8-a520-4d3a-afbd-b5cadcea0a6d"
+      commands += Commands.quickPublish
     ).settings(Release.settings: _*)
     .aggregate(publishedProjects: _*)

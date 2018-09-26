@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.tools
 
 import java.nio.charset.StandardCharsets
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-import org.apache.commons.io.FileUtils
+import play.api.libs.Files
 import play.api.libs.json.{ JsObject, _ }
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Results._
@@ -36,6 +37,9 @@ object HttpBinApplication {
   }
 
   private def requestWriter[A] = new Writes[Request[A]] {
+    def readFileToString(ref: Files.TemporaryFile): String = {
+      new String(java.nio.file.Files.readAllBytes(ref), StandardCharsets.UTF_8)
+    }
     def writes(r: Request[A]): JsValue =
       requestHeaderWriter.writes(r).as[JsObject] ++
         Json.obj(
@@ -53,7 +57,7 @@ object HttpBinApplication {
             case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
               Json.obj(
                 "form" -> m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
-                "file" -> JsString(m.mfd.file("upload").map(v => FileUtils.readFileToString(v.ref, StandardCharsets.UTF_8)).getOrElse(""))
+                "file" -> JsString(m.mfd.file("upload").map(v => readFileToString(v.ref)).getOrElse(""))
               )
             case b =>
               Json.obj("data" -> JsString(b.toString))
@@ -193,7 +197,7 @@ object HttpBinApplication {
       Action { request =>
         request.headers.get("Authorization").flatMap { authorization =>
           authorization.split(" ").drop(1).headOption.filter { encoded =>
-            new String(org.apache.commons.codec.binary.Base64.decodeBase64(encoded.getBytes)).split(":").toList match {
+            new String(java.util.Base64.getDecoder.decode(encoded.getBytes)).split(":").toList match {
               case u :: p :: Nil if u == username && password == p => true
               case _ => false
             }
@@ -324,7 +328,7 @@ object HttpBinApplication {
   }
 
   def app = {
-    new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) with AhcWSComponents with NoHttpFiltersComponents {
+    new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with AhcWSComponents with NoHttpFiltersComponents {
       override implicit lazy val Action = defaultActionBuilder
       def router = SimpleRouter(
         PartialFunction.empty

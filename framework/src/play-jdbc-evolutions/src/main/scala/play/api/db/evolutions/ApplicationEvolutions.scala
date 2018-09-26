@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db.evolutions
 
 import java.sql.{ Statement, Connection, SQLException }
@@ -244,13 +245,13 @@ trait EvolutionsConfig {
  * Default evolutions datasource configuration.
  */
 case class DefaultEvolutionsDatasourceConfig(
-  enabled: Boolean,
-  schema: String,
-  autocommit: Boolean,
-  useLocks: Boolean,
-  autoApply: Boolean,
-  autoApplyDowns: Boolean,
-  skipApplyDownsOnly: Boolean) extends EvolutionsDatasourceConfig
+    enabled: Boolean,
+    schema: String,
+    autocommit: Boolean,
+    useLocks: Boolean,
+    autoApply: Boolean,
+    autoApplyDowns: Boolean,
+    skipApplyDownsOnly: Boolean) extends EvolutionsDatasourceConfig
 
 /**
  * Default evolutions configuration.

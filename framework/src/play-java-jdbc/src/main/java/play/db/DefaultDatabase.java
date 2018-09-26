@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.db;
 
 import java.sql.Connection;
@@ -25,7 +26,7 @@ public class DefaultDatabase implements Database {
     }
 
     /**
-     * Create a default BoneCP-backed database.
+     * Create a default HikariCP-backed database.
      *
      * @param name name for the db's underlying datasource
      * @param configuration the database's configuration
@@ -37,7 +38,7 @@ public class DefaultDatabase implements Database {
     }
 
     /**
-     * Create a default BoneCP-backed database.
+     * Create a default HikariCP-backed database.
      *
      * @param name name for the db's underlying datasource
      * @param config the db's configuration

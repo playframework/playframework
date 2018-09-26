@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs
 
 import java.io.{ File, IOException }
@@ -140,9 +141,9 @@ object Files {
    */
   @Singleton
   class DefaultTemporaryFileCreator @Inject() (
-    applicationLifecycle: ApplicationLifecycle,
-    temporaryFileReaper: TemporaryFileReaper)
-      extends TemporaryFileCreator {
+      applicationLifecycle: ApplicationLifecycle,
+      temporaryFileReaper: TemporaryFileReaper)
+    extends TemporaryFileCreator {
 
     private val logger = play.api.Logger(this.getClass)
     private val frq = new FinalizableReferenceQueue()
@@ -172,10 +173,10 @@ object Files {
     }
 
     private def createReference(tempFile: TemporaryFile) = {
+      val path = tempFile.path
       val reference = new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
         override def finalizeReferent(): Unit = {
           references.remove(this)
-          val path = tempFile.path
           deletePath(path)
         }
       }
@@ -231,9 +232,9 @@ object Files {
 
   @Singleton
   class DefaultTemporaryFileReaper @Inject() (
-    actorSystem: ActorSystem,
-    config: TemporaryFileReaperConfiguration)
-      extends TemporaryFileReaper {
+      actorSystem: ActorSystem,
+      config: TemporaryFileReaperConfiguration)
+    extends TemporaryFileReaper {
 
     private val logger = play.api.Logger(this.getClass)
     private val blockingDispatcherName = "play.akka.blockingIoDispatcher"
@@ -314,10 +315,10 @@ object Files {
    * @param interval the duration after the initial run during which the reaper will scan for files it can remove.  Default 5 minutes.
    */
   case class TemporaryFileReaperConfiguration(
-    enabled: Boolean = false,
-    olderThan: FiniteDuration = 5.minutes,
-    initialDelay: FiniteDuration = 5.minutes,
-    interval: FiniteDuration = 5.minutes)
+      enabled: Boolean = false,
+      olderThan: FiniteDuration = 5.minutes,
+      initialDelay: FiniteDuration = 5.minutes,
+      interval: FiniteDuration = 5.minutes)
 
   object TemporaryFileReaperConfiguration {
     def fromConfiguration(config: Configuration): TemporaryFileReaperConfiguration = {
@@ -344,9 +345,15 @@ object Files {
     def createWithDefaults() = apply()
 
     @Singleton
+    @deprecated("On JDK8 and earlier, Class.getSimpleName on doubly nested Scala classes throws an exception. Use Files.TemporaryFileReaperConfigurationProvider instead. See https://github.com/scala/bug/issues/2034.", "2.6.14")
     class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration) extends Provider[TemporaryFileReaperConfiguration] {
       lazy val get = fromConfiguration(configuration)
     }
+  }
+
+  @Singleton
+  class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration) extends Provider[TemporaryFileReaperConfiguration] {
+    lazy val get = TemporaryFileReaperConfiguration.fromConfiguration(configuration)
   }
 
   /**

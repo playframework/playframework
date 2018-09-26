@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.util
@@ -18,7 +19,7 @@ import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrat
 import scala.collection.JavaConverters
 
 class FlashCookieSpec extends PlaySpecification
-    with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+  with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
   /** Makes an app that we use while we're testing */
   def withFlashCookieApp(additionalConfiguration: Map[String, Any] = Map.empty): ApplicationFactory = {
@@ -41,7 +42,7 @@ class FlashCookieSpec extends PlaySpecification
   }
 
   /**
-   * Handles the details of calling a [[ServerEndpoint]] with a cookie and
+   * Handles the details of calling a [[play.it.test.ServerEndpoint]] with a cookie and
    * receiving the response and its cookies.
    */
   trait CookieEndpoint {

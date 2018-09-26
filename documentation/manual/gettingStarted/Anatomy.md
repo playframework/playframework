@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Anatomy of a Play application
 
 ## The Play application layout
@@ -159,7 +159,7 @@ lib                        → Unmanaged libraries dependencies
 logs                       → Logs folder
  └ application.log         → Default log file
 target                     → Generated stuff
- └ scala-2.11.11
+ └ scala-2.11.12
     └ cache
     └ classes              → Compiled class files
     └ classes_managed      → Managed class files (templates, ...)

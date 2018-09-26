@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+  ~ Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
   -->
 <!-- The default logback configuration that Play uses if no other configuration is provided -->
 <configuration>
@@ -19,11 +19,11 @@
   <logger name="play" level="INFO" />
 
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
-  <!-- https://hibernate.atlassian.net/browse/HV-1323 -->
-  <logger name="org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator" level="ERROR" />
 
   <root level="WARN">
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
+
+  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
 
 </configuration>

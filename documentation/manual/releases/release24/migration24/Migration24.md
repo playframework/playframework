@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.4 Migration Guide
 
 This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
@@ -19,7 +19,7 @@ java.lang.UnsupportedClassVersionError: play/runsupport/classloader/ApplicationC
 
 A [java.lang.UnsupportedClassVersionError](https://docs.oracle.com/javase/8/docs/api/java/lang/UnsupportedClassVersionError.html) means that reading a Java class file with an older version of Java than the class file was compiled with is unsupported.
 
-> **Note:** Scala 2.10 does not have full support to all Java 8 language features, like static methods on interfaces. If your project has Java code using these new features present in Java 8, upgrade to use Scala 2.11.6+. See [sbt docs](http://www.scala-sbt.org/0.13/docs/Howto-Scala.html) to learn how to set `scalaVersion` to your project.
+> **Note:** Scala 2.10 does not have full support to all Java 8 language features, like static methods on interfaces. If your project has Java code using these new features present in Java 8, upgrade to use Scala 2.11.6+. See [sbt docs](https://www.scala-sbt.org/0.13/docs/Howto-Scala.html) to learn how to set `scalaVersion` to your project.
 
 ## Build changes
 
@@ -189,7 +189,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Lang`](api/scala/play/api/i18n/Lang$.html) | [`Langs`](api/scala/play/api/i18n/Langs.html) | |
 | [`Messages`](api/scala/play/api/i18n/Messages$.html) | [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) | Using one of the `preferred` methods, you can get a [`Messages`](api/scala/play/api/i18n/Messages.html) instance. |
 | `DB` | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
-| `Cache` | [`CacheApi`](api/scala/play/api/cache/CacheApi.html) or better | You can get a particular cache using the `@NamedCache` annotation. |
+| `Cache` | `CacheApi` or better | You can get a particular cache using the `@NamedCache` annotation. |
 | `Cached` object | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
 | [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | `WS` | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
@@ -203,10 +203,10 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Lang`](api/java/play/i18n/Lang.html) | [`Langs`](api/java/play/i18n/Langs.html) | Instances of `Lang` objects are still fine to use |
 | [`Messages`](api/java/play/i18n/Messages.html) | [`MessagesApi`](api/java/play/i18n/MessagesApi.html) | Using one of the `preferred` methods, you can get a `Messages` instance, and you can then use `at` to get messages for that lang. |
 | `DB` | [`DBApi`](api/java/play/db/DBApi.html) or better, [`Database`](api/java/play/db/Database.html) | You can get a particular database using the [`@NamedDatabase`](api/java/play/db/NamedDatabase.html) annotation. |
-| [`JPA`](api/java/play/db/jpa/JPA.html) | [`JPAApi`](api/java/play/db/jpa/JPAApi.html) | |
-| `Cache` | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
+| `JPA` | [`JPAApi`](api/java/play/db/jpa/JPAApi.html) | |
+| `Cache` | `CacheApi` | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
-| [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
+| `WS` | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 | `Crypto` | `Crypto` | The old static methods have been removed, an instance can statically be accessed using `play.Play.application().injector().instanceOf(Crypto.class)` |
 | `GlobalSettings` | [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html), and [`HttpFilters`](api/java/play/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
 
@@ -267,7 +267,7 @@ akka {
 }
 ```
 
-In particular, you might want to try the [default Akka settings](http://doc.akka.io/docs/akka/2.3.11/general/configuration.html#listing-of-the-reference-configuration):
+In particular, you might want to try the [default Akka settings](https://doc.akka.io/docs/akka/2.3.11/general/configuration.html#listing-of-the-reference-configuration):
 
 ```
 akka {
@@ -300,12 +300,6 @@ Logging is now configured solely via [logback configuration files](https://logba
 ## JDBC connection pool
 
 The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
-
-To switch back to BoneCP, you can set the `play.db.pool` property in `application.conf`:
-
-```
-play.db.pool = bonecp
-```
 
 The full range of configuration options available to the Play connection pools can be found in the Play JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
 
@@ -414,17 +408,17 @@ The reverse ref router used in Java tests has been removed. Any call to `Helpers
 
 ## Java TimeoutExceptions
 
-If you use the Java API, the `F.Promise` class now throws unchecked [`F.PromiseTimeoutException`s](api/java/play/libs/F.PromiseTimeoutException.html) instead of Java's checked [`TimeoutException`s](http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html). The `TimeoutExceptions`s which were previously used were not properly declared with the `throws` keyword. Rather than changing the API to use the `throws` keyword, which would mean users would have to declare `throws` on their methods, the exception was changed to a new unchecked type instead. See [#1227](https://github.com/playframework/playframework/pull/1227) for more information.
+If you use the Java API, the `F.Promise` class now throws unchecked [`F.PromiseTimeoutException`s](api/java/play/libs/F.PromiseTimeoutException.html) instead of Java's checked [`TimeoutException`s](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html). The `TimeoutExceptions`s which were previously used were not properly declared with the `throws` keyword. Rather than changing the API to use the `throws` keyword, which would mean users would have to declare `throws` on their methods, the exception was changed to a new unchecked type instead. See [#1227](https://github.com/playframework/playframework/pull/1227) for more information.
 
 | Old API | New API | Comments |
 | ------- | --------| -------- |
-| [`TimeoutException`](http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
+| [`TimeoutException`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
 
 ## WS client
 
 `WSRequestHolder` has been renamed to `WSRequest` in [Scala](api/scala/play/api/libs/ws/WSRequest.html) and [Java](api/java/play/libs/ws/WSRequest.html).  The previous `WSRequest` class has been removed out as it was only used internally to WS for OAuth functionality.
 
-WS has upgraded from AsyncHttpClient 1.8.x to 1.9.x, which includes a number of breaking changes if using or configuring that library directly.  Please see the [AsyncHttpClient Migration Guide](https://github.com/AsyncHttpClient/async-http-client/blob/master/MIGRATION.md) for more details.  The upgrade to AsyncHttpClient 1.9.x enables Server Name Indication (SNI) in HTTPS -- this solves a number of problems with HTTPS based CDNs such as Cloudflare which depend heavily on SNI.
+WS has upgraded from AsyncHttpClient 1.8.x to 1.9.x, which includes a number of breaking changes if using or configuring that library directly.  Please see the [AsyncHttpClient Migration Guide](https://github.com/AsyncHttpClient/async-http-client/blob/2.0/MIGRATION.md) for more details.  The upgrade to AsyncHttpClient 1.9.x enables Server Name Indication (SNI) in HTTPS -- this solves a number of problems with HTTPS based CDNs such as Cloudflare which depend heavily on SNI.
 
 Configuration settings for WS have changed:
 
@@ -455,7 +449,7 @@ Due to the recent spate of TLS vulnerabilities, there has been more activity to 
 
 Play 2.4's AES encryption now uses [initialization vectors](https://en.wikipedia.org/wiki/Initialization_vector) to randomize each encryption. The Play encryption format has been changed to add support for initialization vectors.
 
-The full name of the new AES transformation used by Play 2.4 is `AES/CTR/NoPadding`. The old transformation was `AES/ECB/PKCS5Padding`. The [`CTR`](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_.28CTR.29) mode is much more secure than the `ECB` mode. As before, you can override Play's encryption transformation by setting the `play.crypto.aes.transformation` configuration option. In Play 2.4, any [transformation supported by your JRE](http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher) can be used, including transformations that use an initialization vector.
+The full name of the new AES transformation used by Play 2.4 is `AES/CTR/NoPadding`. The old transformation was `AES/ECB/PKCS5Padding`. The [`CTR`](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_.28CTR.29) mode is much more secure than the `ECB` mode. As before, you can override Play's encryption transformation by setting the `play.crypto.aes.transformation` configuration option. In Play 2.4, any [transformation supported by your JRE](https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher) can be used, including transformations that use an initialization vector.
 
 Play 2.4 uses a new encryption format, but it can read data encrypted by earlier versions of Play. However, earlier versions of Play **will not** be able to read data encrypted by Play 2.4. If your Play 2.4 application needs to produce data in the old format then you may want to copy the algorithm from the [Play 2.3 Crypto code](https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277).
 

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play;
 
 import javax.inject.Inject;
@@ -19,6 +20,7 @@ public class DefaultApplication implements Application {
 
     private final play.api.Application application;
     private final Config config;
+    private final Environment environment;
     private final Injector injector;
 
     /**
@@ -29,26 +31,25 @@ public class DefaultApplication implements Application {
      * @param injector the new application's injector
      */
     @Inject
-    public DefaultApplication(play.api.Application application, Config config, Injector injector) {
+    public DefaultApplication(play.api.Application application, Config config, Injector injector, Environment environment) {
         this.application = application;
         this.config = config;
         this.injector = injector;
+        this.environment = environment;
     }
 
     /**
      * Create an application that wraps a Scala application.
      *
      * @param application the application to wrap
-     * @param configuration the new application's configuration
+     * @param config the new application's configuration
      * @param injector the new application's injector
      *
-     * @deprecated Use the constructor that accepts Config
+     * @deprecated Use {@link #DefaultApplication(play.api.Application, Config, Injector, Environment)} instead.
      */
     @Deprecated
-    public DefaultApplication(play.api.Application application, Configuration configuration, Injector injector) {
-        this.application = application;
-        this.config = configuration.underlying();
-        this.injector = injector;
+    public DefaultApplication(play.api.Application application, Config config, Injector injector) {
+        this(application, config, injector, new Environment(application.environment()));
     }
 
     /**
@@ -79,6 +80,15 @@ public class DefaultApplication implements Application {
     @Override
     public play.api.Application asScala() {
         return application;
+    }
+
+    /**
+     * Get the application environment.
+     *
+     * @return the environment.
+     */
+    public Environment environment() {
+        return environment;
     }
 
     /**

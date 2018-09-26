@@ -1,11 +1,15 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core
 
 import java.util.concurrent.ForkJoinPool
+
 import play.api.Play
+
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
+import scala.util.{ Failure, Success }
 
 /**
  * Provides access to Play's internal ExecutionContext.
@@ -13,14 +17,13 @@ import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 private[play] object Execution {
 
   /**
-   * @deprecated Use the application execution context.
    * @return the actorsystem's execution context
    */
   @deprecated("Use an injected execution context", "2.6.0")
   def internalContext: ExecutionContextExecutor = {
     Play.privateMaybeApplication match {
-      case None => common
-      case Some(app) => app.actorSystem.dispatcher
+      case Success(app) => app.actorSystem.dispatcher
+      case Failure(_) => common
     }
   }
 

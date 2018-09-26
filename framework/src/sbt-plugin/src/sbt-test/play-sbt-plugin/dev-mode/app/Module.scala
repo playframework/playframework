@@ -12,7 +12,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     writer.close()
 
     if (configuration.getOptional[Boolean]("fail").getOrElse(false)) {
-      throw new RuntimeException()
+      throw new RuntimeException("fail=true")
     }
   }
 }

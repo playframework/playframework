@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.http
 
 /**
@@ -132,7 +133,7 @@ trait MimeTypes {
   /**
    * Content-Type of javascript.
    */
-  val JAVASCRIPT = "text/javascript"
+  val JAVASCRIPT = "application/javascript"
 
   /**
    * Content-Type of form-urlencoded.
@@ -217,6 +218,7 @@ trait Status {
   val FAILED_DEPENDENCY = 424
   val UPGRADE_REQUIRED = 426
   val TOO_MANY_REQUESTS = 429
+  val REQUEST_HEADER_FIELDS_TOO_LARGE = 431
   @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
   val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
@@ -330,8 +332,11 @@ trait HeaderNames {
   val X_XSS_PROTECTION = "X-XSS-Protection"
   val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
   val X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies"
-  val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
   val REFERRER_POLICY = "Referrer-Policy"
+
+  val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
+  val CONTENT_SECURITY_POLICY_REPORT_ONLY: String = "Content-Security-Policy-Report-Only"
+  val X_CONTENT_SECURITY_POLICY_NONCE_HEADER: String = "X-Content-Security-Policy-Nonce"
 }
 
 /**

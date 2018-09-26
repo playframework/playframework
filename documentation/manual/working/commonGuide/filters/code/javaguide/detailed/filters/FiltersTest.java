@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.detailed.filters;
 
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class FiltersTest extends WithApplication {
 
     @Test
     public void testRequestBuilder() {
-        Router router = new RoutingDsl(instanceOf(PlayBodyParsers.class), instanceOf(JavaContextComponents.class))
+        Router router = new RoutingDsl(instanceOf(play.mvc.BodyParser.Default.class), instanceOf(JavaContextComponents.class))
                 .GET("/xx/Kiwi").routeTo(() -> Results.ok("success"))
                 .build();
 
@@ -37,7 +38,7 @@ public class FiltersTest extends WithApplication {
 
     @Test
     public void test() {
-        Router router = new RoutingDsl(instanceOf(PlayBodyParsers.class), instanceOf(JavaContextComponents.class))
+        Router router = new RoutingDsl(instanceOf(play.mvc.BodyParser.Default.class), instanceOf(JavaContextComponents.class))
                 .POST("/xx/Kiwi").routeTo(() -> Results.ok("success"))
                 .build();
 

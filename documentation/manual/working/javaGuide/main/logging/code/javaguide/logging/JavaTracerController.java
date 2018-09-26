@@ -1,8 +1,11 @@
+/*
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package javaguide.logging;
 
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -13,7 +16,7 @@ import javax.inject.Singleton;
 // #logging-log-trace-with-tracer-controller
 public class JavaTracerController extends Controller {
 
-    private final Logger.ALogger logger = Logger.of(this.getClass());
+    private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
 
     private static final Marker tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER");
 

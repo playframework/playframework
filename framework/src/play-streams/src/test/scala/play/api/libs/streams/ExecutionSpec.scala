@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.streams
 
 import org.specs2.mutable._
@@ -23,7 +24,7 @@ class ExecutionSpec extends Specification {
     }
 
     "not overflow the stack" in {
-      def executeRecursively(ec: ExecutionContext, times: Int) {
+      def executeRecursively(ec: ExecutionContext, times: Int): Unit = {
         if (times > 0) {
           ec.execute(new Runnable {
             def run() = executeRecursively(ec, times - 1)

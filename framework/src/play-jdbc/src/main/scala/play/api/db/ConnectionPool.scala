@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db
 
 import javax.sql.DataSource
@@ -42,7 +43,6 @@ object ConnectionPool {
   def fromConfig(config: String, injector: Injector, environment: Environment, default: ConnectionPool): ConnectionPool = {
     config match {
       case "default" => default
-      case "bonecp" => new BoneConnectionPool(environment)
       case "hikaricp" => new HikariCPConnectionPool(environment)
       case fqcn => injector.instanceOf(Reflect.getClass[ConnectionPool](fqcn, environment.classLoader))
     }
@@ -54,7 +54,6 @@ object ConnectionPool {
    */
   def fromConfig(config: String, environment: Environment, default: ConnectionPool): ConnectionPool = {
     config match {
-      case "bonecp" => new BoneConnectionPool(environment)
       case "hikaricp" => new HikariCPConnectionPool(environment)
       case _ => default
     }

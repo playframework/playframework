@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http.websocket
 
 import java.net.URI
@@ -76,10 +77,10 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerI
 }
 
 trait WebSocketSpec extends PlaySpecification
-    with WsTestClient
-    with ServerIntegrationSpecification
-    with WebSocketSpecMethods
-    with PingWebSocketSpec {
+  with WsTestClient
+  with ServerIntegrationSpecification
+  with WebSocketSpecMethods
+  with PingWebSocketSpec {
 
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets

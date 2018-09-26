@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.https
 
 import javax.inject.Inject
@@ -109,6 +110,40 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       val result = route(app, request().withConnection(secure)).get
 
       header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=12345; includeSubDomains")
+    }
+
+    "not redirect when xForwardedProtoEnabled is set but no header present" in new WithApplication(buildApp(
+      """
+        |play.filters.https.redirectEnabled = true
+        |play.filters.https.xForwardedProtoEnabled = true
+      """.stripMargin, mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure)).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== OK
+    }
+    "redirect when xForwardedProtoEnabled is not set and no header present" in new WithApplication(buildApp(
+      """
+        |play.filters.https.redirectEnabled = true
+        |play.filters.https.xForwardedProtoEnabled = false
+      """.stripMargin, mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure)).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== PERMANENT_REDIRECT
+    }
+    "redirect when xForwardedProtoEnabled is set and header is present" in new WithApplication(buildApp(
+      """
+        |play.filters.https.redirectEnabled = true
+        |play.filters.https.xForwardedProtoEnabled = true
+      """.stripMargin, mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure).withHeaders("X-Forwarded-Proto" -> "http")).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== PERMANENT_REDIRECT
     }
   }
 

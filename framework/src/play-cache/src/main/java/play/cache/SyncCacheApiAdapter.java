@@ -1,19 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.cache;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 import scala.concurrent.duration.Duration;
 
 import play.libs.Scala;
 
+import static scala.compat.java8.OptionConverters.toJava;
+
 /**
  * Adapts a Scala SyncCacheApi to a Java SyncCacheApi
  */
-public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
+public class SyncCacheApiAdapter implements SyncCacheApi {
 
   private final play.api.cache.SyncCacheApi scalaApi;
 
@@ -22,6 +26,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
   }
 
   @Override
+  @Deprecated
   public <T> T get(String key) {
     scala.Option<T> opt = scalaApi.get(key, Scala.classTag());
     if (opt.isDefined()) {
@@ -32,23 +37,18 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
   }
 
   @Override
+  public <T> Optional<T> getOptional(String key) {
+    return toJava(scalaApi.get(key, Scala.classTag()));
+  }
+
+  @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
     return scalaApi.getOrElseUpdate(key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
   }
 
   @Override
-  public <T> T getOrElse(String key, Callable<T> block, int expiration) {
-    return getOrElseUpdate(key, block, expiration);
-  }
-
-  @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block) {
     return scalaApi.getOrElseUpdate(key, Duration.Inf(), Scala.asScala(block), Scala.classTag());
-  }
-
-  @Override
-  public <T> T getOrElse(String key, Callable<T> block) {
-    return getOrElseUpdate(key, block);
   }
 
   @Override
