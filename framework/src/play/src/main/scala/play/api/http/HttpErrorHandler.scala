@@ -295,7 +295,7 @@ object HttpErrorHandlerExceptions {
  */
 @Singleton
 class JsonHttpErrorHandler(
-    config: HttpErrorConfig = HttpErrorConfig(),
+    environment: Environment,
     sourceMapper: Option[SourceMapper] = None) extends HttpErrorHandler {
 
   @inline
@@ -319,19 +319,18 @@ class JsonHttpErrorHandler(
    */
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     try {
+      val isProd = environment.mode == Mode.Prod
+
       val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
         sourceMapper,
-        !config.showDevErrors,
+        isProd,
         exception
       )
       logServerError(request, usefulException)
       Future.successful(
         InternalServerError(
-          if (config.showDevErrors) {
-            devServerError(request, usefulException)
-          } else {
-            prodServerError(request, usefulException)
-          }
+          if (isProd) prodServerError(request, usefulException)
+          else devServerError(request, usefulException)
         )
       )
     } catch {
