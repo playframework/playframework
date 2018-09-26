@@ -278,6 +278,12 @@ class CookiesSpec extends Specification {
       val newJwt = newCodec.encode(Map("hello" -> "world"))
       oldCodec.decode(newJwt) must contain("hello" -> "world")
     }
+
+    "return empty map if JWT contains a null value " in {
+      val jwtValue = codec.encode(Map("key1" -> "value", "key2" -> null, "key3" -> "value3"))
+      codec.decode(jwtValue) must beEmpty
+    }
+
   }
 
   "DefaultSessionCookieBaker" should {

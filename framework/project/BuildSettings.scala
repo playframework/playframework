@@ -627,8 +627,12 @@ object BuildSettings {
 
       // Remove JPA class + add more withTransaction(...) methods
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPA"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction")
-  ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction"),
+      
+      // Made Session and Flash final and refactored their code into the super class AbstractHttpCookieStorage
+      ProblemFilters.exclude[FinalClassProblem]("play.mvc.Http$Session"),
+      ProblemFilters.exclude[FinalClassProblem]("play.mvc.Http$Flash")
+    ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
