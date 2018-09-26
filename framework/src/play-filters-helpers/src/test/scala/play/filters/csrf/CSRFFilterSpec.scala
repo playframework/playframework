@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
@@ -212,13 +213,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
 
   "The CSRF module" should {
     val environment = Environment(new java.io.File("."), getClass.getClassLoader, Mode.Test)
-    def fakeContext = Context(
-      environment,
-      None,
-      new DefaultWebCommands,
-      Configuration.load(environment),
-      new DefaultApplicationLifecycle()
-    )
+    def fakeContext = Context.create(environment)
     def loader = new GuiceApplicationLoader
     "allow injecting CSRF filters" in {
       implicit val app = loader.load(fakeContext)

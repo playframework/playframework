@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Dependency Injection
 
 Dependency injection is a widely used design pattern that helps to separate your components' behaviour from dependency resolution.  Components declare their dependencies, usually as constructor parameters, and a dependency injection framework helps you wire together those components so you don't have to do so manually.
@@ -49,29 +49,13 @@ Guice is able to automatically instantiate any class with an `@Inject` on its co
 
 ## Dependency injecting controllers
 
-There are two ways to make Play use dependency injected controllers.
-
-### Injected routes generator
-
-By default (since 2.5.0), Play generates a router class that declares your controllers as dependencies in the constructor. This allows your controllers to be injected into the router.
+Play's routes compiler generates a router class that declares your controllers as dependencies in the constructor. This allows your controllers to be injected into the router.
 
 To enable the injected routes generator specifically, add the following to your build settings in `build.sbt`:
 
 @[content](code/injected.sbt)
 
-When using the injected routes generator, prefixing the action with an `@` symbol takes on a special meaning, it means instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
-
-### Static routes generator
-
-You can configure Play to use the legacy (pre 2.5.0) static routes generator, that assumes that all actions are static methods.  To configure the project, add the following to build.sbt:
-
-@[content](code/static.sbt)
-
-We recommend always using the injected routes generator.  The static routes generator exists primarily as a tool to aid migration so that existing projects don't have to make all their controllers non static at once.
-
-If using the static routes generator, you can indicate that an action has an injected controller by prefixing the action with `@`, like so:
-
-@[content](code/javaguide.di.routes)
+Prefixing the controller name with an `@` symbol takes on a special meaning: instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
 
 ## Component lifecycle
 
@@ -98,6 +82,9 @@ The `ApplicationLifecycle` will stop all components in reverse order from when t
 
 > **Note:** It's very important to ensure that all components that register a stop hook are singletons.  Any non singleton components that register stop hooks could potentially be a source of memory leaks, since a new stop hook will be registered each time the component is created.
 
+You can can also implement the cleanup logic using [[Coordinated Shutdown|Shutdown]]. Play uses Akka's Coordinated Shutdown internally but it is also available for userland code. `ApplicationLifecycle#stop` is implemented as a Coordinated Shutdown task. The main difference is that `ApplicationLifecycle#stop` runs all stop hooks sequentially in a predictable order where Coordinated Shutdown runs all tasks in the same phase in parallel which may be faster but unpredictable.
+
+
 ## Providing custom bindings
 
 It is considered good practice to define an interface for a component, and have other classes depend on that interface, rather than the implementation of the component.  By doing that, you can inject different implementations, for example you inject a mock implementation when testing your application.
@@ -119,7 +106,7 @@ The simplest way to bind an implementation to an interface is to use the Guice [
 
 #### Programmatic bindings
 
-In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
+In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one interface, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
 
 @[guice-module](code/javaguide/di/guice/Module.java)
 
@@ -133,7 +120,7 @@ You can also disable the automatic registration of a module named `Module` in th
 
 #### Configurable bindings
 
-Sometimes you might want to read the [`Config`](https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+Sometimes you might want to read the [`Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html) or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
 
 In the example below, the `Hello` binding for each language is read from a configuration file. This allows new `Hello` bindings to be added by adding new settings in your `application.conf` file.
 
@@ -143,9 +130,15 @@ In the example below, the `Hello` binding for each language is read from a confi
 
 #### Eager bindings
 
-In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the `@Singleton` annotation as [described above](#Singletons). If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can use [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
+In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the [`@Singleton`](#Singletons) annotation. If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can use [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
 
 @[eager-guice-module](code/javaguide/di/guice/eager/Module.java)
+
+Eager singletons can be used to start up a service when an application starts. They are often combined with a [shutdown hook](#Stopping/cleaning-up) so that the service can clean up its resources when the application stops.
+
+@[eager-guice-module](code/javaguide/di/guice/eager/ApplicationStart.java)
+
+@[eager-guice-module](code/javaguide/di/guice/eager/StartModule.java)
 
 ### Play libraries
 

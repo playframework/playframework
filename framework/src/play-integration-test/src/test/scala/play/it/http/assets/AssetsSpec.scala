@@ -1,16 +1,18 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http.assets
 
 import controllers.AssetsComponents
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.test._
-import org.apache.commons.io.IOUtils
-import java.io.ByteArrayInputStream
+import java.io.{ ByteArrayInputStream, InputStreamReader }
 import java.nio.charset.StandardCharsets
 
+import com.google.common.io.CharStreams
+import com.typesafe.config.ConfigFactory
 import play.api.routing.Router
 import play.core.server.{ Server, ServerConfig }
 import play.filters.HttpFiltersComponents
@@ -28,9 +30,17 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
     var defaultCacheControl: Option[String] = None
     var aggressiveCacheControl: Option[String] = None
 
-    def withServer[T](block: WSClient => T): T = {
+    def withServer[T](additionalConfig: Option[String] = None)(block: WSClient => T): T = {
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
         new BuiltInComponentsFromContext(context) with AssetsComponents with HttpFiltersComponents {
+
+          override def configuration: Configuration = additionalConfig match {
+            case Some(s) =>
+              val underlying = ConfigFactory.parseString(s)
+              super.configuration ++ Configuration(underlying)
+            case None => super.configuration
+          }
+
           override def router: Router = Router.from {
             case req => assets.versioned("/testassets", req.path)
           }
@@ -46,12 +56,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
     val etagPattern = """([wW]/)?"([^"]|\\")*""""
 
-    "serve an asset" in withServer { client =>
+    "serve an asset" in withServer() { client =>
       val result = await(client.url("/bar.txt").get())
 
       result.status must_== OK
       result.body must_== "This is a test asset."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -59,7 +69,27 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve an asset as JSON with UTF-8 charset" in withServer { client =>
+    "not serve an asset outside of assets directory" in withServer() { client =>
+      val result = await(client.url("/../logback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "not serve an asset outside of assets directory when using encoded encoded slashes" in withServer() { client =>
+      val result = await(client.url("/..%2flogback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "not serve an asset outside of assets directory when using Windows slashes" in withServer() { client =>
+      val result = await(client.url("/..\\logback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "not serve an asset outside of assets directory when using Windows encoded slashes" in withServer() { client =>
+      val result = await(client.url("/..%5Clogback.xml").get())
+      result.status must_== NOT_FOUND
+    }
+
+    "serve an asset as JSON with UTF-8 charset" in withServer() { client =>
       val result = await(client.url("/test.json").get())
 
       result.status must_== OK
@@ -77,12 +107,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve an asset in a subdirectory" in withServer { client =>
+    "serve an asset in a subdirectory" in withServer() { client =>
       val result = await(client.url("/subdir/baz.txt").get())
 
       result.status must_== OK
       result.body must_== "Content of baz.txt."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -90,12 +120,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve an asset with spaces in the name" in withServer { client =>
+    "serve an asset with spaces in the name" in withServer() { client =>
       val result = await(client.url("/foo%20bar.txt").get())
 
       result.status must_== OK
       result.body must_== "This is a test asset with spaces."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -103,7 +133,127 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve a non gzipped asset when gzip is available but not requested" in withServer { client =>
+    "serve an asset with an additional Cache-Control" in {
+      "with a simple directive" in withServer(Some(
+        """
+          |play.assets.cache {
+          | "/testassets/bar.txt" = "max-age=1234"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/bar.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome(matching(etagPattern))
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=1234")
+      }
+
+      "using default cache when directive is null" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/bar.txt" = null
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/bar.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome(matching(etagPattern))
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must_== defaultCacheControl
+      }
+
+      "using a partial path to configure the directive" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets" = "max-age=1234"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/bar.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome(matching(etagPattern))
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=1234")
+      }
+
+      "apply only when the partial path matches" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets" = "max-age=1234"
+          |  "/anotherpath" = "max-age=2345"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/bar.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome(matching(etagPattern))
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=1234")
+      }
+
+      "use the default cache control when no partial path matches" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/sub1" = "max-age=1234"
+          |  "/testassets/sub2" = "max-age=2345"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/bar.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome(matching(etagPattern))
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must_== defaultCacheControl
+      }
+
+      "use the most specific path configuration that matches" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets" = "max-age=100"
+          |  "/testassets/bar" = "max-age=200"
+          |  "/testassets/bar.txt" = "max-age=300"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/bar.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome(matching(etagPattern))
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=300")
+      }
+    }
+
+    "serve a non gzipped asset when gzip is available but not requested" in withServer() { client =>
       val result = await(client.url("/foo.txt").get())
 
       result.body must_== "This is a test asset."
@@ -111,7 +261,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CONTENT_ENCODING) must beNone
     }
 
-    "serve a gzipped asset" in withServer { client =>
+    "serve a gzipped asset" in withServer() { client =>
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
         .get())
@@ -120,13 +270,13 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       //result.header(CONTENT_ENCODING) must beSome("gzip")
       val ahcResult: play.shaded.ahc.org.asynchttpclient.Response = result.underlying.asInstanceOf[play.shaded.ahc.org.asynchttpclient.Response]
       val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)
-      IOUtils.toString(is, StandardCharsets.UTF_8) must_== "This is a test gzipped asset.\n"
+      CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8)) must_== "This is a test gzipped asset.\n"
       // release deflate resources
       is.close()
       success
     }
 
-    "return not modified when etag matches" in withServer { client =>
+    "return not modified when etag matches" in withServer() { client =>
       val Some(etag) = await(client.url("/foo.txt").get()).header(ETAG)
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(IF_NONE_MATCH -> etag)
@@ -139,7 +289,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(LAST_MODIFIED) must beSome
     }
 
-    "return not modified when multiple etags supply and one matches" in withServer { client =>
+    "return not modified when multiple etags supply and one matches" in withServer() { client =>
       val Some(etag) = await(client.url("/foo.txt").get()).header(ETAG)
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(IF_NONE_MATCH -> ("\"foo\", " + etag + ", \"bar\""))
@@ -149,7 +299,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.body must beEmpty
     }
 
-    "return asset when etag doesn't match" in withServer { client =>
+    "return asset when etag doesn't match" in withServer() { client =>
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(IF_NONE_MATCH -> "\"foobar\"")
         .get())
@@ -158,7 +308,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.body must_== "This is a test asset."
     }
 
-    "return not modified when not modified since" in withServer { client =>
+    "return not modified when not modified since" in withServer() { client =>
       val Some(timestamp) = await(client.url("/foo.txt").get()).header(LAST_MODIFIED)
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(IF_MODIFIED_SINCE -> timestamp)
@@ -174,7 +324,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must beNone
     }
 
-    "return asset when modified since" in withServer { client =>
+    "return asset when modified since" in withServer() { client =>
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(IF_MODIFIED_SINCE -> "Tue, 13 Mar 2012 13:08:36 GMT")
         .get())
@@ -183,7 +333,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.body must_== "This is a test asset."
     }
 
-    "ignore if modified since header if if none match header is set" in withServer { client =>
+    "ignore if modified since header if if none match header is set" in withServer() { client =>
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(
           IF_NONE_MATCH -> "\"foobar\"",
@@ -194,7 +344,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.body must_== "This is a test asset."
     }
 
-    "return the asset if the if modified since header can't be parsed" in withServer { client =>
+    "return the asset if the if modified since header can't be parsed" in withServer() { client =>
       val result = await(client.url("/foo.txt")
         .addHttpHeaders(IF_MODIFIED_SINCE -> "Not a date")
         .get())
@@ -203,26 +353,26 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.body must_== "This is a test asset."
     }
 
-    "return 200 if the asset is empty" in withServer { client =>
+    "return 200 if the asset is empty" in withServer() { client =>
       val result = await(client.url("/empty.txt").get())
 
       result.status must_== OK
       result.body must beEmpty
     }
 
-    "return 404 for files that don't exist" in withServer { client =>
+    "return 404 for files that don't exist" in withServer() { client =>
       val result = await(client.url("/nosuchfile.txt").get())
 
       result.status must_== NOT_FOUND
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/html"))
     }
 
-    "serve a versioned asset" in withServer { client =>
+    "serve a versioned asset" in withServer() { client =>
       val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
       result.status must_== OK
       result.body must_== "This is a test asset."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
@@ -230,8 +380,130 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       result.header(CACHE_CONTROL) must_== aggressiveCacheControl
     }
 
+    "serve a versioned asset with an additional Cache-Control" in {
+      "with a simple directive" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/versioned/sub/foo.txt" = "max-age=1234"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=1234")
+      }
+
+      "using default cache when directive is null" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/versioned/sub/foo.txt" = null
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must_== aggressiveCacheControl
+      }
+
+      "using a partial path to configure the directive" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/versioned/" = "max-age=1234"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=1234")
+      }
+
+      "apply only when the partial path matches" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/another" = "max-age=2345"
+          |  "/testassets/versioned" = "max-age=1234"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=1234")
+      }
+
+      "use the default cache control when no partial path matches" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/versioned/sub1" = "max-age=2345"
+          |  "/testassets/versioned/sub2" = "max-age=1234"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must_== aggressiveCacheControl
+      }
+
+      "use the most specific path configuration that matches" in withServer(Some(
+        """
+          |play.assets.cache {
+          |  "/testassets/versioned/sub1" = "max-age=100"
+          |  "/testassets/versioned/sub2" = "max-age=200"
+          |  "/testassets/versioned/sub" = "max-age=300"
+          |  "/testassets/versioned/sub/foo" = "max-age=400"
+          |  "/testassets/versioned/sub/foo.txt" = "max-age=500"
+          |}
+        """.stripMargin
+      )) { client =>
+        val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+        result.status must_== OK
+        result.body must_== "This is a test asset."
+        result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+        result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
+        result.header(LAST_MODIFIED) must beSome
+        result.header(VARY) must beNone
+        result.header(CONTENT_ENCODING) must beNone
+        result.header(CACHE_CONTROL) must beSome("max-age=500")
+      }
+    }
+
     "return not found when the path is a directory" in {
-      "if the directory is on the file system" in withServer { client =>
+      "if the directory is on the file system" in withServer() { client =>
         await(client.url("/subdir").get()).status must_== NOT_FOUND
       }
       "if the directory is a jar entry" in {
@@ -250,7 +522,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
     }
 
     "serve a partial content if requested" in {
-      "return a 206 Partial Content status" in withServer { client =>
+      "return a 206 Partial Content status" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=0-10")
@@ -260,7 +532,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         result.status must_== PARTIAL_CONTENT
       }
 
-      "The first 500 bytes: 0-499 inclusive" in withServer { client =>
+      "The first 500 bytes: 0-499 inclusive" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=0-499")
@@ -268,12 +540,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-499/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 0-499/"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
 
-      "The second 500 bytes: 500-999 inclusive" in withServer { client =>
+      "The second 500 bytes: 500-999 inclusive" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=500-999")
@@ -282,12 +554,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.bodyAsBytes.length must beEqualTo(500)
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 500-999/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 500-999/"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
 
-      "The final 500 bytes: 9500-9999, inclusive" in withServer { client =>
+      "The final 500 bytes: 9500-9999, inclusive" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=9500-9999")
@@ -295,12 +567,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 9500-9999/"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
 
-      "The final 500 bytes using a open range: 9500-" in withServer { client =>
+      "The final 500 bytes using a open range: 9500-" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=9500-")
@@ -308,12 +580,12 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 9500-9999/10000"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 9500-9999/10000"))
         result.bodyAsBytes.length must beEqualTo(500)
         result.header(CONTENT_LENGTH) must beSome("500")
       }
 
-      "The first and last bytes only: 0 and 9999: bytes=0-0,-1" in withServer { client =>
+      "The first and last bytes only: 0 and 9999: bytes=0-0,-1" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=0-0,-1")
@@ -321,10 +593,10 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_RANGE) must beSome.which(_.startsWith("bytes 0-0,-1/"))
+        result.header(CONTENT_RANGE) must beSome(startWith("bytes 0-0,-1/"))
       }.pendingUntilFixed
 
-      "Multiple intervals to get the second 500 bytes" in withServer { client =>
+      "Multiple intervals to get the second 500 bytes" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=500-600,601-999")
@@ -332,10 +604,10 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         )
 
         result.status must_== PARTIAL_CONTENT
-        result.header(CONTENT_TYPE) must beSome.which(_.startsWith("multipart/byteranges"))
+        result.header(CONTENT_TYPE) must beSome(startWith("multipart/byteranges"))
       }.pendingUntilFixed
 
-      "Return status 416 when first byte is gt the length of the complete entity" in withServer { client =>
+      "Return status 416 when first byte is gt the length of the complete entity" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=10500-10600")
@@ -345,17 +617,17 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         result.status must_== REQUESTED_RANGE_NOT_SATISFIABLE
       }
 
-      "Return a Content-Range header for 416 responses" in withServer { client =>
+      "Return a Content-Range header for 416 responses" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=10500-10600")
             .get()
         )
 
-        result.header(CONTENT_RANGE) must beSome.which(_ == "bytes */10000")
+        result.header(CONTENT_RANGE) must beSome("bytes */10000")
       }
 
-      "No Content-Disposition header when serving assets" in withServer { client =>
+      "No Content-Disposition header when serving assets" in withServer() { client =>
         val result = await(
           client.url("/range.txt")
             .addHttpHeaders(RANGE -> "bytes=10500-10600")
@@ -365,7 +637,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         result.header(CONTENT_DISPOSITION) must beNone
       }
 
-      "serve a brotli compressed asset" in withServer { client =>
+      "serve a brotli compressed asset" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .addHttpHeaders(ACCEPT_ENCODING -> "br")
           .get())
@@ -376,7 +648,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         success
       }
 
-      "serve a gzip compressed asset when brotli and gzip are available but only gzip is requested" in withServer { client =>
+      "serve a gzip compressed asset when brotli and gzip are available but only gzip is requested" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
           .get())
@@ -392,7 +664,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         success
       }
 
-      "serve a plain asset when brotli is available but not requested" in withServer { client =>
+      "serve a plain asset when brotli is available but not requested" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .get())
 
@@ -402,7 +674,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         success
       }
 
-      "serve a asset if accept encoding is given with a q value" in withServer { client =>
+      "serve a asset if accept encoding is given with a q value" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .addHttpHeaders(ACCEPT_ENCODING -> "br;q=1.0, gzip")
           .get())
@@ -413,7 +685,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         success
       }
 
-      "serve a brotli compressed asset when brotli and gzip are requested, brotli first (because configured to be first)" in withServer { client =>
+      "serve a brotli compressed asset when brotli and gzip are requested, brotli first (because configured to be first)" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .addHttpHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
           // something is wrong here... if we just have "gzip, deflate, sdch, br", the "br" does not end up in the ACCEPT_ENCODING header
@@ -425,7 +697,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         result.bodyAsBytes.length must_=== 66
         success
       }
-      "serve a gzip compressed asset when brotli and gzip are available, but only gzip requested" in withServer { client =>
+      "serve a gzip compressed asset when brotli and gzip are available, but only gzip requested" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .addHttpHeaders(ACCEPT_ENCODING -> "gzip")
           .get())
@@ -437,7 +709,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         result.bodyAsBytes.length must_=== 107
         success
       }
-      "serve a xz compressed asset when brotli, gzip and xz are available, but xz requested" in withServer { client =>
+      "serve a xz compressed asset when brotli, gzip and xz are available, but xz requested" in withServer() { client =>
         val result = await(client.url("/encoding.js")
           .addHttpHeaders(ACCEPT_ENCODING -> "xz")
           .get())
@@ -448,7 +720,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         success
       }
     }
-    "serve a bz2 compressed asset when brotli, gzip and bz2 are available, but bz2 requested" in withServer { client =>
+    "serve a bz2 compressed asset when brotli, gzip and bz2 are available, but bz2 requested" in withServer() { client =>
       val result = await(client.url("/encoding.js")
         .addHttpHeaders(ACCEPT_ENCODING -> "bz2")
         .get())

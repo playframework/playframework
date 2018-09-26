@@ -1,16 +1,20 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ Callable, CompletionStage, ConcurrentLinkedDeque }
-import javax.inject.{ Inject, Singleton }
 
+import akka.Done
+import javax.inject.{ Inject, Singleton }
 import play.api.Logger
 
 import scala.annotation.tailrec
 import scala.compat.java8.FutureConverters
-import scala.concurrent.Future
+import scala.concurrent.{ Future, Promise }
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Application lifecycle register.
@@ -69,8 +73,13 @@ trait ApplicationLifecycle {
 
   /**
    * Call to shutdown the application and execute the registered hooks.
+   *
+   * Since 2.7.0, implementations of <code>stop</code> are expected to be idempotent so invoking the method
+   * several times only runs the process once.
+   *
    * @return A future that will be redeemed once all hooks have executed.
    */
+  @deprecated("Do not invoke stop() directly. Instead, use CoordinatedShutdown.run to stop and release your resources.", "2.7.0")
   def stop(): Future[_]
 
   /**
@@ -88,6 +97,9 @@ class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
 
   override def addStopHook(hook: () => Future[_]): Unit = hooks.push(hook)
 
+  private val stopPromise: Promise[Done] = Promise()
+  private val started = new AtomicBoolean(false)
+
   /**
    * Call to shutdown the application.
    *
@@ -95,20 +107,29 @@ class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
    */
   override def stop(): Future[_] = {
 
-    // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
-    import play.core.Execution.Implicits.trampoline
+    // run the code only once and memoize the result of the invocation in a Promise.future so invoking
+    // the method many times causes a single run producing the same result in all cases.
+    if (started.compareAndSet(false, true)) {
+      // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
+      import play.core.Execution.Implicits.trampoline
 
-    @tailrec
-    def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
-      val hook = hooks.poll()
-      if (hook != null) clearHooks(previous.flatMap { _ =>
-        hook().recover {
-          case e => Logger.error("Error executing stop hook", e)
-        }
-      })
-      else previous
+      @tailrec
+      def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
+        val hook = hooks.poll()
+        if (hook != null) clearHooks(previous.flatMap { _ =>
+          val hookFuture = Try(hook()) match {
+            case Success(f) => f
+            case Failure(e) => Future.failed(e)
+          }
+          hookFuture.recover {
+            case e => Logger.error("Error executing stop hook", e)
+          }
+        })
+        else previous
+      }
+
+      stopPromise.completeWith(clearHooks().map(_ => Done))
     }
-
-    clearHooks()
+    stopPromise.future
   }
 }

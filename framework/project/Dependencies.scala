@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
 import Keys._
@@ -8,24 +8,34 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion = "2.5.4"
-  val akkaHttpVersion = "10.0.9"
-  val playJsonVersion = "2.6.3"
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.16")
+  val akkaHttpVersion = "10.1.5"
+  val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
+  val playJsonVersion = "2.6.10"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specsVersion = "3.9.4"
-  val specsBuild = Seq(
+  val specs2Version = "4.2.0"
+  val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
     "specs2-mock"
-  ).map("org.specs2" %% _ % specsVersion) ++ Seq(logback)
+  ).map("org.specs2" %% _ % specs2Version)
 
-  val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specsVersion
+  val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specs2Version
 
-  val specsSbt = specsBuild
+  val scalacheckDependencies = Seq(
+    "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
+    "org.scalacheck" %% "scalacheck"        % "1.14.0"     % Test
+  )
 
-  val jacksonVersion = "2.9.0"
+  // We need to use an older version of specs2 for sbt
+  // because we need Scala 2.10 support (sbt 0.13).
+  val specs2VersionForSbt = "3.10.0"
+  val specs2DepsForSbt = specs2Deps.map(_.withRevision(specs2VersionForSbt))
+  val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
+
+  val jacksonVersion = "2.9.6"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
@@ -40,58 +50,61 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava = "com.google.guava" % "guava" % "22.0"
+  val guava = "com.google.guava" % "guava" % "26.0-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
+  val mockitoAll = "org.mockito" % "mockito-core" % "2.21.0"
 
-  val h2database = "com.h2database" % "h2" % "1.4.196"
+  val h2database = "com.h2database" % "h2" % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.46"
+  val acolyteVersion = "1.0.49"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.7.0"
+  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
+
+  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.0"
+  // currently jjwt needs the JAXB Api package in JDK 9+
+  // since it actually uses javax/xml/bind/DatatypeConverter
+  // See: https://github.com/jwtk/jjwt/issues/317
+  val jaxbApi = "javax.xml.bind" % "jaxb-api" % "2.3.0"
 
   val jdbcDeps = Seq(
-    "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.6.3",
+    "com.zaxxer" % "HikariCP" % "3.2.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
-    "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
+    logback % Test,
+    "tyrex" % "tyrex" % "1.0.1"
+  ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "5.2.10.Final" % "test"
+    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
+    "org.hibernate" % "hibernate-core" % "5.3.5.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6")
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0")
     case _ => Nil
   }
 
-  val springFrameworkVersion = "4.3.10.RELEASE"
+  val springFrameworkVersion = "5.0.8.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    ("org.reflections" % "reflections" % "0.9.11")
-      .exclude("com.google.code.findbugs", "annotations")
-      .classifier(""),
-
     // Used by the Java routing DSL
     "net.jodah" % "typetools" % "0.5.0"
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time" % "2.9.9",
-    "org.joda" % "joda-convert" % "1.8.2"
+    "joda-time" % "joda-time" % "2.10",
+    "org.joda" % "joda-convert" % "2.1"
   )
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate" % "hibernate-validator" % "5.4.1.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.0.13.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
@@ -102,12 +115,13 @@ object Dependencies {
 
     ("org.springframework" % "spring-core" % springFrameworkVersion)
       .exclude("org.springframework", "spring-asm")
+      .exclude("org.springframework", "spring-jcl")
       .exclude("commons-logging", "commons-logging"),
 
     ("org.springframework" % "spring-beans" % springFrameworkVersion)
       .exclude("org.springframework", "spring-core")
 
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
   val junit = "junit" % "junit" % "4.12"
@@ -120,7 +134,7 @@ object Dependencies {
     logback
   ).map(_ % Test)
 
-  val guiceVersion = "4.1.0"
+  val guiceVersion = "4.2.0"
   val guiceDeps = Seq(
     "com.google.inject" % "guice" % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
@@ -132,153 +146,161 @@ object Dependencies {
     Seq("akka-testkit").map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
     jacksons ++
     Seq(
-      "commons-codec" % "commons-codec" % "1.10",
-
       playJson,
 
       guava,
       jjwt,
-
-      "org.apache.commons" % "commons-lang3" % "3.6",
+      jaxbApi,
 
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
 
       "org.scala-lang" % "scala-reflect" % scalaVersion,
       scalaJava8Compat
-    ) ++ scalaParserCombinators(scalaVersion) ++
-    specsBuild.map(_ % Test) ++
-    javaTestDeps
+    ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.15.Final"
+  val nettyVersion = "4.1.29.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64"
-  ) ++ specsBuild.map(_ % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
-  val nettyUtilsDependencies = slf4j
+  val cookieEncodingDependencies = slf4j
 
-  def routesCompilerDependencies(scalaVersion: String) = Seq(
-    "commons-io" % "commons-io" % "2.5",
-    specsMatcherExtra % Test
-  ) ++ specsBuild.map(_ % Test) ++ scalaParserCombinators(scalaVersion)
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
-    moduleId.extra(
-      "sbtVersion" -> CrossVersion.binarySbtVersion(sbtVersion),
-      "scalaVersion" -> CrossVersion.binaryScalaVersion(scalaVersion)
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.11.0"
+
+  def routesCompilerDependencies(scalaVersion: String) = {
+    val deps = CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, v)) if v >= 12 => specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test)
+      case _ => specs2DepsForSbt.map(_ % Test) ++ Seq(specsMatcherExtraForSbt % Test)
+    }
+    deps ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
+  }
+
+  private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
+    Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
+  }
+
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.7"
+
+  def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
+    (CrossVersion.binarySbtVersion(sbtVersion) match {
+      case "1.0" => specs2Deps.map(_ % Test)
+      case "0.13" => specs2DepsForSbt.map(_ % Test)
+    }) ++ Seq(
+      playFileWatch,
+      logback % Test
     )
   }
 
-  val runSupportDependencies = Seq(
-    "com.lightbend.play" %% "play-file-watch" % "1.0.0"
-  ) ++ specsBuild.map(_ % Test)
-
-  // use partial version so that non-standard scala binary versions from dbuild also work
-  def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.15" % "provided"
-    case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
-  }
-
-  val typesafeConfig = "com.typesafe" % "config" % "1.3.1"
+  val typesafeConfig = "com.typesafe" % "config" % "1.3.3"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
-    def sbtDep(moduleId: ModuleID) = sbtPluginDep(sbtVersion, scalaVersion, moduleId)
+    def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
 
     Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
       slf4jSimple,
-
+      playFileWatch,
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
-
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % "0.1.3"),
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.1"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.1")
-    ) ++ specsBuild.map(_ % Test)
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.3"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
+    ) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
+      case "1.0" => specs2Deps.map(_ % Test)
+      case "0.13" => specs2DepsForSbt.map(_ % Test)
+    }) :+ logback % Test
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.2.1"    % "webjars",
+    "org.webjars" % "jquery"   % "3.3.1"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "1.8.1"
+  val playDocVersion = "1.8.2"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.0",
+    "org.reactivestreams" % "reactive-streams" % "1.0.2",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     scalaJava8Compat
-  ) ++ specsBuild.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-
-
-  val scalacheckDependencies = Seq(
-    "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.13.5"     % Test
+  val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
+    guava % Test,
+    logback % Test
   )
 
-  val playServerDependencies = Seq(
-    guava % Test
-  ) ++ specsBuild.map(_ % Test)
+  val fluentleniumVersion = "3.6.1"
+  // This is the selenium version compatible with the FluentLenium version declared above.
+  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
+  val seleniumVersion = "3.13.0"
 
-  val seleniumVersion = "3.4.0"
-  val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
-    junitInterface,
-    guava,
-    findBugs,
-    "org.fluentlenium" % "fluentlenium-core" % "3.3.0" exclude("org.jboss.netty", "netty"),
+  val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
+    "org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.27" excludeAll(
+    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.31.0" excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
     "org.seleniumhq.selenium" % "selenium-api" % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support" % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
-  ) ++ guiceDeps
+  ) ++ guiceDeps ++ specs2Deps.map(_ % Test)
 
-  val playCacheDeps = specsBuild.map(_ % Test)
+  val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
 
   val jcacheApi = Seq(
     "javax.cache" % "cache-api" % "1.0.0"
   )
 
-  // Must use a version of ehcache that supports jcache 1.0.0
-  val ehcacheVersion = "2.10.4"
+  val ehcacheVersion = "2.10.5"
   val playEhcacheDeps = Seq(
     "net.sf.ehcache" % "ehcache" % ehcacheVersion,
     "org.ehcache" % "jcache" % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.5.3"
-  val playWsStandaloneVersion = "1.0.4"
+  val caffeineVersion = "2.6.2"
+  val playCaffeineDeps = Seq(
+    "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
+    "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
+  ) ++ jcacheApi
+
+  val playWsStandaloneVersion = "2.0.0-M4"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion
-  ) ++
-    (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
-    mockitoAll % Test
+  ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
+
+  // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
     "com.typesafe.play" %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" % "shaded-asynchttpclient" % playWsStandaloneVersion,
     "com.typesafe.play" % "shaded-oauth" % playWsStandaloneVersion,
-    "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion % Test
+    "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion % Test,
+    "net.sf.ehcache" % "ehcache" % ehcacheVersion % Test,
+    "org.ehcache" % "jcache" % "1.0.1" % Test
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
+  )
+
+  val salvationVersion = "2.5.0"
+  val playFilterDeps = Seq(
+    "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
 
 }
@@ -287,8 +309,8 @@ object Dependencies {
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.2", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.2", "2.11.11"),
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.6", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.6", "2.11.12"),
  */
  object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka
@@ -309,11 +331,17 @@ object Dependencies {
 
         project.dependsOn(withConfig)
       } else {
-        val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
-        val withConfig =
-          if (config == "") dep
-          else dep % config
-        project.settings(libraryDependencies += withConfig)
+        project.settings(libraryDependencies += {
+          val akkaHttpVersion = CrossVersion.partialVersion(scalaVersion.value) match {
+            case Some((2, 13)) => Dependencies.akkaHttpVersion_2_13
+            case _ => Dependencies.akkaHttpVersion
+          }
+          val dep = "com.typesafe.akka" %% module % akkaHttpVersion
+          val withConfig =
+            if (config == "") dep
+            else dep % config
+          withConfig
+        })
       }
   }
 }

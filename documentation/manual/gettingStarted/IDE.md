@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -9,13 +9,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases).
+Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases) in your project/plugins.sbt file or follow [sbteclipse docs](https://github.com/typesafehub/sbteclipse#for-sbt-013-and-up) to install globally.
 
 ```scala
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.1.0")
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.2")
 ```
 
-You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting in build.sbt:
 
 ```scala
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
@@ -24,7 +24,7 @@ EclipseKeys.preTasks := Seq(compile in Compile, compile in Test)
 
 If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
 
-If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
+If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following build.sbt (assuming you have no Scala sources)::
 
 ```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
@@ -51,7 +51,7 @@ If you want to grab the available source jars (this will take longer and it's po
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
-or from the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
+or from the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
 
 ```bash
 [my-first-app] $ eclipse skip-parents=false
@@ -159,7 +159,7 @@ Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
 ```scala
-addSbtPlugin("org.ensime" % "ensime-sbt" % "0.2.3")
+addSbtPlugin("org.ensime" % "sbt-ensime" % "2.0.1")
 ```
 
 Start SBT:
@@ -168,45 +168,20 @@ Start SBT:
 $ sbt
 ```
 
-Enter 'gen-ensime' at the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
+Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
-[MYPROJECT] $ gen-ensime
-[info] Gathering project information...
-[info] Processing project: ProjectRef(file:/Users/aemon/projects/www/MYPROJECT/,MYPROJECT)...
-[info]  Reading setting: name...
-[info]  Reading setting: organization...
-[info]  Reading setting: version...
-[info]  Reading setting: scala-version...
-[info]  Reading setting: module-name...
-[info]  Evaluating task: project-dependencies...
-[info]  Evaluating task: unmanaged-classpath...
-[info]  Evaluating task: managed-classpath...
-[info] Updating {file:/Users/aemon/projects/www/MYPROJECT/}MYPROJECT...
-[info] Done updating.
-[info]  Evaluating task: internal-dependency-classpath...
-[info]  Evaluating task: unmanaged-classpath...
-[info]  Evaluating task: managed-classpath...
-[info]  Evaluating task: internal-dependency-classpath...
-[info] Compiling 5 Scala sources and 1 Java source to /Users/aemon/projects/www/MYPROJECT/target/scala-2.9.1/classes...
-[info]  Evaluating task: exported-products...
-[info]  Evaluating task: unmanaged-classpath...
-[info]  Evaluating task: managed-classpath...
-[info]  Evaluating task: internal-dependency-classpath...
-[info]  Evaluating task: exported-products...
-[info]  Reading setting: source-directories...
-[info]  Reading setting: source-directories...
-[info]  Reading setting: class-directory...
-[info]  Reading setting: class-directory...
-[info]  Reading setting: ensime-config...
-[info] Wrote configuration to .ensime
+[[play-scala-seed] $ ensimeConfig
+[info] ENSIME update.
+...
+[info] ENSIME processing root (play-scala-seed)
 ```
 
 ### Start ENSIME
 
 From Emacs, execute M-x ensime and follow the on-screen instructions.
 
-That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "gen-ensime" and re-launch ENSIME.
+That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "ensimeConfig" and re-launch ENSIME.
 
 ### More Information
 
@@ -217,5 +192,4 @@ Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you 
 1. Eclipse Scala IDE: <http://scala-ide.org/>
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
 3. IntelliJ IDEA Scala Plugin: <https://blog.jetbrains.com/scala/>
-4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
-(see below for ENSIME/Play instructions)
+4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/ensime/ensime-emacs>

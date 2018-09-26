@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Play modules
 
 Play uses public modules to augment built-in functionality.  
@@ -191,6 +191,13 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation**: <https://github.com/tuxBurner/play-akkjobs/blob/master/README.md>
 * **Short description**: A simple Play 2.5 module, which allows you to manage jobs
 
+
+## Settings
+
+### Remote Configuration
+* **Website:** <https://github.com/play-rconf>
+* **Short description:** Loads and apply configuration items (keys & files) from remote providers like etcd, consul, DynamoDB...
+
 ## Templates and View
 
 ### Google Closure Template Plugin
@@ -213,6 +220,12 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/innoveit/play2-pdf/blob/master/README.md>
 * **Short description** Generate PDF output from HTML templates
 
+### PlayFOP (Java and Scala)
+
+* **Website (live demo, user guide, other docs):** <https://www.dmanchester.com/playfop>
+* **Repository:** <https://github.com/dmanchester/playfop>
+* **Short description:** A library for creating PDFs, images, and other types of output in Play applications. Accepts XSL-FO that an application has generated and processes it with [Apache FOP](https://xmlgraphics.apache.org/fop/).
+
 ### Play-Bootstrap (Java and Scala)
 * **Website:** <https://adrianhurt.github.io/play-bootstrap/>
 * **Repository:** <https://github.com/adrianhurt/play-bootstrap>
@@ -221,7 +234,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Thymeleaf module (Scala)
 * **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
 * **Documentation:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md>
-* **Short description:** Allows to use [Thymeleaf](http://www.thymeleaf.org/) template engine as an alternative
+* **Short description:** Allows to use [Thymeleaf](https://www.thymeleaf.org/) template engine as an alternative
 to Twirl
 
 ### Handlebars templates (Java and Scala)
@@ -273,6 +286,12 @@ to Twirl
 * **Website:** <https://github.com/Rhinofly/play-s3>
 * **Documentation:** <https://github.com/Rhinofly/play-s3/blob/master/README.md>
 * **Short description:** S3 (Simple Storage Service) API wrapper for Play
+
+### Benji (Scala)
+
+* **Website:** <https://github.com/zengularity/benji>
+* **Documentation:** <https://github.com/zengularity/benji/tree/master/examples>
+* **Short description:** A reactive module for the Benji library, providing an Object storage DSL (AWS/Ceph S3, Google Cloud Storage).
 
 ### Pusher
 * **Website:** <https://pusher.com/>

@@ -1,10 +1,15 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routes.compiler
 
 import java.io.File
-import org.apache.commons.io.FileUtils
+import java.nio.charset.Charset
+import java.nio.file.Files
+
+import scala.collection.JavaConverters._
+
 import scala.io.Codec
 
 /**
@@ -35,7 +40,7 @@ object RoutesCompiler {
     def unapply(file: File): Option[GeneratedSource] = {
 
       val lines: Array[String] = if (file.exists) {
-        FileUtils.readFileToString(file, implicitly[Codec].name).split('\n')
+        Files.readAllLines(file.toPath, Charset.forName(implicitly[Codec].name)).asScala.toArray[String]
       } else {
         Array.empty[String]
       }
@@ -89,7 +94,11 @@ object RoutesCompiler {
       generated.map {
         case (filename, content) =>
           val file = new File(generatedDir, filename)
-          FileUtils.writeStringToFile(file, content, implicitly[Codec].name)
+          if (!file.exists()) {
+            file.getParentFile.mkdirs()
+            file.createNewFile()
+          }
+          Files.write(file.toPath, content.getBytes(implicitly[Codec].name))
           file
       }
     }

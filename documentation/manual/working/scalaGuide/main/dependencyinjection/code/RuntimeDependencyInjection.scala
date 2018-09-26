@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.dependencyinjection
 
 import play.api.test._
@@ -105,7 +106,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
 class Module extends AbstractModule {
-  def configure() = {
+  override def configure() = {
 
     bind(classOf[Hello])
       .annotatedWith(Names.named("en"))
@@ -131,7 +132,7 @@ import play.api.{ Configuration, Environment }
 class Module(
   environment: Environment,
   configuration: Configuration) extends AbstractModule {
-  def configure() = {
+  override def configure() = {
     // Expect configuration like:
     // hello.en = "myapp.EnglishHello"
     // hello.de = "myapp.GermanHello"
@@ -163,9 +164,11 @@ import implemented._
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
+// A Module is needed to register bindings
 class Module extends AbstractModule {
-  def configure() = {
+  override def configure() = {
 
+    // Bind the `Hello` interface to the `EnglishHello` implementation as eager singleton.
     bind(classOf[Hello])
       .annotatedWith(Names.named("en"))
       .to(classOf[EnglishHello]).asEagerSingleton()
@@ -176,6 +179,39 @@ class Module extends AbstractModule {
   }
 }
 //#eager-guice-module
+}
+
+package eagerguicestartup {
+
+//#eager-guice-startup
+import scala.concurrent.Future
+import javax.inject._
+import play.api.inject.ApplicationLifecycle
+
+// This creates an `ApplicationStart` object once at start-up and registers hook for shut-down.
+@Singleton
+class ApplicationStart @Inject() (lifecycle: ApplicationLifecycle) {
+  // Shut-down hook
+  lifecycle.addStopHook { () =>
+    Future.successful(())
+  }
+  //...
+}
+//#eager-guice-startup
+}
+
+package eagerguicemodulestartup {
+
+import eagerguicestartup._
+//#eager-guice-module-startup
+import com.google.inject.AbstractModule
+
+class StartModule extends AbstractModule {
+  override def configure() = {
+    bind(classOf[ApplicationStart]).asEagerSingleton()
+  }
+}
+//#eager-guice-module-startup
 }
 
 package playmodule {
@@ -216,8 +252,9 @@ class HelloModule extends Module {
 //#eager-play-module
 }
 package injected.controllers {
+  import javax.inject.Inject
   import play.api.mvc._
-  class Application {
+  class Application @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
     def index = Action(Results.Ok)
   }
 }

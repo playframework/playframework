@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Intercepting HTTP requests
 
 Play's Java APIs provide two ways of intercepting action calls. The first is called `ActionCreator`, which provides a `createAction` method that is used to create the initial action used in action composition. It handles calling the actual method for your action, which allows you to intercept requests.
@@ -48,7 +48,9 @@ Note that `HttpRequestHandler` currently has two legacy methods with default imp
 
 ### Configuring the http request handler
 
-A custom http handler can be supplied by creating a class in the root package called `RequestHandler` that implements `HttpRequestHandler`.
+If you're using [`BuiltInComponents`](api/java/play/BuiltInComponents.html) to construct your app, override the `httpRequestHandler` method to return an instance of your custom handler.
+
+If you're using runtime dependency injection (e.g. Guice), the request handler can be dynamically loaded at runtime. The simplest way is to create a class in the root package called `RequestHandler` that implements `HttpRequestHandler`.
 
 If you don’t want to place your request handler in the root package, or if you want to be able to configure different request handlers for different environments, you can do this by configuring the `play.http.requestHandler` configuration property in `application.conf`:
 

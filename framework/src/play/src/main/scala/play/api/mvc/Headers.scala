@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.util.Locale
@@ -47,17 +48,12 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   /**
    * Append the given headers
    */
-  def add(headers: (String, String)*) = new Headers(this.headers ++ headers)
+  def add(headers: (String, String)*): Headers = new Headers(this.headers ++ headers)
 
   /**
    * Retrieves the first header value which is associated with the given key.
    */
   def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
-
-  override def equals(other: Any) = {
-    other.isInstanceOf[Headers] &&
-      toMap == other.asInstanceOf[Headers].toMap
-  }
 
   /**
    * Optionally returns the first header value associated with a key.
@@ -69,13 +65,6 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    */
   def getAll(key: String): Seq[String] = toMap.getOrElse(key, Nil)
 
-  override def hashCode = {
-    toMap.map {
-      case (name, value) =>
-        name.toLowerCase(Locale.ENGLISH) -> value
-    }.hashCode()
-  }
-
   /**
    * Retrieve all header keys
    */
@@ -84,7 +73,7 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   /**
    * Remove any headers with the given keys
    */
-  def remove(keys: String*) = {
+  def remove(keys: String*): Headers = {
     val keySet = TreeSet(keys: _*)(CaseInsensitiveOrdered)
     new Headers(headers.filterNot { case (name, _) => keySet(name) })
   }
@@ -92,18 +81,21 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   /**
    * Append the given headers, replacing any existing headers having the same keys
    */
-  def replace(headers: (String, String)*) = remove(headers.map(_._1): _*).add(headers: _*)
+  def replace(headers: (String, String)*): Headers = remove(headers.map(_._1): _*).add(headers: _*)
 
   /**
    * Transform the Headers to a Map
    */
   lazy val toMap: Map[String, Seq[String]] = {
-    val map = headers.groupBy(_._1.toLowerCase(Locale.ENGLISH)).map {
+    val builder = TreeMap.newBuilder[String, Seq[String]](CaseInsensitiveOrdered)
+
+    headers.groupBy(_._1.toLowerCase(Locale.ENGLISH)).foreach {
       case (_, headers) =>
         // choose the case of first header as canonical
-        headers.head._1 -> headers.map(_._2)
+        builder += headers.head._1 -> headers.map(_._2)
     }
-    TreeMap(map.toSeq: _*)(CaseInsensitiveOrdered)
+
+    builder.result()
   }
 
   /**
@@ -111,9 +103,23 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    */
   lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse(""))
 
-  override def toString = headers.toString()
-
   lazy val asJava: play.mvc.Http.Headers = new play.mvc.Http.Headers(this.toMap.mapValues(_.asJava).asJava)
+
+  /**
+   * A headers map with all keys normalized to lowercase
+   */
+  private lazy val lowercaseMap: Map[String, Set[String]] = toMap.map {
+    case (name, value) => name.toLowerCase(Locale.ENGLISH) -> value
+  }.mapValues(_.toSet)
+
+  override def equals(that: Any): Boolean = that match {
+    case other: Headers => lowercaseMap == other.lowercaseMap
+    case _ => false
+  }
+
+  override def hashCode: Int = lowercaseMap.hashCode()
+
+  override def toString: String = headers.toString()
 
 }
 

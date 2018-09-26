@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.ws.ahc
 
 import com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider
@@ -31,7 +32,7 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
       val settings = Map(
         "play.ws.cache.enabled" -> "true",
         "play.ws.cache.cachingProviderName" -> classOf[JCacheCachingProvider].getName,
-        "play.ws.cache.cacheManagerURI" -> env.classLoader.getResource("ehcache-play-ws-cache.xml").toURI.toString
+        "play.ws.cache.cacheManagerResource" -> "ehcache-play-ws-cache.xml"
       )
       Configuration.load(env, settings)
     }).build()) {
@@ -46,7 +47,7 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
       val settings = Map(
         "play.ws.cache.enabled" -> "true",
         "play.ws.cache.cachingProviderName" -> classOf[CaffeineCachingProvider].getName,
-        "play.ws.cache.cacheManagerURI" -> "caffeine.conf"
+        "play.ws.cache.cacheManagerResource" -> "caffeine.conf"
       )
       Configuration.load(env, settings)
     }).build()) {

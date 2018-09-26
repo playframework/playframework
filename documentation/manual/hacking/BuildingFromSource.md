@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Building Play from source
 
 If you want to use some unreleased changes for Play, or you want to contribute to the development of Play yourself, you'll need to compile Play from source. You’ll need a [Git client](https://git-scm.com/) to fetch the source.
 
 ## Prerequisites
 
-To build Play, you need to have [sbt](http://www.scala-sbt.org/) installed.
+To build Play, you need to have [sbt](https://www.scala-sbt.org/) installed.
 
 ## Grab the source
 
@@ -29,7 +29,7 @@ To build and publish Play, run `publishLocal`:
 > publishLocal
 ```
 
-This will build and publish Play for the default Scala version (currently 2.11.11). If you want to publish for all versions of Scala, you can cross build:
+This will build and publish Play for the default Scala version (currently 2.11.12). If you want to publish for all versions of Scala, you can cross build:
 
 ```bash
 > +publishLocal
@@ -38,7 +38,7 @@ This will build and publish Play for the default Scala version (currently 2.11.1
 Or to publish for a specific Scala version:
 
 ```bash
-> +++2.11.11 publishLocal
+> ++2.11.12 publishLocal
 ```
 
 ## Build the documentation

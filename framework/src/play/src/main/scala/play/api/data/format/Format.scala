@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.data.format
 
 import java.sql.Timestamp
@@ -177,7 +178,7 @@ object Formats {
     override val format = Some(("format.boolean", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
-      Right(data.get(key).getOrElse("false")).right.flatMap {
+      Right(data.getOrElse(key, "false")).right.flatMap {
         case "true" => Right(true)
         case "false" => Right(false)
         case _ => Left(Seq(FormError(key, "error.boolean", Nil)))

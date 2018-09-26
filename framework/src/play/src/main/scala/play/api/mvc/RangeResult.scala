@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import akka.NotUsed
@@ -363,10 +364,17 @@ object RangeResult {
   }
 
   def ofSource(entityLength: Option[Long], source: Source[ByteString, _], rangeHeader: Option[String], fileName: Option[String], contentType: Option[String]): Result = {
-    val commonHeaders = Seq(
-      Some(ACCEPT_RANGES -> "bytes"),
-      fileName.map(f => CONTENT_DISPOSITION -> s"""attachment; ${HttpHeaderParameterEncoding.encode("filename", f)}""")
-    ).flatten.toMap
+    val commonHeaders = {
+      val buf = Map.newBuilder[String, String]
+
+      buf += ACCEPT_RANGES -> "bytes"
+
+      fileName.foreach { f =>
+        buf += CONTENT_DISPOSITION -> s"""attachment; ${HttpHeaderParameterEncoding.encode("filename", f)}"""
+      }
+
+      buf.result()
+    }
 
     RangeSet(entityLength, rangeHeader) match {
       case rangeSet: SatisfiableRangeSet =>

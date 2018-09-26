@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs
 
 import akka.actor.ActorSystem
@@ -52,7 +53,7 @@ class CometSpec extends Specification {
         implicit val m = app.materializer
         val controller = new MockController(m, ActionBuilder.ignoringBody)
         val result = controller.cometString.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage('kiki');</script><script type=\"text/javascript\">parent.cometMessage('foo');</script><script type=\"text/javascript\">parent.cometMessage('bar');</script>")
+        contentAsString(result) must contain("<html><body><script>parent.cometMessage('kiki');</script><script>parent.cometMessage('foo');</script><script>parent.cometMessage('bar');</script>")
       } finally {
         app.stop()
       }
@@ -64,7 +65,7 @@ class CometSpec extends Specification {
         implicit val m = app.materializer
         val controller = new MockController(m, ActionBuilder.ignoringBody)
         val result = controller.cometJson.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage(\"jsonString\");</script>")
+        contentAsString(result) must contain("<html><body><script>parent.cometMessage(\"jsonString\");</script>")
       } finally {
         app.stop()
       }

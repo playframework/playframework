@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 package guice
 
@@ -230,13 +231,13 @@ abstract class GuiceBuilder[Self] protected (
  * Default empty builder for creating Guice-backed Injectors.
  */
 final class GuiceInjectorBuilder(
-  environment: Environment = Environment.simple(),
-  configuration: Configuration = Configuration.empty,
-  modules: Seq[GuiceableModule] = Seq.empty,
-  overrides: Seq[GuiceableModule] = Seq.empty,
-  disabled: Seq[Class[_]] = Seq.empty,
-  binderOptions: Set[BinderOption] = BinderOption.defaults,
-  eagerly: Boolean = false) extends GuiceBuilder[GuiceInjectorBuilder](
+    environment: Environment = Environment.simple(),
+    configuration: Configuration = Configuration.empty,
+    modules: Seq[GuiceableModule] = Seq.empty,
+    overrides: Seq[GuiceableModule] = Seq.empty,
+    disabled: Seq[Class[_]] = Seq.empty,
+    binderOptions: Set[BinderOption] = BinderOption.defaults,
+    eagerly: Boolean = false) extends GuiceBuilder[GuiceInjectorBuilder](
   environment, configuration, modules, overrides, disabled, binderOptions, eagerly
 ) {
 
@@ -343,7 +344,7 @@ trait GuiceableModuleConversions {
    */
   def guice(bindings: Seq[PlayBinding[_]], binderOptions: Set[BinderOption]): GuiceModule = {
     new com.google.inject.AbstractModule {
-      def configure(): Unit = {
+      override def configure(): Unit = {
         binderOptions.foreach(_(binder))
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]

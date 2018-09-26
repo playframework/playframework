@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.akka;
 
 import akka.actor.*;
@@ -110,7 +111,7 @@ public class JavaAkka {
                 public CompletionStage<Result> index() {
                     return new javaguide.akka.async.Application().index();
                 }
-            }, fakeRequest(), app.getWrappedApplication().materializer());
+            }, fakeRequest(), app.asScala().materializer());
             assertThat(contentAsString(result), equalTo("Got 2"));
         });
 

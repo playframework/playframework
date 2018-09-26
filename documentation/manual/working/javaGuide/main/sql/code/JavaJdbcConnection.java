@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.sql;
 
 import java.sql.Connection;
@@ -12,7 +13,6 @@ import play.mvc.Controller;
 import play.db.NamedDatabase;
 import play.db.Database;
 
-// inject "orders" database instead of "default"
 class JavaJdbcConnection {
     private Database db;
     private DatabaseExecutionContext executionContext;

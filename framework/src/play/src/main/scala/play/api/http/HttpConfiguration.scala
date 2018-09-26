@@ -1,17 +1,18 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.http
 
 import javax.inject.{ Inject, Provider, Singleton }
-
 import com.typesafe.config.ConfigMemorySize
-import org.apache.commons.codec.digest.DigestUtils
 import play.api._
+import play.api.libs.Codecs
 import play.api.mvc.Cookie.SameSite
-import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
+import play.core.cookie.encoding.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
 
 import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
 
 /**
  * HTTP related configuration of a Play application
@@ -23,14 +24,14 @@ import scala.concurrent.duration._
  * @param fileMimeTypes The fileMimeTypes configuration
  */
 case class HttpConfiguration(
-  context: String = "/",
-  parser: ParserConfiguration = ParserConfiguration(),
-  actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
-  cookies: CookiesConfiguration = CookiesConfiguration(),
-  session: SessionConfiguration = SessionConfiguration(),
-  flash: FlashConfiguration = FlashConfiguration(),
-  fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
-  secret: SecretConfiguration = SecretConfiguration())
+    context: String = "/",
+    parser: ParserConfiguration = ParserConfiguration(),
+    actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
+    cookies: CookiesConfiguration = CookiesConfiguration(),
+    session: SessionConfiguration = SessionConfiguration(),
+    flash: FlashConfiguration = FlashConfiguration(),
+    fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
+    secret: SecretConfiguration = SecretConfiguration())
 
 /**
  * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
@@ -89,14 +90,14 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * @param jwt        The JWT specific information
  */
 case class SessionConfiguration(
-  cookieName: String = "PLAY_SESSION",
-  secure: Boolean = false,
-  maxAge: Option[FiniteDuration] = None,
-  httpOnly: Boolean = true,
-  domain: Option[String] = None,
-  path: String = "/",
-  sameSite: Option[SameSite] = Some(SameSite.Lax),
-  jwt: JWTConfiguration = JWTConfiguration()
+    cookieName: String = "PLAY_SESSION",
+    secure: Boolean = false,
+    maxAge: Option[FiniteDuration] = None,
+    httpOnly: Boolean = true,
+    domain: Option[String] = None,
+    path: String = "/",
+    sameSite: Option[SameSite] = Some(SameSite.Lax),
+    jwt: JWTConfiguration = JWTConfiguration()
 )
 
 /**
@@ -111,13 +112,13 @@ case class SessionConfiguration(
  * @param jwt        The JWT specific information
  */
 case class FlashConfiguration(
-  cookieName: String = "PLAY_FLASH",
-  secure: Boolean = false,
-  httpOnly: Boolean = true,
-  domain: Option[String] = None,
-  path: String = "/",
-  sameSite: Option[SameSite] = Some(SameSite.Lax),
-  jwt: JWTConfiguration = JWTConfiguration()
+    cookieName: String = "PLAY_FLASH",
+    secure: Boolean = false,
+    httpOnly: Boolean = true,
+    domain: Option[String] = None,
+    path: String = "/",
+    sameSite: Option[SameSite] = Some(SameSite.Lax),
+    jwt: JWTConfiguration = JWTConfiguration()
 )
 
 /**
@@ -127,8 +128,8 @@ case class FlashConfiguration(
  * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
  */
 case class ParserConfiguration(
-  maxMemoryBuffer: Int = 102400,
-  maxDiskBuffer: Long = 10485760)
+    maxMemoryBuffer: Long = 102400,
+    maxDiskBuffer: Long = 10485760)
 
 /**
  * Configuration for action composition.
@@ -138,8 +139,8 @@ case class ParserConfiguration(
  *                                        executed before the action composition ones.
  */
 case class ActionCompositionConfiguration(
-  controllerAnnotationsFirst: Boolean = false,
-  executeActionCreatorActionFirst: Boolean = false)
+    controllerAnnotationsFirst: Boolean = false,
+    executeActionCreatorActionFirst: Boolean = false)
 
 /**
  * Configuration for file MIME types, mapping from extension to content type.
@@ -189,8 +190,7 @@ object HttpConfiguration {
     HttpConfiguration(
       context = context,
       parser = ParserConfiguration(
-        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength")
-          .toBytes.toInt,
+        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
         maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
       ),
       actionComposition = ActionCompositionConfiguration(
@@ -220,13 +220,20 @@ object HttpConfiguration {
         jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
-        config.get[String]("play.http.fileMimeTypes")
-        .split('\n')
-        .map(_.trim)
-        .filter(_.nonEmpty)
-        .filter(_ (0) != '#')
-        .map(_.split('='))
-        .map(parts => parts(0) -> parts.drop(1).mkString).toMap
+        config.get[String]("play.http.fileMimeTypes").split('\n').flatMap { l =>
+          val line = l.trim
+
+          line.splitAt(1) match {
+            case ("", "") => Option.empty[(String, String)] // blank
+            case ("#", _) => Option.empty[(String, String)] // comment
+
+            case _ => // "foo=bar".span(_ != '=') -> (foo,=bar)
+              line.span(_ != '=') match {
+                case (key, v) => Some(key -> v.drop(1)) // '=' prefix
+                case _ => Option.empty[(String, String)] // skip invalid
+              }
+          }
+        }(scala.collection.breakOut)
       ),
       secret = getSecretConfiguration(config, environment)
     )
@@ -251,7 +258,7 @@ object HttpConfiguration {
           // No application.conf?  Oh well, just use something hard coded.
           "she sells sea shells on the sea shore"
         )(_.toString)
-        val md5Secret = DigestUtils.md5Hex(secret)
+        val md5Secret = Codecs.md5(secret)
         logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
         md5Secret
       case Some(s) => s
@@ -265,7 +272,10 @@ object HttpConfiguration {
   /**
    * Don't use this - only exists for transition from global state
    */
-  private[play] def current = Play.privateMaybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
+  private[play] def current: HttpConfiguration = Play.privateMaybeApplication match {
+    case Success(app) => httpConfigurationCache(app)
+    case Failure(_) => HttpConfiguration()
+  }
 
   /**
    * For calling from Java.
@@ -322,10 +332,10 @@ object HttpConfiguration {
  * @param dataClaim The claim key corresponding to the data map passed in by the user
  */
 case class JWTConfiguration(
-  signatureAlgorithm: String = "HS256",
-  expiresAfter: Option[FiniteDuration] = None,
-  clockSkew: FiniteDuration = 30.seconds,
-  dataClaim: String = "data"
+    signatureAlgorithm: String = "HS256",
+    expiresAfter: Option[FiniteDuration] = None,
+    clockSkew: FiniteDuration = 30.seconds,
+    dataClaim: String = "data"
 )
 
 object JWTConfigurationParser {

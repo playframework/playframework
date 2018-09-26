@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt
 
-import sbt.Keys._
 import sbt._
 
 import play.dev.filewatch.FileWatchService
@@ -11,7 +11,7 @@ import play.dev.filewatch.FileWatchService
 /**
  * Declares the default imports for Play plugins.
  */
-object PlayImport {
+object PlayImport extends PlayImportCompat {
 
   val Production = config("production")
 
@@ -22,6 +22,14 @@ object PlayImport {
     class ComponentExternalisedException extends RuntimeException(msg) with FeedbackProvidedException
     throw new ComponentExternalisedException
   }
+
+  val playCore = component("play")
+
+  val nettyServer = component("play-netty-server")
+
+  val akkaHttpServer = component("play-akka-http-server")
+
+  val logback = component("play-logback")
 
   val evolutions = component("play-jdbc-evolutions")
 
@@ -57,6 +65,8 @@ object PlayImport {
 
   val ehcache = component("play-ehcache")
 
+  val caffeine = component("play-caffeine-cache")
+
   def json = movedExternal(
     """play-json module has been moved to a separate project.
       |See https://playframework.com/documentation/2.6.x/Migration26 for details.""".stripMargin)
@@ -72,39 +82,6 @@ object PlayImport {
 
   val specs2 = component("play-specs2")
 
-  /**
-   * Add this to your build.sbt, eg:
-   *
-   * {{{
-   *   emojiLogs
-   * }}}
-   */
-  lazy val emojiLogs = logManager ~= { lm =>
-    new LogManager {
-      def apply(data: Settings[Scope], state: State, task: Def.ScopedKey[_], writer: java.io.PrintWriter) = {
-        val l = lm.apply(data, state, task, writer)
-        val FailuresErrors = "(?s).*(\\d+) failures?, (\\d+) errors?.*".r
-        new Logger {
-          def filter(s: String) = {
-            val filtered = s.replace("\033[32m+\033[0m", "\u2705 ")
-              .replace("\033[33mx\033[0m", "\u274C ")
-              .replace("\033[31m!\033[0m", "\uD83D\uDCA5 ")
-            filtered match {
-              case FailuresErrors("0", "0") => filtered + " \uD83D\uDE04"
-              case FailuresErrors(_, _) => filtered + " \uD83D\uDE22"
-              case _ => filtered
-            }
-          }
-          def log(level: Level.Value, message: => String) = l.log(level, filter(message))
-          def success(message: => String) = l.success(message)
-          def trace(t: => Throwable) = l.trace(t)
-
-          override def ansiCodesSupported = l.ansiCodesSupported
-        }
-      }
-    }
-  }
-
   object PlayKeys {
     val playDefaultPort = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
     val playDefaultAddress = SettingKey[String]("playDefaultAddress", "The default address that Play runs on")
@@ -117,6 +94,7 @@ object PlayImport {
 
     val externalizeResources = SettingKey[Boolean]("playExternalizeResources", "Whether resources should be externalized into the conf directory when Play is packaged as a distribution.")
     val playExternalizedResources = TaskKey[Seq[(File, String)]]("playExternalizedResources", "The resources to externalize")
+    val externalizeResourcesExcludes = SettingKey[Seq[File]]("externalizeResourcesExcludes", "Resources that should not be externalized but stay in the generated jar")
     val playJarSansExternalized = TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
 
     val playOmnidoc = SettingKey[Boolean]("playOmnidoc", "Determines whether to use the aggregated Play documentation")

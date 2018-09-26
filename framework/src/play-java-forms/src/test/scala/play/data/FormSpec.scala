@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data
 
 import java.util
 import java.util.Optional
 import java.time.{ LocalDate, ZoneId }
-import javax.validation.{ Validation, Validator, Configuration => vConfiguration }
+import javax.validation.{ Validation, ValidatorFactory, Configuration => vConfiguration }
 import javax.validation.groups.Default
 
 import com.typesafe.config.{ Config, ConfigFactory }
@@ -44,7 +45,7 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
   class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty) extends BuiltInComponentsFromContext(context)
-      with FormFactoryComponents {
+    with FormFactoryComponents {
     override def router(): Router = Router.empty()
 
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
@@ -99,7 +100,7 @@ trait FormSpec extends Specification {
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
 
         myForm hasErrors () must beEqualTo(true)
-        myForm.field("task.name").getValue.asScala must beSome("peter")
+        myForm.field("task.name").value.asScala must beSome("peter")
       }
       "have an error due to missing required value" in new WithApplication(application()) {
         val contextComponents = defaultContextComponents
@@ -335,9 +336,9 @@ trait FormSpec extends Specification {
 
     "support email validation" in {
       val userEmail = formFactory.form(classOf[UserEmail])
-      userEmail.bind(Map("email" -> "john@example.com").asJava).allErrors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).allErrors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).allErrors().asScala must not(beEmpty)
+      userEmail.bind(Map("email" -> "john@example.com").asJava).errors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
+      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not(beEmpty)
     }
 
     "support custom validators" in {
@@ -351,33 +352,90 @@ trait FormSpec extends Specification {
 
       "that returns customized message when validator fails" in {
         val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava)
+          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue", "nailColor" -> "darkblue").asJava)
         form.hasErrors must beEqualTo(true)
         form.errors("hairColor").asScala must beEmpty
+        form.errors("nailColor").asScala must beEmpty
         val validationErrors = form.errors("skinColor")
         validationErrors.size() must beEqualTo(1)
         validationErrors.get(0).message must beEqualTo("notblue")
+        validationErrors.get(0).arguments().size must beEqualTo(2)
+        validationErrors.get(0).arguments().get(0) must beEqualTo("argOne")
+        validationErrors.get(0).arguments().get(1) must beEqualTo("argTwo")
       }
 
       "that returns customized message in annotation when validator fails" in {
         val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava)
+          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white", "nailColor" -> "darkblue").asJava)
         form.errors("skinColor").asScala must beEmpty
+        form.errors("nailColor").asScala must beEmpty
         form.hasErrors must beEqualTo(true)
         val validationErrors = form.errors("hairColor")
         validationErrors.size() must beEqualTo(1)
         validationErrors.get(0).message must beEqualTo("i-am-blue")
+        validationErrors.get(0).arguments().size must beEqualTo(0)
+      }
+
+      "that returns customized message when validator fails even when args param from getErrorMessageKey is null" in {
+        val form = formFactory.form(classOf[MyBlueUser]).bind(
+          Map("name" -> "Nemo", "skinColor" -> "blue", "hairColor" -> "blue", "nailColor" -> "yellow").asJava)
+        form.errors("skinColor").asScala must beEmpty
+        form.errors("hairColor").asScala must beEmpty
+        form.hasErrors must beEqualTo(true)
+        val validationErrors = form.errors("nailColor")
+        validationErrors.size() must beEqualTo(1)
+        validationErrors.get(0).message must beEqualTo("notdarkblue")
+        validationErrors.get(0).arguments().size must beEqualTo(0)
       }
 
     }
 
     "support type arguments constraints" in {
-      val listForm = formFactory.form(classOf[ListForm]).bindFromRequest(FormSpec.dummyRequest(Map("values[0]" -> Array("4"), "values[1]" -> Array("-3"), "values[2]" -> Array("6"))))
+      val listForm = formFactory.form(classOf[TypeArgumentForm]).bindFromRequest(FormSpec.dummyRequest(Map(
+        "list[0]" -> Array("4"), "list[1]" -> Array("-3"), "list[2]" -> Array("6"),
+        "map['ab']" -> Array("28"), "map['something']" -> Array("2"), "map['worksperfect']" -> Array("87"),
+        "optional" -> Array("Acme")
+      )))
 
       listForm.hasErrors must beEqualTo(true)
-      listForm.allErrors().size() must beEqualTo(1)
-      listForm.errors("values[1]").get(0).messages().size() must beEqualTo(1)
-      listForm.errors("values[1]").get(0).messages().get(0) must beEqualTo("error.min")
+      listForm.errors().size() must beEqualTo(4)
+      listForm.errors("list[1]").get(0).messages().size() must beEqualTo(1)
+      listForm.errors("list[1]").get(0).messages().get(0) must beEqualTo("error.min")
+      listForm.value().get().getList.get(0) must beEqualTo(4)
+      listForm.value().get().getList.get(1) must beEqualTo(-3)
+      listForm.value().get().getList.get(2) must beEqualTo(6)
+      listForm.errors("map[ab]").get(0).messages().get(0) must beEqualTo("error.minLength")
+      listForm.value().get().getMap.get("ab") must beEqualTo(28)
+      listForm.errors("map[something]").get(0).messages().get(0) must beEqualTo("error.min")
+      listForm.value().get().getMap.get("something") must beEqualTo(2)
+      listForm.value().get().getMap.get("worksperfect") must beEqualTo(87)
+      listForm.errors("optional").get(0).messages().get(0) must beEqualTo("error.minLength")
+      listForm.value().get().getOptional.get must beEqualTo("Acme")
+      // Also test an Optional that binds a value but doesn't cause a validation error:
+      val optForm = formFactory.form(classOf[TypeArgumentForm]).bindFromRequest(FormSpec.dummyRequest(Map(
+        "optional" -> Array("Microsoft Corporation")
+      )))
+      optForm.errors().size() must beEqualTo(0)
+      optForm.get().getOptional.get must beEqualTo("Microsoft Corporation")
+    }
+
+    "support @repeatable constraints" in {
+      val form = formFactory.form(classOf[RepeatableConstraintsForm]).bind(Map("name" -> "xyz").asJava)
+      form.field("name").constraints().size() must beEqualTo(4)
+      form.field("name").constraints().get(0)._1 must beEqualTo("constraint.validatewith")
+      form.field("name").constraints().get(1)._1 must beEqualTo("constraint.validatewith")
+      form.field("name").constraints().get(2)._1 must beEqualTo("constraint.pattern")
+      form.field("name").constraints().get(3)._1 must beEqualTo("constraint.pattern")
+      form.hasErrors must beEqualTo(true)
+      form.hasGlobalErrors() must beEqualTo(false)
+      form.errors().size() must beEqualTo(4)
+      form.errors("name").size() must beEqualTo(4)
+      val nameErrorMessages = form.errors("name").asScala.flatMap(_.messages().asScala)
+      nameErrorMessages.size must beEqualTo(4)
+      nameErrorMessages must contain("Should be a - c")
+      nameErrorMessages must contain("Should be c - h")
+      nameErrorMessages must contain("notgreen")
+      nameErrorMessages must contain("notblue")
     }
 
     "work with the @repeat helper" in {
@@ -465,7 +523,7 @@ trait FormSpec extends Specification {
       // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
       // used come from the form, not the input data
       new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validator())
+        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validatorFactory())
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {
@@ -610,7 +668,7 @@ trait FormSpec extends Specification {
     "honor its validate method" in {
       "when it returns an error object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.error("password").message() must beEqualTo ("Passwords do not match")
+        myForm.error("password").get.message() must beEqualTo ("Passwords do not match")
       }
       "when it returns an null (error) object" in {
         val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
@@ -619,7 +677,7 @@ trait FormSpec extends Specification {
       }
       "when it returns an error object but is skipped because its not in validation group" in {
         val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.error("password") must beEqualTo (null)
+        myForm.error("password").isPresent must beFalse
       }
       "when it returns a string" in {
         val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "fail@google.com").asJava)
@@ -699,9 +757,9 @@ object FormSpec {
       .build()
   }
 
-  def validator(): Validator = {
+  def validatorFactory(): ValidatorFactory = {
     val validationConfig: vConfiguration[_] = Validation.byDefaultProvider().configure().messageInterpolator(new ParameterMessageInterpolator())
-    validationConfig.buildValidatorFactory().getValidator()
+    validationConfig.buildValidatorFactory()
   }
 
 }

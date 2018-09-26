@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.routing
 
 import play.api.libs.typedmap.TypedKey
 import play.api.{ Configuration, Environment }
 import play.api.mvc.{ Handler, RequestHeader }
+import play.api.routing.Router.Routes
 import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
@@ -13,7 +15,7 @@ import play.utils.Reflect
  * A router.
  */
 trait Router {
-
+  self =>
   /**
    * The actual routes of the router.
    */
@@ -27,20 +29,40 @@ trait Router {
   def documentation: Seq[(String, String, String)]
 
   /**
-   * Prefix this router with the given prefix.
+   * Get a new router that routes requests to `s"$prefix/$path"` in the same way this router routes requests to `path`.
    *
-   * Should return a new router that uses the prefix, but legacy implementations may just update their existing prefix.
+   * @return the prefixed router
    */
   def withPrefix(prefix: String): Router
 
   /**
+   * An alternative syntax for `withPrefix`. For example:
+   *
+   * {{{
+   *   val router = "/bar" /: barRouter
+   * }}}
+   */
+  final def /:(prefix: String): Router = withPrefix(prefix)
+
+  /**
    * A lifted version of the routes partial function.
    */
-  def handlerFor(request: RequestHeader): Option[Handler] = {
+  final def handlerFor(request: RequestHeader): Option[Handler] = {
     routes.lift(request)
   }
 
   def asJava: play.routing.Router = new JavaRouterAdapter(this)
+
+  /**
+   * Compose two routers into one. The resulting router will contain
+   * both the routes in `this` as well as `router`
+   */
+  final def orElse(other: Router): Router = new Router {
+    def documentation: Seq[(String, String, String)] = self.documentation ++ other.documentation
+    def withPrefix(prefix: String): Router = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
+    def routes: Routes = self.routes.orElse(other.routes)
+  }
+
 }
 
 /**
@@ -102,26 +124,6 @@ object Router {
     val HandlerDef: TypedKey[HandlerDef] = TypedKey("HandlerDef")
   }
 
-  /** Tags that are added to requests by the router. */
-  @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
-  object Tags {
-    /** The verb that the router matched */
-    @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
-    val RouteVerb = "ROUTE_VERB"
-    /** The pattern that the router used to match the path */
-    @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
-    val RoutePattern = "ROUTE_PATTERN"
-    /** The controller that was routed to */
-    @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
-    val RouteController = "ROUTE_CONTROLLER"
-    /** The method on the controller that was invoked */
-    @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
-    val RouteActionMethod = "ROUTE_ACTION_METHOD"
-    /** The comments in the routes file that were above the route */
-    @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
-    val RouteComments = "ROUTE_COMMENTS"
-  }
-
   /**
    * Create a new router from the given partial function
    *
@@ -140,6 +142,13 @@ object Router {
     def withPrefix(prefix: String) = this
     def routes = PartialFunction.empty
   }
+
+  /**
+   * Add the given prefix to the given path, collapsing any slashes.
+   */
+  def prefixPath(prefix: String, path: String = ""): String = {
+    prefix + (if (prefix.endsWith("/")) "" else "/") + path.stripPrefix("/")
+  }
 }
 
 /**
@@ -153,7 +162,7 @@ trait SimpleRouter extends Router { self =>
     } else {
       new Router {
         def routes = {
-          val p = if (prefix.endsWith("/")) prefix else prefix + "/"
+          val p = Router.prefixPath(prefix)
           val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
             case rh: RequestHeader if rh.path.startsWith(p) =>
               val newPath = rh.path.drop(p.length - 1)
@@ -161,7 +170,7 @@ trait SimpleRouter extends Router { self =>
           }
           Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
         }
-        def withPrefix(prefix: String) = self.withPrefix(prefix)
+        def withPrefix(p: String) = self.withPrefix(Router.prefixPath(p, prefix))
         def documentation = self.documentation
       }
     }

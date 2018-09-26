@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db
 
 import com.zaxxer.hikari.HikariConfig
@@ -69,12 +70,8 @@ class HikariCPConfigSpec extends Specification {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.getMaximumPoolSize must beEqualTo(10)
       }
 
-      "initializationFailFast to true" in new Configs {
-        new HikariCPConfig(dbConfig, reference).toHikariConfig.isInitializationFailFast must beTrue
-      }
-
-      "initializationFailTimeout to 1" in new Configs {
-        new HikariCPConfig(dbConfig, reference).toHikariConfig.getInitializationFailTimeout must beEqualTo(1)
+      "initializationFailTimeout to -1" in new Configs {
+        new HikariCPConfig(dbConfig, reference).toHikariConfig.getInitializationFailTimeout must beEqualTo(-1)
       }
 
       "isolateInternalQueries to false" in new Configs {
@@ -140,11 +137,6 @@ class HikariCPConfigSpec extends Specification {
       "initializationFailTimeout" in new Configs {
         val config = from("hikaricp.initializationFailTimeout" -> "10")
         new HikariCPConfig(dbConfig, config).toHikariConfig.getInitializationFailTimeout must beEqualTo(10)
-      }
-
-      "initializationFailFast" in new Configs {
-        val config = from("hikaricp.initializationFailFast" -> "false", "hikaricp.initializationFailTimeout" -> "-1")
-        new HikariCPConfig(dbConfig, config).toHikariConfig.isInitializationFailFast must beFalse
       }
 
       "isolateInternalQueries" in new Configs {

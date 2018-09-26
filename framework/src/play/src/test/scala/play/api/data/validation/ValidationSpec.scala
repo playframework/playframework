@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.data.validation
 
 import org.specs2.mutable._
@@ -9,6 +10,8 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.validation.Constraints._
+
+import play.api.libs.json.JsonValidationError
 
 class ValidationSpec extends Specification {
 
@@ -234,6 +237,15 @@ class ValidationSpec extends Specification {
       val expected = Invalid(List(ValidationError("error.minLength", 1), ValidationError("error.maxLength", 10)))
 
       ParameterValidator(constraints, values: _*) must equalTo(expected)
+    }
+
+    "ValidationError" should {
+      "Preserve varargs when converting a JsonValidationError to a Play ValidationError" in {
+        val jsonError = JsonValidationError("Testing, testing {1} {2} {3}", "one", "two", "three")
+        val validationError = ValidationError.fromJsonValidationError(jsonError)
+        jsonError.args(2) must equalTo("three")
+        validationError.args(2) must equalTo("three")
+      }
     }
   }
 

@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db
 
-import javax.inject.{ Inject, Provider, Singleton }
-
 import com.typesafe.config.Config
+import javax.inject.{ Inject, Provider, Singleton }
+import play.api._
+import play.api.inject._
+import play.db.NamedDatabaseImpl
 
 import scala.concurrent.Future
-
-import play.api.inject._
-import play.api._
-import play.db.NamedDatabaseImpl
+import scala.util.Try
 
 /**
  * DB runtime inject module.
@@ -81,9 +81,9 @@ class DBApiProvider(
     val configs = if (config.hasPath(dbKey)) {
       Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
     } else Map.empty[String, Config]
-    val db = new DefaultDBApi(configs, pool, environment)
-    lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
-    db.connect(logConnection = environment.mode != Mode.Test)
+    val db = new DefaultDBApi(configs, pool, environment, maybeInjector.getOrElse(NewInstanceInjector))
+    lifecycle.addStopHook { () => Future.fromTry(Try(db.shutdown())) }
+    db.initialize(logInitialization = environment.mode != Mode.Test)
     db
   }
 }

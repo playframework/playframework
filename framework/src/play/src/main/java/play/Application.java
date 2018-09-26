@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play;
 
 import java.io.File;
@@ -23,7 +24,10 @@ public interface Application {
      *
      * @return the application
      * @see Application#asScala() method
+     *
+     * @deprecated Use {@link #asScala()} instead.
      */
+    @Deprecated
     play.api.Application getWrappedApplication();
 
     /**
@@ -35,14 +39,11 @@ public interface Application {
     play.api.Application asScala();
 
     /**
-     * Get the application configuration.
+     * Get the application environment.
      *
-     * @return the configuration
+     * @return the environment.
      */
-    @Deprecated
-    default Configuration configuration() {
-        return new Configuration(this.config());
-    }
+    Environment environment();
 
     /**
      * Get the application configuration.
@@ -65,7 +66,7 @@ public interface Application {
      * @return the application path
      */
     default File path() {
-        return getWrappedApplication().path();
+        return asScala().path();
     }
 
     /**
@@ -74,43 +75,7 @@ public interface Application {
      * @return the application classloader
      */
     default ClassLoader classloader() {
-        return getWrappedApplication().classloader();
-    }
-
-    /**
-     * Get a file relative to the application root path.
-     *
-     * @param relativePath relative path of the file to fetch
-     * @return a file instance - it is not guaranteed that the file exists
-     * @deprecated Deprecated as in 2.6.0. Use {@link Environment#getFile} instead.
-     */
-    @Deprecated
-    default File getFile(String relativePath) {
-        return getWrappedApplication().getFile(relativePath);
-    }
-
-    /**
-     * Get a resource from the classpath.
-     *
-     * @param relativePath relative path of the resource to fetch
-     * @return URL to the resource (may be null)
-     * @deprecated Deprecated as in 2.6.0. Use {@link Environment#resource(String)} instead.
-     */
-    @Deprecated
-    default URL resource(String relativePath) {
-        return Scala.orNull(getWrappedApplication().resource(relativePath));
-    }
-
-    /**
-     * Get a resource stream from the classpath.
-     *
-     * @param relativePath relative path of the resource to fetch
-     * @return InputStream to the resource (may be null)
-     * @deprecated Deprecated as in 2.6.0. Use{@link Environment#resourceAsStream(String)} instead.
-     */
-    @Deprecated
-    default InputStream resourceAsStream(String relativePath) {
-        return Scala.orNull(getWrappedApplication().resourceAsStream(relativePath));
+        return asScala().classloader();
     }
 
     /**
@@ -119,7 +84,7 @@ public interface Application {
      * @return true if the application is in DEV mode
      */
     default boolean isDev() {
-        return getWrappedApplication().isDev();
+        return asScala().isDev();
     }
 
     /**
@@ -128,7 +93,7 @@ public interface Application {
      * @return true if the application is in PROD mode
      */
     default boolean isProd() {
-        return getWrappedApplication().isProd();
+        return asScala().isProd();
     }
 
     /**
@@ -137,7 +102,7 @@ public interface Application {
      * @return true if the application is in TEST mode
      */
     default boolean isTest() {
-        return getWrappedApplication().isTest();
+        return asScala().isTest();
     }
 
 }

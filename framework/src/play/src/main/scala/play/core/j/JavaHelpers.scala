@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.j
 
 import java.net.{ InetAddress, URI, URLDecoder }
@@ -18,7 +19,7 @@ import play.core.Execution.Implicits.trampoline
 import play.i18n
 import play.libs.typedmap.{ TypedKey, TypedMap }
 import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
-import play.mvc.{ Http, Security, Result => JResult }
+import play.mvc.{ Http, Result => JResult }
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.{ FutureConverters, OptionConverters }
@@ -131,6 +132,7 @@ trait JavaHelpers {
    * @param javaResult the Java Result
    */
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
+    require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
     val scalaResult = javaResult.asScala
     val wResult = scalaResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
@@ -163,7 +165,7 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava,
+      new java.util.HashMap[String, Object],
       components
     )
   }
@@ -181,14 +183,14 @@ trait JavaHelpers {
       new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
-      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava,
+      new java.util.HashMap[String, Object],
       components
     )
   }
 
   /**
    * Creates java context components from environment, using
-   * Configuration.reference and Environment.simple as defaults.
+   * play.api.Configuration.reference and play.api.Environment.simple as defaults.
    *
    * @return an instance of JavaContextComponents.
    */
@@ -236,30 +238,6 @@ trait JavaHelpers {
    * Java request, and converting the resulting Java result to a Scala result, before returning
    * it.
    *
-   * This is intended for use by methods in the JavaGlobalSettingsAdapter, which need to be handled
-   * like Java actions, but are not Java actions. In this case, f may return null, so we wrap its
-   * result in an Option. E.g. see the default behavior of GlobalSettings.onError.
-   *
-   * @param request The request
-   * @param components the context components
-   * @param f The function to invoke
-   * @return The result
-   */
-  def invokeWithContextOpt(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Option[Future[Result]] = {
-    val javaContext = createJavaContext(request, components)
-    try {
-      JContext.current.set(javaContext)
-      Option(f(javaContext.request())).map(cs => FutureConverters.toScala(cs).map(createResult(javaContext, _))(trampoline))
-    } finally {
-      JContext.current.remove()
-    }
-  }
-
-  /**
-   * Invoke the given function with the right context set, converting the scala request to a
-   * Java request, and converting the resulting Java result to a Scala result, before returning
-   * it.
-   *
    * This is intended for use by callback methods in Java adapters.
    *
    * @param request The request
@@ -292,8 +270,6 @@ trait JavaHelpers {
 object JavaHelpers extends JavaHelpers
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
-
-  override def _underlyingHeader: RequestHeader = header
 
   override def asScala: RequestHeader = header
 
@@ -343,10 +319,6 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def charset(): Optional[String] = OptionConverters.toJava(header.charset)
 
-  override def tags: util.Map[String, String] = header.tags.asJava
-
-  def withTag(name: String, value: String) = header.withTag(name, value)
-
   override def toString: String = header.toString
 
   override lazy val getHeaders: Http.Headers = header.headers.asJava
@@ -354,7 +326,6 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 }
 
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
-  override def _underlyingRequest: Request[RequestBody] = request
   override def asScala: Request[RequestBody] = request
 
   override def attrs: TypedMap = new TypedMap(asScala.attrs)
@@ -366,8 +337,4 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody
   override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
-
-  override def username: String = attrs().getOptional(Security.USERNAME).orElse(null)
-  override def withUsername(username: String): JRequest = addAttr(Security.USERNAME, username)
-
 }

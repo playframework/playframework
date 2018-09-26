@@ -1,23 +1,25 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.cache.ehcache
 
+import java.util.concurrent.Executors
 import javax.inject.{ Inject, Provider }
 
 import net.sf.ehcache.CacheManager
-import play.api.cache.{ AsyncCacheApi, DefaultSyncCacheApi, SyncCacheApi }
+import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
 import play.api.inject._
 import play.api.test.{ PlaySpecification, WithApplication }
 import play.cache.NamedCache
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class EhCacheApiSpec extends PlaySpecification {
   sequential
 
-  "CacheApi" should {
+  "SyncCacheApi" should {
     "bind named caches" in new WithApplication(
       _.configure(
         "play.cache.bindCaches" -> Seq("custom")
@@ -25,7 +27,7 @@ class EhCacheApiSpec extends PlaySpecification {
     ) {
       val controller = app.injector.instanceOf[NamedCacheController]
       val syncCacheName =
-        controller.cache.asInstanceOf[DefaultSyncCacheApi].cacheApi.asInstanceOf[EhCacheApi].cache.getName
+        controller.cache.asInstanceOf[SyncEhCacheApi].cache.getName
       val asyncCacheName =
         controller.asyncCache.asInstanceOf[EhCacheApi].cache.getName
 
@@ -36,9 +38,9 @@ class EhCacheApiSpec extends PlaySpecification {
       _.overrides(
         bind[CacheManager].toProvider[CustomCacheManagerProvider]
       ).configure(
-        "play.cache.createBoundCaches" -> false,
-        "play.cache.bindCaches" -> Seq("custom")
-      )
+          "play.cache.createBoundCaches" -> false,
+          "play.cache.bindCaches" -> Seq("custom")
+        )
     ) {
       app.injector.instanceOf[NamedCacheController]
     }
@@ -50,12 +52,22 @@ class EhCacheApiSpec extends PlaySpecification {
       syncCacheApi.getOrElseUpdate("foo")("baz") must_== "bar"
     }
 
+    "get values from cache without deadlocking" in new WithApplication(
+      _.overrides(
+        bind[ExecutionContext].toInstance(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
+      )
+    ) {
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      syncCacheApi.set("foo", "bar")
+      syncCacheApi.getOrElseUpdate[String]("foo")("baz") must_== "bar"
+    }
+
     "remove values from cache" in new WithApplication() {
       val cacheApi = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
-      cacheApi.remove("foo")
+      syncCacheApi.remove("foo")
       Await.result(cacheApi.get("foo"), 1.second) must beNone
     }
 
@@ -80,6 +92,6 @@ class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerPr
 }
 
 class NamedCacheController @Inject() (
-  @NamedCache("custom") val cache: SyncCacheApi,
-  @NamedCache("custom") val asyncCache: AsyncCacheApi
+    @NamedCache("custom") val cache: SyncCacheApi,
+    @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

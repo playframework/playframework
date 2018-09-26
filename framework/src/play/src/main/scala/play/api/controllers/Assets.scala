@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import java.io._
 import java.net.{ JarURLConnection, URL, URLConnection }
 import java.time.format.DateTimeFormatter
@@ -20,22 +21,24 @@ import scala.util.control.NonFatal
 import scala.util.{ Failure, Success }
 
 package play.api.controllers {
-
   sealed trait TrampolineContextProvider {
     implicit def trampoline = play.core.Execution.Implicits.trampoline
   }
-
 }
 
 package controllers {
 
   import java.time._
+  import java.time.format.DateTimeParseException
   import javax.inject.Provider
 
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
   import play.api.http._
   import play.api.inject.{ ApplicationLifecycle, Module }
+
+  import scala.annotation.tailrec
+  import scala.util.matching.Regex
 
   object Execution extends TrampolineContextProvider
 
@@ -149,24 +152,88 @@ package controllers {
   }
 
   case class AssetsConfiguration(
-    path: String = "/public",
-    urlPrefix: String = "/assets",
-    defaultCharSet: String = "utf-8",
-    enableCaching: Boolean = true,
-    enableCacheControl: Boolean = false,
-    configuredCacheControl: Map[String, Option[String]] = Map.empty,
-    defaultCacheControl: String = "public, max-age=3600",
-    aggressiveCacheControl: String = "public, max-age=31536000, immutable",
-    digestAlgorithm: String = "md5",
-    checkForMinified: Boolean = true,
-    textContentTypes: Set[String] = Set("application/json", "application/javascript"),
-    encodings: Seq[AssetEncoding] = Seq(
-      AssetEncoding.Brotli,
-      AssetEncoding.Gzip,
-      AssetEncoding.Xz,
-      AssetEncoding.Bzip2
-    )
-  )
+      path: String = "/public",
+      urlPrefix: String = "/assets",
+      defaultCharSet: String = "utf-8",
+      enableCaching: Boolean = true,
+      enableCacheControl: Boolean = false,
+      configuredCacheControl: Map[String, Option[String]] = Map.empty,
+      defaultCacheControl: String = "public, max-age=3600",
+      aggressiveCacheControl: String = "public, max-age=31536000, immutable",
+      digestAlgorithm: String = "md5",
+      checkForMinified: Boolean = true,
+      textContentTypes: Set[String] = Set("application/json", "application/javascript"),
+      encodings: Seq[AssetEncoding] = Seq(
+        AssetEncoding.Brotli,
+        AssetEncoding.Gzip,
+        AssetEncoding.Xz,
+        AssetEncoding.Bzip2
+      )
+  ) {
+
+    // Sorts configured cache-control by keys so that we can have from more
+    // specific configuration to less specific, where the overall sorting is
+    // done lexicographically. For example, given the following keys:
+    // - /a
+    // - /a/b/c.txt
+    // - /a/b
+    // - /a/z
+    // - /d/e/f.txt
+    // - /d
+    // - /d/f
+    //
+    // They will be sorted to:
+    // - /a/b/c.txt
+    // - /a/b
+    // - /a/z
+    // - /a
+    // - /d/e/f.txt
+    // - /d/f
+    // - /d
+    private lazy val configuredCacheControlDirectivesOrdering = new Ordering[(String, Option[String])] {
+      override def compare(first: (String, Option[String]), second: (String, Option[String])) = {
+        val firstKey = first._1
+        val secondKey = second._1
+
+        if (firstKey.startsWith(secondKey)) -1
+        else if (secondKey.startsWith(firstKey)) 1
+        else firstKey.compareTo(secondKey)
+      }
+    }
+
+    private lazy val configuredCacheControlDirectives: List[(String, Option[String])] = {
+      configuredCacheControl.toList.sorted(configuredCacheControlDirectivesOrdering)
+    }
+
+    /**
+     * Finds the configured Cache-Control directive that needs to be applied to the asset
+     * with the given name.
+     *
+     * This will try to find the most specific directive configured for the asset. For example,
+     * given the following configuration:
+     *
+     * {{{
+     *   "play.assets.cache./public/css"="max-age=100"
+     *   "play.assets.cache./public/javascript"="max-age=200"
+     *   "play.assets.cache./public/javascript/main.js"="max-age=300"
+     * }}}
+     *
+     * Given asset name "/public/css/main.css", it will find "max-age=100".
+     *
+     * Given asset name "/public/javascript/other.js" it will find "max-age=200".
+     *
+     * Given asset name "/public/javascript/main.js" it will find "max-age=300".
+     *
+     * Given asset name "/public/images/img.png" it will use the [[defaultCacheControl]] since
+     * there is no specific directive configured for this asset.
+     *
+     * @param assetName the asset name
+     * @return the optional configured cache-control directive.
+     */
+    final def findConfiguredCacheControl(assetName: String): Option[String] = {
+      configuredCacheControlDirectives.find(c => assetName.startsWith(c._1)).flatMap(_._2)
+    }
+  }
 
   case class AssetEncoding(acceptEncoding: String, extension: String) {
     def forFilename(filename: String): String = if (extension != "") s"$filename.$extension" else filename
@@ -180,8 +247,10 @@ package controllers {
   }
 
   object AssetsConfiguration {
+    private val logger = Logger(getClass)
+
     def fromConfiguration(c: Configuration, mode: Mode = Mode.Test): AssetsConfiguration = {
-      AssetsConfiguration(
+      val assetsConfiguration = AssetsConfiguration(
         path = c.get[String]("play.assets.path"),
         urlPrefix = c.get[String]("play.assets.urlPrefix"),
         defaultCharSet = c.getDeprecated[String]("play.assets.default.charset", "default.charset"),
@@ -196,6 +265,20 @@ package controllers {
         textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet,
         encodings = getAssetEncodings(c)
       )
+      logAssetsConfiguration(assetsConfiguration)
+      assetsConfiguration
+    }
+
+    private def logAssetsConfiguration(assetsConfiguration: AssetsConfiguration): Unit = {
+      val msg = new StringBuffer()
+      msg.append("Using the following cache configuration for assets:\n")
+      msg.append(s"\t enableCaching = ${assetsConfiguration.enableCaching}\n")
+      msg.append(s"\t enableCacheControl = ${assetsConfiguration.enableCacheControl}\n")
+      msg.append(s"\t defaultCacheControl = ${assetsConfiguration.defaultCacheControl}\n")
+      msg.append(s"\t aggressiveCacheControl = ${assetsConfiguration.aggressiveCacheControl}\n")
+      msg.append(s"\t configuredCacheControl:")
+      msg.append(assetsConfiguration.configuredCacheControl.map(c => s"\t\t ${c._1} = ${c._2}").mkString("\n", "\n", "\n"))
+      logger.debug(msg.toString)
     }
 
     private def getAssetEncodings(c: Configuration): Seq[AssetEncoding] = {
@@ -327,8 +410,6 @@ package controllers {
     @Inject
     def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) = this(config, env.resource _, fileMimeTypes)
 
-    import HeaderNames._
-
     lazy val finder: AssetsFinder = new AssetsFinder {
       val assetsBasePath = config.path
       val assetsUrlPrefix = config.urlPrefix
@@ -448,7 +529,7 @@ package controllers {
     def addCharsetIfNeeded(mimeType: String): String =
       if (isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
-    val configuredCacheControl = config.configuredCacheControl.get(name).flatten
+    val configuredCacheControl: Option[String] = config.findConfiguredCacheControl(name)
 
     def cacheControl(aggressiveCaching: Boolean): String = {
       configuredCacheControl.getOrElse {
@@ -579,6 +660,9 @@ package controllers {
           }
         } catch {
           case e: IllegalArgumentException =>
+            Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+            None
+          case e: DateTimeParseException =>
             Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
             None
         }
@@ -769,18 +853,49 @@ package controllers {
      */
     private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
       val decodedFile = UriEncoding.decodePath(file, "utf-8")
-      def dblSlashRemover(input: String): String = dblSlashPattern.replaceAllIn(input, "/")
-      val resourceName = dblSlashRemover(s"/$path/$decodedFile")
-      val resourceFile = new File(resourceName)
-      val pathFile = new File(path)
-      if (!resourceFile.getCanonicalPath.startsWith(pathFile.getCanonicalPath)) {
+      val resourceName = removeExtraSlashes(s"/$path/$decodedFile")
+      if (!fileLikeCanonicalPath(resourceName).startsWith(fileLikeCanonicalPath(path))) {
         None
       } else {
         Some(resourceName)
       }
     }
 
-    private val dblSlashPattern = """//+""".r
+    /**
+     * Like File.getCanonicalPath, but works across platforms. Using File.getCanonicalPath caused inconsistent
+     * behavior when tested on Windows.
+     */
+    private def fileLikeCanonicalPath(path: String): String = {
+      @tailrec
+      def normalizePathSegments(accumulated: Seq[String], remaining: List[String]): Seq[String] = {
+        remaining match {
+          case Nil => // Return the accumulated result
+            accumulated
+          case "." :: rest => // Ignore '.' path segments
+            normalizePathSegments(accumulated, rest)
+          case ".." :: rest => // Remove last segment (if possible) when '..' is encountered
+            val newAccumulated = if (accumulated.isEmpty) Seq("..") else accumulated.dropRight(1)
+            normalizePathSegments(newAccumulated, rest)
+          case segment :: rest => // Append new segment
+            normalizePathSegments(accumulated :+ segment, rest)
+        }
+      }
+      val splitPath: List[String] = path.split(filePathSeparators).toList
+      val splitNormalized: Seq[String] = normalizePathSegments(Vector.empty, splitPath)
+      splitNormalized.mkString("/")
+    }
+
+    // Ideally, this should be only '/' (which is a valid separator in Windows) and File.separatorChar, but we
+    // need to keep '/', '\' and File.separatorChar so that we can test for Windows '\' separator when running
+    // the tests on Linux/macOS.
+    private val filePathSeparators = Array('/', '\\', File.separatorChar).distinct
+
+    /** Cache this compiled regular expression. */
+    private val extraSlashPattern: Regex = """//+""".r
+
+    /** Remove extra slashes in a string, e.g. "/x///y/" becomes "/x/y/". */
+    private def removeExtraSlashes(input: String): String = extraSlashPattern.replaceAllIn(input, "/")
+
   }
 
 }

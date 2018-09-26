@@ -1,21 +1,24 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import java.io._
-import akka.actor.ActorSystem
+
+import akka.Done
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.ActorMaterializer
 import play.api._
-import play.api.mvc._
+import play.api.inject.DefaultApplicationLifecycle
 import play.core._
 import play.utils.Threads
+
 import scala.collection.JavaConverters._
-import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
-import play.api.inject.DefaultApplicationLifecycle
 
 /**
  * Used to start servers in 'dev' mode, a mode where the application
@@ -46,7 +49,7 @@ object DevServerStart {
     buildLink: BuildLink,
     httpPort: Int,
     httpAddress: String): ReloadableServer = {
-    mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
+    mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt), httpAddress)
   }
 
   private def mainDev(
@@ -130,10 +133,6 @@ object DevServerStart {
 
           }
 
-          override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-            currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
-          }
-
           def reload(projectClassloader: ClassLoader): Try[Application] = {
             try {
               if (lastState.isSuccess) {
@@ -163,13 +162,16 @@ object DevServerStart {
                 }
               }
 
-              val webCommands = new DefaultWebCommands
-              currentWebCommands = Some(webCommands)
               val lifecycle = new DefaultApplicationLifecycle()
               lastLifecycle = Some(lifecycle)
 
               val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands, lifecycle)
+                val context = ApplicationLoader.Context.create(
+                  environment,
+                  initialSettings = dirAndDevSettings,
+                  lifecycle = lifecycle,
+                  devContext = Some(ApplicationLoader.DevContext(sourceMapper, buildLink))
+                )
                 val loader = ApplicationLoader(context)
                 loader.load(context)
               }
@@ -209,15 +211,32 @@ object DevServerStart {
         // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.
-        val devModeAkkaConfig = serverConfig.configuration.underlying.getConfig("play.akka.dev-mode")
+        val devModeAkkaConfig = {
+          serverConfig
+            .configuration
+            .underlying
+            // "play.akka.dev-mode" has the priority, so if there is a conflict
+            // between the actor system for dev mode and the application actor system
+            // users can resolve it by add a specific configuration for dev mode.
+            .getConfig("play.akka.dev-mode")
+            // We then fallback to the app configuration to avoid losing configurations
+            // made using devSettings, system properties and application.conf itself.
+            .withFallback(serverConfig.configuration.underlying)
+        }
         val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
+        val serverCs = CoordinatedShutdown(actorSystem)
+
+        // Registering a task that invokes `Play.stop` is necessary for the scenarios where
+        // the Application and the Server use separate ActorSystems (e.g. DevMode).
+        serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") {
+          () =>
+            implicit val ctx = actorSystem.dispatcher
+            val stoppedApp = appProvider.get.map(Play.stop)
+            Future.fromTry(stoppedApp).map(_ => Done)
+        }
 
         val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
-          ActorMaterializer()(actorSystem), () => {
-            actorSystem.terminate()
-            Await.result(actorSystem.whenTerminated, Duration.Inf)
-            Future.successful(())
-          })
+          ActorMaterializer()(actorSystem), () => Future.successful(()))
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
         serverProvider.createServer(serverContext)
       } catch {

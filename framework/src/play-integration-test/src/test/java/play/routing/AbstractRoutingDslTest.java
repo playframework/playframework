@@ -1,14 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routing;
 
+import akka.util.ByteString;
 import org.junit.Test;
 import play.Application;
+import play.libs.Json;
+import play.libs.XML;
 import play.mvc.Http;
 import play.mvc.PathBindable;
 import play.mvc.Result;
-import play.mvc.Results;
 
 import java.io.InputStream;
 import java.util.function.Function;
@@ -33,7 +36,7 @@ public abstract class AbstractRoutingDslTest {
     }
 
     @Test
-    public void shouldPreserveRequestBody() {
+    public void shouldPreserveRequestBodyAsText() {
         Router router = router(routingDsl -> routingDsl.POST("/with-body")
             .routeTo(() -> {
                 // This better emulates how users will access the request object
@@ -41,7 +44,67 @@ public abstract class AbstractRoutingDslTest {
                 return ok(request.body().asText());
             }).build());
 
-        assertThat(makeRequest(router, "POST", "/with-body", "The Body"), equalTo("The Body"));
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                rb -> rb.bodyText("The Body")
+        );
+        assertThat(result, equalTo("The Body"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsJson() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routeTo(() -> {
+                    // This better emulates how users will access the request object
+                    Http.Request request = Http.Context.current().request();
+                    return ok(request.body().asJson());
+                }).build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                requestBuilder -> requestBuilder.bodyJson(Json.parse("{ \"a\": \"b\" }"))
+        );
+        assertThat(result, equalTo("{\"a\":\"b\"}"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsXml() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routeTo(() -> {
+                    // This better emulates how users will access the request object
+                    Http.Request request = Http.Context.current().request();
+                    return ok(XML.toBytes(request.body().asXml()).utf8String());
+                }).build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                requestBuilder -> requestBuilder.bodyXml(XML.fromString("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>"))
+        );
+        assertThat(result, equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsRawBuffer() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routeTo(() -> {
+                    // This better emulates how users will access the request object
+                    Http.Request request = Http.Context.current().request();
+                    return ok(request.body().asRaw().asBytes().utf8String());
+                }).build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                requestBuilder -> requestBuilder.bodyRaw(ByteString.fromString("The Raw Body"))
+        );
+        assertThat(result, equalTo("The Raw Body"));
     }
 
     @Test
@@ -330,14 +393,11 @@ public abstract class AbstractRoutingDslTest {
     }
 
     private String makeRequest(Router router, String method, String path) {
-        return makeRequest(router, method, path, /* no body */null);
+        return makeRequest(router, method, path, Function.identity());
     }
 
-    private String makeRequest(Router router, String method, String path, String body) {
-        Http.RequestBuilder request = fakeRequest(method, path);
-        if (body != null) {
-            request.bodyText(body);
-        }
+    private String makeRequest(Router router, String method, String path, Function<Http.RequestBuilder, Http.RequestBuilder> bodySetter) {
+        Http.RequestBuilder request = bodySetter.apply(fakeRequest(method, path));
         Result result = routeAndCall(application(), router, request);
         if (result == null) {
             return null;

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import scala.annotation.tailrec
@@ -35,14 +36,6 @@ final object Handler {
       // so we call `applyPreprocessingHandlers` recursively on the result.
       val (newRequestHeader, newHandler) = m.apply(requestHeader)
       applyStages(newRequestHeader, newHandler)
-    case t: RequestTaggingHandler =>
-      // Call the RequestTaggingHandler logic on this request. This handler
-      // will change the request header, but not the handler itself. Since the
-      // handler hasn't been changed we don't need to call
-      // `applyAllModifications` again. This means RequestTaggingHandlers can
-      // only be one level deep; they do not compose.
-      val newRequestHeader = t.tagRequest(requestHeader)
-      (newRequestHeader, handler)
     case _ =>
       // This is a normal handler that doesn't do any preprocessing.
       (requestHeader, handler)
@@ -69,18 +62,4 @@ final object Handler {
       override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = (modifyRequestFunc(requestHeader), wrappedHandler)
     }
   }
-}
-
-/**
- * A handler that is able to tag requests. Usually mixed in to other handlers.
- *
- * Instead of using the handler you should use [[Handler.Stage]].
- * `Handler.Stage` is a handler improves upon the `RequestTaggingHandler` in several ways:
- * (a) `Handler.Stage` can be nested to arbitrary depth, (b) it doesn't require
- * mixing-in and (c) it allows handlers to be rewritten as well as requests, (d) it
- * prevents Play from accessing the real handler until its logic has been run.
- */
-@deprecated("Use Handler.Stage instead", "2.6.0")
-trait RequestTaggingHandler extends Handler {
-  def tagRequest(request: RequestHeader): RequestHeader
 }

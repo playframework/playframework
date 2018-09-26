@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routes.compiler
 
 import scala.collection.immutable.ListMap
@@ -205,11 +206,9 @@ package object templates {
   /**
    * Calculate the local names that need to be matched
    */
-  def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = {
-    params.map {
-      case (lp, i) => route.call.parameters.get(i).name -> lp.name
-    }.toMap
-  }
+  def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = params.map {
+    case (lp, i) => route.call.parameters.get(i).name -> lp.name
+  }(scala.collection.breakOut)
 
   /**
    * Calculate the unique reverse constraints, and generate them using the given block
@@ -233,7 +232,7 @@ package object templates {
     if (fixedParams.isEmpty) {
       ""
     } else {
-      "implicit val _rrc = new play.core.routing.ReverseRouteContext(Map(%s))".format(fixedParams.mkString(", "))
+      "implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(%s)); _rrc".format(fixedParams.mkString(", "))
     }
   }
 

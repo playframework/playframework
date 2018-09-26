@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data;
 
 
@@ -15,6 +16,6 @@ public class BlueValidator extends Constraints.Validator<String> {
     }
 
     public F.Tuple<String, Object[]> getErrorMessageKey() {
-        return F.Tuple("notblue", new Object[] {});
+        return F.Tuple("notblue", new Object[] {"argOne", "argTwo"});
     }
 }

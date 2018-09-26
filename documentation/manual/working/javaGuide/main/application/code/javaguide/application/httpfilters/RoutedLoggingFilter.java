@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.application.httpfilters;
 
 // #routing-info-access
@@ -9,12 +10,15 @@ import java.util.function.Function;
 import java.util.Map;
 import javax.inject.Inject;
 import akka.stream.Materializer;
-import play.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.api.routing.HandlerDef;
 import play.mvc.*;
 import play.routing.Router;
 
 public class RoutedLoggingFilter extends Filter {
+
+    private static final Logger log = LoggerFactory.getLogger(RoutedLoggingFilter.class);
 
     @Inject
     public RoutedLoggingFilter(Materializer mat) {
@@ -32,7 +36,7 @@ public class RoutedLoggingFilter extends Filter {
             long endTime = System.currentTimeMillis();
             long requestTime = endTime - startTime;
 
-            Logger.info("{} took {}ms and returned {}",
+            log.info("{} took {}ms and returned {}",
                 actionMethod, requestTime, result.status());
 
             return result.withHeader("Request-Time", "" + requestTime);

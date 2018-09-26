@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +28,9 @@ import static play.mvc.Http.Session;
  * Any action result.
  */
 public class Result {
+
+    /** Statically compiled pattern for extracting the charset from a Result.  */
+    private static final Pattern SPLIT_CHARSET = Pattern.compile("(?i);\\s*charset=");
 
     private final ResponseHeader header;
     private final HttpEntity body;
@@ -58,21 +63,6 @@ public class Result {
      */
     public Result(ResponseHeader header, HttpEntity body) {
         this(header, body, null, null, Collections.emptyList());
-    }
-
-    /**
-     * Create a result.
-     *
-     * @param status The status.
-     * @param reasonPhrase The reason phrase, if a non default reason phrase is required.
-     * @param headers The headers.
-     * @param body The body.
-     *
-     * @deprecated Deprecated as of 2.6.0. Use {@link #Result(int, String, Map, HttpEntity)}.
-     */
-    @Deprecated
-    public Result(int status, Optional<String> reasonPhrase, Map<String, String> headers, HttpEntity body) {
-        this(new ResponseHeader(status, headers, reasonPhrase.orElse(null)), body);
     }
 
     /**
@@ -146,20 +136,6 @@ public class Result {
     }
 
     /**
-     * Get the Scala version of response header
-     *
-     * @return the header
-     *
-     * @deprecated Deprecated as in 2.6.0. Use {@link #getHeader()}
-     *
-     * @see play.api.mvc.ResponseHeader
-     */
-    @Deprecated
-    protected play.api.mvc.ResponseHeader header() {
-        return header.asScala();
-    }
-
-    /**
      * Get the response header
      *
      * @return the header
@@ -215,7 +191,7 @@ public class Result {
     public Optional<String> contentType() {
         return body.contentType().map(h -> {
             if (h.contains(";")) {
-                return h.substring(0, h.indexOf(";")).trim();
+                return h.substring(0, h.indexOf(';')).trim();
             } else {
                 return h.trim();
             }
@@ -229,7 +205,7 @@ public class Result {
      */
     public Optional<String> charset() {
         return body.contentType().flatMap(h -> {
-            String[] parts = h.split("(?i);\\s*charset=", 2);
+            String[] parts = SPLIT_CHARSET.split(h, 2);
             if (parts.length > 1) {
                 String charset = parts[1];
                 return Optional.of(charset.trim());
@@ -299,6 +275,48 @@ public class Result {
             return true;
         }), Stream.of(newCookies)).collect(Collectors.toList());
         return new Result(header, body, session, flash, finalCookies);
+    }
+
+    /**
+     * Discard a cookie on the default path ("/") with no domain and that's not secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     */
+    public Result discardCookie(String name) {
+        return discardCookie(name, "/", null, false);
+    }
+
+    /**
+     * Discard a cookie on the given path with no domain and not that's secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie to discard, may be null
+     */
+    public Result discardCookie(String name, String path) {
+        return discardCookie(name, path, null, false);
+    }
+
+    /**
+     * Discard a cookie on the given path and domain that's not secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie te discard, may be null
+     * @param domain The domain of the cookie to discard, may be null
+     */
+    public Result discardCookie(String name, String path, String domain) {
+        return discardCookie(name, path, domain, false);
+    }
+
+    /**
+     * Discard a cookie in this result
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie te discard, may be null
+     * @param domain The domain of the cookie to discard, may be null
+     * @param secure Whether the cookie to discard is secure
+     */
+    public Result discardCookie(String name, String path, String domain, boolean secure) {
+        return withCookies(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
     }
 
     /**

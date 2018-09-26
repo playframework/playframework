@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.csrf
 
 import org.specs2.matcher.MatchResult
@@ -49,7 +50,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       |Content-Disposition: form-data; name="$tokenName"
       |
       |$tokenValue
-      |--$Boundary--""".stripMargin.replaceAll("\n", "\r\n")
+      |--$Boundary--""".stripMargin.replaceAll("\r?\n", "\r\n")
   }
 
   // This extracts the tests out into different configurations
@@ -133,6 +134,17 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         // Ensure that nothing was updated
         response.cookies must beEmpty
       }
+    }
+    "add a cookie token if configured to use a cookie even if a session token already exists" in {
+      buildCsrfAddToken(
+        "play.filters.csrf.cookie.name" -> "csrf",
+        "play.filters.csrf.token.name" -> "csrf"
+      )({ req =>
+          req
+            .addHttpHeaders(ACCEPT -> "text/html")
+            .withSession("csrf" -> signedTokenProvider.generateToken)
+            .get()
+        })(_.cookies must not be empty)
     }
   }
 

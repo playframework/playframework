@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.cache
 
 import java.time.Instant
@@ -33,7 +34,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
-      Thread.sleep(1000) // give cache time to set the value because that happens asynchronously
       val result2 = controller.action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
       controller.invoked.get() must_== 1
@@ -50,7 +50,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
-      Thread.sleep(1000) // give cache time to set the value because that happens asynchronously
       val result2 = controller.action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
       controller.invoked.get() must_== 1
@@ -88,7 +87,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
-      Thread.sleep(1000) // give ehcache time to set the value because that happens asynchronously
       val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 
@@ -108,7 +106,6 @@ class CachedSpec extends PlaySpecification {
       val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
-      Thread.sleep(1000) // give cache time to set the value because that happens asynchronously
       val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 
@@ -281,7 +278,7 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
-  "CacheApi" should {
+  "AsyncCacheApi" should {
     "get items from cache" in new WithApplication() {
       val defaultCache = app.injector.instanceOf[AsyncCacheApi].sync
       defaultCache.set("foo", "bar")

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+  ~ Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
   -->
 <!-- The default logback configuration that Play uses in dev mode if no other configuration is provided -->
 <configuration>
@@ -13,11 +13,8 @@
   </appender>
 
   <logger name="play" level="INFO" />
-  <logger name="application" level="DEBUG" />
 
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
-  <!-- https://hibernate.atlassian.net/browse/HV-1323 -->
-  <logger name="org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator" level="ERROR" />
 
   <root level="WARN">
     <appender-ref ref="STDOUT" />

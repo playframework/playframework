@@ -1,26 +1,27 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api
 
 import java.io._
-import javax.inject.Inject
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.{ ActorMaterializer, Materializer }
-import javax.inject.Singleton
-
+import javax.inject.{ Inject, Singleton }
+import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
-import play.api.inject._
+import play.api.inject.{ ApplicationLifecycle, _ }
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
-import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider }
 import play.api.libs.crypto._
 import play.api.mvc._
 import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
 import play.api.routing.Router
 import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.core.{ SourceMapper, WebCommands }
+import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
 import play.utils._
 
 import scala.annotation.implicitNotFound
@@ -83,6 +84,11 @@ trait Application {
   implicit def materializer: Materializer
 
   /**
+   * The default CoordinatedShutdown to stop the Application
+   */
+  def coordinatedShutdown: CoordinatedShutdown
+
+  /**
    * The factory used to create requests for this application.
    */
   def requestFactory: RequestFactory
@@ -101,7 +107,7 @@ trait Application {
    * Return the application as a Java application.
    */
   def asJava: play.Application = {
-    new play.DefaultApplication(this, configuration.underlying, injector.asJava)
+    new play.DefaultApplication(this, configuration.underlying, injector.asJava, environment.asJava)
   }
 
   /**
@@ -219,7 +225,7 @@ object Application {
    * instance if this method is called from different threads
    * at the same time.
    *
-   * The cache uses a WeakReference to both the Application and
+   * The cache uses a SoftReference to both the Application and
    * the returned instance so it will not cause memory leaks.
    * Unlike WeakHashMap it doesn't use a ReferenceQueue, so values
    * will still be cleaned even if the ReferenceQueue is never
@@ -228,8 +234,6 @@ object Application {
   def instanceCache[T: ClassTag]: Application => T =
     new InlineCache((app: Application) => app.injector.instanceOf[T])
 }
-
-class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
 class DefaultApplication @Inject() (
@@ -241,36 +245,63 @@ class DefaultApplication @Inject() (
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
-    override val materializer: Materializer) extends Application {
+    override val materializer: Materializer,
+    override val coordinatedShutdown: CoordinatedShutdown) extends Application {
+
+  def this(
+    environment: Environment,
+    applicationLifecycle: ApplicationLifecycle,
+    injector: Injector,
+    configuration: Configuration,
+    requestFactory: RequestFactory,
+    requestHandler: HttpRequestHandler,
+    errorHandler: HttpErrorHandler,
+    actorSystem: ActorSystem,
+    materializer: Materializer) = this(
+    environment,
+    applicationLifecycle,
+    injector,
+    configuration,
+    requestFactory,
+    requestHandler,
+    errorHandler,
+    actorSystem,
+    materializer,
+    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
+  )
 
   override def path: File = environment.rootPath
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] = applicationLifecycle.stop()
+  override def stop(): Future[_] = CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
+
+private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason
 
 /**
  * Helper to provide the Play built in components.
  */
 trait BuiltInComponents extends I18nComponents {
+  /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
-  def sourceMapper: Option[SourceMapper]
-  def webCommands: WebCommands
+  /** Helper to locate the source code for the application. Only available in dev mode. */
+  @deprecated("Use devContext.map(_.sourceMapper) instead", "2.7.0")
+  def sourceMapper: Option[SourceMapper] = devContext.map(_.sourceMapper)
+  /** Helper to interact with the Play build environment. Only available in dev mode. */
+  def devContext: Option[DevContext] = None
+
+  // Define a private val so that webCommands can remain a `def` instead of a `val`
+  private val defaultWebCommands: WebCommands = new DefaultWebCommands
+  /** Commands that intercept requests before the rest of the application handles them. Used by Evolutions. */
+  def webCommands: WebCommands = defaultWebCommands
+
+  /** The application's configuration. */
   def configuration: Configuration
+  /** A registry to receive application lifecycle events, e.g. to close resources when the application stops. */
   def applicationLifecycle: ApplicationLifecycle
-
+  /** The router that's used to pass requests to the correct handler. */
   def router: Router
-
-  /**
-   * Alias method to [[defaultActionBuilder]]. This just helps to keep the idiom of using `Action`
-   * when creating `Router`s using the built in components.
-   *
-   * @return the default action builder.
-   */
-  def Action: DefaultActionBuilder = defaultActionBuilder
-
-  def parse = playBodyParsers
 
   /**
    * The runtime [[Injector]] instance provided to the [[DefaultApplication]]. This injector is set up to allow
@@ -293,8 +324,8 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
-  lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
-    Some(router))
+  lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(
+    environment, configuration, devContext.map(_.sourceMapper), Some(router))
 
   /**
    * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
@@ -328,13 +359,20 @@ trait BuiltInComponents extends I18nComponents {
    */
   def httpFilters: Seq[EssentialFilter]
 
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration, httpFilters: _*)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(
+    webCommands,
+    devContext,
+    router,
+    httpErrorHandler,
+    httpConfiguration,
+    httpFilters)
 
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer)
+    configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer, coordinatedShutdown)
 
-  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
+  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
+  lazy val coordinatedShutdown: CoordinatedShutdown = new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
   implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 
   lazy val cookieSigner: CookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
@@ -347,6 +385,22 @@ trait BuiltInComponents extends I18nComponents {
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
   lazy val javaContextComponents: JavaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+
+  // NOTE: the following helpers are declared as protected since they are only meant to be used inside BuiltInComponents
+  // This also makes them not conflict with other methods of the same type when used with Macwire.
+
+  /**
+   * Alias method to [[defaultActionBuilder]]. This just helps to keep the idiom of using `Action`
+   * when creating `Router`s using the built in components.
+   *
+   * @return the default action builder.
+   */
+  protected def Action: DefaultActionBuilder = defaultActionBuilder
+
+  /**
+   * Alias method to [[playBodyParsers]].
+   */
+  protected def parse: PlayBodyParsers = playBodyParsers
 }
 
 /**

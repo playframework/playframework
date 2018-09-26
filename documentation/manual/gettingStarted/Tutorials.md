@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Play Tutorials
 
 Play's documentation shows the available features and how to use them, but the documentation will not show how to create an application from start to finish.  This is where tutorials and examples come in.
@@ -15,20 +15,20 @@ This section covers the core tutorials and examples from Play.  These are mainta
 
 There are two Play Seeds that are designed expressly for getting started with new Play applications.  They contain a hello world controller and view template, filters, and nothing else.
 
-If you have [sbt 0.13.13 or higher](http://scala-sbt.org) installed, you can create your own Play project using `sbt new`
+If you have [sbt 0.13.13 or higher](https://scala-sbt.org) installed, you can create your own Play project using `sbt new`
  using a minimal [`giter8`](http://foundweekends.org/giter8)  template (roughly like a maven archetype).  This is a good choice if you already know Play and want to create a new project immediately.
 
-Type `g8Scaffold form` from sbt to create the scaffold controller, template and tests needed to process a form.
+> **Note**: If running Windows, you may need to run sbt using `sbt.bat` instead of `sbt`. This documentation assumes the command is `sbt`.
 
 #### Java
 
-```
+```bash
 sbt new playframework/play-java-seed.g8
 ```
 
 #### Scala
 
-```
+```bash
 sbt new playframework/play-scala-seed.g8
 ```
 
@@ -43,15 +43,15 @@ or you can download it as an example project from the [download page](https://pl
 
 ### Database / ORM Access
 
-Play is non-opinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, EBean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
+Play is non-opinionated about database access, and integrates with many object relational layers (ORMs).  There is out of the box support for Anorm, Ebean, Slick, and JPA, but many customers use NoSQL or REST layers and there are many examples of Play using other ORMs not mentioned here.
 
 #### Slick
 
 [Slick](http://slick.lightbend.com/docs/) is a Functional Relational Mapping (FRM) library for Scala that makes it easy to work with relational databases. It allows you to work with stored data almost as if you were using Scala collections while at the same time giving you full control over when a database access happens and which data is transferred. You can also use SQL directly. Execution of database actions is done asynchronously, making Slick a perfect fit for your reactive applications based on Play and Akka.
 
 * [play-isolated-slick](https://github.com/playframework/play-isolated-slick): This template uses a multi-module that hides Slick 3.x behind an API layer, and does not use Play-Slick integration.  It also contains sbt-flyways and use Slick's code generator to create the Slick binding from SQL tables.
-* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick) as part of a single Play project.
-* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [PlaySlick](https://www.playframework.com/documentation/2.5.x/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
+* [play-scala-intro](https://github.com/playframework/play-scala-intro): This template uses [Play Slick](https://www.playframework.com/documentation/%PLAY_VERSION%/PlaySlick) as part of a single Play project.
+* [Computer Database with Play-Slick](https://github.com/playframework/play-slick/tree/master/samples/computer-database): This template uses [Play Slick](https://www.playframework.com/documentation/%PLAY_VERSION%/PlaySlick).  You will need to clone the `play-slick` project from Github and type `project computer-database-sample` in SBT to get to the sample project.
 
 #### JPA
 
@@ -65,9 +65,9 @@ This is an example template showing Play with [Anorm](https://github.com/playfra
 
 * [playframework/play-anorm](https://github.com/playframework/play-anorm)
 
-#### EBean
+#### Ebean
 
-This is an example template that uses [EBean](https://ebean-orm.github.io/) using Play's [Ebean integration](https://www.playframework.com/documentation/2.5.x/JavaEbean). It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
+This is an example template that uses [Ebean](https://ebean-orm.github.io/) using Play's [Ebean integration](https://www.playframework.com/documentation/%PLAY_VERSION%/JavaEbean). It also uses [Play-Bootstrap](https://adrianhurt.github.io/play-bootstrap/) for easy template scaffolding.
 
 * [playframework/play-ebean-example](https://github.com/playframework/play-ebean-example)
 
@@ -99,7 +99,7 @@ There are two examples shown here, but there are other compile time DI framework
 
 #### Manual Compile Time Dependency Injection
 
-This is an example template showing how to use manual compile time dependency injection and manual routing with the [SIRD router](https://www.playframework.com/documentation/2.5.x/ScalaSirdRouter), useful for minimal REST APIs and people used to Spray style routing:
+This is an example template showing how to use manual compile time dependency injection and manual routing with the [[SIRD router|ScalaSirdRouter]], useful for minimal REST APIs and people used to Spray style routing:
 
 * [playframework/play-scala-compile-di-with-tests](https://github.com/playframework/play-scala-compile-di-with-tests)
 
@@ -117,9 +117,21 @@ This is an incomplete list of several helpful blog posts, and because some of th
 
 ### 2.5.x
 
+#### Play Framework Tutorial Video Series
+
+A tutorial video series by Radix Code provides an initial overview to Play, walking through initial IDE setup, defining routes, creating a CRUD application, enabling ORM support, and customizing the views with bootstrap.
+
+* [Debug Play Application in IntelliJ IDE](https://www.youtube.com/watch?v=RVKU9JvZmao)
+* [Debug Play Application in Eclipse IDE](https://www.youtube.com/watch?v=f9TQD_V7rLg)
+* [How Routing Works](https://www.youtube.com/watch?v=SnQQYl4xsN8)
+* [Add Support for MySQL in Play](https://www.youtube.com/watch?v=J22fr8gQn2c)
+* [Include Bootstrap and jQuery](https://www.youtube.com/watch?v=XyoZnTBUM5I)
+* [Form Validations](https://www.youtube.com/watch?v=Wec-mbjQsrk)
+* [Creating Custom Error Pages](https://www.youtube.com/watch?v=nhKpMrT2EZA)
+
 #### Dependency Injection
 
-* [Dependency Injection in Play Framework using Scala](http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/) by Krzysztof Pado.
+* [Dependency Injection in Play Framework using Scala](https://www.schibsted.pl/blog/dependency-injection-play-framework-scala/) by Krzysztof Pado.
 
 #### Akka Streams
 
@@ -129,6 +141,11 @@ This is an incomplete list of several helpful blog posts, and because some of th
 #### Database
 
 * [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an example project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
+
+#### Forms and Validators
+
+* [Controller Forms](http://queirozf.com/entries/play2-scala-forms-and-validations): This provides examples of using forms and custom validators within a controller.
+* [Json Validators](http://queirozf.com/entries/fully-customized-json-validator-for-play-framework-2): This guide lists methods of validating json against a customized case class or trait.
 
 #### REST APIs
 
@@ -172,8 +189,8 @@ Semisafe has an excellent series on Play in general:
 
 Justin Rodenbostel of SPR Consulting also has two blog posts on building REST APIs in Play:
 
-* [Building a Simple REST API with Scala & Play! (PART 1)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
-* [Building a Simple REST API with Scala & Play! (PART 2)](http://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
+* [Building a Simple REST API with Scala & Play! (PART 1)](https://spr.com/building-a-simple-rest-api-with-scala-play-part-1/)
+* [Building a Simple REST API with Scala & Play! (PART 2)](https://spr.com/building-a-simple-rest-api-with-scala-play-part-2/)
 
 #### Slick
 
@@ -189,7 +206,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### EmberJS
 
-* [HTML 5 Device Orientation with play, ember and websockets](http://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
+* [HTML 5 Device Orientation with play, ember and websockets](https://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
 
 #### AngularJS, RequireJS and sbt-web
 

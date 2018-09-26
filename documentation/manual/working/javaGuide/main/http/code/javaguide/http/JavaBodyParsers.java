@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.http;
 
 import akka.util.ByteString;
@@ -213,7 +214,7 @@ public class JavaBodyParsers extends WithApplication {
     }
     //#csv
 
-    @Test
+    @Test @SuppressWarnings("unchecked")
     public void testCsv() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                 @BodyParser.Of(CsvBodyParser.class)

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.j
 
 import java.util.concurrent.Executor
@@ -46,7 +47,7 @@ object HttpExecutionContext {
  */
 class HttpExecutionContext(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) extends ExecutionContextExecutor {
   override def execute(runnable: Runnable) = delegate.execute(new Runnable {
-    def run() {
+    def run(): Unit = {
       val thread = Thread.currentThread()
       val oldContextClassLoader = thread.getContextClassLoader()
       val oldHttpContext = Http.Context.current.get()

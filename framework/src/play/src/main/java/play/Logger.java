@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play;
 
 import org.slf4j.Marker;
@@ -37,7 +38,11 @@ import java.util.function.Supplier;
  * This API is intended as a simple logging API to meet 99% percent of the most common logging needs with minimal code
  * overhead.  For more complex needs, the underlying() methods may be used to get the underlying SLF4J logger, or
  * SLF4J may be used directly.
+ *
+ * @deprecated Deprecated as of 2.7.0. Use slf4j directly.
+ * For more details see https://github.com/playframework/playframework/issues/1669
  */
+@Deprecated
 public class Logger {
 
     private static final ALogger logger = of("application");

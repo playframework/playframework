@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import play.api.http.MediaRange
@@ -39,7 +40,7 @@ trait Rendering {
       val result =
         if (request.acceptedTypes.isEmpty) _render(Seq(new MediaRange("*", "*", Nil, None, Nil)))
         else _render(request.acceptedTypes)
-      result.withHeaders(VARY -> ACCEPT)
+      result.withHeaders(result.header.varyWith(ACCEPT))
     }
 
     /**
@@ -70,7 +71,7 @@ trait Rendering {
       val result =
         if (request.acceptedTypes.isEmpty) _render(Seq(new MediaRange("*", "*", Nil, None, Nil)))
         else _render(request.acceptedTypes)
-      result.map(_.withHeaders(VARY -> ACCEPT))
+      result.map(r => r.withHeaders(r.header.varyWith(ACCEPT)))
     }
   }
 }

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.ws
 
 import org.specs2.mutable._
@@ -22,29 +23,32 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
-  def fakeApplication: PlayApplication = GuiceApplicationBuilder().routes {
-    case ("GET", "/feed") =>
-      Action {
-        val obj: JsObject = Json.obj(
-          "title" -> "foo",
-          "commentsUrl" -> "http://localhost:3333/comments"
-        )
-        Ok(obj)
-      }
-    case ("GET", "/comments") =>
-         Action {
-           val obj: JsObject = Json.obj(
-             "count" -> "10"
-           )
-           Ok(obj)
-         }
-    case (_, _) =>
-      Action {
-        BadRequest("no binding found")
-      }
+  def fakeApplication: PlayApplication = GuiceApplicationBuilder().appRoutes { app =>
+    val Action = app.injector.instanceOf[DefaultActionBuilder]
+    ({
+      case ("GET", "/feed") =>
+        Action {
+          val obj: JsObject = Json.obj(
+            "title" -> "foo",
+            "commentsUrl" -> "http://localhost:3333/comments"
+          )
+          Ok(obj)
+        }
+      case ("GET", "/comments") =>
+        Action {
+          val obj: JsObject = Json.obj(
+            "count" -> "10"
+          )
+          Ok(obj)
+        }
+      case (_, _) =>
+        Action {
+          BadRequest("no binding found")
+        }
+    })
   }.build()
 
-  "The Java WS class" should {
+  "The Java WSClient" should {
     "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {
       val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
 

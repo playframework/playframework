@@ -1,7 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
+
+import play.core.Paths;
 
 /**
  * Defines a 'call', describing an HTTP request. For example used to create links or populate redirect data.
@@ -131,6 +134,32 @@ public abstract class Call {
      */
     public String webSocketURL(boolean secure, String host) {
       return "ws" + (secure ? "s" : "") + "://" + host + this.url();
+    }
+
+    /**
+     * Transform this call to a relative path.
+     * @param requestHeader used to identify the current URL to make this Call relative to.
+     * @return the relative path string
+     */
+    public String relativeTo(Http.RequestHeader requestHeader) {
+        return this.relativeTo(requestHeader.path());
+    }
+
+    /**
+     * Transform this call to a relative path.
+     * @param startPath the URL to make this Call relative to.
+     * @return the relative path string
+     */
+    public String relativeTo(String startPath) {
+        return Paths.relative(startPath, this.url()) + this.appendFragment();
+    }
+
+    /**
+     * Transform this path into its canonical form.
+     * @return the canonical path.
+     */
+    public String canonical() {
+        return Paths.canonical(this.url()) + this.appendFragment();
     }
 
     public String path() {

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Using the SBT console
 
 ## Launching the console
@@ -173,7 +173,7 @@ You can also run commands directly without entering the Play console. For exampl
 ```bash
 $ sbt run
 [info] Loading project definition from /Users/jroper/tmp/my-first-app/project
-[info] Set current project to my-first-app (in build file:/Users/jroper/tmp/my-first-app/)
+[info] Set current project to my-first-app (in build file:/path/to/my-first-app/)
 
 --- (Running the application from SBT, auto-reloading is enabled) ---
 
@@ -182,7 +182,11 @@ $ sbt run
 (Server started, use Enter to stop and go back to the console...)
 ```
 
-The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
+The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt.
+
+By default the server is bound to the default port 9000. A custom port can be port (e.g. 8080) can be specified: `sbt 'run 8080'`
+
+Of course, the **triggered execution** is available here as well:
 
 ```bash
 $ sbt ~run

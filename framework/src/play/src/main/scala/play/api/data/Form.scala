@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.data
 
 import scala.language.existentials
@@ -38,18 +39,20 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Constraints associated with this form, indexed by field name.
    */
-  val constraints: Map[String, Seq[(String, Seq[Any])]] = mapping.mappings.map { m =>
-    m.key -> m.constraints.collect { case Constraint(Some(name), args) => name -> args }
-  }.filterNot(_._2.isEmpty).toMap
+  val constraints: Map[String, Seq[(String, Seq[Any])]] =
+    mapping.mappings.collect {
+      case m if m.constraints.nonEmpty => m.key -> m.constraints.collect {
+        case Constraint(Some(name), args) => name -> args
+      }
+    }(scala.collection.breakOut)
 
   /**
    * Formats associated to this form, indexed by field name. *
    */
-  val formats: Map[String, (String, Seq[Any])] = mapping.mappings.map { m =>
-    m.key -> m.format
-  }.collect {
-    case (k, Some(f)) => k -> f
-  }.toMap
+  val formats: Map[String, (String, Seq[Any])] =
+    mapping.mappings.flatMap { m =>
+      m.format.map { fmt => m.key -> fmt }
+    }(scala.collection.breakOut)
 
   /**
    * Binds data to this form, i.e. handles form submission.
@@ -159,7 +162,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   def apply(key: String): Field = Field(
     this,
     key,
-    constraints.get(key).getOrElse(Nil),
+    constraints.getOrElse(key, Nil),
     formats.get(key),
     errors.collect { case e if e.key == key => e },
     data.get(key))
@@ -197,7 +200,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns `true` if there is an error related to this form.
    */
-  def hasErrors: Boolean = !errors.isEmpty
+  def hasErrors: Boolean = errors.nonEmpty
 
   /**
    * Retrieve the first error for this key.
@@ -216,7 +219,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns `true` if there is a global error related to this form.
    */
-  def hasGlobalErrors: Boolean = !globalErrors.isEmpty
+  def hasGlobalErrors: Boolean = globalErrors.nonEmpty
 
   /**
    * Returns the concrete value, if the submission was a success.
@@ -305,7 +308,7 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   /**
    * Check if this field has errors.
    */
-  lazy val hasErrors: Boolean = !errors.isEmpty
+  lazy val hasErrors: Boolean = errors.nonEmpty
 
   /**
    * Retrieve a field from the same form, using a key relative to this field key.
@@ -430,7 +433,7 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
    * Displays the formatted message, for use in a template.
    */
   def format(implicit messages: play.api.i18n.Messages): String = {
-    messages.apply(message, args)
+    messages.apply(message, args: _*)
   }
 }
 

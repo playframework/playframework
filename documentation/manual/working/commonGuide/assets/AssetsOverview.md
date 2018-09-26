@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Working with public assets
 
 Serving a public resource in Play is the same as serving any other HTTP request. It uses the same routing as regular resources using the controller/action path to distribute CSS, JavaScript or image files to the client.
@@ -30,7 +30,7 @@ WebJars are automatically extracted into a `lib` folder relative to your public 
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
 ```
 
-Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar. To clarify, the `requirejs` webjar dependency is declared at your build file like:
+Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extracted WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar. To clarify, the `requirejs` webjar dependency is declared at your build file like:
 
 ```scala
 libraryDependencies += "org.webjars" % "requirejs" % "2.2.0"
@@ -227,8 +227,51 @@ Using Etag is usually enough for the purposes of caching. However if you want to
 ```
 # Assets configuration
 # ~~~~~
-"play.assets.cache./public/stylesheets/bootstrap.min.css"="max-age=3600"
+play.assets.cache."/public/stylesheets/bootstrap.min.css"="max-age=3600"
 ```
+
+You can also use partial paths to specify a custom `Cache-Control` for all the assets that are under that path, for example:
+
+```
+# Assets configuration
+# ~~~~~
+play.assets.cache."/public/stylesheets/"="max-age=100"
+play.assets.cache."/public/javascripts/"="max-age=200"
+```
+
+And Play will use `max-age=200` for all assets under `/public/javascripts` (like `/public/javascripts/main.js`) and `max-age=100` to all assets under `/public/stylesheets` (like `/public/stylesheets/main.css`).
+
+### How the additional directives are applied
+
+Play sorts the `Cache-Control` directives lexicographically and later from more specific to less specific. For example, given the following configuration: 
+
+```
+# Assets configuration
+# ~~~~~
+play.assets.cache."/public/stylesheets/"="max-age=101"
+play.assets.cache."/public/stylesheets/layout/"="max-age=102"
+play.assets.cache."/public/stylesheets/app/"="max-age=103"
+play.assets.cache."/public/stylesheets/layout/main.css"="max-age=103"
+
+play.assets.cache."/public/javascripts/"="max-age=201"
+play.assets.cache."/public/javascripts/app/"="max-age=202"
+play.assets.cache."/public/javascripts/app/main.js"="max-age=203"
+```
+
+The directives will be sorted and applied in the following order:
+
+```
+play.assets.cache."/public/javascripts/app/main.js"="max-age=203"
+play.assets.cache."/public/javascripts/app/"="max-age=202"
+play.assets.cache."/public/javascripts/"="max-age=201"
+
+play.assets.cache."/public/stylesheets/app/"="max-age=103"
+play.assets.cache."/public/stylesheets/layout/main.css"="max-age=103"
+play.assets.cache."/public/stylesheets/layout/"="max-age=102"
+play.assets.cache."/public/stylesheets/"="max-age=101"
+```
+
+> **Note:** a configuration like `play.assets.cache."/public/stylesheets"="max-age=101"` will match both `public/stylesheets.css` and `public/stylesheets/main.css`, so you may want to add a trailing `/` to better differentiate directories, for example `play.assets.cache."/public/stylesheets/"="max-age=101"`.
 
 ## Managed assets
 

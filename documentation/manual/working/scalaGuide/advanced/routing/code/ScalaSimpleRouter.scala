@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api.ApplicationLoader
@@ -13,7 +14,7 @@ import play.api.routing.sird._
 import play.api.routing.{ Router, SimpleRouter }
 
 //#load-guice
-class ScalaSimpleRouter @Inject()() extends SimpleRouter {
+class ScalaSimpleRouter @Inject()(val Action: DefaultActionBuilder) extends SimpleRouter {
 
   override def routes: Routes = {
     case GET(p"/") => Action {

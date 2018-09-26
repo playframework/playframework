@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.sql;
 
 //#jpa-repository-api-inject
@@ -45,16 +46,15 @@ class JPARepositoryMethods {
     }
     //#jpa-withTransaction-function
 
-    //#jpa-withTransaction-runnable
+    //#jpa-withTransaction-consumer
     public CompletionStage<Void> runningWithRunnable() {
-        // lambda is an instance of Runnable
+        // lambda is an instance of Consumer<EntityManager>
         return CompletableFuture.runAsync(() -> {
-            jpaApi.withTransaction(() -> {
-                EntityManager em = jpaApi.em();
-                Query query = em.createNativeQuery("update people set active = 1 where age > 18");
+            jpaApi.withTransaction(entityManager -> {
+                Query query = entityManager.createNativeQuery("update people set active = 1 where age > 18");
                 query.executeUpdate();
             });
         }, executionContext);
     }
-    //#jpa-withTransaction-runnable
+    //#jpa-withTransaction-consumer
 }

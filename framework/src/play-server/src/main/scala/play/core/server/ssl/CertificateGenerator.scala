@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.ssl
 
 import sun.security.x509._
@@ -23,7 +24,7 @@ object CertificateGenerator {
    * Generates a certificate using RSA (which is available in 1.6).
    */
   def generateRSAWithSHA256(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Duration.ofDays(365)): X509Certificate = {
-    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
@@ -33,7 +34,7 @@ object CertificateGenerator {
   }
 
   def generateRSAWithSHA1(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Duration.ofDays(365)): X509Certificate = {
-    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
@@ -43,8 +44,7 @@ object CertificateGenerator {
   }
 
   def toPEM(certificate: X509Certificate) = {
-    import org.apache.commons.codec.binary.Base64
-    val encoder = new Base64(64)
+    val encoder = java.util.Base64.getMimeEncoder(64, Array('\r', '\n'))
     val certBegin = "-----BEGIN CERTIFICATE-----\n"
     val certEnd = "-----END CERTIFICATE-----"
 
@@ -55,7 +55,7 @@ object CertificateGenerator {
   }
 
   def generateRSAWithMD5(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Duration.ofDays(365)): X509Certificate = {
-    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Play Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")

@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api
 
+import java.io.File
+
+import akka.actor.CoordinatedShutdown
 import akka.stream.ActorMaterializer
 import play.api.http.{ DefaultHttpErrorHandler, NotImplementedHttpRequestHandler }
 import play.api.libs.concurrent.ActorSystemProvider
-import java.io.File
-
 import play.api.mvc.request.DefaultRequestFactory
 
 /**
@@ -26,16 +28,20 @@ private[play] case class PlayCoreTestApplication(
 
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
-  private val lazyActorSystem = ActorSystemProvider.lazyStart(classloader, configuration)
-  def actorSystem = lazyActorSystem.get()
+  lazy val actorSystem = ActorSystemProvider.start(classloader, configuration)
   lazy val materializer = ActorMaterializer()(actorSystem)
+  lazy val coordinatedShutdown = CoordinatedShutdown(actorSystem)
   lazy val requestFactory = new DefaultRequestFactory(httpConfiguration)
   val errorHandler = DefaultHttpErrorHandler
   val requestHandler = NotImplementedHttpRequestHandler
   override lazy val environment: Environment = Environment.simple(path, mode)
 
   def stop() = {
-    _terminated = true
-    lazyActorSystem.close()
+    implicit val ctx = actorSystem.dispatcher
+    coordinatedShutdown
+      .run(CoordinatedShutdown.UnknownReason)
+      .map(_ =>
+        _terminated = true
+      )
   }
 }

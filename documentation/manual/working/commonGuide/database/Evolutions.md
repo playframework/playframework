@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Managing database evolutions
 
 When you use a relational database, you need a way to track and organize your database schema evolutions. Typically there are several situations where you need a more sophisticated way to track your database schema changes:
@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(evolutions, jdbc)
 
 ### Running evolutions using compile-time DI
 
-If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. `EvolutionsComponents` requires `dbApi` to be defined, which you can get by mixing in `DBComponents` and `HikariCPComponents` (or `BoneCPComponents` if you are using BoneCP instead). Since `applicationEvolutions` is a lazy val supplied by `EvolutionsComponents`, you need to access that val to make sure the evolutions run. For example you could explicitly access it in your `ApplicationLoader`, or have an explicit dependency from another component.
+If you are using [[compile-time dependency injection|ScalaCompileTimeDependencyInjection]], you will need to mix in the `EvolutionsComponents` trait to your cake to get access to the `ApplicationEvolutions`, which will run the evolutions when instantiated. `EvolutionsComponents` requires `dbApi` to be defined, which you can get by mixing in `DBComponents` and `HikariCPComponents`. Since `applicationEvolutions` is a lazy val supplied by `EvolutionsComponents`, you need to access that val to make sure the evolutions run. For example you could explicitly access it in your `ApplicationLoader`, or have an explicit dependency from another component.
 
 Your models will need an instance of `Database` to make connections to your database, which can be obtained from `dbApi.database`.
 
@@ -31,15 +31,15 @@ The first script is named `1.sql`, the second script `2.sql`, and so on…
 
 Each script contains two parts:
 
-- The **Ups** part the describe the required transformations.
-- The **Downs** part that describe how to revert them.
+- The **Ups** part that describes the required transformations.
+- The **Downs** part that describes how to revert them.
 
-For example, take a look at this first evolution script that bootstrap a basic application:
+For example, take a look at this first evolution script that bootstraps a basic application:
 
 ```
-# Users schema
+-- Users schema
 
-# --- !Ups
+-- !Ups
 
 CREATE TABLE User (
     id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -50,12 +50,12 @@ CREATE TABLE User (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 
 DROP TABLE User;
 ```
 
-As you see you have to delimit the both Ups and Downs section by using comments in your SQL script.
+The **Ups** and **Downs** parts are delimited by using a standard, single-line SQL comment in your script containing either `!Ups` or `!Downs`, respectively. Both SQL92 (`--`) and MySQL (`#`) comment styles are supported, but we recommend using SQL92 syntax because it is supported by more databases.
 
 > Play splits your `.sql` files into a series of semicolon-delimited statements before executing them one-by-one against the database. So if you need to use a semicolon *within* a statement, escape it by entering `;;` instead of `;`. For example, `INSERT INTO punctuation(name, character) VALUES ('semicolon', ';;');`.
 
@@ -82,12 +82,12 @@ For example, to enable `autoApply` for all evolutions, you might set `play.evolu
 
 ## Synchronizing concurrent changes
 
-Now let’s imagine that we have two developers working on this project. Developer A will work on a feature that requires a new database table. So he will create the following `2.sql` evolution script:
+Now let’s imagine that we have two developers working on this project. Jamie will work on a feature that requires a new database table. So Jamie will create the following `2.sql` evolution script:
 
 ```
-# Add Post
+-- Add Post
 
-# --- !Ups
+-- !Ups
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
@@ -98,25 +98,25 @@ CREATE TABLE Post (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 DROP TABLE Post;
 ```
 
-Play will apply this evolution script to Developer A’s database.
+Play will apply this evolution script to Jamie’s database.
 
-On the other hand, developer B will work on a feature that requires altering the User table. So he will also create the following `2.sql` evolution script:
+On the other hand, Robin will work on a feature that requires altering the User table. So Robin will also create the following `2.sql` evolution script:
 
 ```
-# Update User
+-- Update User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD age INT;
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP age;
 ```
 
-Developer B finishes his feature and commits (let’s say they are using Git). Now developer A has to merge the his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
+Robin finishes the feature and commits (let’s say by using Git). Now Jamie has to merge Robin’s work before continuing, so Jamie runs git pull, and the merge has a conflict, like:
 
 ```
 Auto-merging db/evolutions/2.sql
@@ -124,13 +124,13 @@ CONFLICT (add/add): Merge conflict in db/evolutions/2.sql
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
-Each developer has created a `2.sql` evolution script. So developer A needs to merge the contents of this file:
+Each developer has created a `2.sql` evolution script. So Jamie needs to merge the contents of this file:
 
 ```
 <<<<<<< HEAD
-# Add Post
+-- Add Post
 
-# --- !Ups
+-- !Ups
 CREATE TABLE Post (
     id bigint(20) NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
@@ -141,15 +141,15 @@ CREATE TABLE Post (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 DROP TABLE Post;
 =======
-# Update User
+-- Update User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD age INT;
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP age;
 >>>>>>> devB
 ```
@@ -157,9 +157,9 @@ ALTER TABLE User DROP age;
 The merge is really easy to do:
 
 ```
-# Add Post and update User
+-- Add Post and update User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD age INT;
 
 CREATE TABLE Post (
@@ -172,15 +172,15 @@ CREATE TABLE Post (
     PRIMARY KEY (id)
 );
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP age;
 
 DROP TABLE Post;
 ```
 
-This evolution script represents the new revision 2 of the database, that is different of the previous revision 2 that developer A has already applied.
+This evolution script represents the new revision 2 of the database, that is different of the previous revision 2 that Jamie has already applied.
 
-So Play will detect it and ask developer A to synchronize his database by first reverting the old revision 2 already applied, and by applying the new revision 2 script:
+So Play will detect it and ask Jamie to synchronize the database by first reverting the old revision 2 already applied, and by applying the new revision 2 script:
 
 ## Inconsistent states
 
@@ -189,12 +189,12 @@ Sometimes you will make a mistake in your evolution scripts, and they will fail.
 For example, the Ups script of this evolution has an error:
 
 ```
-# Add another column to User
+-- Add another column to User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE Userxxx ADD company varchar(255);
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP company;
 ```
 
@@ -213,12 +213,12 @@ ALTER TABLE User ADD company varchar(255);
 But because your evolution script has errors, you probably want to fix it. So you modify the `3.sql` script:
 
 ```
-# Add another column to User
+-- Add another column to User
 
-# --- !Ups
+-- !Ups
 ALTER TABLE User ADD company varchar(255);
 
-# --- !Downs
+-- !Downs
 ALTER TABLE User DROP company;
 ```
 
@@ -233,4 +233,3 @@ By default, each statement of each evolution script will be executed immediately
 ### Evolution storage and limitations
 
 Evolutions are stored in your database in a table called `play_evolutions`.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (preferred) create multiple evolutions scripts less than 64kb in size.
-

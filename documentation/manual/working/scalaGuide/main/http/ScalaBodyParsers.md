@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Body parsers
 
 ## What is a body parser?
 
 An HTTP request is a header followed by a body.  The header is typically small - it can be safely buffered in memory, hence in Play it is modelled using the [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) class.  The body however can be potentially very long, and so is not buffered in memory, but rather is modelled as a stream.  However, many request body payloads are small and can be modelled in memory, and so to map the body stream to an object in memory, Play provides a [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) abstraction.
 
-Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka Streams](http://doc.akka.io/docs/akka/2.5/scala/stream/index.html).  Akka Streams is an implementation of [Reactive Streams](http://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka Streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
+Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka Streams](https://doc.akka.io/docs/akka/2.5/stream/index.html?language=scala).  Akka Streams is an implementation of [Reactive Streams](http://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka Streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
 
 ## More about Actions
 
@@ -36,7 +36,7 @@ The default body parser produces a body of type [`AnyContent`](api/scala/play/ap
 The following is a mapping of types supported by the default body parser:
 
 - **text/plain**: `String`, accessible via `asText`.
-- **application/json**: [`JsValue`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html), accessible via `asJson`.
+- **application/json**: [`JsValue`](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/JsValue.html), accessible via `asJson`.
 - **application/xml**, **text/xml** or **application/XXX+xml**: `scala.xml.NodeSeq`, accessible via `asXml`.
 - **application/x-www-form-urlencoded**: `Map[String, Seq[String]]`, accessible via `asFormUrlEncoded`.
 - **multipart/form-data**: [`MultipartFormData`](api/scala/play/api/mvc/MultipartFormData.html), accessible via `asMultipartFormData`.
@@ -100,9 +100,9 @@ The signature of this function may be a bit daunting at first, so let's break it
 
 The function takes a [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html).  This can be used to check information about the request - most commonly, it is used to get the `Content-Type`, so that the body can be correctly parsed.
 
-The return type of the function is an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  An accumulator is a thin layer around an [Akka Streams](http://doc.akka.io/docs/akka/2.5/scala/stream/index.html) [`Sink`](http://doc.akka.io/api/akka/2.5/index.html#akka.stream.scaladsl.Sink).  An accumulator asynchronously accumulates streams of elements into a result, it can be run by passing in an Akka Streams [`Source`](http://doc.akka.io/api/akka/2.5/index.html#akka.stream.scaladsl.Source), this will return a `Future` that will be redeemed when the accumulator is complete.  It is essentially the same thing as a `Sink[E, Future[A]]`, in fact it is nothing more than a wrapper around this type, but the big difference is that `Accumulator` provides convenient methods such as `map`, `mapFuture`, `recover` etc. for working with the result as if it were a promise, where `Sink` requires all such operations to be wrapped in a `mapMaterializedValue` call.
+The return type of the function is an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  An accumulator is a thin layer around an [Akka Streams](https://doc.akka.io/docs/akka/2.5/stream/index.html?language=scala) [`Sink`](https://doc.akka.io/api/akka/2.5/index.html#akka.stream.scaladsl.Sink).  An accumulator asynchronously accumulates streams of elements into a result, it can be run by passing in an Akka Streams [`Source`](https://doc.akka.io/api/akka/2.5/index.html#akka.stream.scaladsl.Source), this will return a `Future` that will be redeemed when the accumulator is complete.  It is essentially the same thing as a `Sink[E, Future[A]]`, in fact it is nothing more than a wrapper around this type, but the big difference is that `Accumulator` provides convenient methods such as `map`, `mapFuture`, `recover` etc. for working with the result as if it were a promise, where `Sink` requires all such operations to be wrapped in a `mapMaterializedValue` call.
 
-The accumulator that the `apply` method returns consumes elements of type [`ByteString`](http://doc.akka.io/api/akka/2.5/akka/util/ByteString.html) - these are essentially arrays of bytes, but differ from `byte[]` in that `ByteString` is immutable, and many operations such as slicing and appending happen in constant time.
+The accumulator that the `apply` method returns consumes elements of type [`ByteString`](https://doc.akka.io/api/akka/2.5/akka/util/ByteString.html) - these are essentially arrays of bytes, but differ from `byte[]` in that `ByteString` is immutable, and many operations such as slicing and appending happen in constant time.
 
 The return type of the accumulator is `Either[Result, A]` - it will either return a `Result`, or it will return a body of type `A`.  A result is generally returned in the case of an error, for example, if the body failed to be parsed, if the `Content-Type` didn't match the type that the body parser accepts, or if an in memory buffer was exceeded.  When the body parser returns a result, this will short circuit the processing of the action - the body parsers result will be returned immediately, and the action will never be invoked.
 
@@ -118,6 +118,6 @@ In rare circumstances, it may be necessary to write a custom parser using Akka S
 
 However, when that's not feasible, for example when the body you need to parse is too long to fit in memory, then you may need to write a custom body parser.
 
-A full description of how to use Akka Streams is beyond the scope of this documentation - the best place to start is to read the [Akka Streams documentation](http://doc.akka.io/docs/akka/2.5/scala/stream/index.html).  However, the following shows a CSV parser, which builds on the [Parsing lines from a stream of ByteStrings](http://doc.akka.io/docs/akka/2.5/scala/stream/stream-cookbook.html#Parsing_lines_from_a_stream_of_ByteStrings) documentation from the Akka Streams cookbook:
+A full description of how to use Akka Streams is beyond the scope of this documentation - the best place to start is to read the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.5/stream/index.html?language=scala).  However, the following shows a CSV parser, which builds on the [Parsing lines from a stream of ByteStrings](https://doc.akka.io/docs/akka/2.5/stream/stream-cookbook.html?language=scala#parsing-lines-from-a-stream-of-bytestrings) documentation from the Akka Streams cookbook:
 
 @[csv](code/ScalaBodyParsers.scala)

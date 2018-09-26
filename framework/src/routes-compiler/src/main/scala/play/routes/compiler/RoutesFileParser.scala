@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routes.compiler
 
 import java.io.File
 import java.nio.charset.Charset
-
-import org.apache.commons.io.FileUtils
+import java.nio.file.Files
 
 import scala.util.parsing.combinator._
 import scala.util.parsing.input._
@@ -21,8 +21,7 @@ object RoutesFileParser {
    * @return Either the list of compilation errors encountered, or a list of routing rules
    */
   def parse(routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
-
-    val routesContent = FileUtils.readFileToString(routesFile, Charset.defaultCharset())
+    val routesContent = new String(Files.readAllBytes(routesFile.toPath), Charset.defaultCharset())
 
     parseContent(routesContent, routesFile)
   }

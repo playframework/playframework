@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.ws
 
 import akka.stream.Materializer
@@ -15,7 +16,7 @@ class WSSpec extends PlaySpecification with WsTestClient {
 
   sequential
 
-  "WS.url().post(InputStream)" should {
+  "WSClient.url().post(InputStream)" should {
 
     "uploads the stream" in {
 

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs
 
 import java.io.File
@@ -19,7 +20,6 @@ import play.api.routing.Router
 
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
-import scala.util.Try
 
 class TemporaryFileCreatorSpec extends Specification with Mockito {
 
@@ -68,22 +68,22 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         // being visible.
         val raceLatch = new CountDownLatch(threads)
 
-        val futureResults: Seq[Future[Try[TemporaryFile]]] = for (_ <- 0 until threads) yield {
+        val futureResults: Seq[Future[TemporaryFile]] = for (_ <- 0 until threads) yield {
           Future {
-            Try {
-              raceLatch.countDown()
-              creator.create("foo", "bar")
-            }
+            raceLatch.countDown()
+            creator.create("foo", "bar")
           }(executionContext)
         }
 
-        val results: Seq[Try[TemporaryFile]] = {
+        val results: Seq[TemporaryFile] = {
           import ExecutionContext.Implicits.global // implicit for Future.sequence
           Await.result(Future.sequence(futureResults), 30.seconds)
         }
 
-        // If there is some failure, the test should fail then
-        results.exists(_.isFailure) must beFalse
+        val parentDir = results.head.path.getParent
+
+        // All temporary files should be created at the same directory
+        results.forall(_.path.getParent.equals(parentDir)) must beTrue
       } finally {
         threadPool.shutdown()
       }
@@ -147,7 +147,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "works when using compile time dependency injection" in {
-      val context = ApplicationLoader.createContext(
+      val context = ApplicationLoader.Context.create(
         new Environment(new File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
       val appLoader = new ApplicationLoader {
         def load(context: Context) = {

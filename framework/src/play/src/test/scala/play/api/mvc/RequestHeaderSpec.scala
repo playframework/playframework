@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.security.cert.X509Certificate
@@ -125,7 +126,6 @@ class RequestHeaderSpec extends Specification {
         origReq: RequestHeader,
         changeReq: RequestHeader => RequestHeader)(
         id: Long = origReq.id,
-        tags: Map[String, String] = origReq.tags,
         uri: String = origReq.uri,
         path: String = origReq.path,
         method: String = origReq.method,
@@ -137,7 +137,6 @@ class RequestHeaderSpec extends Specification {
         clientCertificateChain: Option[Seq[X509Certificate]] = origReq.clientCertificateChain) = {
         val newReq: RequestHeader = changeReq(origReq)
         newReq.id must_== id
-        newReq.tags must_== tags
         newReq.uri must_== uri
         newReq.path must_== path
         newReq.method must_== method
@@ -151,9 +150,6 @@ class RequestHeaderSpec extends Specification {
 
       "must change request id" in {
         checkRequestValues(dummyRequestHeader(), _.copy(id = 999L))(id = 999L)
-      }
-      "must change request tags" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(tags = Map("hello" -> "world")))(tags = Map("hello" -> "world"))
       }
       "must change request uri" in {
         checkRequestValues(dummyRequestHeader(), _.copy(uri = "/x/y/z"))(uri = "/x/y/z")

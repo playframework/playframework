@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.util.zip.Deflater
@@ -53,14 +54,14 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       val bodyString = "Hello World"
 
       // Compress the bytes
-      var output = new Array[Byte](100)
+      val output = new Array[Byte](100)
       val compressor = new Deflater()
       compressor.setInput(bodyString.getBytes("UTF-8"))
       compressor.finish()
       val compressedDataLength = compressor.deflate(output)
 
       val client = new BasicHttpClient(port, false)
-      val response = client.sendRaw(output, Map("Content-Type" -> "text/plain", "Content-Length" -> compressedDataLength.toString, "Content-Encoding" -> "deflate"))
+      val response = client.sendRaw(output.take(compressedDataLength), Map("Content-Type" -> "text/plain", "Content-Length" -> compressedDataLength.toString, "Content-Encoding" -> "deflate"))
       response.status must_== 200
       response.body.left.get must_== bodyString
     }

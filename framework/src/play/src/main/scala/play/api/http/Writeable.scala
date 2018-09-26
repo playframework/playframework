@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.http
 
 import akka.util.ByteString
@@ -97,7 +98,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * `Writeable` for `JsValue` values that writes to UTF-8, so they can be sent with the application/json media type.
    */
   implicit def writeableOf_JsValue: Writeable[JsValue] = {
-    Writeable(a => ByteString(Json.toBytes(a)))
+    Writeable(a => ByteString.fromArrayUnsafe(Json.toBytes(a)))
   }
 
   /**
@@ -151,11 +152,11 @@ trait DefaultWriteables extends LowPriorityWriteables {
 
     Writeable[MultipartFormData[A]](
       transform = { form: MultipartFormData[A] =>
-      formatDataParts(form.dataParts) ++ form.files.flatMap { file =>
-        val fileBytes = aWriteable.transform(file)
-        filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
-      } ++ codec.encode(s"--$boundary--")
-    },
+        formatDataParts(form.dataParts) ++ form.files.flatMap { file =>
+          val fileBytes = aWriteable.transform(file)
+          filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
+        } ++ codec.encode(s"--$boundary--")
+      },
       contentType = Some(s"multipart/form-data; boundary=$boundary")
     )
   }

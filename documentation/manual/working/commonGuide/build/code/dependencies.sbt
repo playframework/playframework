@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
 //#single-dep
@@ -13,7 +13,7 @@ libraryDependencies += "org.apache.derby" % "derby" % "10.13.1.1" % "test"
 //#multi-deps
 libraryDependencies ++= Seq(
   "org.apache.derby" % "derby" % "10.13.1.1",
-  "org.hibernate" % "hibernate-entitymanager" % "5.2.10.Final"
+  "org.hibernate" % "hibernate-core" % "5.2.15.Final"
 )
 //#multi-deps
 

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt
 
 import java.net.InetSocketAddress
@@ -13,10 +14,10 @@ trait PlayRunHook extends play.runsupport.RunHook
 
 object PlayRunHook {
 
-  def makeRunHookFromOnStarted(f: (java.net.InetSocketAddress) => Unit): PlayRunHook = {
+  def makeRunHookFromOnStarted(f: () => Unit): PlayRunHook = {
     // We create an object for a named class...
     object OnStartedPlayRunHook extends PlayRunHook {
-      override def afterStarted(addr: InetSocketAddress): Unit = f(addr)
+      override def afterStarted(): Unit = f()
     }
     OnStartedPlayRunHook
   }

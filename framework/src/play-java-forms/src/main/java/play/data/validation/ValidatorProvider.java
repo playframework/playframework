@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data.validation;
 
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +18,10 @@ import play.inject.ApplicationLifecycle;
 
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
+/**
+ * @deprecated Deprecated since 2.7.0. Use {@link ValidatorFactoryProvider} instead.
+ */
+@Deprecated
 @Singleton
 public class ValidatorProvider implements Provider<Validator> {
 

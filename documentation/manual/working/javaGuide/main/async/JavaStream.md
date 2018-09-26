@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Streaming HTTP responses
 
 ## Standard responses and Content-Length header
@@ -100,4 +100,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Akka Streams, you can reference the [Akka Streams documentation](http://doc.akka.io/docs/akka/2.5/java/stream/index.html).
+For more information on using Akka Streams, you can reference the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.5/stream/index.html?language=java).

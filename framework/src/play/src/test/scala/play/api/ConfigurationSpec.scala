@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api
 
 import java.io._
 
-import com.typesafe.config.ConfigException
+import com.typesafe.config.{ ConfigException, ConfigFactory }
 import org.specs2.mutable.Specification
 
 import scala.util.control.NonFatal
@@ -28,13 +29,51 @@ class ConfigurationSpec extends Specification {
         "blah3" -> Map(
           "blah4" -> "value6"
         )
-      )
+      ),
+      "longlong" -> 79219707376851105L,
+      "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
     )
   )
 
   "Configuration" should {
 
-    "support getting optional values" in {
+    import scala.concurrent.duration._
+    "support getting durations" in {
+
+      "simple duration" in {
+        val conf = config("my.duration" -> "10s")
+        val value = conf.get[Duration]("my.duration")
+        value must beEqualTo(10.seconds)
+        value.toString must beEqualTo("10 seconds")
+      }
+
+      "use minutes when possible" in {
+        val conf = config("my.duration" -> "120s")
+        val value = conf.get[Duration]("my.duration")
+        value must beEqualTo(2.minutes)
+        value.toString must beEqualTo("2 minutes")
+      }
+
+      "use seconds when minutes aren't accurate enough" in {
+        val conf = config("my.duration" -> "121s")
+        val value = conf.get[Duration]("my.duration")
+        value must beEqualTo(121.seconds)
+        value.toString must beEqualTo("121 seconds")
+      }
+
+      "handle 'infinite' as Duration.Inf" in {
+        val conf = config("my.duration" -> "infinite")
+        conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
+      }
+
+      "handle null as Duration.Inf" in {
+        val conf = config("my.duration" -> null)
+        conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
+      }
+
+    }
+
+    "support getting optional values via get[Option[...]]" in {
       "when null" in {
         config("foo.bar" -> null).get[Option[String]]("foo.bar") must beNone
       }
@@ -43,6 +82,17 @@ class ConfigurationSpec extends Specification {
       }
       "when undefined" in {
         config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
+      }
+    }
+    "support getting optional values via getOptional" in {
+      "when null" in {
+        config("foo.bar" -> null).getOptional[String]("foo.bar") must beNone
+      }
+      "when set" in {
+        config("foo.bar" -> "bar").getOptional[String]("foo.bar") must beSome("bar")
+      }
+      "when undefined" in {
+        config().getOptional[String]("foo.bar") must beNone
       }
     }
     "support getting prototyped seqs" in {
@@ -87,9 +137,56 @@ class ConfigurationSpec extends Specification {
       exampleConfig.get[Seq[String]]("blah.4") must contain(exactly("one", "two", "three"))
     }
 
+    "handle longs of very large magnitude" in {
+      exampleConfig.get[Long]("longlong") must ===(79219707376851105L)
+      exampleConfig.get[Seq[Long]]("longlonglist") must ===(Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L))
+    }
+
     "handle invalid and null configuration values" in {
       exampleConfig.get[Seq[Boolean]]("foo.bar1") must throwA[com.typesafe.config.ConfigException]
       exampleConfig.get[Boolean]("foo.bar3") must throwA[com.typesafe.config.ConfigException]
+    }
+
+    "query maps" in {
+      "objects with simple keys" in {
+        val configuration = Configuration(ConfigFactory.parseString(
+          """
+            |foo.bar {
+            |  one = 1
+            |  two = 2
+            |}
+          """.stripMargin))
+
+        configuration.get[Map[String, Int]]("foo.bar") must_== Map("one" -> 1, "two" -> 2)
+      }
+      "objects with complex keys" in {
+        val configuration = Configuration(ConfigFactory.parseString(
+          """
+            |test.files {
+            |  "/public/index.html" = "html"
+            |  "/public/stylesheets/\"foo\".css" = "css"
+            |  "/public/javascripts/\"bar\".js" = "js"
+            |}
+          """.stripMargin))
+        configuration.get[Map[String, String]]("test.files") must_== Map(
+          "/public/index.html" -> "html",
+          """/public/stylesheets/"foo".css""" -> "css",
+          """/public/javascripts/"bar".js""" -> "js"
+        )
+      }
+      "nested objects" in {
+        val configuration = Configuration(ConfigFactory.parseString(
+          """
+            |objects.a {
+            |  "b.c" = { "D.E" = F }
+            |  "d.e" = { "F.G" = H, "I.J" = K }
+            |}
+          """.stripMargin))
+        configuration.get[Map[String, Map[String, String]]]("objects.a") must_== Map(
+          "b.c" -> Map("D.E" -> "F"),
+          "d.e" -> Map("F.G" -> "H", "I.J" -> "K")
+        )
+      }
     }
 
     "throw serializable exceptions" in {

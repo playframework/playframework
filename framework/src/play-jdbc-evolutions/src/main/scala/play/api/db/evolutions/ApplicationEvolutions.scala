@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db.evolutions
 
 import java.sql.{ Statement, Connection, SQLException }
 import javax.inject.{ Inject, Provider, Singleton }
 
+import scala.collection.breakOut
 import scala.util.control.Exception.ignoring
 
 import play.api.db.{ Database, DBApi }
@@ -243,13 +245,13 @@ trait EvolutionsConfig {
  * Default evolutions datasource configuration.
  */
 case class DefaultEvolutionsDatasourceConfig(
-  enabled: Boolean,
-  schema: String,
-  autocommit: Boolean,
-  useLocks: Boolean,
-  autoApply: Boolean,
-  autoApplyDowns: Boolean,
-  skipApplyDownsOnly: Boolean) extends EvolutionsDatasourceConfig
+    enabled: Boolean,
+    schema: String,
+    autocommit: Boolean,
+    useLocks: Boolean,
+    autoApply: Boolean,
+    autoApplyDowns: Boolean,
+    skipApplyDownsOnly: Boolean) extends EvolutionsDatasourceConfig
 
 /**
  * Default evolutions configuration.
@@ -312,18 +314,22 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
     // Since not all the datasources will necessarily appear in the db map, because some will come from deprecated
     // configuration, we create a map of them to the default config, and then override any of them with the ones
     // from db.
-    val datasourceConfigMap = datasources.map(_ -> config).toMap ++ config.getPrototypedMap("db", "")
-    val datasourceConfig = datasourceConfigMap.map {
-      case (datasource, dsConfig) =>
-        val enabled = dsConfig.get[Boolean]("enabled")
-        val schema = dsConfig.get[String]("schema")
-        val autocommit = dsConfig.get[Boolean]("autocommit")
-        val useLocks = dsConfig.get[Boolean]("useLocks")
-        val autoApply = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApply", s"applyEvolutions.$datasource")
-        val autoApplyDowns = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApplyDowns", s"applyDownEvolutions.$datasource")
-        val skipApplyDownsOnly = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "skipApplyDownsOnly", s"skipApplyDownsOnly.$datasource")
-        datasource -> new DefaultEvolutionsDatasourceConfig(enabled, schema, autocommit, useLocks, autoApply, autoApplyDowns, skipApplyDownsOnly)
-    }.toMap
+    val datasourceConfigMap = (datasources.map(_ -> config)(
+      breakOut): Map[String, Configuration]) ++ config.
+      getPrototypedMap("db", "")
+
+    val datasourceConfig: Map[String, DefaultEvolutionsDatasourceConfig] =
+      datasourceConfigMap.map {
+        case (datasource, dsConfig) =>
+          val enabled = dsConfig.get[Boolean]("enabled")
+          val schema = dsConfig.get[String]("schema")
+          val autocommit = dsConfig.get[Boolean]("autocommit")
+          val useLocks = dsConfig.get[Boolean]("useLocks")
+          val autoApply = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApply", s"applyEvolutions.$datasource")
+          val autoApplyDowns = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApplyDowns", s"applyDownEvolutions.$datasource")
+          val skipApplyDownsOnly = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "skipApplyDownsOnly", s"skipApplyDownsOnly.$datasource")
+          datasource -> new DefaultEvolutionsDatasourceConfig(enabled, schema, autocommit, useLocks, autoApply, autoApplyDowns, skipApplyDownsOnly)
+      }(breakOut)
 
     new DefaultEvolutionsConfig(defaultConfig, datasourceConfig)
   }
@@ -352,8 +358,8 @@ class DynamicEvolutions {
 @Singleton
 class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: EvolutionsReader, config: EvolutionsConfig) extends HandleWebCommandSupport {
   def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.Result] = {
-    val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
-    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
+    val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_-]+)""".r
+    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_-]+)/([0-9]+)""".r
 
     lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_.head).getOrElse("/")
 

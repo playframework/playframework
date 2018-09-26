@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.net.{ URLDecoder, URLEncoder }
@@ -27,7 +28,7 @@ import scala.util.control.NonFatal
  *
  * @param name the cookie name
  * @param value the cookie value
- * @param maxAge the cookie expiration date in seconds, `None` for a transient cookie, or a value less than 0 to expire a cookie now
+ * @param maxAge the cookie expiration date in seconds, `None` for a transient cookie, or a value 0 or less to expire a cookie now
  * @param path the cookie path, defaulting to the root path `/`
  * @param domain the cookie domain
  * @param secure whether this cookie is secured, sent only for HTTPS requests
@@ -96,10 +97,11 @@ object Cookie {
   import scala.concurrent.duration._
 
   /**
-   * The cookie's max age, in seconds, when we expire the cookie. This is also used to determine Expires. It's set
-   * to one day ago to work for clients that only support Expires and have a clock that is slightly behind.
+   * The cookie's Max-Age, in seconds, when we expire the cookie.
+   *
+   * When Max-Age = 0, Expires is set to 0 epoch time for compatibility with older browsers.
    */
-  val DiscardedMaxAge: Int = -1.day.toSeconds.toInt
+  val DiscardedMaxAge: Int = 0
 }
 
 /**
@@ -154,6 +156,8 @@ object Cookies extends CookieHeaderEncoding {
  */
 trait CookieHeaderEncoding {
 
+  import play.core.cookie.encoding.DefaultCookie
+
   private implicit val markerContext = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
@@ -170,7 +174,6 @@ trait CookieHeaderEncoding {
   import scala.collection.JavaConverters._
 
   // We use netty here but just as an API to handle cookies encoding
-  import play.core.netty.utils.DefaultCookie
 
   private val logger = Logger(this.getClass)
 
@@ -196,7 +199,7 @@ trait CookieHeaderEncoding {
     def get(name: String) = cookies.get(name)
     override def toString = cookies.toString
 
-    def foreach[U](f: (Cookie) => U) {
+    def foreach[U](f: (Cookie) => U): Unit = {
       cookies.values.foreach(f)
     }
   }
@@ -321,7 +324,7 @@ trait CookieHeaderEncoding {
  * The default implementation of `CookieHeaders`.
  */
 class DefaultCookieHeaderEncoding @Inject() (
-  override protected val config: CookiesConfiguration = CookiesConfiguration()) extends CookieHeaderEncoding
+    override protected val config: CookiesConfiguration = CookiesConfiguration()) extends CookieHeaderEncoding
 
 /**
  * Utilities for merging individual cookie values in HTTP cookie headers.
@@ -504,13 +507,21 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
       // In some cases we've seen clients ignore the Max-Age and Expires on a cookie, and fail to properly clear the
       // cookie. This can cause the client to send an empty cookie back to us after we've attempted to clear it. So
       // just decode empty cookies to an empty map. See https://github.com/playframework/playframework/issues/7680.
-      if (data.nonEmpty) {
-        data
-          .split("&")
-          .map(_.split("=", 2))
-          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
-          .toMap
-      } else Map.empty
+      if (data.isEmpty) {
+        Map.empty[String, String]
+      } else {
+        data.split("&").flatMap { pair =>
+          pair.span(_ != '=') match { // "foo=bar".span(_ != '=') -> (foo,=bar)
+            case (_, "") => // Skip invalid
+              Option.empty[(String, String)]
+
+            case (encName, encVal) =>
+              Some(URLDecoder.decode(encName, "UTF-8") -> URLDecoder.decode(
+                encVal.tail, "UTF-8"))
+
+          }
+        }(scala.collection.breakOut)
+      }
     }
 
     // Do not change this unless you understand the security issues behind timing attacks.
@@ -675,8 +686,8 @@ object JWTCookieDataCodec {
         val msg = s"Invalid header algorithm $headerAlgorithm in JWT $id"
         throw new IllegalStateException(msg)
       }
-      val claims: Claims = jws.getBody
-      claims.asScala.toMap
+
+      jws.getBody.asScala.toMap
     }
 
     /**
@@ -753,13 +764,13 @@ trait FallbackCookieDataCodec extends CookieDataCodec {
 }
 
 case class DefaultUrlEncodedCookieDataCodec(
-  isSigned: Boolean,
-  cookieSigner: CookieSigner
+    isSigned: Boolean,
+    cookieSigner: CookieSigner
 ) extends UrlEncodedCookieDataCodec
 
 case class DefaultJWTCookieDataCodec @Inject() (
-  secretConfiguration: SecretConfiguration,
-  jwtConfiguration: JWTConfiguration
+    secretConfiguration: SecretConfiguration,
+    jwtConfiguration: JWTConfiguration
 ) extends JWTCookieDataCodec
 
 /**

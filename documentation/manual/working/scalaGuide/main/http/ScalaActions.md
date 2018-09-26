@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Actions, Controllers and Results
 
 ## What is an Action?
@@ -28,6 +28,10 @@ So there is another Action builder that takes as an argument a function `Request
 It is often useful to mark the `request` parameter as `implicit` so it can be implicitly used by other APIs that need it:
 
 @[implicit-request-action](code/ScalaActions.scala)
+
+If you have broken up your code into methods, then you can pass through the implicit request from the action:
+
+@[implicit-request-action-with-more-methods](code/ScalaActions.scala)
 
 The last way of creating an Action value is to specify an additional `BodyParser` argument:
 

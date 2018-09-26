@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application
 
-Writing tests for your application can be an involved process. Play supports [JUnit](http://junit.org/) and provides helpers and application stubs to make testing your application as easy as possible.
+Writing tests for your application can be an involved process. Play supports [JUnit](https://junit.org/junit4/) and provides helpers and application stubs to make testing your application as easy as possible.
 
 ## Overview
 
@@ -15,11 +15,11 @@ You can run tests from the SBT console.
 * To run tests continually, run a command with a tilde in front, i.e. `~testQuick`.
 * To access test helpers such as `FakeApplication` in console, run `test:console`.
 
-Testing in Play is based on [sbt](http://www.scala-sbt.org/), and a full description is available in the [testing documentation](http://www.scala-sbt.org/release/docs/Testing.html).
+Testing in Play is based on [sbt](https://www.scala-sbt.org/), and a full description is available in the [testing documentation](https://www.scala-sbt.org/release/docs/Testing.html).
 
 ## Using JUnit
 
-The default way to test a Play application is with [JUnit](http://junit.org/).
+The default way to test a Play application is with [JUnit](https://junit.org/junit4/).
 
 @[test-simple](code/javaguide/tests/SimpleTest.java)
 
@@ -47,7 +47,13 @@ Some developers prefer to write their assertions in a more fluent style than JUn
 
 Mocks are used to isolate unit tests against external dependencies. For example, if your class under test depends on an external data access class, you can mock this to provide controlled data and eliminate the need for an external data resource.
 
-The [Mockito](https://github.com/mockito/mockito) library is included in your project build to assist you in using mocks.
+The [Mockito](https://github.com/mockito/mockito) library is a popular mocking framework for Java.  To use it in your tests add a dependency on the `mockito-core` artifact to your `build.sbt` file.  For example:
+
+```scala
+libraryDependencies += "org.mockito" % "mockito-core" % "2.10.0" % "test"
+```
+
+You can find the current version number of `mockito-core` [here](https://mvnrepository.com/artifact/org.mockito/mockito-core).
 
 Using Mockito, you can mock classes or interfaces like so:
 

@@ -1,14 +1,16 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.http;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
-import play.Logger;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
-import play.cache.ehcache.EhCacheComponents;
+import play.cache.caffeine.CaffeineCacheComponents;
 import play.core.j.MappedJavaHandlerComponents;
 import play.filters.components.NoHttpFiltersComponents;
 import play.libs.Json;
@@ -20,15 +22,16 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import java.util.concurrent.CompletionStage;
 
 public class JavaActionsComposition extends Controller {
 
+    private static final Logger log = LoggerFactory.getLogger(JavaActionsComposition.class);
+
     // #verbose-action
     public class VerboseAction extends play.mvc.Action.Simple {
         public CompletionStage<Result> call(Http.Context ctx) {
-            Logger.info("Calling action for {}", ctx);
+            log.info("Calling action for {}", ctx);
             return delegate.call(ctx);
         }
     }
@@ -69,7 +72,7 @@ public class JavaActionsComposition extends Controller {
     public class VerboseAnnotationAction extends Action<VerboseAnnotation> {
         public CompletionStage<Result> call(Http.Context ctx) {
             if (configuration.value()) {
-                Logger.info("Calling action for {}", ctx);
+                log.info("Calling action for {}", ctx);
             }
             return delegate.call(ctx);
         }
@@ -133,7 +136,7 @@ public class JavaActionsComposition extends Controller {
 
     // #action-composition-compile-time-di
     public class MyComponents extends BuiltInComponentsFromContext
-            implements NoHttpFiltersComponents, EhCacheComponents {
+            implements NoHttpFiltersComponents, CaffeineCacheComponents {
 
         public MyComponents(ApplicationLoader.Context context) {
             super(context);

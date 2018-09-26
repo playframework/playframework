@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http.parsing
 
 import akka.stream.Materializer
@@ -23,27 +24,27 @@ class DefaultBodyParserSpec extends PlaySpecification {
     }
 
     "parse text bodies for DELETE requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      parse("GET", Some("text/plain"), ByteString("bar")) must be right (AnyContentAsText("bar"))
     }
 
     "parse text bodies for GET requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      parse("GET", Some("text/plain"), ByteString("bar")) must be right (AnyContentAsText("bar"))
     }
 
     "parse text bodies for HEAD requests" in new WithApplication() {
-      parse("HEAD", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      parse("HEAD", Some("text/plain"), ByteString("bar")) must be right (AnyContentAsText("bar"))
     }
 
     "parse text bodies for OPTIONS requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      parse("GET", Some("text/plain"), ByteString("bar")) must be right (AnyContentAsText("bar"))
     }
 
     "parse XML bodies for PATCH requests" in new WithApplication() {
-      parse("POST", Some("text/xml"), ByteString("<bar></bar>")) must beRight(AnyContentAsXml(<bar></bar>))
+      parse("POST", Some("text/xml"), ByteString("<bar></bar>")) must be right (AnyContentAsXml(<bar></bar>))
     }
 
     "parse text bodies for POST requests" in new WithApplication() {
-      parse("POST", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      parse("POST", Some("text/plain"), ByteString("bar")) must be right (AnyContentAsText("bar"))
     }
 
     "parse JSON bodies for PUT requests" in new WithApplication() {
@@ -53,7 +54,7 @@ class DefaultBodyParserSpec extends PlaySpecification {
     }
 
     "parse unknown empty bodies as empty for PUT requests" in new WithApplication() {
-      parse("PUT", None, ByteString.empty) must beRight(AnyContentAsEmpty)
+      parse("PUT", None, ByteString.empty) must be right (AnyContentAsEmpty)
     }
 
     "parse unknown bodies as raw for PUT requests" in new WithApplication() {

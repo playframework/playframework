@@ -1,13 +1,17 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server.common
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import play.api.Application
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
 import play.api.mvc.request.DefaultRequestFactory
+import play.core.server.ServerProvider
 import play.utils.InlineCache
 
 import scala.util.{ Failure, Success, Try }
@@ -22,7 +26,18 @@ import scala.util.{ Failure, Success, Try }
  */
 private[play] abstract class ReloadCache[+T] {
 
-  private val reloadCache: Try[Application] => T = new InlineCache[Try[Application], T](reloadValue(_))
+  /**
+   * The count of how many times the cache has been reloaded. Due to the semantics of InlineCache this value
+   * could be called up to once per thread per application change.
+   */
+  private val reloadCounter = new AtomicInteger(0)
+
+  private[play] final def reloadCount: Int = reloadCounter.get
+
+  private val reloadCache: Try[Application] => T = new InlineCache[Try[Application], T]({ tryApp: Try[Application] =>
+    reloadCounter.incrementAndGet()
+    reloadValue(tryApp)
+  })
 
   /**
    * Get the cached `T` for the given application. If the application has changed
@@ -36,10 +51,28 @@ private[play] abstract class ReloadCache[+T] {
   protected def reloadValue(tryApp: Try[Application]): T
 
   /**
+   * Helper to calculate the [[ServerDebugInfo]] after a reload.
+   * @param tryApp The application being loaded.
+   * @param serverProvider The server which embeds the application.
+   */
+  protected final def reloadDebugInfo(tryApp: Try[Application], serverProvider: ServerProvider): Option[ServerDebugInfo] = {
+    val enabled: Boolean = tryApp match {
+      case Success(app) => app.configuration.get[Boolean]("play.server.debug.addDebugInfoToRequests")
+      case Failure(_) => true // Always enable debug info when the app fails to load
+    }
+    if (enabled) {
+      Some(ServerDebugInfo(
+        serverProvider = serverProvider,
+        serverConfigCacheReloads = reloadCount
+      ))
+    } else None
+  }
+
+  /**
    * Helper to calculate a `ServerResultUtil`.
    */
   protected final def reloadServerResultUtils(tryApp: Try[Application]): ServerResultUtils = {
-    val (httpConfiguration, sessionBaker, flashBaker, cookieHeaderEncoding) = tryApp match {
+    val (sessionBaker, flashBaker, cookieHeaderEncoding) = tryApp match {
       case Success(app) =>
         val requestFactory: DefaultRequestFactory = app.requestFactory match {
           case drf: DefaultRequestFactory => drf
@@ -47,7 +80,6 @@ private[play] abstract class ReloadCache[+T] {
         }
 
         (
-          HttpConfiguration.fromConfiguration(app.configuration, app.environment),
           requestFactory.sessionBaker,
           requestFactory.flashBaker,
           requestFactory.cookieHeaderEncoding
@@ -57,13 +89,12 @@ private[play] abstract class ReloadCache[+T] {
         val cookieSigner = new CookieSignerProvider(httpConfig.secret).get
 
         (
-          httpConfig,
           new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, cookieSigner),
           new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, cookieSigner),
           new DefaultCookieHeaderEncoding(httpConfig.cookies)
         )
     }
-    new ServerResultUtils(httpConfiguration, sessionBaker, flashBaker, cookieHeaderEncoding)
+    new ServerResultUtils(sessionBaker, flashBaker, cookieHeaderEncoding)
   }
 
   /**

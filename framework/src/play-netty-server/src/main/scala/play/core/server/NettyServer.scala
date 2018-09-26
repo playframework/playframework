@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import java.net.InetSocketAddress
 
 import akka.Done
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, CoordinatedShutdown }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.typesafe.config.{ Config, ConfigValue }
@@ -23,15 +24,17 @@ import io.netty.handler.logging.{ LogLevel, LoggingHandler }
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
+import play.core.server.Server.ServerStoppedReason
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.control.NonFatal
 
 sealed trait NettyTransport
@@ -47,8 +50,11 @@ class NettyServer(
     stopHook: () => Future[_],
     val actorSystem: ActorSystem)(implicit val materializer: Materializer) extends Server {
 
+  registerShutdownTasks()
+
   private val serverConfig = config.configuration.get[Configuration]("play.server")
   private val nettyConfig = serverConfig.get[Configuration]("netty")
+  private val serverHeader = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize = nettyConfig.get[Int]("maxHeaderSize")
   private val maxChunkSize = nettyConfig.get[Int]("maxChunkSize")
@@ -143,7 +149,7 @@ class NettyServer(
   /**
    * Create a new PlayRequestHandler.
    */
-  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this)
+  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this, serverHeader)
 
   /**
    * Create a sink for the incoming connection channels.
@@ -179,13 +185,9 @@ class NettyServer(
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }
 
-      val idleTimeout = if (secure) {
-        serverConfig.get[Duration]("https.idleTimeout")
-      } else {
-        serverConfig.get[Duration]("http.idleTimeout")
-      }
+      val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
       idleTimeout match {
-        case Duration.Inf => // Do nothing
+        case Duration.Inf => // Do nothing, in other words, don't set any timeout.
         case Duration(timeout, timeUnit) =>
           logger.trace(s"using idle timeout of $timeout $timeUnit on port $port")
           // only timeout if both reader and writer have been idle for the specified time
@@ -229,32 +231,49 @@ class NettyServer(
     serverChannel
   }
 
-  override def stop() {
+  override def stop(): Unit = CoordinatedShutdownSupport.syncShutdown(actorSystem, ServerStoppedReason)
 
-    // First, close all opened sockets
-    allChannels.close().awaitUninterruptibly()
+  // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
+  // we have to register it as early as possible as CoordinatedShutdown tasks and
+  // then `stop` runs CoordinatedShutdown.
+  private def registerShutdownTasks(): Unit = {
 
-    // Now shutdown the event loop
-    eventLoop.shutdownGracefully()
+    implicit val ctx: ExecutionContext = actorSystem.dispatcher
 
-    // Now shut the application down
-    applicationProvider.current.foreach(Play.stop)
-
-    try {
-      super.stop()
-    } catch {
-      case NonFatal(e) => logger.error("Error while stopping logger", e)
+    val cs = CoordinatedShutdown(actorSystem)
+    cs.addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "trace-server-stop-request") {
+      () =>
+        mode match {
+          case Mode.Test =>
+          case _ => logger.info("Stopping server...")
+        }
+        Future.successful(Done)
     }
 
-    mode match {
-      case Mode.Test =>
-      case _ => logger.info("Stopping server...")
+    val unbindTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
+    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "netty-server-unbind") {
+      () =>
+        // First, close all opened sockets
+        allChannels.close().awaitUninterruptibly(unbindTimeout.toMillis - 100)
+        // Now shutdown the event loop
+        eventLoop.shutdownGracefully().await(unbindTimeout.toMillis - 100)
+        Future.successful(Done)
     }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
-    Await.result(stopHook(), Duration.Inf)
+    cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") {
+      () => stopHook().map(_ => Done)
+    }
+    cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") {
+      () =>
+        Future {
+          super.stop()
+          Done
+        }
+    }
+
   }
 
   override lazy val mainAddress: InetSocketAddress = {
@@ -281,17 +300,7 @@ class NettyServerProvider extends ServerProvider {
 }
 
 /**
- * Create a Netty server from the given router and server config:
- *
- * {{{
- *   val server = Netty.fromRouter(ServerConfig(port = Some(9002))) {
- *     case GET(p"/") => Action {
- *       Results.Ok("Hello")
- *     }
- *   }
- * }}}
- *
- * Or from a given router using [[BuiltInComponents]]:
+ * Create a Netty server zfrom a given router using [[BuiltInComponents]]:
  *
  * {{{
  *   val server = NettyServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
@@ -313,7 +322,7 @@ object NettyServer extends ServerFromRouter {
 
   implicit val provider = new NettyServerProvider
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     System.err.println(s"NettyServer.main is deprecated. Please start your Play server with the ${ProdServerStart.getClass.getName}.main.")
     ProdServerStart.main(args)
   }
@@ -351,3 +360,20 @@ trait NettyServerComponents extends ServerComponents {
 
   def application: Application
 }
+
+/**
+ * A convenient helper trait for constructing an NettyServer, for example:
+ *
+ * {{{
+ *   val components = new DefaultNettyServerComponents {
+ *     override lazy val router = {
+ *       case GET(p"/") => Action(parse.json) { body =>
+ *         Ok("Hello")
+ *       }
+ *     }
+ *   }
+ *   val server = components.server
+ * }}}
+ */
+trait DefaultNettyServerComponents
+  extends NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents

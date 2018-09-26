@@ -1,23 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.runsupport
 
 import java.io.{ Closeable, File }
 import java.net.{ URL, URLClassLoader }
 import java.security.{ AccessController, PrivilegedAction }
 import java.time.Instant
-import java.util.{ Timer, TimerTask }
 import java.util.concurrent.atomic.AtomicReference
-import java.util.jar.JarFile
+import java.util.{ Timer, TimerTask }
 
+import better.files.{ File => _, _ }
 import play.api.PlayException
 import play.core.{ Build, BuildLink }
-import play.dev.filewatch.{ FileWatchService, SourceModificationWatch, WatchState }
+import play.dev.filewatch.FileWatchService
 import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
 
 import scala.collection.JavaConverters._
-import better.files.{ File => _, _ }
 
 object Reloader {
 
@@ -78,10 +78,15 @@ object Reloader {
     devSettings: Seq[(String, String)]): (Seq[(String, String)], Option[Int], Option[Int], String) = {
     val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
-    val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
-
+    val properties = propertyArgs.map {
+      _.drop(2).span(_ != '=') match {
+        case (key, v) => key -> v.tail
+      }
+    }
     val props = properties.toMap
-    def prop(key: String): Option[String] = props.get(key) orElse sys.props.get(key)
+
+    def prop(key: String): Option[String] =
+      props.get(key) orElse sys.props.get(key)
 
     def parsePortValue(portValue: Option[String], defaultValue: Option[Int] = None): Option[Int] = {
       portValue match {
@@ -91,18 +96,20 @@ object Reloader {
       }
     }
 
+    val devMap = devSettings.toMap
+
     // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
     // Or it can be defined in devSettings as "play.server.http.port"
-    val httpPortString: Option[String] = otherArgs.headOption orElse prop("http.port") orElse devSettings.toMap.get("play.server.http.port")
+    val httpPortString: Option[String] = otherArgs.headOption orElse prop("http.port") orElse devMap.get("play.server.http.port")
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
     // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPortString: Option[String] = prop("https.port") orElse devSettings.toMap.get("play.server.https.port")
+    val httpsPortString: Option[String] = prop("https.port") orElse devMap.get("play.server.https.port")
     val httpsPort = parsePortValue(httpsPortString)
 
     // http address can be defined as a -Dhttp.address argument or system property
-    val httpAddress = prop("http.address") orElse devSettings.toMap.get("play.server.http.address") getOrElse defaultHttpAddress
+    val httpAddress = prop("http.address") orElse devMap.get("play.server.http.address") getOrElse defaultHttpAddress
 
     (properties, httpPort, httpsPort, httpAddress)
   }
@@ -132,9 +139,6 @@ object Reloader {
 
     /** Reloads the application.*/
     def reload(): Unit
-
-    /** URL at which the application is running (if started) */
-    def url(): String
   }
 
   /**
@@ -211,7 +215,7 @@ object Reloader {
      * to the applicationLoader, creating a full circle for resource loading.
      */
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonClassLoader, Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
-      def get: ClassLoader = { reloader.getClassLoader.orNull }
+      def get: URLClassLoader = { reloader.getClassLoader.orNull }
     })
 
     lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
@@ -235,7 +239,7 @@ object Reloader {
       }
 
       // Notify hooks
-      runHooks.run(_.afterStarted(server.mainAddress))
+      runHooks.run(_.afterStarted())
 
       new DevServer {
         val buildLink = reloader
@@ -253,7 +257,6 @@ object Reloader {
             case (key, _) => System.clearProperty(key)
           }
         }
-        def url(): String = server.mainAddress().getHostName + ":" + server.mainAddress().getPort
       }
     } catch {
       case e: Throwable =>
@@ -284,8 +287,8 @@ object Reloader {
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
       parentClassLoader,
       Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
-      def get: ClassLoader = { applicationLoader }
-    })
+        def get: URLClassLoader = { applicationLoader }
+      })
 
     lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath),
       delegatingLoader)
@@ -317,16 +320,13 @@ object Reloader {
       /** Reloads the application.*/
       def reload(): Unit = ()
 
-      /** URL at which the application is running (if started) */
-      def url(): String = server.mainAddress().getHostName + ":" + server.mainAddress().getPort
-
       def close(): Unit = server.stop()
     }
   }
 
 }
 
-import Reloader._
+import play.runsupport.Reloader._
 
 class Reloader(
     reloadCompile: () => CompileResult,
@@ -339,7 +339,7 @@ class Reloader(
     reloadLock: AnyRef) extends BuildLink {
 
   // The current classloader for the application
-  @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None
+  @volatile private var currentApplicationClassLoader: Option[URLClassLoader] = None
   // Flag to force a reload on the next request.
   // This is set if a compile error occurs, and also by the forceReload method on BuildLink, which is called for
   // example when evolutions have been applied.
@@ -424,7 +424,7 @@ class Reloader(
               // they won't trigger a reload.
               val classpathFiles = classpath.iterator.filter(_.exists()).flatMap(_.toScala.listRecursively).map(_.toJava)
               val newLastModified =
-                (0L /: classpathFiles) { (acc, file) => math.max(acc, file.lastModified) }
+                classpathFiles.foldLeft(0L) { (acc, file) => math.max(acc, file.lastModified) }
               val triggered = newLastModified > lastModified
               lastModified = newLastModified
 
@@ -452,7 +452,7 @@ class Reloader(
     devSettings.toMap.asJava
   }
 
-  def forceReload() {
+  def forceReload(): Unit = {
     forceReloadNextTime = true
   }
 

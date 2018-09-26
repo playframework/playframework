@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package com.typesafe.play.docs.sbtplugin
 
 import java.io.Closeable
@@ -64,7 +65,7 @@ object Imports {
  *
  * Any changes to this plugin need to be made in consideration of the downstream projects that depend on it.
  */
-object PlayDocsPlugin extends AutoPlugin {
+object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
   import Imports._
   import Imports.PlayDocsKeys._
@@ -143,16 +144,18 @@ object PlayDocsPlugin extends AutoPlugin {
 
     evaluateSbtFiles := {
       val unit = loadedBuild.value.units(thisProjectRef.value.build)
-      val (eval, structure) = Load.defaultLoad(state.value, unit.localBase, state.value.log)
+      val (eval, structure) = defaultLoad(state.value, unit.localBase)
       val sbtFiles = ((unmanagedSourceDirectories in Test).value * "*.sbt").get
       val log = state.value.log
       if (sbtFiles.nonEmpty) {
         log.info("Testing .sbt files...")
       }
+
+      val baseDir = baseDirectory.value
       val result = sbtFiles.map { sbtFile =>
-        val relativeFile = relativeTo(baseDirectory.value)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
+        val relativeFile = sbt.Path.relativeTo(baseDir)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
         try {
-          EvaluateConfigurations.evaluateConfiguration(eval(), sbtFile, unit.imports)(unit.loader)
+          evaluateConfigurations(sbtFile, unit.imports, unit.loader, eval)
           log.info(s"  ${Colors.green("+")} $relativeFile")
           true
         } catch {
@@ -231,10 +234,10 @@ object PlayDocsPlugin extends AutoPlugin {
     }
     val docServerStart = constructor.newInstance()
     val server: ReloadableServer = startMethod.invoke(docServerStart, manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
-      new java.lang.Integer(port)).asInstanceOf[ReloadableServer]
+      java.lang.Integer.valueOf(port)).asInstanceOf[ReloadableServer]
 
     println()
-    println(Colors.green("Documentation server started, you can now view the docs by going to http://" + server.mainAddress()))
+    println(Colors.green("Documentation server started, you can now view the docs in your web browser"))
     println()
 
     waitForKey()
@@ -252,7 +255,7 @@ object PlayDocsPlugin extends AutoPlugin {
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)
-    def waitEOF() {
+    def waitEOF(): Unit = {
       consoleReader.readCharacter() match {
         case 4 => // STOP
         case 11 =>

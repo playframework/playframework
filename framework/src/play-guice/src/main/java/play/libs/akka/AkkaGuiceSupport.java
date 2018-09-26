@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.akka;
 
 import akka.actor.Actor;
@@ -77,63 +78,7 @@ public interface AkkaGuiceSupport {
      * This is useful for when you want to have child actors injected, and want to pass parameters into them, as well as
      * have Guice provide some of the parameters.  It is intended to be used with Guice's AssistedInject feature.
      *
-     * Let's say you have an actor that looks like this:
-     *
-     * <pre>
-     * public class MyChildActor extends AbstractActor {
-     *     final Database db;
-     *     final String id;
-     *
-     *     {@literal @}Inject
-     *     public MyChildActor(Database db, {@literal @}Assisted String id) {
-     *         this.db = db;
-     *         this.id = id;
-     *     }
-     *     ...
-     * }
-     * </pre>
-     *
-     * So {@code db} should be injected, while {@code id} should be passed.  Now, define an interface that takes the id,
-     * and returns the actor:
-     *
-     * <pre>
-     * public interface MyChildActorFactory {
-     *   MyChildActor apply(String id);
-     * }
-     * </pre>
-     *
-     * Now you can use this method to bind the child actor in your module:
-     *
-     * <pre>
-     * public class MyModule extends AbstractModule implements AkkaGuiceSupport {
-     *   protected void configure() {
-     *     bindActorFactory(MyChildActor.class, MyChildActorFactory.class);
-     *   }
-     * }
-     * </pre>
-     *
-     * Now, when you want an actor to instantiate this as a child actor, inject `MyChildActorFactory`:
-     *
-     * <pre>
-     * public class MyActor extends AbstractActor implements InjectedActorSupport {
-     *   final MyChildActorFactory myChildActorFactory;
-     *
-     *   {@literal @}Inject
-     *   public MyActor(MyChildActor myChildActorFactory) {
-     *       this.myChildActorFactory = myChildActorFactory;
-     *   }
-     *
-     *   {@literal @}Override
-     *   public Receive createReceive() {
-     *   return receiveBuilder()
-     *     .match(CreateChildActor.class, msg -&gt; {
-     *       ActorRef child = injectedChild(myChildActorFactory.apply(msg.getId()));
-     *       sender().send(child, self);
-     *     }
-     *     .build()
-     *   }
-     * }
-     * </pre>
+     * See <a href="https://www.playframework.com/documentation/2.6.x/JavaAkka#Dependency-injecting-child-actors">Dependency-injecting-child-actors</a>
      *
      * @param <T> the actor type.
      * @param actorClass The class that implements the actor.

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc
 
 import org.specs2.mutable.Specification
@@ -37,7 +38,7 @@ class RequestHeaderSpec extends Specification {
 
       "check if the header exists" in {
         headers().contains("a") must beTrue
-        headers().contains("non-existend") must beFalse
+        headers().contains("non-existent") must beFalse
       }
 
       "get a single header value" in {

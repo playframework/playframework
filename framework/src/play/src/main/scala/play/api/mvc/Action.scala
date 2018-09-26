@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import javax.inject.Inject
@@ -94,7 +95,7 @@ trait Action[A] extends EssentialAction {
       val request = Request(rh, a)
       logger.trace("Invoking action with request: " + request)
       apply(request)
-  }(executionContext)
+  }(executionContext.prepare)
 
   /**
    * The execution context to run this action in
@@ -478,12 +479,12 @@ object DefaultActionBuilder {
 }
 
 class ActionBuilderImpl[B](val parser: BodyParser[B])(implicit val executionContext: ExecutionContext)
-    extends ActionBuilder[Request, B] {
+  extends ActionBuilder[Request, B] {
   def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
 }
 
 class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
-    extends ActionBuilderImpl(parser) with DefaultActionBuilder {
+  extends ActionBuilderImpl(parser) with DefaultActionBuilder {
   @Inject
   def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = this(parser: BodyParser[AnyContent])
 }

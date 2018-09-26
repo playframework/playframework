@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.db;
 
 import play.Environment;
@@ -12,7 +13,7 @@ import scala.Option;
 import java.util.List;
 
 /**
- * Java DB components. You can mix in {@link HikariCPComponents} or {@link BoneCPComponents}
+ * Java DB components. You can mix in {@link HikariCPComponents}
  * to have a default implementation for accessing a connection pool.
  *
  * For example:

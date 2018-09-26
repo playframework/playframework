@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import java.lang.{ StringBuilder => JStringBuilder }
@@ -53,7 +54,25 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
   def asJava: play.mvc.ResponseHeader = {
     new play.mvc.ResponseHeader(status, headers.asJava, reasonPhrase.orNull)
   }
+
+  /**
+   * INTERNAL API
+   *
+   * Appends to the comma-separated `Vary` header of this request
+   */
+  private[play] def varyWith(headerValues: String*): (String, String) = {
+    val newValue = headers.get(VARY) match {
+      case Some(existing) if existing.nonEmpty =>
+        val existingSet: Set[String] = existing.split(",").map(_.trim.toLowerCase)(collection.breakOut)
+        val newValuesToAdd = headerValues.filterNot(v => existingSet.contains(v.trim.toLowerCase))
+        s"$existing${newValuesToAdd.map(v => s",$v").mkString}"
+      case _ =>
+        headerValues.mkString(",")
+    }
+    VARY -> newValue
+  }
 }
+
 object ResponseHeader {
   val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
   val httpDateFormat: DateTimeFormatter =
@@ -244,9 +263,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   def removingFromSession(keys: String*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data -- keys))
 
-  override def toString = {
-    "Result(" + header + ")"
-  }
+  override def toString = s"Result(${header})"
 
   /**
    * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx

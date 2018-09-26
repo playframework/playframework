@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it
 
 import org.specs2.execute._
@@ -83,25 +84,27 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Override the standard WithServer class.
    */
   abstract class WithServer(
-    app: play.api.Application = GuiceApplicationBuilder().build(),
-    port: Int = play.api.test.Helpers.testServerPort)
-      extends play.api.test.WithServer(
-        app, port, serverProvider = Some(integrationServerProvider)
-      )
+      app: play.api.Application = GuiceApplicationBuilder().build(),
+      port: Int = play.api.test.Helpers.testServerPort)
+    extends play.api.test.WithServer(
+      app, port, serverProvider = Some(integrationServerProvider)
+    )
 
 }
 
+/** Run integration tests against a Netty server */
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
   // Provide a flag to disable Netty tests
   private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
   skipAllIf(!runTests)
 
-  override def integrationServerProvider: ServerProvider = NettyServer.provider
+  final override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
 
+/** Run integration tests against an Akka HTTP server */
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
 
-  override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
+  final override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
 }

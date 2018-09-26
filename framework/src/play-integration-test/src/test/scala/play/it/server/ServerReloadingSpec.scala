@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.server
 
 import javax.inject.{ Inject, Provider }
@@ -15,6 +16,7 @@ import play.api.routing.sird._
 import play.api.test.{ PlaySpecification, WsTestClient }
 import play.api.{ Application, Configuration }
 import play.core.ApplicationProvider
+import play.core.server.common.ServerDebugInfo
 import play.core.server.{ ServerConfig, ServerProvider }
 import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
 
@@ -35,7 +37,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
   def withApplicationProvider[A](ap: ApplicationProvider)(block: Port => A): A = {
     val classLoader = Thread.currentThread.getContextClassLoader
     val configuration = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
-    val (actorSystem, stopActorSystem) = ActorSystemProvider.start(classLoader, configuration)
+    val actorSystem = ActorSystemProvider.start(classLoader, configuration)
     val materializer = ActorMaterializer()(actorSystem)
 
     val server = integrationServerProvider.createServer(ServerProvider.Context(
@@ -45,7 +47,6 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 
     try block(port) finally {
       server.stop()
-      stopActorSystem()
     }
   }
 
@@ -168,6 +169,56 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
       }
     }
 
+    "only reload its configuration when the application changes" in {
+
+      val testAppProvider = new TestApplicationProvider
+      withApplicationProvider(testAppProvider) { implicit port: Port =>
+
+        def appWithConfig(conf: (String, Any)*): Success[Application] = {
+          Success(GuiceApplicationBuilder()
+            .configure(conf: _*)
+            .overrides(bind[Router].toProvider[ServerReloadingSpec.TestRouterProvider])
+            .build())
+        }
+
+        val app1 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
+        testAppProvider.provide(app1)
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(1)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(1)"
+
+        val app2 = Failure(new Exception())
+        testAppProvider.provide(app2)
+        await(wsUrl("/getserverconfigcachereloads").get()).status must_== 500
+        await(wsUrl("/getserverconfigcachereloads").get()).status must_== 500
+
+        val app3 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
+        testAppProvider.provide(app3)
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(3)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(3)"
+
+        val app4 = appWithConfig()
+        testAppProvider.provide(app4)
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "None"
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "None"
+
+        val app5 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
+        testAppProvider.provide(app5)
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(5)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(5)"
+
+        val app6 = Failure(new Exception())
+        testAppProvider.provide(app6)
+        await(wsUrl("/getserverconfigcachereloads").get()).status must_== 500
+        await(wsUrl("/getserverconfigcachereloads").get()).status must_== 500
+
+        val app7 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
+        testAppProvider.provide(app7)
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(7)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(7)"
+
+      }
+    }
+
   }
 }
 
@@ -186,6 +237,10 @@ private[server] object ServerReloadingSpec {
       }
       case GET(p"/getremoteaddress") => action { request: Request[_] =>
         Results.Ok(request.remoteAddress)
+      }
+      case GET(p"/getserverconfigcachereloads") => action { request: Request[_] =>
+        val reloadCount: Option[Int] = request.attrs.get(ServerDebugInfo.Attr).map(_.serverConfigCacheReloads)
+        Results.Ok(reloadCount.toString)
       }
     }
   }

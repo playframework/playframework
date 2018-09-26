@@ -1,14 +1,16 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.crypto
 
 import java.nio.charset.StandardCharsets
 import java.security.{ MessageDigest, SecureRandom }
 import java.time.Clock
+
 import javax.inject.{ Inject, Provider, Singleton }
 
-import org.apache.commons.codec.binary.Hex
+import play.api.libs.Codecs
 
 /**
  * Cryptographic utilities for generating and validating CSRF tokens.
@@ -109,7 +111,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
   def generateToken: String = {
     val bytes = new Array[Byte](12)
     random.nextBytes(bytes)
-    new String(Hex.encodeHex(bytes))
+    Codecs.toHexString(bytes)
   }
 
   /**

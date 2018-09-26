@@ -1,139 +1,176 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
-import com.typesafe.config.ConfigFactory
-import play.api.http.{ FlashConfiguration, SecretConfiguration }
-import play.api.libs.crypto.CookieSignerProvider
-import play.api.{ BuiltInComponentsFromContext, Configuration, NoHttpFiltersComponents }
-import play.api.test._
-import play.api.mvc._
+import java.util
+
+import okhttp3.{ CookieJar, HttpUrl }
+import okhttp3.internal.http.HttpDate
+import org.specs2.execute.AsResult
+import org.specs2.specification.core.Fragment
 import play.api.mvc.Results._
-import play.api.libs.ws.{ DefaultWSCookie, WSClient, WSCookie, WSResponse }
+import play.api.mvc._
 import play.api.routing.Router
-import play.core.server.Server
-import play.it._
+import play.api.test._
+import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
-class NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
-class AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationSpecification
+import scala.collection.JavaConverters
 
-trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
+class FlashCookieSpec extends PlaySpecification
+  with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
 
-  sequential
-
-  def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
-    Server.withApplicationFromContext() { context =>
-      new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-
-        import play.api.routing.sird.{ GET => SirdGet, _ }
-        import scala.collection.JavaConverters._
-
-        override def configuration: Configuration = super.configuration ++ new Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava))
-
-        override def router: Router = Router.from {
-          case SirdGet(p"/flash") => defaultActionBuilder {
-            Redirect("/landing").flashing(
-              "success" -> "found"
-            )
-          }
-          case SirdGet(p"/set-cookie") => defaultActionBuilder {
-            Ok.withCookies(Cookie("some-cookie", "some-value"))
-          }
-          case SirdGet(p"/landing") => defaultActionBuilder {
-            Ok("ok")
-          }
+  /** Makes an app that we use while we're testing */
+  def withFlashCookieApp(additionalConfiguration: Map[String, Any] = Map.empty): ApplicationFactory = {
+    withConfigAndRouter(additionalConfiguration) { components =>
+      import play.api.routing.sird.{ GET => SirdGet, _ }
+      Router.from {
+        case SirdGet(p"/flash") => components.defaultActionBuilder {
+          Redirect("/landing").flashing(
+            "success" -> "found"
+          )
         }
-      }.application
-    } { implicit port =>
-      withClient(block)
+        case SirdGet(p"/set-cookie") => components.defaultActionBuilder {
+          Ok.withCookies(Cookie("some-cookie", "some-value"))
+        }
+        case SirdGet(p"/landing") => components.defaultActionBuilder {
+          Ok("ok")
+        }
+      }
     }
+  }
+
+  /**
+   * Handles the details of calling a [[play.it.test.ServerEndpoint]] with a cookie and
+   * receiving the response and its cookies.
+   */
+  trait CookieEndpoint {
+    def call(path: String, cookies: List[okhttp3.Cookie]): (okhttp3.Response, List[okhttp3.Cookie])
+  }
+
+  /**
+   * Helper to add the `withAllCookieEndpoints` method to an `ApplicationFactory`.
+   */
+  implicit class CookieEndpointBaker(val appFactory: ApplicationFactory) {
+    def withAllCookieEndpoints[A: AsResult](block: CookieEndpoint => A): Fragment = {
+      appFactory.withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+        block(new CookieEndpoint {
+          import JavaConverters._
+          def call(path: String, cookies: List[okhttp3.Cookie]): (okhttp3.Response, List[okhttp3.Cookie]) = {
+            var responseCookies: List[okhttp3.Cookie] = null
+            val cookieJar = new CookieJar {
+              override def loadForRequest(url: HttpUrl): util.List[okhttp3.Cookie] = cookies.asJava
+              override def saveFromResponse(url: HttpUrl, cookies: util.List[okhttp3.Cookie]): Unit = {
+                assert(responseCookies == null, "This CookieJar only handles a single response")
+                responseCookies = cookies.asScala.toList
+              }
+            }
+            val client = okEndpoint.clientBuilder.followRedirects(false).cookieJar(cookieJar).build()
+            val request = new okhttp3.Request.Builder().url(okEndpoint.endpoint.pathUrl(path)).build()
+            val response = client.newCall(request).execute()
+            val siteUrl = okhttp3.HttpUrl.parse(okEndpoint.endpoint.pathUrl("/"))
+            assert(responseCookies != null, "The CookieJar should have received a response by now")
+            (response, responseCookies)
+          }
+        })
+      }
+    }
+
   }
 
   lazy val flashCookieBaker: FlashCookieBaker = new DefaultFlashCookieBaker()
 
-  def readFlashCookie(response: WSResponse): Option[WSCookie] =
-    response.cookie(flashCookieBaker.COOKIE_NAME)
+  /** Represents a session cookie in OkHttp */
+  val SessionExpiry = HttpDate.MAX_DATE
+  /** Represents any expired cookie in OkHttp */
+  val PastExpiry = Long.MinValue
 
   "the flash cookie" should {
-    "can be set for one request" in withClientAndServer() { ws =>
-      val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
-      response.status must equalTo(SEE_OTHER)
-      val flashCookie = readFlashCookie(response)
-      flashCookie must beSome.like {
-        case cookie =>
-          cookie.maxAge must beNone
-      }
-    }
 
-    "be removed after a redirect" in withClientAndServer() { ws =>
-      val response = await(ws.url("/flash").get())
-      response.status must equalTo(OK)
-      val flashCookie = readFlashCookie(response)
-      flashCookie must beSome.like {
+    "be set for first request and removed on next request" in withFlashCookieApp().withAllCookieEndpoints { fcep: CookieEndpoint =>
+      // Make a request that returns a flash cookie
+      val (response1, cookies1) = fcep.call("/flash", Nil)
+      response1.code must equalTo(SEE_OTHER)
+      val flashCookie1 = cookies1.find(_.name == flashCookieBaker.COOKIE_NAME)
+      flashCookie1 must beSome.like {
+        case cookie =>
+          cookie.expiresAt must ===(SessionExpiry)
+      }
+
+      // Send back the flash cookie
+      val redirectLocation = response1.header("Location")
+      val (response2, cookies2) = fcep.call(redirectLocation, List(flashCookie1.get))
+
+      // The returned flash cookie should now be cleared
+      val flashCookie2 = cookies2.find(_.name == flashCookieBaker.COOKIE_NAME)
+      flashCookie2 must beSome.like {
         case cookie =>
           cookie.value must ===("")
-          cookie.maxAge must beSome(0L)
+          cookie.expiresAt must ===(PastExpiry)
       }
     }
 
-    "allow the setting of additional cookies when cleaned up" in withClientAndServer() { ws =>
-      val response = await(ws.url("/flash").withFollowRedirects(false).get())
-      val Some(flashCookie) = readFlashCookie(response)
-      val response2 = await(ws.url("/set-cookie")
-        .addCookies(DefaultWSCookie(flashCookie.name, flashCookie.value))
-        .get())
-
-      readFlashCookie(response2) must beSome.like {
-        case cookie => cookie.value must ===("")
-      }
-      response2.cookie("some-cookie") must beSome.like {
+    "allow the setting of additional cookies when cleaned up" in withFlashCookieApp().withAllCookieEndpoints { fcep: CookieEndpoint =>
+      // Get a flash cookie
+      val (response1, cookies1) = fcep.call("/flash", Nil)
+      response1.code must equalTo(SEE_OTHER)
+      val flashCookie1 = cookies1.find(_.name == flashCookieBaker.COOKIE_NAME).get
+      // Send request with flash cookie
+      val (response2, cookies2) = fcep.call("/set-cookie", List(flashCookie1))
+      val flashCookie2 = cookies2.find(_.name == flashCookieBaker.COOKIE_NAME)
+      // Flash cookie should be cleared
+      flashCookie2 must beSome.like {
         case cookie =>
-          cookie.value must ===("some-value")
+          cookie.value must ===("")
+          cookie.expiresAt must ===(PastExpiry)
+      }
+      // Another cookie should be set
+      val someCookie2 = cookies2.find(_.name == "some-cookie")
+      someCookie2 must beSome.like {
+        case cookie => cookie.value must ===("some-value")
       }
 
     }
 
     "honor the configuration for play.http.flash.sameSite" in {
-      "configured to null" in withClientAndServer(Map("play.http.flash.sameSite" -> null)) { ws =>
-        val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
-        response.status must equalTo(SEE_OTHER)
-        response.header(SET_COOKIE) must beSome.which(!_.contains("SameSite"))
+
+      "by not sending SameSite when configured to null" in withFlashCookieApp(Map("play.http.flash.sameSite" -> null)).withAllCookieEndpoints { fcep: CookieEndpoint =>
+        val (response, cookies) = fcep.call("/flash", Nil)
+        response.code must equalTo(SEE_OTHER)
+        response.header(SET_COOKIE) must not contain ("SameSite")
       }
 
-      "configured to lax" in withClientAndServer(Map("play.http.flash.sameSite" -> "lax")) { ws =>
-        val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
-        response.status must equalTo(SEE_OTHER)
-        response.header(SET_COOKIE) must beSome.which(_.contains("SameSite=Lax"))
+      "by sending SameSite=Lax when configured with 'lax'" in withFlashCookieApp(Map("play.http.flash.sameSite" -> "lax")).withAllCookieEndpoints { fcep: CookieEndpoint =>
+        val (response, cookies) = fcep.call("/flash", Nil)
+        response.code must equalTo(SEE_OTHER)
+        response.header(SET_COOKIE) must contain("SameSite=Lax")
       }
 
-      "configured to strict" in withClientAndServer(Map("play.http.flash.sameSite" -> "strict")) { ws =>
-        val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
-        response.status must equalTo(SEE_OTHER)
-        response.header(SET_COOKIE) must beSome.which(_.contains("SameSite=Strict"))
+      "by sending SameSite=Strict when configured with 'strict'" in withFlashCookieApp(Map("play.http.flash.sameSite" -> "lax")).withAllCookieEndpoints { fcep: CookieEndpoint =>
+        val (response, cookies) = fcep.call("/flash", Nil)
+        response.code must equalTo(SEE_OTHER)
+        response.header(SET_COOKIE) must contain("SameSite=Lax")
       }
+
     }
 
     "honor configuration for flash.secure" in {
-      "configured to true" in Helpers.running(_.configure("play.http.flash.secure" -> true)) { _ =>
-        val secretConfig = SecretConfiguration()
-        val fcb: FlashCookieBaker = new DefaultFlashCookieBaker(
-          FlashConfiguration(secure = true),
-          secretConfig,
-          new CookieSignerProvider(secretConfig).get
-        )
-        fcb.encodeAsCookie(Flash()).secure must beTrue
+
+      "by making cookies secure when set to true" in withFlashCookieApp(Map("play.http.flash.secure" -> true)).withAllCookieEndpoints { fcep: CookieEndpoint =>
+        val (response, cookies) = fcep.call("/flash", Nil)
+        response.code must equalTo(SEE_OTHER)
+        val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
+        cookie must beSome.which(_.secure)
       }
 
-      "configured to false" in Helpers.running(_.configure("play.http.flash.secure" -> false)) { _ =>
-        val secretConfig = SecretConfiguration()
-        val fcb: FlashCookieBaker = new DefaultFlashCookieBaker(
-          FlashConfiguration(secure = false),
-          secretConfig,
-          new CookieSignerProvider(secretConfig).get
-        )
-        fcb.encodeAsCookie(Flash()).secure must beFalse
+      "by not making cookies secure when set to false" in withFlashCookieApp(Map("play.http.flash.secure" -> false)).withAllCookieEndpoints { fcep: CookieEndpoint =>
+        val (response, cookies) = fcep.call("/flash", Nil)
+        response.code must equalTo(SEE_OTHER)
+        val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
+        cookie must beSome.which(!_.secure)
       }
+
     }
 
   }

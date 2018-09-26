@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.concurrent
 
 import javax.inject.Inject
@@ -183,9 +184,21 @@ trait LowPriorityFuturesImplicits {
      *
      * @param duration the duration after which the future should be executed.
      * @param futures the implicit Futures.
-     * @return the future that completes first, either the failed future, or the operation.
+     * @return the future delayed by the specified duration.
      */
+    @deprecated("Use future.withDelay(duration) or futures.delayed(duration)(future)", "2.6.6")
     def withDelay[A](duration: FiniteDuration)(future: Future[A])(implicit futures: Futures): Future[A] = {
+      futures.delayed(duration)(future)
+    }
+
+    /**
+     * Creates a future which will be executed after the given delay.
+     *
+     * @param duration the duration after which the future should be executed.
+     * @param futures the implicit Futures.
+     * @return the future delayed by the specified duration.
+     */
+    def withDelay(duration: FiniteDuration)(implicit futures: Futures): Future[T] = {
       futures.delayed(duration)(future)
     }
   }

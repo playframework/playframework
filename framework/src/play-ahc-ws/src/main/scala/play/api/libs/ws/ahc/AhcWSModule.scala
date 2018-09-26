@@ -1,23 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.ws.ahc
 
+import java.net.URI
 import javax.cache.configuration.FactoryBuilder.SingletonFactory
 import javax.cache.configuration.MutableConfiguration
 import javax.cache.expiry.EternalExpiryPolicy
 import javax.cache.{ CacheManager, Caching, Cache => JCache }
 import javax.inject.{ Inject, Provider, Singleton }
-
 import akka.stream.Materializer
 import com.typesafe.sslconfig.ssl.SystemConfiguration
 import com.typesafe.sslconfig.ssl.debug.DebugConfiguration
 import play.api.inject.{ ApplicationLifecycle, SimpleModule, bind }
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.cache._
-import play.api.{ Configuration, Environment }
+import play.api.{ Configuration, Environment, Logger }
 import play.shaded.ahc.org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClient }
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
@@ -113,16 +113,16 @@ class OptionalAhcHttpCacheProvider @Inject() (
           cacheConfig.cachingProviderName match {
             case name if name.nonEmpty =>
               Caching.getCachingProvider(name, environment.classLoader)
-            case other =>
+            case _ =>
               Caching.getCachingProvider(environment.classLoader)
           }
-        cacheConfig.cacheManagerURI match {
-          case uriString: String if uriString.nonEmpty =>
-            cachingProvider.getCacheManager(new java.net.URI(uriString), environment.classLoader)
-          case other =>
+        val cacheManagerURI =
+          cacheConfig.cacheManagerURI match {
+            case uriString if uriString.nonEmpty => new URI(uriString)
             // null means use #getDefaultURI
-            cachingProvider.getCacheManager(null, environment.classLoader)
-        }
+            case _ => null
+          }
+        cachingProvider.getCacheManager(cacheManagerURI, environment.classLoader)
       }
 
       Option(cacheManager).map { cm =>
@@ -177,19 +177,33 @@ class OptionalAhcHttpCacheProvider @Inject() (
   }
 
   case class AhcHttpCacheConfiguration(
-    enabled: Boolean,
-    cacheName: String,
-    heuristicsEnabled: Boolean,
-    cacheManagerURI: String,
-    cachingProviderName: String)
+      enabled: Boolean,
+      cacheName: String,
+      heuristicsEnabled: Boolean,
+      cacheManagerURI: String,
+      cachingProviderName: String)
 
   object AhcHttpCacheParser {
+    // For the sake of compatibility, parse both cacheManagerResource and cacheManagerURI, use cacheManagerURI first.
+    // Treat cacheManagerResource as a resource on the classpath and convert it to an URI string.
     def fromConfiguration(configuration: Configuration): AhcHttpCacheConfiguration = {
+      val cacheManagerURI = configuration.get[Option[String]]("play.ws.cache.cacheManagerURI") match {
+        case Some(uriString) =>
+          Logger(AhcHttpCacheParser.getClass)
+            .warn("play.ws.cache.cacheManagerURI is deprecated, use play.ws.cache.cacheManagerResource with a path on the classpath instead.")
+          uriString
+        case None =>
+          configuration.get[Option[String]]("play.ws.cache.cacheManagerResource")
+            .filter(_.nonEmpty)
+            .flatMap(environment.resource)
+            .map(_.toURI.toString)
+            .getOrElse("")
+      }
       AhcHttpCacheConfiguration(
         enabled = configuration.get[Boolean]("play.ws.cache.enabled"),
         cacheName = configuration.get[String]("play.ws.cache.name"),
         heuristicsEnabled = configuration.get[Boolean]("play.ws.cache.heuristics.enabled"),
-        cacheManagerURI = configuration.get[String]("play.ws.cache.cacheManagerURI"),
+        cacheManagerURI = cacheManagerURI,
         cachingProviderName = configuration.get[String]("play.ws.cache.cachingProviderName")
       )
     }
@@ -201,7 +215,7 @@ class OptionalAhcHttpCacheProvider @Inject() (
  */
 @Singleton
 class AhcWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
-    extends Provider[WSClient] {
+  extends Provider[WSClient] {
 
   lazy val get: WSClient = {
     new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))

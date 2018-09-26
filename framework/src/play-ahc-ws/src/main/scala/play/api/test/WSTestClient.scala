@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.test
 
 import play.api.libs.ws._
@@ -62,7 +63,7 @@ trait WsTestClient {
    * @param port The port
    * @return The result of the block of code
    */
-  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http") = {
+  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http"): T = {
     val client = clientProducer(port.value, scheme)
     try {
       block(client)
@@ -117,6 +118,7 @@ object WsTestClient extends WsTestClient {
     import akka.stream.ActorMaterializer
     import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 
+    import scala.annotation.tailrec
     import scala.concurrent.Future
     import scala.concurrent.duration._
 
@@ -132,41 +134,43 @@ object WsTestClient extends WsTestClient {
 
     private var idleCheckTask: Option[Cancellable] = None
 
-    def removeReference(client: InternalWSClient) = {
+    def removeReference(client: InternalWSClient): Boolean = {
       references.remove(client)
     }
 
-    def addReference(client: InternalWSClient) = {
+    def addReference(client: InternalWSClient): Boolean = {
       references.add(client)
     }
 
     private def closeIdleResources(client: WSClient, system: ActorSystem): Future[Terminated] = {
-      ref.set(null)
+      ref.compareAndSet(client, null)
       client.close()
       system.terminate()
     }
 
-    private def instance: WSClient = {
-      val client = ref.get()
-      if (client == null) {
-        val result = createNewClient()
-        ref.compareAndSet(null, result)
-        ref.get()
-      } else {
-        client
-      }
+    @tailrec private def wsClientInstance: WSClient = ref.get match {
+      case null =>
+        val (newInstance, system) = createNewClient()
+        if (ref.compareAndSet(null, newInstance)) {
+          // We successfully created a client and set the reference; schedule an idle check on the ActorSystem
+          scheduleIdleCheck(newInstance, system)
+          newInstance
+        } else {
+          // Another thread got there first; close the resources and try again
+          closeIdleResources(newInstance, system)
+          wsClientInstance // recurse
+        }
+      case client => client
     }
 
-    private def createNewClient(): WSClient = {
+    private def createNewClient(): (WSClient, ActorSystem) = {
       val name = "ws-test-client-" + count.getAndIncrement()
-      logger.warn(s"createNewClient: name = $name")
-
+      logger.info(s"createNewClient: name = $name")
       val system = ActorSystem(name)
-      implicit val materializer = ActorMaterializer(namePrefix = Some(name))(system)
-      // Don't retry for tests
-      val client = AhcWSClient(AhcWSClientConfig(maxRequestRetry = 0))
-      scheduleIdleCheck(client, system)
-      client
+      val materializer = ActorMaterializer(namePrefix = Some(name))(system)
+      val config = AhcWSClientConfig(maxRequestRetry = 0) // Don't retry for tests
+      val client = AhcWSClient(config)(materializer)
+      (client, system)
     }
 
     private def scheduleIdleCheck(client: WSClient, system: ActorSystem) = {
@@ -175,8 +179,8 @@ object WsTestClient extends WsTestClient {
         case Some(cancellable) =>
           // Something else got here first...
           logger.error(s"scheduleIdleCheck: looks like a race condition of WsTestClient...")
+          // This way we immediately see the error on the closed client
           closeIdleResources(client, system)
-
         case None =>
           //
           idleCheckTask = Option(scheduler.schedule(initialDelay = idleDuration, interval = idleDuration) {
@@ -198,7 +202,7 @@ object WsTestClient extends WsTestClient {
      * @tparam T the type you are expecting (i.e. isInstanceOf)
      * @return the backing class.
      */
-    override def underlying[T]: T = instance.underlying
+    override def underlying[T]: T = wsClientInstance.underlying
 
     /**
      * Generates a request holder which can be used to build requests.
@@ -206,7 +210,7 @@ object WsTestClient extends WsTestClient {
      * @param url The base URL to make HTTP requests to.
      * @return a WSRequestHolder
      */
-    override def url(url: String): WSRequest = instance.url(url)
+    override def url(url: String): WSRequest = wsClientInstance.url(url)
 
     override def close(): Unit = {}
   }

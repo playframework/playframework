@@ -1,12 +1,20 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package com.typesafe.play.docs.sbtplugin
 
 import java.io.{ BufferedReader, InputStreamReader, InputStream }
 import java.net.HttpURLConnection
 import java.util.concurrent.Executors
 import java.util.jar.JarFile
+
+import scala.collection.{ breakOut, mutable }
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future, ExecutionContext }
+import scala.util.control.NonFatal
+
 import com.typesafe.play.docs.sbtplugin.Imports._
 import org.pegdown.ast._
 import org.pegdown.ast.Node
@@ -16,16 +24,11 @@ import play.sbt.Colors
 import play.doc._
 import sbt.{ FileRepository => _, _ }
 import sbt.Keys._
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future, ExecutionContext }
-import scala.util.control.NonFatal
 
 import Imports.PlayDocsKeys._
 
 // Test that all the docs are renderable and valid
-object PlayDocsValidation {
+object PlayDocsValidation extends PlayDocsValidationCompat {
 
   /**
    * A report of all references from all markdown files.
@@ -33,12 +36,12 @@ object PlayDocsValidation {
    * This is the main markdown report for validating markdown docs.
    */
   case class MarkdownRefReport(
-    markdownFiles: Seq[File],
-    wikiLinks: Seq[LinkRef],
-    resourceLinks: Seq[LinkRef],
-    codeSamples: Seq[CodeSampleRef],
-    relativeLinks: Seq[LinkRef],
-    externalLinks: Seq[LinkRef])
+      markdownFiles: Seq[File],
+      wikiLinks: Seq[LinkRef],
+      resourceLinks: Seq[LinkRef],
+      codeSamples: Seq[CodeSampleRef],
+      relativeLinks: Seq[LinkRef],
+      externalLinks: Seq[LinkRef])
 
   case class LinkRef(link: String, file: File, position: Int)
   case class CodeSampleRef(source: String, segment: String, file: File, sourcePosition: Int, segmentPosition: Int)
@@ -49,29 +52,34 @@ object PlayDocsValidation {
    * This is used to compare translations to the originals, checking that all files exist and all code samples exist.
    */
   case class CodeSamplesReport(files: Seq[FileWithCodeSamples]) {
-    lazy val byFile = files.map(f => f.name -> f).toMap
-    lazy val byName = files.filterNot(_.name.endsWith("_Sidebar.md")).map { file =>
-      val filename = file.name
-      val name = filename.takeRight(filename.length - filename.lastIndexOf('/'))
-      name -> file
-    }.toMap
+    lazy val byFile: Map[String, FileWithCodeSamples] =
+      files.map(f => f.name -> f)(breakOut)
+
+    lazy val byName: Map[String, FileWithCodeSamples] = files.collect {
+      case file if !file.name.endsWith("_Sidebar.md") =>
+        val filename = file.name
+        val name = filename.takeRight(
+          filename.length - filename.lastIndexOf('/'))
+
+        name -> file
+    }(breakOut)
   }
   case class FileWithCodeSamples(name: String, source: String, codeSamples: Seq[CodeSample])
   case class CodeSample(source: String, segment: String,
-    sourcePosition: Int, segmentPosition: Int)
+      sourcePosition: Int, segmentPosition: Int)
 
   case class TranslationReport(
-    missingFiles: Seq[String],
-    introducedFiles: Seq[String],
-    changedPathFiles: Seq[(String, String)],
-    codeSampleIssues: Seq[TranslationCodeSamples],
-    okFiles: Seq[String],
-    total: Int)
+      missingFiles: Seq[String],
+      introducedFiles: Seq[String],
+      changedPathFiles: Seq[(String, String)],
+      codeSampleIssues: Seq[TranslationCodeSamples],
+      okFiles: Seq[String],
+      total: Int)
   case class TranslationCodeSamples(
-    name: String,
-    missingCodeSamples: Seq[CodeSample],
-    introducedCodeSamples: Seq[CodeSample],
-    totalCodeSamples: Int)
+      name: String,
+      missingCodeSamples: Seq[CodeSample],
+      introducedCodeSamples: Seq[CodeSample],
+      totalCodeSamples: Int)
 
   /**
    * Configuration for validation.
@@ -85,7 +93,7 @@ object PlayDocsValidation {
 
     val base = manualPath.value
 
-    val markdownFiles = (base / "manual" ** "*.md").get
+    val markdownFiles = getMarkdownFiles(base)
 
     val wikiLinks = mutable.ListBuffer[LinkRef]()
     val resourceLinks = mutable.ListBuffer[LinkRef]()
@@ -183,9 +191,9 @@ object PlayDocsValidation {
         .toHtml(astRoot)
     }
 
-    markdownFiles.foreach(parseMarkdownFile)
+    markdownFiles.map(_._1).foreach(parseMarkdownFile)
 
-    MarkdownRefReport(markdownFiles, wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
+    MarkdownRefReport(markdownFiles.map(_._1), wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
   }
 
   private def extractCodeSamples(filename: String, markdownSource: String): FileWithCodeSamples = {
@@ -254,7 +262,7 @@ object PlayDocsValidation {
   val generateMarkdownCodeSamplesTask = Def.task {
     val base = manualPath.value
 
-    val markdownFiles = (base / "manual" ** "*.md").get.pair(relativeTo(base))
+    val markdownFiles = getMarkdownFiles(base)
 
     CodeSamplesReport(markdownFiles.map {
       case (file, name) => extractCodeSamples("/" + name, IO.read(file))
@@ -302,9 +310,10 @@ object PlayDocsValidation {
 
   val cachedTranslationCodeSamplesReportTask = Def.task {
     val file = translationCodeSamplesReportFile.value
+    val stateValue = state.value
     if (!file.exists) {
       println("Generating report...")
-      Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.fold({ incomplete =>
+      Project.runTask(translationCodeSamplesReport, stateValue).get._2.toEither.fold({ incomplete =>
         throw incomplete.directCause.get
       }, result => result)
     } else {
@@ -330,7 +339,8 @@ object PlayDocsValidation {
 
     val pageIndex = PageIndex.parseFrom(combinedRepo, "", None)
 
-    val pages = report.markdownFiles.map(f => f.getName.dropRight(3) -> f).toMap
+    val pages: Map[String, File] =
+      report.markdownFiles.map(f => f.getName.dropRight(3) -> f)(breakOut)
 
     var failed = false
 

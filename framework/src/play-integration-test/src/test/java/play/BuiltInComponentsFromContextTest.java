@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play;
 
 import org.junit.Before;
@@ -34,7 +35,7 @@ public class BuiltInComponentsFromContextTest {
 
         @Override
         public Router router() {
-            return new RoutingDsl(defaultScalaBodyParser(), javaContextComponents())
+            return new RoutingDsl(defaultBodyParser(), javaContextComponents())
                     .GET("/").routeTo(() -> Results.ok("index"))
                     .build();
         }

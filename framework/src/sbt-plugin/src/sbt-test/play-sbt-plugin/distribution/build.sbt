@@ -1,18 +1,17 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
-name := "dist-sample"
-
-version := "1.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
-
-libraryDependencies += guice
-
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
-
-routesGenerator := InjectedRoutesGenerator
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
+  .settings(
+    name := "dist-sample",
+    version := "1.0-SNAPSHOT",
+    libraryDependencies += guice,
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    routesGenerator := InjectedRoutesGenerator
+  )
 
 val checkStartScript = InputKey[Unit]("checkStartScript")
 
@@ -26,7 +25,7 @@ checkStartScript := {
   }
   val contents = IO.read(startScript)
   val lines = IO.readLines(startScript)
-  if (!contents.contains( """app_mainclass=("play.core.server.ProdServerStart")""")) {
+  if (!contents.contains( "app_mainclass=(play.core.server.ProdServerStart)")) {
     startScriptError(contents, "Cannot find the declaration of the main class in the script")
   }
   val appClasspath = lines.find(_ startsWith "declare -r app_classpath")

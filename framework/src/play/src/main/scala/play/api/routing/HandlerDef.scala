@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.routing
 
 /**
@@ -8,13 +9,13 @@ package play.api.routing
  * with reflection.
  */
 case class HandlerDef(
-  classLoader: ClassLoader,
-  routerPackage: String,
-  controller: String,
-  method: String,
-  parameterTypes: Seq[Class[_]],
-  verb: String,
-  path: String,
-  comments: String = "",
-  modifiers: Seq[String] = Seq.empty
+    classLoader: ClassLoader,
+    routerPackage: String,
+    controller: String,
+    method: String,
+    parameterTypes: Seq[Class[_]],
+    verb: String,
+    path: String,
+    comments: String = "",
+    modifiers: Seq[String] = Seq.empty
 ) extends play.routing.HandlerDef

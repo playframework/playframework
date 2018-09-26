@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import com.typesafe.play.docs.sbtplugin.Imports._
@@ -10,13 +10,22 @@ import sbt._
 
 lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
     .settings(
+      // Avoid the use of deprecated APIs in the docs
+      scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
+      javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-parameters", "-Xlint:unchecked", "-Xlint:deprecation", "-Werror"),
+
+      // We need to publishLocal playDocs since its jar file is
+      // a dependency of `docsJarFile` setting.
+      test in Test <<= (test in Test).dependsOn(publishLocal in playDocs),
+
       resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
       version := PlayVersion.current,
       libraryDependencies ++= Seq(
-        "com.h2database" % "h2" % "1.4.191" % Test,
-        "org.mockito" % "mockito-core" % "1.9.5" % "test",
+        "com.typesafe" % "config" % "1.3.3" % Test,
+        "com.h2database" % "h2" % "1.4.197" % Test,
+        "org.mockito" % "mockito-core" % "2.18.3" % "test",
         // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
-        "net.logstash.logback" % "logstash-logback-encoder" % "4.9" % "test"
+        "net.logstash.logback" % "logstash-logback-encoder" % "5.1" % "test"
       ),
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
@@ -42,11 +51,13 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       // Don't include sbt files in the resources
       excludeFilter in(Test, unmanagedResources) := (excludeFilter in(Test, unmanagedResources)).value || "*.sbt",
 
-      crossScalaVersions := Seq(PlayVersion.scalaVersion, "2.11.11"),
+      crossScalaVersions := Seq(PlayVersion.scalaVersion, "2.11.12"),
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
-      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m")
+      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
+
+      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
     )
     .dependsOn(
       playDocs,
@@ -56,7 +67,7 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       playProject("Play-Java-Forms") % "test",
       playProject("Play-Java-JPA") % "test",
       playProject("Play-Guice") % "test",
-      playProject("Play-Ehcache") % "test",
+      playProject("Play-Caffeine-Cache") % "test",
       playProject("Play-AHC-WS") % "test",
       playProject("Play-OpenID") % "test",
       playProject("Filters-Helpers") % "test",

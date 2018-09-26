@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # String Interpolating Routing DSL
 
 Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or sird for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
 
 Sird is based on a string interpolated extractor object.  Just as Scala supports interpolating parameters into strings for building strings (and any object for that matter), such as `s"Hello $to"`, the same mechanism can also be used to extract parameters out of strings, for example in case statements.
 
-The DSL lives in the [`play.api.routing.sird`](api/scala/play/api/routing/sird/) package. Typically, you will want to import this package, as well as a few other packages:
+The DSL lives in the [`play.api.routing.sird`](api/scala/play/api/routing/sird/index.html) package. Typically, you will want to import this package, as well as a few other packages:
 
 @[imports](code/ScalaSirdRouter.scala)
 
@@ -61,7 +61,7 @@ Configuring an application to use a sird Router can be achieved in many ways, de
 
 To use the routing DSL in conjunction with a regular Play project that uses [[a routes file|ScalaRouting]] and [[controllers|ScalaActions]], extend the [`SimpleRouter`](api/scala/play/api/routing/SimpleRouter.html):
 
-@[inject-sird-router](code/ApiRouter.scala)
+@[api-sird-router](code/ApiRouter.scala)
 
 Add the following line to conf/routes:
 
@@ -71,11 +71,13 @@ Add the following line to conf/routes:
 
 ### Composing SIRD routers
 
-You can compose multiple routers together, because Routes are partial functions:
+You can compose multiple routers together, because Routes are partial functions. So you can split your routes in smaller and more focused routers and later compose them in an application router. For example, considering the `ApiRouter` above and a new `SinglePageApplicationRouter` like:
 
-``` scala
-mainRouter.routes.orElse(injectedOtherRouter.withPrefix("/prefix").routes)
-```
+@[spa-sird-router](code/ApiRouter.scala)
+
+You can then compose both to have a complete router for you application:
+
+@[composed-sird-router](code/ApiRouter.scala)
 
 ### Embedding play
 

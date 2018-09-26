@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package controllers
 
 import java.time.Instant
@@ -41,6 +42,118 @@ class AssetsSpec extends Specification {
       Assets.resourceNameAt("/a\\z", "/") must beSome("/a\\z/")
       Assets.resourceNameAt("/a\\z", "/b") must beSome("/a\\z/b")
       Assets.resourceNameAt("/a\\z", "/b/c") must beSome("/a\\z/b/c")
+      Assets.resourceNameAt("/a\\z", "/b/") must beSome("/a\\z/b/")
+      Assets.resourceNameAt("\\a\\z", "") must beNone
+      Assets.resourceNameAt("\\a\\z", "b") must beNone
+      Assets.resourceNameAt("\\a\\z", "/") must beNone
+      Assets.resourceNameAt("\\a\\z", "/b") must beNone
+      Assets.resourceNameAt("\\a\\z", "/b/c") must beNone
+      Assets.resourceNameAt("\\a\\z", "/b/") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "b") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/b") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/b/c") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/b/") must beNone
+    }
+
+    "not look up assets with Windows resource path separators encoded for Windows" in {
+      // %5C is "\" URL encoded
+      Assets.resourceNameAt("a%5Cz", "") must beNone
+      Assets.resourceNameAt("a%5Cz", "b") must beNone
+      Assets.resourceNameAt("a%5Cz", "/") must beNone
+      Assets.resourceNameAt("a%5Cz", "/b") must beNone
+      Assets.resourceNameAt("a%5Cz", "/b/c") must beNone
+      Assets.resourceNameAt("a%5Cz", "/b/") must beNone
+      Assets.resourceNameAt("/a%5Cz", "") must beSome("/a%5Cz/")
+      Assets.resourceNameAt("/a%5Cz", "b") must beSome("/a%5Cz/b")
+      Assets.resourceNameAt("/a%5Cz", "/") must beSome("/a%5Cz/")
+      Assets.resourceNameAt("/a%5Cz", "/b") must beSome("/a%5Cz/b")
+      Assets.resourceNameAt("/a%5Cz", "/b/c") must beSome("/a%5Cz/b/c")
+      Assets.resourceNameAt("/a%5Cz", "/b/") must beSome("/a%5Cz/b/")
+      Assets.resourceNameAt("%5Ca%5Cz", "") must beNone
+      Assets.resourceNameAt("%5Ca%5Cz", "b") must beNone
+      Assets.resourceNameAt("%5Ca%5Cz", "/") must beNone
+      Assets.resourceNameAt("%5Ca%5Cz", "/b") must beNone
+      Assets.resourceNameAt("%5Ca%5Cz", "/b/c") must beNone
+      Assets.resourceNameAt("%5Ca%5Cz", "/b/") must beNone
+      Assets.resourceNameAt("x:%5Ca%5Cz", "") must beNone
+      Assets.resourceNameAt("x:%5Ca%5Cz", "b") must beNone
+      Assets.resourceNameAt("x:%5Ca%5Cz", "/") must beNone
+      Assets.resourceNameAt("x:%5Ca%5Cz", "/b") must beNone
+      Assets.resourceNameAt("x:%5Ca%5Cz", "/b/c") must beNone
+      Assets.resourceNameAt("x:%5Ca%5Cz", "/b/") must beNone
+    }
+
+    "not look up assets with Windows resource path separators encoded for Linux" in {
+      // %2F is "/" URL encoded
+      Assets.resourceNameAt("a%2Fz", "") must beNone
+      Assets.resourceNameAt("a%2Fz", "b") must beNone
+      Assets.resourceNameAt("a%2Fz", "/") must beNone
+      Assets.resourceNameAt("a%2Fz", "/b") must beNone
+      Assets.resourceNameAt("a%2Fz", "/b/c") must beNone
+      Assets.resourceNameAt("a%2Fz", "/b/") must beNone
+      Assets.resourceNameAt("/a%2Fz", "") must beSome("/a%2Fz/")
+      Assets.resourceNameAt("/a%2Fz", "b") must beSome("/a%2Fz/b")
+      Assets.resourceNameAt("/a%2Fz", "/") must beSome("/a%2Fz/")
+      Assets.resourceNameAt("/a%2Fz", "/b") must beSome("/a%2Fz/b")
+      Assets.resourceNameAt("/a%2Fz", "/b/c") must beSome("/a%2Fz/b/c")
+      Assets.resourceNameAt("/a%2Fz", "/b/") must beSome("/a%2Fz/b/")
+      Assets.resourceNameAt("%2Fa%2Fz", "") must beNone
+      Assets.resourceNameAt("%2Fa%2Fz", "b") must beNone
+      Assets.resourceNameAt("%2Fa%2Fz", "/") must beNone
+      Assets.resourceNameAt("%2Fa%2Fz", "/b") must beNone
+      Assets.resourceNameAt("%2Fa%2Fz", "/b/c") must beNone
+      Assets.resourceNameAt("%2Fa%2Fz", "/b/") must beNone
+      Assets.resourceNameAt("x:%2Fa%2Fz", "") must beNone
+      Assets.resourceNameAt("x:%2Fa%2Fz", "b") must beNone
+      Assets.resourceNameAt("x:%2Fa%2Fz", "/") must beNone
+      Assets.resourceNameAt("x:%2Fa%2Fz", "/b") must beNone
+      Assets.resourceNameAt("x:%2Fa%2Fz", "/b/c") must beNone
+      Assets.resourceNameAt("x:%2Fa%2Fz", "/b/") must beNone
+    }
+
+    "not look up assets with Windows resource filename separators encoded for Windows" in {
+      // %5C is "\" URL encoded
+      Assets.resourceNameAt("a\\z", "") must beNone
+      Assets.resourceNameAt("a\\z", "b") must beNone
+      Assets.resourceNameAt("a\\z", "%5C") must beNone
+      Assets.resourceNameAt("a\\z", "%5Cb") must beNone
+      Assets.resourceNameAt("a\\z", "%5Cbc") must beNone
+      Assets.resourceNameAt("a\\z", "%5Cb%5C") must beNone
+      Assets.resourceNameAt("/a\\z", "") must beSome("/a\\z/")
+      Assets.resourceNameAt("/a\\z", "b") must beSome("/a\\z/b")
+      Assets.resourceNameAt("/a\\z", "%5C") must beSome("/a\\z/\\")
+      Assets.resourceNameAt("/a\\z", "%5Cb") must beSome("/a\\z/\\b")
+      Assets.resourceNameAt("/a\\z", "%5Cb%5Cc") must beSome("/a\\z/\\b\\c")
+      Assets.resourceNameAt("/a\\z", "/b/") must beSome("/a\\z/b/")
+      Assets.resourceNameAt("\\a\\z", "") must beNone
+      Assets.resourceNameAt("\\a\\z", "b") must beNone
+      Assets.resourceNameAt("\\a\\z", "/") must beNone
+      Assets.resourceNameAt("\\a\\z", "/b") must beNone
+      Assets.resourceNameAt("\\a\\z", "/b/c") must beNone
+      Assets.resourceNameAt("\\a\\z", "/b/") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "b") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/b") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/b/c") must beNone
+      Assets.resourceNameAt("x:\\a\\z", "/b/") must beNone
+    }
+
+    "not look up assets with Windows resource filename separators encoded for Linux" in {
+      // %2F is "/" URL encoded
+      Assets.resourceNameAt("a\\z", "") must beNone
+      Assets.resourceNameAt("a\\z", "b") must beNone
+      Assets.resourceNameAt("a\\z", "%2F") must beNone
+      Assets.resourceNameAt("a\\z", "%2Fb") must beNone
+      Assets.resourceNameAt("a\\z", "%2Fbc") must beNone
+      Assets.resourceNameAt("a\\z", "%2Fb%2F") must beNone
+      Assets.resourceNameAt("/a\\z", "") must beSome("/a\\z/")
+      Assets.resourceNameAt("/a\\z", "b") must beSome("/a\\z/b")
+      Assets.resourceNameAt("/a\\z", "%2F") must beSome("/a\\z/")
+      Assets.resourceNameAt("/a\\z", "%2Fb") must beSome("/a\\z/b")
+      Assets.resourceNameAt("/a\\z", "%2Fb%2Fc") must beSome("/a\\z/b/c")
       Assets.resourceNameAt("/a\\z", "/b/") must beSome("/a\\z/b/")
       Assets.resourceNameAt("\\a\\z", "") must beNone
       Assets.resourceNameAt("\\a\\z", "b") must beNone
@@ -101,6 +214,24 @@ class AssetsSpec extends Specification {
       Assets.resourceNameAt("/a/b", "../") must beNone
       Assets.resourceNameAt("/a/b", "../c") must beNone
       Assets.resourceNameAt("/a/b", "../../c/d") must beNone
+    }
+
+    "not look up assets with dot-segments that escape the parent path with a encoded separator for Windows" in {
+      // %5C is "\" URL encoded
+      Assets.resourceNameAt("/a/b", "..") must beNone
+      Assets.resourceNameAt("/a/b", "..%5C") must beNone
+      Assets.resourceNameAt("/a/b", "..%5Cc") must beNone
+      Assets.resourceNameAt("/a/b", "../..%5Cc%5Cd") must beNone
+      Assets.resourceNameAt("/a/b", "..%5C..%5Cc%5Cd") must beNone
+    }
+
+    "not look up assets with dot-segments that escape the parent path with a encoded separator for Linux" in {
+      // %2F is "\" URL encoded
+      Assets.resourceNameAt("/a/b", "..") must beNone
+      Assets.resourceNameAt("/a/b", "..%2F") must beNone
+      Assets.resourceNameAt("/a/b", "..%2Fc") must beNone
+      Assets.resourceNameAt("/a/b", "../..%2Fc%2Fd") must beNone
+      Assets.resourceNameAt("/a/b", "..%2F..%2Fc%2Fd") must beNone
     }
 
     "use the unescaped path when finding the last modified date of an asset" in {

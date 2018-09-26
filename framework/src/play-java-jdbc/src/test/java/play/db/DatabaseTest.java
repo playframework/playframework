@@ -1,16 +1,15 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import javax.sql.DataSource;
 
 import com.google.common.collect.ImmutableMap;
-import com.jolbox.bonecp.BoneCPDataSource;
 
 import org.jdbcdslog.LogSqlDataSource;
 import org.junit.Rule;
@@ -28,7 +27,7 @@ public class DatabaseTest {
     public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void createDatabase() throws Exception {
+    public void createDatabase() {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test");
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
@@ -36,7 +35,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void createDefaultDatabase() throws Exception {
+    public void createDefaultDatabase() {
         Database db = Databases.createFrom("org.h2.Driver", "jdbc:h2:mem:default");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
@@ -49,12 +48,16 @@ public class DatabaseTest {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
+
+        // Forces the data source initialization, and then JNDI registration.
+        db.getDataSource();
+
         assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
 
     @Test
-    public void createDefaultInMemoryDatabase() throws Exception {
+    public void createDefaultInMemoryDatabase() {
         Database db = Databases.inMemory();
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
@@ -62,7 +65,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void createNamedInMemoryDatabase() throws Exception {
+    public void createNamedInMemoryDatabase() {
         Database db = Databases.inMemory("test");
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
@@ -70,19 +73,13 @@ public class DatabaseTest {
     }
 
     @Test
-    public void createInMemoryDatabaseWithUrlOptions() throws Exception {
+    public void createInMemoryDatabaseWithUrlOptions() {
         Map<String, String> options = ImmutableMap.of("MODE", "MySQL");
         Map<String, Object> config = ImmutableMap.<String, Object>of();
         Database db = Databases.inMemory("test", options, config);
 
         assertThat(db.getName(), equalTo("test"));
-        assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
-
-        DataSource ds = db.getDataSource();
-        if (ds instanceof BoneCPDataSource) {
-            BoneCPDataSource bcp = (BoneCPDataSource) ds;
-            assertThat(bcp.getJdbcUrl(), equalTo("jdbc:h2:mem:test;MODE=MySQL"));
-        }
+        assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test;MODE=MySQL"));
 
         db.shutdown();
     }
@@ -92,6 +89,10 @@ public class DatabaseTest {
         Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
+
+        // Forces the data source initialization, and then JNDI registration.
+        db.getDataSource();
+
         assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
         db.shutdown();
     }
@@ -123,7 +124,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void provideConnectionHelpers() throws Exception {
+    public void provideConnectionHelpers() {
         Database db = Databases.inMemory("test-withConnection");
 
         db.withConnection(c -> {
@@ -144,7 +145,7 @@ public class DatabaseTest {
     }
 
     @Test
-    public void provideTransactionHelper() throws Exception {
+    public void provideTransactionHelper() {
         Database db = Databases.inMemory("test-withTransaction");
 
         boolean created = db.withTransaction(c -> {

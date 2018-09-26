@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.i18n
 
 import java.net.URL
@@ -11,6 +12,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import play.api._
 import play.api.http.HttpConfiguration
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 import play.libs.Scala
 import play.mvc.Http
@@ -18,6 +20,7 @@ import play.utils.{ PlayIO, Resources }
 
 import scala.annotation.implicitNotFound
 import scala.collection.mutable
+import scala.collection.breakOut
 import scala.io.Codec
 import scala.language._
 import scala.util.parsing.combinator._
@@ -32,6 +35,14 @@ import scala.util.parsing.input._
  * }}}
  */
 object Messages extends MessagesImplicits {
+
+  /**
+   * Request Attributes for the MessagesApi
+   * Currently all Attributes are only available inside the [[MessagesApi]] methods.
+   */
+  object Attrs {
+    val CurrentLang: TypedKey[Lang] = TypedKey("CurrentLang")
+  }
 
   private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
 
@@ -101,7 +112,7 @@ object Messages extends MessagesImplicits {
    */
   def parse(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
     new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
-      messages.map { message => message.key -> message.pattern }.toMap
+      messages.map { message => message.key -> message.pattern }(breakOut)
     }
   }
 
@@ -456,8 +467,9 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: RequestHeader): Messages = {
+    val maybeLangFromContext = request.attrs.get(Messages.Attrs.CurrentLang)
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
-    val lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
   }
 
@@ -511,11 +523,11 @@ class DefaultMessagesApi @Inject() (
 
 @Singleton
 class DefaultMessagesApiProvider @Inject() (
-  environment: Environment,
-  config: Configuration,
-  langs: Langs,
-  httpConfiguration: HttpConfiguration)
-    extends Provider[MessagesApi] {
+    environment: Environment,
+    config: Configuration,
+    langs: Langs,
+    httpConfiguration: HttpConfiguration)
+  extends Provider[MessagesApi] {
 
   override lazy val get: MessagesApi = {
     new DefaultMessagesApi(
@@ -538,11 +550,12 @@ class DefaultMessagesApiProvider @Inject() (
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
-    langs.availables.map(_.code).map { lang =>
-      (lang, loadMessages("messages." + lang))
-    }.toMap
-      .+("default" -> loadMessages("messages"))
-      .+("default.play" -> loadMessages("messages.default"))
+    (langs.availables.map { lang =>
+      val code = lang.code
+      code -> loadMessages(s"messages.${code}")
+    }(breakOut): Map[String, Map[String, String]]).
+      +("default" -> loadMessages("messages")) + (
+        "default.play" -> loadMessages("messages.default"))
   }
 
   protected def loadMessages(file: String): Map[String, String] = {

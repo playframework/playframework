@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.crypto;
 
 /**
@@ -49,20 +50,6 @@ public interface CSRFTokenSigner {
      * @return true if the tokens match and are signed, false otherwise.
      */
     boolean compareSignedTokens(String tokenA, String tokenB);
-
-    /**
-     * Constant time equals method.
-     * <p>
-     * Given a length that both Strings are equal to, this method will always run in constant time.  This prevents
-     * timing attacks.
-     *
-     * @param a a string.
-     * @param b another string.
-     * @deprecated since 2.6.0.  Use java.security.MessageDigest.isEqual over this method.
-     * @return true if the strings match, false otherwise.
-     */
-    @Deprecated
-    boolean constantTimeEquals(String a, String b);
 
     /**
      * Utility method needed for CSRFCheck.  Should not need to be used or extended by user level code.

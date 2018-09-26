@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Debugging your build
 
 If you are having difficulties getting sbt to do what you want it to do, you may need to use some of the built in utilities that sbt provides to help you debug your build.
@@ -9,7 +9,7 @@ By default, sbt generates reports of all your dependencies, including dependency
 
 The reports are generated into xml files, with an accompanying XSL stylesheet that allow browsers that support XSL to convert the XML reports into HTML.  Browsers with this support include Firefox and Safari, and notably don't include Chrome.
 
-The reports can be found in the `target/resolution-cache/reports` directory of your project, one is generated for each scope in your project, and are named `organization-projectId_scalaVersion-scope.xml`, for example, `com.example-my-first-app_2.11-compile.xml`.  When opened in Firefox, this report looks something like this:
+The reports can be found in the `target/scala-2.12/resolution-cache/reports/` directory of your project, one is generated for each scope in your project, and are named `organization-projectId_scalaVersion-scope.xml`, for example, `com.example-my-first-app_2.11-compile.xml`.  When opened in Firefox, this report looks something like this:
 
 [[images/ivy-report.png]]
 

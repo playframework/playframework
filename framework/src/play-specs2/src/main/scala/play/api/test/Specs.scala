@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.test
 
 import org.openqa.selenium.WebDriver
@@ -22,7 +23,7 @@ import play.core.server.ServerProvider
  * @param applicationLoader The application loader to use
  * @param context The context supplied to the application loader
  */
-abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new GuiceApplicationLoader(), context: ApplicationLoader.Context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))) extends Around with Scope {
+abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new GuiceApplicationLoader(), context: ApplicationLoader.Context = ApplicationLoader.Context.create(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))) extends Around with Scope {
   implicit lazy val app = applicationLoader.load(context)
   def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))

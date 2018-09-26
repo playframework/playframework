@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
@@ -34,7 +35,7 @@ public class JavaFileUploadTest extends WithApplication {
     @Test
     public void testFileUpload() throws IOException {
         File file = getFile();
-        Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromFile(file));
+        Http.MultipartFormData.Part<Source<ByteString, ?>> part = new Http.MultipartFormData.FilePart<>("picture", "file.pdf", "application/pdf", FileIO.fromPath(file.toPath()));
 
         //###replace:     Http.RequestBuilder request = Helpers.fakeRequest().uri(routes.MyController.upload().url())
         Http.RequestBuilder request = Helpers.fakeRequest().uri("/upload")
@@ -43,7 +44,7 @@ public class JavaFileUploadTest extends WithApplication {
                 .bodyMultipart(
                         Collections.singletonList(part),
                         play.libs.Files.singletonTemporaryFileCreator(),
-                        app.getWrappedApplication().materializer()
+                        app.asScala().materializer()
                 );
 
         Result result = Helpers.route(app, request);

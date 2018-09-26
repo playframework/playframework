@@ -11,8 +11,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     writer.write(new Date() + " - reloaded\n")
     writer.close()
 
-    if (configuration.getBoolean("fail").getOrElse(false)) {
-      throw new RuntimeException()
+    if (configuration.getOptional[Boolean]("fail").getOrElse(false)) {
+      throw new RuntimeException("fail=true")
     }
   }
 }

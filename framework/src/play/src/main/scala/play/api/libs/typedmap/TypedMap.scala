@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.typedmap
 
 import scala.collection.immutable
@@ -63,6 +64,11 @@ trait TypedMap {
    * @return A new instance of the map with the new entries added.
    */
   def +(entries: TypedEntry[_]*): TypedMap
+
+  /**
+   * @return The Java version for this map.
+   */
+  def asJava: play.libs.typedmap.TypedMap = new play.libs.typedmap.TypedMap(this)
 }
 
 object TypedMap {

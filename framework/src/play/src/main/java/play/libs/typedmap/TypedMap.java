@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.typedmap;
 
 import play.api.libs.typedmap.TypedMap$;
@@ -31,8 +32,18 @@ public final class TypedMap {
 
     /**
      * @return the underlying Scala TypedMap which this instance wraps.
+     *
+     * @deprecated As of release 2.6.8. Use {@link #asScala()}
      */
+    @Deprecated
     public play.api.libs.typedmap.TypedMap underlying() {
+        return underlying;
+    }
+
+    /**
+     * @return the underlying Scala TypedMap which this instance wraps.
+     */
+    public play.api.libs.typedmap.TypedMap asScala() {
         return underlying;
     }
 
@@ -45,7 +56,7 @@ public final class TypedMap {
      * @throws java.util.NoSuchElementException If the value isn't present in the map.
      */
     public <A> A get(TypedKey<A> key) {
-        return underlying.apply(key.underlying());
+        return underlying.apply(key.asScala());
     }
 
     /**
@@ -56,7 +67,7 @@ public final class TypedMap {
      * @return An <code>Optional</code>, with the value present if it is in the map.
      */
     public <A> Optional<A> getOptional(TypedKey<A> key) {
-        return OptionConverters.toJava(underlying.get(key.underlying()));
+        return OptionConverters.toJava(underlying.get(key.asScala()));
     }
 
     /**
@@ -66,7 +77,7 @@ public final class TypedMap {
      * @return True if the value is present, false otherwise.
      */
     public boolean containsKey(TypedKey<?> key) {
-        return underlying.contains(key.underlying());
+        return underlying.contains(key.asScala());
     }
 
     /**
@@ -78,7 +89,7 @@ public final class TypedMap {
      * @return A new instance of the map with the new entry added.
      */
     public <A> TypedMap put(TypedKey<A> key, A value) {
-        return new TypedMap(underlying.updated(key.underlying(), value));
+        return new TypedMap(underlying.updated(key.asScala(), value));
     }
 
     /**
@@ -90,7 +101,7 @@ public final class TypedMap {
     public TypedMap putAll(TypedEntry<?>... entries) {
         play.api.libs.typedmap.TypedMap newUnderlying = underlying;
         for (TypedEntry<?> e : entries) {
-            newUnderlying = newUnderlying.updated(((TypedKey<Object>) e.key()).underlying(), e.value());
+            newUnderlying = newUnderlying.updated(((TypedKey<Object>) e.key()).asScala(), e.value());
         }
         return new TypedMap(newUnderlying);
     }

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.inject
 
 import com.google.inject.AbstractModule
@@ -8,7 +9,7 @@ import com.typesafe.config.Config
 import org.specs2.matcher.BeEqualTypedValueCheck
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
+import play.{ Environment => JavaEnvironment }
 
 class ModulesSpec extends Specification {
 
@@ -41,20 +42,6 @@ class ModulesSpec extends Specification {
       }
     }
 
-    "load Guice modules that take a Java Environment and Configuration" in {
-      val env = Environment.simple()
-      val conf = Configuration("play.modules.enabled" -> Seq(
-        classOf[JavaGuiceConfigurationModule].getName
-      ))
-      val located: Seq[Any] = Modules.locate(env, conf)
-      located.size must_== 1
-      located.head must beLike {
-        case mod: JavaGuiceConfigurationModule =>
-          mod.environment.asScala() must_== env
-          mod.configuration.underlying must_== conf.underlying
-      }
-    }
-
     "load Guice modules that take a Java Environment and Config" in {
       val env = Environment.simple()
       val conf = Configuration("play.modules.enabled" -> Seq(
@@ -74,23 +61,17 @@ class ModulesSpec extends Specification {
 }
 
 class PlainGuiceModule extends AbstractModule {
-  def configure(): Unit = ()
+  override def configure(): Unit = ()
 }
 
 class ScalaGuiceModule(
     val environment: Environment,
     val configuration: Configuration) extends AbstractModule {
-  def configure(): Unit = ()
+  override def configure(): Unit = ()
 }
 
 class JavaGuiceConfigModule(
     val environment: JavaEnvironment,
     val config: Config) extends AbstractModule {
-  def configure(): Unit = ()
-}
-
-class JavaGuiceConfigurationModule(
-    val environment: JavaEnvironment,
-    val configuration: JavaConfiguration) extends AbstractModule {
-  def configure(): Unit = ()
+  override def configure(): Unit = ()
 }

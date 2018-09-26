@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data.format;
 
 import org.springframework.core.*;
@@ -44,23 +45,6 @@ public class Formatters {
      */
     public <T> T parse(String text, Class<T> clazz) {
         return conversion.convert(text, clazz);
-    }
-
-    /**
-     * Parses this string as instance of a specific field in the given class
-     *
-     * @param field the related field (custom formatters are extracted from this field annotation)
-     * @param text the text to parse
-     * @param clazz class representing the required type
-     * @param <T> the type to parse out of the text
-     * @return the parsed value
-     *
-     * @deprecated As of 2.6.0, use {@link #parse(Field, String)} instead
-     */
-    @Deprecated
-    @SuppressWarnings({"unchecked", "unused"})
-    public <T> T parse(Field field, String text, Class<T> clazz) {
-        return (T)parse(field, text);
     }
 
     /**

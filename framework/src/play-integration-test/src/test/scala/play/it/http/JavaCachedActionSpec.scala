@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.util.concurrent.{ Callable, CompletableFuture, CompletionStage, TimeUnit }
@@ -11,7 +12,7 @@ import com.github.benmanes.caffeine.cache.{ Cache, Caffeine }
 import com.google.common.primitives.Primitives
 import play.api.Application
 import play.api.cache.AsyncCacheApi
-import play.api.cache.ehcache.EhCacheModule
+import play.api.cache.caffeine.CaffeineCacheModule
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
 import play.cache.{ Cached, DefaultAsyncCacheApi }
@@ -30,7 +31,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
 
     implicit val port = testServerPort
     lazy val app: Application = GuiceApplicationBuilder()
-      .disable[EhCacheModule]
+      .disable[CaffeineCacheModule]
       .bindings(
         bind[play.api.cache.AsyncCacheApi].toProvider[TestAsyncCacheApiProvider],
         bind[play.cache.AsyncCacheApi].to[DefaultAsyncCacheApi]

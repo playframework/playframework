@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Deploying your application
 
 We have seen how to run a Play application in development mode, however the `run` command should not be used to run an application in production mode.  When using `run`, on each request, Play checks with sbt to see if any files have changed, and this may have significant performance impacts on your application.
@@ -85,7 +85,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 
 ## The Native Packager
 
-Play uses the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.4/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 [my-first-app] $ universal:packageBin
@@ -100,16 +100,16 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/) on the native packager plugin for more information.
+Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/) on the native packager plugin for more information.
 
 ### Build a server distribution
 
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_server/index.html#default-mappings)
+* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/index.html#default-mappings)
 
-A full documentation can be found in the [documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_server/index.html).
+More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
@@ -152,7 +152,7 @@ s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
 
-Please see the sbt-native-packager [page on Play](http://sbt-native-packager.readthedocs.io/en/v1.2.0/recipes/play.html) for more details.
+Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.4/recipes/play.html) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
@@ -160,7 +160,7 @@ To prevent Play from creating a PID just set the property to `/dev/null`:
 -Dpidfile.path=/dev/null
 ```
 
-For a full list of replacements take a closer look at the [customize java server documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_server/customize.html) and [customize java app documentation](http://sbt-native-packager.readthedocs.io/en/v1.2.0/archetypes/java_app/customize.html).
+For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
 
@@ -176,7 +176,7 @@ Then in the Play console, use the `publish` task:
 [my-first-app] $ publish
 ```
 
-> Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
+> Check the [sbt documentation](https://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
 
 ## Running a production server in place
 
@@ -249,7 +249,7 @@ Though not officially supported, the SBT assembly plugin may be used to package 
 To use this, add a dependency on the plugin to your `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.11.2")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 ```
 
 Now add the following configuration to your `build.sbt`:

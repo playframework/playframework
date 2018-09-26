@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.i18n;
 
-import org.apache.commons.lang3.ArrayUtils;
 import play.libs.Scala;
 import play.mvc.Http;
 import scala.collection.Seq;
@@ -26,15 +26,6 @@ public class MessagesApi {
     @Inject
     public MessagesApi(play.api.i18n.MessagesApi messages) {
         this.messages = messages;
-    }
-
-    /**
-     * @return the Scala versions of the Messages API.
-     * @deprecated As of release 2.6.0. Use {@link #asScala()}
-     */
-    @Deprecated
-    public play.api.i18n.MessagesApi scalaApi() {
-        return asScala();
     }
 
     /**
@@ -65,11 +56,9 @@ public class MessagesApi {
     @SafeVarargs
     private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
         List<T> out;
-        if (ArrayUtils.isNotEmpty(args)
-                && args.length == 1
-                && args[0] instanceof List){
+        if (args != null && args.length == 1 && args[0] instanceof List) {
             out = (List<T>) args[0];
-        }else{
+        } else {
             out = Arrays.asList(args);
         }
         return out;

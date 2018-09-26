@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.mvc;
 
 import play.i18n.Lang;
@@ -17,6 +18,14 @@ import play.mvc.Http.Flash;
  * Superclass for a Java-based controller.
  */
 public abstract class Controller extends Results implements Status, HeaderNames {
+
+    /**
+     * Generates a 501 NOT_IMPLEMENTED simple result.
+     */
+    public static Result TODO() {
+        play.mvc.Http.Request request = Http.Context.current().request();
+        return status(NOT_IMPLEMENTED, views.html.defaultpages.todo.render(request.asScala()));
+    }
 
     /**
      * Returns the current HTTP context.
@@ -76,7 +85,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * Returns the current HTTP response.
      *
      * @return the response
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static Response response() {
         return Http.Context.current().response();
     }

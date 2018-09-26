@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.binder.controllers
 
 //#javascript-router-resource-imports
 import javax.inject.Inject
-
+import play.api.http.MimeTypes
 import play.api.mvc._
 import play.api.routing._
 //#javascript-router-resource-imports
@@ -18,7 +19,7 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
                 routes.javascript.Users.list,
                 routes.javascript.Users.get
             )
-        ).as("text/javascript")
+        ).as(MimeTypes.JAVASCRIPT)
     }
     //#javascript-router-resource
 
@@ -30,7 +31,7 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
                 routes.javascript.Users.get
             )
             //#javascript-router-resource-custom-method
-        ).as("text/javascript")
+        ).as(MimeTypes.JAVASCRIPT)
     }
     
 }

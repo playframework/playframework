@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import controllers.Assets.Asset
@@ -308,6 +309,9 @@ object JavascriptLiteral {
  */
 object QueryStringBindable {
 
+  import play.api.mvc.macros.BinderMacros
+  import scala.language.experimental.macros
+
   /**
    * A helper class for creating QueryStringBindables to map the value of a single key
    *
@@ -318,7 +322,7 @@ object QueryStringBindable {
    * @tparam A the type being parsed
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
-      extends QueryStringBindable[A] {
+    extends QueryStringBindable[A] {
 
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { p =>
       try {
@@ -534,7 +538,7 @@ object QueryStringBindable {
   implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: ClassTag[T]) = new QueryStringBindable[T] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       try {
-        val o = ct.runtimeClass.newInstance.asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
+        val o = ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
         if (o.isPresent) {
           Some(Right(o.get))
         } else {
@@ -547,9 +551,11 @@ object QueryStringBindable {
     def unbind(key: String, value: T) = {
       value.unbind(key)
     }
-    override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
+    override def javascriptUnbind = Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
+
+  implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] = macro BinderMacros.anyValQueryStringBindable[T]
 
 }
 
@@ -557,6 +563,9 @@ object QueryStringBindable {
  * Default binders for URL path part.
  */
 object PathBindable {
+
+  import play.api.mvc.macros.BinderMacros
+  import scala.language.experimental.macros
 
   /**
    * A helper class for creating PathBindables to map the value of a path pattern/segment
@@ -567,7 +576,7 @@ object PathBindable {
    * @tparam A the type being parsed
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
-      extends PathBindable[A] {
+    extends PathBindable[A] {
 
     // added for bincompat
     @deprecated("Use constructor without codec", "2.6.2")
@@ -673,6 +682,11 @@ object PathBindable {
   }
 
   /**
+   * Path binder for AnyVal
+   */
+  implicit def anyValPathBindable[T <: AnyVal]: PathBindable[T] = macro BinderMacros.anyValPathBindable[T]
+
+  /**
    * Path binder for Java Boolean.
    */
   implicit def bindableJavaBoolean: PathBindable[java.lang.Boolean] =
@@ -691,7 +705,7 @@ object PathBindable {
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]): PathBindable[T] = new PathBindable[T] {
     def bind(key: String, value: String) = {
       try {
-        Right(ct.runtimeClass.newInstance.asInstanceOf[T].bind(key, value))
+        Right(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, value))
       } catch {
         case e: Exception => Left(e.getMessage)
       }
@@ -699,7 +713,7 @@ object PathBindable {
     def unbind(key: String, value: T) = {
       value.unbind(key)
     }
-    override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
+    override def javascriptUnbind = Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
 

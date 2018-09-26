@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.cors
 
 import play.api.Application
@@ -43,6 +44,7 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
       "without a port number" in withApplication() { app =>
@@ -52,6 +54,7 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
     }
@@ -67,15 +70,26 @@ trait CORSCommonSpec extends PlaySpecification {
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
       }
       "forbidden" in withApplication(conf = serveForbidden) { app =>
         val result = route(app, fakeRequest().withHeaders(
-          ORIGIN -> "http://www.example.com"
+          ORIGIN -> "http://www.notinwhitelistorhost.com"
         )).get
 
         status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
         mustBeNoAccessControlResponseHeaders(result)
+      }
+      "in the whitelist" in withApplication(conf = serveForbidden) { app =>
+        val result = route(app, fakeRequest().withHeaders(
+          ORIGIN -> "http://example.org"
+        )).get
+
+        status(result) must_== OK
+        header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://example.org")
+        header(VARY, result) must beSome(ORIGIN)
       }
     }
 
@@ -87,6 +101,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "not consider different ports to be the same origin" in withApplication() { app =>
@@ -97,6 +112,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com:9000")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "not consider different protocols to be the same origin" in withApplication() { app =>
@@ -107,6 +123,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("https://www.example.com:9000")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "forbid an empty origin header" in withApplication() { app =>

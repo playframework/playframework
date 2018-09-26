@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.test
 
 import org.specs2.mutable.{ Specification, SpecificationLike }
@@ -13,14 +14,14 @@ import play.api.http.{ HeaderNames, HttpProtocol, HttpVerbs, Status }
  * methods.  It also mixes in the Play test helpers and types for convenience.
  */
 trait PlaySpecification extends SpecificationLike
-    with PlayRunners
-    with HeaderNames
-    with Status
-    with HttpProtocol
-    with DefaultAwaitTimeout
-    with ResultExtractors
-    with Writeables
-    with RouteInvokers
-    with FutureAwaits
-    with HttpVerbs {
+  with PlayRunners
+  with HeaderNames
+  with Status
+  with HttpProtocol
+  with DefaultAwaitTimeout
+  with ResultExtractors
+  with Writeables
+  with RouteInvokers
+  with FutureAwaits
+  with HttpVerbs {
 }

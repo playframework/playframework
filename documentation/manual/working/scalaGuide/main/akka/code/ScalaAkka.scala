@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.akka {
 
 import akka.actor.ActorSystem
@@ -144,7 +145,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 import actors.ConfiguredActor
 
 class MyModule extends AbstractModule with AkkaGuiceSupport {
-  def configure = {
+  override def configure = {
     bindActor[ConfiguredActor]("configured-actor")
   }
 }
@@ -159,7 +160,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 import actors._
 
 class MyModule extends AbstractModule with AkkaGuiceSupport {
-  def configure = {
+  override def configure = {
     bindActor[ParentActor]("parent-actor")
     bindActorFactory[ConfiguredChildActor, ConfiguredChildActor.Factory]
   }

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.http
 
 import java.io.ByteArrayInputStream
@@ -13,7 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{ DefaultWSCookie, WSCookie, WSResponse }
 import play.http.HttpEntity
 import play.it._
 import play.libs.{ Comet, EventSource, Json }
@@ -28,7 +29,11 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
   sequential
 
   "Java results handling" should {
-    def makeRequest[T](controller: MockController, additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(block: WSResponse => T) = {
+    def makeRequest[T](
+      controller: MockController,
+      additionalConfig: Map[String, String] = Map.empty,
+      followRedirects: Boolean = true
+    )(block: WSResponse => T) = {
       implicit val port = testServerPort
       lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
         case _ => JAction(app, controller)
@@ -148,6 +153,48 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.body must_== "Hello world"
     }
 
+    "discard cookies from result" in {
+      "on the default path with no domain and that's not secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard")
+          Results.ok("Hello world").discardCookie("Result-Discard")
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+      }
+
+      "on the given path with no domain and not that's secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard", "/path")
+          Results.ok("Hello world").discardCookie("Result-Discard", "/path")
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+      }
+
+      "on the given path and domain that's not secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard", "/path", "playframework.com")
+          Results.ok("Hello world").discardCookie("Result-Discard", "/path", "playframework.com")
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
+      }
+
+      "on the given path and domain that's is secure" in makeRequest(new MockController {
+        def action = {
+          response.discardCookie("Response-Discard", "/path", "playframework.com", true)
+          Results.ok("Hello world").discardCookie("Result-Discard", "/path", "playframework.com", true)
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
+        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
+      }
+    }
+
     "add cookies in Result" in makeRequest(new MockController {
       def action = {
         Results.ok("Hello world")
@@ -262,7 +309,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         Results.ok("Hello world")
       }
     }) { response =>
-      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=-86400")
+      response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=0")
       response.body must_== "Hello world"
     }
 
@@ -296,7 +343,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script type=\"text/javascript\">callback('a');</script><script type=\"text/javascript\">callback('b');</script><script type=\"text/javascript\">callback('c');</script>")
+      response.body must contain("<html><body><script>callback('a');</script><script>callback('b');</script><script>callback('c');</script>")
     }
 
     "chunk comet results from json" in makeRequest(new MockController {
@@ -310,7 +357,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script type=\"text/javascript\">callback({\"foo\":\"bar\"});</script>")
+      response.body must contain("<html><body><script>callback({\"foo\":\"bar\"});</script>")
     }
 
     "chunk event source results" in makeRequest(new MockController {

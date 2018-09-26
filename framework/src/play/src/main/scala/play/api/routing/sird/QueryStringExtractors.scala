@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.routing.sird
 
 import java.net.{ URI, URL }
@@ -28,15 +29,14 @@ trait QueryStringParameterExtractor[T] {
 }
 
 object QueryStringParameterExtractor {
-  private def parse(query: String): QueryString = {
-    Option(query).map(_.split("&").toSeq.map { keyValue =>
-      keyValue.split("=", 2) match {
-        case Array(key, value) => key -> value
-        case Array(key) => key -> ""
-      }
-    }.groupBy(_._1).mapValues(_.map(_._2)).toMap)
-      .getOrElse(Map.empty)
-  }
+  private def parse(query: String): QueryString =
+    Option(query).fold(Map.empty[String, Seq[String]]) {
+      _.split("&").map {
+        _.span(_ != '=') match {
+          case (key, v) => key -> v.drop(1) // '=' prefix
+        }
+      }.groupBy(_._1).mapValues(_.toSeq.map(_._2))
+    }
 
   def required(name: String) = new RequiredQueryStringParameter(name)
   def optional(name: String) = new OptionalQueryStringParameter(name)

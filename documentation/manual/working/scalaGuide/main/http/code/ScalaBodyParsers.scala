@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.scalabodyparsers {
 
 import akka.stream.ActorMaterializer
@@ -44,7 +45,6 @@ class ScalaBodyParsersSpec extends SpecificationLike with ControllerHelpers {
     "A scala body parser" should {
 
       "parse request as json" in new WithController() {
-        import scala.concurrent.ExecutionContext.Implicits.global
         //#access-json-body
         def save = Action { request: Request[AnyContent] =>
           val body: AnyContent = request.body
@@ -149,13 +149,15 @@ class ScalaBodyParsersSpec extends SpecificationLike with ControllerHelpers {
         ok
       }
 
-      "parse the body as csv" in new WithApplication() {
+      "parse the body as csv" in new WithApplication() with Injecting {
         import scala.concurrent.ExecutionContext.Implicits.global
         //#csv
         import play.api.mvc.BodyParser
         import play.api.libs.streams._
         import akka.util.ByteString
         import akka.stream.scaladsl._
+
+        val Action = inject[DefaultActionBuilder]
 
         val csv: BodyParser[Seq[Seq[String]]] = BodyParser { req =>
 

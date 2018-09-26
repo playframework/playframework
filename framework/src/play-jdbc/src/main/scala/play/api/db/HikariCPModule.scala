@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db
 
 import javax.inject.{ Inject, Singleton }
@@ -120,8 +121,6 @@ private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Config
     config.get[Option[String]]("poolName").foreach(hikariConfig.setPoolName)
 
     // Infrequently used
-    // Use getOptional here so the runtime warning is only triggered if it is not null
-    config.getOptional[Boolean]("initializationFailFast").foreach(hikariConfig.setInitializationFailFast)
     hikariConfig.setInitializationFailTimeout(config.get[Long]("initializationFailTimeout"))
     hikariConfig.setIsolateInternalQueries(config.get[Boolean]("isolateInternalQueries"))
     hikariConfig.setAllowPoolSuspension(config.get[Boolean]("allowPoolSuspension"))

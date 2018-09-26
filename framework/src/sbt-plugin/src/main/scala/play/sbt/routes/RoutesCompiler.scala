@@ -1,17 +1,18 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt.routes
 
 import play.core.PlayVersion
 import play.routes.compiler.{ RoutesGenerator, RoutesCompilationError }
-import play.routes.compiler.RoutesCompiler.{ RoutesCompilerTask, GeneratedSource }
+import play.routes.compiler.{ RoutesCompiler => Compiler }, Compiler.{ RoutesCompilerTask, GeneratedSource }
+
 import sbt._
 import sbt.Keys._
 import com.typesafe.sbt.web.incremental._
 import play.api.PlayException
 import sbt.plugins.JvmPlugin
-import xsbti.Position
 
 import scala.language.implicitConversions
 
@@ -45,10 +46,9 @@ object RoutesKeys {
     "A list of projects that reverse routes should be aggregated from.")
 
   val InjectedRoutesGenerator = play.routes.compiler.InjectedRoutesGenerator
-  val StaticRoutesGenerator = play.routes.compiler.StaticRoutesGenerator
 }
 
-object RoutesCompiler extends AutoPlugin {
+object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
   import RoutesKeys._
 
   override def trigger = noTrigger
@@ -67,6 +67,11 @@ object RoutesCompiler extends AutoPlugin {
 
     routesCompilerTasks := Def.taskDyn {
 
+      val generateReverseRouterValue = generateReverseRouter.value
+      val namespaceReverseRouterValue = namespaceReverseRouter.value
+      val sourcesInRoutes = (sources in routes).value
+      val routesImportValue = routesImport.value
+
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value.map { agg =>
         routesCompilerTasks in (agg.project, configuration.value)
@@ -78,9 +83,9 @@ object RoutesCompiler extends AutoPlugin {
         }
 
         // Find the routes compile tasks for this project
-        val thisProjectTasks = (sources in routes).value.map { file =>
-          RoutesCompilerTask(file, routesImport.value, forwardsRouter = true,
-            reverseRouter = generateReverseRouter.value, namespaceReverseRouter = namespaceReverseRouter.value)
+        val thisProjectTasks = sourcesInRoutes.map { file =>
+          RoutesCompilerTask(file, routesImportValue, forwardsRouter = true,
+            reverseRouter = generateReverseRouterValue, namespaceReverseRouter = namespaceReverseRouterValue)
         }
 
         thisProjectTasks ++ reverseRouterTasks
@@ -122,18 +127,12 @@ object RoutesCompiler extends AutoPlugin {
     }.value,
 
     namespaceReverseRouter := false,
-    routesGenerator := InjectedRoutesGenerator, // changed from StaticRoutesGenerator in 2.5.0
+    routesGenerator := InjectedRoutesGenerator,
     sourcePositionMappers += routesPositionMapper
   )
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
     val log = state.value.log
-    if (routesGenerator.value.id == StaticRoutesGenerator.id) {
-      log.warn(
-        "StaticRoutesGenerator is deprecated. Please use InjectedRoutesGenerator or a custom router instead.\n" +
-          "For more info see https://www.playframework.com/documentation/2.6.x/JavaRouting#Dependency-Injection"
-      )
-    }
     compileRoutes(routesCompilerTasks.value, routesGenerator.value, (target in routes).value, streams.value.cacheDirectory, log)
   }
 
@@ -141,18 +140,20 @@ object RoutesCompiler extends AutoPlugin {
     cacheDirectory: File, log: Logger): Seq[File] = {
     val ops = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
     val (products, errors) = syncIncremental(cacheDirectory, ops) { opsToRun: Seq[RoutesCompilerOp] =>
+      val errs = Seq.newBuilder[RoutesCompilationError]
 
-      val results = opsToRun.map { op =>
-        op -> play.routes.compiler.RoutesCompiler.compile(op.task, generator, generatedDir)
-      }
-      val opResults = results.map {
-        case (op, Right(inputs)) => op -> OpSuccess(Set(op.task.file), inputs.toSet)
-        case (op, Left(_)) => op -> OpFailure
-      }.toMap
-      val errors = results.collect {
-        case (_, Left(e)) => e
-      }.flatten
-      (opResults, errors)
+      val opResults: Map[RoutesCompilerOp, OpResult] = opsToRun.map { op =>
+        Compiler.compile(op.task, generator, generatedDir) match {
+          case Right(inputs) =>
+            op -> OpSuccess(Set(op.task.file), inputs.toSet)
+
+          case Left(details) =>
+            errs ++= details
+            op -> OpFailure
+        }
+      }(scala.collection.breakOut)
+
+      opResults -> errs.result()
     }
 
     if (errors.nonEmpty) {
@@ -160,6 +161,7 @@ object RoutesCompiler extends AutoPlugin {
         case RoutesCompilationError(source, message, line, column) =>
           reportCompilationError(log, RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
+
       throw exceptions.head
     }
 
@@ -184,29 +186,6 @@ object RoutesCompiler extends AutoPlugin {
     error
   }
 
-  val routesPositionMapper: Position => Option[Position] = position => {
-    position.sourceFile collect {
-      case GeneratedSource(generatedSource) => {
-        new xsbti.Position {
-          lazy val line = {
-            position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-          }
-          lazy val lineContent = {
-            line flatMap { lineNo =>
-              sourceFile.flatMap { file =>
-                IO.read(file).split('\n').lift(lineNo - 1)
-              }
-            } getOrElse ""
-          }
-          val offset = xsbti.Maybe.nothing[java.lang.Integer]
-          val pointer = xsbti.Maybe.nothing[java.lang.Integer]
-          val pointerSpace = xsbti.Maybe.nothing[String]
-          val sourceFile = xsbti.Maybe.just(generatedSource.source.get)
-          val sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
-        }
-      }
-    }
-  }
 }
 
 private case class RoutesCompilerOp(task: RoutesCompilerTask, generatorId: String, playVersion: String)

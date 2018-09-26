@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.cors
 
 import java.util.Locale
@@ -14,7 +15,7 @@ import play.api.LoggerLike
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.{ HeaderNames, HttpErrorHandler, HttpVerbs }
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{ EssentialAction, RequestHeader, Result, Results }
+import play.api.mvc._
 
 /**
  * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin
@@ -39,7 +40,7 @@ private[cors] trait AbstractCORSPolicy {
   }
 
   protected def filterRequest(next: EssentialAction, request: RequestHeader): Accumulator[ByteString, Result] = {
-    (request.headers.get(HeaderNames.ORIGIN), request.method) match {
+    val resultAcc = (request.headers.get(HeaderNames.ORIGIN), request.method) match {
       case (None, _) =>
         /* http://www.w3.org/TR/cors/#resource-requests
          * § 6.1.1
@@ -74,6 +75,19 @@ private[cors] trait AbstractCORSPolicy {
         // unrecognized method so invalid request
         handleInvalidCORSRequest(request)
     }
+
+    /* http://www.w3.org/TR/cors/#resource-implementation
+     * § 6.4
+     * Resources that wish to enable themselves to be shared with multiple Origins but do
+     * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
+     * header dynamically in response to every request they wish to allow. As a consequence,
+     * authors of such resources should send a Vary: Origin HTTP header or provide other
+     * appropriate control directives to prevent caching of such responses, which may be
+     * inaccurate if re-used across-origins.
+     */
+    resultAcc.map { result =>
+      result.withHeaders(result.header.varyWith(HeaderNames.ORIGIN))
+    }(play.core.Execution.trampoline)
   }
 
   /* Handles a CORS request
@@ -94,59 +108,15 @@ private[cors] trait AbstractCORSPolicy {
      * headers and terminate this set of steps.
      */
     if (!corsConfig.allowedOrigins(origin)) {
-      handleInvalidCORSRequest(request)
+      if (corsConfig.serveForbiddenOrigins)
+        next(request)
+      else
+        handleInvalidCORSRequest(request)
     } else {
-      val headerBuilder = Seq.newBuilder[(String, String)]
-
-      /* http://www.w3.org/TR/cors/#resource-requests
-       * § 6.1.3
-       */
-      if (corsConfig.supportsCredentials) {
-        /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
-         * with the value of the Origin header as value, and add a single
-         * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
-         */
-        headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-        headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-        /* http://www.w3.org/TR/cors/#resource-implementation
-         * § 6.4
-         * Resources that wish to enable themselves to be shared with multiple Origins but do
-         * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
-         * header dynamically in response to every request they wish to allow. As a consequence,
-         * authors of such resources should send a Vary: Origin HTTP header or provide other
-         * appropriate control directives to prevent caching of such responses, which may be
-         * inaccurate if re-used across-origins.
-         */
-        headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
-      } else {
-        /* Otherwise, add a single Access-Control-Allow-Origin header,
-         * with either the value of the Origin header or the string "*" as value.
-         */
-        if (corsConfig.anyOriginAllowed) {
-          headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
-        } else {
-          headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-          /* http://www.w3.org/TR/cors/#resource-implementation
-           * § 6.4
-           */
-          headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
-        }
-      }
-
-      /* http://www.w3.org/TR/cors/#resource-requests
-       * § 6.1.4
-       * If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
-       * with as values the header field names given in the list of exposed headers.
-       */
-      if (corsConfig.exposedHeaders.nonEmpty) {
-        headerBuilder += HeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
-      }
-
       import play.core.Execution.Implicits.trampoline
 
       val taggedRequest = request
         .addAttr(CORSFilter.Attrs.Origin, origin)
-        .copy(tags = request.tags + (CORSFilter.RequestTag -> origin))
 
       // We must recover any errors so that we can add the headers to them to allow clients to see the result
       val result = try {
@@ -158,13 +128,53 @@ private[cors] trait AbstractCORSPolicy {
         case e: Throwable =>
           Accumulator.done(errorHandler.onServerError(taggedRequest, e))
       }
-      result.map(_.withHeaders(headerBuilder.result(): _*))
+      result.map(addCorsHeaders(_, origin))
     }
   }
 
+  private def addCorsHeaders(result: Result, origin: String): Result = {
+    import HeaderNames._
+
+    val headerBuilder = Seq.newBuilder[(String, String)]
+
+    /* http://www.w3.org/TR/cors/#resource-requests
+     * § 6.1.3
+     */
+    if (corsConfig.supportsCredentials) {
+      /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
+       * with the value of the Origin header as value, and add a single
+       * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
+       */
+      headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
+      headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+    } else {
+      /* Otherwise, add a single Access-Control-Allow-Origin header,
+       * with either the value of the Origin header or the string "*" as value.
+       */
+      if (corsConfig.anyOriginAllowed) {
+        headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
+      } else {
+        headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+      }
+    }
+
+    /* http://www.w3.org/TR/cors/#resource-requests
+     * § 6.1.4
+     * If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
+     * with as values the header field names given in the list of exposed headers.
+     */
+    if (corsConfig.exposedHeaders.nonEmpty) {
+      headerBuilder += ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
+    }
+
+    result.withHeaders(headerBuilder.result(): _*)
+  }
+
   private def handlePreFlightCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
+    import HeaderNames._
+
     val origin = {
-      val originOpt = request.headers.get(HeaderNames.ORIGIN)
+      val originOpt = request.headers.get(ORIGIN)
       assume(originOpt.isDefined, "The presence of the ORIGIN header should guaranteed at this point.")
       originOpt.get
     }
@@ -178,7 +188,7 @@ private[cors] trait AbstractCORSPolicy {
     if (!corsConfig.allowedOrigins(origin)) {
       handleInvalidCORSRequest(request)
     } else {
-      request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_METHOD) match {
+      request.headers.get(ACCESS_CONTROL_REQUEST_METHOD) match {
         case None =>
           /* http://www.w3.org/TR/cors/#resource-preflight-requests
            * § 6.2.3
@@ -208,7 +218,7 @@ private[cors] trait AbstractCORSPolicy {
              * let header field-names be the empty list.
              */
             val accessControlRequestHeaders: List[String] = {
-              request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS) match {
+              request.headers.get(ACCESS_CONTROL_REQUEST_HEADERS) match {
                 case None => List.empty[String]
                 case Some(headerVal) =>
                   headerVal.trim.split(',').map(_.trim.toLowerCase(java.util.Locale.ENGLISH))(collection.breakOut)
@@ -235,31 +245,16 @@ private[cors] trait AbstractCORSPolicy {
                  * with the value of the Origin header as value, and add a single
                  * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
                  */
-                headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-                headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-
-                /* http://www.w3.org/TR/cors/#resource-implementation
-                 * § 6.4
-                 * Resources that wish to enable themselves to be shared with multiple Origins but do
-                 * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
-                 * header dynamically in response to every request they wish to allow. As a consequence,
-                 * authors of such resources should send a Vary: Origin HTTP header or provide other
-                 * appropriate control directives to prevent caching of such responses, which may be
-                 * inaccurate if re-used across-origins.
-                 */
-                headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
+                headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
+                headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
               } else {
                 /* Otherwise, add a single Access-Control-Allow-Origin header,
                  * with either the value of the Origin header or the string "*" as value.
                  */
                 if (corsConfig.anyOriginAllowed) {
-                  headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
+                  headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
                 } else {
-                  headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-                  /* http://www.w3.org/TR/cors/#resource-implementation
-                   * § 6.4
-                   */
-                  headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
+                  headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
                 }
               }
 
@@ -269,7 +264,7 @@ private[cors] trait AbstractCORSPolicy {
                * of seconds the user agent is allowed to cache the result of the request.
                */
               if (corsConfig.preflightMaxAge.toSeconds > 0) {
-                headerBuilder += HeaderNames.ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toSeconds.toString
+                headerBuilder += ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toSeconds.toString
               }
 
               /* http://www.w3.org/TR/cors/#resource-preflight-requests
@@ -281,7 +276,7 @@ private[cors] trait AbstractCORSPolicy {
                * Note: Since the list of methods can be unbounded, simply returning the method
                * indicated by Access-Control-Request-Method (if supported) can be enough.
                */
-              headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_METHODS -> accessControlRequestMethod
+              headerBuilder += ACCESS_CONTROL_ALLOW_METHODS -> accessControlRequestMethod
 
               /* http://www.w3.org/TR/cors/#resource-preflight-requests
                * § 6.2.9
@@ -296,7 +291,7 @@ private[cors] trait AbstractCORSPolicy {
                * headers from Access-Control-Allow-Headers can be enough.
                */
               if (accessControlRequestHeaders.nonEmpty) {
-                headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_HEADERS -> accessControlRequestHeaders.mkString(",")
+                headerBuilder += ACCESS_CONTROL_ALLOW_HEADERS -> accessControlRequestHeaders.mkString(",")
               }
 
               Accumulator.done(Results.Ok.withHeaders(headerBuilder.result(): _*))

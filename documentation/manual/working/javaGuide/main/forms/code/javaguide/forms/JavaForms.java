@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
@@ -12,8 +13,13 @@ import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
 import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.Validatable;
+import play.data.validation.Constraints.ValidatableWithPayload;
+import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.*;
 import play.test.WithApplication;
@@ -315,8 +321,8 @@ public class JavaForms extends WithApplication {
         //#fill
         userForm = userForm.fill(new User("bob@gmail.com", "secret"));
         //#fill
-        assertThat(userForm.field("email").getValue().get(), equalTo("bob@gmail.com"));
-        assertThat(userForm.field("password").getValue().get(), equalTo("secret"));
+        assertThat(userForm.field("email").value().get(), equalTo("bob@gmail.com"));
+        assertThat(userForm.field("password").value().get(), equalTo("secret"));
     }
 
     @Test
@@ -352,7 +358,7 @@ public class JavaForms extends WithApplication {
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
-        assertThat(form.fill(obj).field("time").getValue().get(), equalTo("23:45"));
+        assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
     }
 
     public static class WithLocalTime {
@@ -374,7 +380,7 @@ public class JavaForms extends WithApplication {
 
         //#validation-error-examples
         // Global error without internationalization:
-        new ValidationError("", "Errors occured. Please check your input!");
+        new ValidationError("", "Errors occurred. Please check your input!");
         // Global error; "validationFailed" should be defined in `conf/messages` - taking two arguments:
         new ValidationError("", "validationFailed", Arrays.asList(arg1, arg2));
         // Error for the email field; "emailUsedAlready" should be defined in `conf/messages` - taking the email as argument:
@@ -526,5 +532,34 @@ public class JavaForms extends WithApplication {
             }
         }
     }
+
+    //#payload-validate
+    //###insert: import java.util.Map;
+
+    //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
+    //###insert: import play.data.validation.Constraints.ValidateWithPayload;
+    //###insert: import play.data.validation.ValidationError;
+    //###insert: import play.data.validation.ValidationPayload;
+
+    //###insert: import play.i18n.Lang;
+    //###insert: import play.i18n.Messages;
+
+    @ValidateWithPayload
+    //###replace: public class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
+    public static class ChangePasswordForm implements ValidatableWithPayload<ValidationError> {
+
+        // fields, getters, setters, etc.
+
+        @Override
+        public ValidationError validate(ValidationPayload payload) {
+            Lang lang = payload.getLang();
+            Messages messages = payload.getMessages();
+            Map<String, Object> ctxArgs = payload.getArgs();
+            // ...
+            //###skip: 1
+            return null;
+        }
+    }
+    //#payload-validate
 
 }

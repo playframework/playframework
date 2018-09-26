@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.sbt
 
 import sbt.Keys._
@@ -16,7 +17,7 @@ import sbt._
  * }}}
  */
 object PlayFilters extends AutoPlugin {
-  override def requires = Play
+  override def requires = PlayWeb
   override def trigger = allRequirements
 
   override def projectSettings =

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.routing
 
 import java.util.function.Supplier
@@ -17,12 +18,22 @@ import play.server.Server
 import play.{ Mode => JavaMode }
 import scala.compat.java8.FunctionConverters._
 
-class ServerSpec extends Specification with BeforeAll {
+class AkkaHTTPServerSpec extends ServerSpec {
+  override def serverProvider: String = "play.core.server.AkkaHttpServerProvider"
+}
+
+class NettyServerSpec extends ServerSpec {
+  override def serverProvider: String = "play.core.server.NettyServerProvider"
+}
+
+trait ServerSpec extends Specification with BeforeAll {
 
   sequential
 
+  def serverProvider: String
+
   override def beforeAll(): Unit = {
-    System.setProperty("play.server.provider", "play.core.server.NettyServerProvider")
+    System.setProperty("play.server.provider", serverProvider)
   }
 
   private def withServer[T](server: Server)(block: Server => T): T = {

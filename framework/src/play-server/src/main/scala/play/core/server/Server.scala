@@ -1,27 +1,27 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.server
 
 import java.util.function.{ Function => JFunction }
 
+import akka.actor.CoordinatedShutdown
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
-import play.api.http.{ DefaultHttpErrorHandler, Port }
-import play.api.routing.Router
-
-import scala.language.postfixOps
 import play.api._
-import play.api.mvc._
-import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, Port }
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.api.libs.streams.Accumulator
+import play.api.mvc._
+import play.api.routing.Router
+import play.core._
 import play.routing.{ Router => JRouter }
-import play.{ ApplicationLoader => JApplicationLoader }
-import play.{ BuiltInComponents => JBuiltInComponents }
-import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
+import play.{ ApplicationLoader => JApplicationLoader, BuiltInComponents => JBuiltInComponents, BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
 
-import scala.util.{ Failure, Success }
 import scala.concurrent.Future
+import scala.language.postfixOps
+import scala.util.Try
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -35,63 +35,22 @@ trait Server extends ReloadableServer {
 
   def mode: Mode
 
-  /**
-   * Try to get the handler for a request and return it as a `Right`. If we
-   * can't get the handler for some reason then return a result immediately
-   * as a `Left`. Reasons to return a `Left` value:
-   *
-   * - If there's a "web command" installed that intercepts the request.
-   * - If we fail to get the `Application` from the `applicationProvider`,
-   *   i.e. if there's an error loading the application.
-   * - If an exception is thrown.
-   */
-  def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
-
-    // Common code for handling an exception and returning an error result
-    def logExceptionAndGetResult(e: Throwable): Left[Future[Result], Nothing] = {
-      Left(DefaultHttpErrorHandler.onServerError(request, e))
-    }
-
-    try {
-      applicationProvider.handleWebCommand(request) match {
-        case Some(result) =>
-          // The ApplicationProvider handled the result
-          Left(Future.successful(result))
-        case None =>
-          // The ApplicationProvider didn't handle the result, so try
-          // handling it with the Application
-          applicationProvider.get match {
-            case Success(application) =>
-              // We managed to get an Application, now make a fresh request
-              // using the Application's RequestFactory, then use the Application's
-              // logic to handle that request.
-              val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
-              val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
-              Right((handlerHeader, handler, application))
-            case Failure(e) =>
-              // The ApplicationProvider couldn't give us an application.
-              // This usually means there was a compile error or a problem
-              // starting the application.
-              logExceptionAndGetResult(e)
-          }
-      }
-    } catch {
-      case e: ThreadDeath => throw e
-      case e: VirtualMachineError => throw e
-      case e: Throwable =>
-        logExceptionAndGetResult(e)
-    }
-  }
-
   def applicationProvider: ApplicationProvider
 
   def reload(): Unit = applicationProvider.get
 
   def stop(): Unit = {
-    applicationProvider.current.foreach { app =>
+    applicationProvider.get.foreach { app =>
       LoggerConfigurator(app.classloader).foreach(_.shutdown())
     }
   }
+
+  /**
+   * Get the address of the server.
+   *
+   * @return The address of the server.
+   */
+  def mainAddress: java.net.InetSocketAddress
 
   /**
    * Returns the HTTP port of the server.
@@ -117,6 +76,52 @@ trait Server extends ReloadableServer {
  * Utilities for creating a server that runs around a block of code.
  */
 object Server {
+
+  /**
+   * Try to get the handler for a request and return it as a `Right`. If we
+   * can't get the handler for some reason then return a result immediately
+   * as a `Left`. Reasons to return a `Left` value:
+   *
+   * - If there's a "web command" installed that intercepts the request.
+   * - If we fail to get the `Application` from the `applicationProvider`,
+   *   i.e. if there's an error loading the application.
+   * - If an exception is thrown.
+   */
+  private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
+
+    @inline def handleErrors(errorHandler: HttpErrorHandler): PartialFunction[Throwable, (RequestHeader, Handler)] = {
+      case e: ThreadDeath => throw e
+      case e: VirtualMachineError => throw e
+      case e: Throwable =>
+        val errorResult = errorHandler.onServerError(request, e)
+        val errorAction = actionForResult(errorResult)
+        (request, errorAction)
+    }
+
+    try {
+      // Get the Application from the try.
+      val application = tryApp.get
+      try {
+        // We managed to get an Application, now make a fresh request
+        // using the Application's RequestFactory, then use the Application's
+        // logic to handle that request.
+        val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+        val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+        (handlerHeader, handler)
+      } catch {
+        handleErrors(application.errorHandler)
+      }
+    } catch {
+      handleErrors(DefaultHttpErrorHandler)
+    }
+  }
+
+  /**
+   * Create a simple [[Handler]] which sends a [[Result]].
+   */
+  private[server] def actionForResult(errorResult: Future[Result]): Handler = {
+    EssentialAction(_ => Accumulator.done(errorResult))
+  }
 
   /**
    * Run a block of code with a server for the given application.
@@ -156,9 +161,10 @@ object Server {
    */
   def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
     val context = ApplicationLoader.Context(
-      Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
-      new DefaultApplicationLifecycle
+      environment = Environment.simple(path = config.rootDir, mode = config.mode),
+      initialConfiguration = Configuration(ConfigFactory.load()),
+      lifecycle = new DefaultApplicationLifecycle,
+      devContext = None
     )
     val application = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
       def router = Router.from(routes)
@@ -180,13 +186,15 @@ object Server {
    * @return The result of the block of code.
    */
   def withRouterFromComponents[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: BuiltInComponents => PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
-    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
-      Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
-      new DefaultApplicationLifecycle
-    )) with NoHttpFiltersComponents { self: BuiltInComponents =>
+    val context: Context = ApplicationLoader.Context(
+      environment = Environment.simple(path = config.rootDir, mode = config.mode),
+      initialConfiguration = Configuration(ConfigFactory.load()),
+      lifecycle = new DefaultApplicationLifecycle,
+      devContext = None
+    )
+    val application = (new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents { self: BuiltInComponents =>
       def router = Router.from(routes(self))
-    }.application
+    }).application
     withApplication(application, config)(block)
   }
 
@@ -218,12 +226,15 @@ object Server {
    */
   def withApplicationFromContext[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(appProducer: ApplicationLoader.Context => Application)(block: Port => T)(implicit provider: ServerProvider): T = {
     val context: Context = ApplicationLoader.Context(
-      Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
-      new DefaultApplicationLifecycle
+      environment = Environment.simple(path = config.rootDir, mode = config.mode),
+      initialConfiguration = Configuration(ConfigFactory.load()),
+      lifecycle = new DefaultApplicationLifecycle,
+      devContext = None
     )
     withApplication(appProducer(context), config)(block)
   }
+
+  case object ServerStoppedReason extends CoordinatedShutdown.Reason
 
 }
 
@@ -237,8 +248,6 @@ trait ServerComponents {
   lazy val serverConfig: ServerConfig = ServerConfig()
 
   lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
-  lazy val sourceMapper: Option[SourceMapper] = None
-  lazy val webCommands: WebCommands = new DefaultWebCommands
   lazy val configuration: Configuration = Configuration(ConfigFactory.load())
   lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
 
@@ -259,6 +268,7 @@ private[server] trait ServerFromRouter {
    * @param routes the routes definitions
    * @return an AkkaHttpServer instance
    */
+  @deprecated("Use fromRouterWithComponents or use DefaultAkkaHttpServerComponents/DefaultNettyServerComponents", "2.7.0")
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
     createServerFromRouter(config) { _ => Router.from(routes) }
   }

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.core.routing
 
 import java.net.URI
@@ -73,7 +74,7 @@ case class PathPattern(parts: Seq[PathPart]) {
     if (matcher.matches) {
       Some(groups.map {
         case (name, g) => name -> g(matcher)
-      }.toMap)
+      }(scala.collection.breakOut))
     } else {
       None
     }

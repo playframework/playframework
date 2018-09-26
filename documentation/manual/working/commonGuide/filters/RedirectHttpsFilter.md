@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Redirect HTTPS Filter
 
 Play provides a filter which will redirect all HTTP requests to HTTPS automatically.
@@ -51,5 +51,12 @@ If the HTTPS server is on a custom port, then the redirect URL needs to be aware
 play.filters.https.port = 9443
 ```
 
-then the URL in the `Location` header will include the port specifically, e.g. https://playframework.com:9443/some/url
+then the URL in the `Location` header will include the port specifically, e.g. `https://playframework.com:9443/some/url`.
 
+## X-Forwarded-Proto Header
+
+It is possible to only redirect if a `x-forwarded-proto` header is set to `http`, this can be enabled by adding the following to `application.conf`:
+
+```
+play.filters.https.xForwardedProtoEnabled = true
+```

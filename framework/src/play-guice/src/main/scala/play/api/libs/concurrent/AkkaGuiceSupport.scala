@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.concurrent
 
 import java.lang.reflect.Method
@@ -105,7 +106,7 @@ trait AkkaGuiceSupport {
    *
    *   def receive {
    *     case CreateChildActor(id) =>
-   *       val child: ActorRef = injectedChild(myChildActoryFactory(id), id)
+   *       val child: ActorRef = injectedChild(myChildActorFactory(id), id)
    *       sender() ! child
    *   }
    * }

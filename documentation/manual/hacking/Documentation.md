@@ -1,9 +1,13 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Guidelines for writing Play documentation
 
 The Play documentation is written in Markdown format, with code samples extracted from compiled, run and tested source files.
 
 There are a few guidelines that must be adhered to when writing Play documentation.
+
+## Gender-neutral language and names
+
+The Play community honors gender diversity. When writing examples in documentation, please use [gender-neutral language](https://en.wikipedia.org/wiki/Gender-neutral_language) and [unisex names](https://en.wikipedia.org/wiki/Unisex_name) whenever possible. Ask your reviewer(s) for help if you are unsure of the right wording.
 
 ## Markdown
 

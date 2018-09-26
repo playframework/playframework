@@ -1,14 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 import javax.inject.Inject
-
-import play.api.Logger
 import play.api.http._
 import play.api.i18n.{ Lang, Langs, MessagesApi }
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.ExecutionContext
 
@@ -35,7 +34,7 @@ trait ControllerHelpers extends Results with HttpProtocol with Status with Heade
    *   def action(query: String) = TODO
    * }}}
    */
-  lazy val TODO: Action[AnyContent] = Action {
+  lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody { implicit request =>
     NotImplemented[Html](views.html.defaultpages.todo())
   }
 }
@@ -172,8 +171,6 @@ abstract class AbstractController(protected val controllerComponents: Controller
  */
 trait InjectedController extends BaseController {
 
-  private val logger = Logger(getClass)
-
   private[this] var _components: ControllerComponents = _
 
   override protected def controllerComponents: ControllerComponents = {
@@ -210,13 +207,13 @@ trait ControllerComponents {
 }
 
 case class DefaultControllerComponents @Inject() (
-  actionBuilder: DefaultActionBuilder,
-  parsers: PlayBodyParsers,
-  messagesApi: MessagesApi,
-  langs: Langs,
-  fileMimeTypes: FileMimeTypes,
-  executionContext: scala.concurrent.ExecutionContext)
-    extends ControllerComponents
+    actionBuilder: DefaultActionBuilder,
+    parsers: PlayBodyParsers,
+    messagesApi: MessagesApi,
+    langs: Langs,
+    fileMimeTypes: FileMimeTypes,
+    executionContext: scala.concurrent.ExecutionContext)
+  extends ControllerComponents
 
 /**
  * Implements deprecated controller functionality. We recommend moving away from this and using one of the classes or

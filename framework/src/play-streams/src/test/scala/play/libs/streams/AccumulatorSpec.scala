@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.libs.streams
 
 import java.util.concurrent.{
@@ -88,7 +89,7 @@ class AccumulatorSpec extends org.specs2.mutable.Specification {
         val fAcc = Accumulator.flatten[Int, Int](completable, m)
         completable complete sum
 
-        await(fAcc.run(errorSource, m)) must throwA[ExecutionException].like {
+        await(fAcc.run(errorSource[Int], m)) must throwA[ExecutionException].like {
           case ex =>
             val cause = ex.getCause
             cause.isInstanceOf[RuntimeException] must beTrue and (

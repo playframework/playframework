@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.db.jpa;
 
 import play.mvc.Http;
@@ -9,6 +10,14 @@ import javax.persistence.EntityManager;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+/**
+ * This is a deprecated class. An injected JPAApi instance should be used instead.
+ *
+ * Please see <a href="https://www.playframework.com/documentation/latest/JavaJPA#Using-play.db.jpa.JPAApi">Using play.db.jpa.JPAApi</a> for more details.
+ *
+ * @deprecated Use a dependency injected JPAApi instance here, since 2.7.0
+ */
+@Deprecated
 public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
 
     private static final String CURRENT_ENTITY_MANAGER = "entityManagerContext";

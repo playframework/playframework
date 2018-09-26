@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.mvc
 
 /**
@@ -55,5 +56,19 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    * Transform this call to an WebSocket URL.
    */
   def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String = "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
+
+  /**
+   * Transform this call to a URL relative to the current request's path.
+   *
+   * {{{
+   * import play.api.mvc.{ Call, RequestHeader }
+   *
+   * implicit val req: RequestHeader = myRequest
+   * // If current req.path == "/playframework"
+   * val url: String = Call("GET", "/url").relative
+   * // == "../url"
+   * }}}
+   */
+  def relative(implicit request: RequestHeader): String = this.relativeTo(request.path)
 
 }

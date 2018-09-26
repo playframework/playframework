@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.libs.concurrent
 
 import akka.actor.ActorSystem
@@ -48,7 +49,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
@@ -60,7 +61,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
@@ -99,7 +100,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }
@@ -125,7 +126,7 @@ class FuturesSpec extends Specification {
         case _: TimeoutException =>
           -1L
       }
-      val result = Await.result(future, timeoutDuration) must be_>(300L)
+      val result = Await.result(future, timeoutDuration) must be_>=(300L)
       actorSystem.terminate()
       result
     }

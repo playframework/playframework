@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.http;
 
 import play.api.http.JavaHttpFiltersAdapter;
@@ -12,17 +13,6 @@ import java.util.List;
  * Provides filters to the HttpRequestHandler.
  */
 public interface HttpFilters {
-
-    /**
-     * @return the filters that should filter every request
-     *
-     * @deprecated as of 2.6.0. Use {@link #getFilters()} instead.
-     */
-    @Deprecated
-    default EssentialFilter[] filters() {
-        EssentialFilter[] filters = new EssentialFilter[getFilters().size()];
-        return getFilters().toArray(filters);
-    }
 
     /**
      * @return the list of filters that should filter every request.

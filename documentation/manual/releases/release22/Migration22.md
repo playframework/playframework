@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.2 Migration Guide
 
 This is a guide for migrating from Play 2.1 to Play 2.2. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.1 Migration Guide|Migration21]].
@@ -199,4 +199,4 @@ Please consult the [["Starting your application in production mode"|Production]]
 
 ## Upgrade from Akka 2.1 to 2.2
 
-The migration guide for upgrading from Akka 2.1 to 2.2 can be found [here](http://doc.akka.io/docs/akka/2.4.3/project/migration-guide-2.1.x-2.2.x.html).
+The migration guide for upgrading from Akka 2.1 to 2.2 can be found [here](https://doc.akka.io/docs/akka/2.4.3/project/migration-guide-2.1.x-2.2.x.html).

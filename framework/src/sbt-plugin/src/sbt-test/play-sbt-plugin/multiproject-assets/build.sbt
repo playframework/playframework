@@ -1,21 +1,26 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
 import java.net.URLClassLoader
 import com.typesafe.sbt.packager.Keys.executableScriptName
 
-name := "assets-sample"
-
-version := "1.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(module)
   .aggregate(module)
+  .settings(
+    name := "assets-sample",
+    version := "1.0-SNAPSHOT",
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    includeFilter in (Assets, LessKeys.less) := "*.less",
+    excludeFilter in (Assets, LessKeys.less) := "_*.less"
+  )
 
-lazy val module = (project in file("module")).enablePlugins(PlayScala)
-
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.12.2")
+lazy val module = (project in file("module"))
+  .enablePlugins(PlayScala)
+  .enablePlugins(MediatorWorkaroundPlugin)
 
 TaskKey[Unit]("unzipAssetsJar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")
@@ -56,7 +61,3 @@ TaskKey[Unit]("check-assets-jar-on-classpath") := {
     throw new RuntimeException("Could not find " + assetsJar + " in start script")
   }
 }
-
-includeFilter in (Assets, LessKeys.less) := "*.less"
-
-excludeFilter in (Assets, LessKeys.less) := "_*.less"

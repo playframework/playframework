@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Installing Play
 
 This page shows how to download, install and run a Play application.  There's a built in tutorial that shows you around, so running this Play application will show you how Play itself works!
 
-Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by [SBT](http://www.scala-sbt.org/). In this guide we describe how to install Play with SBT.
+Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by [SBT](https://www.scala-sbt.org/). In this guide we describe how to install Play with SBT.
 
 ## Prerequisites
 
@@ -25,13 +25,13 @@ If you don't have the JDK, you have to install it from [Oracle's JDK Site](http:
 
 ## Installing Play with SBT
 
-We provide a number of sample projects that have an `./sbt` launcher in the local directory. These can be found on our [download page](https://playframework.com/download#examples). This launcher will automatically download dependencies without you having to install SBT ahead of time.
+We provide a number of sample projects that have `./sbt` and `sbt.bat` launchers for Unix and Windows environments respectively. These can be found on our [download page](https://playframework.com/download#examples). The launcher will automatically download dependencies without you having to install SBT ahead of time.
 
-Refer to the [SBT download page](http://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command. Otherwise you can use the SBT launcher located in your example project's directory.
+Or, refer to the [SBT download page](https://www.scala-sbt.org/download.html) to install the SBT launcher on your system, which provides the `sbt` command.
+
+> **Note:** See [sbt documentation](https://www.scala-sbt.org/release/docs/Setup-Notes.html) for details about how to setup sbt. We recommend that you use the latest version of sbt.
 
 If your proxy requires user/password for authentication, you need to add system properties when invoking sbt instead: `./sbt -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
-
-> **Note:** See [sbt documentation](http://www.scala-sbt.org/release/docs/Setup-Notes.html) for details about how to setup sbt.
 
 ### Running Play with SBT
 

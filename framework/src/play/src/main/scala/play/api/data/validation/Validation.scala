@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.data.validation
 
 import play.api.libs.json.JsonValidationError
@@ -260,7 +261,7 @@ object ValidationError {
    * Conversion from a JsonValidationError to a Play ValidationError.
    */
   def fromJsonValidationError(jve: JsonValidationError): ValidationError = {
-    ValidationError(jve.message, jve.args)
+    ValidationError(jve.message, jve.args: _*)
   }
 
   def apply(message: String, args: Any*) = new ValidationError(Seq(message), args: _*)

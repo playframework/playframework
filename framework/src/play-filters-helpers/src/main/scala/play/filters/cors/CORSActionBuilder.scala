@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.cors
 
 import akka.stream.Materializer
@@ -34,7 +35,6 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
           case r: Request[A] => Accumulator.done(block(r))
           case _ => Accumulator.done(block(req.withBody(request.body)))
         }
-        Accumulator.done(block(req.asInstanceOf[Request[A]]))
       }
     }
 

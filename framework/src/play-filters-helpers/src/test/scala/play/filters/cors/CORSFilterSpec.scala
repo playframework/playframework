@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.filters.cors
 
 import javax.inject.Inject
@@ -12,6 +13,7 @@ import play.api.mvc.{ DefaultActionBuilder, Results }
 import play.api.routing.sird._
 import play.api.routing.{ Router, SimpleRouterImpl }
 import play.filters.cors.CORSFilterSpec._
+import play.mvc.Http.HeaderNames._
 
 object CORSFilterSpec {
 
@@ -21,6 +23,7 @@ object CORSFilterSpec {
 
   class CorsApplicationRouter @Inject() (action: DefaultActionBuilder) extends SimpleRouterImpl({
     case p"/error" => action { req => throw sys.error("error") }
+    case p"/vary" => action { req => Results.Ok("Hello").withHeaders(VARY -> ACCEPT_ENCODING) }
     case _ => action(Results.Ok)
   })
 
@@ -44,6 +47,13 @@ class CORSFilterSpec extends CORSCommonSpec {
 
       status(result) must_== OK
       mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    "merge vary header" in withApplication() { app =>
+      val result = route(app, fakeRequest("GET", "/vary").withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== OK
+      header(VARY, result) must beSome(s"$ACCEPT_ENCODING,$ORIGIN")
     }
 
     commonTests

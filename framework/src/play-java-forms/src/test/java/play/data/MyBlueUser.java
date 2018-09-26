@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data;
 
 import play.data.validation.Constraints.ValidateWith;
@@ -13,6 +14,9 @@ public class MyBlueUser {
     
     @ValidateWith(value=BlueValidator.class, message="i-am-blue")
     private String hairColor;
+    
+    @ValidateWith(value=DarkBlueValidator.class)
+    private String nailColor;
     
     public String getSkinColor() {
         return skinColor;
@@ -28,5 +32,13 @@ public class MyBlueUser {
     
     public void setHairColor(String value) {
         hairColor = value;
+    }
+    
+    public String getNailColor() {
+        return nailColor;
+    }
+    
+    public void setNailColor(String value) {
+        nailColor = value;
     }
 }

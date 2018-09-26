@@ -1,9 +1,12 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.api.db.evolutions
 
 import java.io.InputStream
+import java.io.File
+import java.net.URI
 import java.sql._
 import javax.inject.{ Inject, Singleton }
 
@@ -12,6 +15,7 @@ import play.api.libs.Collections
 import play.api.{ Environment, Logger, PlayException }
 import play.utils.PlayIO
 
+import scala.annotation.tailrec
 import scala.io.Codec
 import scala.util.control.NonFatal
 
@@ -71,7 +75,7 @@ trait EvolutionsApi {
   /**
    * Apply pending evolutions for the given database.
    */
-  def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
+  def applyFor(dbName: String, path: File = new File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
     val scripts = this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema)
     this.evolve(dbName, scripts, autocommit, schema)
   }
@@ -133,21 +137,21 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
     try {
       checkEvolutionsState()
-      Collections.unfoldLeft(executeQuery(
-        """
-            select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id
-        """)) { rs =>
-        rs.next match {
-          case false => None
-          case true => {
-            Some((rs, Evolution(
-              rs.getInt(1),
-              Option(rs.getString(3)) getOrElse "",
-              Option(rs.getString(4)) getOrElse "")))
+      executeQuery(
+        "select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id"
+      ) { rs =>
+          Collections.unfoldLeft(rs) { rs =>
+            rs.next match {
+              case false => None
+              case true => {
+                Some((rs, Evolution(
+                  rs.getInt(1),
+                  Option(rs.getString(3)) getOrElse "",
+                  Option(rs.getString(4)) getOrElse "")))
+              }
+            }
           }
         }
-      }
-
     } finally {
       connection.close()
     }
@@ -206,7 +210,12 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
         applying = script.evolution.revision
         logBefore(script)
         // Execute script
-        script.statements.foreach(execute)
+        script.statements.foreach { statement =>
+          logger.debug(s"Execute: $statement")
+          val start = System.currentTimeMillis()
+          execute(statement)
+          logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
+        }
         logAfter(script)
       }
 
@@ -225,7 +234,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
           connection.rollback()
 
-          val humanScript = "# --- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down)
+          val humanScript = "-- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down)
 
           throw InconsistentDatabase(database.name, humanScript, message, lastScript.evolution.revision, autocommit)
         } else {
@@ -265,25 +274,26 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     implicit val connection = database.getConnection(autocommit = autocommit)
 
     try {
-      val problem = executeQuery("select id, hash, apply_script, revert_script, state, last_problem from ${schema}play_evolutions where state like 'applying_%'")
+      executeQuery(
+        "select id, hash, apply_script, revert_script, state, last_problem from ${schema}play_evolutions where state like 'applying_%'"
+      ) { problem =>
+          if (problem.next) {
+            val revision = problem.getInt("id")
+            val state = problem.getString("state")
+            val hash = problem.getString("hash").take(7)
+            val script = state match {
+              case "applying_up" => problem.getString("apply_script")
+              case _ => problem.getString("revert_script")
+            }
+            val error = problem.getString("last_problem")
 
-      if (problem.next) {
-        val revision = problem.getInt("id")
-        val state = problem.getString("state")
-        val hash = problem.getString("hash").take(7)
-        val script = state match {
-          case "applying_up" => problem.getString("apply_script")
-          case _ => problem.getString("revert_script")
+            logger.error(error)
+
+            val humanScript = "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
+
+            throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
+          }
         }
-        val error = problem.getString("last_problem")
-
-        logger.error(error)
-
-        val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
-
-        throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
-      }
-
     } catch {
       case e: InconsistentDatabase => throw e
       case NonFatal(_) => createPlayEvolutionsTable()
@@ -309,15 +319,26 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
   // SQL helpers
 
-  private def executeQuery(sql: String)(implicit c: Connection): ResultSet = {
-    c.createStatement.executeQuery(applySchema(sql))
+  private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
+    val ps = c.createStatement
+    try {
+      val rs = ps.executeQuery(applySchema(sql))
+      f(rs)
+    } finally {
+      ps.close()
+    }
   }
 
   private def execute(sql: String)(implicit c: Connection): Boolean = {
-    c.createStatement.execute(applySchema(sql))
+    val s = c.createStatement
+    try {
+      s.execute(applySchema(sql))
+    } finally {
+      s.close()
+    }
   }
 
-  private def prepareAndExecute(sql: String)(block: PreparedStatement => Unit)(implicit c: Connection) = {
+  private def prepareAndExecute(sql: String)(block: PreparedStatement => Unit)(implicit c: Connection): Boolean = {
     val ps = c.prepareStatement(applySchema(sql))
     try {
       block(ps)
@@ -428,22 +449,22 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 
   def evolutions(db: String): Seq[Evolution] = {
 
-    val upsMarker = """^#.*!Ups.*$""".r
-    val downsMarker = """^#.*!Downs.*$""".r
+    val upsMarker = """^(#|--).*!Ups.*$""".r
+    val downsMarker = """^(#|--).*!Downs.*$""".r
 
     val UPS = "UPS"
     val DOWNS = "DOWNS"
     val UNKNOWN = "UNKNOWN"
 
     val mapUpsAndDowns: PartialFunction[String, String] = {
-      case upsMarker() => UPS
-      case downsMarker() => DOWNS
+      case upsMarker(_) => UPS
+      case downsMarker(_) => DOWNS
       case _ => UNKNOWN
     }
 
     val isMarker: PartialFunction[String, Boolean] = {
-      case upsMarker() => true
-      case downsMarker() => true
+      case upsMarker(_) => true
+      case downsMarker(_) => true
       case _ => false
     }
 
@@ -479,10 +500,32 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 @Singleton
 class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
 
-  def loadResource(db: String, revision: Int) = {
-    environment.getExistingFile(Evolutions.fileName(db, revision)).map(f => java.nio.file.Files.newInputStream(f.toPath)).orElse {
-      environment.resourceAsStream(Evolutions.resourceName(db, revision))
+  import DefaultEvolutionsApi._
+
+  def loadResource(db: String, revision: Int): Option[InputStream] = {
+    @tailrec def findPaddedRevisionResource(paddedRevision: String, uri: Option[URI]): Option[InputStream] = {
+      if (paddedRevision.length > 15) {
+        uri.map(u => u.toURL().openStream()) // Revision string has reached max padding
+      } else {
+
+        val evolution = {
+          // First try a file on the filesystem
+          val filename = Evolutions.fileName(db, paddedRevision)
+          environment.getExistingFile(filename).map(_.toURI)
+        } orElse {
+          // If file was not found, try a resource on the classpath
+          val resourceName = Evolutions.resourceName(db, paddedRevision)
+          environment.resource(resourceName).map(url => url.toURI)
+        }
+
+        for {
+          u <- uri
+          e <- evolution
+        } yield logger.warn(s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString.substring(u.toString.lastIndexOf('/') + 1)} instead already")
+        findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
+      }
     }
+    findPaddedRevisionResource(revision.toString, None)
   }
 }
 

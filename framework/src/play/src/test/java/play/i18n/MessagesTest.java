@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.i18n;
 
 import org.junit.Test;
@@ -22,6 +23,7 @@ public class MessagesTest {
         String actual = messages.at("hello.world");
         String expected = "hello world!";
         assertThat(actual).isEqualTo(expected);
-        verify(messagesApi).get(any(Lang.class), anyString());
+
+        verify(messagesApi).get(lang, "hello.world");
     }
 }

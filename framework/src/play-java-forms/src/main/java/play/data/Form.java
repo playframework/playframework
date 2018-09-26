@@ -1,50 +1,81 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.data;
 
-import javax.validation.*;
-import javax.validation.metadata.*;
-import javax.validation.groups.Default;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.lang.annotation.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.*;
-
+import com.google.common.collect.ImmutableList;
+import org.hibernate.validator.HibernateValidatorFactory;
+import org.hibernate.validator.engine.HibernateConstraintViolation;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.NotReadablePropertyException;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+import play.data.format.Formatters;
+import play.data.validation.Constraints;
+import play.data.validation.Constraints.ValidationPayload;
+import play.data.validation.ValidationError;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.libs.AnnotationUtils;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
 
-import static play.libs.F.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.groups.Default;
+import javax.validation.metadata.BeanDescriptor;
+import javax.validation.metadata.ConstraintDescriptor;
+import javax.validation.metadata.PropertyDescriptor;
+import javax.validation.ValidatorFactory;
+import javax.validation.Validator;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import play.data.validation.*;
-import play.data.validation.Constraints.Validatable;
-import play.data.format.Formatters;
-
-import play.Logger;
-
-import org.hibernate.validator.engine.HibernateConstraintViolation;
-
-import org.springframework.beans.*;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.validation.*;
-import org.springframework.validation.beanvalidation.*;
-import org.springframework.context.support.*;
-
-import com.google.common.collect.ImmutableList;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static play.libs.F.Tuple;
 
 /**
  * Helper to manage HTML form description, submission and validation.
  */
 public class Form<T> {
+
+    /**
+     * Statically compiled Pattern for replacing pairs of "<" and ">" with an optional content and optionally prefixed with a dot. Needed to get the field from a violation.
+     * This takes care of occurrences like "field.<list element>", "field<K>[somekey]", "field[somekey].<map value>", "field<K>[somekey].<map key>", etc.
+     * We always want to end up with just "field" or "field[0]" in case of lists or "field[somekey]" in case of maps.
+     * Also see https://github.com/hibernate/hibernate-validator/blob/6.0.5.Final/engine/src/main/java/org/hibernate/validator/internal/engine/path/NodeImpl.java#L51-L56
+     */
+    private static final Pattern REPLACE_COLLECTION_ELEMENT = Pattern.compile("\\.?<[^<]*>");
+
+    /** Statically compiled Pattern for replacing "typeMismatch" in Form errors. */
+    private static final Pattern REPLACE_TYPEMISMATCH = Pattern.compile("typeMismatch", Pattern.LITERAL);
 
     /**
      * Defines a form element's display name.
@@ -60,13 +91,13 @@ public class Form<T> {
 
     private final String rootName;
     private final Class<T> backedType;
-    private final Map<String,String> data;
+    private final Map<String,String> rawData;
     private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
     final MessagesApi messagesApi;
     final Formatters formatters;
-    final javax.validation.Validator validator;
+    final ValidatorFactory validatorFactory;
 
     public Class<T> getBackedType() {
         return backedType;
@@ -74,7 +105,7 @@ public class Form<T> {
 
     protected T blankInstance() {
         try {
-            return backedType.newInstance();
+            return backedType.getDeclaredConstructor().newInstance();
         } catch(Exception e) {
             throw new RuntimeException("Cannot instantiate " + backedType + ". It must have a default constructor", e);
         }
@@ -86,63 +117,30 @@ public class Form<T> {
      * @param clazz wrapped class
      * @param messagesApi    messagesApi component.
      * @param formatters     formatters component.
-     * @param validator      validator component.
+     * @param validatorFactory      validatorFactory component.
      */
-    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(null, clazz, messagesApi, formatters, validator);
+    public Form(Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(null, clazz, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, (Class<?>)null, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, new HashMap<>(), new ArrayList<>(), Optional.empty(), groups, messagesApi, formatters, validatorFactory);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validatorFactory);
     }
 
-    /**
-     * @param rootName the root name.
-     * @param clazz wrapped class
-     * @param data the current form data (used to display the form)
-     * @param errors the collection of errors associated with this form
-     * @param value optional concrete value of type <code>T</code> if the form submission was successful
-     * @param messagesApi needed to look up various messages
-     * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
-     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
-     */
-    @Deprecated
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validator);
-    }
-
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
-    }
-
-    /**
-     * @param rootName the root name.
-     * @param clazz wrapped class
-     * @param data the current form data (used to display the form)
-     * @param errors the collection of errors associated with this form
-     * @param value optional concrete value of type <code>T</code> if the form submission was successful
-     * @param group the class with the group.
-     * @param messagesApi needed to look up various messages
-     * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
-     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
-     */
-    @Deprecated
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validator);
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
+        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory);
     }
 
     /**
@@ -156,45 +154,18 @@ public class Form<T> {
      * @param groups    the array of classes with the groups.
      * @param messagesApi needed to look up various messages
      * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
+     * @param validatorFactory the validatorFactory component.
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
         this.rootName = rootName;
         this.backedType = clazz;
-        this.data = data != null ? new HashMap<>(data) : new HashMap<>();
+        this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
         this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
         this.value = value;
         this.groups = groups;
         this.messagesApi = messagesApi;
         this.formatters = formatters;
-        this.validator = validator;
-    }
-
-    /**
-     * @param rootName    the root name.
-     * @param clazz wrapped class
-     * @param data the current form data (used to display the form)
-     * @param errors the collection of errors associated with this form
-     * @param value optional concrete value of type <code>T</code> if the form submission was successful
-     * @param groups    the array of classes with the groups.
-     * @param messagesApi needed to look up various messages
-     * @param formatters used for parsing and printing form fields
-     * @param validator the validator component.
-     * @deprecated Deprecated as of 2.6.0. Replace the parameter {@code Map<String,List<ValidationError>>} with a simple {@code List<ValidationError>}.
-     */
-    @Deprecated
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, javax.validation.Validator validator) {
-        this(
-            rootName,
-            clazz,
-            data,
-            errors != null ? errors.values().stream().flatMap(v -> v.stream()).collect(Collectors.toList()) : new ArrayList<ValidationError>(),
-            value,
-            groups,
-            messagesApi,
-            formatters,
-            validator
-        );
+        this.validatorFactory = validatorFactory;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -308,13 +279,29 @@ public class Form<T> {
         internalAnnotationAttributes.add("payload");
     }
 
-    protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
+    protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintViolation<Object> violation) {
+        Annotation annotation = violation.getConstraintDescriptor().getAnnotation();
+        if (annotation instanceof Constraints.ValidateWith) {
+            Constraints.ValidateWith validateWithAnnotation = (Constraints.ValidateWith)annotation;
+            if (violation.getMessage().equals(Constraints.ValidateWithValidator.defaultMessage)) {
+                Constraints.ValidateWithValidator validateWithValidator = new Constraints.ValidateWithValidator();
+                validateWithValidator.initialize(validateWithAnnotation);
+                Tuple<String, Object[]> errorMessageKey = validateWithValidator.getErrorMessageKey();
+                if (errorMessageKey != null && errorMessageKey._2 != null) {
+                    return errorMessageKey._2;
+                } else {
+                    return new Object[0];
+                }
+            } else {
+                return new Object[0];
+            }
+        }
         List<Object> arguments = new LinkedList<>();
         String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};
         arguments.add(new DefaultMessageSourceResolvable(codes, field));
         // Using a TreeMap for alphabetical ordering of attribute names
         Map<String, Object> attributesToExpose = new TreeMap<>();
-        descriptor.getAttributes().forEach((attributeName, attributeValue) -> {
+        violation.getConstraintDescriptor().getAttributes().forEach((attributeName, attributeValue) -> {
             if (!internalAnnotationAttributes.contains(attributeName)) {
                 attributesToExpose.put(attributeName, attributeValue);
             }
@@ -324,7 +311,7 @@ public class Form<T> {
     }
 
     /**
-     * When dealing with @ValidateWith annotations, and message parameter is not used in
+     * When dealing with @ValidateWith or @ValidatePayloadWith annotations, and message parameter is not used in
      * the annotation, extract the message from validator's getErrorMessageKey() method
      *
      * @param violation the constraint violation.
@@ -344,6 +331,17 @@ public class Form<T> {
                 }
             }
         }
+        if (annotation instanceof Constraints.ValidatePayloadWith) {
+            Constraints.ValidatePayloadWith validatePayloadWithAnnotation = (Constraints.ValidatePayloadWith)annotation;
+            if (violation.getMessage().equals(Constraints.ValidatePayloadWithValidator.defaultMessage)) {
+                Constraints.ValidatePayloadWithValidator validatePayloadWithValidator = new Constraints.ValidatePayloadWithValidator();
+                validatePayloadWithValidator.initialize(validatePayloadWithAnnotation);
+                Tuple<String, Object[]> errorMessageKey = validatePayloadWithValidator.getErrorMessageKey();
+                if (errorMessageKey != null && errorMessageKey._1 != null) {
+                    errorMessage = errorMessageKey._1;
+                }
+            }
+        }
 
         return errorMessage;
     }
@@ -358,7 +356,7 @@ public class Form<T> {
         if (allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
-        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validator);
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(this.validatorFactory.getValidator());
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
@@ -381,6 +379,10 @@ public class Form<T> {
     private Set<ConstraintViolation<Object>> runValidation(DataBinder dataBinder, Map<String, String> objectData) {
         return withRequestLocale(() -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
+            final Http.Context ctx = Http.Context.current.get();
+            // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set
+            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args) : ValidationPayload.empty();
+            final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
             } else {
@@ -391,7 +393,7 @@ public class Form<T> {
 
     @SuppressWarnings("unchecked")
     private void addConstraintViolationToBindingResult(ConstraintViolation<Object> violation, BindingResult result) {
-        String field = violation.getPropertyPath().toString().replace(".<collection element>", "");
+        String field = REPLACE_COLLECTION_ELEMENT.matcher(violation.getPropertyPath().toString()).replaceAll("");
         FieldError fieldError = result.getFieldError(field);
         if (fieldError == null || !fieldError.isBindingFailure()) {
             try {
@@ -425,7 +427,7 @@ public class Form<T> {
                     result.rejectValue(
                         field,
                         violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-                        getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                        getArgumentsForConstraint(result.getObjectName(), field, violation),
                         getMessageForConstraintViolation(violation)
                     );
                 }
@@ -448,9 +450,9 @@ public class Form<T> {
                 ImmutableList.Builder<String> builder = ImmutableList.builder();
                 Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
                 for (String code: error.getCodes()) {
-                    code = code.replace("typeMismatch", "error.invalid");
+                    code = REPLACE_TYPEMISMATCH.matcher(code).replaceAll(Matcher.quoteReplacement("error.invalid"));
                     if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
-                        builder.add( code );
+                        builder.add(code);
                     }
                 }
                 return new ValidationError(key, builder.build().reverse(),
@@ -472,30 +474,6 @@ public class Form<T> {
                         convertErrorArguments(error.getArguments())
                     )
                 ).collect(Collectors.toList());
-    }
-
-    private Object callLegacyValidateMethod(BindingResult result) {
-        Object globalError = null;
-
-        // instances of Validatable have been validated already
-        boolean shouldTryLegacyValidateMethod = result.getTarget() != null && !(result.getTarget() instanceof Validatable);
-        if (shouldTryLegacyValidateMethod) {
-            try {
-                java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                if (v.getParameterCount() == 0) {
-                    globalError = v.invoke(result.getTarget());
-                    Logger.warn("The \"validate\" method in class \"{}\" is deprecated since Play 2.6. " +
-                                    "To migrate to class-level constraints see https://www.playframework.com/documentation/2.6.x/Migration26#java-form-changes " +
-                                    "and https://www.playframework.com/documentation/2.6.x/JavaForms#Advanced-validation",
-                            result.getTarget().getClass().getName());
-                }
-            } catch (NoSuchMethodException ex) {
-                // do nothing
-            } catch (IllegalAccessException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        return globalError;
     }
 
     /**
@@ -524,22 +502,9 @@ public class Form<T> {
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory);
         }
-
-        final Object globalError = callLegacyValidateMethod(result);
-        if (globalError != null) {
-            final List<ValidationError> errors = new ArrayList<>();
-            if (globalError instanceof String) {
-                errors.add(new ValidationError("", (String)globalError, new ArrayList<>()));
-            } else if (globalError instanceof List) {
-                errors.addAll((List<ValidationError>) globalError);
-            } else if (globalError instanceof Map) {
-                ((Map<String,List<ValidationError>>)globalError).forEach((key, values) -> errors.addAll(values));
-            }
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
-        }
-        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validator);
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory);
     }
 
     /**
@@ -559,20 +524,10 @@ public class Form<T> {
     }
 
     /**
-     * @return the actual form data.
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #rawData()} instead which returns an unmodifiable map.
-     */
-    @Deprecated
-    public Map<String,String> data() {
-        return data;
-    }
-
-    /**
      * @return the actual form data as unmodifiable map.
      */
     public Map<String,String> rawData() {
-        return Collections.unmodifiableMap(data);
+        return Collections.unmodifiableMap(rawData);
     }
 
     public String name() {
@@ -605,7 +560,7 @@ public class Form<T> {
                 groups,
                 messagesApi,
                 formatters,
-                validator
+                validatorFactory
         );
     }
 
@@ -635,13 +590,13 @@ public class Form<T> {
     /**
      * Retrieves the first global error (an error without any key), if it exists.
      *
-     * @return An error or <code>null</code>.
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #getGlobalError()} instead.
+     * @return An error.
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #globalError()}.
      */
     @Deprecated
-    public ValidationError globalError() {
-        return this.getGlobalError().orElse(null);
+    public Optional<ValidationError> getGlobalError() {
+        return globalError();
     }
 
     /**
@@ -649,7 +604,7 @@ public class Form<T> {
      *
      * @return An error.
      */
-    public Optional<ValidationError> getGlobalError() {
+    public Optional<ValidationError> globalError() {
         return globalErrors().stream().findFirst();
     }
 
@@ -657,12 +612,12 @@ public class Form<T> {
      * Returns all errors.
      *
      * @return All errors associated with this form.
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #allErrors()} instead.
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #errors()}.
      */
     @Deprecated
-    public Map<String,List<ValidationError>> errors() {
-        return Collections.unmodifiableMap(this.errors.stream().collect(Collectors.groupingBy(error -> error.key())));
+    public List<ValidationError> allErrors() {
+        return errors();
     }
 
     /**
@@ -670,7 +625,7 @@ public class Form<T> {
      *
      * @return All errors associated with this form.
      */
-    public List<ValidationError> allErrors() {
+    public List<ValidationError> errors() {
         return Collections.unmodifiableList(errors);
     }
 
@@ -687,20 +642,20 @@ public class Form<T> {
 
     /**
      * @param key    the field name associated with the error.
-     * @return an error by key, or null.
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #getError(String)} instead.
+     * @return an error by key
+     *
+     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
      */
     @Deprecated
-    public ValidationError error(String key) {
-        return this.getError(key).orElse(null);
+    public Optional<ValidationError> getError(String key) {
+        return error(key);
     }
 
     /**
      * @param key    the field name associated with the error.
      * @return an error by key
      */
-    public Optional<ValidationError> getError(String key) {
+    public Optional<ValidationError> error(String key) {
         return errors(key).stream().findFirst();
     }
 
@@ -722,7 +677,7 @@ public class Form<T> {
             if (error != null) {
                 final List<String> messages = new ArrayList<>();
                 if (messagesApi != null && lang != null) {
-                    final List<String> reversedMessages = new ArrayList(error.messages());
+                    final List<String> reversedMessages = new ArrayList<>(error.messages());
                     Collections.reverse(reversedMessages);
                     messages.add(messagesApi.get(lang, reversedMessages, translateMsgArg(error.arguments(), messagesApi, lang)));
                 } else {
@@ -766,23 +721,8 @@ public class Form<T> {
     }
 
     /**
-     * Adds an error to this form.
-     *
-     * @param error the <code>ValidationError</code> to add.
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(ValidationError)} instead.
-     */
-    @Deprecated
-    public void reject(ValidationError error) {
-        if (error == null) {
-            throw new NullPointerException("Can't reject null-values");
-        }
-        errors.add(error);
-    }
-
-    /**
      * @param error the <code>ValidationError</code> to add to the returned form.
-     * 
+     *
      * @return a copy of this form with the given error added.
      */
     public Form<T> withError(final ValidationError error) {
@@ -791,28 +731,14 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.data, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validator);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory);
     }
 
     /**
-     * Adds an error to this form.
+     * @param key the error key
+     * @param error the error message
+     * @param args the error arguments
      *
-     * @param key the error key
-     * @param error the error message
-     * @param args the error arguments
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String, List)} instead.
-     */
-    @Deprecated
-    public void reject(String key, String error, List<Object> args) {
-        reject(new ValidationError(key, error, args));
-    }
-
-    /**
-     * @param key the error key
-     * @param error the error message
-     * @param args the error arguments
-     * 
      * @return a copy of this form with the given error added.
      */
     public Form<T> withError(final String key, final String error, final List<Object> args) {
@@ -820,22 +746,9 @@ public class Form<T> {
     }
 
     /**
-     * Adds an error to this form.
+     * @param key the error key
+     * @param error the error message
      *
-     * @param key the error key
-     * @param error the error message
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withError(String, String)} instead.
-     */
-    @Deprecated
-    public void reject(String key, String error) {
-        reject(key, error, new ArrayList<>());
-    }
-
-    /**
-     * @param key the error key
-     * @param error the error message
-     * 
      * @return a copy of this form with the given error added.
      */
     public Form<T> withError(final String key, final String error) {
@@ -843,22 +756,9 @@ public class Form<T> {
     }
 
     /**
-     * Adds a global error to this form.
-     *
-     * @param error the error message
-     * @param args the error arguments
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String, List)} instead.
-     */
-    @Deprecated
-    public void reject(String error, List<Object> args) {
-        reject(new ValidationError("", error, args));
-    }
-
-    /**
      * @param error the global error message
      * @param args the global error arguments
-     * 
+     *
      * @return a copy of this form with the given global error added.
      */
     public Form<T> withGlobalError(final String error, final List<Object> args) {
@@ -866,20 +766,8 @@ public class Form<T> {
     }
 
     /**
-     * Adds a global error to this form.
-     *
-     * @param error the error message.
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #withGlobalError(String)} instead.
-     */
-    @Deprecated
-    public void reject(String error) {
-        reject("", error, new ArrayList<>());
-    }
-
-    /**
      * @param error the global error message
-     * 
+     *
      * @return a copy of this form with the given global error added.
      */
     public Form<T> withGlobalError(final String error) {
@@ -887,20 +775,10 @@ public class Form<T> {
     }
 
     /**
-     * Discards errors of this form
-     * 
-     * @deprecated Deprecated as of 2.6.0. Use {@link #discardingErrors()} instead.
-     */
-    @Deprecated
-    public void discardErrors() {
-        errors.clear();
-    }
-
-    /**
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.data, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validator);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory);
     }
 
     /**
@@ -923,8 +801,8 @@ public class Form<T> {
 
         // Value
         String fieldValue = null;
-        if (data.containsKey(key)) {
-            fieldValue = data.get(key);
+        if (rawData.containsKey(key)) {
+            fieldValue = rawData.get(key);
         } else {
             if (value.isPresent()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
@@ -987,8 +865,8 @@ public class Form<T> {
             classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
             leafKey = leafKey.substring(p + 1);
         }
-        if (classType != null && this.validator != null) {
-            BeanDescriptor beanDescriptor = this.validator.getConstraintsForClass(classType);
+        if (classType != null && this.validatorFactory != null) {
+            BeanDescriptor beanDescriptor = this.validatorFactory.getValidator().getConstraintsForClass(classType);
             if (beanDescriptor != null) {
                 PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
                 if (property != null) {
@@ -1001,7 +879,7 @@ public class Form<T> {
                             continue;
                         }
                         // getDeclaredAnnotations also looks for private fields; also it provides the annotations in a guaranteed order
-                        orderedAnnotations = field.getDeclaredAnnotations();
+                        orderedAnnotations = AnnotationUtils.unwrapContainerAnnotations(field.getDeclaredAnnotations());
                         break;
                     }
                     constraints = Constraints.displayableConstraint(
@@ -1016,7 +894,7 @@ public class Form<T> {
     }
 
     public String toString() {
-        return "Form(of=" + backedType + ", data=" + data + ", value=" + value +", errors=" + errors + ")";
+        return "Form(of=" + backedType + ", data=" + rawData + ", value=" + value +", errors=" + errors + ")";
     }
 
     /**
@@ -1071,53 +949,36 @@ public class Form<T> {
         }
 
         /**
-         * Returns the field name.
-         *
          * @return The field name.
-         * 
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getName()} instead.
+         *
+         * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #name()}.
          */
         @Deprecated
-        public String name() {
-            return name;
+        public Optional<String> getName() {
+            return name();
         }
 
         /**
-        * @return The field name.
-        */
-        public Optional<String> getName() {
+         * @return The field name.
+         */
+        public Optional<String> name() {
             return Optional.ofNullable(name);
         }
 
         /**
-         * Returns the field value, if defined.
+         * @return The field value, if defined.
          *
-         * @return The field value, if defined.
-         * 
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
+         * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #value()}.
          */
         @Deprecated
-        public String value() {
-            return value;
-        }
-
-        /**
-         * @param or the value to return if value is null.
-         * @deprecated Deprecated as of 2.6.0. Use {@link #getValue()} instead.
-         * @return The field value, if defined.
-         */
-        @Deprecated
-        public String valueOr(String or) {
-            if (value == null) {
-                return or;
-            }
-            return value;
-        }
-
-        /**
-        * @return The field value, if defined.
-        */
         public Optional<String> getValue() {
+            return value();
+        }
+
+        /**
+         * @return The field value, if defined.
+         */
+        public Optional<String> value() {
             return Optional.ofNullable(value);
         }
 

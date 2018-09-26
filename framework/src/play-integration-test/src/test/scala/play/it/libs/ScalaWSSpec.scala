@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.it.libs
 
 import org.specs2.matcher.MatchResult
+import play.api.http.HeaderNames
 import play.api.libs.ws.{ WSBodyReadables, WSBodyWritables }
+import play.api.libs.oauth._
 import play.api.test.PlaySpecification
 import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
 
@@ -112,6 +115,59 @@ trait ScalaWSSpec extends PlaySpecification with ServerIntegrationSpecification 
         ws.url("/").withQueryStringParameters("lorem" -> "ipsum").
           sign(calc) aka "signed request" must not(throwA[Exception])
       }
+    }
+
+    "preserve the case of an Authorization header" >> {
+
+      def withAuthorizationCheck[T](block: play.api.libs.ws.WSClient => T) = {
+        Server.withRouterFromComponents() { c =>
+          {
+            case _ => c.defaultActionBuilder { req: Request[AnyContent] =>
+              Results.Ok(req.headers.keys.filter(_.equalsIgnoreCase("authorization")).mkString)
+            }
+          }
+        } { implicit port =>
+          WsTestClient.withClient(block)
+        }
+      }
+
+      "when signing with the OAuthCalculator" in {
+        val oauthCalc = {
+          val consumerKey = ConsumerKey("key", "secret")
+          val requestToken = RequestToken("token", "secret")
+          OAuthCalculator(consumerKey, requestToken)
+        }
+        "expect title-case header with signed request" in withAuthorizationCheck { ws =>
+          val body = await(ws.url("/").sign(oauthCalc).execute()).body
+          body must beEqualTo("Authorization").ignoreCase
+        }
+      }
+
+      // Attempt to replicate https://github.com/playframework/playframework/issues/7735
+      "when signing with a custom calculator" in {
+        val customCalc = new WSSignatureCalculator with SignatureCalculator {
+          def calculateAndAddSignature(request: play.shaded.ahc.org.asynchttpclient.Request, requestBuilder: RequestBuilderBase[_]) = {
+            requestBuilder.addHeader(HeaderNames.AUTHORIZATION, "some value")
+          }
+        }
+        "expect title-case header with signed request" in withAuthorizationCheck { ws =>
+          val body = await(ws.url("/").sign(customCalc).execute()).body
+          body must_== ("Authorization")
+        }
+      }
+
+      // Attempt to replicate https://github.com/playframework/playframework/issues/7735
+      "when sending an explicit header" in {
+        "preserve a title-case 'Authorization' header" in withAuthorizationCheck { ws =>
+          val body = await(ws.url("/").withHttpHeaders("Authorization" -> "some value").execute()).body
+          body must_== ("Authorization")
+        }
+        "preserve a lower-case 'authorization' header" in withAuthorizationCheck { ws =>
+          val body = await(ws.url("/").withHttpHeaders("authorization" -> "some value").execute()).body
+          body must_== ("authorization")
+        }
+      }
+
     }
   }
 

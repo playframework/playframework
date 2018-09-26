@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.routing;
 
 import play.components.BodyParserComponents;
@@ -32,7 +33,7 @@ import play.components.BodyParserComponents;
 public interface RoutingDslComponents extends BodyParserComponents {
 
     default RoutingDsl routingDsl() {
-        return new RoutingDsl(defaultScalaBodyParser(), javaContextComponents());
+        return new RoutingDsl(defaultBodyParser(), javaContextComponents());
     }
 
 }
