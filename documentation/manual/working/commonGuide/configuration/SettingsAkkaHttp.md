@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring the Akka HTTP server backend
 
 By default, Play uses the [[Akka HTTP server backend|AkkaHttpServer]].

@@ -1,0 +1,11 @@
+# #hello-world-index-route
+GET     /           controllers.HomeController.index
+# #hello-world-index-route
+
+# #hello-world-hello-route
+GET     /hello      controllers.HomeController.hello
+# #hello-world-hello-route
+
+# #hello-world-hello-name-route
+# ###insert: GET  /hello        controllers.HomeController.hello(name: String)
+# #hello-world-hello-name-route
