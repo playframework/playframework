@@ -133,11 +133,11 @@ $ heroku buildpacks:set heroku/scala
 The [Scala buildpack](https://github.com/heroku/heroku-buildpack-scala) will use the `build.sbt` file in your repo to build the app.
 
 
-## Deploying Java 9 application
+## Deploying applications that use latest java versions
 
-Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying a Java 9 application will lead to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory:
+Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying an application that uses newer java version leads to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory, for example:
 ```txt
-java.runtime.version=9
+java.runtime.version=11
 ```
 
 See the [heroku documentation](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version) for more details.
