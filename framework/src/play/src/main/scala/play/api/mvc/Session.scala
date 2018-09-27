@@ -19,6 +19,18 @@ import scala.collection.JavaConverters._
  */
 case class Session(data: Map[String, String] = Map.empty[String, String]) {
 
+  private def requireNonNullValues(data: Map[String, String]): Unit = {
+    val pairWithNullValue = data.find(kv => kv._1 == null || kv._2 == null)
+    require(
+      pairWithNullValue.isEmpty,
+      if (pairWithNullValue.get._1 == null)
+        s"key must not be null when adding session data, a null key found for value = ${pairWithNullValue.get._2}"
+      else
+        s"value must not be null when adding session data, a null value found for key = ${pairWithNullValue.get._1}"
+    )
+  }
+  requireNonNullValues(data)
+
   /**
    * Optionally returns the session value associated with a key.
    */
@@ -41,7 +53,6 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    * @return the modified session
    */
   def +(kv: (String, String)): Session = {
-    require(kv._2 != null, "Cookie values cannot be null")
     copy(data + kv)
   }
 
