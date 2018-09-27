@@ -139,6 +139,15 @@ public class FooController extends Controller {
 }
 ```
 
+If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Lang` as a parameter. This will make the template clearer and easier to read. For example:
+
+```html
+@(implicit lang: Lang)
+@{messages().at("hello")}
+```
+
+> **Note**: declaring it as `implicit` will make it available to `messages()` helpers without the need to adapt all these calls.
+
 And the same applies to `clearLang`:
 
 #### Before
