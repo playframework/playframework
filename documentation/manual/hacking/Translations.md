@@ -69,7 +69,7 @@ $ sbt run
 Documentation server started, you can now view the docs by going to http://0:0:0:0:0:0:0:0:9000
 ```
 
-Now open <http://localhost:9000> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.
+Now open <http://localhost:9000/> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.
 
 Copy a markdown page from the Play repository into your project.  It is important to ensure that the directory structure in your project matches the directory in Play, this will ensure that the code samples work.
 

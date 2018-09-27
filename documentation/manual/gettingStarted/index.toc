@@ -1,6 +1,6 @@
-Installing:Installing Play
+Introduction: What is Play
+Requirements:Requirements to work with Play
 NewApplication:Creating a new application
+Anatomy:Anatomy of a Play application
 PlayConsole:Using the Play console
 IDE:Setting-up your preferred IDE
-Anatomy:Anatomy of a Play application
-Tutorials:Play Tutorials

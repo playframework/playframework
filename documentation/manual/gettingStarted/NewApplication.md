@@ -2,37 +2,39 @@
 
 # Creating a new application
 
-## Using Play Starter Projects
+To learn about Play hands-on, try the examples as described below, they contain everything you need to build and run them. If you have [sbt installed](https://www.scala-sbt.org/1.x/docs/Setup.html), you can create a Play  project with a single command, using our giter8 Java or Scala  template. The templates set up the project structure and dev environment for you. You can also easily integrate Play projects into your favorite IDE.
 
-If you've never used Play before, then you can [download a starter project](https://playframework.com/download#starters). The starter projects have lots of comments explaining how everything works and have links to documentation that goes more in depth.
+## Downloading and building examples
 
-If you download and unzip one of the .zip files [at the starter projects](https://playframework.com/download#starters), you'll see the `sbt` executable file -- this is a packaged version of [sbt](https://www.scala-sbt.org), the build tool Play uses. If you're on Windows, you need to use `sbt.bat` instead.
+[Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) offers a variety of Play examples for Java and Scala. We recommend trying the Hello World tutorial for Java or Scala first:
 
-See [our download page](https://playframework.com/download#starters) to get more details about how to use the starter projects.
+1. [Play Java Starter Example](https://developer.lightbend.com/start/?group=play&project=play-java-starter-example)
+2. [Play Scala Starter Example](https://developer.lightbend.com/start/?group=play&project=play-scala-starter-example)
 
-## Create a new application using SBT
+The downloadable zip files include everything you need to build and run the examples, including a distribution of the sbt and Gradle. Check out the `README.md` file in the top level project directory to learn more about the example.
 
-If you have [sbt 0.13.13 or higher](https://www.scala-sbt.org) installed, you can create your Play project using `sbt new` using a minimal [giter8](http://foundweekends.org/giter8) template (roughly like a maven archetype). This is a good choice if you already know Play and want to create a new project immediately.
+## Using a project template
 
-> **Note**: If running Windows, you may need to run sbt using `sbt.bat` instead of `sbt`. This documentation assumes the command is `sbt`.
+If you already have [sbt installed](https://www.scala-sbt.org/1.x/docs/Setup.html), you can use a [giter8](http://www.foundweekends.org/giter8/) template, similar to a Maven archetype, to create a new Play project. This gives you the advantage of setting up your project folders, build structure, and development environment - all with one command.
 
-Note that the seed templates are already configured with [[CSRF|ScalaCsrf]] and [[security headers filters|SecurityHeaders]], whereas the other projects are not explicitly set up for security out of the box.
+In a command window, enter one of the following lines to create a new project:
 
-### Play Java Seed
+### Java template
 
 ```bash
 sbt new playframework/play-java-seed.g8
 ```
 
-### Play Scala Seed
+### Scala template
 
 ```bash
 sbt new playframework/play-scala-seed.g8
 ```
 
-After that, use `sbt run` and then go to <http://localhost:9000> to see the running server.
+After the template creates the project:
 
-You can also [create your own giter8 seeds](http://www.foundweekends.org/giter8/usage.html) and based off this one by forking from the <https://github.com/playframework/play-java-seed.g8> or <https://github.com/playframework/play-scala-seed.g8> GitHub projects.
+1. Enter `sbt run` to download dependencies and start the system.
+1. In a browser, enter <http://localhost:9000/> to view the welcome page.
 
 ## Play Example Projects
 
@@ -40,4 +42,4 @@ Play has many features, so rather than pack them all into one project, we've org
 
 > **Note**: the example projects are not configured for out of the box security, and are intended to showcase particular areas of Play functionality.
 
-See [our download page](https://playframework.com/download#examples) to get more details about how to use the download and use the example projects.
+See [Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) to get more details about how to use the download and use the example projects.

@@ -1,20 +1,43 @@
 <!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+
 # Using the SBT console
 
-## Launching the console
+You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). The sbt tool has an interactive mode or you can enter commands one at a time. Interactive mode can be faster over time because sbt only needs to start once. When you enter commands one at a time, sbt restarts each time you run it.
 
-The SBT console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
+## Single commands
 
-To launch the Play console, change to the directory of your project, and run `sbt`:
+You can run single sbt commands directly. For example, to build and run Play, change to the directory of your project and run:
+
+```bash
+$ sbt run
+```
+
+You will see something like:
+
+```bash
+[info] Loading project definition from /Users/play-developer/my-first-app/project
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
+
+--- (Running the application from SBT, auto-reloading is enabled) ---
+
+[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+
+(Server started, use Enter to stop and go back to the console...)
+The application starts directly. When you quit the server using Ctrl+D or Enter, the command prompt returns.
+```
+
+## Interactive mode
+
+To launch sbt in interactive mode, change into the top level of your project and enter sbt with no arguments:
 
 ```bash
 $ cd my-first-app
-$ sbt
+my-first-app $  sbt
 ```
 
 And you will see something like:
 
-```bash
+```
 [info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Updating {file:/Users/play-developer/my-first-app/project/}my-first-app-build...
@@ -24,17 +47,11 @@ And you will see something like:
 [my-first-app] $
 ```
 
-## Getting help
+## Development mode
 
-Use the `help` command to get basic help about the available commands.  You can also use this with a specific command to get information about that command:
+In this mode, sbt launches Play with the auto-reload feature enabled. When you make a request, Play will automatically recompile and restart your server if any files have changed. If needed the application will restart automatically.
 
-```bash
-[my-first-app] $ help run
-```
-
-## Running the server in development mode
-
-To run the current application in development mode, use the `run` command:
+With sbt in interactive mode, run the current application in development mode, use the `run` command:
 
 ```bash
 [my-first-app] $ run
@@ -56,17 +73,11 @@ $ sbt
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
 
-In this mode, the server will be launched with the auto-reload feature enabled, meaning that for each request Play will check your project and recompile required sources. If needed the application will restart automatically.
+## Triggered Execution
 
-If there are any compilation errors you will see the result of the compilation directly in your browser:
+## Compiling only
 
-[[images/errorPage.png]]
-
-To stop the server, type `Ctrl+D` key (or `Enter` key), and you will be returned to the Play console prompt.
-
-## Compiling
-
-In Play you can also compile your application without running the server. Just use the `compile` command. It shows any compilation problems your app may have:
+You can also compile your application without running the HTTP server. The compile command displays any application errors in the command window. For example, in interactive mode, enter:
 
 ```bash
 [my-first-app] $ compile
@@ -86,7 +97,7 @@ And you will see something like:
 [my-first-app] $
 ```
 
-And, if there are no errors with your code, you will see:
+If there are no errors with your code, you will see:
 
 ```bash
 [my-first-app] $ compile
@@ -98,12 +109,18 @@ And, if there are no errors with your code, you will see:
 [my-first-app] $
 ```
 
-## Running the tests
+## Testing options
 
-Like the commands above, you can run your tests without running the server. Just use the `test` command:
+You can run tests without running the server. For example, in interactive mode, use the `test` command
 
 ```bash
 [my-first-app] $ test
+```
+
+The `test` commands will run all the tests in your project. You can also use `testOnly` to select specific tests:
+
+```bash
+[my-first-app] $ testOnly com.acme.SomeClassTest
 ```
 
 ## Launch the interactive console
@@ -172,8 +189,8 @@ You can also run commands directly without entering the Play console. For exampl
 
 ```bash
 $ sbt run
-[info] Loading project definition from /Users/jroper/tmp/my-first-app/project
-[info] Set current project to my-first-app (in build file:/path/to/my-first-app/)
+[info] Loading project definition from /Users/play-developer/my-first-app/project
+[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 
 --- (Running the application from SBT, auto-reloading is enabled) ---
 
@@ -190,4 +207,13 @@ Of course, the **triggered execution** is available here as well:
 
 ```bash
 $ sbt ~run
+```
+
+
+## Getting help
+
+Use the `help` command to get basic help about the available commands.  You can also use this with a specific command to get information about that command:
+
+```bash
+[my-first-app] $ help run
 ```

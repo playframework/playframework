@@ -8,7 +8,9 @@ import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import sbt._
 
-lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
+lazy val main = Project("Play-Documentation", file("."))
+    .enablePlugins(PlayDocsPlugin, SbtTwirl)
+    .disablePlugins(PlayEnhancer)
     .settings(
 
       // We need to publishLocal playDocs since its jar file is
@@ -27,7 +29,9 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
       PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set(
+        "JavaEbean",
         "ScalaAnorm",
+        "PlaySlick",
         "PlaySlickMigrationGuide",
         "ScalaTestingWithScalaTest",
         "ScalaFunctionalTestingWithScalaTest",
@@ -37,10 +41,18 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
         "ScalaJsonTransformers"
       )),
 
-      PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
-      PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
-          (baseDirectory.value / "manual" / "experimental" ** "code").get,
-      PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
+      PlayDocsKeys.javaManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
+
+      PlayDocsKeys.scalaManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "tutorial" ** "code").get ++
+        (baseDirectory.value / "manual" / "experimental" ** "code").get,
+
+      PlayDocsKeys.commonManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
 
       unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
       unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
