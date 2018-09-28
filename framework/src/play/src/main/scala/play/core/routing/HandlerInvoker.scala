@@ -50,6 +50,7 @@ trait HandlerInvokerFactory[-T] {
 object HandlerInvokerFactory {
 
   import play.mvc.{ Result => JResult, WebSocket => JWebSocket }
+  import play.mvc.Http.{ Request => JRequest }
 
   /**
    * Create a `HandlerInvokerFactory` for a call that already produces a
@@ -105,7 +106,7 @@ object HandlerInvokerFactory {
               val javaParser = handlerComponents.getBodyParser(annotations.parser)
               javaBodyParserToScala(javaParser)
             }
-            override def invocation: CompletionStage[JResult] = resultCall(call)
+            override def invocation(req: JRequest): CompletionStage[JResult] = resultCall(req, call)
           }
         }
       }

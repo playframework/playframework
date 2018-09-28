@@ -28,7 +28,7 @@ abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends 
       )
     }
 
-    def invocation = self.invocation
+    def invocation(req: Http.Request) = self.invocation
   }
 
   def parser = action.parser

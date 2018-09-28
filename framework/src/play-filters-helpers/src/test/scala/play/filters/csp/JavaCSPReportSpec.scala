@@ -34,7 +34,7 @@ class JavaCSPReportSpec extends PlaySpecification {
   def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application): JavaAction = new JavaAction(javaHandlerComponents) {
     val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
     def parser: play.api.mvc.BodyParser[Http.RequestBody] = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-    def invocation: CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
+    def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
     val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
   }
 

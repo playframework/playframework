@@ -11,7 +11,7 @@ import play.api.libs.ws._
 import play.api.mvc.{ DefaultSessionCookieBaker, SessionCookieBaker }
 import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
 import play.core.routing.HandlerInvokerFactory
-import play.mvc.Http.{ Context, RequestHeader }
+import play.mvc.Http.{ Context, RequestHeader, Request => JRequest }
 import play.mvc.{ Controller, Result, Results }
 
 import scala.concurrent.Future
@@ -29,7 +29,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application) = new JavaAction(javaHandlerComponents) {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     def parser = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-    def invocation = CompletableFuture.completedFuture(inv)
+    def invocation(req: JRequest) = CompletableFuture.completedFuture(inv)
     val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
   }
 
