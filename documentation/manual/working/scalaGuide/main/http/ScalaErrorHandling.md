@@ -10,7 +10,7 @@ The interface through which Play handles these errors is [`HttpErrorHandler`](ap
 ## Handling errors in a JSON API
 
 By default, Play returns errors in a HTML format. 
-For a JSON API, it's more consistent return errors in JSON.
+For a JSON API, it's more consistent to return errors in JSON.
 
 Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttpErrorHandler`](api/scala/play/api/http/JsonHttpErrorHandler.html), which will return errors formatted in JSON.
 
