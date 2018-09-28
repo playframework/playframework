@@ -7,6 +7,17 @@ Play will in many circumstances automatically detect client errors - these inclu
 
 The interface through which Play handles these errors is [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html).  It defines two methods, `onClientError`, and `onServerError`.
 
+## Handling errors in a JSON API
+
+By default, Play returns errors in a HTML format. 
+For a JSON API, it's more consistent to return errors in JSON.
+
+Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttpErrorHandler`](api/java/play/http/JsonHttpErrorHandler.html), which will return errors formatted in JSON.
+
+To use that `HttpErrorHandler` implementation, you should configure the `play.http.errorHandler` configuration property in `application.conf` like this:
+
+    play.http.errorHandler = play.http.JsonHttpErrorHandler
+
 ## Supplying a custom error handler
 
 If you're using [`BuiltInComponents`](api/java/play/BuiltInComponents.html) to construct your app, override the `httpRequestHandler` method to return an instance of your custom handler.

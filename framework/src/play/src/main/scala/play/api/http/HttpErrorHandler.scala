@@ -293,7 +293,6 @@ object HttpErrorHandlerExceptions {
  * You could override how exceptions are rendered in Dev mode by extending this class and overriding
  * the [[formatDevServerErrorException]] method.
  */
-@Singleton
 class JsonHttpErrorHandler(
     environment: Environment,
     sourceMapper: Option[SourceMapper] = None) extends HttpErrorHandler {
