@@ -161,15 +161,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
       val sslContext = mockSslContext()
 
-      val playServerConfig = context.config.configuration.get[Configuration]("play.server")
-      val clientAuth: Option[TLSClientAuth] =
-        if (playServerConfig.get[Boolean]("https.needClientAuth")) {
-          Some(TLSClientAuth.need)
-        } else if (playServerConfig.get[Boolean]("https.wantClientAuth")) {
-          Some(TLSClientAuth.want)
-        } else {
-          None
-        }
+      val clientAuth: Option[TLSClientAuth] = createClientAuth()
 
       ConnectionContext.https(
         sslContext = sslContext,
@@ -182,6 +174,20 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
     createServerBinding(port, connectionContext, secure = true)
   }
+
+  /** Creates AkkaHttp TLSClientAuth */
+  protected def createClientAuth(): Option[TLSClientAuth] = {
+
+    // Need has precedence over Want, hence the if/else if
+    if (serverConfig.get[Boolean]("https.needClientAuth")) {
+      Some(TLSClientAuth.need)
+    } else if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+      Some(TLSClientAuth.want)
+    } else {
+      None
+    }
+  }
+
 
   if (http2Enabled) {
     logger.info(s"Enabling HTTP/2 on Akka HTTP server...")
