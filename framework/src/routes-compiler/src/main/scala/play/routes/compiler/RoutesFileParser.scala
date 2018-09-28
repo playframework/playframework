@@ -288,15 +288,16 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case first ~ _ ~ second ~ _ ~ rest => first :: second :: rest
   }, "Controller method call expected")
 
-  def call: Parser[HandlerCall] = opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
-    case instantiate ~ absMethod ~ parameters =>
+  def call: Parser[HandlerCall] = opt("+") ~ opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
+    case passJavaRequest ~ instantiate ~ absMethod ~ parameters =>
       {
         val (packageParts, classAndMethod) = absMethod.splitAt(absMethod.size - 2)
         val packageName = packageParts.mkString(".")
         val className = classAndMethod(0)
         val methodName = classAndMethod(1)
         val dynamic = instantiate.isDefined
-        HandlerCall(packageName, className, dynamic, methodName, parameters)
+        val passJRequest = passJavaRequest.isDefined
+        HandlerCall(packageName, className, dynamic, passJRequest, methodName, parameters)
       }
   }
 

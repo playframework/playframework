@@ -115,7 +115,7 @@ object HandlerInvokerFactory {
     /**
      * The core logic for this Java action.
      */
-    def resultCall(call: => A): CompletionStage[JResult]
+    def resultCall(req: JRequest, call: => A): CompletionStage[JResult]
   }
 
   private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
@@ -132,10 +132,16 @@ object HandlerInvokerFactory {
   }
 
   implicit def wrapJava: HandlerInvokerFactory[JResult] = new JavaActionInvokerFactory[JResult] {
-    def resultCall(call: => JResult) = CompletableFuture.completedFuture(call)
+    def resultCall(req: JRequest, call: => JResult) = CompletableFuture.completedFuture(call)
   }
   implicit def wrapJavaPromise: HandlerInvokerFactory[CompletionStage[JResult]] = new JavaActionInvokerFactory[CompletionStage[JResult]] {
-    def resultCall(call: => CompletionStage[JResult]) = call
+    def resultCall(req: JRequest, call: => CompletionStage[JResult]) = call
+  }
+  implicit def wrapJavaRequest: HandlerInvokerFactory[JRequest => JResult] = new JavaActionInvokerFactory[JRequest => JResult] {
+    def resultCall(req: JRequest, call: => JRequest => JResult) = CompletableFuture.completedFuture(call(req))
+  }
+  implicit def wrapJavaPromiseRequest: HandlerInvokerFactory[JRequest => CompletionStage[JResult]] = new JavaActionInvokerFactory[JRequest => CompletionStage[JResult]] {
+    def resultCall(req: JRequest, call: => JRequest => CompletionStage[JResult]) = call(req)
   }
 
   /**

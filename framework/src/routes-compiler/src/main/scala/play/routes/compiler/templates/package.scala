@@ -69,16 +69,23 @@ package object templates {
   /**
    * Generate a controller method call for the given injected route
    */
-  def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String): String = {
+  def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String, firstParams: Seq[String]): String = {
     val methodPart = if (r.call.instantiate) {
       s"$ident.get.${r.call.method}"
     } else {
       s"$ident.${r.call.method}"
     }
-    val paramPart = r.call.parameters.map { params =>
-      params.map(paramFormat).mkString(", ")
-    }.map("(" + _ + ")").getOrElse("")
+    val paramPartEnd = r.call.parameters.map { params =>
+      params.map(paramFormat)
+    }.getOrElse(Seq.empty)
+    val paramPart = Option((firstParams ++ paramPartEnd).mkString(", ")).map("(" + _ + ")").getOrElse("")
     methodPart + paramPart
+  }
+
+  def handlerDefParameterTypes(call: HandlerCall): String = {
+    val endPart = call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]")).getOrElse(Seq.empty)
+    val firstPart = if (call.passJavaRequest) { Seq("classOf[play.mvc.Http.Request]") } else { Seq.empty }
+    Option((firstPart ++ endPart).mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil")
   }
 
   def paramNameOnQueryString(paramName: String): String = {
