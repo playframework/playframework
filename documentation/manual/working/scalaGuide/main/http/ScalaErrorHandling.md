@@ -16,7 +16,7 @@ Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttp
 
 To use that `HttpErrorHandler` implementation, you should configure the `play.http.errorHandler` configuration property in `application.conf` like this:
 
-    play.http.errorHandler = play.http.JsonHttpErrorHandler
+    play.http.errorHandler = play.api.http.JsonHttpErrorHandler
 
 ## Supplying a custom error handler
 
