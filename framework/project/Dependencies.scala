@@ -11,6 +11,7 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.17")
   val akkaHttpVersion = "10.1.5"
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
+  val akkaStreamVersion_2_13 = "2.5.16" // it would appear akka-stream also dropped support for Scala 2.13..
   val playJsonVersion = "2.6.10"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -227,11 +228,16 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
 
-  val streamsDependencies = Seq(
+  val streamsDependencies = Def.setting(Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.2",
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % (
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) => akkaStreamVersion_2_13
+        case _ => akkaVersion
+      }
+    ),
     scalaJava8Compat
-  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps)
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     guava % Test,
