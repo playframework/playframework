@@ -112,7 +112,8 @@ public class JavaI18N extends WithApplication {
         //#change-lang-render
         public Result index() {
             Lang lang = Lang.forCode("fr");
-            return ok(hellotemplate.render(lang)).withLang(lang, messagesApi); // "bonjour"
+            Messages messages = messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+            return ok(hellotemplate.render(messages)).withLang(lang, messagesApi); // "bonjour"
         }
         //#change-lang-render
     }

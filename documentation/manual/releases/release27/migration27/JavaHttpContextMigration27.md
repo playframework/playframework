@@ -139,14 +139,28 @@ public class FooController extends Controller {
 }
 ```
 
-If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Lang` as a parameter. This will make the template clearer and easier to read. For example:
+If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example in an action you have to create a `Messages` instance, e.g.:
 
-```html
-@(implicit lang: Lang)
-@{messages().at("hello")}
+```java
+// We want to render the template in french
+Lang lang = Lang.forCode("fr");
+// Get a Message instance based on the french locale, however if that isn't available try to choose
+// the best fitting language based on the current request
+Messages messages = this.messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+// Now render the template
+return ok(myview.render(messages));
 ```
 
-> **Note**: declaring it as `implicit` will make it available to `messages()` helpers without the need to adapt all these calls.
+To not repeat that code again and again inside each action method you could e.g. simplify that by putting the creation of the `Messages` instance in an action of the action composition chain and save the created `Messages` instance in a request Attribute so you can access it later.
+
+Now the template:
+
+```html
+@(implicit messages: play.i18n.Messages)
+@{messages.at("hello")}
+```
+
+> **Note**: declaring it as `implicit` will make it available to sub-views that implicitly require a `MessagesProvider` without the need to pass them one.
 
 And the same applies to `clearLang`:
 
