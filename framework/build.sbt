@@ -47,7 +47,7 @@ lazy val SbtRoutesCompilerProject = PlaySbtProject("SBT-Routes-Compiler", "route
     )
 
 lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
-    .settings(libraryDependencies ++= streamsDependencies.value)
+    .settings(libraryDependencies ++= streamsDependencies)
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
