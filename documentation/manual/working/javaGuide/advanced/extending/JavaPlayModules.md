@@ -7,7 +7,7 @@
 
 A [[module|JavaDependencyInjection#Play-libraries]] can be written using any dependency injection framework.  However, when you want to extend Play, you need to avoid dependencies on a specific framework so that your extension can work independently of the dependency injection.  Play previously used the `play.Plugin` system for this purpose, but in 2.5.x, Plugins have been replaced with Play modules.
  
- A Play module is a class that extends [`play.api.inject.Module`](api/scala/play/api/inject/Module.html) and can be registered with Play without relying explicitly on a particular dependency injection framework.  This allows everyone to use Play modules.
+ A Play module is a class that extends [`play.inject.Module`](api/java/play/inject/Module.html) and can be registered with Play without relying explicitly on a particular dependency injection framework.  This allows everyone to use Play modules.
 
 A list of Play modules are available in the [[module directory|ModuleDirectory]].
 
@@ -52,6 +52,27 @@ Please see [[Testing with Guice|JavaTestingWithGuice#Bindings-and-Modules]] for 
 
 The [`Modules.locate(env, conf)`](api/scala/play/api/inject/Modules$.html) method will display a list of all available Play modules in an application.  There is no corresponding Java class.
 
-## Overriding built-in modules
+## Overriding Built-In Modules
 
-There are some cases where Play provides a built-in module that must be overridden.  In these cases, the Java implementation is a wrapper over the Scala one, and so it's usually more convenient to override the Scala implementation directly.
+There are some cases where Play provides a built-in module that must be overridden.  
+
+For example, [[WSClient|JavaWS]] functionality is implemented by the [WSClient interface](api/java/play/libs/ws/WSClient.html) and backed by [AhcWSClientProvider](api/java/play/libs/ws/ahc/AhcWSModule.AhcWSClientProvider.html).  If you write a replacement class `MyWSClient` that extends `WSClient`, you can bind it with:
+
+@[builtin-module-definition](code/javaguide/advanced/extending/MyWSModule.java)
+
+### Testing Overrides
+
+Testing the application should be done using the `overrides` method to replace the existing implementation: 
+
+@[builtin-module-overrides](code/javaguide/advanced/extending/JavaExtendingPlay.java)
+
+### Registration Overrides
+
+Because the `AhcWSModule` is loaded automatically in `reference.conf`, you must first [[disable|JavaDependencyInjection#Excluding-modules]] the default module before adding the replacement module:
+
+```
+play.modules.disabled += "play.libs.ws.ahc.AhcWSModule"
+play.modules.enabled += "modules.MyWSModule"
+```
+
+You should not disable existing modules in `reference.conf` when publishing a Play module, as it may have unexpected consequences.  Please see the [[migration page|PluginsToModules#Wire-it-up]] for details.

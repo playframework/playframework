@@ -4,18 +4,20 @@
 
 package play.data;
 
-import play.api.Configuration;
-import play.api.Environment;
-import play.api.inject.Binding;
-import play.api.inject.Module;
-import scala.collection.Seq;
+import com.typesafe.config.Config;
+import play.Environment;
+import play.inject.Binding;
+import play.inject.Module;
+
+import java.util.Collections;
+import java.util.List;
 
 public class FormFactoryModule extends Module {
 
     @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-            bind(FormFactory.class).toSelf()
+    public List<Binding<?>> bindings(final Environment environment, final Config config) {
+        return Collections.singletonList(
+            bindClass(FormFactory.class).toSelf()
         );
     }
 
