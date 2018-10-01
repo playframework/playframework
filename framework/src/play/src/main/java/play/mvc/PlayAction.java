@@ -6,9 +6,9 @@ package play.mvc;
 
 import java.util.concurrent.CompletionStage;
 
-public abstract class NewAction<T> extends Action<T> {
+public abstract class PlayAction<T> extends Action<T> {
 
-    public NewAction<?> next;
+    public PlayAction<?> next;
 
     @Override
     public CompletionStage<Result> call(Http.Context ctx) {
