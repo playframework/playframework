@@ -13,7 +13,7 @@ package consoleapp {
       //#consoleapp
       import play.api._
       val env = Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Dev)
-      val context = ApplicationLoader.Context.create(env)
+      val context = ApplicationLoader.createContext(env)
       val loader = ApplicationLoader(context)
       val app = loader.load(context)
       Play.start(app)
