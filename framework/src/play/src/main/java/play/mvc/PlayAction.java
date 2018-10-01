@@ -11,7 +11,7 @@ public abstract class PlayAction<T> extends Action<T> {
     public PlayAction<?> next;
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
+    public final CompletionStage<Result> call(Http.Context ctx) {
         return call(ctx.request());
     }
 
