@@ -115,7 +115,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
             nAction.delegate match {
               case delegateNewAction: NewAction[_] => nAction.next = delegateNewAction
               case _ => {
-                // For safety inside the lambada we use an explicit variable that keeps the (original) delegate reference
+                // For safety inside the lambda we use an explicit variable that keeps the (original) delegate reference
                 // because a few line later you'll see that nAction.delegate will change
                 val originalDelegate = nAction.delegate
                 nAction.next = new NewAction[Any] {
