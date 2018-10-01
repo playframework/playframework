@@ -13,8 +13,10 @@ runSbt validateDocs
 
 printMessage "ALL DOCUMENTATION TESTS PASSED"
 
-# Check that markdown files have copyright headers
+# Check that sample code have copyright headers
+runSbt checkHeaders test:checkHeaders
 
+# Check that markdown files have copyright headers
 ./addMarkdownCopyright
 
 git diff --exit-code || (

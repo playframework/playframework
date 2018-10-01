@@ -8,8 +8,11 @@ import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import sbt._
 
+import de.heikoseeberger.sbtheader.HeaderKey._
+import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPattern }
+
 lazy val main = Project("Play-Documentation", file("."))
-    .enablePlugins(PlayDocsPlugin, SbtTwirl)
+    .enablePlugins(PlayDocsPlugin, SbtTwirl, AutomateHeaderPlugin)
     .disablePlugins(PlayEnhancer)
     .settings(
 
@@ -64,7 +67,20 @@ lazy val main = Project("Play-Documentation", file("."))
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
-      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m")
+      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
+
+      headers := Map(
+        "scala" -> (HeaderPattern.cStyleBlockComment,
+          """|/*
+             | * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+             | */
+             |""".stripMargin),
+        "java"  -> (HeaderPattern.cStyleBlockComment,
+          """|/*
+             | * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+             | */
+             |""".stripMargin)
+      )
     )
     .dependsOn(
       playDocs,
