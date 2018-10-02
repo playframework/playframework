@@ -1,4 +1,3 @@
 Migration24:Migration Guide
-GlobalSettings:Removing `GlobalSettings`
 Anorm:Migrating Anorm
 PluginsToModules:Migrating Plugin to Module

@@ -5,7 +5,6 @@ This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate 
 
 As well as the information contained on this page, there are is more detailed migration information for some topics:
 
-- [[Migrating GlobalSettings|GlobalSettings]]
 - [[Migrating Plugins to Modules|PluginsToModules]]
 - [[Migrating Anorm|Anorm]]
 
@@ -194,7 +193,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | `WS` | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
 | `Crypto` | `Crypto` | |
-| `GlobalSettings` | [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and [`HttpFilters`](api/scala/play/api/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
+| `GlobalSettings` | [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and [`HttpFilters`](api/scala/play/api/http/HttpFilters.html)| |
 
 #### Java
 
@@ -208,11 +207,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | `WS` | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 | `Crypto` | `Crypto` | The old static methods have been removed, an instance can statically be accessed using `play.Play.application().injector().instanceOf(Crypto.class)` |
-| `GlobalSettings` | [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html), and [`HttpFilters`](api/java/play/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
-
-### GlobalSettings
-
-If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Read the [[`GlobalSettings` migration documentation|GlobalSettings]] for the gory details.
+| `GlobalSettings` | [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html), and [`HttpFilters`](api/java/play/http/HttpFilters.html)| |
 
 ## `Plugin` deprecated
 
@@ -285,13 +280,6 @@ akka {
 
 See the [[thread pool configuration section|ThreadPools#Configuring-the-Play-default-thread-pool]] for more information.
 
-### HttpRequestHandler
-
-The HttpRequestHandler that Play uses by default delegates to the legacy `GlobalSettings` methods. If you're not using `GlobalSettings` in your application then you can increase performance slightly by changing the handler. You can do that by adding the following to your settings:
-
-```
-play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
-```
 
 ### Logging
 
