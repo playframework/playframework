@@ -18,7 +18,7 @@ Here is an example layout for using CoffeeScript in your projects:
 ```
 app
  └ assets
-    └ javascriptsR
+    └ javascripts
        └ main.coffee   
 ```
 
