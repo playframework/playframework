@@ -50,7 +50,7 @@ $ cd playframework/documentation
 $ sbt run
 ```
 
-You can now see the documentation at [http://localhost:9000/@documentation](http://localhost:9000/@documentation).
+You can now see the documentation at <http://localhost:9000/@documentation>.
 
 For more details on developing the Play documentation, see the [[Documentation Guidelines|Documentation]].
 

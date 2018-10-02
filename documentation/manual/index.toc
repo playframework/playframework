@@ -1,6 +1,7 @@
 Home:Home
 LatestRelease:Latest release
 gettingStarted:Getting started
+tutorial: Hello World Tutorial
 working:Working with Play
 hacking:Contributing to Play
 about:About Play

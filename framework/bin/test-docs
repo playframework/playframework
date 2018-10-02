@@ -12,3 +12,16 @@ runSbtNoisy evaluateSbtFiles
 runSbt validateDocs
 
 printMessage "ALL DOCUMENTATION TESTS PASSED"
+
+# Check that sample code have copyright headers
+runSbt checkHeaders test:checkHeaders
+
+# Check that markdown files have copyright headers
+./addMarkdownCopyright
+
+git diff --exit-code || (
+  echo "ERROR: Documentation copyright check failed, see differences above."
+  echo "To fix, run './addMarkdownCopyright' script inside documentation directory."
+  echo "After that you can update your pull request."
+  false
+)

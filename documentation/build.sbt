@@ -8,7 +8,12 @@ import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import sbt._
 
-lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
+import de.heikoseeberger.sbtheader.HeaderKey._
+import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPattern }
+
+lazy val main = Project("Play-Documentation", file("."))
+    .enablePlugins(PlayDocsPlugin, SbtTwirl, AutomateHeaderPlugin)
+    .disablePlugins(PlayEnhancer)
     .settings(
 
       // We need to publishLocal playDocs since its jar file is
@@ -27,7 +32,9 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
       PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set(
+        "JavaEbean",
         "ScalaAnorm",
+        "PlaySlick",
         "PlaySlickMigrationGuide",
         "ScalaTestingWithScalaTest",
         "ScalaFunctionalTestingWithScalaTest",
@@ -37,10 +44,18 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
         "ScalaJsonTransformers"
       )),
 
-      PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
-      PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
-          (baseDirectory.value / "manual" / "experimental" ** "code").get,
-      PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
+      PlayDocsKeys.javaManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
+
+      PlayDocsKeys.scalaManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "tutorial" ** "code").get ++
+        (baseDirectory.value / "manual" / "experimental" ** "code").get,
+
+      PlayDocsKeys.commonManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
 
       unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
       unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
@@ -52,7 +67,20 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
-      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m")
+      javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
+
+      headers := Map(
+        "scala" -> (HeaderPattern.cStyleBlockComment,
+          """|/*
+             | * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+             | */
+             |""".stripMargin),
+        "java"  -> (HeaderPattern.cStyleBlockComment,
+          """|/*
+             | * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+             | */
+             |""".stripMargin)
+      )
     )
     .dependsOn(
       playDocs,
