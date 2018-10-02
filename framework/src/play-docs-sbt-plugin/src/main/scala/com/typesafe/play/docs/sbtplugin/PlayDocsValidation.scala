@@ -468,7 +468,7 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
         val (url, refs) = entry
         val connection = new URL(url).openConnection().asInstanceOf[HttpURLConnection]
         try {
-          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:37.0) Gecko/20100101 Firefox/37.0")
+          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:62.0) Gecko/20100101 Firefox/62.0")
           connection.connect()
           connection.getResponseCode match {
             // A few people use GitHub.com repositories, which will return 403 errors for directory listings

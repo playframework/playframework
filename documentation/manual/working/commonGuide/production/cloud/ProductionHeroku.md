@@ -264,7 +264,6 @@ Note that the creation of a Procfile is not actually required by Heroku, as Hero
 * [Using WebSockets on Heroku with Java and the Play Framework](https://devcenter.heroku.com/articles/play-java-websockets)
 * [Seed Project for Play and Heroku](https://github.com/jkutner/play-heroku-seed)
 * [Play Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
-* [Getting Started with Play, Scala, and Squeryl](https://www.artima.com/articles/play2_scala_squeryl.html)
 * [Edge Caching With Play, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
 * [Optimizing Play for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
 * [Play App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)

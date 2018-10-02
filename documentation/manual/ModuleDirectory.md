@@ -93,7 +93,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### MongoDB Morphia Plugin (Java)
 * **Website (docs, sample):** <https://github.com/morellik/play-morphia>
-* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://mongodb.github.io/morphia/)
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://morphiaorg.github.io/morphia/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
 * **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>

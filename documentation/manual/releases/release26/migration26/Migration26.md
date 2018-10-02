@@ -1217,9 +1217,9 @@ class MyClass {
 
 ### Netty 4.1
 
-Netty was upgraded to [version 4.1](http://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the [[Akka Server|AkkaHttpServer]].
+Netty was upgraded to [version 4.1](https://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the [[Akka Server|AkkaHttpServer]].
 
-And if you are, for some reason, directly using Netty classes, you should [adapt your code to this new version](http://netty.io/wiki/new-and-noteworthy-in-4.1.html).
+And if you are, for some reason, directly using Netty classes, you should [adapt your code to this new version](https://netty.io/wiki/new-and-noteworthy-in-4.1.html).
 
 ### FluentLenium and Selenium
 
