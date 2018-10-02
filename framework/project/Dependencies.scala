@@ -11,6 +11,9 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.16")
   val akkaHttpVersion = "10.1.5"
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
+
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.3"
+
   val playJsonVersion = "2.6.10"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -156,7 +159,9 @@ object Dependencies {
       "javax.inject" % "javax.inject" % "1",
 
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      scalaJava8Compat
+      scalaJava8Compat,
+
+      sslConfig
     ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val nettyVersion = "4.1.29.Final"
