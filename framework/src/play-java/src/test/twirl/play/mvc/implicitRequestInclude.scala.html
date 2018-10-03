@@ -1,0 +1,3 @@
+@import play.core.j.PlayMagicForJava._
+@()(implicit request: play.api.mvc.RequestHeader)
+@{request.cookies("location").value}

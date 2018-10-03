@@ -23,8 +23,10 @@ import play.mvc.Http.Cookie;
 import play.mvc.Http.RequestBuilder;
 import play.mvc.html.implicitLang;
 import play.mvc.html.implicitMessages;
+import play.mvc.html.implicitRequest;
 import play.mvc.html.noImplicitLang;
 import play.mvc.html.noImplicitMessages;
+import play.mvc.html.noImplicitRequest;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -262,6 +264,33 @@ public class HttpTest {
                 // However, because we pass our own (implicit) lang to the view now the implicit PlayMagicForJava.implicitJavaLang
                 // should therefore have a lower weight and will not be used (resulting in the context lang being ignored)
                 assertThat(implicitLang.render(lang).toString().trim()).isEqualTo("en-US");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaImplicitRequest() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder().cookie(Cookie.builder("location", "contextrequest").build()), app.injector().instanceOf(JavaContextComponents.class));
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure the request (and its cookie) is returned from the context methods
+                assertThat(Context.current().request().cookie("location").value()).isEqualTo("contextrequest");
+
+                Http.Request request = new RequestBuilder().cookie(Cookie.builder("location", "passedrequest").build()).build();
+
+                play.api.mvc.RequestHeader rh;
+
+                // Because the request we pass to the view is not defined "implicit" the request (and therefore the cookie) from the context will be used
+                assertThat(noImplicitRequest.render(request).toString().trim()).isEqualTo("contextrequest");
+
+                // However, because we pass our own (implicit) request to the view now the implicit PlayMagicForJava.requestHeader
+                // should therefore have a lower weight and will not be used (resulting in the context request being ignored)
+                assertThat(implicitRequest.render(request).toString().trim()).isEqualTo("passedrequest");
             } finally {
                 Context.current.remove();
             }
