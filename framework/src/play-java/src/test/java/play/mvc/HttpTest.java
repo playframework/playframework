@@ -4,6 +4,8 @@
 
 package play.mvc;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import com.typesafe.config.Config;
@@ -12,11 +14,15 @@ import org.junit.Test;
 import play.Application;
 import play.Environment;
 import play.core.j.JavaContextComponents;
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Context;
 import play.mvc.Http.Cookie;
 import play.mvc.Http.RequestBuilder;
+import play.mvc.html.implicitMessages;
+import play.mvc.html.noImplicitMessages;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -202,6 +208,34 @@ public class HttpTest {
             // The language should now be back to 'fr', and the cookie still mustn't be set
             assertThat(ctx.lang().code()).isEqualTo("fr");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaImplicitMessages() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
+
+            ctx.changeLang("fr");
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure french messages get returned from the context methods
+                assertThat(Context.current().lang().code()).isEqualTo("fr");
+                assertThat(Context.current().messages().at("bye")).isEqualTo("Au revoir!");
+
+                Messages messages = messagesApi(app).preferred(Arrays.asList(new Lang(Locale.forLanguageTag("en-US"))));
+
+                // Because the messages we pass to the view are not defined "implicit" the messages from the context will be used
+                assertThat(noImplicitMessages.render(messages).toString().trim()).isEqualTo("Au revoir!");
+
+                // However, because we pass our own (implicit) messages to the view now the implicit PlayMagicForJava.implicitJavaMessages
+                // should therefore have a lower weight and will not be used (resulting in the context messages being ignored)
+                assertThat(implicitMessages.render(messages).toString().trim()).isEqualTo("See you!");
+            } finally {
+                Context.current.remove();
+            }
         });
     }
 }
