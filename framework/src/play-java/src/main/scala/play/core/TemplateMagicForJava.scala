@@ -33,7 +33,7 @@ object PlayMagicForJava extends JavaImplicitConversions {
     ctx._requestHeader
   }
 
-  implicit def implicitJavaMessages: play.api.i18n.Messages = {
+  implicit def implicitJavaMessages: play.api.i18n.MessagesProvider = {
     ctx.messages().asScala
   }
 

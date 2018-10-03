@@ -644,7 +644,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectAbstractMethodProblem]("play.api.inject.Module.bindings"),
 
       // Add asJava method to Scala Messages
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava"),
+
+      // Change implicit type from Messages to MessagesProvider to fix implicit precedence
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
