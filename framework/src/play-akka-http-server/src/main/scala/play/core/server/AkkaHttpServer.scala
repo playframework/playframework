@@ -16,7 +16,7 @@ import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
 import akka.http.scaladsl.{ ConnectionContext, Http }
-import akka.stream.Materializer
+import akka.stream.{ Materializer, TLSClientAuth }
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.{ Config, ConfigMemorySize }
@@ -166,13 +166,32 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
       val sslContext = mockSslContext()
-      ConnectionContext.https(sslContext = sslContext)
+
+      val clientAuth: Option[TLSClientAuth] = createClientAuth()
+
+      ConnectionContext.https(
+        sslContext = sslContext,
+        clientAuth = clientAuth
+      )
     } catch {
       case NonFatal(e) =>
         logger.error(s"Cannot load SSL context", e)
         ConnectionContext.noEncryption()
     }
     createServerBinding(port, connectionContext, secure = true)
+  }
+
+  /** Creates AkkaHttp TLSClientAuth */
+  protected def createClientAuth(): Option[TLSClientAuth] = {
+
+    // Need has precedence over Want, hence the if/else if
+    if (serverConfig.get[Boolean]("https.needClientAuth")) {
+      Some(TLSClientAuth.need)
+    } else if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+      Some(TLSClientAuth.want)
+    } else {
+      None
+    }
   }
 
   if (http2Enabled) {
