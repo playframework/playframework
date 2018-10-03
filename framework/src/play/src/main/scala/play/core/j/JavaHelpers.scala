@@ -37,9 +37,15 @@ trait JavaHelpers {
 
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
-      def get(name: String): JCookie = {
+
+      override def get(name: String): JCookie = {
         cookies.get(name).map(_.asJava).orNull
       }
+
+      override def getCookie(name: String): Optional[JCookie] = {
+        Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
+      }
+
       def iterator: java.util.Iterator[JCookie] = {
         cookies.toIterator.map(_.asJava).asJava
       }

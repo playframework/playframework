@@ -2237,7 +2237,16 @@ public class Http {
          * @param name Name of the cookie to retrieve
          * @return the cookie that is associated with the given name
          */
-        Cookie get(String name);
+        default Cookie get(String name) {
+            return getCookie(name).get();
+        }
+
+        /**
+         *
+         * @param name Name of the cookie to retrieve
+         * @return the optional cookie that is associated with the given name
+         */
+        Optional<Cookie> getCookie(String name);
 
     }
 
