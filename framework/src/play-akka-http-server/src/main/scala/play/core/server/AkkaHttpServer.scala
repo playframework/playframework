@@ -188,7 +188,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
-
   if (http2Enabled) {
     logger.info(s"Enabling HTTP/2 on Akka HTTP server...")
     if (httpsServerBinding.isEmpty) {
