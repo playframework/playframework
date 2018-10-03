@@ -22,6 +22,7 @@ import com.typesafe.sslconfig.util.NoopLogger
 /**
  * A fake key store
  */
+@deprecated("Deprecated in favour of the FakeKeyStore in ssl-config", "2.7.0")
 object FakeKeyStore {
   private final val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
 
