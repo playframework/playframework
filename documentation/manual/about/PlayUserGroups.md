@@ -6,10 +6,6 @@
 
 https://www.meetup.com/Play-NYC/
 
-## Berlin
-
-https://www.meetup.com/Play-Berlin-Brandenburg/
-
 ## Cologne
 
 ### Scala User Group Köln / Bonn

@@ -33,7 +33,7 @@ If you have a request available in the scope, you can bind directly from the req
 
 ## Defining constraints
 
-You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 2.0)](http://beanvalidation.org/2.0/spec/) annotations:
+You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 2.0)](https://beanvalidation.org/2.0/spec/) annotations:
 
 @[user](code/javaguide/forms/u2/User.java)
 
@@ -96,7 +96,7 @@ The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs
 
 ## Advanced validation
 
-Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-380` (Bean Validation 2.0)](http://beanvalidation.org/2.0/spec/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/).
+Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-380` (Bean Validation 2.0)](https://beanvalidation.org/2.0/spec/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/).
 
 ### Cross field validation
 
@@ -179,7 +179,7 @@ For advanced usage a group of constraints can include another group. You can do 
 
 ### Defining the order of constraint groups
 
-You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this will be part](https://hibernate.atlassian.net/browse/BVAL-248) of a [future version of Bean Validation](http://beanvalidation.org/proposals/BVAL-248/))
+You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this will be part](https://hibernate.atlassian.net/browse/BVAL-248) of a [future version of Bean Validation](https://beanvalidation.org/proposals/BVAL-248/))
 
 Based on the example above let's define a group sequence:
 

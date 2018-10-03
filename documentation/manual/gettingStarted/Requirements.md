@@ -33,7 +33,7 @@ You can obtain Java SE from [Oracle’s JDK Site](https://www.oracle.com/technet
 
 Play example projects available from [Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) automatically download dependencies and have `./sbt` and `sbt.bat` launchers for Unix and Windows environments, respectively. You do not have to install sbt to run them.
 
-But if you want to use sbt to create your project, you need to [install the sbt launcher](https://www.scala-sbt.org/download.html) on your system. With sbt installed, you can use our [giter8](http://www.foundweekends.org/giter8/) template for Java or Scala to create a new project with a single command, using `sbt new`. Refer to the [sbt download page](https://www.scala-sbt.org/download.html) to install the sbt launcher on your system and [sbt documentation for details about how to setup it](http://www.scala-sbt.org/release/docs/Setup-Notes.html).
+But if you want to use sbt to create your project, you need to [install the sbt launcher](https://www.scala-sbt.org/download.html) on your system. With sbt installed, you can use our [giter8](http://www.foundweekends.org/giter8/) template for Java or Scala to create a new project with a single command, using `sbt new`. Refer to the [sbt download page](https://www.scala-sbt.org/download.html) to install the sbt launcher on your system and [sbt documentation for details about how to setup it](https://www.scala-sbt.org/release/docs/Setup-Notes.html).
 
 ## Verifying and installing Gradle
 

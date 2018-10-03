@@ -80,7 +80,7 @@ For more information about how to use SQL logging, see the Play [[Java|JavaDatab
 
 ## Netty native socket transport
 
-If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
+If you run Play server on Linux you can now get a performance boost by using the [native socket feature](https://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
 
 You can learn how to use native sockets in Play documentation on [[configuring Netty|SettingsNetty#Configuring-transport-socket]].
 

@@ -144,7 +144,7 @@ Generally speaking, if you see error message "error: could not find implicit val
 import play.api.libs.concurrent.Execution.Implicits._
 ```
 
-_(Please see the [Scala documentation about Execution context](http://docs.scala-lang.org/overviews/core/futures.html) for more information)_
+_(Please see the [Scala documentation about Execution context](https://docs.scala-lang.org/overviews/core/futures.html) for more information)_
 
 And remember that:
 
