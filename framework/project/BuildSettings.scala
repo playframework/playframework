@@ -641,7 +641,10 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.inject.QualifierAnnotation.asJava"),
 
       // Rewrite Java modules to extend play.inject.Module
-      ProblemFilters.exclude[DirectAbstractMethodProblem]("play.api.inject.Module.bindings")
+      ProblemFilters.exclude[DirectAbstractMethodProblem]("play.api.inject.Module.bindings"),
+
+      // Add asJava method to Scala Messages
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

@@ -61,6 +61,11 @@ case class Lang(locale: Locale) {
    * The language tag (such as fr or en-US).
    */
   lazy val code: String = locale.toLanguageTag
+
+  /**
+   * @return the Java version for this Lang.
+   */
+  def asJava: play.i18n.Lang = new play.i18n.Lang(this)
 }
 
 /**

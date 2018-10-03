@@ -257,6 +257,11 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
   override def isDefinedAt(key: String): Boolean = {
     messagesApi.isDefinedAt(key)(lang)
   }
+
+  /**
+   * @return the Java version for this Messages.
+   */
+  override def asJava: play.i18n.Messages = new play.i18n.MessagesImpl(lang.asJava, messagesApi.asJava)
 }
 
 /**
@@ -323,6 +328,11 @@ trait Messages extends MessagesProvider {
    * @return a boolean
    */
   def isDefinedAt(key: String): Boolean
+
+  /**
+   * @return the Java version for this Messages.
+   */
+  def asJava: play.i18n.Messages
 }
 
 /**
