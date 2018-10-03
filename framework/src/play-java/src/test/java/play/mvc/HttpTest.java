@@ -21,7 +21,9 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Context;
 import play.mvc.Http.Cookie;
 import play.mvc.Http.RequestBuilder;
+import play.mvc.html.implicitLang;
 import play.mvc.html.implicitMessages;
+import play.mvc.html.noImplicitLang;
 import play.mvc.html.noImplicitMessages;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -233,6 +235,33 @@ public class HttpTest {
                 // However, because we pass our own (implicit) messages to the view now the implicit PlayMagicForJava.implicitJavaMessages
                 // should therefore have a lower weight and will not be used (resulting in the context messages being ignored)
                 assertThat(implicitMessages.render(messages).toString().trim()).isEqualTo("See you!");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaImplicitLang() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
+
+            ctx.changeLang("fr");
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure the french lang gets returned from the context methods
+                assertThat(Context.current().lang().code()).isEqualTo("fr");
+
+                Lang lang = new Lang(Locale.forLanguageTag("en-US"));
+
+                // Because the lang we pass to the view is not defined "implicit" the lang from the context will be used
+                assertThat(noImplicitLang.render(lang).toString().trim()).isEqualTo("fr");
+
+                // However, because we pass our own (implicit) lang to the view now the implicit PlayMagicForJava.implicitJavaLang
+                // should therefore have a lower weight and will not be used (resulting in the context lang being ignored)
+                assertThat(implicitLang.render(lang).toString().trim()).isEqualTo("en-US");
             } finally {
                 Context.current.remove();
             }
