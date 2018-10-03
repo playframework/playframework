@@ -33,6 +33,12 @@ object PlayMagicForJava extends JavaImplicitConversions {
     ctx._requestHeader
   }
 
+  // TODO: After removing Http.Context (and the corresponding methods in this object here) this should be changed to:
+  // implicit def javaRequestHeader2ScalaRequestHeader(implicit r: play.mvc.Http.RequestHeader): play.api.mvc.RequestHeader = {
+  implicit def javaRequest2ScalaRequest(implicit r: play.mvc.Http.Request): play.api.mvc.Request[_] = {
+    r.asScala()
+  }
+
   implicit def implicitJavaMessages: play.api.i18n.MessagesProvider = {
     ctx.messages().asScala
   }
