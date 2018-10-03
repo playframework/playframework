@@ -612,6 +612,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.DnName"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate"),
 
+      // Dropped private[play] methods
+      // https://github.com/playframework/playframework/pull/8649
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.shouldGenerate"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.certificateTooWeak"),
+
       // Simplify ReloadableServer interface
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.mainAddress"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ReloadableServer.mainAddress"),
