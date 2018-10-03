@@ -63,7 +63,7 @@ The resulting CSS file will be compiled as `public/stylesheets/main.css` and you
 
 [Bootstrap](http://getbootstrap.com/css/) is a very popular library used in conjunction with LESS.
 
-To use Bootstrap you can use its [WebJar](http://www.webjars.org/) by adding it to your library dependencies. For example, within a `build.sbt` file:
+To use Bootstrap you can use its [WebJar](https://www.webjars.org/) by adding it to your library dependencies. For example, within a `build.sbt` file:
 
 ```scala
 libraryDependencies += "org.webjars" % "bootstrap" % "3.3.4"

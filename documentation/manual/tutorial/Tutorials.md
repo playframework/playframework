@@ -91,7 +91,7 @@ A tutorial video series by Radix Code provides an initial overview to Play, walk
 
 #### Database
 
-* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an example project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](http://www.knoldus.com/home.knol).
+* [Play Database Application using Slick, Bootstrap](https://www.lightbend.com/activator/template/activator-play-slick-app): This is an example project for showcasing best practices and providing a seed for starting with Play &amp; Slick, By [Knoldus](https://www.knoldus.com/home.knol).
 
 #### Forms and Validators
 
@@ -145,7 +145,7 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 #### Slick
 
-* [Play framework, Slick and MySQL Tutorial](http://pedrorijo.com/blog/play-slick/) by Pedro Rijo.
+* [Play framework, Slick and MySQL Tutorial](https://pedrorijo.com/blog/play-slick/) by Pedro Rijo.
 
 #### RethinkDB
 

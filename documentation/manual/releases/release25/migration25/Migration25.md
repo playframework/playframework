@@ -323,11 +323,11 @@ Please see [[Crypto Migration|CryptoMigration25]] for more details.
 
 ## Netty 4 upgrade
 
-Netty has been upgraded from 3.10 to 4.0.  One consequence of this is the configuration options for configuring Netty channel options have changed.  The full list options can be seen [here](http://netty.io/4.0/api/io/netty/channel/ChannelOption.html).
+Netty has been upgraded from 3.10 to 4.0.  One consequence of this is the configuration options for configuring Netty channel options have changed.  The full list options can be seen [here](https://netty.io/4.0/api/io/netty/channel/ChannelOption.html).
 
 ### How to Migrate
 
-Modify any `play.server.netty.option` keys to use the new keys defined in [ChannelOption](http://netty.io/4.0/api/io/netty/channel/ChannelOption.html).  A mapping of some of the more popularly used ones is:
+Modify any `play.server.netty.option` keys to use the new keys defined in [ChannelOption](https://netty.io/4.0/api/io/netty/channel/ChannelOption.html).  A mapping of some of the more popularly used ones is:
 
 | **Old** | **New** |
 | ------------------

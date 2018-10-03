@@ -104,7 +104,7 @@ For example, you can get the same behavior as above, where you convert a checked
 onClose(Errors.rethrow().wrap(database::stop));
 ```
 
-Durian provides other behaviors too, such as [logging an exception](https://diffplug.github.io/durian/javadoc/2.0/com/diffplug/common/base/Errors.html#log--) or writing [your own exception handler](https://diffplug.github.io/durian/javadoc/2.0/com/diffplug/common/base/Errors.html#createHandling-java.util.function.Consumer-). If you want to use Durian you can either include it as a [dependency in your project](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.diffplug.durian%22%20AND%20a%3A%22durian%22) or by copy the source from [two](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Errors.java) [classes](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Throwing.java) into your project.
+Durian provides other behaviors too, such as [logging an exception](https://diffplug.github.io/durian/javadoc/2.0/com/diffplug/common/base/Errors.html#log--) or writing [your own exception handler](https://diffplug.github.io/durian/javadoc/2.0/com/diffplug/common/base/Errors.html#createHandling-java.util.function.Consumer-). If you want to use Durian you can either include it as a [dependency in your project](https://mvnrepository.com/artifact/com.diffplug.durian/durian) or by copy the source from [two](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Errors.java) [classes](https://github.com/diffplug/durian/blob/master/src/com/diffplug/common/base/Throwing.java) into your project.
 
 ## Replaced `F.Promise` with Java 8's `CompletionStage`
 
