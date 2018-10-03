@@ -5,11 +5,9 @@ A big THANK YOU! to these sponsors for their support of open source projects.
 
 ## Continuous Integration
 
-[[images/cloudbees.png]]
+[[images/TravisCI-Full-Color.png]]
 
-Our continuous integration runs on [Cloudbees](https://www.cloudbees.com/). We not only run CI on major release and master branches, but we also perform github pull request validation using CloudBees functionality.
-
-<https://playframework2.ci.cloudbees.com/>
+Our continuous integration runs on [Travis CI](https://travis-ci.org/playframework/playframework). We not only run CI on major release and master branches, but we also perform github pull request validation using Travis functionality.
 
 ## Profiling
 

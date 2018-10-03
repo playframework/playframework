@@ -18,13 +18,13 @@ If you follow this structure it will be simpler to get started, but nothing stop
 
 ## WebJars
 
-[WebJars](http://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of SBT. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+[WebJars](https://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of SBT. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
 libraryDependencies += "org.webjars" % "bootstrap" % "3.3.6"
 ```
 
-WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example, if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example, if you declared a dependency on [RequireJs](https://requirejs.org/) then you can reference it from a view using a line like:
 
 ```html
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
@@ -149,7 +149,7 @@ pipelineStages := Seq(rjs, digest, gzip)
 
 The above will order the RequireJs optimizer ([sbt-rjs](https://github.com/sbt/sbt-rjs)), the digester ([sbt-digest](https://github.com/sbt/sbt-digest)) and then compression ([sbt-gzip](https://github.com/sbt/sbt-gzip)). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
 
-In essence asset fingerprinting permits your static assets to be served with aggressive caching instructions to a browser. This will result in an improved experience for your users given that subsequent visits to your site will result in less assets requiring to be downloaded. Rails also describes the benefits of [asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark).
+In essence asset fingerprinting permits your static assets to be served with aggressive caching instructions to a browser. This will result in an improved experience for your users given that subsequent visits to your site will result in less assets requiring to be downloaded. Rails also describes the benefits of [asset fingerprinting](https://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark).
 
 The above declaration of `pipelineStages` and the requisite `addSbtPlugin` declarations in your `plugins.sbt` for the plugins you require are your start point. You must then declare to Play what assets are to be versioned.
 

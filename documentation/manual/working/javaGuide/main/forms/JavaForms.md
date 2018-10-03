@@ -10,7 +10,7 @@ By default, Play includes the Java forms module (`play-java-forms`) when enablin
 The forms module is also available in `PlayImport` as `javaForms`, which can be used with `libraryDependencies += javaForms` in your `build.sbt`.
 
 > **Note:** If you are not using forms, you can remove the forms dependency by using the `PlayMinimalJava` SBT plugin instead of `PlayJava`. This also allows you to remove several transitive dependencies only used by the forms module, including several Spring modules and the Hibernate validator.
-    
+
 ## Defining a form
 
 The `play.data` package contains several helpers to handle HTTP form data submission and validation. The easiest way to handle a form submission is to define a `play.data.Form` that wraps an existing class:
@@ -189,7 +189,7 @@ Now we can use it:
 
 @[ordered-group-sequence-validate](code/javaguide/forms/JavaForms.java)
 
-Using this group sequence will first validate all fields belonging to the `Default` group (which again also includes fields that haven't defined a group at all). Only when all the fields belonging to the `Default` group pass validation successfully, the fields belonging to the `SignUpCheck` will be validated and so on. 
+Using this group sequence will first validate all fields belonging to the `Default` group (which again also includes fields that haven't defined a group at all). Only when all the fields belonging to the `Default` group pass validation successfully, the fields belonging to the `SignUpCheck` will be validated and so on.
 
 Using a group sequence is especially a good practice when you have a `validate` method which queries a database or performs any other blocking action: It's not really useful to execute the method at all if the validation fails at it's basic level (email is not valid, number is a string, etc). In such a case you probably want the `validate` be called only after checking all other annotation-based constraints before and only if they pass. A user, for example, who signs up should enter a valid email address and *only* if it is valid a database lookup for the email address should be done *afterwards*.
 

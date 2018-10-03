@@ -157,7 +157,7 @@ The `filters` project that is part of the standard Play distribution contain a s
 
 ## RequireJS
 
-In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use [requireJS](http://requirejs.org/) instead.
+In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use [requireJS](https://requirejs.org/) instead.
 
 What this means in practice is that by default Play will only minify and combine files in stage, dist, start modes only. In dev mode Play will resolve dependencies client side.
 

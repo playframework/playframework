@@ -21,7 +21,7 @@ Java(TM) SE Runtime Environment (build 1.8.0_121-b13)
 Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
 ```
 
-If you don't have the JDK, you have to install it from [Oracle's JDK Site](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+If you don't have the JDK, you have to install it from [Oracle's JDK Site](https://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
 ## Installing Play with SBT
 

@@ -197,13 +197,13 @@ The following lists all sbt-web related components and their versions at the tim
 
 #### WebJars
 
-[WebJars](http://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+[WebJars](https://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
 libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
 ```
 
-WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](https://requirejs.org/) then you can reference it from a view using a line like:
 
 ```html
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
@@ -233,7 +233,7 @@ Coffeescript options have changed. The new options are:
 
   `CoffeeScriptKeys.sourceMap := true`
 
-* `bare` When set, generates JavaScript without the [top-level function safety wrapper](http://coffeescript.org/#lexical-scope). Defaults to `false`.
+* `bare` When set, generates JavaScript without the [top-level function safety wrapper](https://coffeescript.org/#lexical-scope). Defaults to `false`.
 
   `CoffeeScriptKeys.bare := false`
 
@@ -354,7 +354,7 @@ mainModule              | By default, 'main' is used as the module.
 modules                 | The json array of modules.
 optimize                | The name of the optimizer, defaults to uglify2.
 paths                   | RequireJS path mappings of module ids to a tuple of the build path and production path. By default all WebJar libraries are made available from a CDN and their mappings can be found here (unless the cdn is set to None).
-preserveLicenseComments | Whether to preserve comments or not. Defaults to false given source maps (see http://requirejs.org/docs/errors.html#sourcemapcomments).
+preserveLicenseComments | Whether to preserve comments or not. Defaults to false given source maps (see https://requirejs.org/docs/errors.html#sourcemapcomments).
 webJarCdns              | CDNs to be used for locating WebJars. By default "org.webjars" is mapped to "jsdelivr".
 webJarModuleIds         | A sequence of webjar module ids to be used.
 
