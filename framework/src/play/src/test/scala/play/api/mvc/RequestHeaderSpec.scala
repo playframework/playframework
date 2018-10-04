@@ -147,12 +147,6 @@ class RequestHeaderSpec extends Specification {
         newReq.secure must_== secure
         newReq.clientCertificateChain must_== clientCertificateChain
       }
-
-      "must change request client certificate chain" in {
-        // Too lazy to make a real object, so take advantage of Java's weak runtime checks
-        val ccc = Some("x").asInstanceOf[Option[Seq[X509Certificate]]]
-        checkRequestValues(dummyRequestHeader(), _.copy(clientCertificateChain = ccc))(clientCertificateChain = ccc)
-      }
     }
   }
 
