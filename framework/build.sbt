@@ -156,7 +156,6 @@ lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
     ).dependsOn(PlayTestProject)
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
-    .enablePlugins(SbtTwirl)
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
     .dependsOn(
       PlayProject % "compile;test->test",
