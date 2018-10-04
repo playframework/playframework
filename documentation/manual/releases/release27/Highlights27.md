@@ -31,9 +31,9 @@ Coordinated Shutdown internally handles Play 2.7 Play's lifecycle and an instanc
 
 You can find more details on the new section on [[Coordinated Shutdown on the Play manual|Shutdown]], or you can have a look at Akka's [reference docs on Coordinated Shutdown](https://doc.akka.io/docs/akka/2.5/actors.html?languages=scala#coordinated-shutdown).
 
-## Guice was upgraded to 4.2.0
+## Guice was upgraded to 4.2.1
 
-Guice, the default dependency injection framework used by Play, was upgraded to 4.2.0 (from 4.1.0). Have a look at its [release notes](https://github.com/google/guice/wiki/Guice42). This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].
+Guice, the default dependency injection framework used by Play, was upgraded to 4.2.1 (from 4.1.0). Have a look at the [4.2.1](https://github.com/google/guice/wiki/Guice421) and the [4.2.0](https://github.com/google/guice/wiki/Guice42) release notes. This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].
 
 ## Constraint annotations offered for Play Java are now @Repeatable
 
