@@ -260,59 +260,6 @@ trait RequestHeader {
   def withBody[A](body: A): Request[A] =
     new RequestImpl[A](connection, method, target, version, headers, attrs, body)
 
-  /**
-   * Copy the request.
-   */
-  @deprecated("Use the with* methods instead", "2.6.0")
-  def copy(
-    id: java.lang.Long = null,
-    uri: String = null,
-    path: String = null,
-    method: String = this.method,
-    version: String = this.version,
-    queryString: Map[String, Seq[String]] = null,
-    headers: Headers = null,
-    remoteAddress: String = null,
-    secure: java.lang.Boolean = null,
-    clientCertificateChain: Option[Seq[X509Certificate]] = null): RequestHeader = {
-
-    var newHeader: RequestHeader = this
-
-    // We only need to modify the request when an argument is non-null.
-    if (id != null) {
-      newHeader = newHeader.addAttr(RequestAttrKey.Id, (id: Long))
-    }
-    if (uri != null) {
-      newHeader = newHeader.withTarget(newHeader.target.withUriString(uri))
-    }
-    if (path != null) {
-      newHeader = newHeader.withTarget(newHeader.target.withPath(path))
-    }
-    if (method != null) {
-      newHeader = newHeader.withMethod(method)
-    }
-    if (queryString != null) {
-      newHeader = newHeader.withTarget(newHeader.target.withQueryString(queryString))
-    }
-    if (version != null) {
-      newHeader = newHeader.withVersion(version)
-    }
-    if (headers != null) {
-      newHeader = newHeader.withHeaders(headers)
-    }
-    if (remoteAddress != null) {
-      newHeader = newHeader.withConnection(RemoteConnection(remoteAddress, newHeader.secure, newHeader.clientCertificateChain))
-    }
-    if (secure != null) {
-      newHeader = newHeader.withConnection(RemoteConnection(newHeader.remoteAddress, secure, newHeader.clientCertificateChain))
-    }
-    if (clientCertificateChain != null) {
-      newHeader = newHeader.withConnection(RemoteConnection(newHeader.remoteAddress, newHeader.secure, clientCertificateChain))
-    }
-
-    newHeader
-  }
-
   override def toString: String = {
     method + " " + uri
   }
