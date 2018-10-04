@@ -4,6 +4,8 @@
 
 package play.mvc;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import com.typesafe.config.Config;
@@ -12,6 +14,8 @@ import org.junit.Test;
 import play.Application;
 import play.Environment;
 import play.core.j.JavaContextComponents;
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Context;
@@ -202,6 +206,145 @@ public class HttpTest {
             // The language should now be back to 'fr', and the cookie still mustn't be set
             assertThat(ctx.lang().code()).isEqualTo("fr");
             assertThat(responseLangCookie(ctx, messagesApi(app))).isNull();
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaNoImplicitMessages() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
+
+            ctx.changeLang("fr");
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure french messages get returned from the context methods
+                assertThat(Context.current().lang().code()).isEqualTo("fr");
+                assertThat(Context.current().messages().at("bye")).isEqualTo("Au revoir!");
+
+                Messages messages = messagesApi(app).preferred(Arrays.asList(new Lang(Locale.forLanguageTag("en-US"))));
+
+                // Because the messages we pass to the view are not defined "implicit" the messages from the context will be used
+                assertThat(NoImplicitMessages.render(messages).toString()).isEqualTo("Au revoir!");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaImplicitMessages() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
+
+            ctx.changeLang("fr");
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure french messages get returned from the context methods
+                assertThat(Context.current().lang().code()).isEqualTo("fr");
+                assertThat(Context.current().messages().at("bye")).isEqualTo("Au revoir!");
+
+                Messages messages = messagesApi(app).preferred(Arrays.asList(new Lang(Locale.forLanguageTag("en-US"))));
+
+                // Because we pass our own (implicit) messages to the view now the implicit PlayMagicForJava.implicitJavaMessages
+                // should therefore have a lower weight and will not be used (resulting in the context messages being ignored)
+                assertThat(ImplicitMessages.render(messages).toString()).isEqualTo("See you!");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaNoImplicitLang() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
+
+            ctx.changeLang("fr");
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure the french lang gets returned from the context methods
+                assertThat(Context.current().lang().code()).isEqualTo("fr");
+
+                Lang lang = new Lang(Locale.forLanguageTag("en-US"));
+
+                // Because the lang we pass to the view is not defined "implicit" the lang from the context will be used
+                assertThat(NoImplicitLang.render(lang).toString()).isEqualTo("fr");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaImplicitLang() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
+
+            ctx.changeLang("fr");
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure the french lang gets returned from the context methods
+                assertThat(Context.current().lang().code()).isEqualTo("fr");
+
+                Lang lang = new Lang(Locale.forLanguageTag("en-US"));
+
+                // Because we pass our own (implicit) lang to the view now the implicit PlayMagicForJava.implicitJavaLang
+                // should therefore have a lower weight and will not be used (resulting in the context lang being ignored)
+                assertThat(ImplicitLang.render(lang).toString()).isEqualTo("en-US");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaNoImplicitRequest() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder().cookie(Cookie.builder("location", "contextrequest").build()), app.injector().instanceOf(JavaContextComponents.class));
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure the request (and its cookie) is returned from the context methods
+                assertThat(Context.current().request().cookie("location").value()).isEqualTo("contextrequest");
+
+                Http.Request request = new RequestBuilder().cookie(Cookie.builder("location", "passedrequest").build()).build();
+
+                // Because the request we pass to the view is not defined "implicit" the request (and therefore the cookie) from the context will be used
+                assertThat(NoImplicitRequest.render(request).toString()).isEqualTo("contextrequest");
+            } finally {
+                Context.current.remove();
+            }
+        });
+    }
+
+    @Test
+    public void testTemplateMagicForJavaImplicitRequest() {
+        withApplication((app) -> {
+            Context ctx = new Context(new RequestBuilder().cookie(Cookie.builder("location", "contextrequest").build()), app.injector().instanceOf(JavaContextComponents.class));
+
+            try {
+                Context.current.set(ctx);
+
+                // Let's make sure the request (and its cookie) is returned from the context methods
+                assertThat(Context.current().request().cookie("location").value()).isEqualTo("contextrequest");
+
+                Http.Request request = new RequestBuilder().cookie(Cookie.builder("location", "passedrequest").build()).build();
+
+                // Because we pass our own (implicit) request to the view now the implicit PlayMagicForJava.requestHeader
+                // should therefore have a lower weight and will not be used (resulting in the context request being ignored)
+                assertThat(ImplicitRequest.render(request).toString()).isEqualTo("passedrequest");
+            } finally {
+                Context.current.remove();
+            }
         });
     }
 }
