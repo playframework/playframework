@@ -7,6 +7,8 @@ package play.it.test
 import java.security.KeyStore
 import javax.net.ssl._
 
+import com.typesafe.sslconfig.ssl.FakeSSLTools
+
 import play.api.test.PlayRunners
 import play.api.{ Application, Mode }
 import play.core.ApplicationProvider
@@ -126,20 +128,7 @@ object ServerEndpoint {
     lazy val (sslContext, trustManager): (SSLContext, X509TrustManager) = {
       val keyStore: KeyStore = FakeKeyStore.generateKeyStore
 
-      val kmf: KeyManagerFactory = KeyManagerFactory.getInstance("SunX509")
-      kmf.init(keyStore, "".toCharArray)
-      val kms: Array[KeyManager] = kmf.getKeyManagers
-
-      val tmf: TrustManagerFactory = TrustManagerFactory
-        .getInstance(TrustManagerFactory.getDefaultAlgorithm())
-      tmf.init(keyStore)
-      val tms: Array[TrustManager] = tmf.getTrustManagers
-      val x509TrustManager: X509TrustManager = tms(0).asInstanceOf[X509TrustManager]
-
-      val sslContext: SSLContext = SSLContext.getInstance("TLS")
-      sslContext.init(kms, tms, null)
-
-      (sslContext, x509TrustManager)
+      FakeSSLTools.buildContextAndTrust(keyStore)
     }
   }
 }
