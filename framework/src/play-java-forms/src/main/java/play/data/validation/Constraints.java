@@ -4,6 +4,8 @@
 
 package play.data.validation;
 
+import com.typesafe.config.Config;
+
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.data.Form.Display;
@@ -83,11 +85,13 @@ public class Constraints {
         private final Lang lang;
         private final Messages messages;
         private final Map<String, Object> args;
+        private final Config config;
 
-        public ValidationPayload(final Lang lang, final Messages messages, final Map<String, Object> args) {
+        public ValidationPayload(final Lang lang, final Messages messages, final Map<String, Object> args, final Config config) {
             this.lang = lang;
             this.messages = messages;
             this.args = args;
+            this.config = config;
         }
 
         /**
@@ -111,8 +115,18 @@ public class Constraints {
             return this.args;
         }
 
-        public static ValidationPayload empty() {
-            return new ValidationPayload(null, null, null);
+        /**
+         * @return the current application configuration, will always be set, even when accessed outside a Http Request
+         */
+        public Config getConfig() {
+            return this.config;
+        }
+
+        /**
+         * @return a ValidationPayload object which only contains the given config
+         */
+        public static ValidationPayload empty(final Config config) {
+            return new ValidationPayload(null, null, null, config);
         }
     }
 

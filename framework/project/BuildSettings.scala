@@ -612,10 +612,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.DnName"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.createSelfSignedCertificate"),
 
-      // Dropped private[play] methods
+      // Dropped package private methods
       // https://github.com/playframework/playframework/pull/8649
+      // https://github.com/playframework/playframework/pull/8659
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.shouldGenerate"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.certificateTooWeak"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.FakeKeyStore.keyManagerFactory"),
 
       // Simplify ReloadableServer interface
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.mainAddress"),
@@ -628,7 +630,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.hosts.AllowedHostsConfig.apply"),
 
       // Add ValidationPayload to Java isValid/validate methods
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.FormFactory.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.this"),
+      ProblemFilters.exclude[InheritedNewAbstractMethodProblem]("play.data.FormFactoryComponents.config"),
 
       // Remove JPA class + add more withTransaction(...) methods
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPA"),
@@ -645,7 +650,10 @@ object BuildSettings {
 
       // Add asJava method to Scala Messages
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava"),
-
+      
+      // Change implicit type from Messages to MessagesProvider to fix implicit precedence
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
+      
       // remove the depreciated copy method on RequestHeader
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeaderImpl.copy*"),

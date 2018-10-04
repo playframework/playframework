@@ -5,6 +5,7 @@
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
+import com.typesafe.config.Config;
 import org.junit.Test;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
@@ -536,6 +537,8 @@ public class JavaForms extends WithApplication {
     //#payload-validate
     //###insert: import java.util.Map;
 
+    //###insert: import com.typesafe.config.Config;
+
     //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
     //###insert: import play.data.validation.Constraints.ValidateWithPayload;
     //###insert: import play.data.validation.ValidationError;
@@ -555,6 +558,7 @@ public class JavaForms extends WithApplication {
             Lang lang = payload.getLang();
             Messages messages = payload.getMessages();
             Map<String, Object> ctxArgs = payload.getArgs();
+            Config config = payload.getConfig();
             // ...
             //###skip: 1
             return null;
