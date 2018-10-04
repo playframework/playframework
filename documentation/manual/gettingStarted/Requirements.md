@@ -37,7 +37,7 @@ But if you want to use sbt to create your project, you need to [install the sbt 
 
 ## Verifying and installing Gradle
 
-Play example projects available from [Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) automatically download dependencies and have `./gradlew` or `gradlew.bat` launchers for Unix and Windows environments, respectively. You do not need to install install Gradle to run them.
+Play example projects available from [Lightbend Tech Hub](https://developer.lightbend.com/start/?group=play) automatically download dependencies and have `./gradlew` or `gradlew.bat` launchers for Unix and Windows environments, respectively. You do not need to install Gradle to run them.
 
 If you are ready to start your own project and want to use Gradle, refer to [Gradle install page](https://gradle.org/install/) to install Gradle launcher on your system. If you run into problems after installing, check [Gradle's documentation for help](https://docs.gradle.org/4.6/userguide/troubleshooting.html#sec:troubleshooting_installation). We recommend that you use the latest version of Gradle.
 
