@@ -119,35 +119,6 @@ class RequestHeaderSpec extends Specification {
       }
 
     }
-
-    "deprecated copy method" in {
-
-      def checkRequestValues(
-        origReq: RequestHeader,
-        changeReq: RequestHeader => RequestHeader)(
-        id: Long = origReq.id,
-        uri: String = origReq.uri,
-        path: String = origReq.path,
-        method: String = origReq.method,
-        version: String = origReq.version,
-        queryString: Map[String, Seq[String]] = origReq.queryString,
-        headers: Headers = origReq.headers,
-        remoteAddress: String = origReq.remoteAddress,
-        secure: Boolean = origReq.secure,
-        clientCertificateChain: Option[Seq[X509Certificate]] = origReq.clientCertificateChain) = {
-        val newReq: RequestHeader = changeReq(origReq)
-        newReq.id must_== id
-        newReq.uri must_== uri
-        newReq.path must_== path
-        newReq.method must_== method
-        newReq.version must_== version
-        newReq.queryString must_== queryString
-        newReq.headers must_== headers
-        newReq.remoteAddress must_== remoteAddress
-        newReq.secure must_== secure
-        newReq.clientCertificateChain must_== clientCertificateChain
-      }
-    }
   }
 
   private def accept(value: String) = dummyRequestHeader(
