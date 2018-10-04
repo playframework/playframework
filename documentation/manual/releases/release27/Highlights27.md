@@ -65,6 +65,7 @@ To pass such a payload to a `validate` method just annotate your form with `@Val
 
 ```java
 import java.util.Map;
+import com.typesafe.config.Config;
 import play.data.validation.Constraints.ValidatableWithPayload;
 import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.ValidationPayload;
@@ -79,6 +80,7 @@ public class SomeForm implements ValidatableWithPayload<String> {
         Lang lang = payload.getLang();
         Messages messages = payload.getMessages();
         Map<String, Object> ctxArgs = payload.getArgs();
+        Config config = payload.getConfig();
         // ...
     }
 

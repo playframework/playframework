@@ -523,7 +523,7 @@ trait FormSpec extends Specification {
       // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
       // used come from the form, not the input data
       new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validatorFactory())
+        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validatorFactory(), ConfigFactory.empty())
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {

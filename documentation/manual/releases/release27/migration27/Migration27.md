@@ -325,7 +325,8 @@ Like announced in the [[Play 2.6 Migration Guide|Migration26#Java-Form-Changes]]
 ## Java `Form`, `DynamicForm` and `FormFactory` constructors changed
 
 Constructors of the `Form`, `DynamicForm` and `FormFactory` classes (inside `play.data`) that were using a [`Validator`](https://docs.jboss.org/hibernate/stable/beanvalidation/api/javax/validation/Validator.html) param use a [`ValidatorFactory`](https://docs.jboss.org/hibernate/stable/beanvalidation/api/javax/validation/ValidatorFactory.html) param instead now.
-E.g. `new Form(..., validator)` becomes `new Form(..., validatorFactory)` now.
+In addition to that, these constructors now also need a [`com.typesafe.config.Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html) param.
+E.g. `new Form(..., validator)` becomes `new Form(..., validatorFactory, config)` now.
 This change only effects you if you use the constructors to instantiate a form instead of just using `formFactory.form(SomeForm.class)` - most likely in tests.
 
 ## The Java Cache API `get` method has been deprecated in favor of `getOptional`

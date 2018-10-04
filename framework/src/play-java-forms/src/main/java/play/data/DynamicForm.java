@@ -4,6 +4,8 @@
 
 package play.data;
 
+import com.typesafe.config.Config;
+
 import javax.validation.ValidatorFactory;
 
 import java.util.ArrayList;
@@ -34,9 +36,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param messagesApi    the messagesApi component.
      * @param formatters     the formatters component.
      * @param validatorFactory      the validatorFactory component.
+     * @param config      the config component.
      */
-    public DynamicForm(MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        super(DynamicForm.Dynamic.class, messagesApi, formatters, validatorFactory);
+    public DynamicForm(MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        super(DynamicForm.Dynamic.class, messagesApi, formatters, validatorFactory, config);
         rawData = new HashMap<>();
     }
 
@@ -49,9 +52,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param messagesApi    the messagesApi component.
      * @param formatters     the formatters component.
      * @param validatorFactory      the validatorFactory component.
+     * @param config      the config component.
      */
-    public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory) {
-        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validatorFactory);
+    public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validatorFactory, config);
         rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
@@ -99,7 +103,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory);
+        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
     /**
@@ -137,7 +141,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         data = newData;
 
         Form<Dynamic> form = super.bind(data, allowedFields);
-        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory);
+        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
     /**
@@ -182,7 +186,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
-        return new DynamicForm(this.rawData, form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory);
+        return new DynamicForm(this.rawData, form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
     /**
