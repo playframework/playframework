@@ -26,17 +26,17 @@ import com.typesafe.sslconfig.util.NoopLogger
 object FakeKeyStore {
   private final val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
 
-  val GeneratedKeyStore: String = FakeKeyStore.GeneratedKeyStore
-  val ExportedCert: String = FakeKeyStore.ExportedCert
-  val TrustedAlias = FakeKeyStore.TrustedAlias
-  val DistinguishedName = FakeKeyStore.DistinguishedName
-  val SignatureAlgorithmName = FakeKeyStore.SignatureAlgorithmName
-  val SignatureAlgorithmOID: ObjectIdentifier = FakeKeyStore.SignatureAlgorithmOID
+  val GeneratedKeyStore: String = sslconfig.FakeKeyStore.GeneratedKeyStore
+  val ExportedCert: String = sslconfig.FakeKeyStore.ExportedCert
+  val TrustedAlias = sslconfig.FakeKeyStore.TrustedAlias
+  val DistinguishedName = sslconfig.FakeKeyStore.DistinguishedName
+  val SignatureAlgorithmName = sslconfig.FakeKeyStore.SignatureAlgorithmName
+  val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.SignatureAlgorithmOID
 
   object CertificateAuthority {
-    val ExportedCertificate = FakeKeyStore.CertificateAuthority.ExportedCertificate
-    val TrustedAlias = FakeKeyStore.CertificateAuthority.TrustedAlias
-    val DistinguishedName = FakeKeyStore.CertificateAuthority.DistinguishedName
+    val ExportedCertificate = sslconfig.FakeKeyStore.CertificateAuthority.ExportedCertificate
+    val TrustedAlias = sslconfig.FakeKeyStore.CertificateAuthority.TrustedAlias
+    val DistinguishedName = sslconfig.FakeKeyStore.CertificateAuthority.DistinguishedName
   }
 
   /**
