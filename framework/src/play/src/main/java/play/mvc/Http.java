@@ -434,7 +434,7 @@ public class Http {
          * @return The new context.
          */
         public Context withRequest(Request request) {
-            return new Context(id, header, request, response, session, flash, args, components);
+            return new Context(id, request.asScala(), request, response, session, flash, args, components);
         }
     }
 
