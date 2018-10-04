@@ -72,7 +72,6 @@ public class Http {
         //
 
         private final Long id;
-        private final play.api.mvc.RequestHeader header;
         private final Request request;
         private final Response response;
         private final Session session;
@@ -99,11 +98,10 @@ public class Http {
          */
         public Context(Request request, JavaContextComponents components) {
             this.request = request;
-            this.header = request.asScala();
-            this.id = header.id();
+            this.id = this.request.asScala().id();
             this.response = new Response();
-            this.session = new Session(Scala.asJava(header.session().data()));
-            this.flash = new Flash(Scala.asJava(header.flash().data()));
+            this.session = new Session(Scala.asJava(this.request.asScala().session().data()));
+            this.flash = new Flash(Scala.asJava(this.request.asScala().flash().data()));
             this.args = new HashMap<>();
             this.components = components;
         }
@@ -112,7 +110,7 @@ public class Http {
          * Creates a new HTTP context.
          *
          * @param id the unique context ID
-         * @param header the request header
+         * @param header the request header (Not used anymore. You could simply pass null, it doesn't matter)
          * @param request the request with body
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
@@ -132,7 +130,7 @@ public class Http {
          * Use this constructor (or withRequest) to copy a context within a Java Action to be passed to a delegate.
          *
          * @param id the unique context ID
-         * @param header the request header
+         * @param header the request header (Not used anymore. You could simply pass null, it doesn't matter)
          * @param request the request with body
          * @param response the response instance to use
          * @param session the session instance to use
@@ -143,7 +141,6 @@ public class Http {
         public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
                 Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
             this.id = id;
-            this.header = header;
             this.request = request;
             this.response = response;
             this.session = session;
@@ -205,9 +202,12 @@ public class Http {
          * For internal usage only.
          *
          * @return the original request header.
+         *
+         * @deprecated Use {@link #request()}.asScala() instead. Since 2.7.0.
          */
+        @Deprecated
         public play.api.mvc.RequestHeader _requestHeader() {
-            return header;
+            return request.asScala();
         }
 
         /**
@@ -426,7 +426,7 @@ public class Http {
         /**
          * Create a new context with the given request.
          *
-         * The id, Scala RequestHeader, session, flash and args remain unchanged.
+         * The id, session, flash and args remain unchanged.
          *
          * This method is intended for use within a Java action, to create a new Context to pass to a delegate action.
          *
@@ -449,7 +449,7 @@ public class Http {
          * @param wrapped the context the created instance will wrap
          */
         public WrappedContext(Context wrapped) {
-            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.components);
+            super(wrapped.id(), wrapped.request().asScala(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.components);
             this.args = wrapped.args;
             this.wrapped = wrapped;
         }
@@ -483,9 +483,13 @@ public class Http {
             return wrapped.flash();
         }
 
+        /**
+         * @deprecated Use {@link #request()}.asScala() instead. Since 2.7.0.
+         */
         @Override
+        @Deprecated
         public play.api.mvc.RequestHeader _requestHeader() {
-            return wrapped._requestHeader();
+            return wrapped.request().asScala();
         }
 
         @Override
