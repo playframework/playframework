@@ -652,7 +652,10 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava"),
 
       // Change implicit type from Messages to MessagesProvider to fix implicit precedence
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
+
+      // Add play.mvc.Http#Cookies getCookie method
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
