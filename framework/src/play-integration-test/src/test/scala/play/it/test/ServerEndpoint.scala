@@ -7,13 +7,12 @@ package play.it.test
 import java.security.KeyStore
 import javax.net.ssl._
 
-import com.typesafe.sslconfig.ssl.FakeSSLTools
+import com.typesafe.sslconfig.ssl.{ FakeKeyStore, FakeSSLTools }
 
 import play.api.test.PlayRunners
 import play.api.{ Application, Mode }
 import play.core.ApplicationProvider
 import play.core.server.ServerConfig
-import play.core.server.ssl.FakeKeyStore
 import play.it.test.HttpsEndpoint.ServerSSL
 import play.server.api.SSLEngineProvider
 
