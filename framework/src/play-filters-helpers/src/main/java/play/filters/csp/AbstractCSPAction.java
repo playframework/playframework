@@ -45,6 +45,7 @@ public abstract class AbstractCSPAction extends Action<CSP> {
             }
         };
 
+        Http.Context.current.set(newCtx);
         return delegate.call(newCtx).thenApply((Result result) -> {
             Result r = result;
             if (cspResult.nonceHeader()) {
