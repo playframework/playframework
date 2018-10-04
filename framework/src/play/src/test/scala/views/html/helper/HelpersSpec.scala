@@ -201,5 +201,13 @@ class HelpersSpec extends Specification {
       body must contain("""<dd class="info">I am a custom constraint</dd>""")
       body must contain("""<dd class="info">Look at me! I am a custom format pattern</dd>""")
     }
+
+    "correctly lookup _label in messages" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> "myfieldlabel").body must contain("I am the label of the field")
+    }
+
+    "correctly lookup _name in messages" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> "myfieldname").body must contain("I am the name of the field")
+    }
   }
 }
