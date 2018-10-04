@@ -38,7 +38,7 @@ public abstract class UsefulException extends RuntimeException {
     }
 
     public String toString() {
-        return "@" + id + ": " + title;
+        return "@" + id + ": " + getMessage();
     }
 
 } 
