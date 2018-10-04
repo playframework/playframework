@@ -8,3 +8,6 @@ constraint.customarg=custom constraint
 
 format.custom=Look at me! I am a {0}
 format.customarg=custom format pattern
+
+myfieldlabel=I am the label of the field
+myfieldname=I am the name of the field
