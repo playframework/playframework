@@ -21,12 +21,6 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Context;
 import play.mvc.Http.Cookie;
 import play.mvc.Http.RequestBuilder;
-import play.mvc.html.implicitLang;
-import play.mvc.html.implicitMessages;
-import play.mvc.html.implicitRequest;
-import play.mvc.html.noImplicitLang;
-import play.mvc.html.noImplicitMessages;
-import play.mvc.html.noImplicitRequest;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -232,11 +226,11 @@ public class HttpTest {
                 Messages messages = messagesApi(app).preferred(Arrays.asList(new Lang(Locale.forLanguageTag("en-US"))));
 
                 // Because the messages we pass to the view are not defined "implicit" the messages from the context will be used
-                assertThat(noImplicitMessages.render(messages).toString().trim()).isEqualTo("Au revoir!");
+                assertThat(NoImplicitMessages.render(messages).toString()).isEqualTo("Au revoir!");
 
                 // However, because we pass our own (implicit) messages to the view now the implicit PlayMagicForJava.implicitJavaMessages
                 // should therefore have a lower weight and will not be used (resulting in the context messages being ignored)
-                assertThat(implicitMessages.render(messages).toString().trim()).isEqualTo("See you!");
+                assertThat(ImplicitMessages.render(messages).toString()).isEqualTo("See you!");
             } finally {
                 Context.current.remove();
             }
@@ -259,11 +253,11 @@ public class HttpTest {
                 Lang lang = new Lang(Locale.forLanguageTag("en-US"));
 
                 // Because the lang we pass to the view is not defined "implicit" the lang from the context will be used
-                assertThat(noImplicitLang.render(lang).toString().trim()).isEqualTo("fr");
+                assertThat(NoImplicitLang.render(lang).toString()).isEqualTo("fr");
 
                 // However, because we pass our own (implicit) lang to the view now the implicit PlayMagicForJava.implicitJavaLang
                 // should therefore have a lower weight and will not be used (resulting in the context lang being ignored)
-                assertThat(implicitLang.render(lang).toString().trim()).isEqualTo("en-US");
+                assertThat(ImplicitLang.render(lang).toString()).isEqualTo("en-US");
             } finally {
                 Context.current.remove();
             }
@@ -286,11 +280,11 @@ public class HttpTest {
                 play.api.mvc.RequestHeader rh;
 
                 // Because the request we pass to the view is not defined "implicit" the request (and therefore the cookie) from the context will be used
-                assertThat(noImplicitRequest.render(request).toString().trim()).isEqualTo("contextrequest");
+                assertThat(NoImplicitRequest.render(request).toString()).isEqualTo("contextrequest");
 
                 // However, because we pass our own (implicit) request to the view now the implicit PlayMagicForJava.requestHeader
                 // should therefore have a lower weight and will not be used (resulting in the context request being ignored)
-                assertThat(implicitRequest.render(request).toString().trim()).isEqualTo("passedrequest");
+                assertThat(ImplicitRequest.render(request).toString()).isEqualTo("passedrequest");
             } finally {
                 Context.current.remove();
             }
