@@ -148,33 +148,6 @@ class RequestHeaderSpec extends Specification {
         newReq.clientCertificateChain must_== clientCertificateChain
       }
 
-      "must change request id" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(id = 999L))(id = 999L)
-      }
-      "must change request uri" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(uri = "/x/y/z"))(uri = "/x/y/z")
-      }
-      "must change request path" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(path = "/x/y/z"))(path = "/x/y/z")
-      }
-      "must change request method" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(method = "HELLO"))(method = "HELLO")
-      }
-      "must change request version" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(version = "HTTP/9.9"))(version = "HTTP/9.9")
-      }
-      "must change request queryString" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(queryString = Map("x" -> Seq("y", "z"))))(queryString = Map("x" -> Seq("y", "z")))
-      }
-      "must change request headers" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(headers = new Headers(List(("x", "y")))))(headers = new Headers(List(("x", "y"))))
-      }
-      "must change request remoteAddress" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(remoteAddress = "x"))(remoteAddress = "x")
-      }
-      "must change request secure" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(secure = true))(secure = true)
-      }
       "must change request client certificate chain" in {
         // Too lazy to make a real object, so take advantage of Java's weak runtime checks
         val ccc = Some("x").asInstanceOf[Option[Seq[X509Certificate]]]
