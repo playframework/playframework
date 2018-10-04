@@ -42,13 +42,13 @@ package views.html.helper {
     }
 
     def label: Any = {
-      args.get('_label).getOrElse(p.messages(field.label))
+      args.get('_label).map(l => p.messages(l.toString)).getOrElse(p.messages(field.label))
     }
 
     def hasName: Boolean = args.get('_name).isDefined
 
     def name: Any = {
-      args.get('_name).getOrElse(p.messages(field.label))
+      args.get('_name).map(n => p.messages(n.toString)).getOrElse(p.messages(field.label))
     }
 
     private def translateMsgArg(msgArg: Any) = msgArg match {
