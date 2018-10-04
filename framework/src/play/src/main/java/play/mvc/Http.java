@@ -13,6 +13,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
 import play.api.libs.json.JsValue;
+import play.api.mvc.DiscardingCookie;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
 import play.core.j.JavaContextComponents;
@@ -29,6 +30,7 @@ import play.libs.XML;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
+import scala.Option;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
 
@@ -1861,7 +1863,7 @@ public class Http {
          * @param secure Whether the cookie to discard is secure
          */
         public void discardCookie(String name, String path, String domain, boolean secure) {
-            cookies.add(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
+            cookies.add(new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
         }
 
         public Collection<Cookie> cookies() {

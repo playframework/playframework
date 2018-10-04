@@ -13,10 +13,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import play.api.mvc.DiscardingCookie;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
 import play.libs.Scala;
+import scala.Option;
 
 import static play.mvc.Http.Cookie;
 import static play.mvc.Http.Cookies;
@@ -316,7 +318,7 @@ public class Result {
      * @param secure Whether the cookie to discard is secure
      */
     public Result discardCookie(String name, String path, String domain, boolean secure) {
-        return withCookies(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
+        return withCookies(new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
     }
 
     /**
