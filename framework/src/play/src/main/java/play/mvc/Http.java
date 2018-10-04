@@ -2130,7 +2130,7 @@ public class Http {
         private String path = "/";
         private String domain;
         private boolean secure = false;
-        private boolean httpOnly = false;
+        private boolean httpOnly = true;
         private SameSite sameSite;
 
         /**
