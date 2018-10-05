@@ -66,6 +66,7 @@ public class Security {
             } else {
                 Request usernameReq = ctx.request().addAttr(USERNAME, username);
                 Context usernameCtx = ctx.withRequest(usernameReq);
+                Http.Context.current.set(usernameCtx);
                 return delegate.call(usernameCtx);
             }
         }
