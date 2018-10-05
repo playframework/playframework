@@ -1008,18 +1008,6 @@ case class Configuration(underlying: Config) {
   def globalError(message: String, e: Option[Throwable] = None): PlayException = {
     Configuration.configError(message, Option(underlying.root.origin), e)
   }
-
-  def parseSameSite(key: String): Option[SameSite] = {
-    get[Option[String]](key).flatMap { value =>
-      val result = SameSite.parse(value)
-      if (result.isEmpty) {
-        Logger.warn(
-          s"""Assuming $key = null, since "$value" is not a valid SameSite value (${SameSite.values.mkString(", ")})"""
-        )
-      }
-      result
-    }
-  }
 }
 
 /**

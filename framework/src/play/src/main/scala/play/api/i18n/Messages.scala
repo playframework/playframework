@@ -567,7 +567,7 @@ class DefaultMessagesApiProvider @Inject() (
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
   def langCookieSameSite =
-    config.parseSameSite("play.i18n.langCookieSameSite")
+    HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
     (langs.availables.map { lang =>
