@@ -341,6 +341,10 @@ public class Http {
          */
         public Map<String, Object> args;
 
+        /**
+         * @deprecated Inject a {@link FileMimeTypes} component and use the {@link FileMimeTypes#fileMimeTypes} method. Since 2.7.0.
+         */
+        @Deprecated
         public FileMimeTypes fileMimeTypes() {
             return components.fileMimeTypes();
         }
