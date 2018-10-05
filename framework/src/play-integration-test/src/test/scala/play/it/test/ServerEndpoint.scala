@@ -13,48 +13,38 @@ import play.api.test.PlayRunners
 import play.api.{ Application, Mode }
 import play.core.ApplicationProvider
 import play.core.server.ServerConfig
-import play.it.test.HttpsEndpoint.ServerSSL
+import play.it.test.ServerEndpoint.ClientSsl
 import play.server.api.SSLEngineProvider
 
-import scala.concurrent.Await
 import scala.util.control.NonFatal
 
 /**
- * Contains information about the port and protocol used to connect to the server.
+ * Contains information about which port and protocol can be used to connect to the server.
  * This class is used to abstract out the details of connecting to different backends
  * and protocols. Most tests will operate the same no matter which endpoint they
  * are connected to.
  */
-sealed trait ServerEndpoint {
-  def description: String
-  def scheme: String
-  def port: Int
-  def expectedHttpVersions: Set[String]
-  def expectedServerAttr: Option[String]
-  final override def toString = description
+final case class ServerEndpoint(
+    description: String,
+    scheme: String,
+    host: String,
+    port: Int,
+    expectedHttpVersions: Set[String],
+    expectedServerAttr: Option[String],
+    ssl: Option[ClientSsl]
+) {
 
   /**
-   * Create a full URL out of a path. E.g. a path of `/foo` http://localhost:12345/foo`
+   * Create a full URL out of a path. E.g. a path of `/foo` becomes `http://localhost:12345/foo`
    */
-  final def pathUrl(path: String): String = s"$scheme://localhost:$port$path"
-}
-/** Represents an HTTP connection to a server. */
-trait HttpEndpoint extends ServerEndpoint {
-  override final val scheme: String = "http"
-}
-/** Represents an HTTPS connection to a server. */
-trait HttpsEndpoint extends ServerEndpoint {
-  override final val scheme: String = "https"
-  /** Information about the server's SSL setup. */
-  def serverSsl: ServerSSL
-}
+  def pathUrl(path: String): String = s"$scheme://$host:$port$path"
 
-object HttpsEndpoint {
-  /** Contains information how SSL is configured for an [[HttpsEndpoint]]. */
-  case class ServerSSL(sslContext: SSLContext, trustManager: X509TrustManager)
 }
 
 object ServerEndpoint {
+  /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
+  final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
+
   /**
    * Starts a server by following a [[ServerEndpointRecipe]] and using the
    * application provided by an [[ApplicationFactory]]. The server's endpoint

@@ -12,7 +12,7 @@ import org.specs2.specification.core.Fragment
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but
- * uses OkHttp and connects to an integration test's [[ServerEndpoints.ServerEndpoint]]
+ * uses OkHttp and connects to an integration test's [[ServerEndpoint]]
  * instead of to an arbitrary scheme and port.
  */
 trait OkHttpEndpointSupport {
@@ -61,8 +61,8 @@ trait OkHttpEndpointSupport {
       override val endpoint = e
       override val clientBuilder: OkHttpClient.Builder = {
         val b = new OkHttpClient.Builder()
-        endpoint match {
-          case e: HttpsEndpoint =>
+        endpoint.ssl match {
+          case Some(ssl) =>
 
             // We are only using this for tests, so we are accepting all host names
             // when OkHttp client verifies the identity of the server with the hostname.
@@ -71,7 +71,7 @@ trait OkHttpEndpointSupport {
               override def verify(s: String, sslSession: SSLSession): Boolean = true
             }
 
-            b.sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
+            b.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
               .hostnameVerifier(allowAllHostnameVerifier)
           case _ => b
         }
