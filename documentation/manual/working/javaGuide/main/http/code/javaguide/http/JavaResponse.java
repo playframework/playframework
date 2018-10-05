@@ -130,9 +130,10 @@ public class JavaResponse extends WithApplication {
             }
             //#discard-cookie
         }, fakeRequest(), mat).cookies();
-        Cookie cookie = cookies.get("theme");
-        assertThat(cookie.name(), equalTo("theme"));
-        assertThat(cookie.value(), equalTo(""));
+        Optional<Cookie> cookie = cookies.getCookie("theme");
+        assertTrue(cookie.isPresent());
+        assertThat(cookie.get().name(), equalTo("theme"));
+        assertThat(cookie.get().value(), equalTo(""));
     }
 
     @Test
