@@ -342,7 +342,7 @@ public class Http {
         public Map<String, Object> args;
 
         /**
-         * @deprecated Inject a {@link FileMimeTypes} component and use the {@link FileMimeTypes#fileMimeTypes} method. Since 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. Inject a {@link FileMimeTypes} and use the {@link FileMimeTypes#fileMimeTypes} method instead.
          */
         @Deprecated
         public FileMimeTypes fileMimeTypes() {
