@@ -156,7 +156,10 @@ public class Http {
          * The context id (unique)
          *
          * @return the id
+         *
+         * @deprecated Use {@link RequestHeader#id()} instead. Since 2.7.
          */
+        @Deprecated
         public Long id() {
             return id;
         }
@@ -599,6 +602,13 @@ public class Http {
     }
 
     public interface RequestHeader {
+
+        /**
+         * The request id. The request id is stored as an attribute indexed by {@link RequestAttrKey#Id()}.
+         */
+        default Long id() {
+            return (Long) attrs().get(RequestAttrKey.Id().asJava());
+        }
 
         /**
          * The complete request URI, containing both path and query string.
