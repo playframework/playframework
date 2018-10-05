@@ -15,27 +15,27 @@ import com.typesafe.sslconfig.util.NoopLogger
 /**
  * A fake key store
  */
-@deprecated("Deprecated in favour of the FakeKeyStore in ssl-config", "2.7.0")
+@deprecated("Deprecated in favour of the com.typesafe.sslconfig.ssl.FakeKeyStore in ssl-config", "2.7.0")
 object FakeKeyStore {
   private final val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
 
-  val GeneratedKeyStore: String = sslconfig.FakeKeyStore.GeneratedKeyStore
-  val ExportedCert: String = sslconfig.FakeKeyStore.ExportedCert
-  val TrustedAlias = sslconfig.FakeKeyStore.TrustedAlias
-  val DistinguishedName = sslconfig.FakeKeyStore.DistinguishedName
-  val SignatureAlgorithmName = sslconfig.FakeKeyStore.SignatureAlgorithmName
-  val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.SignatureAlgorithmOID
+  val GeneratedKeyStore: String = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
+  val ExportedCert: String = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
+  val TrustedAlias: String = sslconfig.FakeKeyStore.SelfSigned.Alias.trustedCertEntry
+  val DistinguishedName: String = sslconfig.FakeKeyStore.SelfSigned.DistinguishedName
+  val SignatureAlgorithmName: String = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmName
+  val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmOID
 
   object CertificateAuthority {
-    val ExportedCertificate = sslconfig.FakeKeyStore.CertificateAuthority.ExportedCertificate
-    val TrustedAlias = sslconfig.FakeKeyStore.CertificateAuthority.TrustedAlias
-    val DistinguishedName = sslconfig.FakeKeyStore.CertificateAuthority.DistinguishedName
+    val ExportedCertificate: String = sslconfig.FakeChainedKeyStore.KeystoreSettings.GeneratedKeyStore
+    val TrustedAlias: String = sslconfig.FakeChainedKeyStore.CA.Alias.trustedCertEntry
+    val DistinguishedName: String = sslconfig.FakeChainedKeyStore.CA.DistinguishedName
   }
 
   /**
    * @param appPath a file descriptor to the root folder of the project (the root, not a particular module).
    */
-  def getKeyStoreFilePath(appPath: File) = FakeKeyStore.getKeyStoreFilePath(appPath)
+  def getKeyStoreFilePath(appPath: File): File = FakeKeyStore.getKeyStoreFilePath(appPath)
 
   def createKeyStore(appPath: File): KeyStore = FakeKeyStore.createKeyStore(appPath)
 
