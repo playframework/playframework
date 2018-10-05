@@ -18,6 +18,7 @@ import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
 import play.libs.XML.Constants
 import javax.xml.XMLConstants
+import play.api.mvc.Cookie.SameSite
 
 import scala.util.{ Failure, Success, Try }
 
@@ -191,6 +192,12 @@ object Play {
    */
   def langCookieHttpOnly(implicit messagesApi: MessagesApi): Boolean =
     messagesApi.langCookieHttpOnly
+
+  /**
+   * Returns the SameSite setting of the language cookie.
+   */
+  def langCookieSameSite(implicit messagesApi: MessagesApi): Option[SameSite] =
+    messagesApi.langCookieSameSite
 
   /**
    * A convenient function for getting an implicit materializer from the current application

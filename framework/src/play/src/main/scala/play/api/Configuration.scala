@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
 import com.typesafe.config.impl.ConfigImpl
+import play.api.mvc.Cookie.SameSite
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
@@ -1006,6 +1007,18 @@ case class Configuration(underlying: Config) {
    */
   def globalError(message: String, e: Option[Throwable] = None): PlayException = {
     Configuration.configError(message, Option(underlying.root.origin), e)
+  }
+
+  def parseSameSite(key: String): Option[SameSite] = {
+    get[Option[String]](key).flatMap { value =>
+      val result = SameSite.parse(value)
+      if (result.isEmpty) {
+        Logger.warn(
+          s"""Assuming $key = null, since "$value" is not a valid SameSite value (${SameSite.values.mkString(", ")})"""
+        )
+      }
+      result
+    }
   }
 }
 

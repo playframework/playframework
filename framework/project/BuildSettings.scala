@@ -662,7 +662,16 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.copy*"),
       
       // Add play.mvc.Http#Cookies getCookie method
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie"),
+
+      // Add play.i18n.langCookieSameSite config
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.DefaultMessagesApi.this"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieSameSite"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.i18n.DefaultMessagesApi.<init>$default$6"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.Helpers.stubMessagesApi$default$6"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.StubMessagesFactory.stubMessagesApi$default$6"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

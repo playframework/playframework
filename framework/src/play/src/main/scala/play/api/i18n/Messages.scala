@@ -13,6 +13,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 import play.api._
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedKey
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
 import play.libs.Scala
 import play.mvc.Http
@@ -431,6 +432,8 @@ trait MessagesApi {
 
   def langCookieHttpOnly: Boolean
 
+  def langCookieSameSite: Option[SameSite]
+
   /**
    * @return The Java version for Messages API.
    */
@@ -447,6 +450,7 @@ class DefaultMessagesApi @Inject() (
     val langCookieName: String = "PLAY_LANG",
     val langCookieSecure: Boolean = false,
     val langCookieHttpOnly: Boolean = false,
+    val langCookieSameSite: Option[SameSite] = None,
     val httpConfiguration: HttpConfiguration = HttpConfiguration()) extends MessagesApi {
 
   // Java API
@@ -457,6 +461,7 @@ class DefaultMessagesApi @Inject() (
       "PLAY_LANG",
       false,
       false,
+      None,
       HttpConfiguration()
     )
   }
@@ -518,7 +523,8 @@ class DefaultMessagesApi @Inject() (
       path = httpConfiguration.session.path,
       domain = httpConfiguration.session.domain,
       secure = langCookieSecure,
-      httpOnly = langCookieHttpOnly))
+      httpOnly = langCookieHttpOnly,
+      sameSite = langCookieSameSite))
   }
 
   override def clearLang(result: Result): Result = {
@@ -546,6 +552,7 @@ class DefaultMessagesApiProvider @Inject() (
       langCookieName = langCookieName,
       langCookieSecure = langCookieSecure,
       langCookieHttpOnly = langCookieHttpOnly,
+      langCookieSameSite = langCookieSameSite,
       httpConfiguration = httpConfiguration
     )
   }
@@ -558,6 +565,9 @@ class DefaultMessagesApiProvider @Inject() (
 
   def langCookieHttpOnly =
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
+
+  def langCookieSameSite =
+    config.parseSameSite("play.i18n.langCookieSameSite")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
     (langs.availables.map { lang =>

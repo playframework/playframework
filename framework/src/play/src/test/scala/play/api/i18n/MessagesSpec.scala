@@ -71,6 +71,22 @@ class MessagesSpec extends Specification {
       cookie.value must_== "en-AU"
     }
 
+    "not have a default for the language cookie's SameSite attribute" in {
+      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config = Configuration.reference
+      val langs = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookieSameSite must_== None
+    }
+
+    "correctly pick up the config for the language cookie's SameSite attribute" in {
+      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "Strict"))
+      val langs = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookieSameSite must_== Option(Cookie.SameSite.Strict)
+    }
+
     "support getting a preferred lang from a Scala request" in {
       "when an accepted lang is available" in {
         api.preferred(FakeRequest().withHeaders("Accept-Language" -> "fr")).lang must_== Lang("fr")

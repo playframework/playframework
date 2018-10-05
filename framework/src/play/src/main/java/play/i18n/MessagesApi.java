@@ -9,12 +9,14 @@ import play.mvc.Http;
 import play.mvc.Result;
 import scala.collection.Seq;
 import scala.collection.mutable.Buffer;
+import scala.compat.java8.OptionConverters;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The messages API.
@@ -167,6 +169,10 @@ public class MessagesApi {
 
     public boolean langCookieHttpOnly() {
         return messages.langCookieHttpOnly();
+    }
+
+    public Optional<Http.Cookie.SameSite> langCookieSameSite() {
+        return OptionConverters.toJava(messages.langCookieSameSite()).map(sameSite -> sameSite.asJava());
     }
 
 }
