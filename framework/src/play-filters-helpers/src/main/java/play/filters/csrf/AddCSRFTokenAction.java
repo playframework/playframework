@@ -72,17 +72,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
         final play.api.mvc.Request<RequestBody> newRequest = request;
         // Methods returning requests should return the tagged request
-        Http.Context newCtx = new Http.WrappedContext(ctx) {
-            @Override
-            public Request request() {
-                return new RequestImpl(newRequest);
-            }
-
-            @Override
-            public play.api.mvc.RequestHeader _requestHeader() {
-                return newRequest;
-            }
-        };
+        Http.Context newCtx = ctx.withRequest(new RequestImpl(newRequest));
 
         Http.Context.current.set(newCtx);
         return delegate.call(newCtx);

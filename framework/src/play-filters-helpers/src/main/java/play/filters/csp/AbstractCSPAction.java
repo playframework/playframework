@@ -33,17 +33,7 @@ public abstract class AbstractCSPAction extends Action<CSP> {
         Http.Request newRequest = toJava(cspResult.nonce())
                 .map(n -> request.addAttr(RequestAttrKey.CSPNonce().asJava(), n))
                 .orElseGet(() -> request);
-        Http.Context newCtx = new Http.WrappedContext(ctx) {
-            @Override
-            public Http.Request request() {
-                return newRequest;
-            }
-
-            @Override
-            public play.api.mvc.RequestHeader _requestHeader() {
-                return newRequest.asScala();
-            }
-        };
+        Http.Context newCtx = ctx.withRequest(newRequest);
 
         Http.Context.current.set(newCtx);
         return delegate.call(newCtx).thenApply((Result result) -> {
