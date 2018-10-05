@@ -23,6 +23,7 @@ import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
