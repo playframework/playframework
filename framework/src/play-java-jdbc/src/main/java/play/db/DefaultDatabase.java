@@ -101,8 +101,18 @@ public class DefaultDatabase implements Database {
     }
 
     @Override
+    public void withTransaction(TransactionIsolationLevel isolationLevel, ConnectionRunnable block) {
+        db.withTransaction(isolationLevel.asScala(), connectionFunction(block));
+    }
+
+    @Override
     public <A> A withTransaction(ConnectionCallable<A> block) {
         return db.withTransaction(connectionFunction(block));
+    }
+
+    @Override
+    public <A> A withTransaction(TransactionIsolationLevel isolationLevel, ConnectionCallable<A> block) {
+        return db.withTransaction(isolationLevel.asScala(), connectionFunction(block));
     }
 
     @Override
