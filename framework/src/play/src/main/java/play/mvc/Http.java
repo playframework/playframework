@@ -157,7 +157,7 @@ public class Http {
          *
          * @return the id
          *
-         * @deprecated Use {@link RequestHeader#id()} instead. Since 2.7.
+         * @deprecated Deprecated as of 2.7.0 Use {@link RequestHeader#id()} instead.
          */
         @Deprecated
         public Long id() {
