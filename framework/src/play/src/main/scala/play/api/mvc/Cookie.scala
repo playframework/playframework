@@ -403,7 +403,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
   /**
    *  The cookie path.
    */
-  def path: String
+  def path: String = "/"
 
   /**
    * The value of the SameSite attribute of the cookie. Defaults to no SameSite.
