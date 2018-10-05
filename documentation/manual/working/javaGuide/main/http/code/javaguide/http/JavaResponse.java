@@ -23,6 +23,7 @@ import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
@@ -87,7 +88,9 @@ public class JavaResponse extends WithApplication {
             //#set-cookie
         }, fakeRequest(), mat).cookies();
 
-        assertThat(cookies.get("theme").value(), equalTo("blue"));
+        Optional<Cookie> cookie = cookies.getCookie("theme");
+        assertTrue(cookie.isPresent());
+        assertThat(cookie.get().value(), equalTo("blue"));
     }
 
     @Test
@@ -109,7 +112,11 @@ public class JavaResponse extends WithApplication {
             }
             //#detailed-set-cookie
         }, fakeRequest(), mat).cookies();
-        Cookie cookie = cookies.get("theme");
+        Optional<Cookie> cookieOpt = cookies.getCookie("theme");
+
+        assertTrue(cookieOpt.isPresent());
+
+        Cookie cookie = cookieOpt.get();
         assertThat(cookie.name(), equalTo("theme"));
         assertThat(cookie.value(), equalTo("blue"));
         assertThat(cookie.maxAge(), equalTo(3600));
@@ -130,9 +137,10 @@ public class JavaResponse extends WithApplication {
             }
             //#discard-cookie
         }, fakeRequest(), mat).cookies();
-        Cookie cookie = cookies.get("theme");
-        assertThat(cookie.name(), equalTo("theme"));
-        assertThat(cookie.value(), equalTo(""));
+        Optional<Cookie> cookie = cookies.getCookie("theme");
+        assertTrue(cookie.isPresent());
+        assertThat(cookie.get().name(), equalTo("theme"));
+        assertThat(cookie.get().value(), equalTo(""));
     }
 
     @Test

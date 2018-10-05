@@ -238,9 +238,22 @@ public class Result {
      *
      * @param name the cookie's name.
      * @return the cookie (if it was set)
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
      */
+    @Deprecated
     public Cookie cookie(String name) {
         return cookies().get(name);
+    }
+
+    /**
+     * Extracts a Cookie value from this Result value
+     *
+     * @param name the cookie's name.
+     * @return the optional cookie
+     */
+    public Optional<Cookie> getCookie(String name) {
+        return cookies().getCookie(name);
     }
 
     /**
@@ -251,8 +264,8 @@ public class Result {
     public Cookies cookies() {
         return new Cookies() {
             @Override
-            public Cookie get(String name) {
-                return cookies.stream().filter(c -> c.name().equals(name)).findFirst().get();
+            public Optional<Cookie> getCookie(String name) {
+                return cookies.stream().filter(c -> c.name().equals(name)).findFirst();
             }
 
             @Override

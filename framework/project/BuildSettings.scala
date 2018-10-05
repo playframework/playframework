@@ -659,7 +659,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeaderImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.copy*"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.copy*")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.copy*"),
+      
+      // Add play.mvc.Http#Cookies getCookie method
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

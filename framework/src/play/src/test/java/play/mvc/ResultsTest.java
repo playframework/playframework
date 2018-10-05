@@ -182,6 +182,14 @@ public class ResultsTest {
     assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
   }
 
+  @Test
+  public void getOptionalCookie() {
+    Result result = Results.ok().withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
+    assertTrue(result.getCookie("foo").isPresent());
+    assertEquals(result.getCookie("foo").get().name(), "foo");
+    assertFalse(result.getCookie("bar").isPresent());
+  }
+
   private void mockRegularFileTypes() {
     HttpConfiguration httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(Configuration.reference(), play.api.Environment.simple(new File("."), Mode.TEST.asScala())).get();
     final DefaultFileMimeTypes defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes()).get();

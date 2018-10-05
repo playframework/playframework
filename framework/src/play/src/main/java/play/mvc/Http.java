@@ -2295,8 +2295,19 @@ public class Http {
         /**
          * @param name Name of the cookie to retrieve
          * @return the cookie that is associated with the given name
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
          */
-        Cookie get(String name);
+        @Deprecated
+        default Cookie get(String name) {
+            return getCookie(name).get();
+        }
+
+        /**
+         *
+         * @param name Name of the cookie to retrieve
+         * @return the optional cookie that is associated with the given name
+         */
+        Optional<Cookie> getCookie(String name);
 
     }
 
