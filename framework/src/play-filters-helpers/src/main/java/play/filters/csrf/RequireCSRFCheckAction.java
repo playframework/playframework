@@ -51,7 +51,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         CSRFActionHelper csrfActionHelper =
             new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
-        RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx._requestHeader());
+        RequestHeader request = csrfActionHelper.tagRequestFromHeader(ctx.request().asScala());
         // Check for bypass
         if (!csrfActionHelper.requiresCsrfCheck(request)) {
             return delegate.call(ctx);
