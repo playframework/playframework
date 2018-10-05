@@ -120,8 +120,47 @@ public class Http {
         public Context(Long id, play.api.mvc.RequestHeader header, Request request,
                 Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args,
                 JavaContextComponents components) {
+            this(id, header, request, sessionData, flashData, args, null, components);
+        }
+
+        /**
+         * Creates a new HTTP context.
+         *
+         * @param id the unique context ID
+         * @param header the request header
+         * @param request the request with body
+         * @param sessionData the session data extracted from the session cookie
+         * @param flashData the flash data extracted from the flash cookie
+         * @param args any arbitrary data to associate with this request context.
+         * @param lang the transient lang to use.
+         * @param components the context components.
+         */
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request,
+                       Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args, Lang lang,
+                       JavaContextComponents components) {
             this(id, header, request, new Response(), new Session(sessionData), new Flash(flashData),
-                new HashMap<>(args), components);
+                new HashMap<>(args), lang, components);
+        }
+
+        /**
+         * Creates a new HTTP context, using the references provided.
+         *
+         * Use this constructor (or withRequest) to copy a context within a Java Action to be passed to a delegate.
+         *
+         * @param id the unique context ID
+         * @param header the request header
+         * @param request the request with body
+         * @param response the response instance to use
+         * @param session the session instance to use
+         * @param flash the flash instance to use
+         * @param args any arbitrary data to associate with this request context.
+         * @param components the context components.
+         *
+         * @deprecated Use {@link #Context(Long, play.api.mvc.RequestHeader, Request, Response, Session, Flash, Map, Lang, JavaContextComponents)} instead. Since 2.7.0.
+         */
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
+                       Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
+            this(id, header, request, response, session, flash, args, null, components);
         }
 
         /**
@@ -136,16 +175,18 @@ public class Http {
          * @param session the session instance to use
          * @param flash the flash instance to use
          * @param args any arbitrary data to associate with this request context.
+         * @param lang the transient lang to use.
          * @param components the context components.
          */
         public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
-                Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
+                Session session, Flash flash, Map<String,Object> args, Lang lang, JavaContextComponents components) {
             this.id = id;
             this.request = request;
             this.response = response;
             this.session = session;
             this.flash = flash;
             this.args = args;
+            this.lang = lang;
             this.components = components;
         }
 
@@ -434,7 +475,7 @@ public class Http {
          * @return The new context.
          */
         public Context withRequest(Request request) {
-            return new Context(id, request.asScala(), request, response, session, flash, args, components);
+            return new Context(id, request.asScala(), request, response, session, flash, args, lang, components);
         }
     }
 
