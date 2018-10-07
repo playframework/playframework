@@ -296,13 +296,17 @@ public interface BodyParser<A> {
 
         private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TolerantText.class);
 
+        private final Charset defaultCharset;
+
         public TolerantText(long maxLength, HttpErrorHandler errorHandler) {
             super(maxLength, errorHandler, "Error decoding text body");
+            this.defaultCharset = US_ASCII;
         }
 
         @Inject
         public TolerantText(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler) {
             super(httpConfiguration, errorHandler, "Error decoding text body");
+            this.defaultCharset = Charset.forName(httpConfiguration.parser().defaultCharset());
         }
 
         @Override
@@ -331,7 +335,7 @@ public interface BodyParser<A> {
             // Per RFC 6657:
             // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
             // https://tools.ietf.org/html/rfc6657#section-4
-            Charset charset = request.charset().map(Charset::forName).orElse(US_ASCII);
+            Charset charset = request.charset().map(Charset::forName).orElse(defaultCharset);
             return decode.apply(charset).right.orElseGet(
                     () -> {
                         // Fallback to UTF-8 if user supplied charset doesn't work...

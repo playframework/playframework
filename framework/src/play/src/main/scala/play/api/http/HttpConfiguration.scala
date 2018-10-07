@@ -155,7 +155,8 @@ case class FlashConfiguration(
  */
 case class ParserConfiguration(
     maxMemoryBuffer: Long = 102400,
-    maxDiskBuffer: Long = 10485760)
+    maxDiskBuffer: Long = 10485760,
+    defaultCharset: String = "ISO-8859-1")
 
 /**
  * Configuration for action composition.
@@ -217,7 +218,8 @@ object HttpConfiguration {
       context = context,
       parser = ParserConfiguration(
         maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
-        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
+        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes,
+        defaultCharset = config.getOptional[String]("play.http.parser.defaultCharset").getOrElse("ISO-8859-1")
       ),
       actionComposition = ActionCompositionConfiguration(
         controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
