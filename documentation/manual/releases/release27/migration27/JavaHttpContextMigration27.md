@@ -2,7 +2,7 @@
 
 # Java `Http.Context` changes
 
-Multiple changes were made to `Http.Context`. The idea is to move more and more away from `Http.Context` which has needs a Thread Local and it is hard to test and to misuse.
+Multiple changes were made to `Http.Context`. The idea is to move more and more away from `Http.Context` which uses a thread local. The methods on Result are easier to test and harder to misuse.
 
 ### `Http.Context` Request tags removed from `args` 
 
