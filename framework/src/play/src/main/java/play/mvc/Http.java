@@ -506,7 +506,7 @@ public class Http {
          * @param wrapped the context the created instance will wrap
          */
         public WrappedContext(Context wrapped) {
-            super(wrapped.id(), wrapped.request().asScala(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.components);
+            super(wrapped.id(), wrapped.request().asScala(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.lang, wrapped.components);
             this.args = wrapped.args;
             this.wrapped = wrapped;
         }
@@ -567,6 +567,26 @@ public class Http {
         @Override
         public void clearLang() {
             wrapped.clearLang();
+        }
+
+        @Override
+        public void setTransientLang(String code) {
+            wrapped.setTransientLang(code);
+        }
+
+        @Override
+        public void setTransientLang(Lang lang) {
+            wrapped.setTransientLang(lang);
+        }
+
+        @Override
+        public void clearTransientLang() {
+            wrapped.clearTransientLang();
+        }
+
+        @Override
+        public Messages messages() {
+            return wrapped.messages();
         }
     }
 
