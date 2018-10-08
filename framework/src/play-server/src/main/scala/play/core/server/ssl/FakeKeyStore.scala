@@ -19,18 +19,11 @@ import com.typesafe.sslconfig.util.NoopLogger
 object FakeKeyStore {
   private final val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
 
-  val GeneratedKeyStore: String = sslconfig.FakeKeyStore.GeneratedKeyStore
-  val ExportedCert: String = sslconfig.FakeKeyStore.ExportedCert
-  val TrustedAlias = sslconfig.FakeKeyStore.TrustedAlias
-  val DistinguishedName = sslconfig.FakeKeyStore.DistinguishedName
-  val SignatureAlgorithmName = sslconfig.FakeKeyStore.SignatureAlgorithmName
-  val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.SignatureAlgorithmOID
-
-  object CertificateAuthority {
-    val ExportedCertificate = sslconfig.FakeKeyStore.CertificateAuthority.ExportedCertificate
-    val TrustedAlias = sslconfig.FakeKeyStore.CertificateAuthority.TrustedAlias
-    val DistinguishedName = sslconfig.FakeKeyStore.CertificateAuthority.DistinguishedName
-  }
+  val GeneratedKeyStore: String = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
+  val TrustedAlias = sslconfig.FakeKeyStore.SelfSigned.Alias.trustedCertEntry
+  val DistinguishedName = sslconfig.FakeKeyStore.SelfSigned.DistinguishedName
+  val SignatureAlgorithmName = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmName
+  val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmOID
 
   /**
    * @param appPath a file descriptor to the root folder of the project (the root, not a particular module).

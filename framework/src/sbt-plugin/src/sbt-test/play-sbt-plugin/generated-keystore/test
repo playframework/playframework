@@ -1,7 +1,11 @@
 # runs the devmode and checks that a generated-keystore file is created
+
+# A clean is required to ensure no `target/` folder exists with an obsolete keystore
+> clean
 > run -Dhttps.port=9443
+## an HTTP request to a relative path. The `makeRequest` implementation uses https://localhost:9443 hardcoded
 > makeRequest / 200
 
 # keystore file was generated
-$ exists target/dev-mode/generated.keystore
+$ exists target/dev-mode/selfsigned.keystore
 > playStop

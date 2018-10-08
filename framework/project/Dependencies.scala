@@ -12,7 +12,7 @@ object Dependencies {
   val akkaHttpVersion = "10.1.5"
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.4"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.5"
 
   val playJsonVersion = "2.6.10"
 
