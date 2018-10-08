@@ -560,6 +560,24 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.status must_== 500
         (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be empty
       }
+
+    "discard cookies from result" in {
+      "on the default path with no domain and that's not secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard")))) { response =>
+        response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+      }
+
+      "on the given path with no domain and not that's secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard", path = "/path")))) { response =>
+        response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+      }
+
+      "on the given path and domain that's not secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com"))))) { response =>
+        response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
+      }
+
+      "on the given path and domain that's is secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com"), secure = true)))) { response =>
+        response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
+      }
+    }
   }
 
   def chunk(content: String) = HttpChunk.Chunk(ByteString(content))

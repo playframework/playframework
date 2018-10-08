@@ -113,7 +113,7 @@ object Cookie {
  * @param secure whether this cookie is secured
  */
 case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure)
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false)
 }
 
 /**
