@@ -20,17 +20,10 @@ object FakeKeyStore {
   private final val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
 
   val GeneratedKeyStore: String = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
-  val ExportedCert: String = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
   val TrustedAlias: String = sslconfig.FakeKeyStore.SelfSigned.Alias.trustedCertEntry
   val DistinguishedName: String = sslconfig.FakeKeyStore.SelfSigned.DistinguishedName
   val SignatureAlgorithmName: String = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmName
   val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmOID
-
-  object CertificateAuthority {
-    val ExportedCertificate: String = sslconfig.FakeChainedKeyStore.KeystoreSettings.GeneratedKeyStore
-    val TrustedAlias: String = sslconfig.FakeChainedKeyStore.CA.Alias.trustedCertEntry
-    val DistinguishedName: String = sslconfig.FakeChainedKeyStore.CA.DistinguishedName
-  }
 
   /**
    * @param appPath a file descriptor to the root folder of the project (the root, not a particular module).
