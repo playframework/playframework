@@ -3,5 +3,5 @@
 > makeRequest / 200
 
 # keystore file was generated
-$ exists target/dev-mode/generated.keystore
+$ exists target/dev-mode/selfsigned.keystore
 > playStop
