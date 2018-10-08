@@ -12,12 +12,11 @@ import static org.junit.Assert.*;
 
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
+import javaguide.i18n.html.indextemplate;
 import javaguide.i18n.html.hellotemplate;
 import javaguide.i18n.html.helloscalatemplate;
 import play.Application;
-import play.api.i18n.DefaultLangs;
 import play.core.j.JavaHandlerComponents;
-import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -29,7 +28,6 @@ import com.google.common.collect.ImmutableMap;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
-import scala.collection.immutable.Map;
 
 import java.util.*;
 
@@ -45,7 +43,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSpecifyLangHello() {
-        MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+        MessagesApi messagesApi = instanceOf(MessagesApi.class);
         //#specify-lang-render
         String title = messagesApi.get(Lang.forCode("fr"), "hello");
         //#specify-lang-render
@@ -67,7 +65,7 @@ public class JavaI18N extends WithApplication {
 
         //#default-lang-render
         public Result index() {
-            return ok(hellotemplate.render()); // "hello"
+            return ok(indextemplate.render()); // "hello"
         }
         //#default-lang-render
     }
@@ -91,7 +89,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkChangeLangHello() {
-        Result result = MockJavaActionHelper.call(new ChangeLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new ChangeLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("bonjour"));
     }
 
@@ -104,14 +102,18 @@ public class JavaI18N extends WithApplication {
 
     public static class ChangeLangController extends MockJavaAction {
 
-        ChangeLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        ChangeLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
         //#change-lang-render
         public Result index() {
-            ctx().changeLang("fr");
-            return ok(hellotemplate.render()); // "bonjour"
+            Lang lang = Lang.forCode("fr");
+            Messages messages = messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+            return ok(hellotemplate.render(messages)).withLang(lang, messagesApi); // "bonjour"
         }
         //#change-lang-render
     }
@@ -127,7 +129,7 @@ public class JavaI18N extends WithApplication {
         public Result index() {
             Messages messages = Http.Context.current().messages();
             String hello = messages.at("hello");
-            return ok(hellotemplate.render());
+            return ok(indextemplate.render());
         }
         //#show-context-messages
     }
@@ -147,7 +149,7 @@ public class JavaI18N extends WithApplication {
         //#set-transient-lang-render
         public Result index() {
             ctx().setTransientLang("en-US");
-            return ok(hellotemplate.render()); // "howdy"
+            return ok(indextemplate.render()); // "howdy"
         }
         //#set-transient-lang-render
     }

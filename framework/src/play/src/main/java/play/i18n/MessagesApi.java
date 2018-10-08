@@ -6,6 +6,7 @@ package play.i18n;
 
 import play.libs.Scala;
 import play.mvc.Http;
+import play.mvc.Result;
 import scala.collection.Seq;
 import scala.collection.mutable.Buffer;
 
@@ -121,7 +122,6 @@ public class MessagesApi {
         return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
-
     /**
      * Get a messages context appropriate for the given request.
      *
@@ -134,6 +134,27 @@ public class MessagesApi {
     public Messages preferred(Http.RequestHeader request) {
         play.api.i18n.Messages msgs = messages.preferred(request);
         return new MessagesImpl(new Lang(msgs.lang()), this);
+    }
+
+    /**
+     * Set the lang on the given result.
+     *
+     * @param result the result where the lang will be set.
+     * @param lang the lang to set on the result
+     * @return a new result with the lang.
+     */
+    public Result setLang(Result result, Lang lang) {
+        return messages.setLang(result.asScala(), lang).asJava();
+    }
+
+    /**
+     * Clear the lang for that result.
+     *
+     * @param result the result to clear the lang.
+     * @return a new result with a cleared lang.
+     */
+    public Result clearLang(Result result) {
+        return messages.clearLang(result.asScala()).asJava();
     }
 
     public String langCookieName() {

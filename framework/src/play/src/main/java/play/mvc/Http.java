@@ -280,7 +280,10 @@ public class Http {
          *
          * @param code New lang code to use (e.g. "fr", "en-US", etc.)
          * @return true if the requested lang was supported by the application, otherwise false
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)}.
          */
+        @Deprecated
         public boolean changeLang(String code) {
             return changeLang(Lang.forCode(code));
         }
@@ -289,8 +292,11 @@ public class Http {
          * Change durably the lang for the current user.
          *
          * @param lang New Lang object to use
-         * @return true if the requested lang was supported by the application, otherwise false
+         * @return true if the requested lang was supported by the application, otherwise false.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)}.
          */
+        @Deprecated
         public boolean changeLang(Lang lang) {
             if (langs().availables().contains(lang)) {
                 this.lang = lang;
@@ -313,7 +319,10 @@ public class Http {
 
         /**
          * Clear the lang for the current user.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)}.
          */
+        @Deprecated
         public void clearLang() {
             this.lang = null;
             scala.Option<String> domain = sessionDomain();
