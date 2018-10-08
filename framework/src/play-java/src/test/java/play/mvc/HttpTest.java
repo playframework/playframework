@@ -237,6 +237,33 @@ public class HttpTest {
     }
 
     @Test
+    public void testWrappedCtxLang() {
+        withApplication((app) -> {
+            JavaContextComponents contextComponents = app.injector().instanceOf(JavaContextComponents.class);
+
+            Context ctx = new Context(new RequestBuilder(), contextComponents);
+
+            // Lets change the lang to something that is not the default
+            ctx.setTransientLang("fr");
+
+            // Make sure the context did set that lang correctly
+            assertThat(ctx.lang().code()).isEqualTo("fr");
+
+            // Now let's copy the context - only with a new request set, the rest should stay the same
+            Context newCtx = new Http.WrappedContext(ctx) {};
+
+            // Make sure the new context correctly set its internal lang variable
+            assertThat(newCtx.lang().code()).isEqualTo("fr");
+
+            // Now change the lang on the new context to something not default
+            newCtx.setTransientLang("en-US");
+
+            // Make sure the new context correctly set its internal lang variable
+            assertThat(newCtx.lang().code()).isEqualTo("en-US");
+        });
+    }
+
+    @Test
     public void testTemplateMagicForJavaNoImplicitMessages() {
         withApplication((app) -> {
             Context ctx = new Context(new RequestBuilder(), app.injector().instanceOf(JavaContextComponents.class));
