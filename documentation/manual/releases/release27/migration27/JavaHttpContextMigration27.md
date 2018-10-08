@@ -139,19 +139,21 @@ public class FooController extends Controller {
 }
 ```
 
-If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example in an action you have to create a `Messages` instance, e.g.:
+If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example in an action method you have to create a `Messages` instance like:
 
 ```java
-// We want to render the template in french
-Lang lang = Lang.forCode("fr");
-// Get a Message instance based on the french locale, however if that isn't available try to choose
-// the best fitting language based on the current request
-Messages messages = this.messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
-// Now render the template
+Messages messages = this.messagesApi.preferred(Lang.forCode("es"));
 return ok(myview.render(messages));
 ```
-
-To not repeat that code again and again inside each action method you could e.g. simplify that by putting the creation of the `Messages` instance in an action of the action composition chain and save the created `Messages` instance in a request Attribute so you can access it later.
+Or if you want to have a fallback to the languages of the request you can do that as well:
+```java
+Lang lang = Lang.forCode("es");
+// Get a Message instance based on the spanish locale, however if that isn't available
+// try to choose the best fitting language based on the current request
+Messages messages = this.messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+return ok(myview.render(messages));
+```
+> **Note**: To not repeat that code again and again inside each action method you could e.g. create the `Messages` instance in an action of the [[action composition chain|JavaActionsComposition]] and save that instance in a request Attribute so you can access it later.
 
 Now the template:
 
@@ -160,7 +162,7 @@ Now the template:
 @{messages.at("hello")}
 ```
 
-> **Note**: declaring it as `implicit` will make it available to sub-views that implicitly require a `MessagesProvider` without the need to pass them one.
+> **Note**: Declaring `messages` as `implicit` will make it available to sub-views that implicitly require a `MessagesProvider` without the need to pass them one.
 
 And the same applies to `clearLang`:
 
