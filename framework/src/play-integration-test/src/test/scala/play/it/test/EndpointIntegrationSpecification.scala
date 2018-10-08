@@ -8,6 +8,8 @@ import org.specs2.execute.{ AsResult, PendingUntilFixed, Result, ResultExecution
 import org.specs2.mutable.SpecLike
 import org.specs2.specification.core.Fragment
 
+import play.api.test.{ ApplicationFactory, ApplicationFactories, ServerEndpoint, ServerEndpointRecipe }
+
 /**
  * Mixin class for integration tests that want to run over different
  * backend servers and protocols.
