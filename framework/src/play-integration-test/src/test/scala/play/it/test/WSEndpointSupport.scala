@@ -16,7 +16,7 @@ import play.api.Configuration
 import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
 import play.api.libs.ws.{ WSClient, WSClientConfig, WSRequest, WSResponse }
 import play.api.mvc.Call
-import play.api.test.{ DefaultAwaitTimeout, FutureAwaits }
+import play.api.test.{ ApplicationFactory, DefaultAwaitTimeout, FutureAwaits }
 
 import scala.annotation.implicitNotFound
 import scala.concurrent.duration.Duration

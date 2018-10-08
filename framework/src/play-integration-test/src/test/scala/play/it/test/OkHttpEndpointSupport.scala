@@ -9,6 +9,7 @@ import javax.net.ssl.{ HostnameVerifier, SSLSession }
 import okhttp3.{ OkHttpClient, Request, Response }
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
+import play.api.test.ApplicationFactory
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but

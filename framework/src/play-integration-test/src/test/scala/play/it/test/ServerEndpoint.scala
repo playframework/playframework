@@ -11,6 +11,7 @@ import com.typesafe.sslconfig.ssl.{ FakeKeyStore, FakeSSLTools }
 
 import play.api.test.PlayRunners
 import play.api.{ Application, Mode }
+import play.api.test.ApplicationFactory
 import play.core.ApplicationProvider
 import play.core.server.ServerConfig
 import play.it.test.ServerEndpoint.ClientSsl

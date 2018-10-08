@@ -6,7 +6,7 @@ package play.it.http
 
 import play.api.mvc._
 import play.api.test._
-import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
 class FormFieldOrderSpec extends PlaySpecification
   with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {

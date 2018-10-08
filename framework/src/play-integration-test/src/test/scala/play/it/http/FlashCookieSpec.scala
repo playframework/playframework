@@ -14,7 +14,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test._
-import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
 import scala.collection.JavaConverters
 
