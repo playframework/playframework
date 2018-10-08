@@ -2,11 +2,13 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.it.test
+package play.api.test
+
+import akka.annotation.ApiMayChange
 
 import play.api.Configuration
+import play.api.test.ServerEndpoint.ClientSsl
 import play.core.server.{ AkkaHttpServer, NettyServer, ServerProvider }
-import play.it.test.ServerEndpoint.ClientSsl
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used
@@ -15,20 +17,24 @@ import play.it.test.ServerEndpoint.ClientSsl
  *
  * @see [[ServerEndpoint.withEndpoint()]]
  */
-trait ServerEndpointRecipe {
+@ApiMayChange sealed trait ServerEndpointRecipe {
 
   /** A human-readable description of this endpoint. */
-  val description: String
+  def description: String
+
   /** The HTTP port to use when configuring the server. */
-  val configuredHttpPort: Option[Int]
+  def configuredHttpPort: Option[Int]
+
   /** The HTTPS port to use when configuring the server. */
-  val configuredHttpsPort: Option[Int]
+  def configuredHttpsPort: Option[Int]
+
   /**
    * Any extra configuration to use when configuring the server. This
    * configuration will be applied last so it will override any existing
    * configuration.
    */
   def serverConfiguration: Configuration
+
   /** The provider used to create the server instance. */
   def serverProvider: ServerProvider
 
@@ -45,7 +51,7 @@ trait ServerEndpointRecipe {
 }
 
 /** Provides a recipe for making an HTTP [[ServerEndpoint]]. */
-class HttpServerEndpointRecipe(
+@ApiMayChange final class HttpServerEndpointRecipe(
     override val description: String,
     override val serverProvider: ServerProvider,
     extraServerConfiguration: Configuration = Configuration.empty,
@@ -77,7 +83,7 @@ class HttpServerEndpointRecipe(
 }
 
 /** Provides a recipe for making an HTTPS [[ServerEndpoint]]. */
-class HttpsServerEndpointRecipe(
+@ApiMayChange final class HttpsServerEndpointRecipe(
     override val description: String,
     override val serverProvider: ServerProvider,
     extraServerConfiguration: Configuration = Configuration.empty,
@@ -111,7 +117,7 @@ class HttpsServerEndpointRecipe(
   override def toString: String = s"HttpsServerEndpointRecipe($description)"
 }
 
-object ServerEndpointRecipe {
+@ApiMayChange object ServerEndpointRecipe {
 
   private def http2Conf(enabled: Boolean): Configuration = Configuration("play.server.akka.http2.enabled" -> enabled)
 

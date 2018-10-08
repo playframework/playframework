@@ -2,19 +2,19 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.it.test
+package play.api.test
 
 import java.security.KeyStore
 import javax.net.ssl._
 
 import com.typesafe.sslconfig.ssl.{ FakeKeyStore, FakeSSLTools }
 
-import play.api.test.PlayRunners
+import akka.annotation.ApiMayChange
+
 import play.api.{ Application, Mode }
-import play.api.test.ApplicationFactory
+import play.api.test.ServerEndpoint.ClientSsl
 import play.core.ApplicationProvider
 import play.core.server.ServerConfig
-import play.it.test.ServerEndpoint.ClientSsl
 import play.server.api.SSLEngineProvider
 
 import scala.util.control.NonFatal
@@ -25,7 +25,7 @@ import scala.util.control.NonFatal
  * and protocols. Most tests will operate the same no matter which endpoint they
  * are connected to.
  */
-final case class ServerEndpoint(
+@ApiMayChange final case class ServerEndpoint(
     description: String,
     scheme: String,
     host: String,
@@ -42,7 +42,7 @@ final case class ServerEndpoint(
 
 }
 
-object ServerEndpoint {
+@ApiMayChange object ServerEndpoint {
   /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
   final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
 
@@ -103,14 +103,16 @@ object ServerEndpoint {
    * An SSLEngineProvider which simply references the values in the
    * SelfSigned object.
    */
-  private[test] class SelfSignedSSLEngineProvider(serverConfig: ServerConfig, appProvider: ApplicationProvider) extends SSLEngineProvider {
+  // public only for testing purposes
+  final class SelfSignedSSLEngineProvider(serverConfig: ServerConfig, appProvider: ApplicationProvider) extends SSLEngineProvider {
     override def createSSLEngine: SSLEngine = SelfSigned.sslContext.createSSLEngine()
   }
 
   /**
    * Contains a statically initialized self-signed certificate.
    */
-  private[test] object SelfSigned {
+  // public only for testing purposes
+  object SelfSigned {
 
     /**
      * The SSLContext and TrustManager associated with the self-signed certificate.

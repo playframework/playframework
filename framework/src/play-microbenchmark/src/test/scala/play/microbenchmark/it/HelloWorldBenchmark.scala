@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.{ OkHttpClient, Protocol, Request, Response }
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
-import play.api.test.ApplicationFactory
+import play.api.test.{ ApplicationFactory, ServerEndpoint, ServerEndpointRecipe }
 import play.it.test.HttpsEndpoint
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
