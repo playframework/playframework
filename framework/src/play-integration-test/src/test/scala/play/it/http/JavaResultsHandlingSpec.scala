@@ -245,7 +245,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; Path=/"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/"))
       }
 
       "works with Result.withLang" in makeRequestWithApp() { app =>
@@ -256,7 +256,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; Path=/"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/"))
       }
 
       "respect play.i18n.langCookieName configuration" in makeRequestWithApp(additionalConfig = Map(
@@ -269,7 +269,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; Path=/"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; SameSite=Lax; Path=/"))
       }
 
       "respect play.i18n.langCookieSecure configuration" in makeRequestWithApp(additionalConfig = Map(
@@ -282,7 +282,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; Path=/; Secure"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Secure"))
       }
 
       "respect play.i18n.langCookieHttpOnly configuration" in makeRequestWithApp(additionalConfig = Map(
@@ -295,7 +295,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; Path=/; HttpOnly"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly"))
       }
 
     }
