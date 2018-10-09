@@ -6,6 +6,7 @@ package play.mvc;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -235,6 +236,75 @@ public class Result {
      */
     public Session session() {
         return session;
+    }
+
+    /**
+     * @param request Current request
+     * @return The session carried by this result. Reads the given request’s session if this result does not has a session.
+     */
+    public Session session(Http.Request request) {
+        if(session != null) {
+            return session;
+        } else {
+            return request.session();
+        }
+    }
+
+    /**
+     * Sets a new session for this result, discarding the existing session.
+     *
+     * @param session the session to set with this result
+     * @return the new result
+     */
+    public Result withSession(Session session) {
+        return new Result(header, body, session, flash, cookies);
+    }
+
+    /**
+     * Sets a new session for this result, discarding the existing session.
+     *
+     * @param session the session to set with this result
+     * @return the new result
+     */
+    public Result withSession(Map<String, String> session) {
+        return withSession(new Session(session));
+    }
+
+    /**
+     * Discards the existing session for this result.
+     *
+     * @return the new result
+     */
+    public Result withNewSession() {
+        return withSession(Collections.emptyMap());
+    }
+
+    /**
+     * Adds values to the session.
+     *
+     * @param values A map with values to add to this result’s session
+     * @return A copy of this result with values added to its session scope.
+     */
+    public Result addingToSession(Http.Request request, Map<String, String> values) {
+        Map<String, String> newValues = new HashMap<>(session(request));
+        newValues.putAll(values);
+        return withSession(newValues);
+    }
+
+    /**
+     * Removes values from the session.
+     *
+     * @param keys Keys to remove from session
+     * @return A copy of this result with keys removed from its session scope.
+     */
+    public Result removingFromSession(Http.Request request, String... keys) {
+        Map<String, String> newValues = new HashMap<>(session(request));
+        if(keys != null) {
+            for (String key : keys) {
+                newValues.remove(key);
+            }
+        }
+        return withSession(newValues);
     }
 
     /**
