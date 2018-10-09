@@ -229,7 +229,10 @@ public class Http {
          * Returns the current session.
          *
          * @return the session
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Request#session()} and {@link Result} instead.
          */
+        @Deprecated
         public Session session() {
             return session;
         }
