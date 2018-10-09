@@ -102,7 +102,7 @@ public class Http {
             this.request = request;
             this.id = this.request.asScala().id();
             this.response = new Response();
-            this.session = new Session(Scala.asJava(this.request.asScala().session().data()));
+            this.session = new Session(this.request.session());
             this.flash = new Flash(Scala.asJava(this.request.asScala().flash().data()));
             this.args = new HashMap<>();
             this.components = components;
@@ -818,6 +818,14 @@ public class Http {
          * @return the cookie, if found, otherwise null
          */
         Cookie cookie(String name);
+
+        /**
+         * Parses the Session cookie and returns the Session data. The request's session cookie is stored in an attribute indexed by
+         * {@link RequestAttrKey#Session()}. The attribute uses a {@link Cell} to store the session cookie, to allow it to be evaluated on-demand.
+         */
+        default Session session() {
+            return attrs().get(RequestAttrKey.Session().asJava()).value().asJava();
+        }
 
         /**
          * Retrieve all headers.
