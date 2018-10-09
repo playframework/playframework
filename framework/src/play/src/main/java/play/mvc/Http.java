@@ -310,7 +310,7 @@ public class Http {
                         domain.isDefined() ? domain.get() : null,
                         messagesApi().langCookieSecure(),
                         messagesApi().langCookieHttpOnly(),
-                        SameSite.LAX
+                        messagesApi().langCookieSameSite().orElse(null)
                     );
                 response.setCookie(langCookie);
                 return true;

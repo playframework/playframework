@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
 import com.typesafe.config.impl.ConfigImpl
+import play.api.mvc.Cookie.SameSite
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 

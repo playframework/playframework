@@ -21,6 +21,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files
 import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.streams.Accumulator
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
 import play.mvc.Http.RequestBody
 import play.twirl.api.Content
@@ -501,6 +502,7 @@ trait StubMessagesFactory {
    * @param langCookieName "PLAY_LANG" by default
    * @param langCookieSecure false by default
    * @param langCookieHttpOnly false by default
+   * @param langCookieSameSite None by default
    * @param httpConfiguration configuration, HttpConfiguration() by default.
    * @return the messagesApi with minimal configuration.
    */
@@ -510,8 +512,9 @@ trait StubMessagesFactory {
     langCookieName: String = "PLAY_LANG",
     langCookieSecure: Boolean = false,
     langCookieHttpOnly: Boolean = false,
+    langCookieSameSite: Option[SameSite] = None,
     httpConfiguration: HttpConfiguration = HttpConfiguration()): MessagesApi = {
-    new DefaultMessagesApi(messages, langs, langCookieName, langCookieSecure, langCookieHttpOnly, httpConfiguration)
+    new DefaultMessagesApi(messages, langs, langCookieName, langCookieSecure, langCookieHttpOnly, langCookieSameSite, httpConfiguration)
   }
 
   /**
