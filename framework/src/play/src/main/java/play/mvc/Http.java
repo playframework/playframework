@@ -2021,6 +2021,15 @@ public class Http {
             super.clear();
         }
 
+        /**
+         * Convert this session to a Scala session.
+         *
+         * @return the Scala session.
+         */
+        public play.api.mvc.Session asScala() {
+            return new play.api.mvc.Session(Scala.asScala(this));
+        }
+
     }
 
     /**

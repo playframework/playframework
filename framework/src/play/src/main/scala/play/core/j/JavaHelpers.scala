@@ -144,10 +144,10 @@ trait JavaHelpers {
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+      wResult.withSession(javaContext.session.asScala).flashing(Flash(javaContext.flash.asScala.toMap))
     } else {
       if (javaContext.session.isDirty) {
-        wResult.withSession(Session(javaContext.session.asScala.toMap))
+        wResult.withSession(javaContext.session.asScala)
       } else {
         if (javaContext.flash.isDirty) {
           wResult.flashing(Flash(javaContext.flash.asScala.toMap))
