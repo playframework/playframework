@@ -10,6 +10,10 @@ Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]
 Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
 Instead you can use the `contextObj.request().attrs()` method now, which provides you the equivalent request attributes.
 
+### CSRF tokens removed from `args`
+
+The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
+
 ### `Http.Response` deprecated
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
