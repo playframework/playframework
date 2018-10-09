@@ -310,7 +310,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HTTPOnly"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
       }
 
       "works with Result.clearingLang" in makeRequestWithApp() { app =>
@@ -321,7 +321,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HTTPOnly"))
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
       }
     }
 
