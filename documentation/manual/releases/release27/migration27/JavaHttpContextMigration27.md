@@ -13,7 +13,7 @@ Instead you can use the `contextObj.request().attrs()` method now, which provide
 ### CSRF tokens removed from `args`
 
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
-Alternative methods of getting the token can be found [[here|JavaCsrf#Getting-the-current-token]].
+Use an [[alternative method of getting the token|JavaCsrf#Getting-the-current-token]].
 
 ### `Http.Response` deprecated
 
