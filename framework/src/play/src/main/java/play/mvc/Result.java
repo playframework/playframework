@@ -292,6 +292,19 @@ public class Result {
     }
 
     /**
+     * Adds the given key and value to the session.
+     *
+     * @param key The key to add to this result’s session
+     * @param value The value to add to this result’s session
+     * @return A copy of this result with the key and value added to its session scope.
+     */
+    public Result addingToSession(Http.Request request, String key, String value) {
+        Map<String, String> newValues = new HashMap<>(1);
+        newValues.put(key, value);
+        return addingToSession(request, newValues);
+    }
+
+    /**
      * Removes values from the session.
      *
      * @param keys Keys to remove from session
