@@ -2092,6 +2092,15 @@ public class Http {
             super.clear();
         }
 
+        /**
+         * Convert this flash to a Scala flash.
+         *
+         * @return the Scala flash.
+         */
+        public play.api.mvc.Flash asScala() {
+            return new play.api.mvc.Flash(Scala.asScala(this));
+        }
+
     }
 
     /**
