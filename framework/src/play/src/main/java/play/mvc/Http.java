@@ -241,7 +241,10 @@ public class Http {
          * Returns the current flash scope.
          *
          * @return the flash scope
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Request#flash()} and {@link Result} instead.
          */
+        @Deprecated
         public Flash flash() {
             return flash;
         }
