@@ -50,8 +50,7 @@ public class JavaFileUpload extends WithApplication {
                 File file = picture.getFile();
                 return ok("File uploaded");
             } else {
-                flash("error", "Missing file");
-                return badRequest();
+                return badRequest().flashing("error", "Missing file");
             }
         }
         //#syncUpload
