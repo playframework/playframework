@@ -671,7 +671,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.Helpers.stubMessagesApi$default$6"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.StubMessagesFactory.stubMessagesApi$default$6"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
+
+      // Add companion for play.api.mvc.Result
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

@@ -86,6 +86,20 @@ object ResponseHeader {
     if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
 }
 
+object Result {
+
+  /**
+   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
+   */
+  @inline def warnFlashingIfNotRedirect(flash: Flash, header: ResponseHeader): Unit = {
+    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
+      Logger("play").forMode(Mode.Dev).warn(
+        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+      )
+    }
+  }
+}
+
 /**
  * A simple result, which defines the response header and a body ready to send to the client.
  *
@@ -203,7 +217,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def flashing(flash: Flash): Result = {
-    warnFlashingIfNotRedirect(flash)
+    Result.warnFlashingIfNotRedirect(flash, header)
     copy(newFlash = Some(flash))
   }
 
@@ -264,17 +278,6 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     withSession(new Session(session.data -- keys))
 
   override def toString = s"Result(${header})"
-
-  /**
-   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
-   */
-  @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
-    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
-      Logger("play").forMode(Mode.Dev).warn(
-        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
-      )
-    }
-  }
 
   /**
    * Convert this result to a Java result.
