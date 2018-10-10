@@ -107,7 +107,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * Returns the current HTTP session.
      *
      * @return the session
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Request#session()} and {@link Result} instead.
      */
+    @Deprecated
     public static Session session() {
         return Http.Context.current().session();
     }
@@ -117,7 +120,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the key to set into the session
      * @param value the value to set for <code>key</code>
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static void session(String key, String value) {
         session().put(key, value);
     }
@@ -127,7 +133,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the session key
      * @return the value for the provided key, or null if there was no value
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static String session(String key) {
         return session().get(key);
     }

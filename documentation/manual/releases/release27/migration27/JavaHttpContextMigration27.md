@@ -98,7 +98,7 @@ public class MyAction extends Action.Simple {
 
 ### `Http.Context.changeLang` and `Http.Context.clearLang` deprecated
 
-That means other methods that depends directly on these two were also deprecated:
+That means other methods that depend directly on these two were also deprecated:
 
 1. `play.mvc.Controller.changeLang`
 1. `play.mvc.Controller.clearLang`
@@ -206,6 +206,77 @@ public class FooController extends Controller {
 
     public Result action() {
         return Results.ok("Hello").clearingLang(messagesApi);
+    }
+}
+```
+
+### `Http.Context.session()` deprecated
+
+That means other methods that depend directly on it were also deprecated:
+
+1. `play.mvc.Controller.session()`
+1. `play.mvc.Controller.session(String key, String value)`
+1. `play.mvc.Controller.session(String key)`
+
+The new way to retrieve the session of a request is the call the `session()` method of a `Http.Request` instance.
+The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
+
+#### Before
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+public class FooController extends Controller {
+    public Result info() {
+        String user = session("current_user");
+        return Results.ok("Hello " + user);
+    }
+
+    public Result login() {
+        session("current_user", "user@gmail.com");
+        return Results.ok("Hello");
+    }
+
+    public Result logout() {
+        session().remove("current_user");
+        return Results.ok("Hello");
+    }
+
+    public Result clear() {
+        session().clear();
+        return Results.ok("Hello");
+    }
+}
+```
+
+#### After
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+public class FooController extends Controller {
+    public Result info() {
+        String user = request().session().get("current_user");
+        return Results.ok("Hello " + user);
+    }
+
+    public Result login() {
+        return Results.ok("Hello")
+            .addingToSession(request(), "current_user", "user@gmail.com");
+    }
+
+    public Result logout() {
+        return Results.ok("Hello")
+            .removingFromSession(request(), "current_user");
+    }
+
+    public Result clear() {
+        return Results.ok("Hello")
+            .withNewSession();
     }
 }
 ```
