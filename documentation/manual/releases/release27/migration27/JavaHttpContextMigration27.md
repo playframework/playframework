@@ -89,8 +89,8 @@ import java.util.concurrent.CompletionStage;
 public class MyAction extends Action.Simple {
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
-        return delegate.call(ctx)
+    public CompletionStage<Result> call(Http.Request req) {
+        return delegate.call(req)
                 .thenApply(result -> result.withHeader("Name", "Value"));
     }
 }
