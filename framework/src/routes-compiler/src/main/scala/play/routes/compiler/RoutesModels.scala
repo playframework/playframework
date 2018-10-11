@@ -56,6 +56,11 @@ case class HandlerCall(packageName: String, controller: String, instantiate: Boo
   }.getOrElse("")
 }
 
+object Parameter {
+  final val requestClass = "Request"
+  final val requestClassFQ = "play.mvc.Http." + requestClass
+}
+
 /**
  * A parameter for a controller method.
  *
@@ -65,8 +70,8 @@ case class HandlerCall(packageName: String, controller: String, instantiate: Boo
  * @param default A default value for the parameter, if defined.
  */
 case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
-  private val requestClass = "Request"
-  private val requestClassFQ = "play.mvc.Http." + requestClass
+  import Parameter._
+
   def isJavaRequest = typeName.equalsIgnoreCase(requestClass) || typeName.equalsIgnoreCase(requestClassFQ)
   def typeNameReal = if (isJavaRequest) { requestClassFQ } else { typeName }
   def nameClean = if (isJavaRequest) { "req" } else { name }
