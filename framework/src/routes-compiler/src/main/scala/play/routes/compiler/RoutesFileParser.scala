@@ -73,7 +73,7 @@ object RoutesFileParser {
           Some(route.call.pos.column))
       }
 
-      route.call.parameters.flatMap(_.find(_.isJavaRequest)).map { p=>
+      route.call.parameters.flatMap(_.find(_.isJavaRequest)).map { p =>
         if (p.fixed.isDefined || p.default.isDefined) {
           errors += RoutesCompilationError(
             file,
