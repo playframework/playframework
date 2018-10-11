@@ -6,9 +6,11 @@ package play.api.test
 
 import akka.annotation.ApiMayChange
 
-import play.api.Configuration
+import play.api.{ Application, Configuration, Mode }
 import play.api.test.ServerEndpoint.ClientSsl
-import play.core.server.{ AkkaHttpServer, NettyServer, ServerProvider }
+import play.core.server.{ AkkaHttpServer, NettyServer, ServerConfig, ServerProvider }
+
+import scala.util.control.NonFatal
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used
@@ -138,8 +140,56 @@ import play.core.server.{ AkkaHttpServer, NettyServer, ServerProvider }
     AkkaHttp20Encrypted
   )
 
+  /**
+   * Starts a server by following a [[ServerEndpointRecipe]] and using the
+   * application provided by an [[ApplicationFactory]]. The server's endpoint
+   * is passed to the given `block` of code.
+   */
+  def startEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory): (ServerEndpoint, AutoCloseable) = {
+    val application: Application = appFactory.create()
+
+    // Create a ServerConfig with dynamic ports and using a self-signed certificate
+    val serverConfig = {
+      val sc: ServerConfig = ServerConfig(
+        port = endpointRecipe.configuredHttpPort,
+        sslPort = endpointRecipe.configuredHttpsPort,
+        mode = Mode.Test,
+        rootDir = application.path
+      )
+      val patch = endpointRecipe.serverConfiguration
+      sc.copy(configuration = sc.configuration ++ patch)
+    }
+
+    // Initialize and start the TestServer
+    val testServer: play.api.test.TestServer = new play.api.test.TestServer(
+      serverConfig, application, Some(endpointRecipe.serverProvider)
+    )
+
+    val runSynchronized = application.globalApplicationEnabled
+    if (runSynchronized) {
+      PlayRunners.mutex.lock()
+    }
+    val stopEndpoint = new AutoCloseable {
+      override def close(): Unit = {
+        testServer.stop()
+        if (runSynchronized) {
+          PlayRunners.mutex.unlock()
+        }
+      }
+    }
+    try {
+      testServer.start()
+      val endpoint: ServerEndpoint = endpointRecipe.createEndpointFromServer(testServer)
+      (endpoint, stopEndpoint)
+    } catch {
+      case NonFatal(e) =>
+        stopEndpoint.close()
+        throw e
+    }
+  }
+
   def withEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory)(block: ServerEndpoint => A): A = {
-    val (endpoint, endpointCloseable) = ServerEndpoint.startEndpoint(endpointRecipe, appFactory)
+    val (endpoint, endpointCloseable) = startEndpoint(endpointRecipe, appFactory)
     try block(endpoint) finally endpointCloseable.close()
   }
 

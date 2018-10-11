@@ -48,7 +48,7 @@ class HelloWorldBenchmark {
       case "ak-20-enc" => ServerEndpointRecipe.AkkaHttp20Encrypted
 
     }
-    val startResult = ServerEndpoint.startEndpoint(endpointRecipe, appFactory)
+    val startResult = ServerEndpointRecipe.startEndpoint(endpointRecipe, appFactory)
     serverEndpoint = startResult._1
     endpointCloseable = startResult._2
   }
