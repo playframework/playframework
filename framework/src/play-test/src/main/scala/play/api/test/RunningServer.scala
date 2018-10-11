@@ -16,4 +16,8 @@ import play.core.server.ServerEndpoints
  * We use a separate class to avoid including mutable state, such as methods
  * for closing the server.
  */
-@ApiMayChange final case class RunningServer(app: Application, endpoints: ServerEndpoints)
+@ApiMayChange final case class RunningServer(
+    app: Application,
+    endpoints: ServerEndpoints,
+    stopServer: AutoCloseable
+)

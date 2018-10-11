@@ -164,8 +164,8 @@ import play.core.server.{ AkkaHttpServer, NettyServer, ServerEndpoint, ServerEnd
       }
     }
 
-    val (serverEndpoints, stopServer) = testServerFactory.start(app)
-    (serverEndpoints.endpoints.head, stopServer)
+    val runningServer = testServerFactory.start(app)
+    (runningServer.endpoints.endpoints.head, runningServer.stopServer)
   }
 
   def withEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory)(block: ServerEndpoint => A): A = {

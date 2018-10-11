@@ -16,7 +16,7 @@ import play.core.server.ServerEndpoint.SelfSignedSSLEngineProvider
 
 /** Creates a server for an application. */
 @ApiMayChange trait TestServerFactory {
-  def start(app: Application): (ServerEndpoints, AutoCloseable)
+  def start(app: Application): RunningServer
 }
 
 @ApiMayChange object DefaultTestServerFactory extends DefaultTestServerFactory
@@ -30,7 +30,7 @@ import play.core.server.ServerEndpoint.SelfSignedSSLEngineProvider
  */
 @ApiMayChange class DefaultTestServerFactory extends TestServerFactory {
 
-  override def start(app: Application): (ServerEndpoints, AutoCloseable) = {
+  override def start(app: Application): RunningServer = {
     val testServer = new TestServer(serverConfig(app), app, Some(serverProvider(app)))
 
     val appLock: Option[Lock] = optionalGlobalLock(app)
@@ -45,7 +45,7 @@ import play.core.server.ServerEndpoint.SelfSignedSSLEngineProvider
 
     try {
       testServer.start()
-      (serverEndpoints(testServer), stopServer)
+      RunningServer(app, serverEndpoints(testServer), stopServer)
     } catch {
       case NonFatal(e) =>
         stopServer.close()

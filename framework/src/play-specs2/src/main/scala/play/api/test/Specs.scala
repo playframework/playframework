@@ -78,8 +78,8 @@ trait ForServer extends ForEach[RunningServer] with Scope {
 
   final protected def foreach[R: AsResult](f: RunningServer => R): Result = {
     val app: Application = applicationFactory.create()
-    val (serverEndpoints, stopServer) = testServerFactory.start(app)
-    try AsResult.effectively(f(RunningServer(app, serverEndpoints))) finally stopServer.close()
+    val runningServer = testServerFactory.start(app)
+    try AsResult.effectively(f(runningServer)) finally runningServer.stopServer.close()
   }
 }
 
