@@ -39,7 +39,7 @@ trait EndpointIntegrationSpecification
     def withEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: ServerEndpoint => A): Fragment = {
       endpoints.map { endpointRecipe: ServerEndpointRecipe =>
         s"with ${endpointRecipe.description}" >> {
-          ServerEndpoint.withEndpoint(endpointRecipe, appFactory)(block)
+          ServerEndpointRecipe.withEndpoint(endpointRecipe, appFactory)(block)
         }
       }.last
     }

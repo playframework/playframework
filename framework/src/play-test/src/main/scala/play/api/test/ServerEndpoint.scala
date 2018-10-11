@@ -94,11 +94,6 @@ import scala.util.control.NonFatal
     }
   }
 
-  def withEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory)(block: ServerEndpoint => A): A = {
-    val (endpoint, endpointCloseable) = startEndpoint(endpointRecipe, appFactory)
-    try block(endpoint) finally endpointCloseable.close()
-  }
-
   /**
    * An SSLEngineProvider which simply references the values in the
    * SelfSigned object.

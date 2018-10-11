@@ -15,7 +15,7 @@ import play.core.server.{ AkkaHttpServer, NettyServer, ServerProvider }
  * when describing which tests to run. The recipe can be used to start
  * servers with the correct [[ServerEndpoint]]s.
  *
- * @see [[ServerEndpoint.withEndpoint()]]
+ * @see [[ServerEndpointRecipe.withEndpoint()]]
  */
 @ApiMayChange sealed trait ServerEndpointRecipe {
 
@@ -137,4 +137,10 @@ import play.core.server.{ AkkaHttpServer, NettyServer, ServerProvider }
     AkkaHttp11Encrypted,
     AkkaHttp20Encrypted
   )
+
+  def withEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory)(block: ServerEndpoint => A): A = {
+    val (endpoint, endpointCloseable) = ServerEndpoint.startEndpoint(endpointRecipe, appFactory)
+    try block(endpoint) finally endpointCloseable.close()
+  }
+
 }
