@@ -12,7 +12,7 @@ import akka.annotation.ApiMayChange
 
 import play.api.{ Application, Configuration, Mode }
 import play.core.server.{ AkkaHttpServer, ServerConfig, ServerEndpoint, ServerEndpoints, ServerProvider }
-import play.core.server.ServerEndpoint.{ SelfSigned, SelfSignedSSLEngineProvider }
+import play.core.server.ServerEndpoint.SelfSignedSSLEngineProvider
 
 /** Creates a server for an application. */
 @ApiMayChange trait TestServerFactory {
@@ -77,22 +77,12 @@ import play.core.server.ServerEndpoint.{ SelfSigned, SelfSignedSSLEngineProvider
   protected def serverProvider(app: Application): ServerProvider = AkkaHttpServer.provider
 
   protected def serverEndpoints(testServer: TestServer): ServerEndpoints = {
-    val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(port => ServerEndpoint(
-      description = ServerEndpointRecipe.AkkaHttp11Plaintext.description,
-      scheme = "http",
-      host = "localhost",
-      port = port,
-      expectedHttpVersions = Set("1.0", "1.1"),
-      expectedServerAttr = None,
-      ssl = None))
-    val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(port => ServerEndpoint(
-      description = ServerEndpointRecipe.AkkaHttp20Encrypted.description,
-      scheme = "https",
-      host = "localhost",
-      port = port,
-      expectedHttpVersions = Set("1.0", "1.1", "2"),
-      expectedServerAttr = None,
-      ssl = Some(ServerEndpoint.ClientSsl(SelfSigned.sslContext, SelfSigned.trustManager))))
+    val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(_ =>
+      ServerEndpointRecipe.AkkaHttp11Plaintext.createEndpointFromServer(testServer)
+    )
+    val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(_ =>
+      ServerEndpointRecipe.AkkaHttp20Encrypted.createEndpointFromServer(testServer)
+    )
     ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
   }
 
