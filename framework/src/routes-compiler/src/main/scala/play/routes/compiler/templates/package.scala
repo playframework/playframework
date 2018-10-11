@@ -69,23 +69,16 @@ package object templates {
   /**
    * Generate a controller method call for the given injected route
    */
-  def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String, firstParams: Seq[String]): String = {
+  def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String): String = {
     val methodPart = if (r.call.instantiate) {
       s"$ident.get.${r.call.method}"
     } else {
       s"$ident.${r.call.method}"
     }
-    val paramPartEnd = r.call.parameters.map { params =>
-      params.map(paramFormat)
-    }.getOrElse(Seq.empty)
-    val paramPart = Option((firstParams ++ paramPartEnd).mkString(", ")).map("(" + _ + ")").getOrElse("")
+    val paramPart = r.call.parameters.map { params =>
+      params.map(paramFormat).mkString(", ")
+    }.map("(" + _ + ")").getOrElse("")
     methodPart + paramPart
-  }
-
-  def handlerDefParameterTypes(call: HandlerCall): String = {
-    val endPart = call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]")).getOrElse(Seq.empty)
-    val firstPart = if (call.passJavaRequest) { Seq("classOf[play.mvc.Http.Request]") } else { Seq.empty }
-    Option((firstPart ++ endPart).mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil")
   }
 
   def paramNameOnQueryString(paramName: String): String = {
@@ -99,7 +92,7 @@ package object templates {
    */
   def routeBinding(route: Route): String = {
     route.call.parameters.filterNot(_.isEmpty).map { params =>
-      val ps = params.map { p =>
+      val ps = params.filterNot(_.isJRequest).map { p =>
         val paramName: String = paramNameOnQueryString(p.name)
         p.fixed.map { v =>
           """Param[""" + p.typeName + """]("""" + paramName + """", Right(""" + v + """))"""
@@ -108,28 +101,28 @@ package object templates {
         }
       }
       if (ps.size < 22) ps.mkString(", ") else ps
-    }.map("(" + _ + ")").getOrElse("")
+    }.map("(" + _ + ")").filterNot(_ == "()").getOrElse("")
   }
 
   /**
    * Extract the local names out from the route, as tuple. See PR#4244
    */
   def tupleNames(route: Route): String = route.call.parameters.filterNot(_.isEmpty).map { params =>
-    params.map(x => safeKeyword(x.name)).mkString(", ")
-  }.map("(" + _ + ") =>").getOrElse("")
+    params.filterNot(_.isJRequest).map(x => safeKeyword(x.name)).mkString(", ")
+  }.filterNot(_.isEmpty).map("(" + _ + ") =>").getOrElse("")
 
   /**
    * Extract the local names out from the route, as List. See PR#4244
    */
   def listNames(route: Route): String = route.call.parameters.filterNot(_.isEmpty).map { params =>
-    params.map(x => "(" + safeKeyword(x.name) + ": " + x.typeName + ")").mkString(":: ")
-  }.map("case " + _ + " :: Nil =>").getOrElse("")
+    params.filterNot(_.isJRequest).map(x => "(" + safeKeyword(x.name) + ": " + x.typeName + ")").mkString(":: ")
+  }.filterNot(_.isEmpty).map("case " + _ + " :: Nil =>").getOrElse("")
 
   /**
    * Extract the local names out from the route
    */
   def localNames(route: Route): String =
-    if (route.call.parameters.map(_.size).getOrElse(0) < 22) tupleNames(route) else listNames(route)
+    if (route.call.parameters.map(_.filterNot(_.isJRequest).size).getOrElse(0) < 22) tupleNames(route) else listNames(route)
 
   /**
    * The code to statically get the Play injector
@@ -164,9 +157,9 @@ package object templates {
    * Calculate the parameters for the reverse route call for the given routes.
    */
   def reverseParameters(routes: Seq[Route]): Seq[(Parameter, Int)] =
-    routes.head.call.parameters.getOrElse(Nil).zipWithIndex.filterNot {
+    routes.head.call.parameters.getOrElse(Nil).filterNot(_.isJRequest).zipWithIndex.filterNot {
       case (p, i) =>
-        val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
+        val fixeds = routes.map(_.call.parameters.getOrElse(Nil).filterNot(_.isJRequest)(i).fixed).distinct
         fixeds.size == 1 && fixeds.head.isDefined
     }
 
@@ -174,14 +167,14 @@ package object templates {
    * Calculate the parameters for the javascript reverse route call for the given routes.
    */
   def reverseParametersJavascript(routes: Seq[Route]): Seq[(Parameter, Int)] =
-    routes.head.call.parameters.getOrElse(Nil).zipWithIndex.map {
+    routes.head.call.parameters.getOrElse(Nil).filterNot(_.isJRequest).zipWithIndex.map {
       case (p, i) =>
         val re: Regex = """[^\p{javaJavaIdentifierPart}]""".r
         val paramEscapedName: String = re.replaceAllIn(p.name, "_")
         (p.copy(name = paramEscapedName + i), i)
     } filterNot {
       case (p, i) =>
-        val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
+        val fixeds = routes.map(_.call.parameters.getOrElse(Nil).filterNot(_.isJRequest)(i).fixed).distinct
         fixeds.size == 1 && fixeds.head.isDefined
     }
 
@@ -214,7 +207,7 @@ package object templates {
    * Calculate the local names that need to be matched
    */
   def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] = params.map {
-    case (lp, i) => route.call.parameters.get(i).name -> lp.name
+    case (lp, i) => route.call.parameters.getOrElse(Nil).filterNot(_.isJRequest)(i).name -> lp.name
   }(scala.collection.breakOut)
 
   /**
@@ -263,7 +256,7 @@ package object templates {
     val callPath = "_prefix" + df + route.path.parts.map {
       case StaticPart(part) => "\"" + part + "\""
       case DynamicPart(name, _, encode) =>
-        route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
+        route.call.parameters.getOrElse(Nil).filterNot(_.isJRequest).find(_.name == name).map { param =>
           val paramName: String = paramNameOnQueryString(param.name)
           val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
             s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
@@ -274,7 +267,7 @@ package object templates {
     }.mkString(" + ")
 
     val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
-      p.fixed.isDefined ||
+      p.isJRequest || p.fixed.isDefined ||
         route.path.parts.collect {
           case DynamicPart(name, _, _) => name
         }.contains(p.name)
@@ -304,7 +297,7 @@ package object templates {
    * same action but with different parameters.  If there are no constraints, None will be returned.
    */
   def javascriptParameterConstraints(route: Route, localNames: Map[String, String]): Option[String] = {
-    Option(route.call.parameters.getOrElse(Nil).filter { p =>
+    Option(route.call.parameters.getOrElse(Nil).filterNot(_.isJRequest).filter { p =>
       localNames.contains(p.name) && p.fixed.isDefined
     }.map { p =>
       localNames(p.name) + " == \"\"\" + implicitly[play.api.mvc.JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
@@ -340,7 +333,7 @@ package object templates {
     val path = "\"\"\"\" + _prefix + " + { if (route.path.parts.isEmpty) "" else "{ _defaultPrefix } + " } + "\"\"\"\"" + route.path.parts.map {
       case StaticPart(part) => " + \"" + part + "\""
       case DynamicPart(name, _, encode) =>
-        route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
+        route.call.parameters.getOrElse(Nil).find(_.name == name).filterNot(_.isJRequest).map { param =>
           val paramName: String = paramNameOnQueryString(param.name)
           val jsUnbound =
             "(\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" +
@@ -352,7 +345,7 @@ package object templates {
     }.mkString
 
     val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
-      p.fixed.isDefined ||
+      p.isJRequest || p.fixed.isDefined ||
         route.path.parts.collect {
           case DynamicPart(name, _, _) => name
         }.contains(p.name)
@@ -379,7 +372,7 @@ package object templates {
    * Generate the signature of a method on the ref router
    */
   def refReverseSignature(routes: Seq[Route]): String =
-    routes.head.call.parameters.getOrElse(Nil).map(p => safeKeyword(p.name) + ": " + p.typeName).mkString(", ")
+    routes.head.call.parameters.getOrElse(Nil).filterNot(_.isJRequest).map(p => safeKeyword(p.name) + ": " + p.typeName).mkString(", ")
 
   /**
    * Generate the ref router call
@@ -387,7 +380,7 @@ package object templates {
   def refCall(route: Route, useInjector: Route => Boolean): String = {
     val controllerRef = s"${route.call.packageName}.${route.call.controller}"
     val methodCall = s"${route.call.method}(${
-      route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.name)).mkString(", ")
+      route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.nameClean)).mkString(", ")
     })"
     if (useInjector(route)) {
       s"$Injector.instanceOf(classOf[$controllerRef]).$methodCall"
@@ -421,7 +414,7 @@ package object templates {
   def groupRoutesByPackage(routes: Seq[Route]): Map[String, Seq[Route]] = routes.groupBy(_.call.packageName)
   def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]] = routes.groupBy(_.call.controller)
   def groupRoutesByMethod(routes: Seq[Route]): Map[(String, Seq[String]), Seq[Route]] =
-    routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeName)))
+    routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeNameReal)))
 
   val ob = "{"
   val cb = "}"

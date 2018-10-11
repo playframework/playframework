@@ -61,12 +61,12 @@ case route @ Route(verb, path, call, comments, modifiers) => {
   private[this] lazy val @invokerIdentifier(route, index) = createInvoker(
     @if(route.call.passJavaRequest){
     (req:play.mvc.Http.Request) =>
-      }@injectedControllerMethodCall(route, dep.ident, p => s"fakeValue[${p.typeName}]", if(route.call.passJavaRequest) { Seq("fakeValue[play.mvc.Http.Request]") } else { Seq.empty } ),
+      }@injectedControllerMethodCall(route, dep.ident, p => s"fakeValue[${p.typeNameReal}]"),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "@for(p <- pkg) {@p}",
       "@(call.packageName).@call.controller",
       "@call.method",
-      @handlerDefParameterTypes(call),
+      @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeNameReal + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
       "@verb",
       this.prefix + @encodeStringConstant(path.toString),
       @encodeStringConstant(comments.map(_.comment).mkString("\n")),
@@ -92,7 +92,7 @@ case include @ Include(path, router) => {
     case @(routeIdentifier(route, index))(params@@_) =>
       call@(routeBinding(route)) @ob @localNames(route)
         @(invokerIdentifier(route, index)).call(@if(route.call.passJavaRequest){
-          req => }@injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.name), if(route.call.passJavaRequest) { Seq("req") } else { Seq.empty } ))
+          req => }@injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.nameClean)))
       @cb
   }
   }}}@cb

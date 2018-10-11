@@ -73,10 +73,26 @@ object RoutesFileParser {
           Some(route.call.pos.column))
       }
 
+      route.call.parameters.getOrElse(Nil).find(_.isJRequest).map { p =>
+        if (p.fixed.isDefined || p.default.isDefined) {
+          errors += RoutesCompilationError(
+            file,
+            "It is not allowed to specify a fixed or default value for parameter: '" + p.name + "'",
+            Some(p.pos.line),
+            Some(p.pos.column))
+        }
+      }
+
       route.path.parts.collect {
         case part @ DynamicPart(name, regex, _) => {
           route.call.parameters.getOrElse(Nil).find(_.name == name).map { p =>
-            if (p.fixed.isDefined || p.default.isDefined) {
+            if (p.isJRequest) {
+              errors += RoutesCompilationError(
+                file,
+                "It is not allowed to specify a value extracted from the path for parameter: '" + name + "'",
+                Some(p.pos.line),
+                Some(p.pos.column))
+            } else if (p.fixed.isDefined || p.default.isDefined) {
               errors += RoutesCompilationError(
                 file,
                 "It is not allowed to specify a fixed or default value for parameter: '" + name + "' extracted from the path",
@@ -288,16 +304,15 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case first ~ _ ~ second ~ _ ~ rest => first :: second :: rest
   }, "Controller method call expected")
 
-  def call: Parser[HandlerCall] = opt("+") ~ opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
-    case passJavaRequest ~ instantiate ~ absMethod ~ parameters =>
+  def call: Parser[HandlerCall] = opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
+    case instantiate ~ absMethod ~ parameters =>
       {
         val (packageParts, classAndMethod) = absMethod.splitAt(absMethod.size - 2)
         val packageName = packageParts.mkString(".")
         val className = classAndMethod(0)
         val methodName = classAndMethod(1)
         val dynamic = instantiate.isDefined
-        val passJRequest = passJavaRequest.isDefined
-        HandlerCall(packageName, className, dynamic, passJRequest, methodName, parameters)
+        HandlerCall(packageName, className, dynamic, methodName, parameters)
       }
   }
 
