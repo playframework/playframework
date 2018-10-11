@@ -17,10 +17,10 @@ Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
 ### `Http.Context.current()` deprecated
 
-Instead of accessing and manipulating a `Http.Context` instance that way (which is actually managed by a `ThreadLocal` internally) you should instead use corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods.
-However, before Play 2.7 there was no way to access the request within an action but to call `Http.Context.current().request()` or the static helper methods in `play.mvc.Controller`.
+Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made by other places and makes it harder to access the request in other threads.
 
 With Play 2.7 you can now access the current request by simply adding it as a param to your routes and actions.
+
 For example the routes files contains:
 
 ```
@@ -34,16 +34,80 @@ import play.mvc.*;
 public class HomeController extends Controller {
 
     public Result index(Http.Request request) {
-        return ok("Hello");
+        return ok("Hello, your request path " + request.path());
     }
 }
 
 ```
 
-Play will automatically detect a route param of type `Request` (or `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
+Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
 
 > **Note**: For the unlikely case that you implemented a custom `QueryStringBindable` with the name `Request` that one would now collide with Play detection of request params.
-Therefore you should either use the full qualified name of your `Request` class: `myParam: my.package.Request`.
+> Therefore you should use the fully qualified name of your `Request` type, for example.
+>
+>     GET    /        controllers.HomeController.index(myRequest: com.mycompany.Request)
+
+If you did use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now.
+Look at this example which checks if the current request's remote address is on a blacklist:
+
+#### Before
+
+```java
+import play.mvc.Http;
+
+public class SecurityHelper {
+
+    public static boolean isBlacklisted() {
+        String remoteAddress = Http.Context.current().request().remoteAddress();
+        return blacklist.contains(remoteAddress);
+    }
+}
+```
+
+Corresponding controller:
+
+```java
+import play.mvc.*;
+
+public class HomeController extends Controller {
+
+    public Result index() {
+        if (SecurityHelper.isBlacklisted()) {
+            return badRequest();
+        }
+        return ok("Hello, your request path " + request().path());
+    }
+}
+
+```
+
+#### After
+
+```java
+public class SecurityHelper {
+
+    public static boolean isBlacklisted(String remoteAddress) {
+        return blacklist.contains(remoteAddress);
+    }
+}
+```
+
+Corresponding controller:
+
+```java
+import play.mvc.*;
+
+public class HomeController extends Controller {
+
+    public Result index(Http.Request request) {
+        if (SecurityHelper.isBlacklisted(request.remoteAddress())) {
+            return badRequest();
+        }
+        return ok("Hello, your request path " + request.path());
+    }
+}
+
+```
 
 ### `Action.call(Context)` deprecated
 
