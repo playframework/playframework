@@ -144,13 +144,14 @@ trait JavaHelpers {
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult.withSession(javaContext.session.asScala).flashing(javaContext.flash.asScala)
+      wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
+        .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
     } else {
       if (javaContext.session.isDirty) {
-        wResult.withSession(javaContext.session.asScala)
+        wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
       } else {
         if (javaContext.flash.isDirty) {
-          wResult.flashing(javaContext.flash.asScala)
+          wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
         } else {
           wResult
         }
