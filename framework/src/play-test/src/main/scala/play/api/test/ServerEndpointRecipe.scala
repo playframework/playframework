@@ -6,11 +6,9 @@ package play.api.test
 
 import akka.annotation.ApiMayChange
 
-import play.api.{ Application, Configuration, Mode }
+import play.api.{ Application, Configuration }
 import play.core.server.ServerEndpoint.ClientSsl
-import play.core.server.{ AkkaHttpServer, NettyServer, ServerConfig, ServerEndpoint, ServerProvider }
-
-import scala.util.control.NonFatal
+import play.core.server.{ AkkaHttpServer, NettyServer, ServerEndpoint, ServerEndpoints, ServerProvider }
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used
@@ -146,44 +144,28 @@ import scala.util.control.NonFatal
    * is passed to the given `block` of code.
    */
   def startEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory): (ServerEndpoint, AutoCloseable) = {
-    val application: Application = appFactory.create()
+    val app: Application = appFactory.create()
 
-    // Create a ServerConfig with dynamic ports and using a self-signed certificate
-    val serverConfig = {
-      val sc: ServerConfig = ServerConfig(
-        port = endpointRecipe.configuredHttpPort,
-        sslPort = endpointRecipe.configuredHttpsPort,
-        mode = Mode.Test,
-        rootDir = application.path
-      )
-      val patch = endpointRecipe.serverConfiguration
-      sc.copy(configuration = sc.configuration ++ patch)
-    }
+    val testServerFactory = new DefaultTestServerFactory {
+      override def serverConfig(app: Application) = {
+        super.serverConfig(app).copy(
+          port = endpointRecipe.configuredHttpPort,
+          sslPort = endpointRecipe.configuredHttpsPort
+        )
+      }
 
-    // Initialize and start the TestServer
-    val testServer = new TestServer(serverConfig, application, Some(endpointRecipe.serverProvider))
+      override def overrideServerConfiguration(app: Application) =
+        endpointRecipe.serverConfiguration
 
-    val runSynchronized = application.globalApplicationEnabled
-    if (runSynchronized) {
-      PlayRunners.mutex.lock()
-    }
-    val stopEndpoint = new AutoCloseable {
-      override def close(): Unit = {
-        testServer.stop()
-        if (runSynchronized) {
-          PlayRunners.mutex.unlock()
-        }
+      override def serverProvider(app: Application) = endpointRecipe.serverProvider
+
+      override def serverEndpoints(testServer: TestServer) = {
+        ServerEndpoints(Seq(endpointRecipe.createEndpointFromServer(testServer)))
       }
     }
-    try {
-      testServer.start()
-      val endpoint: ServerEndpoint = endpointRecipe.createEndpointFromServer(testServer)
-      (endpoint, stopEndpoint)
-    } catch {
-      case NonFatal(e) =>
-        stopEndpoint.close()
-        throw e
-    }
+
+    val (serverEndpoints, stopServer) = testServerFactory.start(app)
+    (serverEndpoints.endpoints.head, stopServer)
   }
 
   def withEndpoint[A](endpointRecipe: ServerEndpointRecipe, appFactory: ApplicationFactory)(block: ServerEndpoint => A): A = {
