@@ -280,3 +280,74 @@ public class FooController extends Controller {
     }
 }
 ```
+
+### `Http.Context.flash()` deprecated
+
+That means other methods that depend directly on it were also deprecated:
+
+1. `play.mvc.Controller.flash()`
+1. `play.mvc.Controller.flash(String key, String value)`
+1. `play.mvc.Controller.flash(String key)`
+
+The new way to retrieve the flash of a request is the call the `flash()` method of a `Http.Request` instance.
+The new way to manipulate the flash is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
+
+#### Before
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+public class FooController extends Controller {
+    public Result info() {
+        String message = flash("message");
+        return Results.ok("Message: " + message);
+    }
+
+    public Result login() {
+        flash("message", "Login successful");
+        return Results.redirect("/dashboard");
+    }
+
+    public Result logout() {
+        flash().remove("message");
+        return Results.redirect("/");
+    }
+
+    public Result clear() {
+        flash().clear();
+        return Results.redirect("/");
+    }
+}
+```
+
+#### After
+
+```java
+import play.mvc.Result;
+import play.mvc.Results;
+import play.mvc.Controller;
+
+public class FooController extends Controller {
+    public Result info() {
+        String message = request().flash().get("message");
+        return Results.ok("Message: " + message);
+    }
+
+    public Result login() {
+        return Results.redirect("/dashboard")
+            .flashing("message", "Login successful");
+    }
+
+    public Result logout() {
+        return Results.redirect("/")
+            .removingFromFlash("message");
+    }
+
+    public Result clear() {
+        return Results.redirect("/")
+            .withNewFlash();
+    }
+}
+```

@@ -103,7 +103,7 @@ public class Http {
             this.id = this.request.asScala().id();
             this.response = new Response();
             this.session = new Session(this.request.session());
-            this.flash = new Flash(Scala.asJava(this.request.asScala().flash().data()));
+            this.flash = new Flash(this.request.flash());
             this.args = new HashMap<>();
             this.components = components;
         }
@@ -241,7 +241,10 @@ public class Http {
          * Returns the current flash scope.
          *
          * @return the flash scope
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Request#flash()} and {@link Result} instead.
          */
+        @Deprecated
         public Flash flash() {
             return flash;
         }
@@ -828,6 +831,14 @@ public class Http {
          */
         default Session session() {
             return attrs().get(RequestAttrKey.Session().asJava()).value().asJava();
+        }
+
+        /**
+         * Parses the Flash cookie and returns the Flash data. The request's flash cookie is stored in an attribute indexed by
+         * {@link RequestAttrKey#Flash()}}. The attribute uses a {@link Cell} to store the flash, to allow it to be evaluated on-demand.
+         */
+        default Flash flash() {
+            return attrs().get(RequestAttrKey.Flash().asJava()).value().asJava();
         }
 
         /**
@@ -2082,6 +2093,15 @@ public class Http {
         public void clear() {
             isDirty = true;
             super.clear();
+        }
+
+        /**
+         * Convert this flash to a Scala flash.
+         *
+         * @return the Scala flash.
+         */
+        public play.api.mvc.Flash asScala() {
+            return new play.api.mvc.Flash(Scala.asScala(this));
         }
 
     }

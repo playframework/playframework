@@ -113,7 +113,7 @@ object Flash extends CookieBaker[Flash] with UrlEncodedCookieDataCodec {
 
   val emptyCookie = new Flash
 
-  def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
+  def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = javaFlash.asScala
 
   @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
   override val isSigned: Boolean = false

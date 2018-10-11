@@ -230,6 +230,84 @@ public class Result {
     }
 
     /**
+     * Sets a new flash for this result, discarding the existing flash.
+     *
+     * @param flash the flash to set with this result
+     * @return the new result
+     */
+    public Result withFlash(Flash flash) {
+        play.api.mvc.Result.warnFlashingIfNotRedirect(flash.asScala(), header.asScala());
+        return new Result(header, body, session, flash, cookies);
+    }
+
+    /**
+     * Sets a new flash for this result, discarding the existing flash.
+     *
+     * @param flash the flash to set with this result
+     * @return the new result
+     */
+    public Result withFlash(Map<String, String> flash) {
+        return withFlash(new Flash(flash));
+    }
+
+    /**
+     * Discards the existing flash for this result.
+     *
+     * @return the new result
+     */
+    public Result withNewFlash() {
+        return withFlash(Collections.emptyMap());
+    }
+
+    /**
+     * Adds values to the flash.
+     *
+     * @param values A map with values to add to this result’s flash
+     * @return A copy of this result with values added to its flash scope.
+     */
+    public Result flashing(Map<String, String> values) {
+        if(this.flash == null) {
+            return withFlash(values);
+        } else {
+            Map<String, String> newValues = new HashMap<>(this.flash);
+            newValues.putAll(values);
+            return withFlash(newValues);
+        }
+    }
+
+    /**
+     * Adds the given key and value to the flash.
+     *
+     * @param key The key to add to this result’s flash
+     * @param value The value to add to this result’s flash
+     * @return A copy of this result with the key and value added to its flash scope.
+     */
+    public Result flashing(String key, String value) {
+        Map<String, String> newValues = new HashMap<>(1);
+        newValues.put(key, value);
+        return flashing(newValues);
+    }
+
+    /**
+     * Removes values from the flash.
+     *
+     * @param keys Keys to remove from flash
+     * @return A copy of this result with keys removed from its flash scope.
+     */
+    public Result removingFromFlash(String... keys) {
+        if(this.flash == null) {
+            return withNewFlash();
+        }
+        Map<String, String> newValues = new HashMap<>(this.flash);
+        if(keys != null) {
+            for (String key : keys) {
+                newValues.remove(key);
+            }
+        }
+        return withFlash(newValues);
+    }
+
+    /**
      * Extracts the Session of this Result value.
      *
      * @return the session (if it was set)

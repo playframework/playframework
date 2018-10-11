@@ -145,7 +145,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * Returns the current HTTP flash scope.
      *
      * @return the flash scope
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Request#flash()} and {@link Result} instead.
      */
+    @Deprecated
     public static Flash flash() {
         return Http.Context.current().flash();
     }
@@ -155,7 +158,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the key to put into the flash scope
      * @param value the value corresponding to <code>key</code>
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static void flash(String key, String value) {
         flash().put(key, value);
     }
@@ -165,7 +171,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the key to look up in the flash scope
      * @return the value corresponding to <code>key</code> from the flash scope, or null if there was none
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static String flash(String key) {
         return flash().get(key);
     }

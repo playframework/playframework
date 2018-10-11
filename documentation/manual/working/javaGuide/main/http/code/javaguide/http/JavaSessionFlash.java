@@ -79,7 +79,7 @@ public class JavaSessionFlash extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-flash
                     public Result index() {
-                        String message = flash("success");
+                        String message = request().flash().get("success");
                         if(message == null) {
                             message = "Welcome!";
                         }
@@ -95,8 +95,7 @@ public class JavaSessionFlash extends WithApplication {
         Flash flash = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-flash
             public Result save() {
-                flash("success", "The item has been created");
-                return redirect("/home");
+                return redirect("/home").flashing("success", "The item has been created");
             }
             //#store-flash
         }, fakeRequest(), mat).flash();
