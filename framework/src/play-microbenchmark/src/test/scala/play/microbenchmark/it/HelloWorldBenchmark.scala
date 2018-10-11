@@ -9,7 +9,8 @@ import java.util.concurrent.TimeUnit
 import okhttp3.{ OkHttpClient, Protocol, Request, Response }
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
-import play.api.test.{ ApplicationFactory, ServerEndpoint, ServerEndpointRecipe }
+import play.api.test.{ ApplicationFactory, ServerEndpointRecipe }
+import play.core.server.ServerEndpoint
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
 import scala.util.Random
@@ -48,7 +49,7 @@ class HelloWorldBenchmark {
       case "ak-20-enc" => ServerEndpointRecipe.AkkaHttp20Encrypted
 
     }
-    val startResult = ServerEndpoint.startEndpoint(endpointRecipe, appFactory)
+    val startResult = ServerEndpointRecipe.startEndpoint(endpointRecipe, appFactory)
     serverEndpoint = startResult._1
     endpointCloseable = startResult._2
   }

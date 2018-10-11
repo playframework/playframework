@@ -8,7 +8,8 @@ import org.specs2.execute.{ AsResult, PendingUntilFixed, Result, ResultExecution
 import org.specs2.mutable.SpecLike
 import org.specs2.specification.core.Fragment
 
-import play.api.test.{ ApplicationFactory, ApplicationFactories, ServerEndpoint, ServerEndpointRecipe }
+import play.api.test.{ ApplicationFactories, ApplicationFactory, ServerEndpointRecipe }
+import play.core.server.ServerEndpoint
 
 /**
  * Mixin class for integration tests that want to run over different
@@ -39,7 +40,7 @@ trait EndpointIntegrationSpecification
     def withEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: ServerEndpoint => A): Fragment = {
       endpoints.map { endpointRecipe: ServerEndpointRecipe =>
         s"with ${endpointRecipe.description}" >> {
-          ServerEndpoint.withEndpoint(endpointRecipe, appFactory)(block)
+          ServerEndpointRecipe.withEndpoint(endpointRecipe, appFactory)(block)
         }
       }.last
     }
