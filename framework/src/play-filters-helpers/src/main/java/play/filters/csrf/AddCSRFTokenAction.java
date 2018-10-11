@@ -36,38 +36,35 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
+    public CompletionStage<Result> call(Http.Request req) {
 
         CSRFActionHelper helper =
             new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
-        play.api.mvc.Request<RequestBody> request =
-                helper.tagRequestFromHeader(ctx.request().asScala());
+        play.api.mvc.Request<RequestBody> taggedRequest =
+                helper.tagRequestFromHeader(req.asScala());
 
-        if (helper.getTokenToValidate(request).isEmpty()) {
+        if (helper.getTokenToValidate(taggedRequest).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
             CSRF.Token newToken = helper.generateToken();
 
             // Create a new Scala RequestHeader with the token
-            request = helper.tagRequest(request, newToken);
+            taggedRequest = helper.tagRequest(taggedRequest, newToken);
 
             // Also add it to the response
-            if (config.cookieName().isDefined()) {
-                scala.Option<String> domain = sessionConfiguration.domain();
-                Http.Cookie cookie = new Http.Cookie(
-                    config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
-                    domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
-                ctx.response().setCookie(cookie);
-            } else {
-                ctx.session().put(newToken.name(), newToken.value());
-            }
+            return delegate.call(new RequestImpl(taggedRequest)).thenApply(result -> {
+                if (config.cookieName().isDefined()) {
+                    scala.Option<String> domain = sessionConfiguration.domain();
+                    Http.Cookie cookie = new Http.Cookie(
+                            config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
+                            domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
+                    return result.withCookies(cookie);
+                } else {
+                    return result.addingToSession(req, newToken.name(), newToken.value());
+                }
+            });
+        } else {
+            return delegate.call(new RequestImpl(taggedRequest));
         }
-
-        final play.api.mvc.Request<RequestBody> newRequest = request;
-        // Methods returning requests should return the tagged request
-        Http.Context newCtx = ctx.withRequest(new RequestImpl(newRequest));
-
-        Http.Context.current.set(newCtx);
-        return delegate.call(newCtx);
     }
 }
