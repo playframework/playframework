@@ -8,7 +8,7 @@ import akka.annotation.ApiMayChange
 
 import play.api.{ Application, Configuration }
 import play.core.server.ServerEndpoint.ClientSsl
-import play.core.server.{ AkkaHttpServer, NettyServer, ServerEndpoint, ServerEndpoints, ServerProvider }
+import play.core.server.{ AkkaHttpServer, NettyServer, SelfSigned, SelfSignedSSLEngineProvider, ServerConfig, ServerEndpoint, ServerEndpoints, ServerProvider }
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used
@@ -94,7 +94,7 @@ import play.core.server.{ AkkaHttpServer, NettyServer, ServerEndpoint, ServerEnd
   override val configuredHttpPort: Option[Int] = None
   override val configuredHttpsPort: Option[Int] = Some(0)
   override def serverConfiguration: Configuration = Configuration(
-    "play.server.https.engineProvider" -> classOf[ServerEndpoint.SelfSignedSSLEngineProvider].getName
+    "play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName
   ) ++ extraServerConfiguration
 
   override def createEndpointFromServer(runningServer: TestServer): ServerEndpoint = {
@@ -106,8 +106,8 @@ import play.core.server.{ AkkaHttpServer, NettyServer, ServerEndpoint, ServerEnd
       expectedHttpVersions = recipe.expectedHttpVersions,
       expectedServerAttr = recipe.expectedServerAttr,
       ssl = Some(ClientSsl(
-        ServerEndpoint.SelfSigned.sslContext,
-        ServerEndpoint.SelfSigned.trustManager
+        SelfSigned.sslContext,
+        SelfSigned.trustManager
       ))
     )
   }

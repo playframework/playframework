@@ -4,16 +4,11 @@
 
 package play.core.server
 
-import java.security.KeyStore
 import javax.net.ssl._
-
-import com.typesafe.sslconfig.ssl.{ FakeKeyStore, FakeSSLTools }
 
 import akka.annotation.ApiMayChange
 
-import play.core.ApplicationProvider
 import play.core.server.ServerEndpoint.ClientSsl
-import play.server.api.SSLEngineProvider
 
 /**
  * Contains information about which port and protocol can be used to connect to the server.
@@ -41,29 +36,4 @@ import play.server.api.SSLEngineProvider
 @ApiMayChange object ServerEndpoint {
   /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
   final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
-
-  /**
-   * An SSLEngineProvider which simply references the values in the
-   * SelfSigned object.
-   */
-  // public only for testing purposes
-  final class SelfSignedSSLEngineProvider(serverConfig: ServerConfig, appProvider: ApplicationProvider) extends SSLEngineProvider {
-    override def createSSLEngine: SSLEngine = SelfSigned.sslContext.createSSLEngine()
-  }
-
-  /**
-   * Contains a statically initialized self-signed certificate.
-   */
-  // public only for testing purposes
-  object SelfSigned {
-
-    /**
-     * The SSLContext and TrustManager associated with the self-signed certificate.
-     */
-    lazy val (sslContext, trustManager): (SSLContext, X509TrustManager) = {
-      val keyStore: KeyStore = FakeKeyStore.generateKeyStore
-
-      FakeSSLTools.buildContextAndTrust(keyStore)
-    }
-  }
 }

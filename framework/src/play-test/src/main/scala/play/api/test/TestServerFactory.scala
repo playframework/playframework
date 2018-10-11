@@ -12,7 +12,7 @@ import akka.annotation.ApiMayChange
 
 import play.api.{ Application, Configuration, Mode }
 import play.core.server.{ AkkaHttpServer, ServerConfig, ServerEndpoint, ServerEndpoints, ServerProvider }
-import play.core.server.ServerEndpoint.SelfSignedSSLEngineProvider
+import play.core.server.SelfSignedSSLEngineProvider
 
 /** Creates a server for an application. */
 @ApiMayChange trait TestServerFactory {
