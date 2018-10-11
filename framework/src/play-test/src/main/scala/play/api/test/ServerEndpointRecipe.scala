@@ -48,7 +48,7 @@ import scala.util.control.NonFatal
    * can be queried to create an endpoint. Usually this just involves asking
    * the server what port it is using.
    */
-  def createEndpointFromServer(runningTestServer: play.api.test.TestServer): ServerEndpoint
+  def createEndpointFromServer(runningTestServer: TestServer): ServerEndpoint
 
 }
 
@@ -65,7 +65,7 @@ import scala.util.control.NonFatal
   override val configuredHttpsPort: Option[Int] = None
   override val serverConfiguration: Configuration = extraServerConfiguration
 
-  override def createEndpointFromServer(runningServer: play.api.test.TestServer): ServerEndpoint = {
+  override def createEndpointFromServer(runningServer: TestServer): ServerEndpoint = {
     ServerEndpoint(
       description = recipe.description,
       scheme = "http",
@@ -99,7 +99,7 @@ import scala.util.control.NonFatal
     "play.server.https.engineProvider" -> classOf[ServerEndpoint.SelfSignedSSLEngineProvider].getName
   ) ++ extraServerConfiguration
 
-  override def createEndpointFromServer(runningServer: play.api.test.TestServer): ServerEndpoint = {
+  override def createEndpointFromServer(runningServer: TestServer): ServerEndpoint = {
     ServerEndpoint(
       description = recipe.description,
       scheme = "https",
@@ -161,9 +161,7 @@ import scala.util.control.NonFatal
     }
 
     // Initialize and start the TestServer
-    val testServer: play.api.test.TestServer = new play.api.test.TestServer(
-      serverConfig, application, Some(endpointRecipe.serverProvider)
-    )
+    val testServer = new TestServer(serverConfig, application, Some(endpointRecipe.serverProvider))
 
     val runSynchronized = application.globalApplicationEnabled
     if (runSynchronized) {
