@@ -50,7 +50,7 @@ case class HttpVerb(value: String) {
  */
 case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
   private val dynamic = if (instantiate) "@" else ""
-  lazy val passJavaRequest: Boolean = parameters.getOrElse(Nil).exists(_.isJRequest)
+  lazy val passJavaRequest: Boolean = parameters.getOrElse(Nil).exists(_.isJavaRequest)
   override def toString = dynamic + packageName + "." + controller + dynamic + "." + method + parameters.map { params =>
     "(" + params.mkString(", ") + ")"
   }.getOrElse("")
@@ -67,9 +67,9 @@ case class HandlerCall(packageName: String, controller: String, instantiate: Boo
 case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
   private val requestClass = "Request"
   private val requestClassFQ = "play.mvc.Http." + requestClass
-  def isJRequest = typeName.equalsIgnoreCase(requestClass) || typeName.equalsIgnoreCase(requestClassFQ)
-  def typeNameReal = if (isJRequest) { requestClassFQ } else { typeName }
-  def nameClean = if (isJRequest) { "req" } else { name }
+  def isJavaRequest = typeName.equalsIgnoreCase(requestClass) || typeName.equalsIgnoreCase(requestClassFQ)
+  def typeNameReal = if (isJavaRequest) { requestClassFQ } else { typeName }
+  def nameClean = if (isJavaRequest) { "req" } else { name }
   override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 

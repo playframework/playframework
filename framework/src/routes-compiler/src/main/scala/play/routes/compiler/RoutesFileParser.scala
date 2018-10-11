@@ -73,7 +73,7 @@ object RoutesFileParser {
           Some(route.call.pos.column))
       }
 
-      route.call.parameters.getOrElse(Nil).find(_.isJRequest).map { p =>
+      route.call.parameters.getOrElse(Nil).find(_.isJavaRequest).map { p =>
         if (p.fixed.isDefined || p.default.isDefined) {
           errors += RoutesCompilationError(
             file,
@@ -86,7 +86,7 @@ object RoutesFileParser {
       route.path.parts.collect {
         case part @ DynamicPart(name, regex, _) => {
           route.call.parameters.getOrElse(Nil).find(_.name == name).map { p =>
-            if (p.isJRequest) {
+            if (p.isJavaRequest) {
               errors += RoutesCompilationError(
                 file,
                 "It is not allowed to specify a value extracted from the path for parameter: '" + name + "'",
