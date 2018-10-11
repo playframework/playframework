@@ -10,7 +10,8 @@ import play.api.BuiltInComponents
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird
-import play.api.test.{ ApplicationFactories, PlaySpecification, ServerEndpoint }
+import play.api.test.{ ApplicationFactories, PlaySpecification }
+import play.core.server.ServerEndpoint
 import play.it.test._
 
 class UriHandlingSpec extends PlaySpecification with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {

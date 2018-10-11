@@ -7,8 +7,8 @@ package play.api.test
 import akka.annotation.ApiMayChange
 
 import play.api.{ Application, Configuration, Mode }
-import play.api.test.ServerEndpoint.ClientSsl
-import play.core.server.{ AkkaHttpServer, NettyServer, ServerConfig, ServerProvider }
+import play.core.server.ServerEndpoint.ClientSsl
+import play.core.server.{ AkkaHttpServer, NettyServer, ServerConfig, ServerEndpoint, ServerProvider }
 
 import scala.util.control.NonFatal
 

@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.api.test
+package play.core.server
 
 import java.security.KeyStore
 import javax.net.ssl._
@@ -11,9 +11,8 @@ import com.typesafe.sslconfig.ssl.{ FakeKeyStore, FakeSSLTools }
 
 import akka.annotation.ApiMayChange
 
-import play.api.test.ServerEndpoint.ClientSsl
 import play.core.ApplicationProvider
-import play.core.server.ServerConfig
+import play.core.server.ServerEndpoint.ClientSsl
 import play.server.api.SSLEngineProvider
 
 /**

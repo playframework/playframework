@@ -7,6 +7,7 @@ package play.api.test
 import akka.annotation.ApiMayChange
 
 import play.api.Application
+import play.core.server.ServerEndpoints
 
 /**
  * Contains information about a running TestServer. This object can be
