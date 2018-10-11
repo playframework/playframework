@@ -17,7 +17,7 @@ import scala.compat.java8.FutureConverters
 import scala.language.existentials
 import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
-import play.mvc.{ FileMimeTypes, PlayAction, Action => JAction, BodyParser => JBodyParser, Result => JResult }
+import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.libs.AnnotationUtils
 import play.mvc.Http.{ Context => JContext, Request => JRequest }
@@ -110,30 +110,6 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         delegate.precursor = action
         action.delegate = delegate
         action.annotatedElement = annotatedElement
-        action match {
-          case nAction: PlayAction[_] => {
-            nAction.delegate match {
-              case delegatePlayAction: PlayAction[_] => nAction.next = delegatePlayAction
-              case _ => {
-                // For safety inside the lambda we use an explicit variable that keeps the (original) delegate reference
-                // because a few line later you'll see that nAction.delegate will change
-                val originalDelegate = nAction.delegate
-                nAction.next = new PlayAction[Any] {
-                  override def call(request: JRequest): CompletionStage[JResult] = originalDelegate.call(JContext.current().withRequest(request))
-                }
-                // Now let's also set a delegate and precursor for the just created PlayAction so we don't break the chain
-                nAction.next.delegate = originalDelegate
-                nAction.next.precursor = nAction;
-                //nAction.next stays null
-                // We also need to adjust the precursor of the original delegate...
-                originalDelegate.precursor = nAction.next
-                // ... and the delegate of the current action is of course the same as next
-                nAction.delegate = nAction.next
-              }
-            }
-          }
-          case _ => // do nothing
-        }
         action
     }
 
