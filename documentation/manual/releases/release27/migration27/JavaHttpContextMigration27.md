@@ -15,6 +15,72 @@ Instead you can use the `contextObj.request().attrs()` method now, which provide
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
 Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
+### `Http.Context.current()` deprecated
+
+Instead of accessing and manipulating a `Http.Context` instance that way (which is actually managed by a `ThreadLocal` internally) you should instead use corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods.
+However, before Play 2.7 there was no way to access the request within an action but to call `Http.Context.current().request()` or the static helper methods in `play.mvc.Controller`.
+
+With Play 2.7 you can now access the current request by simply adding it as a param to your routes and actions.
+For example the routes files contains:
+
+```
+GET     /       controllers.HomeController.index(request: Request)
+```
+And the corresponding action method:
+
+```java
+import play.mvc.*;
+
+public class HomeController extends Controller {
+
+    public Result index(Http.Request request) {
+        return ok("Hello");
+    }
+}
+
+```
+
+Play will automatically detect a route param of type `Request` (or `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
+
+> **Note**: For the unlikely case that you implemented a custom `QueryStringBindable` with the name `Request` that one would now collide with Play detection of request params.
+Therefore you should either use the full qualified name of your `Request` class: `myParam: my.package.Request`.
+
+### `Action.call(Context)` deprecated
+
+If you are using [[action composition|JavaActionsComposition]] you have to update your actions to not use `Http.Context` anymore:
+
+#### Before
+
+```java
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
+
+public class MyAction extends Action.Simple {
+    public CompletionStage<Result> call(Http.Context ctx) {
+        return delegate.call(ctx);
+    }
+}
+```
+
+#### After
+
+```java
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
+
+public class MyAction extends Action.Simple {
+    public CompletionStage<Result> call(Http.Request req) {
+        return delegate.call(req);
+    }
+}
+```
+
 ### `Http.Response` deprecated
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
