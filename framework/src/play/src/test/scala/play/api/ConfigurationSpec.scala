@@ -5,9 +5,9 @@
 package play.api
 
 import java.io._
-import java.net.{MalformedURLException, URISyntaxException, URL}
+import java.net.{ MalformedURLException, URI, URISyntaxException, URL }
 
-import com.typesafe.config.{ConfigException, ConfigFactory}
+import com.typesafe.config.{ ConfigException, ConfigFactory }
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
@@ -78,7 +78,7 @@ class ConfigurationSpec extends Specification {
     "support getting URLs" in {
 
       val validUrl = "https://example.com"
-      val invalidUrl = "https://example.com"
+      val invalidUrl = "invalid-url"
 
       "valid URL" in {
         val conf = config("my.url" -> validUrl)
@@ -97,17 +97,17 @@ class ConfigurationSpec extends Specification {
     "support getting URIs" in {
 
       val validUri = "https://example.com"
-      val invalidUri = "https://example.com"
+      val invalidUri = "%"
 
       "valid URI" in {
         val conf = config("my.uri" -> validUri)
-        val value = conf.get[URL]("my.uri")
-        value must beEqualTo(new URL(invalidUri))
+        val value = conf.get[URI]("my.uri")
+        value must beEqualTo(new URI(validUri))
       }
 
       "invalid URI" in {
         val conf = config("my.uri" -> invalidUri)
-        def a: Nothing = { conf.get[URL]("my.uri"); throw FailureException(failure("URISyntaxException should be thrown")) }
+        def a: Nothing = { conf.get[URI]("my.uri"); throw FailureException(failure("URISyntaxException should be thrown")) }
         theBlock(a) must throwA[URISyntaxException]
       }
 
