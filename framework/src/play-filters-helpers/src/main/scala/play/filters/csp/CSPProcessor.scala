@@ -16,7 +16,7 @@ import play.api.mvc.request.RequestAttrKey
  */
 trait CSPProcessor {
   /**
-   * Inspects the request header, and returns a CSPResult iff the
+   * Inspects the request header, and returns a CSPResult if the
    * request should be subject to CSP processing.
    *
    * If the request header has a CSP Nonce already defined,
