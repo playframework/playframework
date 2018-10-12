@@ -313,7 +313,8 @@ private[cors] trait AbstractCORSPolicy {
       false
     } else {
       try {
-        new URI(origin).getScheme ne null
+        if (origin == "null") true
+        else new URI(origin).getScheme ne null
       } catch {
         case _: URISyntaxException => false
       }
