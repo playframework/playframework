@@ -16,7 +16,6 @@ import play.api.mvc._
 import play.api.mvc.request._
 import play.core.parsers.FormUrlEncodedParser
 
-import scala.concurrent.Future
 import scala.xml.NodeSeq
 
 /**
@@ -98,21 +97,21 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
    * Adds a JSON body to the request.
    */
   def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
-    withBody(body = AnyContentAsJson(json))
+    withBody(body = AnyContentAsJson(json)).withHeaders(HeaderNames.CONTENT_TYPE -> Helpers.JSON)
   }
 
   /**
    * Adds an XML body to the request.
    */
   def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
-    withBody(body = AnyContentAsXml(xml))
+    withBody(body = AnyContentAsXml(xml)).withHeaders(HeaderNames.CONTENT_TYPE -> Helpers.XML)
   }
 
   /**
    * Adds a text body to the request.
    */
   def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
-    withBody(body = AnyContentAsText(text))
+    withBody(body = AnyContentAsText(text)).withHeaders(HeaderNames.CONTENT_TYPE -> Helpers.TEXT)
   }
 
   /**
