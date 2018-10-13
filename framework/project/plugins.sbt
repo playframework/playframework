@@ -15,6 +15,7 @@ val Versions = new {
   val sbtHeader = "5.0.0"
   val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.4.0-M2")
   val interplay: String = sys.props.getOrElse("interplay.version", "2.0.3")
+  val coursier: String = "1.0.3"
 }
 
 buildInfoKeys := Seq[BuildInfoKey](
@@ -34,6 +35,7 @@ addSbtPlugin("org.scalariform" % "sbt-scalariform" % Versions.sbtScalariform)
 addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % Versions.sbtJavaAgent)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % Versions.sbtJmh)
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % Versions.sbtHeader)
+addSbtPlugin("io.get-coursier" % "sbt-coursier" % Versions.coursier)
 
 
 libraryDependencies ++= Seq(
