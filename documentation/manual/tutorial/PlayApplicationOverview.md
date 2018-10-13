@@ -24,7 +24,7 @@ Next, let's look at the tutorial project to locate the implementation for:
 
 Follow these steps to drill down into the source files:
 
-> **Note:** In the following procedures, for Windows shells, substitute / for \ in path names (no need to change URL path names though). 
+> **Note:** In the following procedures, for Windows shells, use \ in place of / in path names (no need to change URL path names though).
 
 Using a command window or GUI, look at the contents of the top-level project directory. The following directories contain application components:
 
