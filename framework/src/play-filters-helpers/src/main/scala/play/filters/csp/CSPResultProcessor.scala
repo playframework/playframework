@@ -30,7 +30,7 @@ object CSPResultProcessor {
  * depending on config.reportOnly.
  *
  * If `cspResult.nonceHeader` is defined then
- * `play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER``
+ * `play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER`
  * is set as an additional header.
  */
 class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor)
