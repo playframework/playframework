@@ -9,6 +9,7 @@ import java.security.{ Provider, SecureRandom }
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.annotation.ApiMayChange
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
@@ -68,6 +69,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   implicit private val mat: Materializer = context.materializer
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
+
+  @ApiMayChange
   private val http2AlwaysForInsecure: Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure") getOrElse false)
 
   /**
