@@ -1,13 +1,10 @@
 /*
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
-
 package play.data.format;
 
 import org.junit.Test;
-
 import play.data.format.Formats.LocalDateFormatter;
-
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Locale;
