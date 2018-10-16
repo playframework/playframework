@@ -30,7 +30,7 @@ object PlayMagicForJava extends JavaImplicitConversions {
   }
 
   implicit def requestHeader: play.api.mvc.RequestHeader = {
-    ctx._requestHeader
+    ctx.request().asScala
   }
 
   // TODO: After removing Http.Context (and the corresponding methods in this object here) this should be changed to:

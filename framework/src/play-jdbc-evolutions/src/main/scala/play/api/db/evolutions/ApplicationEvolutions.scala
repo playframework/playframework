@@ -107,7 +107,7 @@ class ApplicationEvolutions @Inject() (
     import ApplicationEvolutions._
     val (selectScript, createScript, insertScript) = url match {
       case OracleJdbcUrl() =>
-        (SelectPlayEvolutionsLockSql, CreatePlayEvolutionsLockOracleSql, InsertIntoPlayEvolutionsLockSql)
+        (SelectPlayEvolutionsLockOracleSql, CreatePlayEvolutionsLockOracleSql, InsertIntoPlayEvolutionsLockOracleSql)
       case MysqlJdbcUrl(_) =>
         (SelectPlayEvolutionsLockMysqlSql, CreatePlayEvolutionsLockMysqlSql, InsertIntoPlayEvolutionsLockMysqlSql)
       case _ =>
@@ -128,6 +128,7 @@ class ApplicationEvolutions @Inject() (
     import ApplicationEvolutions._
     val lockScripts = url match {
       case MysqlJdbcUrl(_) => lockPlayEvolutionsLockMysqlSqls
+      case OracleJdbcUrl() => lockPlayEvolutionsLockOracleSqls
       case _ => lockPlayEvolutionsLockSqls
     }
     try {
@@ -171,6 +172,11 @@ private object ApplicationEvolutions {
       select `lock` from ${schema}play_evolutions_lock
     """
 
+  val SelectPlayEvolutionsLockOracleSql =
+    """
+      select "lock" from ${schema}play_evolutions_lock
+    """
+
   val CreatePlayEvolutionsLockSql =
     """
       create table ${schema}play_evolutions_lock (
@@ -188,8 +194,8 @@ private object ApplicationEvolutions {
   val CreatePlayEvolutionsLockOracleSql =
     """
       CREATE TABLE ${schema}play_evolutions_lock (
-        lock Number(10,0) Not Null Enable,
-        CONSTRAINT play_evolutions_lock_pk PRIMARY KEY (lock)
+        "lock" Number(10,0) Not Null Enable,
+        CONSTRAINT play_evolutions_lock_pk PRIMARY KEY ("lock")
       )
     """
 
@@ -201,6 +207,11 @@ private object ApplicationEvolutions {
   val InsertIntoPlayEvolutionsLockMysqlSql =
     """
       insert into ${schema}play_evolutions_lock (`lock`) values (1)
+    """
+
+  val InsertIntoPlayEvolutionsLockOracleSql =
+    """
+      insert into ${schema}play_evolutions_lock ("lock") values (1)
     """
 
   val lockPlayEvolutionsLockSqls =
@@ -217,6 +228,13 @@ private object ApplicationEvolutions {
       """,
       """
         select `lock` from ${schema}play_evolutions_lock where `lock` = 1 for update
+      """
+    )
+
+  val lockPlayEvolutionsLockOracleSqls =
+    List(
+      """
+        select "lock" from ${schema}play_evolutions_lock where "lock" = 1 for update nowait
       """
     )
 }

@@ -12,7 +12,7 @@ object Dependencies {
   val akkaHttpVersion = "10.1.5"
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.4"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.6"
 
   val playJsonVersion = "2.6.10"
 
@@ -281,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.0-M5"
+  val playWsStandaloneVersion = "2.0.0-M6"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,

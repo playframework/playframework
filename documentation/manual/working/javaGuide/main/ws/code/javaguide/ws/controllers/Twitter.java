@@ -55,24 +55,21 @@ public class Twitter extends Controller {
         if (Strings.isNullOrEmpty(verifier)) {
             String url = routes.Twitter.auth().absoluteURL(request());
             RequestToken requestToken = TWITTER.retrieveRequestToken(url);
-            saveSessionTokenPair(requestToken);
-            return redirect(TWITTER.redirectUrl(requestToken.token));
+            return redirect(TWITTER.redirectUrl(requestToken.token))
+                    .addingToSession(request(), "token", requestToken.token)
+                    .addingToSession(request(), "secret", requestToken.secret);
         } else {
             RequestToken requestToken = getSessionTokenPair().get();
             RequestToken accessToken = TWITTER.retrieveAccessToken(requestToken, verifier);
-            saveSessionTokenPair(accessToken);
-            return redirect(routes.Twitter.homeTimeline());
+            return redirect(routes.Twitter.homeTimeline())
+                    .addingToSession(request(), "token", accessToken.token)
+                    .addingToSession(request(), "secret", accessToken.secret);
         }
     }
 
-    private void saveSessionTokenPair(RequestToken requestToken) {
-        session("token", requestToken.token);
-        session("secret", requestToken.secret);
-    }
-
     private Optional<RequestToken> getSessionTokenPair() {
-        if (session().containsKey("token")) {
-            return Optional.ofNullable(new RequestToken(session("token"), session("secret")));
+        if (request().session().containsKey("token")) {
+            return Optional.ofNullable(new RequestToken(request().session().get("token"), request().session().get("secret")));
         }
         return Optional.empty();
     }

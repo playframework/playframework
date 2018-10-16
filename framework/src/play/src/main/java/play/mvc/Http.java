@@ -13,6 +13,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
 import play.api.libs.json.JsValue;
+import play.api.mvc.DiscardingCookie;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
 import play.core.j.JavaContextComponents;
@@ -29,6 +30,7 @@ import play.libs.XML;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
+import scala.Option;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
 
@@ -72,7 +74,6 @@ public class Http {
         //
 
         private final Long id;
-        private final play.api.mvc.RequestHeader header;
         private final Request request;
         private final Response response;
         private final Session session;
@@ -99,13 +100,29 @@ public class Http {
          */
         public Context(Request request, JavaContextComponents components) {
             this.request = request;
-            this.header = request.asScala();
-            this.id = header.id();
+            this.id = this.request.asScala().id();
             this.response = new Response();
-            this.session = new Session(Scala.asJava(header.session().data()));
-            this.flash = new Flash(Scala.asJava(header.flash().data()));
+            this.session = new Session(this.request.session());
+            this.flash = new Flash(this.request.flash());
             this.args = new HashMap<>();
             this.components = components;
+        }
+
+        /**
+         * Creates a new HTTP context.
+         *
+         * @param id the unique context ID
+         * @param header the request header (Not used anymore. You could simply pass null, it doesn't matter)
+         * @param request the request with body
+         * @param sessionData the session data extracted from the session cookie
+         * @param flashData the flash data extracted from the flash cookie
+         * @param args any arbitrary data to associate with this request context.
+         * @param components the context components.
+         */
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request,
+                Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args,
+                JavaContextComponents components) {
+            this(id, header, request, sessionData, flashData, args, null, components);
         }
 
         /**
@@ -117,13 +134,14 @@ public class Http {
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
          * @param args any arbitrary data to associate with this request context.
+         * @param lang the transient lang to use.
          * @param components the context components.
          */
         public Context(Long id, play.api.mvc.RequestHeader header, Request request,
-                Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args,
-                JavaContextComponents components) {
+                       Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args, Lang lang,
+                       JavaContextComponents components) {
             this(id, header, request, new Response(), new Session(sessionData), new Flash(flashData),
-                new HashMap<>(args), components);
+                new HashMap<>(args), lang, components);
         }
 
         /**
@@ -139,16 +157,38 @@ public class Http {
          * @param flash the flash instance to use
          * @param args any arbitrary data to associate with this request context.
          * @param components the context components.
+         *
+         * @deprecated Use {@link #Context(Long, play.api.mvc.RequestHeader, Request, Response, Session, Flash, Map, Lang, JavaContextComponents)} instead. Since 2.7.0.
          */
         public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
-                Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
+                       Session session, Flash flash, Map<String,Object> args, JavaContextComponents components) {
+            this(id, header, request, response, session, flash, args, null, components);
+        }
+
+        /**
+         * Creates a new HTTP context, using the references provided.
+         *
+         * Use this constructor (or withRequest) to copy a context within a Java Action to be passed to a delegate.
+         *
+         * @param id the unique context ID
+         * @param header the request header (Not used anymore. You could simply pass null, it doesn't matter)
+         * @param request the request with body
+         * @param response the response instance to use
+         * @param session the session instance to use
+         * @param flash the flash instance to use
+         * @param args any arbitrary data to associate with this request context.
+         * @param lang the transient lang to use.
+         * @param components the context components.
+         */
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Response response,
+                Session session, Flash flash, Map<String,Object> args, Lang lang, JavaContextComponents components) {
             this.id = id;
-            this.header = header;
             this.request = request;
             this.response = response;
             this.session = session;
             this.flash = flash;
             this.args = args;
+            this.lang = lang;
             this.components = components;
         }
 
@@ -156,7 +196,10 @@ public class Http {
          * The context id (unique)
          *
          * @return the id
+         *
+         * @deprecated Deprecated as of 2.7.0 Use {@link RequestHeader#id()} instead.
          */
+        @Deprecated
         public Long id() {
             return id;
         }
@@ -186,7 +229,10 @@ public class Http {
          * Returns the current session.
          *
          * @return the session
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Request#session()} and {@link Result} instead.
          */
+        @Deprecated
         public Session session() {
             return session;
         }
@@ -195,7 +241,10 @@ public class Http {
          * Returns the current flash scope.
          *
          * @return the flash scope
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Request#flash()} and {@link Result} instead.
          */
+        @Deprecated
         public Flash flash() {
             return flash;
         }
@@ -205,9 +254,12 @@ public class Http {
          * For internal usage only.
          *
          * @return the original request header.
+         *
+         * @deprecated Use {@link #request()}.asScala() instead. Since 2.7.0.
          */
+        @Deprecated
         public play.api.mvc.RequestHeader _requestHeader() {
-            return header;
+            return request.asScala();
         }
 
         /**
@@ -236,7 +288,10 @@ public class Http {
          *
          * @param code New lang code to use (e.g. "fr", "en-US", etc.)
          * @return true if the requested lang was supported by the application, otherwise false
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)}.
          */
+        @Deprecated
         public boolean changeLang(String code) {
             return changeLang(Lang.forCode(code));
         }
@@ -245,8 +300,11 @@ public class Http {
          * Change durably the lang for the current user.
          *
          * @param lang New Lang object to use
-         * @return true if the requested lang was supported by the application, otherwise false
+         * @return true if the requested lang was supported by the application, otherwise false.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)}.
          */
+        @Deprecated
         public boolean changeLang(Lang lang) {
             if (langs().availables().contains(lang)) {
                 this.lang = lang;
@@ -258,7 +316,7 @@ public class Http {
                         domain.isDefined() ? domain.get() : null,
                         messagesApi().langCookieSecure(),
                         messagesApi().langCookieHttpOnly(),
-                        SameSite.LAX
+                        messagesApi().langCookieSameSite().orElse(null)
                     );
                 response.setCookie(langCookie);
                 return true;
@@ -269,7 +327,10 @@ public class Http {
 
         /**
          * Clear the lang for the current user.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)}.
          */
+        @Deprecated
         public void clearLang() {
             this.lang = null;
             scala.Option<String> domain = sessionDomain();
@@ -341,6 +402,10 @@ public class Http {
          */
         public Map<String, Object> args;
 
+        /**
+         * @deprecated Deprecated as of 2.7.0. Inject a {@link FileMimeTypes} and use the {@link FileMimeTypes#fileMimeTypes} method instead.
+         */
+        @Deprecated
         public FileMimeTypes fileMimeTypes() {
             return components.fileMimeTypes();
         }
@@ -426,7 +491,7 @@ public class Http {
         /**
          * Create a new context with the given request.
          *
-         * The id, Scala RequestHeader, session, flash and args remain unchanged.
+         * The id, session, flash and args remain unchanged.
          *
          * This method is intended for use within a Java action, to create a new Context to pass to a delegate action.
          *
@@ -434,7 +499,7 @@ public class Http {
          * @return The new context.
          */
         public Context withRequest(Request request) {
-            return new Context(id, header, request, response, session, flash, args, components);
+            return new Context(id, request.asScala(), request, response, session, flash, args, lang, components);
         }
     }
 
@@ -449,7 +514,7 @@ public class Http {
          * @param wrapped the context the created instance will wrap
          */
         public WrappedContext(Context wrapped) {
-            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.components);
+            super(wrapped.id(), wrapped.request().asScala(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args, wrapped.lang, wrapped.components);
             this.args = wrapped.args;
             this.wrapped = wrapped;
         }
@@ -483,9 +548,13 @@ public class Http {
             return wrapped.flash();
         }
 
+        /**
+         * @deprecated Use {@link #request()}.asScala() instead. Since 2.7.0.
+         */
         @Override
+        @Deprecated
         public play.api.mvc.RequestHeader _requestHeader() {
-            return wrapped._requestHeader();
+            return wrapped.request().asScala();
         }
 
         @Override
@@ -506,6 +575,26 @@ public class Http {
         @Override
         public void clearLang() {
             wrapped.clearLang();
+        }
+
+        @Override
+        public void setTransientLang(String code) {
+            wrapped.setTransientLang(code);
+        }
+
+        @Override
+        public void setTransientLang(Lang lang) {
+            wrapped.setTransientLang(lang);
+        }
+
+        @Override
+        public void clearTransientLang() {
+            wrapped.clearTransientLang();
+        }
+
+        @Override
+        public Messages messages() {
+            return wrapped.messages();
         }
     }
 
@@ -599,6 +688,13 @@ public class Http {
     }
 
     public interface RequestHeader {
+
+        /**
+         * The request id. The request id is stored as an attribute indexed by {@link RequestAttrKey#Id()}.
+         */
+        default Long id() {
+            return (Long) attrs().get(RequestAttrKey.Id().asJava());
+        }
 
         /**
          * The complete request URI, containing both path and query string.
@@ -728,6 +824,22 @@ public class Http {
          * @return the cookie, if found, otherwise null
          */
         Cookie cookie(String name);
+
+        /**
+         * Parses the Session cookie and returns the Session data. The request's session cookie is stored in an attribute indexed by
+         * {@link RequestAttrKey#Session()}. The attribute uses a {@link Cell} to store the session cookie, to allow it to be evaluated on-demand.
+         */
+        default Session session() {
+            return attrs().get(RequestAttrKey.Session().asJava()).value().asJava();
+        }
+
+        /**
+         * Parses the Flash cookie and returns the Flash data. The request's flash cookie is stored in an attribute indexed by
+         * {@link RequestAttrKey#Flash()}}. The attribute uses a {@link Cell} to store the flash, to allow it to be evaluated on-demand.
+         */
+        default Flash flash() {
+            return attrs().get(RequestAttrKey.Flash().asJava()).value().asJava();
+        }
 
         /**
          * Retrieve all headers.
@@ -1861,7 +1973,7 @@ public class Http {
          * @param secure Whether the cookie to discard is secure
          */
         public void discardCookie(String name, String path, String domain, boolean secure) {
-            cookies.add(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
+            cookies.add(new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
         }
 
         public Collection<Cookie> cookies() {
@@ -1923,6 +2035,15 @@ public class Http {
             super.clear();
         }
 
+        /**
+         * Convert this session to a Scala session.
+         *
+         * @return the Scala session.
+         */
+        public play.api.mvc.Session asScala() {
+            return new play.api.mvc.Session(Scala.asScala(this));
+        }
+
     }
 
     /**
@@ -1972,6 +2093,15 @@ public class Http {
         public void clear() {
             isDirty = true;
             super.clear();
+        }
+
+        /**
+         * Convert this flash to a Scala flash.
+         *
+         * @return the Scala flash.
+         */
+        public play.api.mvc.Flash asScala() {
+            return new play.api.mvc.Flash(Scala.asScala(this));
         }
 
     }
@@ -2130,7 +2260,7 @@ public class Http {
         private String path = "/";
         private String domain;
         private boolean secure = false;
-        private boolean httpOnly = false;
+        private boolean httpOnly = true;
         private SameSite sameSite;
 
         /**
@@ -2236,8 +2366,19 @@ public class Http {
         /**
          * @param name Name of the cookie to retrieve
          * @return the cookie that is associated with the given name
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
          */
-        Cookie get(String name);
+        @Deprecated
+        default Cookie get(String name) {
+            return getCookie(name).get();
+        }
+
+        /**
+         *
+         * @param name Name of the cookie to retrieve
+         * @return the optional cookie that is associated with the given name
+         */
+        Optional<Cookie> getCookie(String name);
 
     }
 

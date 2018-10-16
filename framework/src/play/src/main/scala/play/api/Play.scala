@@ -177,18 +177,21 @@ object Play {
   /**
    * Returns the name of the cookie that can be used to permanently set the user's language.
    */
+  @deprecated("Use the MessagesApi itself", "2.7.0")
   def langCookieName(implicit messagesApi: MessagesApi): String =
     messagesApi.langCookieName
 
   /**
    * Returns whether the language cookie should have the secure flag set.
    */
+  @deprecated("Use the MessagesApi itself", "2.7.0")
   def langCookieSecure(implicit messagesApi: MessagesApi): Boolean =
     messagesApi.langCookieSecure
 
   /**
    * Returns whether the language cookie should have the HTTP only flag set.
    */
+  @deprecated("Use the MessagesApi itself", "2.7.0")
   def langCookieHttpOnly(implicit messagesApi: MessagesApi): Boolean =
     messagesApi.langCookieHttpOnly
 

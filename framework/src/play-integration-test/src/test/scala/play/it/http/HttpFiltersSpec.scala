@@ -7,9 +7,9 @@ package play.it.http
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.test.PlaySpecification
+import play.api.test.{ ApplicationFactories, ApplicationFactory, PlaySpecification }
 import play.api.{ Application, ApplicationLoader, BuiltInComponentsFromContext, Environment }
-import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
 import scala.concurrent.Future
 

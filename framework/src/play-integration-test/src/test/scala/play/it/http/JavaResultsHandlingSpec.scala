@@ -16,6 +16,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.{ DefaultWSCookie, WSCookie, WSResponse }
 import play.http.HttpEntity
+import play.i18n.{ Lang, MessagesApi }
 import play.it._
 import play.libs.{ Comet, EventSource, Json }
 import play.mvc.Http.{ Cookie, Flash, Session }
@@ -37,6 +38,18 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       implicit val port = testServerPort
       lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
         case _ => JAction(app, controller)
+      }.build()
+
+      running(TestServer(port, app)) {
+        val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
+        block(response)
+      }
+    }
+
+    def makeRequestWithApp[T](additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(controller: Application => MockController)(block: WSResponse => T) = {
+      implicit val port = testServerPort
+      lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
+        case _ => JAction(app, controller(app))
       }.build()
 
       running(TestServer(port, app)) {
@@ -220,6 +233,96 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       cookieHeader(1) must contain("framework=Play")
       cookieHeader(1) must contain("SameSite=Strict")
+    }
+
+    "change lang for result" should {
+      "works for MessagesApi.setLang" in makeRequestWithApp() { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            val result = Results.ok("Hello world")
+            javaMessagesApi.setLang(result, Lang.forCode("pt-BR"))
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/"))
+      }
+
+      "works with Result.withLang" in makeRequestWithApp() { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/"))
+      }
+
+      "respect play.i18n.langCookieName configuration" in makeRequestWithApp(additionalConfig = Map(
+        "play.i18n.langCookieName" -> "LANG_TEST_COOKIE"
+      )) { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; SameSite=Lax; Path=/"))
+      }
+
+      "respect play.i18n.langCookieSecure configuration" in makeRequestWithApp(additionalConfig = Map(
+        "play.i18n.langCookieSecure" -> "true"
+      )) { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Secure"))
+      }
+
+      "respect play.i18n.langCookieHttpOnly configuration" in makeRequestWithApp(additionalConfig = Map(
+        "play.i18n.langCookieHttpOnly" -> "true"
+      )) { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly"))
+      }
+
+    }
+
+    "clear lang for result" should {
+      "works with MessagesApi.clearLang" in makeRequestWithApp() { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            val result = Results.ok("Hello world")
+            javaMessagesApi.clearLang(result)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+      }
+
+      "works with Result.clearingLang" in makeRequestWithApp() { app =>
+        new MockController() {
+          override def action: Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").clearingLang(javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+      }
     }
 
     "honor configuration for play.http.session.sameSite" in {

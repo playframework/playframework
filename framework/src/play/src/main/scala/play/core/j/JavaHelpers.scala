@@ -37,9 +37,15 @@ trait JavaHelpers {
 
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
-      def get(name: String): JCookie = {
+
+      override def get(name: String): JCookie = {
         cookies.get(name).map(_.asJava).orNull
       }
+
+      override def getCookie(name: String): Optional[JCookie] = {
+        Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
+      }
+
       def iterator: java.util.Iterator[JCookie] = {
         cookies.toIterator.map(_.asJava).asJava
       }
@@ -138,13 +144,14 @@ trait JavaHelpers {
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+      wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
+        .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
     } else {
       if (javaContext.session.isDirty) {
-        wResult.withSession(Session(javaContext.session.asScala.toMap))
+        wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
       } else {
         if (javaContext.flash.isDirty) {
-          wResult.flashing(Flash(javaContext.flash.asScala.toMap))
+          wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
         } else {
           wResult
         }

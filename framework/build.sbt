@@ -146,7 +146,8 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
       parallelExecution in Test := false
     ).dependsOn(
   PlayGuiceProject,
-  PlayAkkaHttpServerProject
+  PlayAkkaHttpServerProject,
+  PlayNettyServerProject
 )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")

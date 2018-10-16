@@ -12,7 +12,7 @@ import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.mvc.{ RequestHeader, Results }
 import play.api.routing.Router
-import play.api.test.PlaySpecification
+import play.api.test.{ ApplicationFactories, ApplicationFactory, PlaySpecification, ServerEndpointRecipe }
 import play.core.server.{ AkkaHttpServer, ServerProvider }
 import play.it.test._
 

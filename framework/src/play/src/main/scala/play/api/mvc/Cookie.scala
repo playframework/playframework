@@ -113,7 +113,7 @@ object Cookie {
  * @param secure whether this cookie is secured
  */
 case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure)
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false)
 }
 
 /**
@@ -403,7 +403,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
   /**
    *  The cookie path.
    */
-  def path: String
+  def path: String = "/"
 
   /**
    * The value of the SameSite attribute of the cookie. Defaults to no SameSite.

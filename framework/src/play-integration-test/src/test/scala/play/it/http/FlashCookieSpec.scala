@@ -14,7 +14,8 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test._
-import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.core.server.ServerEndpoint
+import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
 import scala.collection.JavaConverters
 
@@ -42,7 +43,7 @@ class FlashCookieSpec extends PlaySpecification
   }
 
   /**
-   * Handles the details of calling a [[play.it.test.ServerEndpoint]] with a cookie and
+   * Handles the details of calling a [[ServerEndpoint]] with a cookie and
    * receiving the response and its cookies.
    */
   trait CookieEndpoint {

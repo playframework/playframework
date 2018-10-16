@@ -26,7 +26,7 @@ public class JavaSessionFlash extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-session
                     public Result index() {
-                        String user = session("connected");
+                        String user = request().session().get("connected");
                         if(user != null) {
                             return ok("Hello " + user);
                         } else {
@@ -43,8 +43,7 @@ public class JavaSessionFlash extends WithApplication {
         Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-session
             public Result login() {
-                session("connected", "user@gmail.com");
-                return ok("Welcome!");
+                return ok("Welcome!").addingToSession(request(), "connected", "user@gmail.com");
             }
             //#store-session
         }, fakeRequest(), mat).session();
@@ -56,8 +55,7 @@ public class JavaSessionFlash extends WithApplication {
         Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#remove-from-session
             public Result logout() {
-                session().remove("connected");
-                return ok("Bye");
+                return ok("Bye").removingFromSession(request(), "connected");
             }
             //#remove-from-session
         }, fakeRequest().session("connected", "foo"), mat).session();
@@ -69,8 +67,7 @@ public class JavaSessionFlash extends WithApplication {
         Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#discard-whole-session
             public Result logout() {
-                session().clear();
-                return ok("Bye");
+                return ok("Bye").withNewSession();
             }
             //#discard-whole-session
         }, fakeRequest().session("connected", "foo"), mat).session();
@@ -82,7 +79,7 @@ public class JavaSessionFlash extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-flash
                     public Result index() {
-                        String message = flash("success");
+                        String message = request().flash().get("success");
                         if(message == null) {
                             message = "Welcome!";
                         }
@@ -98,8 +95,7 @@ public class JavaSessionFlash extends WithApplication {
         Flash flash = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-flash
             public Result save() {
-                flash("success", "The item has been created");
-                return redirect("/home");
+                return redirect("/home").flashing("success", "The item has been created");
             }
             //#store-flash
         }, fakeRequest(), mat).flash();

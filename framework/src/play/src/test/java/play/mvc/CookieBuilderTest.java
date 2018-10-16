@@ -19,7 +19,7 @@ public class CookieBuilderTest {
     assertEquals(null, cookie.domain());
     assertEquals(null, cookie.maxAge());
     assertEquals(false, cookie.secure());
-    assertEquals(false, cookie.httpOnly());
+    assertEquals(true, cookie.httpOnly());
   }
 
   @Test
@@ -31,7 +31,7 @@ public class CookieBuilderTest {
     assertEquals(null, cookie.domain());
     assertEquals(null, cookie.maxAge());
     assertEquals(false, cookie.secure());
-    assertEquals(false, cookie.httpOnly());
+    assertEquals(true, cookie.httpOnly());
   }
 
   @Test
@@ -43,7 +43,7 @@ public class CookieBuilderTest {
     assertEquals(".example.com", cookie.domain());
     assertEquals(null, cookie.maxAge());
     assertEquals(false, cookie.secure());
-    assertEquals(false, cookie.httpOnly());
+    assertEquals(true, cookie.httpOnly());
   }
 
   @Test

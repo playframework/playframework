@@ -119,7 +119,7 @@ object Session extends CookieBaker[Session] with FallbackCookieDataCodec {
 
   lazy val emptyCookie = new Session
 
-  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
+  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = javaSession.asScala
 
   @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   def config: SessionConfiguration = HttpConfiguration.current.session

@@ -6,6 +6,7 @@ package play.mvc;
 
 import play.i18n.Lang;
 
+import play.i18n.MessagesApi;
 import play.mvc.Http.HeaderNames;
 import play.mvc.Http.Response;
 import play.mvc.Http.Context;
@@ -59,7 +60,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param code New lang code to use (e.g. "fr", "en-US", etc.)
      * @return true if the requested lang was supported by the application, otherwise false.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)} or {@link Result#withLang(Lang, MessagesApi)}.
      */
+    @Deprecated
     public static boolean changeLang(String code) {
         return Http.Context.current().changeLang(code);
     }
@@ -69,14 +73,20 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param lang New Lang object to use
      * @return true if the requested lang was supported by the application, otherwise false.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)} or {@link Result#withLang(Lang, MessagesApi)}.
      */
+    @Deprecated
     public static boolean changeLang(Lang lang) {
         return Http.Context.current().changeLang(lang);
     }
 
     /**
      * Clear the lang for the current user.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)} or {@link Result#clearingLang(MessagesApi)}.
      */
+    @Deprecated
     public static void clearLang() {
         Http.Context.current().clearLang();
     }
@@ -97,7 +107,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * Returns the current HTTP session.
      *
      * @return the session
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Request#session()} and {@link Result} instead.
      */
+    @Deprecated
     public static Session session() {
         return Http.Context.current().session();
     }
@@ -107,7 +120,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the key to set into the session
      * @param value the value to set for <code>key</code>
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static void session(String key, String value) {
         session().put(key, value);
     }
@@ -117,7 +133,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the session key
      * @return the value for the provided key, or null if there was no value
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static String session(String key) {
         return session().get(key);
     }
@@ -126,7 +145,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      * Returns the current HTTP flash scope.
      *
      * @return the flash scope
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Request#flash()} and {@link Result} instead.
      */
+    @Deprecated
     public static Flash flash() {
         return Http.Context.current().flash();
     }
@@ -136,7 +158,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the key to put into the flash scope
      * @param value the value corresponding to <code>key</code>
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static void flash(String key, String value) {
         flash().put(key, value);
     }
@@ -146,7 +171,10 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      *
      * @param key the key to look up in the flash scope
      * @return the value corresponding to <code>key</code> from the flash scope, or null if there was none
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
      */
+    @Deprecated
     public static String flash(String key) {
         return flash().get(key);
     }
