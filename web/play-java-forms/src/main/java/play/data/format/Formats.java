@@ -5,12 +5,12 @@
 package play.data.format;
 
 import java.text.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.*;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -115,22 +115,54 @@ public class Formats {
   /**
    * Formatter for <code>java.time.LocalDate</code> values. {@link LocalDate} toString method, to
    * which the LocalDateFormatter print method directly defers, results in a date complying with
-   * ISO-8601 format {@code uuuu-MM-dd}. For this reason, this is used as the expected format of the
-   * input argument to the parse method. Dates before 0000, or after 9999 are not supported in this
-   * implementation.
+   * ISO-8601 format {@code uuuu-MM-dd}.
    */
   public static class LocalDateFormatter extends Formatters.SimpleFormatter<LocalDate> {
-    /**
-     * As per LocalDate.toString, the expected format for LocalDate is the ISO-8601 format {@code
-     * uuuu-MM-dd}. Dates before 0000, or after 9999 are not supported in this implementation.
-     */
-    private static final Pattern LOCAL_DATE_PATTERN =
-        Pattern.compile("(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)");
+
+    private final MessagesApi messagesApi;
+
+    private final String pattern;
+
+    private final String patternNoApp;
 
     /**
-     * Binds the field - constructs a concrete value from submitted data. The expected format for
-     * LocalDate is the ISO-8601 format {@code uuuu-MM-dd}. Dates before 0000, or after 9999 are not
-     * supported in this implementation.
+     * Creates a date formatter. The value defined for the message file key "formats.localdate" will
+     * be used as the default pattern.
+     *
+     * @param messagesApi messages to look up the pattern
+     */
+    public LocalDateFormatter(MessagesApi messagesApi) {
+      this(messagesApi, "formats.localdate");
+    }
+
+    /**
+     * Creates a date formatter.
+     *
+     * @param messagesApi messages to look up the pattern
+     * @param pattern date pattern, as specified for {@link DateTimeFormatter}. Can be a message
+     *     file key.
+     */
+    public LocalDateFormatter(MessagesApi messagesApi, String pattern) {
+      this(messagesApi, pattern, "uuuu-MM-dd");
+    }
+
+    /**
+     * Creates a date formatter.
+     *
+     * @param messagesApi messages to look up the pattern
+     * @param pattern date pattern, as specified for {@link DateTimeFormatter}. Can be a message
+     *     file key.
+     * @param patternNoApp date pattern to use as fallback when no app is started.
+     */
+    public LocalDateFormatter(MessagesApi messagesApi, String pattern, String patternNoApp) {
+      this.messagesApi = messagesApi;
+      this.pattern = pattern;
+      this.patternNoApp = patternNoApp;
+    }
+
+    /**
+     * Binds the field - constructs a concrete value from submitted data. The default format for
+     * LocalDate is the ISO-8601 format {@code uuuu-MM-dd}.
      *
      * @param text the field text
      * @param locale the current <code>Locale</code>
@@ -138,25 +170,32 @@ public class Formats {
      */
     @Override
     public LocalDate parse(String text, Locale locale) throws ParseException {
-      Matcher m = LOCAL_DATE_PATTERN.matcher(text);
-      if (!m.matches()) throw new ParseException("No valid Input for date text: " + text, 0);
-      return parse(m.group(1), m.group(2), m.group(3));
+      if (text == null || text.trim().isEmpty()) {
+        return null;
+      }
+      Lang lang = new Lang(locale);
+
+      DateTimeFormatter formatter =
+          DateTimeFormatter.ofPattern(
+                  Optional.ofNullable(this.messagesApi)
+                      .map(messages -> messages.get(lang, pattern))
+                      .orElse(patternNoApp))
+              .withResolverStyle(ResolverStyle.STRICT);
+      return parse(text, formatter);
     }
 
     /**
      * Helper method; Builds a LocalDate object based on the provided input. Wraps the
      * DateTimeException with the ParseException thrown by the caller.
      *
-     * @param year the year component of the date (0000-9999)
-     * @param month the month component of the date (1-12)
-     * @param dayOfMonth the day component of the date (1-31)
+     * @param text the text field
+     * @param formatter the LocalDate formatter to use for the conversion from text to LocalDate
+     *     instance
      * @return a LocalDate instance
      */
-    private static LocalDate parse(String year, String month, String dayOfMonth)
-        throws ParseException {
+    private static LocalDate parse(String text, DateTimeFormatter formatter) throws ParseException {
       try {
-        return LocalDate.of(
-            Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(dayOfMonth));
+        return LocalDate.parse(text, formatter);
       } catch (DateTimeException e) {
         throw new ParseException(e.getMessage(), 0);
       }
@@ -171,9 +210,17 @@ public class Formats {
      */
     @Override
     public String print(LocalDate value, Locale locale) {
-      return value
-          .toString(); // Local can be ignored in the case of LocalDate ; format is always ISO-8601.
-                       // i.e., uuuu-MM-dd
+
+      Lang lang = new Lang(locale);
+
+      DateTimeFormatter formatter =
+          DateTimeFormatter.ofPattern(
+                  Optional.ofNullable(this.messagesApi)
+                      .map(messages -> messages.get(lang, pattern))
+                      .orElse(patternNoApp))
+              .withResolverStyle(ResolverStyle.STRICT);
+
+      return formatter.format(value);
     }
   }
 
