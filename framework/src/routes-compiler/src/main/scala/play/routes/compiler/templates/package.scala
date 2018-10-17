@@ -24,7 +24,7 @@ package object templates {
   /**
    * Generate a base identifier for the given route
    */
-  def baseIdentifier(route: Route, index: Int): String = route.call.packageName.replace(".", "_") + "_" + route.call.controller.replace(".", "_") + "_" + route.call.method + index
+  def baseIdentifier(route: Route, index: Int): String = route.call.packageName.map(_.replace(".", "_") + "_").getOrElse("") + route.call.controller.replace(".", "_") + "_" + route.call.method + index
 
   /**
    * Generate a route object identifier for the given route
@@ -56,9 +56,9 @@ package object templates {
    */
   def controllerMethodCall(r: Route, paramFormat: Parameter => String): String = {
     val methodPart = if (r.call.instantiate) {
-      s"$Injector.instanceOf(classOf[${r.call.packageName}.${r.call.controller}]).${r.call.method}"
+      s"$Injector.instanceOf(classOf[${r.call.packageName.map(_ + ".").getOrElse("")}${r.call.controller}]).${r.call.method}"
     } else {
-      s"${r.call.packageName}.${r.call.controller}.${r.call.method}"
+      s"${r.call.packageName.map(_ + ".").getOrElse("")}${r.call.controller}.${r.call.method}"
     }
     val paramPart = r.call.parameters.map { params =>
       params.map(paramFormat).mkString(", ")
@@ -378,7 +378,7 @@ package object templates {
    * Generate the ref router call
    */
   def refCall(route: Route, useInjector: Route => Boolean): String = {
-    val controllerRef = s"${route.call.packageName}.${route.call.controller}"
+    val controllerRef = s"${route.call.packageName.map(_ + ".").getOrElse("")}${route.call.controller}"
     val methodCall = s"${route.call.method}(${
       route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.nameClean)).mkString(", ")
     })"
@@ -411,7 +411,7 @@ package object templates {
     constant.split('$').mkString(tq, s"""$tq + "$$" + $tq""", tq)
   }
 
-  def groupRoutesByPackage(routes: Seq[Route]): Map[String, Seq[Route]] = routes.groupBy(_.call.packageName)
+  def groupRoutesByPackage(routes: Seq[Route]): Map[Option[String], Seq[Route]] = routes.groupBy(_.call.packageName)
   def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]] = routes.groupBy(_.call.controller)
   def groupRoutesByMethod(routes: Seq[Route]): Map[(String, Seq[String]), Seq[Route]] =
     routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeNameReal)))
