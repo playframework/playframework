@@ -20,7 +20,7 @@ The filter can be configured from `application.conf`.  For a full listing of con
 The available options include:
 
 * `play.filters.cors.pathPrefixes` - filter paths by a whitelist of path prefixes
-* `play.filters.cors.allowedOrigins` - allow only requests with origins from a whitelist (by default all origins are allowed)
+* `play.filters.cors.allowedOrigins` - allow only requests with origins from a whitelist (by default all origins are allowed). "null" is treated as a valid origin.
 * `play.filters.cors.allowedHttpMethods` - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
 * `play.filters.cors.allowedHttpHeaders` - allow only HTTP headers from a whitelist for preflight requests (by default all headers are allowed)
 * `play.filters.cors.exposedHeaders` - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
