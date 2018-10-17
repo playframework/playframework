@@ -181,24 +181,7 @@ public class Formats {
                       .map(messages -> messages.get(lang, pattern))
                       .orElse(patternNoApp))
               .withResolverStyle(ResolverStyle.STRICT);
-      return parse(text, formatter);
-    }
-
-    /**
-     * Helper method; Builds a LocalDate object based on the provided input. Wraps the
-     * DateTimeException with the ParseException thrown by the caller.
-     *
-     * @param text the text field
-     * @param formatter the LocalDate formatter to use for the conversion from text to LocalDate
-     *     instance
-     * @return a LocalDate instance
-     */
-    private static LocalDate parse(String text, DateTimeFormatter formatter) throws ParseException {
-      try {
-        return LocalDate.parse(text, formatter);
-      } catch (DateTimeException e) {
-        throw new ParseException(e.getMessage(), 0);
-      }
+      return Formats.parse(text, formatter);
     }
 
     /**
@@ -210,7 +193,9 @@ public class Formats {
      */
     @Override
     public String print(LocalDate value, Locale locale) {
-
+      if (value == null) {
+        return "";
+      }
       Lang lang = new Lang(locale);
 
       DateTimeFormatter formatter =
@@ -224,6 +209,23 @@ public class Formats {
     }
   }
 
+  /**
+   * Helper method; Builds a LocalDate object based on the provided input. Wraps the
+   * DateTimeException with the ParseException thrown by the caller.
+   *
+   * @param text the text field
+   * @param formatter the LocalDate formatter to use for the conversion from text to LocalDate
+   *     instance
+   * @return a LocalDate instance
+   */
+  private static LocalDate parse(String text, DateTimeFormatter formatter) throws ParseException {
+    try {
+      return LocalDate.parse(text, formatter);
+    } catch (DateTimeException e) {
+      throw new ParseException(e.getMessage(), 0);
+    }
+  }
+
   /** Defines the format for a <code>Date</code> field. */
   @Target({FIELD})
   @Retention(RUNTIME)
@@ -234,6 +236,22 @@ public class Formats {
 
     /**
      * Date pattern, as specified for {@link SimpleDateFormat}.
+     *
+     * @return the date pattern
+     */
+    String pattern();
+  }
+
+  /** Defines the format for a <code>LocalDate</code> field. */
+  @Target({FIELD})
+  @Retention(RUNTIME)
+  @play.data.Form.Display(
+      name = "format.localdate",
+      attributes = {"pattern"})
+  public static @interface DateLocal {
+
+    /**
+     * Date pattern, as specified for {@link DateTimeFormatter}.
      *
      * @return the date pattern
      */
@@ -263,6 +281,7 @@ public class Formats {
      * @param locale the current <code>Locale</code>
      * @return a new value
      */
+    @Override
     public Date parse(DateTime annotation, String text, Locale locale)
         throws java.text.ParseException {
       if (text == null || text.trim().isEmpty()) {
@@ -287,6 +306,7 @@ public class Formats {
      * @param locale the current <code>Locale</code>
      * @return printable version of the value
      */
+    @Override
     public String print(DateTime annotation, Date value, Locale locale) {
       if (value == null) {
         return "";
@@ -298,6 +318,74 @@ public class Formats {
                   .orElse(annotation.pattern()),
               locale)
           .format(value);
+    }
+  }
+
+  // -- LocalDate annotation
+
+  /** Annotation formatter, triggered by the <code>@LocalDate</code> annotation. */
+  public static class AnnotationLocalDateFormatter
+      extends Formatters.AnnotationFormatter<DateLocal, LocalDate> {
+
+    private final MessagesApi messagesApi;
+
+    /**
+     * Creates an annotation date formatter.
+     *
+     * @param messagesApi messages to look up the pattern
+     */
+    public AnnotationLocalDateFormatter(MessagesApi messagesApi) {
+      this.messagesApi = messagesApi;
+    }
+
+    /**
+     * Binds the field - constructs a concrete value from submitted data.
+     *
+     * @param annotation the annotation that triggered this formatter
+     * @param text the field text
+     * @param locale the current <code>Locale</code>
+     * @return a new value
+     */
+    @Override
+    public LocalDate parse(DateLocal annotation, String text, Locale locale)
+        throws java.text.ParseException {
+      if (text == null || text.trim().isEmpty()) {
+        return null;
+      }
+      Lang lang = new Lang(locale);
+
+      DateTimeFormatter formatter =
+          DateTimeFormatter.ofPattern(
+                  Optional.ofNullable(this.messagesApi)
+                      .map(messages -> messages.get(lang, annotation.pattern()))
+                      .orElse(annotation.pattern()))
+              .withResolverStyle(ResolverStyle.STRICT);
+      return Formats.parse(text, formatter);
+    }
+
+    /**
+     * Unbinds this field - converts a concrete value to plain string
+     *
+     * @param annotation the annotation that triggered this formatter
+     * @param value the value to unbind
+     * @param locale the current <code>Locale</code>
+     * @return printable version of the value
+     */
+    @Override
+    public String print(DateLocal annotation, LocalDate value, Locale locale) {
+      if (value == null) {
+        return "";
+      }
+      Lang lang = new Lang(locale);
+
+      DateTimeFormatter formatter =
+          DateTimeFormatter.ofPattern(
+                  Optional.ofNullable(this.messagesApi)
+                      .map(messages -> messages.get(lang, annotation.pattern()))
+                      .orElse(annotation.pattern()))
+              .withResolverStyle(ResolverStyle.STRICT);
+
+      return formatter.format(value);
     }
   }
 
