@@ -18,8 +18,12 @@ import javax.inject.Inject;
  */
 public abstract class Action<T> extends Results {
 
-    @Inject
     private JavaContextComponents contextComponents;
+
+    @Inject
+    public void setContextComponents(JavaContextComponents contextComponents) {
+        this.contextComponents = contextComponents;
+    }
 
     /**
      * The action configuration - typically the annotation used to decorate the action method.
