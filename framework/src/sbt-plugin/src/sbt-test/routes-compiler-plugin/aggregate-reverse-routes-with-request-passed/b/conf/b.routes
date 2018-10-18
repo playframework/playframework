@@ -1,1 +1,1 @@
-GET /index controllers.b.B.index
+GET /index controllers.b.B.index(req: Request)
