@@ -87,8 +87,8 @@ public class ActionCompositionOrderTest {
 
     public static class SecondAction extends Action<SomeRepeatable> {
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
+        public CompletionStage<Result> call(Http.Request req) {
+            return delegate.call(req).thenApply(result -> {
                 String newContent = this.annotatedElement.getClass().getName() + "action2" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
