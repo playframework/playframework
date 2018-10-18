@@ -6,7 +6,7 @@ package controllers.module;
 import play.mvc.*;
 
 public class ModuleController extends Controller {
-  public Result index() {
-    return ok();
+  public Result index(Http.Request req) {
+    return ok(req.uri());
   }
 }

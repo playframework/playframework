@@ -41,21 +41,21 @@ object RouterSpec extends PlaySpecification {
   "bind boolean parameters" in {
     "from the query string" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool?b=true"))
-      contentAsString(result) must equalTo ("true")
+      contentAsString(result) must equalTo ("/take-bool?b=true true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool?b=false"))
-      contentAsString(result2) must equalTo ("false")
+      contentAsString(result2) must equalTo ("/take-bool?b=false false")
       // Bind boolean values from 1 and 0 integers too
-      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
-      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("/take-bool?b=1 true")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("/take-bool?b=0 false")
     }
     "from the path" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-bool-2/true"))
-      contentAsString(result) must equalTo ("true")
+      contentAsString(result) must equalTo ("/take-bool-2/true true")
       val Some(result2) = route(implicitApp, FakeRequest(GET, "/take-bool-2/false"))
-      contentAsString(result2) must equalTo ("false")
+      contentAsString(result2) must equalTo ("/take-bool-2/false false")
       // Bind boolean values from 1 and 0 integers too
-      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
-      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("/take-bool-2/1 true")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("/take-bool-2/0 false")
     }
   }
 
@@ -63,7 +63,7 @@ object RouterSpec extends PlaySpecification {
 
     "from a list of numbers" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(new Integer(1), new Integer(2), new Integer(3)).asJava).url))
-      contentAsString(result) must equalTo("1,2,3")
+      contentAsString(result) must equalTo("/take-list?x=1&x=2&x=3 1,2,3")
     }
     "from a list of numbers and letters" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
@@ -71,20 +71,20 @@ object RouterSpec extends PlaySpecification {
     }
     "when there is no parameter at all" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list"))
-      contentAsString(result) must equalTo("")
+      contentAsString(result) must equalTo("/take-list ")
     }
     "using the Java API" in new WithApplication() {
       val Some(result) = route(implicitApp, FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
-      contentAsString(result) must equalTo("1,2,3")
+      contentAsString(result) must equalTo("/take-java-list?x=1&x=2&x=3 1,2,3")
     }
   }
 
   "use a new instance for each instantiated controller" in new WithApplication() {
     route(implicitApp, FakeRequest(GET, "/instance")) must beSome.like {
-      case result => contentAsString(result) must_== "1"
+      case result => contentAsString(result) must_== "/instance 1"
     }
     route(implicitApp, FakeRequest(GET, "/instance")) must beSome.like {
-      case result => contentAsString(result) must_== "1"
+      case result => contentAsString(result) must_== "/instance 1"
     }
   }
 
@@ -93,7 +93,7 @@ object RouterSpec extends PlaySpecification {
                        dynamicEncoded: String, staticEncoded: String, queryEncoded: String,
                        dynamicDecoded: String, staticDecoded: String, queryDecoded: String) = {
       val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-      val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
+      val expected = s"/urlcoding/$dynamicEncoded/$staticDecoded?q=$queryEncoded dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
       val Some(result) = route(implicitApp, FakeRequest(GET, path))
       val actual = contentAsString(result)
       actual must equalTo(expected)

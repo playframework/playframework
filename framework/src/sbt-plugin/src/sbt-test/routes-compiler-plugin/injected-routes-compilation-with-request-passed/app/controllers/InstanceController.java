@@ -8,8 +8,8 @@ import play.mvc.*;
 public class InstanceController extends Controller {
   private int invoked = 0;
 
-  public Result index() {
+  public Result index(Http.Request req) {
     this.invoked += 1;
-    return ok("" + invoked);
+    return ok(req.uri() + " " + invoked);
   }
 }
