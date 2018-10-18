@@ -9,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.*;
 import java.time.DateTimeException;
-import java.time.LocalDate;
 import java.util.Locale;
 
 import static java.lang.annotation.ElementType.*;
@@ -113,11 +112,11 @@ public class Formats {
   }
 
   /**
-   * Formatter for <code>java.time.LocalDate</code> values. {@link LocalDate} toString method, to
-   * which the LocalDateFormatter print method directly defers, results in a date complying with
-   * ISO-8601 format {@code uuuu-MM-dd}.
+   * Formatter for <code>java.time.LocalDate</code> values. {@link java.time.LocalDate} toString
+   * method, to which the LocalDateFormatter print method directly defers, results in a date
+   * complying with ISO-8601 format {@code uuuu-MM-dd}.
    */
-  public static class LocalDateFormatter extends Formatters.SimpleFormatter<LocalDate> {
+  public static class LocalDateFormatter extends Formatters.SimpleFormatter<java.time.LocalDate> {
 
     private final MessagesApi messagesApi;
 
@@ -169,7 +168,7 @@ public class Formats {
      * @return a new value
      */
     @Override
-    public LocalDate parse(String text, Locale locale) throws ParseException {
+    public java.time.LocalDate parse(String text, Locale locale) throws ParseException {
       if (text == null || text.trim().isEmpty()) {
         return null;
       }
@@ -192,7 +191,7 @@ public class Formats {
      * @return printable version of the value
      */
     @Override
-    public String print(LocalDate value, Locale locale) {
+    public String print(java.time.LocalDate value, Locale locale) {
       if (value == null) {
         return "";
       }
@@ -218,9 +217,10 @@ public class Formats {
    *     instance
    * @return a LocalDate instance
    */
-  private static LocalDate parse(String text, DateTimeFormatter formatter) throws ParseException {
+  private static java.time.LocalDate parse(String text, DateTimeFormatter formatter)
+      throws ParseException {
     try {
-      return LocalDate.parse(text, formatter);
+      return java.time.LocalDate.parse(text, formatter);
     } catch (DateTimeException e) {
       throw new ParseException(e.getMessage(), 0);
     }
@@ -236,22 +236,6 @@ public class Formats {
 
     /**
      * Date pattern, as specified for {@link SimpleDateFormat}.
-     *
-     * @return the date pattern
-     */
-    String pattern();
-  }
-
-  /** Defines the format for a <code>LocalDate</code> field. */
-  @Target({FIELD})
-  @Retention(RUNTIME)
-  @play.data.Form.Display(
-      name = "format.localdate",
-      attributes = {"pattern"})
-  public static @interface DateLocal {
-
-    /**
-     * Date pattern, as specified for {@link DateTimeFormatter}.
      *
      * @return the date pattern
      */
@@ -323,9 +307,25 @@ public class Formats {
 
   // -- LocalDate annotation
 
+  /** Defines the format for a <code>LocalDate</code> field. */
+  @Target({FIELD})
+  @Retention(RUNTIME)
+  @play.data.Form.Display(
+      name = "format.localdate",
+      attributes = {"pattern"})
+  public static @interface LocalDate {
+
+    /**
+     * Date pattern, as specified for {@link DateTimeFormatter}.
+     *
+     * @return the date pattern
+     */
+    String pattern();
+  }
+
   /** Annotation formatter, triggered by the <code>@LocalDate</code> annotation. */
   public static class AnnotationLocalDateFormatter
-      extends Formatters.AnnotationFormatter<DateLocal, LocalDate> {
+      extends Formatters.AnnotationFormatter<LocalDate, java.time.LocalDate> {
 
     private final MessagesApi messagesApi;
 
@@ -347,7 +347,7 @@ public class Formats {
      * @return a new value
      */
     @Override
-    public LocalDate parse(DateLocal annotation, String text, Locale locale)
+    public java.time.LocalDate parse(LocalDate annotation, String text, Locale locale)
         throws java.text.ParseException {
       if (text == null || text.trim().isEmpty()) {
         return null;
@@ -372,7 +372,7 @@ public class Formats {
      * @return printable version of the value
      */
     @Override
-    public String print(DateLocal annotation, LocalDate value, Locale locale) {
+    public String print(LocalDate annotation, java.time.LocalDate value, Locale locale) {
       if (value == null) {
         return "";
       }
