@@ -59,12 +59,10 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
                             config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
                             domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
                     return result.withCookies(cookie);
-                } else {
-                    return result.addingToSession(req, newToken.name(), newToken.value());
                 }
+                return result.addingToSession(req, newToken.name(), newToken.value());
             });
-        } else {
-            return delegate.call(new RequestImpl(taggedRequest));
         }
+        return delegate.call(new RequestImpl(taggedRequest));
     }
 }

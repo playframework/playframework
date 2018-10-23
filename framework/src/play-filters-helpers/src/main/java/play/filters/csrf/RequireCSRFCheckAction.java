@@ -105,9 +105,8 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                     Option<String> domain = sessionConfiguration.domain();
                     return result.discardCookie(config.cookieName().get(), sessionConfiguration.path(),
                             domain.isDefined() ? domain.get() : null, config.secureCookie());
-                } else {
-                    return result.removingFromSession(req, config.tokenName());
                 }
+                return result.removingFromSession(req, config.tokenName());
             }
             return result;
         });
