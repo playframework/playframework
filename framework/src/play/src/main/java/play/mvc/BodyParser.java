@@ -273,7 +273,13 @@ public interface BodyParser<A> {
 
         @Override
         protected String parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-            String charset = request.charset().orElse("ISO-8859-1");
+            // Per RFC 7231:
+            // The default charset of ISO-8859-1 for text media types has been removed; the default is now
+            // whatever the media type definition says.
+            // Per RFC 6657:
+            // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
+            // https://tools.ietf.org/html/rfc6657#section-4
+            String charset = request.charset().orElse("US-ASCII");
             return bytes.decodeString(charset);
         }
     }

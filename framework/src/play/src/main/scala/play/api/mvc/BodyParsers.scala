@@ -472,8 +472,11 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def tolerantText(maxLength: Long): BodyParser[String] = {
     tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
-      // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
-      bytes.decodeString(request.charset.getOrElse("ISO-8859-1"))
+      // Per RFC-7321, "The default charset of ISO-8859-1 for text media types has been removed; the default is now
+      // whatever the media type definition says." and
+      // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
+      // https://tools.ietf.org/html/rfc6657#section-4
+      bytes.decodeString(request.charset.getOrElse("US-ASCII"))
     }
   }
 
