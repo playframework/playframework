@@ -239,8 +239,20 @@ object HttpConfiguration {
     )
   }
 
-  private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
+  private def secretTooShort(s: String): Boolean = {
+    // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
+    // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
+    // 86 bits of random input is enough for a secret.  This rounds up to 11 bytes.
+    // If we assume base64 encoded input, this comes out to at least 15 bytes,
+    // but if we have less than 8 bytes in production then it's not even 64 bits,
+    // which wasn't cool even in 2000 per RFC-2898 -- so set a lower bound of an
+    // 8 character secret, which is almost certainly base64 random entropy in any
+    // case, and is most probably a hardcoded text password.
+    // https://tools.ietf.org/html/rfc2898#section-4.1
+    s.length < 8
+  }
 
+  private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
     val Blank = """\s*""".r
 
     val secret = config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
@@ -248,6 +260,13 @@ object HttpConfiguration {
         val message =
           """
             |The application secret has not been set, and we are in prod mode. Your application is not secure.
+            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+          """.stripMargin
+        throw config.reportError("play.http.secret", message)
+      case Some(s) if secretTooShort(s) && environment.mode == Mode.Prod =>
+        val message =
+          """
+            |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure.
             |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
         throw config.reportError("play.http.secret", message)
