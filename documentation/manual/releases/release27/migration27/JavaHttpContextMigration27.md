@@ -111,7 +111,7 @@ public class HomeController extends Controller {
 
 ### `Action.call(Context)` deprecated
 
-If you are using [[action composition|JavaActionsComposition]] you have to update your actions to not use `Http.Context` anymore:
+If you are using [[action composition|JavaActionsComposition]] you have to update your actions to avoid `Http.Context`.
 
 #### Before
 
