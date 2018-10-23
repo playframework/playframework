@@ -10,10 +10,8 @@ import javax.inject.Inject;
 
 import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
-import play.api.mvc.Session;
 import play.mvc.Action;
 import play.mvc.Http;
-import play.mvc.Http.Request;
 import play.mvc.Http.RequestBody;
 import play.mvc.Http.RequestImpl;
 import play.mvc.Result;
@@ -52,17 +50,22 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             taggedRequest = helper.tagRequest(taggedRequest, newToken);
 
             // Also add it to the response
-            return delegate.call(new RequestImpl(taggedRequest)).thenApply(result -> {
-                if (config.cookieName().isDefined()) {
-                    scala.Option<String> domain = sessionConfiguration.domain();
-                    Http.Cookie cookie = new Http.Cookie(
-                            config.cookieName().get(), newToken.value(), null, sessionConfiguration.path(),
-                            domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
-                    return result.withCookies(cookie);
-                }
-                return result.addingToSession(req, newToken.name(), newToken.value());
-            });
+            return delegate.call(new RequestImpl(taggedRequest)).thenApply(result -> placeToken(req, result, newToken));
         }
         return delegate.call(new RequestImpl(taggedRequest));
+    }
+
+    /**
+     * Places the CSRF token in the session or in a cookie (if a cookie name is configured)
+     */
+    private Result placeToken(Http.Request req, final Result result, CSRF.Token token) {
+        if (config.cookieName().isDefined()) {
+            scala.Option<String> domain = sessionConfiguration.domain();
+            Http.Cookie cookie = new Http.Cookie(
+                    config.cookieName().get(), token.value(), null, sessionConfiguration.path(),
+                    domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
+            return result.withCookies(cookie);
+        }
+        return result.addingToSession(req, token.name(), token.value());
     }
 }
