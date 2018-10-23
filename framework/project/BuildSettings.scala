@@ -674,7 +674,13 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
 
       // Add companion for play.api.mvc.Result
-      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$")
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$"),
+
+      // Pass Java Request to action methods as first argument when route is prefixed with '+' sign
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invocation"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.j.JavaAction.invocation"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

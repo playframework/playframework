@@ -20,7 +20,7 @@ import play.api.mvc._
 import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.libs.AnnotationUtils
-import play.mvc.Http.{ Context => JContext }
+import play.mvc.Http.{ Context => JContext, Request => JRequest }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
@@ -71,7 +71,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
 
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
 
-  def invocation: CompletionStage[JResult]
+  def invocation(req: JRequest): CompletionStage[JResult]
   val annotations: JavaActionAnnotations
 
   val executionContext: ExecutionContext = handlerComponents.executionContext
@@ -81,12 +81,12 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val javaContext: JContext = createJavaContext(req, contextComponents)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): CompletionStage[JResult] = {
+      override def call(ctx: JContext): CompletionStage[JResult] = {
         // The context may have changed, set it again
         val oldContext = JContext.current.get()
         try {
           JContext.current.set(ctx)
-          invocation
+          invocation(ctx.request())
         } finally {
           JContext.current.set(oldContext)
         }

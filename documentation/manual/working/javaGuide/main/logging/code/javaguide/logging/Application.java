@@ -40,11 +40,10 @@ class AccessLoggingAction extends Action.Simple {
 
   private static final Logger accessLogger = LoggerFactory.getLogger(AccessLoggingAction.class);
 
-  public CompletionStage<Result> call(Http.Context ctx) {
-    final Request request = ctx.request();
+  public CompletionStage<Result> call(Http.Request request) {
     accessLogger.info("method={} uri={} remote-address={}", request.method(), request.uri(), request.remoteAddress());
 
-    return delegate.call(ctx);
+    return delegate.call(request);
   }
 }
 //#logging-pattern-mix
