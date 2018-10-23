@@ -28,8 +28,8 @@ public class DefaultActionCreator implements ActionCreator {
   public Action createAction(Request request, Method actionMethod) {
     return new Action.Simple() {
       @Override
-      public CompletionStage<Result> call(Http.Context ctx) {
-        return delegate.call(ctx);
+      public CompletionStage<Result> call(Http.Request req) {
+        return delegate.call(req);
       }
     };
   }
