@@ -82,7 +82,7 @@ public class Security {
          * @param ctx the current request context
          * @return null if the user is not authenticated.
          *
-         * @deprecated Since 2.7.0. Use {@link #getUsername(Request)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getUsername(Request)} instead.
          */
         @Deprecated
         public String getUsername(Context ctx) {
