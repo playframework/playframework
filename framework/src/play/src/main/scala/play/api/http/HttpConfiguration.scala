@@ -259,12 +259,9 @@ object HttpConfiguration {
       case Some(s) if secretEqualOrShorterThan(s, 8) && environment.mode == Mode.Prod =>
         // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
         // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
-        // but if we have less than 8 bytes in production then it's not even 64 bits,
-        // which wasn't cool even in 2000 per RFC-2898 -- so set a lower bound of an
-        // 8 character secret, which is almost certainly base64 random entropy in any
-        // case, and is most probably a hardcoded text password.  The ENTIRE 8 character
-        // HMAC SHA256 space has been mapped out, so with a large enough dictionary,
-        // there will be a hit.
+        // but if we have less than 8 bytes in production then it's not even 64 bits.
+        // which is almost certainly not from base64'ed /dev/urandom in any case, and is most
+        // probably a hardcoded text password.
         // https://tools.ietf.org/html/rfc2898#section-4.1
         val message =
           """
@@ -282,7 +279,7 @@ object HttpConfiguration {
         // entropy.  Still, don't error out here and halt the app from starting.
         val message =
           """
-            |Your secret key is too short to be random, and may be vulnerable to dictionary attacks.  Your application may not be secure.
+            |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
             |The application secret should ideally be 32 bytes of completely random input, encoded in base64.
             |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin

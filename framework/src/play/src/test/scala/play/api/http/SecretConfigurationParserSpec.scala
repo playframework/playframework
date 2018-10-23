@@ -51,6 +51,9 @@ trait SecretConfigurationParserSpec extends Specification {
       "load a configured secret in dev" in {
         parseSecret(Mode.Dev, Some(Secret)) must_== Secret
       }
+      "throw an exception if secret is too short in prod" in {
+        parseSecret(Mode.Prod, Some("12345678")) must throwA[PlayException]
+      }
       "throw an exception if secret is changeme in prod" in {
         parseSecret(Mode.Prod, Some("changeme")) must throwA[PlayException]
       }
