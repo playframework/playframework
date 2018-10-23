@@ -4,8 +4,8 @@
 
 package play.api.http
 
-import javax.inject.{ Inject, Provider, Singleton }
 import com.typesafe.config.ConfigMemorySize
+import javax.inject.{ Inject, Provider, Singleton }
 import play.api._
 import play.api.libs.Codecs
 import play.api.mvc.Cookie.SameSite
@@ -239,17 +239,9 @@ object HttpConfiguration {
     )
   }
 
-  private def secretTooShort(s: String): Boolean = {
-    // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
-    // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
-    // 86 bits of random input is enough for a secret.  This rounds up to 11 bytes.
-    // If we assume base64 encoded input, this comes out to at least 15 bytes,
-    // but if we have less than 8 bytes in production then it's not even 64 bits,
-    // which wasn't cool even in 2000 per RFC-2898 -- so set a lower bound of an
-    // 8 character secret, which is almost certainly base64 random entropy in any
-    // case, and is most probably a hardcoded text password.
-    // https://tools.ietf.org/html/rfc2898#section-4.1
-    s.length < 8
+  @inline
+  private def secretEqualOrShorterThan(s: String, length: Int): Boolean = {
+    s.length <= 8
   }
 
   private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
@@ -263,13 +255,40 @@ object HttpConfiguration {
             |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
         throw config.reportError("play.http.secret", message)
-      case Some(s) if secretTooShort(s) && environment.mode == Mode.Prod =>
+
+      case Some(s) if secretEqualOrShorterThan(s, 8) && environment.mode == Mode.Prod =>
+        // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
+        // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
+        // but if we have less than 8 bytes in production then it's not even 64 bits,
+        // which wasn't cool even in 2000 per RFC-2898 -- so set a lower bound of an
+        // 8 character secret, which is almost certainly base64 random entropy in any
+        // case, and is most probably a hardcoded text password.  The ENTIRE 8 character
+        // HMAC SHA256 space has been mapped out, so with a large enough dictionary,
+        // there will be a hit.
+        // https://tools.ietf.org/html/rfc2898#section-4.1
         val message =
           """
             |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure.
             |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
         throw config.reportError("play.http.secret", message)
+
+      case Some(s) if secretEqualOrShorterThan(s, 15) && environment.mode == Mode.Prod =>
+        // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
+        // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
+        // 86 bits of random input is enough for a secret.  This rounds up to 11 bytes.
+        // If we assume base64 encoded input, this comes out to at least 15 bytes, but
+        // it's highly likely to be a user inputted string, which has much, much lower
+        // entropy.  Still, don't error out here and halt the app from starting.
+        val message =
+          """
+            |Your secret key is too short to be random, and may be vulnerable to dictionary attacks.  Your application may not be secure.
+            |The application secret should ideally be 32 bytes of completely random input, encoded in base64.
+            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+          """.stripMargin
+        logger.warn(message)
+        s
+
       case Some("changeme") | Some(Blank()) | None =>
         val appConfLocation = environment.resource("application.conf")
         // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
