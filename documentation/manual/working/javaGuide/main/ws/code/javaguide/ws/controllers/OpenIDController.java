@@ -44,9 +44,9 @@ public class OpenIDController extends Controller {
                 );
     }
 
-    public CompletionStage<Result> openIDCallback() {
+    public CompletionStage<Result> openIDCallback(Http.Request request) {
 
-        CompletionStage<UserInfo> userInfoPromise = openIdClient.verifiedId();
+        CompletionStage<UserInfo> userInfoPromise = openIdClient.verifiedId(request);
 
         CompletionStage<Result> resultPromise = userInfoPromise.thenApply(userInfo ->
                         ok(userInfo.id() + "\n" + userInfo.attributes())

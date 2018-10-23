@@ -1,7 +1,7 @@
 # #ws-openid-routes
 GET     /openID/login               controllers.OpenIDController.login()
 POST    /openID/login               controllers.OpenIDController.loginPost()
-GET     /openID/callback            controllers.OpenIDController.openIDCallback()
+GET     /openID/callback            controllers.OpenIDController.openIDCallback(request: Request)
 # #ws-openid-routes
 
 # #ws-oauth-routes

@@ -174,9 +174,24 @@ public class Results {
      * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
      * @param content the file to send
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #status(int, File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result status(int status, File content) {
         return status(status, content, true);
+    }
+
+    /**
+     * Generates a result with file contents.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the file to send
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result status(int status, File content, FileMimeTypes fileMimeTypes) {
+        return status(status, content, true, fileMimeTypes);
     }
 
     /**
@@ -187,9 +202,25 @@ public class Results {
      * @param inline <code>true</code> to have it sent with inline Content-Disposition.
      * @return the result
      *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #status(int, File, boolean, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result status(int status, File content, boolean inline) {
         return status(status).sendFile(content, inline);
+    }
+
+    /**
+     * Generates a result with file content.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the file to send
+     * @param inline <code>true</code> to have it sent with inline Content-Disposition.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     *
+     */
+    public static Result status(int status, File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(status).sendFile(content, inline, fileMimeTypes);
     }
 
     /**
@@ -199,9 +230,25 @@ public class Results {
      * @param content the file to send
      * @param fileName the name that the client should receive this file as
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #status(int, File, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result status(int status, File content, String fileName) {
         return status(status).sendFile(content, fileName);
+    }
+
+    /**
+     * Generates a result.
+     *
+     * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+     * @param content the file to send
+     * @param fileName the name that the client should receive this file as
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result status(int status, File content, String fileName, FileMimeTypes fileMimeTypes) {
+        return status(status).sendFile(content, fileName, fileMimeTypes);
     }
 
     /**
@@ -329,7 +376,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ok(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result ok(File content) {
         return status(OK, content);
     }
@@ -338,9 +388,23 @@ public class Results {
      * Generates a 200 OK result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result ok(File content, FileMimeTypes fileMimeTypes) {
+        return status(OK, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 200 OK result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ok(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result ok(File content, boolean inline) {
         return status(OK, content, inline);
     }
@@ -349,13 +413,39 @@ public class Results {
      * Generates a 200 OK result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result ok(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(OK, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 200 OK result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ok(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result ok(File content, String filename) {
         return status(OK, content, filename);
     }
 
+    /**
+     * Generates a 200 OK result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result ok(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(OK, content, filename, fileMimeTypes);
+    }
 
     /**
      * Generates a 201 Created result.
@@ -466,7 +556,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #created(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result created(File content) {
         return status(CREATED, content);
     }
@@ -475,9 +568,23 @@ public class Results {
      * Generates a 201 Created result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result created(File content, FileMimeTypes fileMimeTypes) {
+        return status(CREATED, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 201 Created result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #created(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result created(File content, boolean inline) {
         return status(CREATED, content, inline);
     }
@@ -486,11 +593,38 @@ public class Results {
      * Generates a 201 Created result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result created(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(CREATED, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 201 Created result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #created(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result created(File content, String filename) {
         return status(CREATED, content, filename);
+    }
+
+    /**
+     * Generates a 201 Created result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result created(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(CREATED, content, filename, fileMimeTypes);
     }
 
     /**
@@ -602,7 +736,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #badRequest(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result badRequest(File content) {
         return status(BAD_REQUEST, content);
     }
@@ -611,9 +748,23 @@ public class Results {
      * Generates a 400 Bad Request result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result badRequest(File content, FileMimeTypes fileMimeTypes) {
+        return status(BAD_REQUEST, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 400 Bad Request result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #badRequest(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result badRequest(File content, boolean inline) {
         return status(BAD_REQUEST, content, inline);
     }
@@ -622,11 +773,38 @@ public class Results {
      * Generates a 400 Bad Request result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result badRequest(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(BAD_REQUEST, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 400 Bad Request result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #badRequest(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result badRequest(File content, String filename) {
         return status(BAD_REQUEST, content, filename);
+    }
+
+    /**
+     * Generates a 400 Bad Request result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result badRequest(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(BAD_REQUEST, content, filename, fileMimeTypes);
     }
 
     /**
@@ -738,7 +916,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #unauthorized(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result unauthorized(File content) {
         return status(UNAUTHORIZED, content);
     }
@@ -747,9 +928,23 @@ public class Results {
      * Generates a 401 Unauthorized result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result unauthorized(File content, FileMimeTypes fileMimeTypes) {
+        return status(UNAUTHORIZED, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 401 Unauthorized result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #unauthorized(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result unauthorized(File content, boolean inline) {
         return status(UNAUTHORIZED, content, inline);
     }
@@ -758,11 +953,38 @@ public class Results {
      * Generates a 401 Unauthorized result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result unauthorized(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(UNAUTHORIZED, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 401 Unauthorized result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #unauthorized(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result unauthorized(File content, String filename) {
         return status(UNAUTHORIZED, content, filename);
+    }
+
+    /**
+     * Generates a 401 Unauthorized result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result unauthorized(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(UNAUTHORIZED, content, filename, fileMimeTypes);
     }
 
     /**
@@ -874,7 +1096,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #paymentRequired(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result paymentRequired(File content) {
         return status(PAYMENT_REQUIRED, content);
     }
@@ -883,9 +1108,23 @@ public class Results {
      * Generates a 402 Payment Required result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result paymentRequired(File content, FileMimeTypes fileMimeTypes) {
+        return status(PAYMENT_REQUIRED, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 402 Payment Required result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #paymentRequired(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result paymentRequired(File content, boolean inline) {
         return status(PAYMENT_REQUIRED, content, inline);
     }
@@ -894,11 +1133,38 @@ public class Results {
      * Generates a 402 Payment Required result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result paymentRequired(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(PAYMENT_REQUIRED, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 402 Payment Required result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #paymentRequired(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result paymentRequired(File content, String filename) {
         return status(PAYMENT_REQUIRED, content, filename);
+    }
+
+    /**
+     * Generates a 402 Payment Required result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result paymentRequired(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(PAYMENT_REQUIRED, content, filename, fileMimeTypes);
     }
 
     /**
@@ -1010,7 +1276,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #forbidden(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result forbidden(File content) {
         return status(FORBIDDEN, content);
     }
@@ -1019,9 +1288,23 @@ public class Results {
      * Generates a 403 Forbidden result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result forbidden(File content, FileMimeTypes fileMimeTypes) {
+        return status(FORBIDDEN, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 403 Forbidden result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #forbidden(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result forbidden(File content, boolean inline) {
         return status(FORBIDDEN, content, inline);
     }
@@ -1030,11 +1313,38 @@ public class Results {
      * Generates a 403 Forbidden result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result forbidden(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(FORBIDDEN, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 403 Forbidden result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #forbidden(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result forbidden(File content, String filename) {
         return status(FORBIDDEN, content, filename);
+    }
+
+    /**
+     * Generates a 403 Forbidden result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result forbidden(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(FORBIDDEN, content, filename, fileMimeTypes);
     }
 
     /**
@@ -1146,7 +1456,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #notFound(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result notFound(File content) {
         return status(NOT_FOUND, content);
     }
@@ -1155,9 +1468,23 @@ public class Results {
      * Generates a 404 Not Found result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result notFound(File content, FileMimeTypes fileMimeTypes) {
+        return status(NOT_FOUND, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 404 Not Found result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #notFound(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result notFound(File content, boolean inline) {
         return status(NOT_FOUND, content, inline);
     }
@@ -1166,11 +1493,38 @@ public class Results {
      * Generates a 404 Not Found result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result notFound(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(NOT_FOUND, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 404 Not Found result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #notFound(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result notFound(File content, String filename) {
         return status(NOT_FOUND, content, filename);
+    }
+
+    /**
+     * Generates a 404 Not Found result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result notFound(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(NOT_FOUND, content, filename, fileMimeTypes);
     }
 
     /**
@@ -1282,7 +1636,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #notAcceptable(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result notAcceptable(File content) {
         return status(NOT_ACCEPTABLE, content);
     }
@@ -1291,9 +1648,23 @@ public class Results {
      * Generates a 406 Not Acceptable result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result notAcceptable(File content, FileMimeTypes fileMimeTypes) {
+        return status(NOT_ACCEPTABLE, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #notAcceptable(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result notAcceptable(File content, boolean inline) {
         return status(NOT_ACCEPTABLE, content, inline);
     }
@@ -1302,13 +1673,39 @@ public class Results {
      * Generates a 406 Not Acceptable result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result notAcceptable(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(NOT_ACCEPTABLE, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #notAcceptable(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result notAcceptable(File content, String filename) {
         return status(NOT_ACCEPTABLE, content, filename);
     }
 
+    /**
+     * Generates a 406 Not Acceptable result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result notAcceptable(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(NOT_ACCEPTABLE, content, filename, fileMimeTypes);
+    }
 
     /**
      * Generates a 415 Unsupported Media Type result.
@@ -1419,7 +1816,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #unsupportedMediaType(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result unsupportedMediaType(File content) {
         return status(UNSUPPORTED_MEDIA_TYPE, content);
     }
@@ -1428,9 +1828,23 @@ public class Results {
      * Generates a 415 Unsupported Media Type result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result unsupportedMediaType(File content, FileMimeTypes fileMimeTypes) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #unsupportedMediaType(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result unsupportedMediaType(File content, boolean inline) {
         return status(UNSUPPORTED_MEDIA_TYPE, content, inline);
     }
@@ -1439,11 +1853,38 @@ public class Results {
      * Generates a 415 Unsupported Media Type result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result unsupportedMediaType(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #unsupportedMediaType(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result unsupportedMediaType(File content, String filename) {
         return status(UNSUPPORTED_MEDIA_TYPE, content, filename);
+    }
+
+    /**
+     * Generates a 415 Unsupported Media Type result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result unsupportedMediaType(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(UNSUPPORTED_MEDIA_TYPE, content, filename, fileMimeTypes);
     }
 
     /**
@@ -1555,7 +1996,10 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #internalServerError(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public static Result internalServerError(File content) {
         return status(INTERNAL_SERVER_ERROR, content);
     }
@@ -1564,9 +2008,23 @@ public class Results {
      * Generates a 500 Internal Server Error result.
      *
      * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result internalServerError(File content, FileMimeTypes fileMimeTypes) {
+        return status(INTERNAL_SERVER_ERROR, content, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 500 Internal Server Error result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #internalServerError(File, boolean, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result internalServerError(File content, boolean inline) {
         return status(INTERNAL_SERVER_ERROR, content, inline);
     }
@@ -1575,11 +2033,38 @@ public class Results {
      * Generates a 500 Internal Server Error result.
      *
      * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
      * @return the result
      */
+    public static Result internalServerError(File content, boolean inline, FileMimeTypes fileMimeTypes) {
+        return status(INTERNAL_SERVER_ERROR, content, inline, fileMimeTypes);
+    }
+
+    /**
+     * Generates a 500 Internal Server Error result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @return the result
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #internalServerError(File, String, FileMimeTypes)} instead.
+     */
+    @Deprecated
     public static Result internalServerError(File content, String filename) {
         return status(INTERNAL_SERVER_ERROR, content, filename);
+    }
+
+    /**
+     * Generates a 500 Internal Server Error result.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return the result
+     */
+    public static Result internalServerError(File content, String filename, FileMimeTypes fileMimeTypes) {
+        return status(INTERNAL_SERVER_ERROR, content, filename, fileMimeTypes);
     }
 
     /**

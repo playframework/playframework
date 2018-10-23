@@ -36,10 +36,6 @@ public class StatusHeader extends Result {
     private static final int DEFAULT_CHUNK_SIZE = 1024 * 8;
     private static final boolean DEFAULT_INLINE_MODE = true;
 
-    private static FileMimeTypes fileMimeTypes() {
-        return Http.Context.current().fileMimeTypes();
-    }
-
     public StatusHeader(int status) {
         super(status);
     }
@@ -82,9 +78,25 @@ public class StatusHeader extends Result {
      *
      * @param resourceName The path of the resource to load.
      * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendResource(String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendResource(String resourceName) {
-        return sendResource(resourceName, DEFAULT_INLINE_MODE);
+        return sendResource(resourceName, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given resource.
+     * <p>
+     * The resource will be loaded from the same classloader that this class comes from.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+     */
+    public Result sendResource(String resourceName, FileMimeTypes fileMimeTypes) {
+        return sendResource(resourceName, DEFAULT_INLINE_MODE, fileMimeTypes);
     }
 
     /**
@@ -93,9 +105,24 @@ public class StatusHeader extends Result {
      * @param resourceName The path of the resource to load.
      * @param classLoader  The classloader to load it from.
      * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendResource(String, ClassLoader, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendResource(String resourceName, ClassLoader classLoader) {
-        return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE);
+        return sendResource(resourceName, classLoader, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given resource from the given classloader.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param classLoader  The classloader to load it from.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+     */
+    public Result sendResource(String resourceName, ClassLoader classLoader, FileMimeTypes fileMimeTypes) {
+        return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileMimeTypes);
     }
 
     /**
@@ -106,9 +133,26 @@ public class StatusHeader extends Result {
      * @param resourceName The path of the resource to load.
      * @param inline       Whether it should be served as an inline file, or as an attachment.
      * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendResource(String, boolean, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendResource(String resourceName, boolean inline) {
-        return sendResource(resourceName, this.getClass().getClassLoader(), inline);
+        return sendResource(resourceName, inline, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given resource.
+     * <p>
+     * The resource will be loaded from the same classloader that this class comes from.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+     */
+    public Result sendResource(String resourceName, boolean inline, FileMimeTypes fileMimeTypes) {
+        return sendResource(resourceName, this.getClass().getClassLoader(), inline, fileMimeTypes);
     }
 
     /**
@@ -118,10 +162,26 @@ public class StatusHeader extends Result {
      * @param classLoader  The classloader to load it from.
      * @param inline       Whether it should be served as an inline file, or as an attachment.
      * @return a '200 OK' result containing the resource in the body.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendResource(String, ClassLoader, boolean, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline) {
+        return sendResource(resourceName, classLoader, inline, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given resource from the given classloader.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param classLoader  The classloader to load it from.
+     * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the resource in the body.
+     */
+    public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline, FileMimeTypes fileMimeTypes) {
         return doSendResource(StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
-                Optional.empty(), Optional.of(resourceName), inline);
+                Optional.empty(), Optional.of(resourceName), inline, fileMimeTypes);
     }
 
     /**
@@ -133,9 +193,27 @@ public class StatusHeader extends Result {
      * @param inline       Whether it should be served as an inline file, or as an attachment.
      * @param filename     The file name of the resource.
      * @return a '200 OK' result containing the resource in the body.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendResource(String, boolean, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendResource(String resourceName, boolean inline, String filename) {
-        return sendResource(resourceName, this.getClass().getClassLoader(), inline, filename);
+        return sendResource(resourceName, inline, filename, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given resource.
+     * <p>
+     * The resource will be loaded from the same classloader that this class comes from.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @param filename     The file name of the resource.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the resource in the body.
+     */
+    public Result sendResource(String resourceName, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+        return sendResource(resourceName, this.getClass().getClassLoader(), inline, filename, fileMimeTypes);
     }
 
     /**
@@ -146,10 +224,26 @@ public class StatusHeader extends Result {
      * @param inline       Whether it should be served as an inline file, or as an attachment.
      * @param filename     The file name of the resource.
      * @return a '200 OK' result containing the resource in the body.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendResource(String, ClassLoader, boolean, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline, String filename) {
+        return sendResource(resourceName, classLoader, inline, filename, Http.Context.current().fileMimeTypes());
+    }
+    /**
+     * Send the given resource from the given classloader.
+     *
+     * @param resourceName The path of the resource to load.
+     * @param classLoader  The classloader to load it from.
+     * @param inline       Whether it should be served as an inline file, or as an attachment.
+     * @param filename     The file name of the resource.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the resource in the body.
+     */
+    public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
         return doSendResource(StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
-                Optional.empty(), Optional.of(filename), inline);
+                Optional.empty(), Optional.of(filename), inline, fileMimeTypes);
     }
 
     /**
@@ -157,9 +251,23 @@ public class StatusHeader extends Result {
      *
      * @param path The path to send.
      * @return a '200 OK' result containing the file at the provided path with inline content disposition.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendPath(Path, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendPath(Path path) {
-        return sendPath(path, DEFAULT_INLINE_MODE);
+        return sendPath(path, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
+     *
+     * @param path The path to send.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file at the provided path with inline content disposition.
+     */
+    public Result sendPath(Path path, FileMimeTypes fileMimeTypes) {
+        return sendPath(path, DEFAULT_INLINE_MODE, fileMimeTypes);
     }
 
     /**
@@ -168,9 +276,24 @@ public class StatusHeader extends Result {
      * @param path   The path to send.
      * @param inline Whether it should be served as an inline file, or as an attachment.
      * @return a '200 OK' result containing the file at the provided path
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendPath(Path, boolean, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendPath(Path path, boolean inline) {
-        return sendPath(path, inline, path.getFileName().toString());
+        return sendPath(path, inline, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
+     *
+     * @param path   The path to send.
+     * @param inline Whether it should be served as an inline file, or as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file at the provided path
+     */
+    public Result sendPath(Path path, boolean inline, FileMimeTypes fileMimeTypes) {
+        return sendPath(path, inline, path.getFileName().toString(), fileMimeTypes);
     }
 
     /**
@@ -179,9 +302,24 @@ public class StatusHeader extends Result {
      * @param path     The path to send.
      * @param filename The file name of the path.
      * @return a '200 OK' result containing the file at the provided path
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendPath(Path, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendPath(Path path, String filename) {
-        return sendPath(path, DEFAULT_INLINE_MODE, filename);
+        return sendPath(path, filename, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
+     *
+     * @param path     The path to send.
+     * @param filename The file name of the path.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file at the provided path
+     */
+    public Result sendPath(Path path, String filename, FileMimeTypes fileMimeTypes) {
+        return sendPath(path, DEFAULT_INLINE_MODE, filename, fileMimeTypes);
     }
 
     /**
@@ -191,8 +329,24 @@ public class StatusHeader extends Result {
      * @param inline   Whether it should be served as an inline file, or as an attachment.
      * @param filename The file name of the path.
      * @return a '200 OK' result containing the file at the provided path
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendPath(Path, boolean, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendPath(Path path, boolean inline, String filename) {
+        return sendPath(path, inline, filename, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions
+     *
+     * @param path     The path to send.
+     * @param inline   Whether it should be served as an inline file, or as an attachment.
+     * @param filename The file name of the path.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file at the provided path
+     */
+    public Result sendPath(Path path, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
         if (path == null) {
             throw new NullPointerException("null content");
         }
@@ -201,7 +355,8 @@ public class StatusHeader extends Result {
                     FileIO.fromPath(path),
                     Optional.of(Files.size(path)),
                     Optional.of(filename),
-                    inline
+                    inline,
+                    fileMimeTypes
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -213,9 +368,23 @@ public class StatusHeader extends Result {
      *
      * @param file The file to send.
      * @return a '200 OK' result containing the file.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendFile(File, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendFile(File file) {
-        return sendFile(file, DEFAULT_INLINE_MODE);
+        return sendFile(file, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Sends the given file using the default inline mode.
+     *
+     * @param file The file to send.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file.
+     */
+    public Result sendFile(File file, FileMimeTypes fileMimeTypes) {
+        return sendFile(file, DEFAULT_INLINE_MODE, fileMimeTypes);
     }
 
     /**
@@ -224,8 +393,23 @@ public class StatusHeader extends Result {
      * @param file The file to send.
      * @param inline  True if the file should be sent inline, false if it should be sent as an attachment.
      * @return a '200 OK' result containing the file
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendFile(File, boolean, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendFile(File file, boolean inline) {
+        return sendFile(file, inline, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Sends the given file.
+     *
+     * @param file The file to send.
+     * @param inline  True if the file should be sent inline, false if it should be sent as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file
+     */
+    public Result sendFile(File file, boolean inline, FileMimeTypes fileMimeTypes) {
         if (file == null) {
             throw new NullPointerException("null file");
         }
@@ -233,7 +417,8 @@ public class StatusHeader extends Result {
                 FileIO.fromPath(file.toPath()),
                 Optional.of(file.length()),
                 Optional.of(file.getName()),
-                inline
+                inline,
+                fileMimeTypes
         );
     }
 
@@ -243,9 +428,24 @@ public class StatusHeader extends Result {
      * @param file The file to send.
      * @param fileName The name of the attachment
      * @return a '200 OK' result containing the file
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendFile(File, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendFile(File file, String fileName) {
-        return sendFile(file, DEFAULT_INLINE_MODE, fileName);
+        return sendFile(file, fileName, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given file.
+     *
+     * @param file The file to send.
+     * @param fileName The name of the attachment
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file
+     */
+    public Result sendFile(File file, String fileName, FileMimeTypes fileMimeTypes) {
+        return sendFile(file, DEFAULT_INLINE_MODE, fileName, fileMimeTypes);
     }
 
     /**
@@ -255,8 +455,24 @@ public class StatusHeader extends Result {
      * @param fileName The name of the attachment
      * @param inline   True if the file should be sent inline, false if it should be sent as an attachment.
      * @return a '200 OK' result containing the file
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #sendFile(File, boolean, String, FileMimeTypes)} instead.
      */
+    @Deprecated
     public Result sendFile(File file, boolean inline, String fileName) {
+        return sendFile(file, inline, fileName, Http.Context.current().fileMimeTypes());
+    }
+
+    /**
+     * Send the given file.
+     *
+     * @param file     The file to send.
+     * @param fileName The name of the attachment
+     * @param inline   True if the file should be sent inline, false if it should be sent as an attachment.
+     * @param fileMimeTypes Used for file type mapping.
+     * @return a '200 OK' result containing the file
+     */
+    public Result sendFile(File file, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
         if (file == null) {
             throw new NullPointerException("null file");
         }
@@ -264,12 +480,13 @@ public class StatusHeader extends Result {
                 FileIO.fromPath(file.toPath()),
                 Optional.of(file.length()),
                 Optional.of(fileName),
-                inline
+                inline,
+                fileMimeTypes
         );
     }
 
     private Result doSendResource(Source<ByteString, ?> data, Optional<Long> contentLength,
-                                  Optional<String> resourceName, boolean inline) {
+                                  Optional<String> resourceName, boolean inline, FileMimeTypes fileMimeTypes) {
 
         // Create a Content-Disposition header
         StringBuilder cdBuilder = new StringBuilder();
@@ -286,7 +503,7 @@ public class StatusHeader extends Result {
         return new Result(status(), headers, new HttpEntity.Streamed(
                 data,
                 contentLength,
-                resourceName.map(name -> fileMimeTypes().forFileName(name)
+                resourceName.map(name -> fileMimeTypes.forFileName(name)
                         .orElse(Http.MimeTypes.BINARY)
                 )
         ));
