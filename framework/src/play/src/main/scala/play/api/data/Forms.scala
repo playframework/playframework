@@ -512,6 +512,30 @@ object Forms {
   def set[A](mapping: Mapping[A]): Mapping[Set[A]] = RepeatedMapping(mapping).transform(_.toSet, _.toList)
 
   /**
+   * Defines a repeated mapping with the IndexedSeq semantic.
+   * {{{
+   * Form(
+   *   "name" -> indexedSeq(text)
+   * )
+   * }}}
+   *
+   * @param mapping The mapping to make repeated.
+   */
+  def indexedSeq[A](mapping: Mapping[A]): Mapping[IndexedSeq[A]] = RepeatedMapping(mapping).transform(_.toIndexedSeq, _.toList)
+
+  /**
+   * Defines a repeated mapping with the Vector semantic.
+   * {{{
+   * Form(
+   *   "name" -> vector(text)
+   * )
+   * }}}
+   *
+   * @param mapping The mapping to make repeated.
+   */
+  def vector[A](mapping: Mapping[A]): Mapping[Vector[A]] = RepeatedMapping(mapping).transform(_.toVector, _.toList)
+
+  /**
    * Constructs a simple mapping for a date field.
    *
    * For example:
