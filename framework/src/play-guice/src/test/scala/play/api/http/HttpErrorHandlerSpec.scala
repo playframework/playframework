@@ -27,7 +27,9 @@ class HttpErrorHandlerSpec extends Specification {
   def await[T](future: Future[T]) = Await.result(future, Duration.Inf)
 
   "HttpErrorHandler" should {
-    def sharedSpecs(errorHandler: HttpErrorHandler) = {
+    def sharedSpecs(_eh: => HttpErrorHandler) = {
+      lazy val errorHandler = _eh
+
       "render a bad request" in {
         await(errorHandler.onClientError(FakeRequest(), 400)).header.status must_== 400
       }
