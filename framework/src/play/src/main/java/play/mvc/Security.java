@@ -105,7 +105,7 @@ public class Security {
          * @param ctx the current request context
          * @return a <code>401 Not Authorized</code> result
          *
-         * @deprecated Since 2.7.0. Use {@link #onUnauthorized(Request)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #onUnauthorized(Request)} instead.
          */
         @Deprecated
         public Result onUnauthorized(Context ctx) {
