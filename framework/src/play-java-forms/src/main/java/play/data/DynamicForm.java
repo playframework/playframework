@@ -138,6 +138,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param key field name
      * @return the field - even if the field does not exist you get a field
      */
+    @Override
     public Form.Field field(String key) {
         // #1310: We specify inner class as Form.Field rather than Field because otherwise,
         // javadoc cannot find the static inner class.
@@ -152,6 +153,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      *
      * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
      */
+    @Override
     @Deprecated
     public Optional<ValidationError> getError(String key) {
         return error(key);
@@ -160,6 +162,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Retrieve an error by key.
      */
+    @Override
     public Optional<ValidationError> error(String key) {
         return super.error(asDynamicKey(key));
     }
