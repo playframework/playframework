@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.MessagesApi;
+import play.mvc.Http;
 
 /**
  * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String&gt;</code>
@@ -115,7 +116,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @return a copy of this form filled with the new data
      */
     @Override
-    public DynamicForm bindFromRequest(play.mvc.Http.Request request, String... allowedFields) {
+    public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
         return bind(requestData(request), allowedFields);
     }
 
