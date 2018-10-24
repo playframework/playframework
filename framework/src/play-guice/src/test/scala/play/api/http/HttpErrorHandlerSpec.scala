@@ -149,6 +149,44 @@ class HttpErrorHandlerSpec extends Specification {
       }
     }
 
+    "work with a Scala HtmlOrJsonHttpErrorHandler" in {
+      "a request when the client prefers JSON" in {
+        def errorHandler = handler(classOf[HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
+        "json response" in {
+          val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "application/json"), 400)
+          await(result).body.contentType must beSome("application/json")
+        }
+        sharedSpecs(errorHandler)
+      }
+      "a request when the client prefers HTML" in {
+        def errorHandler = handler(classOf[HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
+        "html response" in {
+          val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "text/html"), 400)
+          await(result).body.contentType must beSome("text/html; charset=utf-8")
+        }
+        sharedSpecs(errorHandler)
+      }
+    }
+
+    "work with a Java HtmlOrJsonHttpErrorHandler" in {
+      "a request when the client prefers JSON" in {
+        def errorHandler = handler(classOf[play.http.HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
+        "json response" in {
+          val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "application/json"), 400)
+          await(result).body.contentType must beSome("application/json")
+        }
+        sharedSpecs(errorHandler)
+      }
+      "a request when the client prefers HTML" in {
+        def errorHandler = handler(classOf[play.http.HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
+        "html response" in {
+          val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "text/html"), 400)
+          await(result).body.contentType must beSome("text/html; charset=utf-8")
+        }
+        sharedSpecs(errorHandler)
+      }
+    }
+
     "work with a custom scala handler" in {
       val result = handler(classOf[CustomScalaErrorHandler].getName, Mode.Prod).onClientError(FakeRequest(), 400)
       await(result).header.status must_== 200

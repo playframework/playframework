@@ -50,6 +50,54 @@ trait HttpErrorHandler {
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result]
 }
 
+/**
+ * An [[HttpErrorHandler]] that uses either HTML or JSON in the response depending on the client's preference.
+ */
+class HtmlOrJsonHttpErrorHandler @Inject() (
+    htmlHandler: DefaultHttpErrorHandler,
+    jsonHandler: JsonHttpErrorHandler
+) extends PreferredMediaTypeHttpErrorHandler(
+  "text/html" -> htmlHandler,
+  "application/json" -> jsonHandler
+)
+
+/**
+ * An [[HttpErrorHandler]] that delegates to one of several [[HttpErrorHandler]]s based on media type preferences.
+ *
+ * For example, to create an error handler that handles JSON and HTML, with JSON preferred by the app as default:
+ * {{{
+ *   override lazy val httpErrorHandler = PreferredMediaTypeHttpErrorHandler(
+ *     "application/json" -> new JsonHttpErrorHandler()
+ *     "text/html" -> new HtmlHttpErrorHandler(),
+ *   )
+ * }}}
+ *
+ * If the client's preferred media range matches multiple media types in the list, then the first match is chosen.
+ */
+class PreferredMediaTypeHttpErrorHandler(val handlers: (String, HttpErrorHandler)*) extends HttpErrorHandler {
+
+  private val supportedTypes: Seq[String] = handlers.map(_._1)
+  private val typeToHandler: Map[String, HttpErrorHandler] = handlers.toMap
+
+  protected val defaultHandler: HttpErrorHandler =
+    handlers.headOption.getOrElse(throw new IllegalArgumentException("handlers must not be empty"))._2
+
+  protected def preferredHandler(request: RequestHeader): HttpErrorHandler = {
+    MediaRange.preferred(request.acceptedTypes, supportedTypes).fold(defaultHandler)(typeToHandler)
+  }
+
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    preferredHandler(request).onClientError(request, statusCode, message)
+  }
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+    preferredHandler(request).onServerError(request, exception)
+  }
+}
+
+object PreferredMediaTypeHttpErrorHandler {
+  def apply(handlers: (String, HttpErrorHandler)*) = new PreferredMediaTypeHttpErrorHandler(handlers: _*)
+}
+
 object HttpErrorHandler {
 
   /**
