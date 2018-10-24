@@ -82,9 +82,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return super.value().map(v -> v.getData().get(asNormalKey(key)));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Map<String, String> rawData() {
         return Collections.unmodifiableMap(super.rawData().entrySet().stream().collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
@@ -100,44 +97,22 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @return a copy of this form filled with the new data
-     */
     @Override
     public DynamicForm bindFromRequest(String... allowedFields) {
         return bind(requestData(play.mvc.Controller.request()), allowedFields);
     }
 
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @return a copy of this form filled with the new data
-     */
     @Override
     public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
         return bind(requestData(request), allowedFields);
     }
 
-    /**
-     * Binds data to this form - that is, handles form submission.
-     *
-     * @param data data to submit
-     * @return a copy of this form filled with the new data
-     */
     @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
         Form<Dynamic> form = super.bind(data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
-    /**
-     * Retrieves a field.
-     *
-     * @param key field name
-     * @return the field - even if the field does not exist you get a field
-     */
     @Override
     public Form.Field field(String key) {
         // #1310: We specify inner class as Form.Field rather than Field because otherwise,
@@ -148,44 +123,23 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         );
     }
 
-    /**
-     * Retrieve an error by key.
-     *
-     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
-     */
     @Override
     @Deprecated
     public Optional<ValidationError> getError(String key) {
         return error(key);
     }
 
-    /**
-     * Retrieve an error by key.
-     */
     @Override
     public Optional<ValidationError> error(String key) {
         return super.error(asDynamicKey(key));
     }
 
-    /**
-     * @param key the error key
-     * @param error the error message
-     * @param args the error arguments
-     *
-     * @return a copy of this form with the given error added.
-     */
     @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
         return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
-    /**
-     * @param key the error key
-     * @param error the error message
-     *
-     * @return a copy of this form with the given error added.
-     */
     @Override
     public DynamicForm withError(final String key, final String error) {
         return withError(key, error, new ArrayList<>());
