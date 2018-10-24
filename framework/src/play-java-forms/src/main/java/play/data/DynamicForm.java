@@ -124,12 +124,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
-    @Deprecated
-    public Optional<ValidationError> getError(String key) {
-        return error(key);
-    }
-
-    @Override
     public Optional<ValidationError> error(String key) {
         return super.error(asDynamicKey(key));
     }
