@@ -4,6 +4,7 @@
 
 package play.data;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 
 import javax.validation.ValidatorFactory;
@@ -108,6 +109,27 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
+    public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
+        Map<String,String> data = new HashMap<>();
+        fillDataWith(data, requestData);
+        return bind(data, allowedFields);
+    }
+
+    @Override
+    public DynamicForm bind(JsonNode data, String... allowedFields) {
+        return bind(
+            play.libs.Scala.asJava(
+                play.api.data.FormUtils.fromJson("",
+                    play.api.libs.json.Json.parse(
+                        play.libs.Json.stringify(data)
+                    )
+                )
+            ),
+            allowedFields
+        );
+    }
+
+    @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
         Form<Dynamic> form = super.bind(data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
@@ -129,6 +151,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
+    public DynamicForm withError(final ValidationError error) {
+        final Form<Dynamic> form = super.withError(new ValidationError(asDynamicKey(error.key()), error.messages(), error.arguments()));
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+    }
+
+    @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
         return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
@@ -137,6 +165,23 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm withError(final String key, final String error) {
         return withError(key, error, new ArrayList<>());
+    }
+
+    @Override
+    public DynamicForm withGlobalError(final String error, final List<Object> args) {
+        final Form<Dynamic> form = super.withGlobalError(error, args);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+    }
+
+    @Override
+    public DynamicForm withGlobalError(final String error) {
+        return withGlobalError(error, new ArrayList<>());
+    }
+
+    @Override
+    public DynamicForm discardingErrors() {
+        final Form<Dynamic> form = super.discardingErrors();
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
     // -- tools

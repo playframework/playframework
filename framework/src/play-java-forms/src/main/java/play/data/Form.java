@@ -211,7 +211,7 @@ public class Form<T> {
         return data;
     }
 
-    private void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
+    protected void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
         urlFormEncoded.forEach((key, values) -> {
             if (key.endsWith("[]")) {
                 String k = key.substring(0, key.length() - 2);
