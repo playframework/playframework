@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
@@ -28,8 +29,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /** Statically compiled Pattern for checking if a key is already surrounded by "data[]". */
     private static final Pattern MATCHES_DATA = Pattern.compile("^data\\[.+\\]$");
 
-    private final Map<String, String> rawData;
-
     /**
      * Creates a new empty dynamic form.
      *
@@ -40,7 +39,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
         super(DynamicForm.Dynamic.class, messagesApi, formatters, validatorFactory, config);
-        rawData = new HashMap<>();
     }
 
     /**
@@ -56,11 +54,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
         super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validatorFactory, config);
-        rawData = new HashMap<>();
-        for (Map.Entry<String, String> e : data.entrySet()) {
-            rawData.put(asNormalKey(e.getKey()), e.getValue());
-        }
-
     }
 
     /**
@@ -93,7 +86,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     @Override
     public Map<String, String> rawData() {
-        return Collections.unmodifiableMap(rawData);
+        return Collections.unmodifiableMap(super.rawData().entrySet().stream().collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
     }
 
     /**
@@ -134,13 +127,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        Map<String,String> newData = new HashMap<>();
-        for(Map.Entry<String, String> e: data.entrySet()) {
-            newData.put(asDynamicKey(e.getKey()), e.getValue());
-        }
-        data = newData;
-
-        Form<Dynamic> form = super.bind(data, allowedFields);
+        Form<Dynamic> form = super.bind(data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
@@ -186,7 +173,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
-        return new DynamicForm(this.rawData, form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
     /**
