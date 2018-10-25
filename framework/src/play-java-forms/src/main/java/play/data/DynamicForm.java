@@ -112,7 +112,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm fill(Map<String, Object> value) {
         Form<Dynamic> form = super.fill(new Dynamic(value));
-        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
+        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config, lang().orElse(null));
     }
 
     @Override
@@ -170,13 +170,13 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm withError(final ValidationError error) {
         final Form<Dynamic> form = super.withError(new ValidationError(asDynamicKey(error.key()), error.messages(), error.arguments()));
-        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config, lang().orElse(null));
     }
 
     @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
-        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config, lang().orElse(null));
     }
 
     @Override
@@ -187,7 +187,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm withGlobalError(final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withGlobalError(error, args);
-        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config, lang().orElse(null));
     }
 
     @Override
@@ -198,7 +198,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm discardingErrors() {
         final Form<Dynamic> form = super.discardingErrors();
-        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config, lang().orElse(null));
     }
 
     @Override
