@@ -11,7 +11,13 @@
         </encoder>
     </appender>
 
-    <root level="WARN">
+    <!-- avoid polluting the test logs -->
+    <logger name="play.shaded.ahc.io.netty" level="WARN" />
+    <logger name="org.hibernate.validator" level="WARN" />
+    <logger name="akka.event" level="WARN" />
+    <logger name="org.jboss.logging" level="WARN" />
+
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
 
