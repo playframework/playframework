@@ -307,9 +307,27 @@ public class Form<T> {
      * @param data data to submit
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, JsonNode, String...)} instead.
      */
+    @Deprecated
     public Form<T> bind(JsonNode data, String... allowedFields) {
-        return bind(
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+    }
+
+    /**
+     * Binds Json data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bind(Lang lang, JsonNode data, String... allowedFields) {
+        return bind(lang,
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
