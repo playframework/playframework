@@ -827,6 +827,16 @@ public class Form<T> {
      * Retrieves a field.
      *
      * @param key field name
+     * @return the field (even if the field does not exist you get a field)
+     */
+    public Field field(final String key) {
+        return field(key, this.lang);
+    }
+
+    /**
+     * Retrieves a field.
+     *
+     * @param key field name
      * @param lang used for formatting
      * @return the field (even if the field does not exist you get a field)
      */
