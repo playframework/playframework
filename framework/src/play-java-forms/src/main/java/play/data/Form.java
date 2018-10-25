@@ -1196,13 +1196,23 @@ public class Form<T> {
          * @return the subfield corresponding to the key.
          */
         public Field sub(String key) {
+            return sub(key, form.lang);
+        }
+
+        /**
+         * Get a sub-field, with a key relative to the current field.
+         * @param key    the key
+         * @param lang used for formatting
+         * @return the subfield corresponding to the key.
+         */
+        public Field sub(String key, Lang lang) {
             String subKey;
             if (key.startsWith("[")) {
                 subKey = name + key;
             } else {
                 subKey = name + "." + key;
             }
-            return form.field(subKey);
+            return form.field(subKey, lang);
         }
 
         public String toString() {
