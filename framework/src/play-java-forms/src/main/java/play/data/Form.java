@@ -506,17 +506,20 @@ public class Form<T> {
     /**
      * Binds data to this form - that is, handles form submission.
      *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
      * @param data data to submit
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     @SuppressWarnings("unchecked")
-    public Form<T> bind(Map<String,String> data, String... allowedFields) {
+    public Form<T> bind(Lang lang, Map<String,String> data, String... allowedFields) {
 
         final DataBinder dataBinder = dataBinder(allowedFields);
         final Map<String, String> objectDataFinal = getObjectData(data);
 
-        final Set<ConstraintViolation<Object>> validationErrors = runValidation(dataBinder, objectDataFinal);
+        final Set<ConstraintViolation<Object>> validationErrors = runValidation(lang, dataBinder, objectDataFinal);
         final BindingResult result = dataBinder.getBindingResult();
 
         validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));
@@ -524,14 +527,14 @@ public class Form<T> {
         boolean hasAnyError = result.hasErrors() || result.getGlobalErrorCount() > 0;
 
         if (hasAnyError) {
-            final List<ValidationError> errors = getFieldErrorsAsValidationErrors(result);
+            final List<ValidationError> errors = getFieldErrorsAsValidationErrors(lang, result);
             final List<ValidationError> globalErrors = globalErrorsAsValidationErrors(result);
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang);
         }
-        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config);
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang);
     }
 
     /**
@@ -824,9 +827,10 @@ public class Form<T> {
      * Retrieves a field.
      *
      * @param key field name
+     * @param lang used for formatting
      * @return the field (even if the field does not exist you get a field)
      */
-    public Field field(final String key) {
+    public Field field(final String key, final Lang lang) {
 
         // Value
         String fieldValue = null;
@@ -845,7 +849,7 @@ public class Form<T> {
                     if (oValue != null) {
                         if(formatters != null) {
                             final String objectKeyFinal = objectKey;
-                            fieldValue = withRequestLocale(() -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                            fieldValue = withRequestLocale(lang, () -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
                         } else {
                             fieldValue = oValue.toString();
                         }
