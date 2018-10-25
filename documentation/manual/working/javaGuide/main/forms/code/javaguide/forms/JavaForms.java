@@ -22,6 +22,7 @@ import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.inject.guice.GuiceApplicationBuilder;
+import play.libs.typedmap.TypedMap;
 import play.mvc.*;
 import play.test.WithApplication;
 
@@ -59,12 +60,13 @@ public class JavaForms extends WithApplication {
         //#create
 
         Lang lang = new Lang(Locale.getDefault());
+        TypedMap attrs = TypedMap.empty();
         //#bind
         Map<String,String> anyData = new HashMap<>();
         anyData.put("email", "bob@gmail.com");
         anyData.put("password", "secret");
 
-        User user = userForm.bind(lang, anyData).get();
+        User user = userForm.bind(lang, attrs, anyData).get();
         //#bind
 
         assertThat(user.getEmail(), equalTo("bob@gmail.com"));
@@ -97,7 +99,7 @@ public class JavaForms extends WithApplication {
     @Test
     public void constraints() {
         Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
-        assertThat(userForm.bind(null, ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
+        assertThat(userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
     }
 
     @Test
@@ -358,7 +360,7 @@ public class JavaForms extends WithApplication {
             .build();
 
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
-        WithLocalTime obj = form.bind(null, ImmutableMap.of("time", "23:45")).get();
+        WithLocalTime obj = form.bind(null, TypedMap.empty(), ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
         assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
     }
