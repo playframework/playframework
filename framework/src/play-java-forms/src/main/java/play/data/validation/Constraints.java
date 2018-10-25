@@ -89,6 +89,14 @@ public class Constraints {
         private final TypedMap attrs;
         private final Config config;
 
+        public ValidationPayload(final Lang lang, final Messages messages, final TypedMap attrs, final Config config) {
+            this(lang, messages, Collections.emptyMap(), attrs, config);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #ValidationPayload(Lang, Messages, TypedMap, Config)} instead.
+         */
+        @Deprecated
         public ValidationPayload(final Lang lang, final Messages messages, final Map<String, Object> args, final TypedMap attrs, final Config config) {
             this.lang = lang;
             this.messages = messages;
