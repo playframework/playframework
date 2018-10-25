@@ -153,10 +153,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
-    public Form.Field field(String key) {
+    public Form.Field field(String key, Lang lang) {
         // #1310: We specify inner class as Form.Field rather than Field because otherwise,
         // javadoc cannot find the static inner class.
-        Field field = super.field(asDynamicKey(key));
+        Field field = super.field(asDynamicKey(key), lang);
         return new Field(this, key, field.constraints(), field.format(), field.errors(),
             field.value().orElse((String)value(key).orElse(null))
         );
