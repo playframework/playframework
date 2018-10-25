@@ -27,6 +27,7 @@ import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.i18n.MessagesImpl;
 import play.libs.AnnotationUtils;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
@@ -403,12 +404,11 @@ public class Form<T> {
         return data;
     }
 
-    private Set<ConstraintViolation<Object>> runValidation(DataBinder dataBinder, Map<String, String> objectData) {
-        return withRequestLocale(() -> {
+    private Set<ConstraintViolation<Object>> runValidation(Lang lang, DataBinder dataBinder, Map<String, String> objectData) {
+        return withRequestLocale(lang, () -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
-            final Http.Context ctx = Http.Context.current.get();
-            // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set, the config however always will
-            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args, this.config) : ValidationPayload.empty(this.config);
+            final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, ctx != null ? ctx.args : null, this.config);
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
@@ -466,7 +466,7 @@ public class Form<T> {
         }
     }
 
-    private List<ValidationError> getFieldErrorsAsValidationErrors(BindingResult result) {
+    private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
         return result.getFieldErrors().stream().map(error -> {
             String key = error.getObjectName() + "." + error.getField();
             if (key.startsWith("target.") && rootName == null) {
@@ -475,10 +475,10 @@ public class Form<T> {
 
             if (error.isBindingFailure()) {
                 ImmutableList.Builder<String> builder = ImmutableList.builder();
-                Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
+                final Messages msgs = lang != null ? new MessagesImpl(lang, this.messagesApi) : null;
                 for (String code: error.getCodes()) {
                     code = REPLACE_TYPEMISMATCH.matcher(code).replaceAll(Matcher.quoteReplacement("error.invalid"));
-                    if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                    if (msgs == null || msgs.isDefinedAt(code)) {
                         builder.add(code);
                     }
                 }
@@ -949,9 +949,9 @@ public class Form<T> {
      * @param code The code to execute while the locale is set
      * @return the result of the code block
      */
-    private static <T> T withRequestLocale(Supplier<T> code) {
+    private static <T> T withRequestLocale(Lang lang, Supplier<T> code) {
         try {
-            LocaleContextHolder.setLocale(Http.Context.current().lang().toLocale());
+            LocaleContextHolder.setLocale(lang != null ? lang.toLocale() : null);
         } catch(Exception e) {
             // Just continue (Maybe there is no context or some internal error in LocaleContextHolder). System default locale will be used.
         }
