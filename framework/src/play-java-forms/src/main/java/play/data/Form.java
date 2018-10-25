@@ -247,6 +247,15 @@ public class Form<T> {
     }
 
     /**
+     * @deprecated Deprecated as of 2.7.0.
+     */
+    @Deprecated
+    protected Lang ctxLang() {
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return ctx != null ? ctx.messages().lang() : null;
+    }
+
+    /**
      * Binds request data to this form - that is, handles form submission.
      *
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
@@ -281,8 +290,7 @@ public class Form<T> {
      */
     @Deprecated
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return bindFromRequest(ctx != null ? ctx.messages().lang() : null, requestData, allowedFields);
+        return bindFromRequest(ctxLang(), requestData, allowedFields);
     }
 
     /**
@@ -312,8 +320,7 @@ public class Form<T> {
      */
     @Deprecated
     public Form<T> bind(JsonNode data, String... allowedFields) {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+        return bind(ctxLang(), data, allowedFields);
     }
 
     /**
@@ -554,8 +561,7 @@ public class Form<T> {
     @SuppressWarnings("unchecked")
     @Deprecated
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+        return bind(ctxLang(), data, allowedFields);
     }
 
     /**

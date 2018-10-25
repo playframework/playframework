@@ -129,8 +129,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     @Deprecated
     public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return bindFromRequest(ctx != null ? ctx.messages().lang() : null, requestData, allowedFields);
+        return bindFromRequest(ctxLang(), requestData, allowedFields);
     }
 
     @Override
@@ -143,8 +142,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     @Deprecated
     public DynamicForm bind(JsonNode data, String... allowedFields) {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+        return bind(ctxLang(), data, allowedFields);
     }
 
     @Override
@@ -164,8 +162,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     @Deprecated
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+        return bind(ctxLang(), data, allowedFields);
     }
 
     @Override
