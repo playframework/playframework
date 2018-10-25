@@ -116,25 +116,40 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
+    @Deprecated
     public DynamicForm bindFromRequest(String... allowedFields) {
-        return bind(requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(play.mvc.Controller.ctx().messages().lang(), requestData(play.mvc.Controller.request()), allowedFields);
     }
 
     @Override
     public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
-        return bind(requestData(request), allowedFields);
+        return bind(this.messagesApi.preferred(request).lang(), requestData(request), allowedFields);
     }
 
     @Override
+    @Deprecated
     public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return bindFromRequest(ctx != null ? ctx.messages().lang() : null, requestData, allowedFields);
+    }
+
+    @Override
+    public DynamicForm bindFromRequest(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
-        return bind(data, allowedFields);
+        return bind(lang, data, allowedFields);
     }
 
     @Override
+    @Deprecated
     public DynamicForm bind(JsonNode data, String... allowedFields) {
-        return bind(
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+    }
+
+    @Override
+    public DynamicForm bind(Lang lang, JsonNode data, String... allowedFields) {
+        return bind(lang,
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
@@ -147,9 +162,16 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
+    @Deprecated
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        Form<Dynamic> form = super.bind(data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
-        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+    }
+
+    @Override
+    public DynamicForm bind(Lang lang, Map<String,String> data, String... allowedFields) {
+        Form<Dynamic> form = super.bind(lang, data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
+        return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config, lang);
     }
 
     @Override
