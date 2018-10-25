@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
+import play.i18n.Lang;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
 
@@ -55,7 +56,23 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param config      the config component.
      */
     public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
-        super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validatorFactory, config);
+        this(data, errors, value, messagesApi, formatters, validatorFactory, config, null);
+    }
+
+    /**
+     * Creates a new dynamic form.
+     *
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value if the form submission was successful
+     * @param messagesApi    the messagesApi component.
+     * @param formatters     the formatters component.
+     * @param validatorFactory      the validatorFactory component.
+     * @param config      the config component.
+     * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
+     */
+    public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
+        super(null, DynamicForm.Dynamic.class, data, errors, value, null, messagesApi, formatters, validatorFactory, config, lang);
     }
 
     /**
@@ -182,6 +199,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     public DynamicForm discardingErrors() {
         final Form<Dynamic> form = super.discardingErrors();
         return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+    }
+
+    @Override
+    public DynamicForm withLang(Lang lang) {
+        return new DynamicForm(super.rawData(), this.errors(), this.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config, lang);
     }
 
     // -- tools
