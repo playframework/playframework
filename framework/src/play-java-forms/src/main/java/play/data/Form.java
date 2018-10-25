@@ -801,8 +801,21 @@ public class Form<T> {
      * @return the concrete value.
      */
     public T get() {
+        return this.get(this.lang);
+    }
+
+    /**
+     * Gets the concrete value only if the submission was a success.
+     * If the form is invalid because of validation errors this method will throw an exception.
+     * If you want to retrieve the value even when the form is invalid use {@link #value()} instead.
+     *
+     * @param lang if an IllegalStateException gets thrown it's used to translate the form errors within that exception
+     * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
+     * @return the concrete value.
+     */
+    public T get(Lang lang) {
         if (!errors.isEmpty()) {
-            throw new IllegalStateException("Error(s) binding form: " + errorsAsJson());
+            throw new IllegalStateException("Error(s) binding form: " + errorsAsJson(lang));
         }
         return value.get();
     }
