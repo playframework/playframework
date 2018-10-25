@@ -588,7 +588,8 @@ public class Form<T> {
                 messagesApi,
                 formatters,
                 validatorFactory,
-                config
+                config,
+                lang
         );
     }
 
@@ -759,7 +760,7 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang);
     }
 
     /**
@@ -806,7 +807,7 @@ public class Form<T> {
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang);
     }
 
     /**
