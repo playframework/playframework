@@ -820,7 +820,18 @@ public class Form<T> {
      * @return the field (even if the field does not exist you get a field)
      */
     public Field apply(String key) {
-        return field(key);
+        return apply(key, this.lang);
+    }
+
+    /**
+     * Retrieves a field.
+     *
+     * @param key field name
+     * @param lang the language to use for the formatter
+     * @return the field (even if the field does not exist you get a field)
+     */
+    public Field apply(String key, Lang lang) {
+        return field(key, lang);
     }
 
     /**
