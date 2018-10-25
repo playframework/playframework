@@ -750,7 +750,7 @@ public class Form<T> {
      * @return the form errors serialized as Json.
      */
     public JsonNode errorsAsJson() {
-        return errorsAsJson(Http.Context.current() != null ? Http.Context.current().lang() : null);
+        return errorsAsJson(this.lang);
     }
 
     /**
