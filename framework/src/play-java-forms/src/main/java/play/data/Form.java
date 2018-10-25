@@ -506,6 +506,22 @@ public class Form<T> {
     /**
      * Binds data to this form - that is, handles form submission.
      *
+     * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, Map, String...)} instead.
+     */
+    @SuppressWarnings("unchecked")
+    @Deprecated
+    public Form<T> bind(Map<String,String> data, String... allowedFields) {
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return bind(ctx != null ? ctx.messages().lang() : null, data, allowedFields);
+    }
+
+    /**
+     * Binds data to this form - that is, handles form submission.
+     *
      * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
      *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
      *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
