@@ -58,12 +58,13 @@ public class JavaForms extends WithApplication {
         Form<User> userForm = formFactory.form(User.class);
         //#create
 
+        Lang lang = null;
         //#bind
         Map<String,String> anyData = new HashMap<>();
         anyData.put("email", "bob@gmail.com");
         anyData.put("password", "secret");
 
-        User user = userForm.bind(anyData).get();
+        User user = userForm.bind(lang, anyData).get();
         //#bind
 
         assertThat(user.getEmail(), equalTo("bob@gmail.com"));
@@ -83,10 +84,10 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             Form<User> userForm = formFactory().form(User.class);
             //#bind-from-request
-            User user = userForm.bindFromRequest().get();
+            User user = userForm.bindFromRequest(request).get();
             //#bind-from-request
 
             return ok(user.getEmail());
@@ -96,7 +97,7 @@ public class JavaForms extends WithApplication {
     @Test
     public void constraints() {
         Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
-        assertThat(userForm.bind(ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
+        assertThat(userForm.bind(null, ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
     }
 
     @Test
@@ -114,8 +115,8 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
-            Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest(request);
 
             if (userForm.hasErrors()) {
                 return badRequest(javaguide.forms.html.view.render(userForm));
@@ -191,8 +192,8 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
-            Form<SignUpForm> userForm = formFactory().form(SignUpForm.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<SignUpForm> userForm = formFactory().form(SignUpForm.class).bindFromRequest(request);
 
             if (userForm.hasErrors()) {
                 return badRequest(javaguide.forms.html.view.render(userForm));
@@ -259,8 +260,8 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
-            Form<LoginForm> adminForm = formFactory().form(LoginForm.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<LoginForm> adminForm = formFactory().form(LoginForm.class).bindFromRequest(request);
 
             if (adminForm.hasErrors()) {
                 return badRequest(javaguide.forms.html.view.render(adminForm));
@@ -296,8 +297,8 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
-            Form<User> userForm = formFactory().form(User.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<User> userForm = formFactory().form(User.class).bindFromRequest(request);
             //#handle-errors
             if (userForm.hasErrors()) {
                 return badRequest(views.html.form.render(userForm));
@@ -341,8 +342,8 @@ public class JavaForms extends WithApplication {
         }
 
         //#dynamic
-        public Result hello() {
-            DynamicForm requestData = formFactory.form().bindFromRequest();
+        public Result hello(Http.Request request) {
+            DynamicForm requestData = formFactory.form().bindFromRequest(request);
             String firstname = requestData.get("firstname");
             String lastname = requestData.get("lastname");
             return ok("Hello " + firstname + " " + lastname);
@@ -357,7 +358,7 @@ public class JavaForms extends WithApplication {
             .build();
 
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
-        WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
+        WithLocalTime obj = form.bind(null, ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
         assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
     }
@@ -404,9 +405,9 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-signup
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, SignUpCheck.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, SignUpCheck.class).bindFromRequest(request);
             //#partial-validate-signup
 
             if (form.hasErrors()) {
@@ -433,9 +434,9 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-login
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest(request);
             //#partial-validate-login
 
             if (form.hasErrors()) {
@@ -462,9 +463,9 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-default
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest(request);
             //#partial-validate-default
 
             if (form.hasErrors()) {
@@ -491,9 +492,9 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-nogroup
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest(request);
             //#partial-validate-nogroup
 
             if (form.hasErrors()) {
@@ -520,9 +521,9 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#ordered-group-sequence-validate
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, OrderedChecks.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, OrderedChecks.class).bindFromRequest(request);
             //#ordered-group-sequence-validate
 
             if (form.hasErrors()) {

@@ -28,10 +28,10 @@ public class OpenIDController extends Controller {
         return ok(views.html.login.render(""));
     }
 
-    public CompletionStage<Result> loginPost() {
+    public CompletionStage<Result> loginPost(Http.Request request) {
 
         // Form data
-        DynamicForm requestData = formFactory.form().bindFromRequest();
+        DynamicForm requestData = formFactory.form().bindFromRequest(request);
         String openID = requestData.get("openID");
 
         CompletionStage<String> redirectUrlPromise =
