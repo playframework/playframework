@@ -292,7 +292,7 @@ object HttpConfiguration {
         logger.warn(message)
         s
 
-      case Some(s) if secretEqualOrShorterThan(s, 8) && !s.equals("changeme") && environment.mode == Mode.Dev =>
+      case Some(s) if secretEqualOrShorterThan(s, 8) && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
         val message =
           """
             |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure
@@ -302,7 +302,7 @@ object HttpConfiguration {
         logger.warn(message)
         s
 
-      case Some(s) if secretEqualOrShorterThan(s, 15) && !s.equals("changeme") && environment.mode == Mode.Dev =>
+      case Some(s) if secretEqualOrShorterThan(s, 15) && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
         val message =
           """
             |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
