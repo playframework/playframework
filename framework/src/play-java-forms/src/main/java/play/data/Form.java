@@ -97,6 +97,7 @@ public class Form<T> {
     private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
+    private final Lang lang;
     final MessagesApi messagesApi;
     final Formatters formatters;
     final ValidatorFactory validatorFactory;
@@ -162,6 +163,25 @@ public class Form<T> {
      * @param config the config component.
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, null);
+    }
+
+    /**
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
+     *
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validatorFactory the validatorFactory component.
+     * @param config the config component.
+     * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
+     */
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -172,6 +192,7 @@ public class Form<T> {
         this.formatters = formatters;
         this.validatorFactory = validatorFactory;
         this.config = config;
+        this.lang = lang;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -898,6 +919,22 @@ public class Form<T> {
         }
 
         return new Field(this, key, constraints, format, errors(key), fieldValue);
+    }
+
+    /**
+     * @return the lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     * and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     */
+    public Optional<Lang> lang() {
+        return Optional.ofNullable(this.lang);
+    }
+
+    /**
+     * A copy of this form with the given lang set which is used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     * and for translations in {@link #errorsAsJson()}.
+     */
+    public Form withLang(Lang lang) {
+        return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang);
     }
 
     public String toString() {
