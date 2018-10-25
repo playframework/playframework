@@ -251,9 +251,12 @@ public class Form<T> {
      *
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Http.Request, String...)} instead.
      */
+    @Deprecated
     public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(play.mvc.Controller.ctx().messages().lang(), requestData(play.mvc.Controller.request()), allowedFields);
     }
 
     /**
