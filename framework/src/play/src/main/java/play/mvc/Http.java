@@ -401,7 +401,10 @@ public class Http {
 
         /**
          * Free space to store your request specific data.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use request attributes instead.
          */
+        @Deprecated
         public Map<String, Object> args;
 
         /**
