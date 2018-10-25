@@ -264,7 +264,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
-        return bind(requestData(request), allowedFields);
+        return bind(this.messagesApi.preferred(request).lang(), requestData(request), allowedFields);
     }
 
     /**
