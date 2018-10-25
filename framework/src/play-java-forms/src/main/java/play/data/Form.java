@@ -276,11 +276,29 @@ public class Form<T> {
      * @param requestData      the map of data to bind from
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Lang, Map, String...)} instead.
      */
+    @Deprecated
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return bindFromRequest(ctx != null ? ctx.messages().lang() : null, requestData, allowedFields);
+    }
+
+    /**
+     * Binds request data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param requestData      the map of data to bind from
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bindFromRequest(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
-        return bind(data, allowedFields);
+        return bind(lang, data, allowedFields);
     }
 
     /**
