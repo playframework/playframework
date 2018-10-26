@@ -136,6 +136,21 @@ case class Result(header: ResponseHeader, body: HttpEntity,
   }
 
   /**
+   * Discards headers to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingHeader(ETAG)
+   * }}}
+   *
+   * @param header the headers to discard from this result.
+   * @return the new result
+   */
+  def discardingHeader(name: String): Result = {
+    copy(header = header.copy(headers = header.headers - name))
+  }
+
+  /**
    * Adds cookies to this result. If the result already contains cookies then cookies with the same name in the new
    * list will override existing ones.
    *

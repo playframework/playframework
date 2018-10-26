@@ -56,6 +56,34 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       response.header(DATE) must beSome
     }
 
+    "when adding headers" should {
+
+      "accept simple values" in makeRequest(Results.Ok("Hello world").withHeaders("Other" -> "foo")) { response =>
+        response.header("Other") must beSome("foo")
+        response.body must_== "Hello world"
+      }
+
+      "treat headers case insensitively" in makeRequest(Results.Ok("Hello world").withHeaders("Other" -> "foo").withHeaders("other" -> "bar")) { response =>
+        response.header("Other") must beSome("bar")
+        response.body must_== "Hello world"
+      }
+
+      "fail if adding null values" in makeRequest(Results.Ok.withHeaders("Other" -> null)) { response =>
+        response.status must_== INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "discard headers" should {
+
+      "remove the header" in makeRequest(Results.Ok.withHeaders("Some" -> "foo", "Other" -> "bar").discardingHeader("Other")) { response =>
+        response.header("Other") must beNone
+      }
+
+      "treat headers case insensitively" in makeRequest(Results.Ok.withHeaders("Some" -> "foo", "Other" -> "bar").discardingHeader("other")) { response =>
+        response.header("Other") must beNone
+      }
+    }
+
     "work with non-standard HTTP response codes" in makeRequest(Result(ResponseHeader(498), HttpEntity.NoEntity)) { response =>
       response.status must_== 498
       response.body must beEmpty
