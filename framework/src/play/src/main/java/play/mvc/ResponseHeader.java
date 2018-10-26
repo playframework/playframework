@@ -49,6 +49,12 @@ public class ResponseHeader {
         return Collections.unmodifiableMap(headers);
     }
 
+    public ResponseHeader discardHeader(String name) {
+        Map<String, String> updatedHeaders = copyCurrentHeaders();
+        updatedHeaders.remove(name);
+        return new ResponseHeader(status, updatedHeaders, reasonPhrase);
+    }
+
     public ResponseHeader withHeader(String name, String value) {
         Map<String, String> updatedHeaders = copyCurrentHeaders();
         updatedHeaders.put(name, value);

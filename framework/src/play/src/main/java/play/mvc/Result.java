@@ -331,6 +331,16 @@ public class Result {
     }
 
     /**
+     * Discard a HTTP header in this result.
+     *
+     * @param name the header name
+     * @return the transformed copy
+     */
+    public Result discardHeader(String name) {
+        return new Result(header.discardHeader(name), body, session, flash, cookies);
+    }
+
+    /**
      * Return a copy of the result with a different Content-Type header.
      *
      * @param contentType the content type to set
