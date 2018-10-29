@@ -33,16 +33,28 @@ public class DefaultJPAApi implements JPAApi {
 
     private final JPAEntityManagerContext entityManagerContext;
 
+    /**
+     * @deprecated Deprecated as of 2.7.0. Use {@link #DefaultJPAApi(JPAConfig)} instead.
+     */
+    @Deprecated
     public DefaultJPAApi(JPAConfig jpaConfig, JPAEntityManagerContext entityManagerContext) {
         this.jpaConfig = jpaConfig;
         this.entityManagerContext = entityManagerContext;
+    }
+
+    public DefaultJPAApi(JPAConfig jpaConfig) {
+        this(jpaConfig, null);
     }
 
     @Singleton
     public static class JPAApiProvider implements Provider<JPAApi> {
         private final JPAApi jpaApi;
 
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #JPAApiProvider(JPAConfig, ApplicationLifecycle, DBApi)} instead.
+         */
         @Inject
+        @Deprecated
         public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised
             jpaApi = new DefaultJPAApi(jpaConfig, context);
@@ -51,6 +63,10 @@ public class DefaultJPAApi implements JPAApi {
                 return CompletableFuture.completedFuture(null);
             });
             jpaApi.start();
+        }
+
+        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi) {
+            this(jpaConfig, null, lifecycle, dbApi);
         }
 
         @Override
