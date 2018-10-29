@@ -14,22 +14,22 @@ import java.util.Locale
 import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Sink, StreamConverters}
+import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api._
 import play.api.data.Form
 import play.api.http.Status._
 import play.api.http._
-import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator}
+import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
 import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
 import play.core.parsers.Multipart
 import play.utils.PlayIO
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
 import scala.xml._
 

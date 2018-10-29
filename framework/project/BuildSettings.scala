@@ -223,7 +223,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_CONTENT_SECURITY_POLICY_NONCE_HEADER_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CONTENT_SECURITY_POLICY_REPORT_ONLY"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CONTENT_SECURITY_POLICY_REPORT_ONLY_="),
-
+      
+      ProblemFilters.exclude[MissingTypesProblem]("play.mvc.BodyParser$Text"),
+        
       ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Results.TODO"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Controller.TODO"),
 
