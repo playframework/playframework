@@ -90,7 +90,7 @@ public class Security {
         }
 
         /**
-         * Retrieves the username from the HTTP context; the default is to read from the session cookie.
+         * Retrieves the username from the HTTP request; the default is to read from the session cookie.
          *
          * @param req the current request
          * @return null if the user is not authenticated.
