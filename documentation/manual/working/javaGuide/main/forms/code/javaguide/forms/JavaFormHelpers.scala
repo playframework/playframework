@@ -17,23 +17,25 @@ import play.mvc.Http
 class JavaFormHelpers extends PlaySpecification {
 
   "java form helpers" should {
-    def withFormFactory[A](block: play.data.FormFactory => A)(implicit app: Application): A = {
+    def withFormFactory[A](block: (play.data.FormFactory, play.i18n.Messages) => A)(implicit app: Application): A = {
       val requestBuilder = new Http.RequestBuilder()
       val components: JavaContextComponents = app.injector.instanceOf[JavaContextComponents]
-      val ctx = new JContext(requestBuilder, components)
+      val request = requestBuilder.build()
+      val ctx = new JContext(request, components)
       JContext.current.set(ctx)
       val formFactory = app.injector.instanceOf[play.data.FormFactory]
-      try block(formFactory) finally JContext.current.set(null)
+      val messagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
+      try block(formFactory, messagesApi.preferred(request)) finally JContext.current.set(null)
     }
     {
       def segment(name: String)(implicit app: Application) = {
-        withFormFactory { formFactory: play.data.FormFactory =>
+        withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
           val form = formFactory.form(classOf[User])
           val u = new UserForm
           u.setName("foo")
           u.setEmails(util.Arrays.asList("a@a", "b@b"))
           val userForm = formFactory.form(classOf[UserForm]).fill(u)
-          val body = html.helpers(form, userForm).body
+          val body = html.helpers(form, userForm)(messages).body
           body.lines.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
         }
       }
@@ -65,9 +67,9 @@ class JavaFormHelpers extends PlaySpecification {
 
     {
       "allow rendering input fields" in new WithApplication() {
-        withFormFactory { formFactory: play.data.FormFactory =>
+        withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
           val form = formFactory.form(classOf[User])
-          val body = html.fullform(form).body
+          val body = html.fullform(form)(messages).body
           body must contain("""type="text"""")
           body must contain("""type="password"""")
           body must contain("""name="email"""")
@@ -76,9 +78,9 @@ class JavaFormHelpers extends PlaySpecification {
       }
 
       "allow custom field constructors" in new WithApplication() {
-        withFormFactory { formFactory: play.data.FormFactory =>
+        withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
           val form = formFactory.form(classOf[User])
-          val body = html.withFieldConstructor(form).body
+          val body = html.withFieldConstructor(form)(messages).body
           body must contain("foobar")
         }
       }
