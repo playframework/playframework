@@ -53,19 +53,23 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultHello() {
-        Result result = MockJavaActionHelper.call(new DefaultLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new DefaultLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class DefaultLangController extends MockJavaAction {
 
-        DefaultLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        DefaultLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
         //#default-lang-render
-        public Result index() {
-            return ok(indextemplate.render()); // "hello"
+        public Result index(Http.Request request) {
+            Messages messages = this.messagesApi.preferred(request);
+            return ok(indextemplate.render(messages)); // "hello"
         }
         //#default-lang-render
     }
@@ -110,9 +114,9 @@ public class JavaI18N extends WithApplication {
         }
 
         //#change-lang-render
-        public Result index() {
+        public Result index(Http.Request request) {
             Lang lang = Lang.forCode("fr");
-            Messages messages = messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+            Messages messages = messagesApi.preferred(request.addAttr(Messages.Attrs.CurrentLang, lang));
             return ok(hellotemplate.render(messages)).withLang(lang, messagesApi); // "bonjour"
         }
         //#change-lang-render
@@ -136,20 +140,24 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSetTransientLangHello() {
-        Result result = MockJavaActionHelper.call(new SetTransientLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new SetTransientLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("howdy"));
     }
 
     public static class SetTransientLangController extends MockJavaAction {
 
-        SetTransientLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        SetTransientLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
         //#set-transient-lang-render
-        public Result index() {
-            ctx().setTransientLang("en-US");
-            return ok(indextemplate.render()); // "howdy"
+        public Result index(Http.Request request) {
+            Lang lang = Lang.forCode("en-US");
+            Messages messages = this.messagesApi.preferred(request.addAttr(Messages.Attrs.CurrentLang, lang));
+            return ok(indextemplate.render(messages)); // "howdy"
         }
         //#set-transient-lang-render
     }
