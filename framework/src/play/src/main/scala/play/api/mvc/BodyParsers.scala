@@ -6,6 +6,7 @@ package play.api.mvc
 
 import java.io._
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets._
 import java.nio.charset._
 import java.nio.file.Files
 import java.util.Locale
@@ -13,22 +14,22 @@ import java.util.Locale
 import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.stream._
-import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
+import akka.stream.scaladsl.{Flow, Sink, StreamConverters}
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api._
 import play.api.data.Form
 import play.api.http.Status._
 import play.api.http._
-import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator }
+import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile, TemporaryFileCreator}
 import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
 import play.core.parsers.Multipart
 import play.utils.PlayIO
 
-import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -485,7 +486,7 @@ trait PlayBodyParsers extends BodyParserUtils {
         Success(decoder.decode(byteBuffer).toString)
       } catch {
         case e: CharacterCodingException =>
-          logger.warn(s"TolerantText body parser tried to parse request body with charset $encodingToTry, but it contains invalid characters!")
+          logger.warn(s"TolerantText body parser tried to parse request ${request.id} as text body with charset $encodingToTry, but it contains invalid characters!")
           Failure(e)
         case e: Exception =>
           logger.error("Unexpected exception decoding document!", e)
@@ -499,17 +500,16 @@ trait PlayBodyParsers extends BodyParserUtils {
     // whatever the media type definition says." and
     // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
     // https://tools.ietf.org/html/rfc6657#section-4
-    val charset = Charset.forName(request.charset.getOrElse("US-ASCII"))
+    val charset = Charset.forName(request.charset.getOrElse(US_ASCII.name()))
     decode(charset).recoverWith {
-      case _ => decode(StandardCharsets.UTF_8)
+      case _ => decode(UTF_8)
     }.recoverWith {
-      case _ => decode(StandardCharsets.ISO_8859_1)
+      case _ => decode(ISO_8859_1)
     }.getOrElse {
       // We can't get a decent charset.  If we added https://github.com/albfernandez/juniversalchardet
       // then we could guess at the encoding, but that's best done in userspace rather than adding
       // it into the core...
-      // Parse as US-ASCII, using ? for any untranslatable characters.
-      bytes.decodeString(StandardCharsets.US_ASCII)
+      bytes.decodeString(charset)
     }
   }
 

@@ -52,6 +52,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.*;
 import static scala.collection.JavaConverters.mapAsJavaMapConverter;
 import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
@@ -270,7 +271,7 @@ public interface BodyParser<A> {
             // Per RFC 6657:
             // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
             // https://tools.ietf.org/html/rfc6657#section-4
-            String charset = request.charset().orElse("US-ASCII");
+            String charset = request.charset().orElse(US_ASCII.name());
             return bytes.decodeString(charset);
         }
     }
@@ -299,7 +300,7 @@ public interface BodyParser<A> {
                     CharsetDecoder decoder = encodingToTry.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
                     return F.Either.Right(decoder.decode(byteBuffer).toString());
                 } catch (CharacterCodingException e) {
-                    String msg = String.format("Parser tried to parse request body with charset %s, but it contains invalid characters!", encodingToTry);
+                    String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.asScala().id(), encodingToTry);
                     logger.warn(msg);
                     return F.Either.Left(e);
                 } catch (Exception e) {
@@ -317,14 +318,14 @@ public interface BodyParser<A> {
             // Per RFC 6657:
             // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
             // https://tools.ietf.org/html/rfc6657#section-4
-            Charset charset = Charset.forName(request.charset().orElse("US-ASCII"));
+            Charset charset = Charset.forName(request.charset().orElse(US_ASCII.name()));
             return decode.apply(charset).right.orElseGet(
                     () -> {
                         // Fallback to UTF-8 if user supplied charset doesn't work...
-                        return decode.apply(StandardCharsets.UTF_8).right.orElseGet(
+                        return decode.apply(UTF_8).right.orElseGet(
                                 () -> {
                                     // Fallback to ISO_8859_1 if UTF-8 doesn't decode right...
-                                    return decode.apply(StandardCharsets.ISO_8859_1).right.orElseGet(
+                                    return decode.apply(ISO_8859_1).right.orElseGet(
                                             () -> {
                                                 // We can't get a decent charset.
                                                 // Parse as US-ASCII, using ? for any untranslatable characters.
