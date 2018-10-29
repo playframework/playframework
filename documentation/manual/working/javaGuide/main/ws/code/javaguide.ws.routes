@@ -5,6 +5,6 @@ GET     /openID/callback            controllers.OpenIDController.openIDCallback(
 # #ws-openid-routes
 
 # #ws-oauth-routes
-GET     /twitter/homeTimeline controllers.Twitter.homeTimeline()
-GET     /twitter/auth         controllers.Twitter.auth()
+GET     /twitter/homeTimeline controllers.Twitter.homeTimeline(request: Request)
+GET     /twitter/auth         controllers.Twitter.auth(request: Request)
 # #ws-oauth-routes

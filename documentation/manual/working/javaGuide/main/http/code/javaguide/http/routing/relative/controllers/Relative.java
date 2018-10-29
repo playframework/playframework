@@ -11,9 +11,9 @@ import play.mvc.*;
 
 public class Relative extends Controller {
 
-    public Result helloview() {
-        //###replace:         ok(views.html.hello.render("Bob", request()));
-        return ok(javaguide.http.routing.relative.views.html.hello.render("Bob", request()));
+    public Result helloview(Http.Request request) {
+        //###replace:         ok(views.html.hello.render("Bob", request));
+        return ok(javaguide.http.routing.relative.views.html.hello.render("Bob", request));
     }
 
     public Result hello(String name) {

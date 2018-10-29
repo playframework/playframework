@@ -181,8 +181,8 @@ public class JavaI18N extends WithApplication {
         }
 
         // #accepted-languages
-        public Result index() {
-            List<Lang> langs = request().acceptLanguages();
+        public Result index(Http.Request request) {
+            List<Lang> langs = request.acceptLanguages();
             String codes = langs.stream().map(Lang::code).collect(joining(","));
             return ok(codes);
         }
