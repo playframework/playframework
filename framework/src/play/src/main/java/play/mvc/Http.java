@@ -1182,13 +1182,13 @@ public class Http {
 
         /**
          * Set a Text to this request.
-         * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain; charset=utf-8</tt>.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain</tt>.
          *
-         * @param text the text, assumed to be encoded in UTF-8 format.
+         * @param text the text, assumed to be encoded in US_ASCII format, per https://tools.ietf.org/html/rfc6657#section-4
          * @return this builder, updated
          */
         public RequestBuilder bodyText(String text) {
-            return bodyText(text, StandardCharsets.UTF_8);
+            return body(new RequestBody(text), "text/plain");
         }
 
         /**
