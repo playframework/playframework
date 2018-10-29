@@ -137,7 +137,7 @@ object Dependencies {
     logback
   ).map(_ % Test)
 
-  val guiceVersion = "4.2.1"
+  val guiceVersion = "4.2.2"
   val guiceDeps = Seq(
     "com.google.inject" % "guice" % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
