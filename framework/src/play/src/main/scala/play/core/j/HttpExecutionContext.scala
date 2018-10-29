@@ -45,7 +45,16 @@ object HttpExecutionContext {
  * Manages execution to ensure that the given context ClassLoader and Http.Context are set correctly
  * in the current thread. Actual execution is performed by a delegate ExecutionContext.
  */
-class HttpExecutionContext(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) extends ExecutionContextExecutor {
+class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext) extends ExecutionContextExecutor {
+
+  var httpContext: Http.Context = null
+
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
+  def this(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) = {
+    this(contextClassLoader, delegate)
+    this.httpContext = httpContext
+  }
+
   override def execute(runnable: Runnable) = delegate.execute(new Runnable {
     def run(): Unit = {
       val thread = Thread.currentThread()
