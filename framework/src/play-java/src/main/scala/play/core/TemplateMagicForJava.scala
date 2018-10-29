@@ -19,8 +19,10 @@ object PlayMagicForJava extends JavaImplicitConversions {
   /** Transforms a Play Java `Optional` to a proper Scala `Option`. */
   implicit def javaOptionToScala[T](x: Optional[T]): Option[T] = x.asScala
 
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   private def ctx = Http.Context.current()
 
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   implicit def implicitJavaLang: play.api.i18n.Lang = {
     try {
       ctx.lang
@@ -29,6 +31,7 @@ object PlayMagicForJava extends JavaImplicitConversions {
     }
   }
 
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   implicit def requestHeader: play.api.mvc.RequestHeader = {
     ctx.request().asScala
   }
@@ -39,6 +42,7 @@ object PlayMagicForJava extends JavaImplicitConversions {
     r.asScala()
   }
 
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   implicit def implicitJavaMessages: play.api.i18n.MessagesProvider = {
     ctx.messages().asScala
   }
