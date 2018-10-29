@@ -8,10 +8,8 @@ import play.api.Application
 import play.api.test.{PlaySpecification, WithApplication}
 import javaguide.forms.html.{User, UserForm}
 
-import play.mvc.Http.{Context => JContext}
 import java.util
 
-import play.core.j.JavaContextComponents
 import play.mvc.Http
 
 class JavaFormHelpers extends PlaySpecification {
@@ -19,13 +17,10 @@ class JavaFormHelpers extends PlaySpecification {
   "java form helpers" should {
     def withFormFactory[A](block: (play.data.FormFactory, play.i18n.Messages) => A)(implicit app: Application): A = {
       val requestBuilder = new Http.RequestBuilder()
-      val components: JavaContextComponents = app.injector.instanceOf[JavaContextComponents]
       val request = requestBuilder.build()
-      val ctx = new JContext(request, components)
-      JContext.current.set(ctx)
       val formFactory = app.injector.instanceOf[play.data.FormFactory]
       val messagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
-      try block(formFactory, messagesApi.preferred(request)) finally JContext.current.set(null)
+      block(formFactory, messagesApi.preferred(request))
     }
     {
       def segment(name: String)(implicit app: Application) = {

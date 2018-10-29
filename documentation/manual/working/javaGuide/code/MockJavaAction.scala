@@ -67,12 +67,6 @@ object MockJavaActionHelper {
   def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String)(implicit mat: Materializer): Result = {
     Helpers.await(Helpers.call(action, requestBuilder.build().asScala, body)).asJava
   }
-
-  def setContext(request: play.mvc.Http.RequestBuilder, contextComponents: JavaContextComponents): Unit = {
-    Http.Context.current.set(new Http.Context(request.build(), contextComponents))
-  }
-
-  def removeContext: Unit = Http.Context.current.remove()
 }
 
 /**
