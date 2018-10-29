@@ -55,7 +55,10 @@ public class Http {
 
     /**
      * The global HTTP context.
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static class Context {
 
         public static ThreadLocal<Context> current = new ThreadLocal<>();
@@ -553,7 +556,10 @@ public class Http {
     /**
      * A wrapped context.
      * Use this to modify the context in some way.
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static abstract class WrappedContext extends Context {
         private final Context wrapped;
 
