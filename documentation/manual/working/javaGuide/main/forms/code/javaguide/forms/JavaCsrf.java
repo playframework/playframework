@@ -53,8 +53,8 @@ public class JavaCsrf extends WithApplication {
         CSRF.Token token = new CSRF.Token("csrfToken", tokenSigner().generateSignedToken());
         String body = contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             @AddCSRFToken
-            public Result index() {
-                return ok(javaguide.forms.html.csrf.render());
+            public Result index(Http.Request request) {
+                return ok(javaguide.forms.html.csrf.render(request));
             }
         }, fakeRequest("GET", "/").session("csrfToken", token.value()), mat));
 
