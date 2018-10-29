@@ -76,18 +76,22 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultScalaHello() {
-        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class DefaultScalaLangController extends MockJavaAction {
 
-        DefaultScalaLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        DefaultScalaLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
-            return ok(helloscalatemplate.render()); // "hello"
+        public Result index(Http.Request request) {
+            Messages messages = this.messagesApi.preferred(request);
+            return ok(helloscalatemplate.render(messages)); // "hello"
         }
     }
 
@@ -129,11 +133,14 @@ public class JavaI18N extends WithApplication {
             super(javaHandlerComponents);
         }
 
+        @javax.inject.Inject
+        private MessagesApi messagesApi;
+
         //#show-context-messages
-        public Result index() {
-            Messages messages = Http.Context.current().messages();
+        public Result index(Http.Request request) {
+            Messages messages = this.messagesApi.preferred(request);
             String hello = messages.at("hello");
-            return ok(indextemplate.render());
+            return ok(indextemplate.render(messages));
         }
         //#show-context-messages
     }
