@@ -105,8 +105,8 @@ public class JavaSessionFlash extends WithApplication {
     @Test
     public void accessFlashInTemplate() {
         MockJavaAction index = new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-            public Result index() {
-                return ok(javaguide.http.views.html.index.render());
+            public Result index(Http.Request request) {
+                return ok(javaguide.http.views.html.index.render(request.flash()));
             }
         };
         assertThat(contentAsString(call(index, fakeRequest(), mat)).trim(), equalTo("Welcome!"));
