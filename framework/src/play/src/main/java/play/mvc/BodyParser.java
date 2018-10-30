@@ -243,6 +243,8 @@ public interface BodyParser<A> {
      * Parse the body as text if the Content-Type is text/plain.
      */
     class Text extends BufferingBodyParser<String> {
+        private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Text.class);
+
         private final HttpErrorHandler errorHandler;
 
         public Text(long maxLength, HttpErrorHandler errorHandler) {
@@ -271,8 +273,19 @@ public interface BodyParser<A> {
             // Per RFC 6657:
             // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
             // https://tools.ietf.org/html/rfc6657#section-4
-            String charset = request.charset().orElse(US_ASCII.name());
-            return bytes.decodeString(charset);
+            Charset charset = request.charset().map(Charset::forName).orElse(US_ASCII);
+            try {
+                CharsetDecoder decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
+                return decoder.decode(bytes.toByteBuffer()).toString();
+            } catch (CharacterCodingException e) {
+                String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.asScala().id(), charset);
+                logger.warn(msg);
+                return bytes.decodeString(charset); // parse and return with unmappable characters.
+            } catch (Exception e) {
+                String msg = "Unexpected exception!";
+                logger.error(msg, e);
+                return bytes.decodeString(charset);
+            }
         }
     }
 
@@ -304,7 +317,7 @@ public interface BodyParser<A> {
                     logger.warn(msg);
                     return F.Either.Left(e);
                 } catch (Exception e) {
-                    String msg = "Unexpected Exception!";
+                    String msg = "Unexpected exception!";
                     logger.error(msg, e);
                     return F.Either.Left(e);
                 }
@@ -318,7 +331,7 @@ public interface BodyParser<A> {
             // Per RFC 6657:
             // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
             // https://tools.ietf.org/html/rfc6657#section-4
-            Charset charset = Charset.forName(request.charset().orElse(US_ASCII.name()));
+            Charset charset = request.charset().map(Charset::forName).orElse(US_ASCII);
             return decode.apply(charset).right.orElseGet(
                     () -> {
                         // Fallback to UTF-8 if user supplied charset doesn't work...
@@ -328,7 +341,7 @@ public interface BodyParser<A> {
                                     return decode.apply(ISO_8859_1).right.orElseGet(
                                             () -> {
                                                 // We can't get a decent charset.
-                                                // Parse as US-ASCII, using ? for any untranslatable characters.
+                                                // Parse as given codeset, using ? for any unmappable characters.
                                                 return bytes.decodeString(charset);
                                             });
                                 });
