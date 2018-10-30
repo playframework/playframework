@@ -254,7 +254,7 @@ public interface BodyParser<A> {
 
         @Inject
         public Text(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler) {
-            super(httpConfiguration, errorHandler, "Error decoding text body");
+            super(httpConfiguration, errorHandler, "Error decoding text/plain body");
             this.errorHandler = errorHandler;
         }
 
