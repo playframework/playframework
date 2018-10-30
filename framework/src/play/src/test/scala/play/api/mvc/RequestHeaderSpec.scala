@@ -65,6 +65,27 @@ class RequestHeaderSpec extends Specification {
         requestHeader.attrs(y) must_== "white"
         requestHeader.attrs(x) must_== 3
       }
+      "can set two attributes and get both back" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val r = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello"))
+        r.attrs(x) must_== 3
+        r.attrs(y) must_== "hello"
+      }
+      "can set two attributes and remove one of them" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x)
+        req.attrs.get(x) must beNone
+        req.attrs(y) must_== "hello"
+      }
+      "can set two attributes and remove both again" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x).removeAttr(y)
+        req.attrs.get(x) must beNone
+        req.attrs.get(y) must beNone
+      }
     }
 
     "handle host" in {

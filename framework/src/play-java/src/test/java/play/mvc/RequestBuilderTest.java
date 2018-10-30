@@ -104,6 +104,17 @@ public class RequestBuilderTest {
         assertEquals((Long) 6L, req5.attrs().get(NUMBER));
         assertEquals(Optional.of("red"), req5.attrs().getOptional(COLOR));
         assertEquals("red", req5.attrs().get(COLOR));
+
+        Request req6 = req4.removeAttr(COLOR).removeAttr(NUMBER);
+
+        assertFalse(req6.attrs().containsKey(NUMBER));
+        assertFalse(req6.attrs().containsKey(COLOR));
+
+        Request req7 = req4.removeAttr(COLOR);
+
+        assertEquals(Optional.of(6L), req7.attrs().getOptional(NUMBER));
+        assertEquals((Long) 6L, req7.attrs().get(NUMBER));
+        assertFalse(req7.attrs().containsKey(COLOR));
     }
 
     @Test
