@@ -248,7 +248,7 @@ public interface BodyParser<A> {
         private final HttpErrorHandler errorHandler;
 
         public Text(long maxLength, HttpErrorHandler errorHandler) {
-            super(maxLength, errorHandler, "Error decoding text body");
+            super(maxLength, errorHandler, "Error decoding text/plain body");
             this.errorHandler = errorHandler;
         }
 
