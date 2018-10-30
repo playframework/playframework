@@ -500,11 +500,11 @@ trait PlayBodyParsers extends BodyParserUtils {
     // whatever the media type definition says." and
     // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
     // https://tools.ietf.org/html/rfc6657#section-4
-    val charset = Charset.forName(request.charset.getOrElse(US_ASCII.name()))
+    val charset = request.charset.fold(US_ASCII)(Charset.forName)
     decode(charset).recoverWith {
-      case _ => decode(UTF_8)
+      case _: CharacterCodingException => decode(UTF_8)
     }.recoverWith {
-      case _ => decode(ISO_8859_1)
+      case _: CharacterCodingException => decode(ISO_8859_1)
     }.getOrElse {
       // We can't get a decent charset.  If we added https://github.com/albfernandez/juniversalchardet
       // then we could guess at the encoding, but that's best done in userspace rather than adding
@@ -531,7 +531,7 @@ trait PlayBodyParsers extends BodyParserUtils {
     BodyParser("text") { request =>
       if (request.contentType.exists(_.equalsIgnoreCase("text/plain"))) {
         val bodyParser = tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
-          val charset = Charset.forName(request.charset.getOrElse("US-ASCII"))
+          val charset = request.charset.fold(US_ASCII)(Charset.forName)
           bytes.decodeString(charset)
         }
         bodyParser(request)
