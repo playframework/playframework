@@ -532,7 +532,18 @@ trait PlayBodyParsers extends BodyParserUtils {
       if (request.contentType.exists(_.equalsIgnoreCase("text/plain"))) {
         val bodyParser = tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
           val charset = request.charset.fold(US_ASCII)(Charset.forName)
-          bytes.decodeString(charset)
+          import java.nio.charset.CodingErrorAction
+          val decoder = charset.newDecoder.onMalformedInput(CodingErrorAction.REPORT)
+          try {
+            // Render with assumption that all characters are valid
+            decoder.decode(bytes.toByteBuffer).toString
+          } catch {
+            case e: CharacterCodingException =>
+              // Log a warning, and render to the given charset with unmappable characters.
+              // This is slower (exception + 2 * rendering) but the happy path is just as fast.
+              logger.warn(s"Text body parser tried to parse request ${request.id} as text body with charset $charset, but it contains invalid characters!")
+              bytes.decodeString(charset)
+          }
         }
         bodyParser(request)
       } else {
