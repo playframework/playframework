@@ -74,13 +74,13 @@ class SecretConfigurationParserSpec extends PlaySpecification {
         secret must beNone
       }
 
-      "fail when value length is smaller than 8 chars" in {
-        val (secret, _) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "1234567")
+      "fail when value length is smaller than SHORTEST_SECRET_LENGTH chars" in {
+        val (secret, _) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "x" * (SecretConfiguration.SHORTEST_SECRET_LENGTH - 1))
         secret must beNone
       }
 
-      "log a warning when value length is smaller than 15 chars" in {
-        val (secret, events) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "1234567890123")
+      "log a warning when value length is smaller than SHORT_SECRET_LENGTH chars" in {
+        val (secret, events) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "x" * (SecretConfiguration.SHORT_SECRET_LENGTH - 1))
         events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beSome
         secret must beSome
       }
