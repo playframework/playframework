@@ -108,7 +108,7 @@ public class DefaultJPAApi implements JPAApi {
     @Deprecated
     public EntityManager em() {
         if(entityManagerContext == null) {
-            throw new RuntimeException("No JPAEntityManagerContext available!");
+            throw new RuntimeException("EntityManager can't be acquired from a thread-local. You should instead use one of the JPAApi methods where the EntityManager is provided automatically.");
         }
         return entityManagerContext.em();
     }
