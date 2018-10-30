@@ -110,7 +110,7 @@ public class RangeResults {
      * @param filename filename used at the Content-Disposition header
      * @return range result if "Range" header is present and regular result if not
      */
-    public static Result ofStream(Http.Request request,InputStream stream, long contentLength, String filename) {
+    public static Result ofStream(Http.Request request, InputStream stream, long contentLength, String filename) {
         return JavaRangeResult.ofStream(contentLength, stream, rangeHeader(request), filename, Optional.empty());
     }
 
