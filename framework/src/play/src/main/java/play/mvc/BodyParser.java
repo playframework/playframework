@@ -278,7 +278,7 @@ public interface BodyParser<A> {
                 CharsetDecoder decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
                 return decoder.decode(bytes.toByteBuffer()).toString();
             } catch (CharacterCodingException e) {
-                String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.asScala().id(), charset);
+                String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.id(), charset);
                 logger.warn(msg);
                 return bytes.decodeString(charset); // parse and return with unmappable characters.
             } catch (Exception e) {
