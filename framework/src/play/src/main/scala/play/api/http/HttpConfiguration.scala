@@ -70,6 +70,26 @@ case class HttpConfiguration(
  */
 case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)
 
+object SecretConfiguration {
+
+  // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
+  // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
+  // but if we have less than 8 bytes in production then it's not even 64 bits.
+  // which is almost certainly not from base64'ed /dev/urandom in any case, and is most
+  // probably a hardcoded text password.
+  // https://tools.ietf.org/html/rfc2898#section-4.1
+  val SHORTEST_SECRET_LENGTH = 9
+
+  // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
+  // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
+  // 86 bits of random input is enough for a secret.  This rounds up to 11 bytes.
+  // If we assume base64 encoded input, this comes out to at least 15 bytes, but
+  // it's highly likely to be a user inputted string, which has much, much lower
+  // entropy.
+  val SHORT_SECRET_LENGTH = 16
+
+}
+
 /**
  * The cookies configuration
  *
@@ -245,22 +265,6 @@ object HttpConfiguration {
     )
   }
 
-  // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
-  // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
-  // but if we have less than 8 bytes in production then it's not even 64 bits.
-  // which is almost certainly not from base64'ed /dev/urandom in any case, and is most
-  // probably a hardcoded text password.
-  // https://tools.ietf.org/html/rfc2898#section-4.1
-  val SHORTEST_SECRET_LENGTH = 9
-
-  // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
-  // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
-  // 86 bits of random input is enough for a secret.  This rounds up to 11 bytes.
-  // If we assume base64 encoded input, this comes out to at least 15 bytes, but
-  // it's highly likely to be a user inputted string, which has much, much lower
-  // entropy.
-  val VERY_SHORT_SECRET_LENGTH = 16
-
   private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
     val Blank = """\s*""".r
 
@@ -273,7 +277,7 @@ object HttpConfiguration {
           """.stripMargin
         throw config.reportError("play.http.secret", message)
 
-      case Some(s) if s.length < SHORTEST_SECRET_LENGTH && environment.mode == Mode.Prod =>
+      case Some(s) if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && environment.mode == Mode.Prod =>
         val message =
           """
             |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure.
@@ -281,7 +285,7 @@ object HttpConfiguration {
           """.stripMargin
         throw config.reportError("play.http.secret", message)
 
-      case Some(s) if s.length < VERY_SHORT_SECRET_LENGTH && environment.mode == Mode.Prod =>
+      case Some(s) if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && environment.mode == Mode.Prod =>
         val message =
           """
             |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
@@ -291,7 +295,7 @@ object HttpConfiguration {
         logger.warn(message)
         s
 
-      case Some(s) if s.length < SHORTEST_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
+      case Some(s) if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
         val message =
           """
             |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure
@@ -301,7 +305,7 @@ object HttpConfiguration {
         logger.warn(message)
         s
 
-      case Some(s) if s.length < VERY_SHORT_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
+      case Some(s) if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
         val message =
           """
             |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.

@@ -5,6 +5,7 @@
 package play.it.api
 
 import ch.qos.logback.classic.spi.ILoggingEvent
+import play.api.http.SecretConfiguration
 import play.api.{ Environment, Mode }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.PlaySpecification
@@ -44,19 +45,19 @@ class SecretConfigurationParserSpec extends PlaySpecification {
       }
 
       "log an warning when secret length is smaller than SHORTEST_SECRET_LENGTH chars" in {
-        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> "1234567")
+        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * (SecretConfiguration.SHORTEST_SECRET_LENGTH - 1)))
         events.map(_.getFormattedMessage).find(_.contains("The application secret is too short and does not have the recommended amount of entropy")) must beSome
         secret must beSome
       }
 
-      "log a warning when secret length is smaller then VERY_SHORT_SECRET_LENGTH chars" in {
-        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> "12345678901234")
+      "log a warning when secret length is smaller then SHORT_SECRET_LENGTH chars" in {
+        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * (SecretConfiguration.SHORT_SECRET_LENGTH - 1)))
         events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beSome
         secret must beSome
       }
 
       "return the value without warnings when it is configured respecting the requirements" in {
-        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> "12345678901234567890")
+        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * SecretConfiguration.SHORT_SECRET_LENGTH))
         events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beNone
         secret must beSome
       }
