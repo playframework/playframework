@@ -107,6 +107,9 @@ public class DefaultJPAApi implements JPAApi {
      */
     @Deprecated
     public EntityManager em() {
+        if(entityManagerContext == null) {
+            throw new RuntimeException("No JPAEntityManagerContext available!");
+        }
         return entityManagerContext.em();
     }
 
@@ -178,7 +181,9 @@ public class DefaultJPAApi implements JPAApi {
                 throw new RuntimeException("Could not create JPA entity manager for '" + name + "'");
             }
 
-            entityManagerContext.push(entityManager, true);
+            if (entityManagerContext != null) {
+                entityManagerContext.push(entityManager, true);
+            }
 
             if (!readOnly) {
                 tx = entityManager.getTransaction();
@@ -210,7 +215,9 @@ public class DefaultJPAApi implements JPAApi {
             throw t;
         } finally {
             if (entityManager != null) {
-                entityManagerContext.pop(true);
+                if (entityManagerContext != null) {
+                    entityManagerContext.pop(true);
+                }
                 entityManager.close();
             }
         }
