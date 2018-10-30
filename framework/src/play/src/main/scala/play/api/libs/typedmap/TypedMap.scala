@@ -4,6 +4,7 @@
 
 package play.api.libs.typedmap
 
+import scala.annotation.varargs
 import scala.collection.immutable
 
 /**
@@ -66,6 +67,14 @@ trait TypedMap {
   def +(entries: TypedEntry[_]*): TypedMap
 
   /**
+   * Removes keys from the map, returning a new instance of the map.
+   *
+   * @param keys The keys to remove.
+   * @return A new instance of the map with the entries removed.
+   */
+  @varargs def -(keys: TypedKey[_]*): TypedMap
+
+  /**
    * @return The Java version for this map.
    */
   def asJava: play.libs.typedmap.TypedMap = new play.libs.typedmap.TypedMap(this)
@@ -97,6 +106,12 @@ private[typedmap] final class DefaultTypedMap private[typedmap] (
   override def +(entries: TypedEntry[_]*): TypedMap = {
     val m2 = entries.foldLeft(m) {
       case (m1, e) => m1.updated(e.key, e.value)
+    }
+    new DefaultTypedMap(m2)
+  }
+  @varargs def -(keys: TypedKey[_]*): TypedMap = {
+    val m2 = keys.foldLeft(m) {
+      case (m1, k) => m1 - k
     }
     new DefaultTypedMap(m2)
   }

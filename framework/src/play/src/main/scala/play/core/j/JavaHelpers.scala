@@ -298,6 +298,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def attrs: TypedMap = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader = header.withAttrs(newAttrs.underlying()).asJava
   override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
+  override def rmAttr(key: TypedKey[_]): JRequestHeader = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -345,6 +346,8 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
     new RequestImpl(request.withAttrs(newAttrs.underlying()))
   override def addAttr[A](key: TypedKey[A], value: A): JRequest =
     withAttrs(attrs.put(key, value))
+  override def rmAttr(key: TypedKey[_]): JRequest =
+    withAttrs(attrs.remove(key))
 
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody

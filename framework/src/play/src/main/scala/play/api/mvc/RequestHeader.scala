@@ -146,6 +146,15 @@ trait RequestHeader {
   def addAttr[A](key: TypedKey[A], value: A): RequestHeader =
     withAttrs(attrs.updated(key, value))
 
+  /**
+   * Create a new versions of this object with the given attribute removed.
+   *
+   * @param key The key of the attribute to remove.
+   * @return The new version of this object with the attribute removed.
+   */
+  def rmAttr(key: TypedKey[_]): RequestHeader =
+    withAttrs(attrs - key)
+
   // -- Computed
 
   /**
