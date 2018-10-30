@@ -313,7 +313,7 @@ public interface BodyParser<A> {
                     CharsetDecoder decoder = encodingToTry.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
                     return F.Either.Right(decoder.decode(byteBuffer).toString());
                 } catch (CharacterCodingException e) {
-                    String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.asScala().id(), encodingToTry);
+                    String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.id(), encodingToTry);
                     logger.warn(msg);
                     return F.Either.Left(e);
                 } catch (Exception e) {
