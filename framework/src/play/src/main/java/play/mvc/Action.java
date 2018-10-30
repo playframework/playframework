@@ -75,7 +75,9 @@ public abstract class Action<T> extends Results {
         if(threadLocalCtx != null) {
             // A previous action did explicitly set a context onto the thread local (via Http.Context.current.set(...))
             // Let's use that context so the user doesn't loose data he/she set onto that ctx (args,...)
-            return call(threadLocalCtx.withRequest(req));
+            Context newCtx = threadLocalCtx.withRequest(req);
+            Context.current.set(newCtx);
+            return call(newCtx);
         } else {
             // A previous action did not set a context explicitly, we simply create a new one to pass on the request
             return call(new Context(req, contextComponents));
