@@ -49,7 +49,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.flash.jwt.dataClaim" -> "data",
         "play.http.fileMimeTypes" -> "foo=text/foo",
         "play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b",
-        "play.http.secret.provider" -> "HmacSHA256"
+        "play.http.secret.provider" -> null
       )
     }
 
