@@ -27,6 +27,7 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
+addSbtCoursier
 addSbtPlugin("com.typesafe.play" % "interplay" % Versions.interplay)
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % Versions.sbtTwirl)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % Versions.mima)

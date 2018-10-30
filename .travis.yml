@@ -20,6 +20,7 @@ script:
   - framework/bin/$SCRIPT
 cache:
   directories:
+  - $HOME/.cache
   - $HOME/.ivy2/cache
   - $HOME/.sbt/boot/
 before_cache:
