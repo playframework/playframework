@@ -156,11 +156,11 @@ public class RangeResults {
      * @param path the content path
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ofPath(Http.Request, FileMimeTypes, Path)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ofPath(Http.Request, Path, FileMimeTypes)} instead.
      */
     @Deprecated
     public static Result ofPath(Path path) {
-        return ofPath(Http.Context.current().request(), Http.Context.current().fileMimeTypes(), path);
+        return ofPath(Http.Context.current().request(), path, Http.Context.current().fileMimeTypes());
     }
 
     /**
@@ -169,11 +169,11 @@ public class RangeResults {
      * If the header is not present or is unsatisfiable, then a regular Result will be returned.
      *
      * @param request the request from which to retrieve the range header.
-     * @param fileMimeTypes Used for file type mapping.
      * @param path the content path
+     * @param fileMimeTypes Used for file type mapping.
      * @return range result if "Range" header is present and regular result if not
      */
-    public static Result ofPath(Http.Request request, FileMimeTypes fileMimeTypes, Path path) {
+    public static Result ofPath(Http.Request request, Path path, FileMimeTypes fileMimeTypes) {
         return JavaRangeResult.ofPath(path, rangeHeader(request), fileMimeTypes.forFileName(path.toFile().getName()));
     }
 
@@ -186,11 +186,11 @@ public class RangeResults {
      * @param fileName filename used at the Content-Disposition header.
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {link {@link #ofPath(Http.Request, FileMimeTypes, Path, String)}} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {link {@link #ofPath(Http.Request, Path, String, FileMimeTypes)}} instead.
      */
     @Deprecated
     public static Result ofPath(Path path, String fileName) {
-        return ofPath(Http.Context.current().request(), Http.Context.current().fileMimeTypes(), path, fileName);
+        return ofPath(Http.Context.current().request(), path, fileName, Http.Context.current().fileMimeTypes());
     }
 
     /**
@@ -199,12 +199,12 @@ public class RangeResults {
      * If the header is not present or is unsatisfiable, then a regular Result will be returned.
      *
      * @param request the request from which to retrieve the range header.
-     * @param fileMimeTypes Used for file type mapping.
      * @param path the content path
      * @param fileName filename used at the Content-Disposition header.
+     * @param fileMimeTypes Used for file type mapping.
      * @return range result if "Range" header is present and regular result if not
      */
-    public static Result ofPath(Http.Request request, FileMimeTypes fileMimeTypes, Path path, String fileName) {
+    public static Result ofPath(Http.Request request, Path path, String fileName, FileMimeTypes fileMimeTypes) {
         return JavaRangeResult.ofPath(path, rangeHeader(request), fileName, fileMimeTypes.forFileName(fileName));
     }
 
@@ -216,11 +216,11 @@ public class RangeResults {
      * @param file the content file
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, FileMimeTypes, File)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File, FileMimeTypes)} instead.
      */
     @Deprecated
     public static Result ofFile(File file) {
-        return ofFile(Http.Context.current().request(), Http.Context.current().fileMimeTypes(), file);
+        return ofFile(Http.Context.current().request(), file, Http.Context.current().fileMimeTypes());
     }
 
     /**
@@ -229,11 +229,11 @@ public class RangeResults {
      * If the header is not present or is unsatisfiable, then a regular Result will be returned.
      *
      * @param request the request from which to retrieve the range header.
-     * @param fileMimeTypes Used for file type mapping.
      * @param file the content file
+     * @param fileMimeTypes Used for file type mapping.
      * @return range result if "Range" header is present and regular result if not
      */
-    public static Result ofFile(Http.Request request, FileMimeTypes fileMimeTypes, File file) {
+    public static Result ofFile(Http.Request request, File file, FileMimeTypes fileMimeTypes) {
         return JavaRangeResult.ofFile(file, rangeHeader(request), fileMimeTypes.forFileName(file.getName()));
     }
 
@@ -246,11 +246,11 @@ public class RangeResults {
      * @param fileName filename used at the Content-Disposition header
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, FileMimeTypes, File, String)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File, String, FileMimeTypes)} instead.
      */
     @Deprecated
     public static Result ofFile(File file, String fileName) {
-        return ofFile(Http.Context.current().request(), Http.Context.current().fileMimeTypes(), file, fileName);
+        return ofFile(Http.Context.current().request(), file, fileName, Http.Context.current().fileMimeTypes());
     }
 
     /**
@@ -259,12 +259,12 @@ public class RangeResults {
      * If the header is not present or is unsatisfiable, then a regular Result will be returned.
      *
      * @param request the request from which to retrieve the range header.
-     * @param fileMimeTypes Used for file type mapping.
      * @param file the content file
      * @param fileName filename used at the Content-Disposition header
+     * @param fileMimeTypes Used for file type mapping.
      * @return range result if "Range" header is present and regular result if not
      */
-    public static Result ofFile(Http.Request request, FileMimeTypes fileMimeTypes, File file, String fileName) {
+    public static Result ofFile(Http.Request request, File file, String fileName, FileMimeTypes fileMimeTypes) {
         return JavaRangeResult.ofFile(file, rangeHeader(request), fileName, fileMimeTypes.forFileName(fileName));
     }
 
