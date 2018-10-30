@@ -282,7 +282,7 @@ public interface BodyParser<A> {
                 logger.warn(msg);
                 return bytes.decodeString(charset); // parse and return with unmappable characters.
             } catch (Exception e) {
-                String msg = "Unexpected exception!";
+                String msg = "Unexpected exception while parsing text/plain body";
                 logger.error(msg, e);
                 return bytes.decodeString(charset);
             }
