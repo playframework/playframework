@@ -674,7 +674,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
 
       // Add companion for play.api.mvc.Result
-      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$")
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$"),
+
+      // Add singleton object to SecretConfiguration, add constants
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.SecretConfiguration$")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
