@@ -683,8 +683,8 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall"),
 
       // Allow to remove request attributes
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.rmAttr"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.rmAttr"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.removeAttr"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.removeAttr"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.-")
   ),
     unmanagedSourceDirectories in Compile += {

@@ -75,14 +75,14 @@ class RequestHeaderSpec extends Specification {
       "can set two attributes and remove one of them" in {
         val x = TypedKey[Int]("x")
         val y = TypedKey[String]("y")
-        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).rmAttr(x)
+        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x)
         req.attrs.get(x) must beNone
         req.attrs(y) must_== "hello"
       }
       "can set two attributes and remove both again" in {
         val x = TypedKey[Int]("x")
         val y = TypedKey[String]("y")
-        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).rmAttr(x).rmAttr(y)
+        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x).removeAttr(y)
         req.attrs.get(x) must beNone
         req.attrs.get(y) must beNone
       }

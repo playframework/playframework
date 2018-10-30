@@ -763,7 +763,7 @@ public class Http {
          * @param key The key of the attribute to remove.
          * @return The new version of this object with the attribute removed.
          */
-        RequestHeader rmAttr(TypedKey<?> key);
+        RequestHeader removeAttr(TypedKey<?> key);
 
         /**
          * Attach a body to this header.
@@ -934,7 +934,7 @@ public class Http {
         <A> Request addAttr(TypedKey<A> key, A value);
 
         // Override return type
-        Request rmAttr(TypedKey<?> key);
+        Request removeAttr(TypedKey<?> key);
 
         /**
          * Return the Scala version of the request

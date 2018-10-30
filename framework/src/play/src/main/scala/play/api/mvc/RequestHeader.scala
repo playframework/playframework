@@ -152,7 +152,7 @@ trait RequestHeader {
    * @param key The key of the attribute to remove.
    * @return The new version of this object with the attribute removed.
    */
-  def rmAttr(key: TypedKey[_]): RequestHeader =
+  def removeAttr(key: TypedKey[_]): RequestHeader =
     withAttrs(attrs - key)
 
   // -- Computed

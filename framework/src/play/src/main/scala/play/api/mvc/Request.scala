@@ -57,7 +57,7 @@ trait Request[+A] extends RequestHeader {
     new RequestImpl[A](connection, method, target, version, headers, newAttrs, body)
   override def addAttr[B](key: TypedKey[B], value: B): Request[A] =
     withAttrs(attrs.updated(key, value))
-  override def rmAttr(key: TypedKey[_]): Request[A] =
+  override def removeAttr(key: TypedKey[_]): Request[A] =
     withAttrs(attrs - key)
 }
 
