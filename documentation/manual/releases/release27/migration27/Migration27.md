@@ -82,7 +82,7 @@ The API for body parser was mixing `Integer` and `Long` to define buffer lengths
 
 ## Guice compatibility changes
 
-Guice was upgraded to version [4.2.1](https://github.com/google/guice/wiki/Guice421) (also see [4.2.0 release notes](https://github.com/google/guice/wiki/Guice42)), which causes the following breaking changes:
+Guice was upgraded to version [4.2.2](https://github.com/google/guice/wiki/Guice422) (also see [4.2.1](https://github.com/google/guice/wiki/Guice421) and [4.2.0 release notes](https://github.com/google/guice/wiki/Guice42)), which causes the following breaking changes:
 
  - `play.test.TestBrowser.waitUntil` expects a `java.util.function.Function` instead of a `com.google.common.base.Function` now.
  - In Scala, when overriding the `configure()` method of `AbstractModule`, you need to prefix that method with the `override` identifier now (because it's non-abstract now).
