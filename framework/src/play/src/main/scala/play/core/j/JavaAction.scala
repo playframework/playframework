@@ -136,7 +136,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       })
       logger.debug("### End of action order")
     }
-    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext)) }(trampolineWithContext)
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext.request())) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture
