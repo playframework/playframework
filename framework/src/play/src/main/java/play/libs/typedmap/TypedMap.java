@@ -115,7 +115,7 @@ public final class TypedMap {
     public TypedMap remove(TypedKey<?>... keys) {
         play.api.libs.typedmap.TypedMap newUnderlying = underlying;
         for (TypedKey<?> k : keys) {
-            newUnderlying = newUnderlying.$minus(k.asScala());
+            newUnderlying = newUnderlying.remove(k.asScala());
         }
         return new TypedMap(newUnderlying);
     }

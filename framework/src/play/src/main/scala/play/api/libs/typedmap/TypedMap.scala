@@ -75,6 +75,14 @@ trait TypedMap {
   @varargs def -(keys: TypedKey[_]*): TypedMap
 
   /**
+   * Removes keys from the map, returning a new instance of the map.
+   *
+   * @param keys The keys to remove.
+   * @return A new instance of the map with the entries removed.
+   */
+  @varargs def remove(keys: TypedKey[_]*): TypedMap = this - (keys: _*)
+
+  /**
    * @return The Java version for this map.
    */
   def asJava: play.libs.typedmap.TypedMap = new play.libs.typedmap.TypedMap(this)
