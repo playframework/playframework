@@ -489,7 +489,7 @@ trait PlayBodyParsers extends BodyParserUtils {
           logger.warn(s"TolerantText body parser tried to parse request ${request.id} as text body with charset $encodingToTry, but it contains invalid characters!")
           Failure(e)
         case e: Exception =>
-          logger.error("Unexpected exception decoding document!", e)
+          logger.error("Unexpected exception while decoding text/plain body", e)
           Failure(e)
       }
     }
