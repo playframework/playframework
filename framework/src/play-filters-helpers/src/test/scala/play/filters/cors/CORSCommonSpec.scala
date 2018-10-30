@@ -126,6 +126,12 @@ trait CORSCommonSpec extends PlaySpecification {
       header(VARY, result) must beSome(ORIGIN)
     }
 
+    "allow null origin header" in withApplication() { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "null")).get
+
+      status(result) must_== OK
+    }
+
     "forbid an empty origin header" in withApplication() { app =>
       val result = route(app, fakeRequest().withHeaders(ORIGIN -> "")).get
 

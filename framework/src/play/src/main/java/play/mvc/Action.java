@@ -7,12 +7,23 @@ package play.mvc;
 import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage;
 
+import play.core.j.JavaContextComponents;
 import play.mvc.Http.Context;
+import play.mvc.Http.Request;
+
+import javax.inject.Inject;
 
 /**
  * An action acts as decorator for the action method call.
  */
 public abstract class Action<T> extends Results {
+
+    private JavaContextComponents contextComponents;
+
+    @Inject
+    public void setContextComponents(JavaContextComponents contextComponents) {
+        this.contextComponents = contextComponents;
+    }
 
     /**
      * The action configuration - typically the annotation used to decorate the action method.
@@ -45,8 +56,33 @@ public abstract class Action<T> extends Results {
      *
      * @param ctx the http context in which to execute this action
      * @return a promise to the action's result
+     *
+     * @deprecated Since 2.7.0. Use {@link #call(Request)} instead. Please see <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">the migration guide</a> for more details.
      */
-    public abstract CompletionStage<Result> call(Context ctx);
+    @Deprecated // TODO: When you remove this method make call(Request) below abstract
+    public CompletionStage<Result> call(Context ctx) {
+        return call(ctx.request());
+    }
+
+    /**
+     * Executes this action with the given HTTP request and returns the result.
+     *
+     * @param req the http request with which to execute this action
+     * @return a promise to the action's result
+     */
+    public CompletionStage<Result> call(Request req) { // TODO: Make this method abstract after removing call(Context)
+        final Context threadLocalCtx = Context.current != null ? Context.current.get() : null;
+        if(threadLocalCtx != null) {
+            // A previous action did explicitly set a context onto the thread local (via Http.Context.current.set(...))
+            // Let's use that context so the user doesn't loose data he/she set onto that ctx (args,...)
+            Context newCtx = threadLocalCtx.withRequest(req);
+            Context.current.set(newCtx);
+            return call(newCtx);
+        } else {
+            // A previous action did not set a context explicitly, we simply create a new one to pass on the request
+            return call(new Context(req, contextComponents));
+        }
+    }
 
     /**
      * A simple action with no configuration.

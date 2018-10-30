@@ -677,7 +677,18 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$"),
 
       // Add singleton object to SecretConfiguration, add constants
-      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.SecretConfiguration$")
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.SecretConfiguration$"),
+
+      // Pass Java Request to action methods as first argument when route is prefixed with '+' sign
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invocation"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.j.JavaAction.invocation"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall"),
+
+      // Allow to remove request attributes
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.removeAttr"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.removeAttr"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.-")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

@@ -49,10 +49,16 @@ case class HttpVerb(value: String) {
  * @param parameters The parameters to pass to the method.
  */
 case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
-  val dynamic = if (instantiate) "@" else ""
+  private val dynamic = if (instantiate) "@" else ""
+  lazy val passJavaRequest: Boolean = parameters.getOrElse(Nil).exists(_.isJavaRequest)
   override def toString = dynamic + packageName + "." + controller + dynamic + "." + method + parameters.map { params =>
     "(" + params.mkString(", ") + ")"
   }.getOrElse("")
+}
+
+object Parameter {
+  final val requestClass = "Request"
+  final val requestClassFQ = "play.mvc.Http." + requestClass
 }
 
 /**
@@ -64,6 +70,11 @@ case class HandlerCall(packageName: String, controller: String, instantiate: Boo
  * @param default A default value for the parameter, if defined.
  */
 case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
+  import Parameter._
+
+  def isJavaRequest = typeName.equalsIgnoreCase(requestClass) || typeName.equalsIgnoreCase(requestClassFQ)
+  def typeNameReal = if (isJavaRequest) { requestClassFQ } else { typeName }
+  def nameClean = if (isJavaRequest) { "req" } else { name }
   override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 

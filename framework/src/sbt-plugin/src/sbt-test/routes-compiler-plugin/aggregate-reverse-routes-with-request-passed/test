@@ -1,0 +1,40 @@
+# Generate the reverse routers
+> playRoutes
+
+# Ensure the right files are and aren't generated
+$ exists common/target/routes/main/a/RoutesPrefix.scala
+$ exists common/target/routes/main/controllers/a/ReverseRoutes.scala
+$ exists common/target/routes/main/controllers/a/javascript/JavaScriptReverseRoutes.scala
+$ exists common/target/routes/main/controllers/a/routes.java
+$ exists common/target/routes/main/b/RoutesPrefix.scala
+$ exists common/target/routes/main/controllers/b/ReverseRoutes.scala
+$ exists common/target/routes/main/controllers/b/javascript/JavaScriptReverseRoutes.scala
+$ exists common/target/routes/main/controllers/b/routes.java
+$ exists common/target/routes/main/c/RoutesPrefix.scala
+$ exists common/target/routes/main/controllers/c/ReverseRoutes.scala
+$ exists common/target/routes/main/controllers/c/javascript/JavaScriptReverseRoutes.scala
+$ exists common/target/routes/main/controllers/c/routes.java
+-$ exists common/target/routes/main/a/Routes.scala
+-$ exists common/target/routes/main/b/Routes.scala
+-$ exists common/target/routes/main/c/Routes.scala
+
+$ exists a/target/routes/main/a/RoutesPrefix.scala
+-$ exists a/target/routes/main/controllers/a/ReverseRoutes.scala
+-$ exists a/target/routes/main/controllers/a/javascript/JavaScriptReverseRoutes.scala
+-$ exists a/target/routes/main/controllers/a/routes.java
+$ exists a/target/routes/main/a/Routes.scala
+
+$ exists b/target/routes/main/b/RoutesPrefix.scala
+-$ exists b/target/routes/main/controllers/b/ReverseRoutes.scala
+-$ exists b/target/routes/main/controllers/b/javascript/JavaScriptReverseRoutes.scala
+-$ exists b/target/routes/main/controllers/b/routes.java
+$ exists b/target/routes/main/b/Routes.scala
+
+$ exists c/target/routes/main/c/RoutesPrefix.scala
+-$ exists c/target/routes/main/controllers/c/ReverseRoutes.scala
+-$ exists c/target/routes/main/controllers/c/javascript/JavaScriptReverseRoutes.scala
+-$ exists c/target/routes/main/controllers/c/routes.java
+$ exists c/target/routes/main/c/Routes.scala
+
+# Now ensure that everything compiles
+> compile

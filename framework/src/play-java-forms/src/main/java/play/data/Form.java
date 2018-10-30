@@ -4,6 +4,7 @@
 
 package play.data;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import org.hibernate.validator.HibernateValidatorFactory;
@@ -23,6 +24,7 @@ import play.data.format.Formatters;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
+import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.AnnotationUtils;
@@ -32,7 +34,6 @@ import play.mvc.Http.HttpVerbs;
 import javax.validation.ConstraintViolation;
 import javax.validation.groups.Default;
 import javax.validation.metadata.BeanDescriptor;
-import javax.validation.metadata.ConstraintDescriptor;
 import javax.validation.metadata.PropertyDescriptor;
 import javax.validation.ValidatorFactory;
 import javax.validation.Validator;
@@ -210,7 +211,7 @@ public class Form<T> {
         return data;
     }
 
-    private void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
+    protected void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
         urlFormEncoded.forEach((key, values) -> {
             if (key.endsWith("[]")) {
                 String k = key.substring(0, key.length() - 2);
@@ -264,7 +265,7 @@ public class Form<T> {
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bind(com.fasterxml.jackson.databind.JsonNode data, String... allowedFields) {
+    public Form<T> bind(JsonNode data, String... allowedFields) {
         return bind(
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("",
@@ -668,7 +669,7 @@ public class Form<T> {
     /**
      * @return the form errors serialized as Json.
      */
-    public com.fasterxml.jackson.databind.JsonNode errorsAsJson() {
+    public JsonNode errorsAsJson() {
         return errorsAsJson(Http.Context.current() != null ? Http.Context.current().lang() : null);
     }
 
@@ -677,7 +678,7 @@ public class Form<T> {
      * @param lang    the language to use.
      * @return the JSON node containing the errors.
      */
-    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
+    public JsonNode errorsAsJson(Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<>();
         errors.forEach(error -> {
             if (error != null) {
@@ -695,7 +696,7 @@ public class Form<T> {
         return play.libs.Json.toJson(allMessages);
     }
 
-    private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, play.i18n.Lang lang) {
+    private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, Lang lang) {
         if (arguments != null) {
             return arguments.stream().map(arg -> {
                     if (arg instanceof String) {

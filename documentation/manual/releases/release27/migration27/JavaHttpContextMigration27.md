@@ -15,6 +15,136 @@ Instead you can use the `contextObj.request().attrs()` method now, which provide
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
 Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
+### `Http.Context.current()` deprecated
+
+Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made by other places and makes it harder to access the request in other threads.
+
+With Play 2.7 you can now access the current request by simply adding it as a param to your routes and actions.
+
+For example the routes files contains:
+
+```
+GET     /       controllers.HomeController.index(request: Request)
+```
+And the corresponding action method:
+
+```java
+import play.mvc.*;
+
+public class HomeController extends Controller {
+
+    public Result index(Http.Request request) {
+        return ok("Hello, your request path " + request.path());
+    }
+}
+
+```
+
+Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
+
+> **Note**: It is unlikely but possible that you have a custom `QueryStringBindable` or `PahBindable` with the name `Request`. If so, that one would now collide with Play detection of request params.
+> Therefore you should use the fully qualified name of your `Request` type, for example.
+>
+>     GET    /        controllers.HomeController.index(myRequest: com.mycompany.Request)
+
+If you did use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now.
+Look at this example which checks if the current request's remote address is on a blacklist:
+
+#### Before
+
+```java
+import play.mvc.Http;
+
+public class SecurityHelper {
+
+    public static boolean isBlacklisted() {
+        String remoteAddress = Http.Context.current().request().remoteAddress();
+        return blacklist.contains(remoteAddress);
+    }
+}
+```
+
+Corresponding controller:
+
+```java
+import play.mvc.*;
+
+public class HomeController extends Controller {
+
+    public Result index() {
+        if (SecurityHelper.isBlacklisted()) {
+            return badRequest();
+        }
+        return ok("Hello, your request path " + request().path());
+    }
+}
+
+```
+
+#### After
+
+```java
+public class SecurityHelper {
+
+    public static boolean isBlacklisted(String remoteAddress) {
+        return blacklist.contains(remoteAddress);
+    }
+}
+```
+
+Corresponding controller:
+
+```java
+import play.mvc.*;
+
+public class HomeController extends Controller {
+
+    public Result index(Http.Request request) {
+        if (SecurityHelper.isBlacklisted(request.remoteAddress())) {
+            return badRequest();
+        }
+        return ok("Hello, your request path " + request.path());
+    }
+}
+
+```
+
+### `Action.call(Context)` deprecated
+
+If you are using [[action composition|JavaActionsComposition]] you have to update your actions to avoid `Http.Context`.
+
+#### Before
+
+```java
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
+
+public class MyAction extends Action.Simple {
+    public CompletionStage<Result> call(Http.Context ctx) {
+        return delegate.call(ctx);
+    }
+}
+```
+
+#### After
+
+```java
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Result;
+
+import java.util.concurrent.CompletionStage;
+
+public class MyAction extends Action.Simple {
+    public CompletionStage<Result> call(Http.Request req) {
+        return delegate.call(req);
+    }
+}
+```
+
 ### `Http.Response` deprecated
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
@@ -89,8 +219,8 @@ import java.util.concurrent.CompletionStage;
 public class MyAction extends Action.Simple {
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
-        return delegate.call(ctx)
+    public CompletionStage<Result> call(Http.Request req) {
+        return delegate.call(req)
                 .thenApply(result -> result.withHeader("Name", "Value"));
     }
 }

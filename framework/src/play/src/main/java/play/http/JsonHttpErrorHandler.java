@@ -44,6 +44,11 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
 
     @Override
     public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
+        if (!play.api.http.Status$.MODULE$.isClientError(statusCode)) {
+            throw new IllegalArgumentException(
+                "onClientError invoked with non client error status code " + statusCode + ": " + message);
+        }
+
         ObjectNode result = Json.newObject();
         result.put("requestId", request.asScala().id());
         result.put("message", message);

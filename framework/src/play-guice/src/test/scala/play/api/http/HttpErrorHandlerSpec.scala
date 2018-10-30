@@ -17,6 +17,7 @@ import play.api.libs.json._
 import play.api.mvc.{ RequestHeader, Result, Results }
 import play.api.routing._
 import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
+import play.core.j.{ JavaContextComponents, DefaultJavaContextComponents }
 import play.core.test.{ FakeRequest, Fakes }
 import play.http
 import play.i18n.{ Langs, MessagesApi }
@@ -33,7 +34,9 @@ class HttpErrorHandlerSpec extends Specification {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   "HttpErrorHandler" should {
-    def sharedSpecs(errorHandler: HttpErrorHandler) = {
+    def sharedSpecs(_eh: => HttpErrorHandler) = {
+      lazy val errorHandler = _eh
+
       "render a bad request" in {
         await(errorHandler.onClientError(FakeRequest(), 400)).header.status must_== 400
       }
@@ -55,7 +58,9 @@ class HttpErrorHandlerSpec extends Specification {
       }
     }
 
-    def jsonResponsesSpecs(errorHandler: HttpErrorHandler, isProdMode: Boolean)(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+    def jsonResponsesSpecs(_eh: => HttpErrorHandler, isProdMode: Boolean)(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+      lazy val errorHandler = _eh
+
       def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)
 
       "answer a JSON error message on bad request" in {
@@ -120,12 +125,12 @@ class HttpErrorHandlerSpec extends Specification {
 
     "work if a scala JSON handler is defined" in {
       "in dev mode" in {
-        val errorHandler = handler(classOf[JsonHttpErrorHandler].getName, Mode.Dev)
+        def errorHandler = handler(classOf[JsonHttpErrorHandler].getName, Mode.Dev)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = false)
       }
       "in prod mode" in {
-        val errorHandler = handler(classOf[JsonHttpErrorHandler].getName, Mode.Prod)
+        def errorHandler = handler(classOf[JsonHttpErrorHandler].getName, Mode.Prod)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = true)
       }
@@ -133,12 +138,12 @@ class HttpErrorHandlerSpec extends Specification {
 
     "work if a java JSON handler is defined" in {
       "in dev mode" in {
-        val errorHandler = handler(classOf[http.JsonHttpErrorHandler].getName, Mode.Dev)
+        def errorHandler = handler(classOf[http.JsonHttpErrorHandler].getName, Mode.Dev)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = false)
       }
       "in prod mode" in {
-        val errorHandler = handler(classOf[http.JsonHttpErrorHandler].getName, Mode.Prod)
+        def errorHandler = handler(classOf[http.JsonHttpErrorHandler].getName, Mode.Prod)
         sharedSpecs(errorHandler)
         jsonResponsesSpecs(errorHandler, isProdMode = true)
       }
@@ -180,7 +185,8 @@ class HttpErrorHandlerSpec extends Specification {
         BindingKey(classOf[Environment]).to(env),
         BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
         BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
-        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider]
+        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
+        BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
       )).instanceOf[HttpErrorHandler]
   }
 

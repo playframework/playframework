@@ -28,7 +28,7 @@ abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends 
       )
     }
 
-    def invocation = self.invocation
+    def invocation(req: Http.Request) = self.invocation
   }
 
   def parser = action.parser
@@ -66,7 +66,7 @@ object MockJavaActionHelper {
   }
 
   def setContext(request: play.mvc.Http.RequestBuilder, contextComponents: JavaContextComponents): Unit = {
-    Http.Context.current.set(JavaHelpers.createJavaContext(request.build().asScala, contextComponents))
+    Http.Context.current.set(new Http.Context(request.build(), contextComponents))
   }
 
   def removeContext: Unit = Http.Context.current.remove()

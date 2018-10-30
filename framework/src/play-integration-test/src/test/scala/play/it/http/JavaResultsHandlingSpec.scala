@@ -154,16 +154,55 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       )
     }
 
-    "treat headers case insensitively" in makeRequest(new MockController {
-      def action = {
-        response.setHeader("Server", "foo")
-        response.setHeader("server", "bar")
-        Results.ok("Hello world").withHeader("Other", "foo").withHeader("other", "bar")
+    "when adding headers" should {
+
+      "accept simple values" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", "foo")
+        }
+      }) { response =>
+        response.header("Other") must beSome("foo")
+        response.body must_== "Hello world"
       }
-    }) { response =>
-      response.header("Server") must beSome("bar")
-      response.header("Other") must beSome("bar")
-      response.body must_== "Hello world"
+
+      "treat headers case insensitively" in makeRequest(new MockController {
+        def action = {
+          response.setHeader("Server", "foo")
+          response.setHeader("server", "bar")
+          Results.ok("Hello world").withHeader("Other", "foo").withHeader("other", "bar")
+        }
+      }) { response =>
+        response.header("Server") must beSome("bar")
+        response.header("Other") must beSome("bar")
+        response.body must_== "Hello world"
+      }
+
+      "fail if adding null values" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", null)
+        }
+      }) { response =>
+        response.status must_== INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "discard headers" should {
+
+      "remove the header" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", "some-value").discardHeader("Other")
+        }
+      }) { response =>
+        response.header("Other") must beNone
+      }
+
+      "treat headers case insensitively" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", "some-value").discardHeader("other")
+        }
+      }) { response =>
+        response.header("Other") must beNone
+      }
     }
 
     "discard cookies from result" in {

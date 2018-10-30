@@ -4,6 +4,7 @@
 
 package play.data;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 
 import javax.validation.ValidatorFactory;
@@ -15,10 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.MessagesApi;
+import play.mvc.Http;
 
 /**
  * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String&gt;</code>
@@ -27,8 +30,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
     /** Statically compiled Pattern for checking if a key is already surrounded by "data[]". */
     private static final Pattern MATCHES_DATA = Pattern.compile("^data\\[.+\\]$");
-
-    private final Map<String, String> rawData;
 
     /**
      * Creates a new empty dynamic form.
@@ -40,7 +41,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
         super(DynamicForm.Dynamic.class, messagesApi, formatters, validatorFactory, config);
-        rawData = new HashMap<>();
     }
 
     /**
@@ -56,11 +56,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(Map<String,String> data, List<ValidationError> errors, Optional<Dynamic> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
         super(null, DynamicForm.Dynamic.class, data, errors, value, messagesApi, formatters, validatorFactory, config);
-        rawData = new HashMap<>();
-        for (Map.Entry<String, String> e : data.entrySet()) {
-            rawData.put(asNormalKey(e.getKey()), e.getValue());
-        }
-
     }
 
     /**
@@ -88,12 +83,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return super.value().map(v -> v.getData().get(asNormalKey(key)));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Map<String, String> rawData() {
-        return Collections.unmodifiableMap(rawData);
+        return Collections.unmodifiableMap(super.rawData().entrySet().stream().collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
     }
 
     /**
@@ -106,50 +98,44 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @return a copy of this form filled with the new data
-     */
     @Override
     public DynamicForm bindFromRequest(String... allowedFields) {
         return bind(requestData(play.mvc.Controller.request()), allowedFields);
     }
 
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @return a copy of this form filled with the new data
-     */
     @Override
-    public DynamicForm bindFromRequest(play.mvc.Http.Request request, String... allowedFields) {
+    public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
         return bind(requestData(request), allowedFields);
     }
 
-    /**
-     * Binds data to this form - that is, handles form submission.
-     *
-     * @param data data to submit
-     * @return a copy of this form filled with the new data
-     */
+    @Override
+    public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
+        Map<String,String> data = new HashMap<>();
+        fillDataWith(data, requestData);
+        return bind(data, allowedFields);
+    }
+
+    @Override
+    public DynamicForm bind(JsonNode data, String... allowedFields) {
+        return bind(
+            play.libs.Scala.asJava(
+                play.api.data.FormUtils.fromJson("",
+                    play.api.libs.json.Json.parse(
+                        play.libs.Json.stringify(data)
+                    )
+                )
+            ),
+            allowedFields
+        );
+    }
+
     @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        Map<String,String> newData = new HashMap<>();
-        for(Map.Entry<String, String> e: data.entrySet()) {
-            newData.put(asDynamicKey(e.getKey()), e.getValue());
-        }
-        data = newData;
-
-        Form<Dynamic> form = super.bind(data, allowedFields);
+        Form<Dynamic> form = super.bind(data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config);
     }
 
-    /**
-     * Retrieves a field.
-     *
-     * @param key field name
-     * @return the field - even if the field does not exist you get a field
-     */
+    @Override
     public Form.Field field(String key) {
         // #1310: We specify inner class as Form.Field rather than Field because otherwise,
         // javadoc cannot find the static inner class.
@@ -159,45 +145,43 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         );
     }
 
-    /**
-     * Retrieve an error by key.
-     *
-     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
-     */
-    @Deprecated
-    public Optional<ValidationError> getError(String key) {
-        return error(key);
-    }
-
-    /**
-     * Retrieve an error by key.
-     */
+    @Override
     public Optional<ValidationError> error(String key) {
         return super.error(asDynamicKey(key));
     }
 
-    /**
-     * @param key the error key
-     * @param error the error message
-     * @param args the error arguments
-     *
-     * @return a copy of this form with the given error added.
-     */
+    @Override
+    public DynamicForm withError(final ValidationError error) {
+        final Form<Dynamic> form = super.withError(new ValidationError(asDynamicKey(error.key()), error.messages(), error.arguments()));
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+    }
+
     @Override
     public DynamicForm withError(final String key, final String error, final List<Object> args) {
         final Form<Dynamic> form = super.withError(asDynamicKey(key), error, args);
-        return new DynamicForm(this.rawData, form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
-    /**
-     * @param key the error key
-     * @param error the error message
-     *
-     * @return a copy of this form with the given error added.
-     */
     @Override
     public DynamicForm withError(final String key, final String error) {
         return withError(key, error, new ArrayList<>());
+    }
+
+    @Override
+    public DynamicForm withGlobalError(final String error, final List<Object> args) {
+        final Form<Dynamic> form = super.withGlobalError(error, args);
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
+    }
+
+    @Override
+    public DynamicForm withGlobalError(final String error) {
+        return withGlobalError(error, new ArrayList<>());
+    }
+
+    @Override
+    public DynamicForm discardingErrors() {
+        final Form<Dynamic> form = super.discardingErrors();
+        return new DynamicForm(super.rawData(), form.errors(), form.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config);
     }
 
     // -- tools

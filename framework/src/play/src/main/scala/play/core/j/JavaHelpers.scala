@@ -137,6 +137,7 @@ trait JavaHelpers {
    * @param javaContext the Java Http.Context
    * @param javaResult the Java Result
    */
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
     require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
     val scalaResult = javaResult.asScala
@@ -164,6 +165,7 @@ trait JavaHelpers {
    * @param req the scala request
    * @param components the context components (use JavaHelpers.createContextComponents)
    */
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   def createJavaContext(req: RequestHeader, components: JavaContextComponents): JContext = {
     require(components != null, "Null JavaContextComponents")
     new JContext(
@@ -182,6 +184,7 @@ trait JavaHelpers {
    * @param req the scala request
    * @param components the context components (use JavaHelpers.createContextComponents)
    */
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   def createJavaContext(req: Request[RequestBody], components: JavaContextComponents): JContext = {
     require(components != null, "Null JavaContextComponents")
     new JContext(
@@ -252,6 +255,7 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   def invokeWithContext(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Future[Result] = {
     withContext(request, components) { javaContext =>
       FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
@@ -261,6 +265,7 @@ trait JavaHelpers {
   /**
    * Invoke the given block with Java context created from the request header
    */
+  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   def withContext[A](request: RequestHeader, components: JavaContextComponents)(block: JContext => A) = {
     val javaContext = createJavaContext(request, components)
     try {
@@ -293,6 +298,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def attrs: TypedMap = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader = header.withAttrs(newAttrs.underlying()).asJava
   override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
+  override def removeAttr(key: TypedKey[_]): JRequestHeader = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -340,6 +346,8 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
     new RequestImpl(request.withAttrs(newAttrs.underlying()))
   override def addAttr[A](key: TypedKey[A], value: A): JRequest =
     withAttrs(attrs.put(key, value))
+  override def removeAttr(key: TypedKey[_]): JRequest =
+    withAttrs(attrs.remove(key))
 
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody

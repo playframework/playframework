@@ -297,6 +297,11 @@ class JsonHttpErrorHandler(
     environment: Environment,
     sourceMapper: Option[SourceMapper] = None) extends HttpErrorHandler {
 
+  @Inject
+  def this(environment: Environment, optionalSourceMapper: OptionalSourceMapper) = {
+    this(environment, optionalSourceMapper.sourceMapper)
+  }
+
   @inline
   private final def error(content: JsObject): JsObject = Json.obj("error" -> content)
 
@@ -307,8 +312,13 @@ class JsonHttpErrorHandler(
    * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
    * @param message The error message.
    */
-  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
-    Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    if (Status.isClientError(statusCode)) {
+      Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
+    } else {
+      throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
+    }
+  }
 
   /**
    * Invoked when a server error occurs.
