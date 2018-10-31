@@ -9,7 +9,7 @@ The interface through which Play handles these errors is [`HttpErrorHandler`](ap
 
 ## Handling errors in a JSON API
 
-By default, Play returns errors in a HTML format. 
+By default, Play returns errors in a HTML format.
 For a JSON API, it's more consistent to return errors in JSON.
 
 Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttpErrorHandler`](api/scala/play/api/http/JsonHttpErrorHandler.html), which will return errors formatted in JSON.
@@ -17,6 +17,16 @@ Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttp
 To use that `HttpErrorHandler` implementation, you should configure the `play.http.errorHandler` configuration property in `application.conf` like this:
 
     play.http.errorHandler = play.api.http.JsonHttpErrorHandler
+
+## Using both HTML and JSON, and other content types
+
+If your application uses a mixture of HTML and JSON, as is common in modern web apps, Play offers another error handler that delegates to either the HTML or JSON error handler based on the preferences specified in the client's `Accept` header. This can be specified with:
+
+    play.http.errorHandler = play.api.http.HtmlOrJsonHttpErrorHandler
+
+This is a suitable default choice of error handler for most applications.
+
+Finally, if you want to support other content types for errors in addition to HTML and JSON, you can extend [`PreferredMediaTypeHttpErrorHandler`](api/scala/play/api/http/PreferredMediaTypeHttpErrorHandler.html) and specify a custom error handler as described below.
 
 ## Supplying a custom error handler
 
@@ -29,6 +39,12 @@ If you're using runtime dependency injection (e.g. Guice), the error handler can
 If you don't want to place your error handler in the root package, or if you want to be able to configure different error handlers for different environments, you can do this by configuring the `play.http.errorHandler` configuration property in `application.conf`:
 
     play.http.errorHandler = "com.example.ErrorHandler"
+
+If you want to use the error handler for the client's preferred media type and add your own error handler for another media type, you can extend the [`PreferredMediaTypeHttpErrorHandler`](api/scala/play/api/http/PreferredMediaTypeHttpErrorHandler.html):
+
+@[custom-media-type](code/ScalaErrorHandling.scala)
+
+The above example uses the default Play handlers for JSON and HTML and adds a custom handler that will be used if the client prefers plain text, e.g. if the request has `Accept: text/plain`.
 
 ## Extending the default error handler
 
