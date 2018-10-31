@@ -63,7 +63,7 @@ public class Http {
     @Deprecated
     public static class Context {
 
-        public static ThreadLocal<Context> current = new ThreadLocal<>();
+        public static ThreadLocal<Context> current = System.getProperty("disableHttpContextThreadLocal") != null ? null : new ThreadLocal<>();
 
         /**
          * Retrieves the current HTTP context, for the current thread.
