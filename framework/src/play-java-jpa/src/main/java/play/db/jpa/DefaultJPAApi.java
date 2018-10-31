@@ -57,7 +57,7 @@ public class DefaultJPAApi implements JPAApi {
         @Deprecated
         public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised
-            jpaApi = new DefaultJPAApi(jpaConfig, context);
+            jpaApi = new DefaultJPAApi(jpaConfig, System.getProperty("disableJPAThreadLocal") != null ? null : context);
             lifecycle.addStopHook(() -> {
                 jpaApi.shutdown();
                 return CompletableFuture.completedFuture(null);
