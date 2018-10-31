@@ -39,6 +39,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
@@ -1193,11 +1195,23 @@ public class Http {
          * Set a Text to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain</tt>.
          *
-         * @param text the text
+         * @param text the text, assumed to be encoded in US_ASCII format, per https://tools.ietf.org/html/rfc6657#section-4
          * @return this builder, updated
          */
         public RequestBuilder bodyText(String text) {
             return body(new RequestBody(text), "text/plain");
+        }
+
+        /**
+         * Set a Text to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain; charset=$charset</tt>.
+         *
+         * @param text the text, which is assumed to be already encoded in the format defined by charset.
+         * @param charset the character set that the request is encoded in.
+         * @return this builder, updated
+         */
+        public RequestBuilder bodyText(String text, Charset charset) {
+            return body(new RequestBody(text), "text/plain; charset=" + charset.name());
         }
 
         /**
