@@ -482,7 +482,7 @@ public class FooController extends Controller {
 }
 ```
 
-### Methods that send a resource, a `File` or a `Path` are deprecated
+### Methods that send a resource, a `File` or a `Path` now require`FileMimeTypes`
 
 Various methods in [`play.mvc.Results`](api/java/play/mvc/Results.html), [`play.mvc.StatusHeader`](api/java/play/mvc/StatusHeader.html) and [`play.mvc.RangeResults`](api/java/play/mvc/RangeResults.html) that send a [`File`](https://docs.oracle.com/javase/8/docs/api/java/io/File.html) or a [`Path`](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) without passing a mime type have been deprecated.
 That's because internally these methods rely on `Http.Context` to map the MIME type of the resource, file or path.
