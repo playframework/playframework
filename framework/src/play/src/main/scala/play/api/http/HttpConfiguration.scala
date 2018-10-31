@@ -166,6 +166,21 @@ object HttpConfiguration {
     }
   }
 
+  def parseFileMimeTypes(config: Configuration): Map[String, String] = config.get[String]("play.http.fileMimeTypes").split('\n').flatMap { l =>
+    val line = l.trim
+
+    line.splitAt(1) match {
+      case ("", "") => Option.empty[(String, String)] // blank
+      case ("#", _) => Option.empty[(String, String)] // comment
+
+      case _ => // "foo=bar".span(_ != '=') -> (foo,=bar)
+        line.span(_ != '=') match {
+          case (key, v) => Some(key -> v.drop(1)) // '=' prefix
+          case _ => Option.empty[(String, String)] // skip invalid
+        }
+    }
+  }(scala.collection.breakOut)
+
   def fromConfiguration(config: Configuration, environment: Environment) = {
 
     def getPath(key: String, deprecatedKey: Option[String] = None): String = {
@@ -220,20 +235,7 @@ object HttpConfiguration {
         jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
-        config.get[String]("play.http.fileMimeTypes").split('\n').flatMap { l =>
-          val line = l.trim
-
-          line.splitAt(1) match {
-            case ("", "") => Option.empty[(String, String)] // blank
-            case ("#", _) => Option.empty[(String, String)] // comment
-
-            case _ => // "foo=bar".span(_ != '=') -> (foo,=bar)
-              line.span(_ != '=') match {
-                case (key, v) => Some(key -> v.drop(1)) // '=' prefix
-                case _ => Option.empty[(String, String)] // skip invalid
-              }
-          }
-        }(scala.collection.breakOut)
+        parseFileMimeTypes(config)
       ),
       secret = getSecretConfiguration(config, environment)
     )

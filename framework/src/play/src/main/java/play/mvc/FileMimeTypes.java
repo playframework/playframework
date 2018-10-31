@@ -15,7 +15,6 @@ public class FileMimeTypes {
 
     private final play.api.http.FileMimeTypes fileMimeTypes;
 
-    @Inject
     public FileMimeTypes(play.api.http.FileMimeTypes fileMimeTypes) {
         this.fileMimeTypes = fileMimeTypes;
     }

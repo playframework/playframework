@@ -11,7 +11,6 @@ import play.libs.concurrent.DefaultFutures;
 import play.libs.concurrent.Futures;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCookieSigner;
-import play.mvc.FileMimeTypes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +23,6 @@ public class BuiltInModule extends Module {
             bindClass(play.Environment.class).toSelf(),
             bindClass(CookieSigner.class).to(DefaultCookieSigner.class),
             bindClass(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
-            bindClass(FileMimeTypes.class).toSelf(),
             bindClass(Futures.class).to(DefaultFutures.class)
         );
     }
