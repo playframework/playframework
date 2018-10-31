@@ -83,12 +83,16 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val rootAction = new JAction[Any] {
       override def call(ctx: JContext): CompletionStage[JResult] = {
         // The context may have changed, set it again
-        val oldContext = JContext.current.get()
+        val oldContext = if (JContext.current != null) { JContext.current.get() } else { null }
         try {
-          JContext.current.set(ctx)
+          if (JContext.current != null) {
+            JContext.current.set(ctx)
+          }
           invocation(ctx.request())
         } finally {
-          JContext.current.set(oldContext)
+          if (JContext.current != null) {
+            JContext.current.set(oldContext)
+          }
         }
       }
     }
