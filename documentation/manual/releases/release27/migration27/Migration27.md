@@ -346,9 +346,9 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.6"
 
 This section lists significant updates made to our dependencies.
 
-### `Guava` version updated to 26.0-jre
+### `Guava` version updated to 27.0-jre
 
-Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 26.0-jre. Lots of changes were made in the library, and you can see the full changelog [here](https://github.com/google/guava/releases).
+Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 27.0-jre. Lots of changes were made in the library, and you can see the full changelog [here](https://github.com/google/guava/releases).
 
 ### specs2 updated to 4.2.0
 
