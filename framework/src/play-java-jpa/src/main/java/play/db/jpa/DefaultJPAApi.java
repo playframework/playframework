@@ -33,16 +33,28 @@ public class DefaultJPAApi implements JPAApi {
 
     private final JPAEntityManagerContext entityManagerContext;
 
+    /**
+     * @deprecated Deprecated as of 2.7.0. Use {@link #DefaultJPAApi(JPAConfig)} instead.
+     */
+    @Deprecated
     public DefaultJPAApi(JPAConfig jpaConfig, JPAEntityManagerContext entityManagerContext) {
         this.jpaConfig = jpaConfig;
         this.entityManagerContext = entityManagerContext;
+    }
+
+    public DefaultJPAApi(JPAConfig jpaConfig) {
+        this(jpaConfig, null);
     }
 
     @Singleton
     public static class JPAApiProvider implements Provider<JPAApi> {
         private final JPAApi jpaApi;
 
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #JPAApiProvider(JPAConfig, ApplicationLifecycle, DBApi)} instead.
+         */
         @Inject
+        @Deprecated
         public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised
             jpaApi = new DefaultJPAApi(jpaConfig, context);
@@ -51,6 +63,10 @@ public class DefaultJPAApi implements JPAApi {
                 return CompletableFuture.completedFuture(null);
             });
             jpaApi.start();
+        }
+
+        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi) {
+            this(jpaConfig, null, lifecycle, dbApi);
         }
 
         @Override
@@ -91,6 +107,9 @@ public class DefaultJPAApi implements JPAApi {
      */
     @Deprecated
     public EntityManager em() {
+        if(entityManagerContext == null) {
+            throw new RuntimeException("EntityManager can't be acquired from a thread-local. You should instead use one of the JPAApi methods where the EntityManager is provided automatically.");
+        }
         return entityManagerContext.em();
     }
 
@@ -162,7 +181,9 @@ public class DefaultJPAApi implements JPAApi {
                 throw new RuntimeException("Could not create JPA entity manager for '" + name + "'");
             }
 
-            entityManagerContext.push(entityManager, true);
+            if (entityManagerContext != null) {
+                entityManagerContext.push(entityManager, true);
+            }
 
             if (!readOnly) {
                 tx = entityManager.getTransaction();
@@ -194,7 +215,9 @@ public class DefaultJPAApi implements JPAApi {
             throw t;
         } finally {
             if (entityManager != null) {
-                entityManagerContext.pop(true);
+                if (entityManagerContext != null) {
+                    entityManagerContext.pop(true);
+                }
                 entityManager.close();
             }
         }
