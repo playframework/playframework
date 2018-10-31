@@ -156,11 +156,24 @@ public class RangeResults {
      * @param path the content path
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ofPath(Http.Request, Path, FileMimeTypes)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ofPath(Http.Request, Path)} instead.
      */
     @Deprecated
     public static Result ofPath(Path path) {
-        return ofPath(Http.Context.current().request(), path, Http.Context.current().fileMimeTypes());
+        return ofPath(Http.Context.current().request(), path);
+    }
+
+    /**
+     * Returns the path as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param request the request from which to retrieve the range header.
+     * @param path the content path
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofPath(Http.Request request, Path path) {
+        return ofPath(request, path, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -186,11 +199,25 @@ public class RangeResults {
      * @param fileName filename used at the Content-Disposition header.
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {link {@link #ofPath(Http.Request, Path, String, FileMimeTypes)}} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {link {@link #ofPath(Http.Request, Path, String)} instead.
      */
     @Deprecated
     public static Result ofPath(Path path, String fileName) {
-        return ofPath(Http.Context.current().request(), path, fileName, Http.Context.current().fileMimeTypes());
+        return ofPath(Http.Context.current().request(), path, fileName);
+    }
+
+    /**
+     * Returns the path as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param request the request from which to retrieve the range header.
+     * @param path the content path
+     * @param fileName filename used at the Content-Disposition header.
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofPath(Http.Request request, Path path, String fileName) {
+        return ofPath(request, path, fileName, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -216,11 +243,24 @@ public class RangeResults {
      * @param file the content file
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File, FileMimeTypes)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File)} instead.
      */
     @Deprecated
     public static Result ofFile(File file) {
-        return ofFile(Http.Context.current().request(), file, Http.Context.current().fileMimeTypes());
+        return ofFile(Http.Context.current().request(), file);
+    }
+
+    /**
+     * Returns the file as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param request the request from which to retrieve the range header.
+     * @param file the content file
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofFile(Http.Request request, File file) {
+        return ofFile(request, file, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -246,11 +286,25 @@ public class RangeResults {
      * @param fileName filename used at the Content-Disposition header
      * @return range result if "Range" header is present and regular result if not
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File, String, FileMimeTypes)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File, String)} instead.
      */
     @Deprecated
     public static Result ofFile(File file, String fileName) {
-        return ofFile(Http.Context.current().request(), file, fileName, Http.Context.current().fileMimeTypes());
+        return ofFile(Http.Context.current().request(), file, fileName);
+    }
+
+    /**
+     * Returns the file as a result considering "Range" header. If the header is present and
+     * it is satisfiable, then a Result containing just the requested part will be returned.
+     * If the header is not present or is unsatisfiable, then a regular Result will be returned.
+     *
+     * @param request the request from which to retrieve the range header.
+     * @param file the content file
+     * @param fileName filename used at the Content-Disposition header
+     * @return range result if "Range" header is present and regular result if not
+     */
+    public static Result ofFile(Http.Request request, File file, String fileName) {
+        return ofFile(request, file, fileName, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**

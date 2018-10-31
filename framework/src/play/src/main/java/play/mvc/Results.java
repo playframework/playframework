@@ -174,12 +174,9 @@ public class Results {
      * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
      * @param content the file to send
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #status(int, File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result status(int status, File content) {
-        return status(status, content, true);
+        return status(status, content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -201,12 +198,9 @@ public class Results {
      * @param content the file to send
      * @param inline <code>true</code> to have it sent with inline Content-Disposition.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #status(int, File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result status(int status, File content, boolean inline) {
-        return status(status).sendFile(content, inline);
+        return status(status, content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -230,12 +224,9 @@ public class Results {
      * @param content the file to send
      * @param fileName the name that the client should receive this file as
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #status(int, File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result status(int status, File content, String fileName) {
-        return status(status).sendFile(content, fileName);
+        return status(status, content, fileName, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -376,12 +367,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ok(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result ok(File content) {
-        return status(OK, content);
+        return ok(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -401,12 +389,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ok(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result ok(File content, boolean inline) {
-        return status(OK, content, inline);
+        return ok(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -427,12 +412,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #ok(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result ok(File content, String filename) {
-        return status(OK, content, filename);
+        return ok(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -556,12 +538,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #created(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result created(File content) {
-        return status(CREATED, content);
+        return created(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -581,12 +560,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #created(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result created(File content, boolean inline) {
-        return status(CREATED, content, inline);
+        return created(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -607,12 +583,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #created(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result created(File content, String filename) {
-        return status(CREATED, content, filename);
+        return created(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -736,12 +709,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #badRequest(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result badRequest(File content) {
-        return status(BAD_REQUEST, content);
+        return badRequest(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -761,12 +731,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #badRequest(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result badRequest(File content, boolean inline) {
-        return status(BAD_REQUEST, content, inline);
+        return badRequest(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -787,12 +754,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #badRequest(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result badRequest(File content, String filename) {
-        return status(BAD_REQUEST, content, filename);
+        return badRequest(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -916,12 +880,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #unauthorized(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result unauthorized(File content) {
-        return status(UNAUTHORIZED, content);
+        return unauthorized(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -941,12 +902,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #unauthorized(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result unauthorized(File content, boolean inline) {
-        return status(UNAUTHORIZED, content, inline);
+        return unauthorized(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -967,12 +925,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #unauthorized(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result unauthorized(File content, String filename) {
-        return status(UNAUTHORIZED, content, filename);
+        return unauthorized(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1096,12 +1051,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #paymentRequired(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result paymentRequired(File content) {
-        return status(PAYMENT_REQUIRED, content);
+        return paymentRequired(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1121,12 +1073,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #paymentRequired(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result paymentRequired(File content, boolean inline) {
-        return status(PAYMENT_REQUIRED, content, inline);
+        return paymentRequired(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1147,12 +1096,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #paymentRequired(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result paymentRequired(File content, String filename) {
-        return status(PAYMENT_REQUIRED, content, filename);
+        return paymentRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1276,12 +1222,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #forbidden(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result forbidden(File content) {
-        return status(FORBIDDEN, content);
+        return forbidden(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1301,12 +1244,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #forbidden(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result forbidden(File content, boolean inline) {
-        return status(FORBIDDEN, content, inline);
+        return forbidden(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1327,12 +1267,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #forbidden(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result forbidden(File content, String filename) {
-        return status(FORBIDDEN, content, filename);
+        return forbidden(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1456,12 +1393,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #notFound(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result notFound(File content) {
-        return status(NOT_FOUND, content);
+        return notFound(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1481,12 +1415,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #notFound(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result notFound(File content, boolean inline) {
-        return status(NOT_FOUND, content, inline);
+        return notFound(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1507,12 +1438,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #notFound(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result notFound(File content, String filename) {
-        return status(NOT_FOUND, content, filename);
+        return notFound(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1636,12 +1564,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #notAcceptable(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result notAcceptable(File content) {
-        return status(NOT_ACCEPTABLE, content);
+        return notAcceptable(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1661,12 +1586,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #notAcceptable(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result notAcceptable(File content, boolean inline) {
-        return status(NOT_ACCEPTABLE, content, inline);
+        return notAcceptable(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1687,12 +1609,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #notAcceptable(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result notAcceptable(File content, String filename) {
-        return status(NOT_ACCEPTABLE, content, filename);
+        return notAcceptable(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1816,12 +1735,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #unsupportedMediaType(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result unsupportedMediaType(File content) {
-        return status(UNSUPPORTED_MEDIA_TYPE, content);
+        return unsupportedMediaType(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1841,12 +1757,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #unsupportedMediaType(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result unsupportedMediaType(File content, boolean inline) {
-        return status(UNSUPPORTED_MEDIA_TYPE, content, inline);
+        return unsupportedMediaType(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1867,12 +1780,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #unsupportedMediaType(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result unsupportedMediaType(File content, String filename) {
-        return status(UNSUPPORTED_MEDIA_TYPE, content, filename);
+        return unsupportedMediaType(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -1996,12 +1906,9 @@ public class Results {
      *
      * @param content The file to send.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #internalServerError(File, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result internalServerError(File content) {
-        return status(INTERNAL_SERVER_ERROR, content);
+        return internalServerError(content, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -2021,12 +1928,9 @@ public class Results {
      * @param content The file to send.
      * @param inline Whether the file should be sent inline, or as an attachment.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #internalServerError(File, boolean, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result internalServerError(File content, boolean inline) {
-        return status(INTERNAL_SERVER_ERROR, content, inline);
+        return internalServerError(content, inline, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
@@ -2047,12 +1951,9 @@ public class Results {
      * @param content The file to send.
      * @param filename The name to send the file as.
      * @return the result
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #internalServerError(File, String, FileMimeTypes)} instead.
      */
-    @Deprecated
     public static Result internalServerError(File content, String filename) {
-        return status(INTERNAL_SERVER_ERROR, content, filename);
+        return internalServerError(content, filename, StaticFileMimeTypes.fileMimeTypes());
     }
 
     /**
