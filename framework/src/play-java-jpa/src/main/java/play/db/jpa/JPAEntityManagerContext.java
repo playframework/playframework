@@ -34,10 +34,10 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
      * @return the EntityManager
      */
     public EntityManager em() {
-        Http.Context context = Http.Context.current.get();
         Deque<EntityManager> ems = this.emStack(true);
 
         if (ems.isEmpty()) {
+            Http.Context context = Http.Context.current != null ? Http.Context.current.get() : null;
             if (context != null) {
                 throw new RuntimeException("No EntityManager found in the context. Try to annotate your action method with @play.db.jpa.Transactional");
             } else {
@@ -56,7 +56,7 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
      */
     @SuppressWarnings("unchecked")
     public Deque<EntityManager> emStack(boolean threadLocalFallback) {
-        Http.Context context = Http.Context.current.get();
+        Http.Context context = Http.Context.current != null ? Http.Context.current.get() : null;
         if (context != null) {
             Object emsObject = context.args.get(CURRENT_ENTITY_MANAGER);
             if (emsObject != null) {
