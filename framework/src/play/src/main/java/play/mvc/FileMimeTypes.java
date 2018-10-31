@@ -6,7 +6,6 @@ package play.mvc;
 
 import scala.compat.java8.OptionConverters;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Optional;
 
