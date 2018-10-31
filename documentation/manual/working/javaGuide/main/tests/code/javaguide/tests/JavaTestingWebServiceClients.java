@@ -42,7 +42,7 @@ public class JavaTestingWebServiceClients {
         //#send-resource
         Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
                 .GET("/repositories").routeTo(() ->
-                        ok().sendResource("github/repositories.json", components.fileMimeTypes())
+                        ok().sendResource("github/repositories.json")
                 )
                 .build()
         );

@@ -15,7 +15,6 @@ import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpEntity;
-import play.mvc.FileMimeTypes;
 import play.mvc.ResponseHeader;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -129,7 +128,7 @@ public class JavaStream extends WithApplication {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class), instanceOf(FileMimeTypes.class)), fakeRequest(), mat);
+        Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
         assertThat(contentAsString(result, mat), equalTo("hi"));
         assertThat(result.body().contentLength(), equalTo(Optional.of(2L)));
         file.delete();
@@ -137,48 +136,39 @@ public class JavaStream extends WithApplication {
 
     public static class Controller2 extends MockJavaAction {
 
-        private final FileMimeTypes fileMimeTypes;
-
-        Controller2(JavaHandlerComponents javaHandlerComponents, FileMimeTypes fileMimeTypes) {
+        Controller2(JavaHandlerComponents javaHandlerComponents) {
             super(javaHandlerComponents);
-            this.fileMimeTypes = fileMimeTypes;
         }
 
         //#serve-file
         public Result index() {
-            return ok(new java.io.File("/tmp/fileToServe.pdf"), this.fileMimeTypes);
+            return ok(new java.io.File("/tmp/fileToServe.pdf"));
         }
         //#serve-file
     }
 
     public static class ControllerServeFileWithName extends MockJavaAction {
 
-        private final FileMimeTypes fileMimeTypes;
-
-        ControllerServeFileWithName(JavaHandlerComponents javaHandlerComponents, FileMimeTypes fileMimeTypes) {
+        ControllerServeFileWithName(JavaHandlerComponents javaHandlerComponents) {
             super(javaHandlerComponents);
-            this.fileMimeTypes = fileMimeTypes;
         }
 
         //#serve-file-with-name
         public Result index() {
-            return ok(new java.io.File("/tmp/fileToServe.pdf"), "fileToServe.pdf", this.fileMimeTypes);
+            return ok(new java.io.File("/tmp/fileToServe.pdf"), "fileToServe.pdf");
         }
         //#serve-file-with-name
     }
 
     public static class ControllerServeAttachment extends MockJavaAction {
 
-        private final FileMimeTypes fileMimeTypes;
-
-        ControllerServeAttachment(JavaHandlerComponents javaHandlerComponents, FileMimeTypes fileMimeTypes) {
+        ControllerServeAttachment(JavaHandlerComponents javaHandlerComponents) {
             super(javaHandlerComponents);
-            this.fileMimeTypes = fileMimeTypes;
         }
 
         //#serve-file-attachment
         public Result index() {
-            return ok(new java.io.File("/tmp/fileToServe.pdf"), /*inline = */false, this.fileMimeTypes);
+            return ok(new java.io.File("/tmp/fileToServe.pdf"), /*inline = */false);
         }
         //#serve-file-attachment
     }
