@@ -397,3 +397,9 @@ CoordinatedShutdown.get(actorSystem).run(reason, runFromPhase);
 ## Change in self-signed HTTPS certificate
 
 It is now generated under `target/dev-mode/generated.keystore` instead of directly on the root folder.
+
+## Change in default character set on "text/plain" Content Types
+
+The Text and Tolerant Text body parsers now use "US-ASCII" as the default charset, replacing the previous default of `ISO-8859-1`.
+
+This is because of some newer HTTP standards, specifically [RFC 7231, appendix B](https://tools.ietf.org/html/rfc7231#appendix-B), which states "The default charset of ISO-8859-1 for text media types has been removed; the default is now whatever the media type definition says."  The `text/plain` media type definition is defined by [RFC 6657, section 4](https://tools.ietf.org/html/rfc6657#section-4), which specifies US-ASCII.  The Text and Tolerant Text Body parsers use `text/plain` as the content type, so now default appropriately.
