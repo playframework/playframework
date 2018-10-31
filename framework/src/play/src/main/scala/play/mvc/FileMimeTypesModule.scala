@@ -2,11 +2,9 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.core
+package play.mvc
 
 import play.api.inject._
-import play.mvc.FileMimeTypes
-import play.mvc.StaticFileMimeTypes
 
 import javax.inject._
 
