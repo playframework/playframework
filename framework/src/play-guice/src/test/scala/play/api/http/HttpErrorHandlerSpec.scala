@@ -12,7 +12,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._
-import play.api.inject.BindingKey
+import play.api.inject.{ ApplicationLifecycle, BindingKey, DefaultApplicationLifecycle }
 import play.api.libs.json._
 import play.api.mvc.{ RequestHeader, Result, Results }
 import play.api.routing._
@@ -21,6 +21,7 @@ import play.core.j.{ JavaContextComponents, DefaultJavaContextComponents }
 import play.core.test.{ FakeRequest, Fakes }
 import play.http
 import play.i18n.{ Langs, MessagesApi }
+import play.mvc.{ FileMimeTypes => JFileMimeTypes, FileMimeTypesProvider => JFileMimeTypesProvider }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
@@ -176,6 +177,7 @@ class HttpErrorHandlerSpec extends Specification {
     val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
     Fakes.injectorFromBindings(HttpErrorHandler.bindingsFromConfiguration(env, configuration)
       ++ Seq(
+        BindingKey(classOf[ApplicationLifecycle]).to(new DefaultApplicationLifecycle()),
         BindingKey(classOf[Router]).to(Router.empty),
         BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
         BindingKey(classOf[Configuration]).to(configuration),
@@ -186,6 +188,7 @@ class HttpErrorHandlerSpec extends Specification {
         BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
         BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
         BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
+        BindingKey(classOf[JFileMimeTypes]).toProvider[JFileMimeTypesProvider].eagerly(),
         BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
       )).instanceOf[HttpErrorHandler]
   }
