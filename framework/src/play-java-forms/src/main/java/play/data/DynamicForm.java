@@ -129,11 +129,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     @Deprecated
     public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        return bindFromRequest(ctxLang(), requestData, allowedFields);
+        return bindFromRequestData(ctxLang(), requestData, allowedFields);
     }
 
     @Override
-    public DynamicForm bindFromRequest(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
+    public DynamicForm bindFromRequestData(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
         return bind(lang, data, allowedFields);

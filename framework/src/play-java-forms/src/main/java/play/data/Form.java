@@ -286,11 +286,11 @@ public class Form<T> {
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Lang, Map, String...)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, Map, String...)} instead.
      */
     @Deprecated
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        return bindFromRequest(ctxLang(), requestData, allowedFields);
+        return bindFromRequestData(ctxLang(), requestData, allowedFields);
     }
 
     /**
@@ -303,7 +303,7 @@ public class Form<T> {
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bindFromRequest(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
+    public Form<T> bindFromRequestData(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
         return bind(lang, data, allowedFields);
