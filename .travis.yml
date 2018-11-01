@@ -14,7 +14,7 @@ jobs:
     - stage: validations
       script: framework/bin/validate-code
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: framework/bin/test-docs
+    - script: framework/bin/validate-docs
       name: "Validate docs (links, sample code, etc.)"
     - script: framework/bin/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
@@ -25,6 +25,8 @@ jobs:
       name: "Run tests for Scala 2.12"
     - script: framework/bin/test-scala-213
       name: "Run tests for Scala 2.13"
+    - script: framework/bin/test-docs
+      name: "Run documentation tests"
     - stage: test-sbt
       script: framework/bin/test-sbt-plugins-0_13
       name: "Scripted tests for sbt 0.13"
