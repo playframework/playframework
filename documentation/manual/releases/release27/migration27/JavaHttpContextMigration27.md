@@ -481,3 +481,19 @@ public class FooController extends Controller {
     }
 }
 ```
+
+### Changes in Java Forms related to `Http.Context`
+
+When retrieving the [`Field`](api/java/play/data/Form.Field.html) of a [`Form`](api/java/play/data/Form.html) (e.g. via `myform.field("username")` or just `myform("username")` inside templates) the language of the current `Http.Context` was used to format the value of the field.
+Starting with Play 2.7 however this isn't the case anymore.
+Instead you can now explicitly set the language the form should use when retrieving a field:
+```java
+myForm.setLang(lang);
+```
+To make things simple and to not force you to explicitly set the language for every form Play does set it during binding already:
+```java
+Form<MyForm> form = formFactory().form(MyForm.class).bindFromRequest(request);
+```
+In this example the language of the form will be set to the preferred language of the request.
+
+Be aware that changing the language of the the current `Http.Context` (e.g. via `Http.Context.current().changeLang(...)` or `Http.Context.current().setTransientLang(...)`) does not have an effect on the language used to retrieve the field value of a form anymore - as explained, use `form.setLang(...)` instead.
