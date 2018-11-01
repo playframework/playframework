@@ -27,6 +27,7 @@ import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.i18n.MessagesImpl;
 import play.libs.AnnotationUtils;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
@@ -97,6 +98,7 @@ public class Form<T> {
     private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
+    private final Lang lang;
     final MessagesApi messagesApi;
     final Formatters formatters;
     final ValidatorFactory validatorFactory;
@@ -162,6 +164,25 @@ public class Form<T> {
      * @param config the config component.
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, null);
+    }
+
+    /**
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
+     *
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validatorFactory the validatorFactory component.
+     * @param config the config component.
+     * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
+     */
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -172,6 +193,7 @@ public class Form<T> {
         this.formatters = formatters;
         this.validatorFactory = validatorFactory;
         this.config = config;
+        this.lang = lang;
     }
 
     protected Map<String,String> requestData(Http.Request request) {
@@ -225,13 +247,25 @@ public class Form<T> {
     }
 
     /**
+     * @deprecated Deprecated as of 2.7.0.
+     */
+    @Deprecated
+    protected Lang ctxLang() {
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return ctx != null ? ctx.messages().lang() : null;
+    }
+
+    /**
      * Binds request data to this form - that is, handles form submission.
      *
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Http.Request, String...)} instead.
      */
+    @Deprecated
     public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(play.mvc.Controller.ctx().messages().lang(), requestData(play.mvc.Controller.request()), allowedFields);
     }
 
     /**
@@ -242,7 +276,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
-        return bind(requestData(request), allowedFields);
+        return bind(this.messagesApi.preferred(request).lang(), requestData(request), allowedFields);
     }
 
     /**
@@ -251,11 +285,28 @@ public class Form<T> {
      * @param requestData      the map of data to bind from
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, Map, String...)} instead.
      */
+    @Deprecated
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
+        return bindFromRequestData(ctxLang(), requestData, allowedFields);
+    }
+
+    /**
+     * Binds request data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param requestData      the map of data to bind from
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bindFromRequestData(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
-        return bind(data, allowedFields);
+        return bind(lang, data, allowedFields);
     }
 
     /**
@@ -264,9 +315,26 @@ public class Form<T> {
      * @param data data to submit
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, JsonNode, String...)} instead.
      */
+    @Deprecated
     public Form<T> bind(JsonNode data, String... allowedFields) {
-        return bind(
+        return bind(ctxLang(), data, allowedFields);
+    }
+
+    /**
+     * Binds Json data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bind(Lang lang, JsonNode data, String... allowedFields) {
+        return bind(lang,
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
@@ -382,12 +450,11 @@ public class Form<T> {
         return data;
     }
 
-    private Set<ConstraintViolation<Object>> runValidation(DataBinder dataBinder, Map<String, String> objectData) {
-        return withRequestLocale(() -> {
+    private Set<ConstraintViolation<Object>> runValidation(Lang lang, DataBinder dataBinder, Map<String, String> objectData) {
+        return withRequestLocale(lang, () -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
-            final Http.Context ctx = Http.Context.current.get();
-            // We always pass a payload, however if there is no current http request the request specific lang, messages, args,.. will not be set, the config however always will
-            final ValidationPayload payload = (ctx != null) ? new ValidationPayload(ctx.lang(), ctx.messages(), ctx.args, this.config) : ValidationPayload.empty(this.config);
+            final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, ctx != null ? ctx.args : null, this.config);
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
@@ -445,7 +512,7 @@ public class Form<T> {
         }
     }
 
-    private List<ValidationError> getFieldErrorsAsValidationErrors(BindingResult result) {
+    private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
         return result.getFieldErrors().stream().map(error -> {
             String key = error.getObjectName() + "." + error.getField();
             if (key.startsWith("target.") && rootName == null) {
@@ -454,10 +521,10 @@ public class Form<T> {
 
             if (error.isBindingFailure()) {
                 ImmutableList.Builder<String> builder = ImmutableList.builder();
-                Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
+                final Messages msgs = lang != null ? new MessagesImpl(lang, this.messagesApi) : null;
                 for (String code: error.getCodes()) {
                     code = REPLACE_TYPEMISMATCH.matcher(code).replaceAll(Matcher.quoteReplacement("error.invalid"));
-                    if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
+                    if (msgs == null || msgs.isDefinedAt(code)) {
                         builder.add(code);
                     }
                 }
@@ -488,14 +555,32 @@ public class Form<T> {
      * @param data data to submit
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, Map, String...)} instead.
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
+        return bind(ctxLang(), data, allowedFields);
+    }
+
+    /**
+     * Binds data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    @SuppressWarnings("unchecked")
+    public Form<T> bind(Lang lang, Map<String,String> data, String... allowedFields) {
 
         final DataBinder dataBinder = dataBinder(allowedFields);
         final Map<String, String> objectDataFinal = getObjectData(data);
 
-        final Set<ConstraintViolation<Object>> validationErrors = runValidation(dataBinder, objectDataFinal);
+        final Set<ConstraintViolation<Object>> validationErrors = runValidation(lang, dataBinder, objectDataFinal);
         final BindingResult result = dataBinder.getBindingResult();
 
         validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));
@@ -503,14 +588,14 @@ public class Form<T> {
         boolean hasAnyError = result.hasErrors() || result.getGlobalErrorCount() > 0;
 
         if (hasAnyError) {
-            final List<ValidationError> errors = getFieldErrorsAsValidationErrors(result);
+            final List<ValidationError> errors = getFieldErrorsAsValidationErrors(lang, result);
             final List<ValidationError> globalErrors = globalErrorsAsValidationErrors(result);
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config);
+            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang);
         }
-        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config);
+        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang);
     }
 
     /**
@@ -567,7 +652,8 @@ public class Form<T> {
                 messagesApi,
                 formatters,
                 validatorFactory,
-                config
+                config,
+                lang
         );
     }
 
@@ -670,7 +756,7 @@ public class Form<T> {
      * @return the form errors serialized as Json.
      */
     public JsonNode errorsAsJson() {
-        return errorsAsJson(Http.Context.current() != null ? Http.Context.current().lang() : null);
+        return errorsAsJson(this.lang);
     }
 
     /**
@@ -721,8 +807,21 @@ public class Form<T> {
      * @return the concrete value.
      */
     public T get() {
+        return this.get(this.lang);
+    }
+
+    /**
+     * Gets the concrete value only if the submission was a success.
+     * If the form is invalid because of validation errors this method will throw an exception.
+     * If you want to retrieve the value even when the form is invalid use {@link #value()} instead.
+     *
+     * @param lang if an IllegalStateException gets thrown it's used to translate the form errors within that exception
+     * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
+     * @return the concrete value.
+     */
+    public T get(Lang lang) {
         if (!errors.isEmpty()) {
-            throw new IllegalStateException("Error(s) binding form: " + errorsAsJson());
+            throw new IllegalStateException("Error(s) binding form: " + errorsAsJson(lang));
         }
         return value.get();
     }
@@ -738,7 +837,7 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang);
     }
 
     /**
@@ -785,7 +884,7 @@ public class Form<T> {
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang);
     }
 
     /**
@@ -795,7 +894,18 @@ public class Form<T> {
      * @return the field (even if the field does not exist you get a field)
      */
     public Field apply(String key) {
-        return field(key);
+        return apply(key, this.lang);
+    }
+
+    /**
+     * Retrieves a field.
+     *
+     * @param key field name
+     * @param lang the language to use for the formatter
+     * @return the field (even if the field does not exist you get a field)
+     */
+    public Field apply(String key, Lang lang) {
+        return field(key, lang);
     }
 
     /**
@@ -805,6 +915,17 @@ public class Form<T> {
      * @return the field (even if the field does not exist you get a field)
      */
     public Field field(final String key) {
+        return field(key, this.lang);
+    }
+
+    /**
+     * Retrieves a field.
+     *
+     * @param key field name
+     * @param lang used for formatting
+     * @return the field (even if the field does not exist you get a field)
+     */
+    public Field field(final String key, final Lang lang) {
 
         // Value
         String fieldValue = null;
@@ -823,7 +944,7 @@ public class Form<T> {
                     if (oValue != null) {
                         if(formatters != null) {
                             final String objectKeyFinal = objectKey;
-                            fieldValue = withRequestLocale(() -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                            fieldValue = withRequestLocale(lang, () -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
                         } else {
                             fieldValue = oValue.toString();
                         }
@@ -900,6 +1021,22 @@ public class Form<T> {
         return new Field(this, key, constraints, format, errors(key), fieldValue);
     }
 
+    /**
+     * @return the lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     * and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     */
+    public Optional<Lang> lang() {
+        return Optional.ofNullable(this.lang);
+    }
+
+    /**
+     * A copy of this form with the given lang set which is used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     * and for translations in {@link #errorsAsJson()}.
+     */
+    public Form withLang(Lang lang) {
+        return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang);
+    }
+
     public String toString() {
         return "Form(of=" + backedType + ", data=" + rawData + ", value=" + value +", errors=" + errors + ")";
     }
@@ -911,9 +1048,9 @@ public class Form<T> {
      * @param code The code to execute while the locale is set
      * @return the result of the code block
      */
-    private static <T> T withRequestLocale(Supplier<T> code) {
+    private static <T> T withRequestLocale(Lang lang, Supplier<T> code) {
         try {
-            LocaleContextHolder.setLocale(Http.Context.current().lang().toLocale());
+            LocaleContextHolder.setLocale(lang != null ? lang.toLocale() : null);
         } catch(Exception e) {
             // Just continue (Maybe there is no context or some internal error in LocaleContextHolder). System default locale will be used.
         }
@@ -1065,13 +1202,23 @@ public class Form<T> {
          * @return the subfield corresponding to the key.
          */
         public Field sub(String key) {
+            return sub(key, form.lang);
+        }
+
+        /**
+         * Get a sub-field, with a key relative to the current field.
+         * @param key    the key
+         * @param lang used for formatting
+         * @return the subfield corresponding to the key.
+         */
+        public Field sub(String key, Lang lang) {
             String subKey;
             if (key.startsWith("[")) {
                 subKey = name + key;
             } else {
                 subKey = name + "." + key;
             }
-            return form.field(subKey);
+            return form.field(subKey, lang);
         }
 
         public String toString() {

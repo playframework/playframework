@@ -121,13 +121,6 @@ public class Constraints {
         public Config getConfig() {
             return this.config;
         }
-
-        /**
-         * @return a ValidationPayload object which only contains the given config
-         */
-        public static ValidationPayload empty(final Config config) {
-            return new ValidationPayload(null, null, null, config);
-        }
     }
 
     /**
