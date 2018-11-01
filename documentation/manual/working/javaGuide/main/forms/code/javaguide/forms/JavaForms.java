@@ -58,7 +58,7 @@ public class JavaForms extends WithApplication {
         Form<User> userForm = formFactory.form(User.class);
         //#create
 
-        Lang lang = null;
+        Lang lang = new Lang(Locale.getDefault());
         //#bind
         Map<String,String> anyData = new HashMap<>();
         anyData.put("email", "bob@gmail.com");
