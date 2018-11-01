@@ -22,6 +22,7 @@ import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
 import play.core.routing.GeneratedRouter
 import play.libs.concurrent.HttpExecutionContext
+import play.mvc.{ FileMimeTypes => JFileMimeTypes, FileMimeTypesProvider => JFileMimeTypesProvider }
 
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
@@ -82,7 +83,8 @@ class BuiltinModule extends SimpleModule((env, conf) => {
 
     bind[play.core.j.JavaContextComponents].to[play.core.j.DefaultJavaContextComponents],
     bind[play.core.j.JavaHandlerComponents].to[play.core.j.DefaultJavaHandlerComponents],
-    bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
+    bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider],
+    bind[JFileMimeTypes].toProvider[JFileMimeTypesProvider].eagerly()
   ) ++ dynamicBindings(
       HttpErrorHandler.bindingsFromConfiguration,
       HttpFilters.bindingsFromConfiguration,

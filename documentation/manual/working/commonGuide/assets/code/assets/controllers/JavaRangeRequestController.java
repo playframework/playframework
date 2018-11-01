@@ -11,9 +11,9 @@ import java.io.File;
 public class JavaRangeRequestController extends Controller {
 
     // #range-request
-    public Result video(Long videoId) {
+    public Result video(Http.Request request, Long videoId) {
         File videoFile = getVideoFile(videoId);
-        return RangeResults.ofFile(videoFile);
+        return RangeResults.ofFile(request, videoFile);
     }
     // #range-request
 
