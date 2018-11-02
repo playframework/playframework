@@ -237,6 +237,17 @@ public class MyAction extends Action.Simple {
 
 ### Lang and Messages methods in `Http.Context` deprecated
 
+The following methods have been deprecated:
+
+1. `Http.Context.lang()`
+1. `Http.Context.changeLang(Lang lang)`
+1. `Http.Context.changeLang(String code)`
+1. `Http.Context.clearLang()`
+1. `Http.Context.setTransientLang(Lang lang)`
+1. `Http.Context.setTransientLang(String code)`
+1. `Http.Context.clearTransientLang()`
+1. `Http.Context.messages()`
+
 That means other methods that depend directly on these were also deprecated:
 
 1. `play.mvc.Controller.lang()`
