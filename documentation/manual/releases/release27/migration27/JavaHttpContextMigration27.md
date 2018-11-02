@@ -150,7 +150,11 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### `Http.Response` deprecated
+### `Http.Context.response()` and `Http.Response` class deprecated
+
+That means other methods that depend directly on these were also deprecated:
+
+1. `play.mvc.Controller.response()`
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
 
