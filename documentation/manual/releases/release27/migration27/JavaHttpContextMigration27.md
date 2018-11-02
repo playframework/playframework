@@ -359,7 +359,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.session(String key, String value)`
 1. `play.mvc.Controller.session(String key)`
 
-The new way to retrieve the session of a request is the call the `session()` method of a `Http.Request` instance.
+The new way to retrieve the session of a request is to call the `session()` method of a `Http.Request` instance.
 The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
@@ -431,7 +431,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.flash(String key, String value)`
 1. `play.mvc.Controller.flash(String key)`
 
-The new way to retrieve the flash of a request is the call the `flash()` method of a `Http.Request` instance.
+The new way to retrieve the flash of a request is to call the `flash()` method of a `Http.Request` instance.
 The new way to manipulate the flash is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
