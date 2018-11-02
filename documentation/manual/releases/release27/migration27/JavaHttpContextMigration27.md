@@ -17,6 +17,11 @@ Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
 ### `Http.Context.current()` and `Http.Context.request()` deprecated
 
+That means other methods that depend directly on these two were also deprecated:
+
+1. `play.mvc.Controller.ctx()`
+1. `play.mvc.Controller.request()`
+
 Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made by other places and makes it harder to access the request in other threads.
 
 With Play 2.7 you can now access the current request by simply adding it as a param to your routes and actions.
