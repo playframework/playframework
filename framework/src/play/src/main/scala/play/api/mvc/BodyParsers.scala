@@ -443,6 +443,8 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   val UNLIMITED: Long = Long.MaxValue
 
+  private[play] val DefaultCharset = Charset.forName(config.defaultCharset)
+
   private[play] val ApplicationXmlMatcher = """application/.*\+xml.*""".r
 
   /**
@@ -496,11 +498,11 @@ trait PlayBodyParsers extends BodyParserUtils {
 
     // Run through a common set of encoders to get an idea of the best character encoding.
 
-    // Per RFC-7321, "The default charset of ISO-8859-1 for text media types has been removed; the default is now
+    // Per RFC-7231, "The default charset of ISO-8859-1 for text media types has been removed; the default is now
     // whatever the media type definition says." and
     // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
     // https://tools.ietf.org/html/rfc6657#section-4
-    val charset = request.charset.fold(US_ASCII)(Charset.forName)
+    val charset = request.charset.fold(DefaultCharset)(Charset.forName)
     decode(charset).recoverWith {
       case _: CharacterCodingException => decode(UTF_8)
     }.recoverWith {
@@ -721,7 +723,7 @@ trait PlayBodyParsers extends BodyParserUtils {
           // XML, and therefore nothing about RFC 3023, but rather conforms to RFC 2616, will send ISO-8859-1.
           // Since decoding as ISO-8859-1 works for both clients that conform to RFC 3023, and clients that conform
           // to RFC 2616, we use that.
-          case mt if mt.mediaType == "text" => "iso-8859-1"
+          case mt if mt.mediaType == "text" => config.defaultCharset
           // Otherwise, there should be no default, it will be detected by the XML parser.
         }
       ).foreach { charset =>

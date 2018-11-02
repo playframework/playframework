@@ -3,8 +3,8 @@
  */
 import sbt.ScriptedPlugin._
 import sbt._
-import Keys.{ version, _ }
-import com.typesafe.tools.mima.core._
+import Keys.{version, _}
+import com.typesafe.tools.mima.core.{ProblemFilters, _}
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
@@ -223,9 +223,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_CONTENT_SECURITY_POLICY_NONCE_HEADER_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CONTENT_SECURITY_POLICY_REPORT_ONLY"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CONTENT_SECURITY_POLICY_REPORT_ONLY_="),
-      
+
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.BodyParser$Text"),
-        
+
       ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Results.TODO"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Controller.TODO"),
 
@@ -652,17 +652,17 @@ object BuildSettings {
 
       // Add asJava method to Scala Messages
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava"),
-      
+
       // Change implicit type from Messages to MessagesProvider to fix implicit precedence
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
-      
+
       // remove the depreciated copy method on RequestHeader
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeaderImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.copy*"),
-      
+
       // Add play.mvc.Http#Cookies getCookie method
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie"),
 
@@ -690,7 +690,13 @@ object BuildSettings {
       // Allow to remove request attributes
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.removeAttr"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.removeAttr"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.-")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.-"),
+
+      // Allow override default charset from ISO-8859-1 to value from conf
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.ParserConfiguration$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.ParserConfiguration.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.ParserConfiguration.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.ParserConfiguration.copy")
   ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
