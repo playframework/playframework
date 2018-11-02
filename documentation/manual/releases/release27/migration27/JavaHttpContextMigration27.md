@@ -15,7 +15,7 @@ Instead you can use the `request.attrs()` method now, which provides you the equ
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
 Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
-### `Http.Context.current()` deprecated
+### `Http.Context.current()` and `Http.Context.request()` deprecated
 
 Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made by other places and makes it harder to access the request in other threads.
 
