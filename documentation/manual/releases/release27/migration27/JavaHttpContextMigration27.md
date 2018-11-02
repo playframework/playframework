@@ -285,7 +285,7 @@ Or if you want to have a fallback to the languages of the request you can do tha
 Lang lang = Lang.forCode("es");
 // Get a Message instance based on the spanish locale, however if that isn't available
 // try to choose the best fitting language based on the current request
-Messages messages = this.messagesApi.preferred(request.addAttr(Messages.Attrs.CurrentLang, lang));
+Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
 return ok(myview.render(messages));
 ```
 > **Note**: To not repeat that code again and again inside each action method you could e.g. create the `Messages` instance in an action of the [[action composition chain|JavaActionsComposition]] and save that instance in a request Attribute so you can access it later.

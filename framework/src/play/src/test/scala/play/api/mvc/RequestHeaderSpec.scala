@@ -4,12 +4,12 @@
 
 package play.api.mvc
 
-import java.security.cert.X509Certificate
+import java.util.Locale
 
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
-import play.api.i18n.Lang
+import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
 
@@ -86,6 +86,21 @@ class RequestHeaderSpec extends Specification {
         req.attrs.get(x) must beNone
         req.attrs.get(y) must beNone
       }
+    }
+    "handle transient lang" in {
+      val req1 = dummyRequestHeader()
+      req1.transientLang() must beNone
+      req1.attrs.get(Messages.Attrs.CurrentLang) must beNone
+
+      val req2 = req1.withTransientLang(new Lang(Locale.GERMAN))
+      req1 mustNotEqual req2
+      req2.transientLang() must beSome(new Lang(Locale.GERMAN))
+      req2.attrs.get(Messages.Attrs.CurrentLang) must beSome(new Lang(Locale.GERMAN))
+
+      val req3 = req2.clearTransientLang()
+      req2 mustNotEqual req3
+      req3.transientLang() must beNone
+      req3.attrs.get(Messages.Attrs.CurrentLang) must beNone
     }
 
     "handle host" in {

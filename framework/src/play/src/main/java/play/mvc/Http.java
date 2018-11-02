@@ -296,7 +296,7 @@ public class Http {
          */
         @Deprecated
         public Messages messages() {
-            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentLang, lang) : request();
+            Request request = lang != null ? request().withTransientLang(lang) : request();
             return messagesApi().preferred(request);
         }
 
@@ -964,6 +964,49 @@ public class Http {
         Optional<List<X509Certificate>> clientCertificateChain();
 
         /**
+         * Create a new versions of this object with the given transient language set.
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @param lang The language to use.
+         * @return The new version of this object with the given transient language set.
+         */
+        RequestHeader withTransientLang(Lang lang);
+
+        /**
+         * Create a new versions of this object with the given transient language set.
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @param code The language to use.
+         * @return The new version of this object with the given transient language set.
+         */
+        RequestHeader withTransientLang(String code);
+
+        /**
+         * Create a new versions of this object with the given transient language set.
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @param locale The language to use.
+         * @return The new version of this object with the given transient language set.
+         */
+        RequestHeader withTransientLang(Locale locale);
+
+        /**
+         * Create a new versions of this object with the given transient language removed.
+         *
+         * @return The new version of this object with the transient language removed.
+         */
+        RequestHeader clearTransientLang();
+
+        /**
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @return The current transient language of this request.
+         */
+        default Optional<Lang> transientLang() {
+            return attrs().getOptional(Messages.Attrs.CurrentLang).map(lang -> lang.asJava());
+        }
+
+        /**
          * Return the Scala version of the request header.
          *
          * @return the Scala version for this request header.
@@ -994,6 +1037,18 @@ public class Http {
 
         // Override return type
         Request removeAttr(TypedKey<?> key);
+
+        // Override return type
+        Request withTransientLang(Lang lang);
+
+        // Override return type
+        Request withTransientLang(String code);
+
+        // Override return type
+        Request withTransientLang(Locale locale);
+
+        // Override return type
+        Request clearTransientLang();
 
         /**
          * Return the Scala version of the request

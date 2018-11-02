@@ -10,6 +10,8 @@ import play.api.Application;
 import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
 import play.core.j.JavaContextComponents;
+import play.i18n.Lang;
+import play.i18n.Messages;
 import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
@@ -18,6 +20,7 @@ import play.mvc.Http.RequestBuilder;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -115,6 +118,26 @@ public class RequestBuilderTest {
         assertEquals(Optional.of(6L), req7.attrs().getOptional(NUMBER));
         assertEquals((Long) 6L, req7.attrs().get(NUMBER));
         assertFalse(req7.attrs().containsKey(COLOR));
+    }
+
+    @Test
+    public void testTransientLang() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+        assertFalse(builder.attrs().containsKey(Messages.Attrs.CurrentLang));
+
+        Request req1 = builder.build();
+        assertFalse(req1.transientLang().isPresent());
+        assertFalse(req1.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+
+        Request req2 = req1.withTransientLang(new Lang(Locale.GERMAN));
+        assertNotEquals(req1, req2);
+        assertEquals(new Lang(Locale.GERMAN), req2.transientLang().get());
+        assertEquals(new Lang(Locale.GERMAN), req2.attrs().get(Messages.Attrs.CurrentLang));
+
+        Request req3 = req2.clearTransientLang();
+        assertNotEquals(req2, req3);
+        assertFalse(req3.transientLang().isPresent());
+        assertFalse(req3.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
     }
 
     @Test

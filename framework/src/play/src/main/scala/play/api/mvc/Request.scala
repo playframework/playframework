@@ -4,6 +4,9 @@
 
 package play.api.mvc
 
+import java.util.Locale
+
+import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 
@@ -59,6 +62,14 @@ trait Request[+A] extends RequestHeader {
     withAttrs(attrs.updated(key, value))
   override def removeAttr(key: TypedKey[_]): Request[A] =
     withAttrs(attrs - key)
+  override def withTransientLang(lang: Lang): Request[A] =
+    addAttr(Messages.Attrs.CurrentLang, lang)
+  override def withTransientLang(code: String): Request[A] =
+    withTransientLang(Lang(code))
+  override def withTransientLang(locale: Locale): Request[A] =
+    withTransientLang(Lang(locale))
+  override def clearTransientLang(): Request[A] =
+    removeAttr(Messages.Attrs.CurrentLang)
 }
 
 object Request {
