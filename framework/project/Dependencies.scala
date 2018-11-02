@@ -189,7 +189,7 @@ object Dependencies {
     Defaults.sbtPluginExtra(moduleId, CrossVersion.binarySbtVersion(sbtVersion), CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.7"
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.8"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     (CrossVersion.binarySbtVersion(sbtVersion) match {
@@ -214,7 +214,7 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.3"),
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.4"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
     ) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
       case "1.0" => specs2Deps.map(_ % Test)
