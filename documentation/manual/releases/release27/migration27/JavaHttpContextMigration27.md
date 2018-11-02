@@ -8,7 +8,7 @@ Multiple changes were made to `Http.Context`. The idea is to move more and more 
 
 Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
 Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
-Instead you can use the `contextObj.request().attrs()` method now, which provides you the equivalent request attributes.
+Instead you can use the `request.attrs()` method now, which provides you the equivalent request attributes.
 
 ### CSRF tokens removed from `args`
 
@@ -285,7 +285,7 @@ Or if you want to have a fallback to the languages of the request you can do tha
 Lang lang = Lang.forCode("es");
 // Get a Message instance based on the spanish locale, however if that isn't available
 // try to choose the best fitting language based on the current request
-Messages messages = this.messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+Messages messages = this.messagesApi.preferred(request.addAttr(Messages.Attrs.CurrentLang, lang));
 return ok(myview.render(messages));
 ```
 > **Note**: To not repeat that code again and again inside each action method you could e.g. create the `Messages` instance in an action of the [[action composition chain|JavaActionsComposition]] and save that instance in a request Attribute so you can access it later.
@@ -384,24 +384,25 @@ public class FooController extends Controller {
 #### After
 
 ```java
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
 
 public class FooController extends Controller {
-    public Result info() {
-        String user = request().session().get("current_user");
+    public Result info(Http.Request request) {
+        String user = request.session().get("current_user");
         return Results.ok("Hello " + user);
     }
 
-    public Result login() {
+    public Result login(Http.Request request) {
         return Results.ok("Hello")
-            .addingToSession(request(), "current_user", "user@gmail.com");
+            .addingToSession(request, "current_user", "user@gmail.com");
     }
 
-    public Result logout() {
+    public Result logout(Http.Request request) {
         return Results.ok("Hello")
-            .removingFromSession(request(), "current_user");
+            .removingFromSession(request, "current_user");
     }
 
     public Result clear() {
@@ -455,13 +456,14 @@ public class FooController extends Controller {
 #### After
 
 ```java
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
 
 public class FooController extends Controller {
-    public Result info() {
-        String message = request().flash().get("message");
+    public Result info(Http.Request request) {
+        String message = request.flash().get("message");
         return Results.ok("Message: " + message);
     }
 
