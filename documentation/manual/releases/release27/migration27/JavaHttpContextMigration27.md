@@ -512,6 +512,7 @@ Instead you have to explicitly pass a desired object to your templates now.
 @session()
 @lang()
 @messages()
+@Messages("some_msg_key")
 ```
 
 #### After
@@ -523,6 +524,7 @@ Instead you have to explicitly pass a desired object to your templates now.
 @session
 @lang
 @messages
+@messages("some_msg_key")
 ```
 
 There is no direct replacement for `ctx()` and `response()`.
