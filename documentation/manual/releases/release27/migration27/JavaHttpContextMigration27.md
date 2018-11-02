@@ -235,12 +235,14 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### `Http.Context.changeLang(...)` and `Http.Context.clearLang()` deprecated
+### `lang()`, `changeLang(...)`, `clearLang()`, `setTransientLang(...)`, `clearTransientLang()` and `messages()` of `Http.Context` deprecated
 
-That means other methods that depend directly on these two were also deprecated:
+That means other methods that depend directly on these were also deprecated:
 
-1. `play.mvc.Controller.changeLang`
-1. `play.mvc.Controller.clearLang`
+1. `play.mvc.Controller.lang()`
+1. `play.mvc.Controller.changeLang(Lang lang)`
+1. `play.mvc.Controller.changeLang(String code)`
+1. `play.mvc.Controller.clearLang()`
 
 The new way of changing lang now is to have a instance of [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) injected and call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
