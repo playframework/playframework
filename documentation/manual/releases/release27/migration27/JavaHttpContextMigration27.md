@@ -495,6 +495,38 @@ public class FooController extends Controller {
 }
 ```
 
+### Template helper methods deprecated
+
+Inside templates Play offered you various helper methods which rely on `Http.Context` internally.
+These methods are deprecated starting with Play 2.7.
+Instead you have to explicitly pass a desired object to your templates now.
+
+#### Before
+
+```html
+@()
+@ctx()
+@request()
+@response()
+@flash()
+@session()
+@lang()
+@messages()
+```
+
+#### After
+
+```html
+@(Http.Request request, Http.Flash flash, Http.Session session, Lang lang, Messages messages)
+@request
+@flash
+@session
+@lang
+@messages
+```
+
+There is no direct replacement for `ctx()` and `response()`.
+
 ### Changes in Java Forms related to `Http.Context`
 
 When retrieving the [`Field`](api/java/play/data/Form.Field.html) of a [`Form`](api/java/play/data/Form.html) (e.g. via `myform.field("username")` or just `myform("username")` inside templates) the language of the current `Http.Context` was used to format the value of the field.
