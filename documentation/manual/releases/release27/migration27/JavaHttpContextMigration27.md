@@ -226,7 +226,7 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### `Http.Context.changeLang` and `Http.Context.clearLang` deprecated
+### `Http.Context.changeLang(...)` and `Http.Context.clearLang()` deprecated
 
 That means other methods that depend directly on these two were also deprecated:
 
