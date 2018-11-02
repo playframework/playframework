@@ -8,6 +8,7 @@ import java.util.Optional
 
 import play.mvc.Http
 
+import scala.annotation.implicitNotFound
 import scala.util.control.NonFatal
 
 /** Defines a magic helper for Play templates in a Java context. */
@@ -46,5 +47,14 @@ object PlayMagicForJava extends JavaImplicitConversions {
   implicit def implicitJavaMessages: play.api.i18n.MessagesProvider = {
     ctx.messages().asScala
   }
+
+  @implicitNotFound("No Http.Request implicit parameter found when accessing session. You must add it as a template parameter like @(implicit request: Http.Request).")
+  def session(implicit request: play.mvc.Http.Request): play.mvc.Http.Session = request.session()
+
+  @implicitNotFound("No Http.Request implicit parameter found when accessing flash. You must add it as a template parameter like @(implicit request: Http.Request).")
+  def flash(implicit request: play.mvc.Http.Request): play.mvc.Http.Flash = request.flash()
+
+  @implicitNotFound("No play.api.i18n.MessagesProvider implicit parameter found when accessing lang. You must add it as a template parameter like @(implicit messages: play.i18n.Messages).")
+  def lang(implicit msg: play.api.i18n.MessagesProvider): play.api.i18n.Lang = msg.messages.lang
 
 }
