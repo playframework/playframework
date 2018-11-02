@@ -344,7 +344,7 @@ object Multipart {
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
-                headerString.lines.map { header =>
+                headerString.linesIterator.map { header =>
                   val key :: value = header.trim.split(":").toList
 
                   (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
