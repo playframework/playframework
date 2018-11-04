@@ -529,10 +529,10 @@ Instead you have to explicitly pass a desired object to your templates now.
 #### After
 
 ```html
-@(Http.Request request, Http.Flash flash, Http.Session session, Lang lang, Messages messages)
+@(Http.Request request, Lang lang, Messages messages)
 @request
-@flash
-@session
+@request.flash()
+@request.session()
 @lang
 @messages
 @messages("some_msg_key")
