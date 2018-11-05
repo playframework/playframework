@@ -633,3 +633,40 @@ public class MyRouter {
 ```
 
 An important aspect to note is that, in the new API, `Http.Request` will always be the first parameter for the function blocks.
+
+### Disabling the `Http.Context` and JPA thread local
+
+If you followed the above migration notes and changed all your code so it doesn't make use of API's that rely on `Http.Context` (meaning you don't get compiler warnings anymore) you can disable the `Http.Context` thread local.
+
+Pass following Java system property when starting your Play application:
+
+For developing:
+: ```bash
+sbt -DdisableHttpContextThreadLocal
+```
+
+In production:
+: ```bash
+/path/to/yourapp/bin/yourapp -DdisableHttpContextThreadLocal
+```
+
+To also disable the [`play.db.jpa.JPAEntityManagerContext`](api/java/play/db/jpa/JPAEntityManagerContext.html) thread local:
+
+For developing:
+
+: ```bash
+sbt -DdisableJPAThreadLocal
+```
+
+In production:
+: ```bash
+/path/to/yourapp/bin/yourapp -DdisableJPAThreadLocal
+```
+
+> **Tip:** For easier development sbt lets you list the JVM options you need to run your project on a file named `.jvmopts` in the root of your project:
+> ```
+> $ cat .jvmopts
+> -DdisableHttpContextThreadLocal
+> -DdisableJPAThreadLocal
+> ```
+> (For production however you still need to pass the properties via command line)
