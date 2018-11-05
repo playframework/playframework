@@ -14,6 +14,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
@@ -60,13 +61,9 @@ public class Security {
 
         public CompletionStage<Result> call(final Request req) {
             Authenticator authenticator = configurator.apply(configuration);
-            String username = authenticator.getUsername(req);
-            if (username == null) {
-                Result unauthorized = authenticator.onUnauthorized(req);
-                return CompletableFuture.completedFuture(unauthorized);
-            } else {
-                return delegate.call(req.addAttr(USERNAME, username));
-            }
+            return authenticator.getUsername(req)
+                .map(username -> delegate.call(req.addAttr(USERNAME, username)))
+                .orElseGet(() -> CompletableFuture.completedFuture(authenticator.onUnauthorized(req)));
         }
 
     }
@@ -93,10 +90,10 @@ public class Security {
          * Retrieves the username from the HTTP request; the default is to read from the session cookie.
          *
          * @param req the current request
-         * @return null if the user is not authenticated.
+         * @return the username if the user is authenticated.
          */
-        public String getUsername(Request req) {
-            return req.session().get("username");
+        public Optional<String> getUsername(Request req) {
+            return req.session().getOptional("username");
         }
 
         /**
