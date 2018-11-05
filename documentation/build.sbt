@@ -69,7 +69,12 @@ lazy val main = Project("Play-Documentation", file("."))
       fork in Test := true,
       javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
 
-      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
+      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>")),
+
+      // No need to show eviction warnings for Play documentation.
+      evictionWarningOptions in update := EvictionWarningOptions.default
+        .withWarnTransitiveEvictions(false)
+        .withWarnDirectEvictions(false)
     )
     .dependsOn(
       playDocs,

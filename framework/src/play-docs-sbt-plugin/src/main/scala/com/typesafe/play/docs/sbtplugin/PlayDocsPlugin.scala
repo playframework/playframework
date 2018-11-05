@@ -171,7 +171,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
     parallelExecution in Test := false,
     javacOptions in Test ++= Seq("-g", "-Xlint:deprecation"),
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console", "showtimes"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
   )
 
