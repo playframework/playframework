@@ -104,6 +104,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    @Deprecated
     public CompletionStage<WSResponse> post(InputStream is) {
         return request.post(writables.body(() -> is)).thenApply(responseFunction);
     }
@@ -139,6 +140,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    @Deprecated
     public CompletionStage<WSResponse> put(InputStream is) {
         return request.put(writables.body(() -> is)).thenApply(responseFunction);
     }

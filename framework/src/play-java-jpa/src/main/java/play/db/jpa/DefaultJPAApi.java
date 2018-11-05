@@ -103,7 +103,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @return EntityManager for the specified persistence unit name
      *
-     * @deprecated The EntityManager is supplied as lambda parameter instead when using {@link #withTransaction(Function)}
+     * @deprecated Deprecated as of 2.7.0. The EntityManager is supplied as lambda parameter instead when using {@link #withTransaction(Function)}
      */
     @Deprecated
     public EntityManager em() {
@@ -242,7 +242,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(Function)}
+     * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(Function)} instead.
      */
     @Deprecated
     public <T> T withTransaction(Supplier<T> block) {
@@ -254,7 +254,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(Consumer)}
+     * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(Consumer)} instead.
      */
     @Deprecated
     public void withTransaction(final Runnable block) {
@@ -275,7 +275,7 @@ public class DefaultJPAApi implements JPAApi {
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(String, boolean, Function)}
+     * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(String, boolean, Function)} instead.
      */
     @Deprecated
     public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
