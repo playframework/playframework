@@ -40,7 +40,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
@@ -973,7 +972,9 @@ public class Http {
          * @param lang The language to use.
          * @return The new version of this object with the given transient language set.
          */
-        RequestHeader withTransientLang(Lang lang);
+        default RequestHeader withTransientLang(Lang lang) {
+            return addAttr(Messages.Attrs.CurrentLang, lang);
+        }
 
         /**
          * Create a new versions of this object with the given transient language set.
@@ -982,7 +983,9 @@ public class Http {
          * @param code The language to use.
          * @return The new version of this object with the given transient language set.
          */
-        RequestHeader withTransientLang(String code);
+        default RequestHeader withTransientLang(String code) {
+            return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
+        }
 
         /**
          * Create a new versions of this object with the given transient language set.
@@ -991,14 +994,18 @@ public class Http {
          * @param locale The language to use.
          * @return The new version of this object with the given transient language set.
          */
-        RequestHeader withTransientLang(Locale locale);
+        default RequestHeader withTransientLang(Locale locale) {
+            return addAttr(Messages.Attrs.CurrentLang, new Lang(locale));
+        }
 
         /**
          * Create a new versions of this object with the given transient language removed.
          *
          * @return The new version of this object with the transient language removed.
          */
-        RequestHeader clearTransientLang();
+        default RequestHeader clearTransientLang() {
+            return removeAttr(Messages.Attrs.CurrentLang);
+        }
 
         /**
          * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
@@ -1006,7 +1013,7 @@ public class Http {
          * @return The current transient language of this request.
          */
         default Optional<Lang> transientLang() {
-            return attrs().getOptional(Messages.Attrs.CurrentLang).map(lang -> lang.asJava());
+            return attrs().getOptional(Messages.Attrs.CurrentLang).map(play.api.i18n.Lang::asJava);
         }
 
         /**
@@ -1041,17 +1048,25 @@ public class Http {
         // Override return type
         Request removeAttr(TypedKey<?> key);
 
-        // Override return type
-        Request withTransientLang(Lang lang);
+        // Override return type and provide default implementation
+        default Request withTransientLang(Lang lang) {
+            return addAttr(Messages.Attrs.CurrentLang, lang);
+        }
 
-        // Override return type
-        Request withTransientLang(String code);
+        // Override return type and provide default implementation
+        default Request withTransientLang(String code) {
+            return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
+        }
 
-        // Override return type
-        Request withTransientLang(Locale locale);
+        // Override return type and provide default implementation
+        default Request withTransientLang(Locale locale) {
+            return addAttr(Messages.Attrs.CurrentLang, new Lang(locale));
+        }
 
-        // Override return type
-        Request clearTransientLang();
+        // Override return type and provide default implementation
+        default Request clearTransientLang() {
+            return removeAttr(Messages.Attrs.CurrentLang);
+        }
 
         /**
          * Return the Scala version of the request
@@ -1079,7 +1094,7 @@ public class Http {
         }
 
         /**
-         * Constructor with a requestbody.
+         * Constructor with a {@link RequestBody}.
          * @param request the body of the request
          */
         public RequestImpl(play.api.mvc.Request<RequestBody> request) {
