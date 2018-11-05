@@ -7,7 +7,7 @@
 cd ${DOCUMENTATION}
 
 printMessage "RUNNING DOCUMENTATION VALIDATION"
-runSbtNoisy evaluateSbtFiles
+runSbt evaluateSbtFiles
 runSbt validateDocs
 runSbt headerCheck test:headerCheck
 

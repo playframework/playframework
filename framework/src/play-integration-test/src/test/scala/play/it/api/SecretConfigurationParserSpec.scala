@@ -15,6 +15,8 @@ import scala.util.Try
 
 class SecretConfigurationParserSpec extends PlaySpecification {
 
+  sequential
+
   def parseSecret(mode: Mode)(extraConfig: (String, String)*): (Option[String], Seq[ILoggingEvent]) = {
     Try {
       val app = GuiceApplicationBuilder(environment = Environment.simple(mode = mode))

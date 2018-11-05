@@ -7,5 +7,5 @@
 cd ${DOCUMENTATION}
 
 printMessage "RUNNING DOCUMENTATION TESTS"
-runSbtNoisy test
+runSbt test
 printMessage "ALL DOCUMENTATION TESTS PASSED"

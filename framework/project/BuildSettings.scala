@@ -65,10 +65,17 @@ object BuildSettings {
   def mimaPreviousVersions(version: String): Set[String] =
     mimaPreviousMinorReleaseVersions.toSet ++ mimaPreviousPatchVersions(version)
 
+  def evictionSettings: Seq[Setting[_]] = Seq(
+    // This avoids a lot of dependency resolution warnings to be showed.
+    evictionWarningOptions in update := EvictionWarningOptions.default
+      .withWarnTransitiveEvictions(false)
+      .withWarnDirectEvictions(false)
+  )
+
   /**
    * These settings are used by all projects
    */
-  def playCommonSettings: Seq[Setting[_]] = {
+  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ {
 
     fileHeaderSettings ++ Seq(
       scalariformAutoformat := true,
@@ -98,7 +105,10 @@ object BuildSettings {
       parallelExecution in Test := false,
       testListeners in (Test,test) := Nil,
       javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
-      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
+      testOptions ++= Seq(
+        Tests.Argument(TestFrameworks.Specs2, "showtimes"),
+        Tests.Argument(TestFrameworks.JUnit, "-v")
+      ),
       bintrayPackage := "play-sbt-plugin",
       apiURL := {
         val v = version.value
@@ -223,9 +233,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_CONTENT_SECURITY_POLICY_NONCE_HEADER_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CONTENT_SECURITY_POLICY_REPORT_ONLY"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CONTENT_SECURITY_POLICY_REPORT_ONLY_="),
-      
+
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.BodyParser$Text"),
-        
+
       ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Results.TODO"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Controller.TODO"),
 
@@ -652,17 +662,17 @@ object BuildSettings {
 
       // Add asJava method to Scala Messages
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava"),
-      
+
       // Change implicit type from Messages to MessagesProvider to fix implicit precedence
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
-      
+
       // remove the depreciated copy method on RequestHeader
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeaderImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.copy*"),
-      
+
       // Add play.mvc.Http#Cookies getCookie method
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie"),
 
