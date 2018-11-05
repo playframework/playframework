@@ -10,7 +10,7 @@ import play.api.http.{ FlashConfiguration, HttpConfiguration, SecretConfiguratio
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
-import scala.collection.JavaConverters._
+import scala.annotation.varargs
 
 /**
  * HTTP Flash scope.
@@ -46,6 +46,14 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new flash scope with the added elements.
+   */
+  def ++(kvs: Map[String, String]): Flash = {
+    copy(data ++ kvs)
+  }
+
+  /**
    * Removes a value from the flash scope.
    *
    * For example:
@@ -56,14 +64,14 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    * @param key the key to remove
    * @return the modified flash scope
    */
-  def -(key: String): Flash = copy(data - key)
+  @varargs def -(key: String*): Flash = copy(data -- key)
 
   /**
    * Retrieves the flash value that is associated with the given key.
    */
   def apply(key: String): String = data(key)
 
-  lazy val asJava: Http.Flash = new Http.Flash(data.asJava)
+  lazy val asJava: Http.Flash = new Http.Flash(this)
 }
 
 /**

@@ -10,7 +10,7 @@ import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfigurat
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
-import scala.collection.JavaConverters._
+import scala.annotation.varargs
 
 /**
  * HTTP Session.
@@ -46,6 +46,14 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new session with the added elements.
+   */
+  def ++(kvs: Map[String, String]): Session = {
+    copy(data ++ kvs)
+  }
+
+  /**
    * Removes any value from the session.
    *
    * For example:
@@ -56,14 +64,14 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    * @param key the key to remove
    * @return the modified session
    */
-  def -(key: String): Session = copy(data - key)
+  @varargs def -(key: String*): Session = copy(data -- key)
 
   /**
    * Retrieves the session value which is associated with the given key.
    */
   def apply(key: String): String = data(key)
 
-  lazy val asJava: Http.Session = new Http.Session(data.asJava)
+  lazy val asJava: Http.Session = new Http.Session(this)
 }
 
 /**
