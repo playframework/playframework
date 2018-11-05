@@ -362,7 +362,7 @@ trait MessagesApi {
    * Will select a language from the candidates, based on the languages available, and fallback to the default language
    * if none of the candidates are available.
    */
-  def preferred[L <: Lang](candidates: Seq[L]): Messages
+  def preferred(candidates: Seq[Lang]): Messages
 
   /**
    * Get the preferred messages for the given request
@@ -469,7 +469,7 @@ class DefaultMessagesApi @Inject() (
 
   import java.text._
 
-  override def preferred[L <: Lang](candidates: Seq[L]): Messages = {
+  override def preferred(candidates: Seq[Lang]): Messages = {
     MessagesImpl(langs.preferred(candidates), this)
   }
 

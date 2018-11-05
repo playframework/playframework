@@ -120,7 +120,7 @@ public class MessagesApi {
      */
     public Messages preferred(Collection<Lang> candidates) {
         Seq<Lang> cs = Scala.asScala(candidates);
-        play.api.i18n.Messages msgs = messages.preferred(cs);
+        play.api.i18n.Messages msgs = messages.preferred((Seq)cs);
         return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
