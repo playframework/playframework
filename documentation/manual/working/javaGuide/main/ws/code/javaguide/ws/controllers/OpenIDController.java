@@ -35,7 +35,7 @@ public class OpenIDController extends Controller {
         String openID = requestData.get("openID");
 
         CompletionStage<String> redirectUrlPromise =
-                openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
+                openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request));
 
         return redirectUrlPromise
                 .thenApply(Controller::redirect)
@@ -74,7 +74,7 @@ class OpenIDSamples extends Controller {
 
     static OpenIdClient openIdClient;
 
-    public static void extendedAttributes() {
+    public static void extendedAttributes(Http.Request request) {
 
         String openID = "";
 
@@ -84,7 +84,7 @@ class OpenIDSamples extends Controller {
 
         CompletionStage<String> redirectUrlPromise = openIdClient.redirectURL(
                 openID,
-                routes.OpenIDController.openIDCallback().absoluteURL(request()),
+                routes.OpenIDController.openIDCallback().absoluteURL(request),
                 attributes
         );
         //#ws-openid-extended-attributes

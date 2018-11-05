@@ -55,7 +55,10 @@ public class Http {
 
     /**
      * The global HTTP context.
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static class Context {
 
         public static ThreadLocal<Context> current = new ThreadLocal<>();
@@ -64,7 +67,10 @@ public class Http {
          * Retrieves the current HTTP context, for the current thread.
          *
          * @return the context
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
          */
+        @Deprecated
         public static Context current() {
             Context c = current.get();
             if(c == null) {
@@ -210,7 +216,10 @@ public class Http {
          * Returns the current request.
          *
          * @return the request
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public Request request() {
             return request;
         }
@@ -268,7 +277,10 @@ public class Http {
          * The current lang
          *
          * @return the current lang
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public Lang lang() {
             if (lang != null) {
                 return lang;
@@ -279,9 +291,12 @@ public class Http {
 
         /**
          * @return the messages for the current lang
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public Messages messages() {
-            Request request = lang != null ? request().addAttr(Messages.Attrs.CurrentLang, lang) : request();
+            Request request = lang != null ? request().withTransientLang(lang) : request();
             return messagesApi().preferred(request);
         }
 
@@ -365,7 +380,10 @@ public class Http {
          * @param code the language code to set (e.g. "en-US")
          * @throws IllegalArgumentException If the given language
          * is not supported by the application.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public void setTransientLang(String code) {
             setTransientLang(Lang.forCode(code));
         }
@@ -379,7 +397,10 @@ public class Http {
          * @param lang the language to set
          * @throws IllegalArgumentException If the given language
          * is not supported by the application.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public void setTransientLang(Lang lang) {
             final Langs langs = components.langs();
             if (langs.availables().contains(lang)) {
@@ -394,7 +415,10 @@ public class Http {
          * change the language cookie. This means the language
          * will be cleared for this request (so a default will be
          * used), but will not change for future requests.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public void clearTransientLang() {
             this.lang = null;
         }
@@ -417,7 +441,10 @@ public class Http {
 
         /**
          * Import in templates to get implicit HTTP context.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
          */
+        @Deprecated
         public static class Implicit {
 
             /**
@@ -436,7 +463,10 @@ public class Http {
              * Returns the current request.
              *
              * @return the current request.
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Request request() {
                 return Context.current().request();
             }
@@ -445,7 +475,10 @@ public class Http {
              * Returns the current flash scope.
              *
              * @return the current flash scope.
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Flash flash() {
                 return Context.current().flash();
             }
@@ -454,7 +487,10 @@ public class Http {
              * Returns the current session.
              *
              * @return the current session.
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Session session() {
                 return Context.current().session();
             }
@@ -463,14 +499,20 @@ public class Http {
              * Returns the current lang.
              *
              * @return the current lang.
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Lang lang() {
                 return Context.current().lang();
             }
 
             /**
              * @return the messages for the current lang
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Messages messages() {
                 return Context.current().messages();
             }
@@ -479,7 +521,10 @@ public class Http {
              * Returns the current context.
              *
              * @return the current context.
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
              */
+            @Deprecated
             public static Context ctx() {
                 return Context.current();
             }
@@ -502,7 +547,10 @@ public class Http {
          *
          * @param request The request to create the new header from.
          * @return The new context.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See migration guide.</a>.
          */
+        @Deprecated
         public Context withRequest(Request request) {
             return new Context(id, request.asScala(), request, response, session, flash, args, lang, components);
         }
@@ -511,7 +559,10 @@ public class Http {
     /**
      * A wrapped context.
      * Use this to modify the context in some way.
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static abstract class WrappedContext extends Context {
         private final Context wrapped;
 
@@ -525,18 +576,17 @@ public class Http {
         }
 
         @Override
+        @Deprecated
         public Long id() {
             return wrapped.id();
         }
 
         @Override
+        @Deprecated
         public Request request() {
             return wrapped.request();
         }
 
-        /**
-         * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-         */
         @Override
         @Deprecated
         public Response response() {
@@ -544,18 +594,17 @@ public class Http {
         }
 
         @Override
+        @Deprecated
         public Session session() {
             return wrapped.session();
         }
 
         @Override
+        @Deprecated
         public Flash flash() {
             return wrapped.flash();
         }
 
-        /**
-         * @deprecated Use {@link #request()}.asScala() instead. Since 2.7.0.
-         */
         @Override
         @Deprecated
         public play.api.mvc.RequestHeader _requestHeader() {
@@ -563,41 +612,49 @@ public class Http {
         }
 
         @Override
+        @Deprecated
         public Lang lang() {
             return wrapped.lang();
         }
 
         @Override
+        @Deprecated
         public boolean changeLang(String code) {
             return wrapped.changeLang(code);
         }
 
         @Override
+        @Deprecated
         public boolean changeLang(Lang lang) {
             return wrapped.changeLang(lang);
         }
 
         @Override
+        @Deprecated
         public void clearLang() {
             wrapped.clearLang();
         }
 
         @Override
+        @Deprecated
         public void setTransientLang(String code) {
             wrapped.setTransientLang(code);
         }
 
         @Override
+        @Deprecated
         public void setTransientLang(Lang lang) {
             wrapped.setTransientLang(lang);
         }
 
         @Override
+        @Deprecated
         public void clearTransientLang() {
             wrapped.clearTransientLang();
         }
 
         @Override
+        @Deprecated
         public Messages messages() {
             return wrapped.messages();
         }
@@ -910,6 +967,49 @@ public class Http {
         Optional<List<X509Certificate>> clientCertificateChain();
 
         /**
+         * Create a new versions of this object with the given transient language set.
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @param lang The language to use.
+         * @return The new version of this object with the given transient language set.
+         */
+        RequestHeader withTransientLang(Lang lang);
+
+        /**
+         * Create a new versions of this object with the given transient language set.
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @param code The language to use.
+         * @return The new version of this object with the given transient language set.
+         */
+        RequestHeader withTransientLang(String code);
+
+        /**
+         * Create a new versions of this object with the given transient language set.
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @param locale The language to use.
+         * @return The new version of this object with the given transient language set.
+         */
+        RequestHeader withTransientLang(Locale locale);
+
+        /**
+         * Create a new versions of this object with the given transient language removed.
+         *
+         * @return The new version of this object with the transient language removed.
+         */
+        RequestHeader clearTransientLang();
+
+        /**
+         * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+         *
+         * @return The current transient language of this request.
+         */
+        default Optional<Lang> transientLang() {
+            return attrs().getOptional(Messages.Attrs.CurrentLang).map(lang -> lang.asJava());
+        }
+
+        /**
          * Return the Scala version of the request header.
          *
          * @return the Scala version for this request header.
@@ -940,6 +1040,18 @@ public class Http {
 
         // Override return type
         Request removeAttr(TypedKey<?> key);
+
+        // Override return type
+        Request withTransientLang(Lang lang);
+
+        // Override return type
+        Request withTransientLang(String code);
+
+        // Override return type
+        Request withTransientLang(Locale locale);
+
+        // Override return type
+        Request clearTransientLang();
 
         /**
          * Return the Scala version of the request

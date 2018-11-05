@@ -41,8 +41,8 @@ public class JavaFileUpload extends WithApplication {
 
     static class SyncUpload extends Controller {
         //#syncUpload
-        public Result upload() {
-            Http.MultipartFormData<File> body = request().body().asMultipartFormData();
+        public Result upload(Http.Request request) {
+            Http.MultipartFormData<File> body = request.body().asMultipartFormData();
             Http.MultipartFormData.FilePart<File> picture = body.getFile("picture");
             if (picture != null) {
                 String fileName = picture.getFilename();
@@ -58,8 +58,8 @@ public class JavaFileUpload extends WithApplication {
 
     static class AsyncUpload extends Controller {
         //#asyncUpload
-        public Result upload() {
-            File file = request().body().asRaw().asFile();
+        public Result upload(Http.Request request) {
+            File file = request.body().asRaw().asFile();
             return ok("File uploaded");
         }
         //#asyncUpload
@@ -118,8 +118,8 @@ public class JavaFileUpload extends WithApplication {
         Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source);
         assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
-                    public Result uploadCustomMultiPart() throws Exception {
-                        final Http.MultipartFormData<File> formData = request().body().asMultipartFormData();
+                    public Result uploadCustomMultiPart(Http.Request request) throws Exception {
+                        final Http.MultipartFormData<File> formData = request.body().asMultipartFormData();
                         final Http.MultipartFormData.FilePart<File> filePart = formData.getFile("name");
                         final File file = filePart.getFile();
                         final long size = Files.size(file.toPath());

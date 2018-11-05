@@ -8,14 +8,19 @@ Multiple changes were made to `Http.Context`. The idea is to move more and more 
 
 Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
 Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
-Instead you can use the `contextObj.request().attrs()` method now, which provides you the equivalent request attributes.
+Instead you can use the `request.attrs()` method now, which provides you the equivalent request attributes.
 
 ### CSRF tokens removed from `args`
 
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
 Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
-### `Http.Context.current()` deprecated
+### `Http.Context.current()` and `Http.Context.request()` deprecated
+
+That means other methods that depend directly on these two were also deprecated:
+
+1. `play.mvc.Controller.ctx()`
+1. `play.mvc.Controller.request()`
 
 Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made by other places and makes it harder to access the request in other threads.
 
@@ -145,7 +150,11 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### `Http.Response` deprecated
+### `Http.Context.response()` and `Http.Response` class deprecated
+
+That means other methods that depend directly on these were also deprecated:
+
+1. `play.mvc.Controller.response()`
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
 
@@ -226,12 +235,25 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### `Http.Context.changeLang` and `Http.Context.clearLang` deprecated
+### Lang and Messages methods in `Http.Context` deprecated
 
-That means other methods that depend directly on these two were also deprecated:
+The following methods have been deprecated:
 
-1. `play.mvc.Controller.changeLang`
-1. `play.mvc.Controller.clearLang`
+1. `Http.Context.lang()`
+1. `Http.Context.changeLang(Lang lang)`
+1. `Http.Context.changeLang(String code)`
+1. `Http.Context.clearLang()`
+1. `Http.Context.setTransientLang(Lang lang)`
+1. `Http.Context.setTransientLang(String code)`
+1. `Http.Context.clearTransientLang()`
+1. `Http.Context.messages()`
+
+That means other methods that depend directly on these were also deprecated:
+
+1. `play.mvc.Controller.lang()`
+1. `play.mvc.Controller.changeLang(Lang lang)`
+1. `play.mvc.Controller.changeLang(String code)`
+1. `play.mvc.Controller.clearLang()`
 
 The new way of changing lang now is to have a instance of [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) injected and call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
@@ -285,7 +307,7 @@ Or if you want to have a fallback to the languages of the request you can do tha
 Lang lang = Lang.forCode("es");
 // Get a Message instance based on the spanish locale, however if that isn't available
 // try to choose the best fitting language based on the current request
-Messages messages = this.messagesApi.preferred(request().addAttr(Messages.Attrs.CurrentLang, lang));
+Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
 return ok(myview.render(messages));
 ```
 > **Note**: To not repeat that code again and again inside each action method you could e.g. create the `Messages` instance in an action of the [[action composition chain|JavaActionsComposition]] and save that instance in a request Attribute so you can access it later.
@@ -348,7 +370,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.session(String key, String value)`
 1. `play.mvc.Controller.session(String key)`
 
-The new way to retrieve the session of a request is the call the `session()` method of a `Http.Request` instance.
+The new way to retrieve the session of a request is to call the `session()` method of a `Http.Request` instance.
 The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
@@ -384,24 +406,25 @@ public class FooController extends Controller {
 #### After
 
 ```java
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
 
 public class FooController extends Controller {
-    public Result info() {
-        String user = request().session().get("current_user");
+    public Result info(Http.Request request) {
+        String user = request.session().get("current_user");
         return Results.ok("Hello " + user);
     }
 
-    public Result login() {
+    public Result login(Http.Request request) {
         return Results.ok("Hello")
-            .addingToSession(request(), "current_user", "user@gmail.com");
+            .addingToSession(request, "current_user", "user@gmail.com");
     }
 
-    public Result logout() {
+    public Result logout(Http.Request request) {
         return Results.ok("Hello")
-            .removingFromSession(request(), "current_user");
+            .removingFromSession(request, "current_user");
     }
 
     public Result clear() {
@@ -419,7 +442,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.flash(String key, String value)`
 1. `play.mvc.Controller.flash(String key)`
 
-The new way to retrieve the flash of a request is the call the `flash()` method of a `Http.Request` instance.
+The new way to retrieve the flash of a request is to call the `flash()` method of a `Http.Request` instance.
 The new way to manipulate the flash is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
@@ -455,13 +478,14 @@ public class FooController extends Controller {
 #### After
 
 ```java
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
 
 public class FooController extends Controller {
-    public Result info() {
-        String message = request().flash().get("message");
+    public Result info(Http.Request request) {
+        String message = request.flash().get("message");
         return Results.ok("Message: " + message);
     }
 
@@ -481,6 +505,40 @@ public class FooController extends Controller {
     }
 }
 ```
+
+### Template helper methods deprecated
+
+Inside templates Play offered you various helper methods which rely on `Http.Context` internally.
+These methods are deprecated starting with Play 2.7.
+Instead you have to explicitly pass a desired object to your templates now.
+
+#### Before
+
+```html
+@()
+@ctx()
+@request()
+@response()
+@flash()
+@session()
+@lang()
+@messages()
+@Messages("some_msg_key")
+```
+
+#### After
+
+```html
+@(Http.Request request, Lang lang, Messages messages)
+@request
+@request.flash()
+@request.session()
+@lang
+@messages
+@messages("some_msg_key")
+```
+
+There is no direct replacement for `ctx()` and `response()`.
 
 ### Changes in Java Forms related to `Http.Context`
 

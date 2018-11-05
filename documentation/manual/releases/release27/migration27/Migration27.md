@@ -295,12 +295,11 @@ Please see the documentation in [[CSPFilter]] for more information.
 
 ## play.mvc.Results.TODO moved to play.mvc.Controller.TODO
 
-All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO()` method in `play.mvc.Controller` instead:
+All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO(Http.Request request)` method in `play.mvc.Controller` instead:
 
 ```java
 public abstract class Controller extends Results implements Status, HeaderNames {
-    public static Result TODO() {
-        play.mvc.Http.Request request = Http.Context.current().request();
+    public static Result TODO(play.mvc.Http.Request request) {
         return status(NOT_IMPLEMENTED, views.html.defaultpages.todo.render(request.asScala()));
     }
 }

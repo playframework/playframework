@@ -7,6 +7,7 @@ package javaguide.async;
 import akka.actor.*;
 import akka.stream.Materializer;
 import play.libs.streams.ActorFlow;
+import play.mvc.Http;
 import play.mvc.WebSocket;
 import play.libs.F;
 
@@ -62,9 +63,9 @@ public class JavaWebSockets {
         private Materializer materializer;
 
         //#actor-reject
-        public WebSocket socket() {
+        public WebSocket socket(Http.Request req) {
             return WebSocket.Text.acceptOrResult(request -> {
-                if (request().session().get("user") != null) {
+                if (req.session().get("user") != null) {
                     return CompletableFuture.completedFuture(
                             F.Either.Right(ActorFlow.actorRef(MyWebSocketActor::props,
                                     actorSystem, materializer)));

@@ -7,7 +7,7 @@ package play.core.j
 import java.net.{ InetAddress, URI, URLDecoder }
 import java.security.cert.X509Certificate
 import java.util
-import java.util.Optional
+import java.util.{ Locale, Optional }
 import java.util.concurrent.CompletionStage
 
 import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration, MediaRange }
@@ -332,6 +332,14 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def charset(): Optional[String] = OptionConverters.toJava(header.charset)
 
+  override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
+
+  override def withTransientLang(code: String): JRequestHeader = withTransientLang(play.i18n.Lang.forCode(code))
+
+  override def withTransientLang(locale: Locale): JRequestHeader = withTransientLang(new play.i18n.Lang(locale))
+
+  override def clearTransientLang(): JRequestHeader = removeAttr(i18n.Messages.Attrs.CurrentLang)
+
   override def toString: String = header.toString
 
   override lazy val getHeaders: Http.Headers = header.headers.asJava
@@ -352,4 +360,13 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def body: RequestBody = request.body
   override def hasBody: Boolean = request.hasBody
   override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
+
+  override def withTransientLang(lang: play.i18n.Lang): JRequest =
+    addAttr(i18n.Messages.Attrs.CurrentLang, lang)
+  override def withTransientLang(code: String): JRequest =
+    withTransientLang(play.i18n.Lang.forCode(code))
+  override def withTransientLang(locale: Locale): JRequest =
+    withTransientLang(new play.i18n.Lang(locale))
+  override def clearTransientLang(): JRequest =
+    removeAttr(i18n.Messages.Attrs.CurrentLang)
 }
