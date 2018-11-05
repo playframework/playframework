@@ -6,7 +6,8 @@ package play.db;
 
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
-import play.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;
@@ -20,6 +21,8 @@ import java.util.Set;
  * Injection module with default DB components.
  */
 public final class DBModule extends Module {
+
+    private static final Logger logger = LoggerFactory.getLogger(DBModule.class);
 
     @Override
     public List<Binding<?>> bindings(final Environment environment, final Config config) {
@@ -41,7 +44,7 @@ public final class DBModule extends Module {
                 list.add(bindClass(Database.class).to(bindClass(Database.class).qualifiedWith(named(defaultDb))));
             }
         } catch (com.typesafe.config.ConfigException.Missing ex) {
-            Logger.warn("Configuration not found for database: {}", ex.getMessage());
+            logger.warn("Configuration not found for database: {}", ex.getMessage());
         }
 
         return list.build();
