@@ -121,23 +121,57 @@ public class RequestBuilderTest {
     }
 
     @Test
-    public void testTransientLang() {
+    public void testNewRequestsShouldNotHaveATransientLang() {
         RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
-        assertFalse(builder.attrs().containsKey(Messages.Attrs.CurrentLang));
 
-        Request req1 = builder.build();
-        assertFalse(req1.transientLang().isPresent());
-        assertFalse(req1.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+        Request request = builder.build();
+        assertFalse(request.transientLang().isPresent());
+        assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+    }
 
-        Request req2 = req1.withTransientLang(new Lang(Locale.GERMAN));
-        assertNotEquals(req1, req2);
-        assertEquals(new Lang(Locale.GERMAN), req2.transientLang().get());
-        assertEquals(new Lang(Locale.GERMAN), req2.attrs().get(Messages.Attrs.CurrentLang));
+    @Test
+    public void testAddATransientLangToRequest() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
-        Request req3 = req2.clearTransientLang();
-        assertNotEquals(req2, req3);
-        assertFalse(req3.transientLang().isPresent());
-        assertFalse(req3.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+        Lang lang = new Lang(Locale.GERMAN);
+        Request request = builder.build().withTransientLang(lang);
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(lang, request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByCodeToRequest() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        String lang = "de";
+        Request request = builder.build().withTransientLang(lang);
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(Lang.forCode(lang), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByLocaleToRequest() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Locale locale = Locale.GERMAN;
+        Request request = builder.build().withTransientLang(locale);
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(new Lang(locale), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testClearRequestTransientLang() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Lang lang = new Lang(Locale.GERMAN);
+        Request request = builder.build().withTransientLang(lang);
+        assertTrue(request.transientLang().isPresent());
+
+        // Language attr should be removed
+        assertFalse(request.clearTransientLang().transientLang().isPresent());
     }
 
     @Test

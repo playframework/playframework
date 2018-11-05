@@ -2,18 +2,11 @@
 
 # Java `Http.Context` changes
 
-Multiple changes were made to `Http.Context`. The idea is to move more and more away from `Http.Context` which uses a thread local. The methods on Result are easier to test and harder to misuse.
+`play.mvc.Http.Context` is a crucial part of Java HTTP & MVC APIs, but it is not a good abstraction of how these APIs should work. It either has some concepts that could be better modeled or implementation details that are complex to test and to reason about in a multi-threading framework like Play. For example, `Http.Context` uses a thread local to capture and access the current request, but it gives the impression that the current request can be accessed from any place, which is not currently true if you are using Actors or a custom thread pool.
 
-### `Http.Context` Request tags removed from `args` 
+Regarding the API modeling, there are some duplicated concepts (like `play.mvc.Result` vs `play.mvc.Http.Response`) and some methods look out of the place (for example `play.mvc.Http.Context.id` instead of using `play.mvc.Http.RequestHeader.id`). Given that, multiple changes were made to `Http.Context` and the idea is to move away from it. We are then providing new APIs that are simpler to test, to reason about and to maintain in the future.
 
-Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
-Therefore the `args` map of a `Http.Context` instance no longer contains these removed request tags as well.
-Instead you can use the `request.attrs()` method now, which provides you the equivalent request attributes.
-
-### CSRF tokens removed from `args`
-
-The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of a `Http.Context` instance. These entries have been removed.
-Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
+Since `play.mvc.Http.Context` is a central part of the existing APIs, deprecating it had an impact on multiple places that were depending on it, take for example `play.mvc.Controller`. This page documents these changes and how to migrate, but you can see the deprecated Javadocs for each methods too.
 
 ### `Http.Context.current()` and `Http.Context.request()` deprecated
 
@@ -22,11 +15,11 @@ That means other methods that depend directly on these two were also deprecated:
 1. `play.mvc.Controller.ctx()`
 1. `play.mvc.Controller.request()`
 
-Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made by other places and makes it harder to access the request in other threads.
+Before Play 2.7, when using Play with Java, the only way to access the `Http.Request` was `Http.Context.current()` which was used internally by `Controller.request()` method. The problem with `Http.Context.current()` is that it is implemented using a thread local, which is harder to test, to keep in sync with changes made at other places and makes it harder to access the request in other threads.
 
-With Play 2.7 you can now access the current request by simply adding it as a param to your routes and actions.
+With Play 2.7 you can now access the current request by just adding it as a param to your routes and actions.
 
-For example the routes files contains:
+For example, the routes files contain:
 
 ```
 GET     /       controllers.HomeController.index(request: Request)
@@ -52,7 +45,7 @@ Play will automatically detect a route param of type `Request` (which is an impo
 >
 >     GET    /        controllers.HomeController.index(myRequest: com.mycompany.Request)
 
-If you did use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now.
+If you use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now.
 Look at this example which checks if the current request's remote address is on a blacklist:
 
 #### Before
@@ -196,7 +189,7 @@ public class FooController extends Controller {
 }
 ```
 
-If you have action composition that depends on `Http.Context.response`, you can also rewrite it like. For example, the code below:
+If you have action composition that depends on `Http.Context.response`, you can also rewrite it like the code below:
 
 ```java
 import play.mvc.Action;
@@ -255,7 +248,7 @@ That means other methods that depend directly on these were also deprecated:
 1. `play.mvc.Controller.changeLang(String code)`
 1. `play.mvc.Controller.clearLang()`
 
-The new way of changing lang now is to have a instance of [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) injected and call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
+The new way of changing lang now is to have an instance of [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) injected and call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
 
@@ -296,7 +289,7 @@ public class FooController extends Controller {
 }
 ```
 
-If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example in an action method you have to create a `Messages` instance like:
+If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example, in an action method, you have to create a `Messages` instance like:
 
 ```java
 Messages messages = this.messagesApi.preferred(Lang.forCode("es"));
@@ -370,7 +363,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.session(String key, String value)`
 1. `play.mvc.Controller.session(String key)`
 
-The new way to retrieve the session of a request is to call the `session()` method of a `Http.Request` instance.
+The new way to retrieve the session of a request is to call the `session()` method of an `Http.Request` instance.
 The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
@@ -508,9 +501,9 @@ public class FooController extends Controller {
 
 ### Template helper methods deprecated
 
-Inside templates Play offered you various helper methods which rely on `Http.Context` internally.
+Inside templates, Play offered you various helper methods which rely on `Http.Context` internally.
 These methods are deprecated starting with Play 2.7.
-Instead you have to explicitly pass a desired object to your templates now.
+Instead, you have to explicitly pass the desired object to your templates now.
 
 #### Before
 
@@ -550,12 +543,23 @@ Instead you can now explicitly set the language the form should use when retriev
 Form<User> formWithNewLang = currentForm.withLang(lang);
 ```
 
-To make things simple and to not force you to explicitly set the language for every form Play does set it during binding already:
+To make things simple and to not force you to set the language for every form explicitly, Play sets it during binding already:
 
 ```java
 Form<User> form = formFactory().form(User.class).bindFromRequest(request);
 ```
 
-In this example the language of the form will be set to the preferred language of the request.
+In this example, the language of the form will be set to the preferred language of the request.
 
 Be aware that changing the language of the the current `Http.Context` (e.g. via `Http.Context.current().changeLang(...)` or `Http.Context.current().setTransientLang(...)`) does not have an effect on the language used to retrieve the field value of a form anymore - as explained, use `form.withLang(...)` instead.
+
+### `Http.Context` Request tags removed from `args`
+
+Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
+Therefore the `args` map of an `Http.Context` instance no longer contains these removed request tags as well.
+Instead you can use the `request.attrs()` method now, which provides you the same request attributes.
+
+### CSRF tokens removed from `args`
+
+The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of an `Http.Context` instance. These entries have been removed.
+Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
