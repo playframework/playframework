@@ -5,11 +5,8 @@
 package play.api.i18n
 
 import java.net.URL
-import java.util.Collections
-import java.util.function.Function
-import java.util.stream.Collectors
-import javax.inject.{ Inject, Provider, Singleton }
 
+import javax.inject.{ Inject, Provider, Singleton }
 import play.api._
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedKey
@@ -20,7 +17,6 @@ import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
 
 import scala.annotation.implicitNotFound
-import scala.collection.mutable
 import scala.collection.breakOut
 import scala.io.Codec
 import scala.language._
@@ -366,7 +362,7 @@ trait MessagesApi {
    * Will select a language from the candidates, based on the languages available, and fallback to the default language
    * if none of the candidates are available.
    */
-  def preferred(candidates: Seq[Lang]): Messages
+  def preferred[L <: Lang](candidates: Seq[L]): Messages
 
   /**
    * Get the preferred messages for the given request
@@ -473,7 +469,7 @@ class DefaultMessagesApi @Inject() (
 
   import java.text._
 
-  override def preferred(candidates: Seq[Lang]): Messages = {
+  override def preferred[L <: Lang](candidates: Seq[L]): Messages = {
     MessagesImpl(langs.preferred(candidates), this)
   }
 

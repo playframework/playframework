@@ -186,6 +186,7 @@ public class Scala {
      * @return the converted Seq.
      * @param <T> the element type.
      */
+    @SafeVarargs
     public static <T> scala.collection.Seq<T> varargs(T... array) {
         return toSeq(java.util.Arrays.asList(array));
     }
