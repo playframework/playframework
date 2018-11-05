@@ -7,6 +7,8 @@ package play;
 import org.slf4j.Marker;
 import play.api.DefaultMarkerContext;
 
+import java.util.Arrays;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -541,6 +543,18 @@ public class Logger {
          */
         public void trace(String message, Object... args) {
             logger.underlyingLogger().trace(message, args);
+        }
+
+        /**
+         * Log a message with the TRACE level.
+         *
+         * @param message message to log
+         * @param args Suppliers that contain arguments to apply to the message String
+         */
+        public void trace(String message, Supplier<?>... args) {
+            if (isTraceEnabled()) {
+                trace(message, suppliersToObj(args));
+            }
         }
 
         /**
