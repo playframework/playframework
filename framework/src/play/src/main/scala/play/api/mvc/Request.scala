@@ -9,6 +9,7 @@ import java.util.Locale
 import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.mvc.Http
 
 import scala.annotation.{ implicitNotFound, tailrec }
 
@@ -70,6 +71,14 @@ trait Request[+A] extends RequestHeader {
     withTransientLang(Lang(locale))
   override def clearTransientLang(): Request[A] =
     removeAttr(Messages.Attrs.CurrentLang)
+
+  override def asJava: Http.Request = this match {
+    case req: Request[Http.RequestBody] =>
+      // This will preserve the parsed body since it is already using the Java body wrapper
+      new Http.RequestImpl(req)
+    case _ =>
+      new Http.RequestImpl(this)
+  }
 }
 
 object Request {
