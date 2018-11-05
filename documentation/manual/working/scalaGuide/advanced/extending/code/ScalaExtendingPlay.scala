@@ -14,7 +14,7 @@ import play.mvc.Http.RequestHeader
 
 class MyMessagesApi extends MessagesApi {
   override def messages: Map[String, Map[String, String]] = ???
-  override def preferred(candidates: Seq[Lang]): Messages = ???
+  override def preferred[L <: Lang](candidates: Seq[L]): Messages = ???
   override def preferred(request: mvc.RequestHeader): Messages = ???
   override def preferred(request: RequestHeader): Messages = ???
   override def langCookieHttpOnly: Boolean = ???
