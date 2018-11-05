@@ -69,10 +69,7 @@ public class Twitter extends Controller {
     }
 
     private Optional<RequestToken> getSessionTokenPair(Http.Request request) {
-        if (request.session().containsKey("token")) {
-            return Optional.ofNullable(new RequestToken(request.session().get("token"), request.session().get("secret")));
-        }
-        return Optional.empty();
+        return request.session().getOptional("token").map(token -> new RequestToken(token, request.session().getOptional("secret").get()));
     }
 
 }

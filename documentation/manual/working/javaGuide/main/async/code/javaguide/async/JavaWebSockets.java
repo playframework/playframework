@@ -65,7 +65,7 @@ public class JavaWebSockets {
         //#actor-reject
         public WebSocket socket(Http.Request req) {
             return WebSocket.Text.acceptOrResult(request -> {
-                if (req.session().get("user") != null) {
+                if (req.session().getOptional("user").isPresent()) {
                     return CompletableFuture.completedFuture(
                             F.Either.Right(ActorFlow.actorRef(MyWebSocketActor::props,
                                     actorSystem, materializer)));
