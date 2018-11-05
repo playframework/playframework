@@ -29,6 +29,7 @@ import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.i18n.MessagesImpl;
 import play.libs.AnnotationUtils;
+import play.libs.typedmap.TypedMap;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
 
@@ -256,6 +257,15 @@ public class Form<T> {
     }
 
     /**
+     * @deprecated Deprecated as of 2.7.0.
+     */
+    @Deprecated
+    protected TypedMap ctxRequestAttrs() {
+        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
+        return ctx != null ? ctx.request().attrs() : TypedMap.empty();
+    }
+
+    /**
      * Binds request data to this form - that is, handles form submission.
      *
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
@@ -265,7 +275,7 @@ public class Form<T> {
      */
     @Deprecated
     public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(play.mvc.Controller.ctx().messages().lang(), requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(play.mvc.Controller.ctx().messages().lang(), play.mvc.Controller.request().attrs(), requestData(play.mvc.Controller.request()), allowedFields);
     }
 
     /**
@@ -276,7 +286,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
-        return bind(this.messagesApi.preferred(request).lang(), requestData(request), allowedFields);
+        return bind(this.messagesApi.preferred(request).lang(), request.attrs(), requestData(request), allowedFields);
     }
 
     /**
@@ -286,11 +296,11 @@ public class Form<T> {
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, Map, String...)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, TypedMap, Map, String...)} instead.
      */
     @Deprecated
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        return bindFromRequestData(ctxLang(), requestData, allowedFields);
+        return bindFromRequestData(ctxLang(), ctxRequestAttrs(), requestData, allowedFields);
     }
 
     /**
@@ -299,14 +309,15 @@ public class Form<T> {
      * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
      *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
      *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param attrs will be passed to validators via {@link ValidationPayload}
      * @param requestData      the map of data to bind from
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bindFromRequestData(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
+    public Form<T> bindFromRequestData(Lang lang, TypedMap attrs, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
-        return bind(lang, data, allowedFields);
+        return bind(lang, attrs, data, allowedFields);
     }
 
     /**
@@ -316,11 +327,11 @@ public class Form<T> {
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, JsonNode, String...)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, JsonNode, String...)} instead.
      */
     @Deprecated
     public Form<T> bind(JsonNode data, String... allowedFields) {
-        return bind(ctxLang(), data, allowedFields);
+        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     /**
@@ -329,12 +340,13 @@ public class Form<T> {
      * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
      *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
      *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param attrs will be passed to validators via {@link ValidationPayload}
      * @param data data to submit
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bind(Lang lang, JsonNode data, String... allowedFields) {
-        return bind(lang,
+    public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+        return bind(lang, attrs,
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
@@ -450,11 +462,11 @@ public class Form<T> {
         return data;
     }
 
-    private Set<ConstraintViolation<Object>> runValidation(Lang lang, DataBinder dataBinder, Map<String, String> objectData) {
+    private Set<ConstraintViolation<Object>> runValidation(Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, String> objectData) {
         return withRequestLocale(lang, () -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
             final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, ctx != null ? ctx.args : null, this.config);
+            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, ctx != null ? ctx.args : null, attrs, this.config);
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
@@ -556,12 +568,12 @@ public class Form<T> {
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, Map, String...)} instead.
+     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, Map, String...)} instead.
      */
     @SuppressWarnings("unchecked")
     @Deprecated
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
-        return bind(ctxLang(), data, allowedFields);
+        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     /**
@@ -570,17 +582,18 @@ public class Form<T> {
      * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
      *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
      *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param attrs will be passed to validators via {@link ValidationPayload}
      * @param data data to submit
      * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
      * @return a copy of this form filled with the new data
      */
     @SuppressWarnings("unchecked")
-    public Form<T> bind(Lang lang, Map<String,String> data, String... allowedFields) {
+    public Form<T> bind(Lang lang, TypedMap attrs, Map<String,String> data, String... allowedFields) {
 
         final DataBinder dataBinder = dataBinder(allowedFields);
         final Map<String, String> objectDataFinal = getObjectData(data);
 
-        final Set<ConstraintViolation<Object>> validationErrors = runValidation(lang, dataBinder, objectDataFinal);
+        final Set<ConstraintViolation<Object>> validationErrors = runValidation(lang, attrs, dataBinder, objectDataFinal);
         final BindingResult result = dataBinder.getBindingResult();
 
         validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));

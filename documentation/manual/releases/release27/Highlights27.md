@@ -71,6 +71,7 @@ import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.ValidationPayload;
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.libs.typedmap.TypedMap;
 
 @ValidateWithPayload
 public class SomeForm implements ValidatableWithPayload<String> {
@@ -80,6 +81,7 @@ public class SomeForm implements ValidatableWithPayload<String> {
         Lang lang = payload.getLang();
         Messages messages = payload.getMessages();
         Map<String, Object> ctxArgs = payload.getArgs();
+        TypedMap attrs = payload.getAttrs();
         Config config = payload.getConfig();
         // ...
     }

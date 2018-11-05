@@ -22,6 +22,7 @@ import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.MessagesApi;
+import play.libs.typedmap.TypedMap;
 import play.mvc.Http;
 
 /**
@@ -118,36 +119,36 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     @Deprecated
     public DynamicForm bindFromRequest(String... allowedFields) {
-        return bind(play.mvc.Controller.ctx().messages().lang(), requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(play.mvc.Controller.ctx().messages().lang(), play.mvc.Controller.request().attrs(), requestData(play.mvc.Controller.request()), allowedFields);
     }
 
     @Override
     public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
-        return bind(this.messagesApi.preferred(request).lang(), requestData(request), allowedFields);
+        return bind(this.messagesApi.preferred(request).lang(), request.attrs(), requestData(request), allowedFields);
     }
 
     @Override
     @Deprecated
     public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        return bindFromRequestData(ctxLang(), requestData, allowedFields);
+        return bindFromRequestData(ctxLang(), ctxRequestAttrs(), requestData, allowedFields);
     }
 
     @Override
-    public DynamicForm bindFromRequestData(Lang lang, Map<String,String[]> requestData, String... allowedFields) {
+    public DynamicForm bindFromRequestData(Lang lang, TypedMap attrs, Map<String,String[]> requestData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
-        return bind(lang, data, allowedFields);
+        return bind(lang, attrs, data, allowedFields);
     }
 
     @Override
     @Deprecated
     public DynamicForm bind(JsonNode data, String... allowedFields) {
-        return bind(ctxLang(), data, allowedFields);
+        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     @Override
-    public DynamicForm bind(Lang lang, JsonNode data, String... allowedFields) {
-        return bind(lang,
+    public DynamicForm bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+        return bind(lang, attrs,
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
@@ -162,12 +163,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     @Deprecated
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        return bind(ctxLang(), data, allowedFields);
+        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     @Override
-    public DynamicForm bind(Lang lang, Map<String,String> data, String... allowedFields) {
-        Form<Dynamic> form = super.bind(lang, data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
+    public DynamicForm bind(Lang lang, TypedMap attrs, Map<String,String> data, String... allowedFields) {
+        Form<Dynamic> form = super.bind(lang, attrs, data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())), allowedFields);
         return new DynamicForm(form.rawData(), form.errors(), form.value(), messagesApi, formatters, validatorFactory, config, lang);
     }
 
