@@ -2268,7 +2268,7 @@ public class Http {
         // ### Let's deprecate all of HashMap
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         public Session(int initialCapacity, float loadFactor) {
@@ -2276,7 +2276,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         public Session(int initialCapacity) {
@@ -2284,7 +2284,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2293,7 +2293,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2302,7 +2302,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2311,7 +2311,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2320,7 +2320,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2329,7 +2329,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2338,7 +2338,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2347,7 +2347,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2356,7 +2356,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2365,7 +2365,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2374,7 +2374,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2383,7 +2383,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2392,7 +2392,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2401,7 +2401,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2410,7 +2410,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2419,7 +2419,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2428,7 +2428,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2437,7 +2437,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2585,7 +2585,7 @@ public class Http {
         // ### Let's deprecate all of HashMap
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         public Flash(int initialCapacity, float loadFactor) {
@@ -2593,7 +2593,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         public Flash(int initialCapacity) {
@@ -2601,7 +2601,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2610,7 +2610,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2619,7 +2619,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2628,7 +2628,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2637,7 +2637,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2646,7 +2646,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2655,7 +2655,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2664,7 +2664,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2673,7 +2673,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2682,7 +2682,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2691,7 +2691,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2700,7 +2700,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2709,7 +2709,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2718,7 +2718,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2727,7 +2727,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2736,7 +2736,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2745,7 +2745,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
@@ -2754,7 +2754,7 @@ public class Http {
         }
 
         /**
-         * @deprecated Deprecated as of 2.7.0.
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
          */
         @Deprecated
         @Override
