@@ -8,19 +8,16 @@ import java.util.concurrent.Executor
 
 import play.mvc.Http
 import scala.compat.java8.FutureConverters
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 object HttpExecutionContext {
-
-  private def currentCtxGet: Http.Context = if (Http.Context.current != null) { Http.Context.current.get() } else { null }
-
-  private def currentCtxSet(newCtx: Http.Context) = if (Http.Context.current != null) { Http.Context.current.set(newCtx) }
 
   /**
    * Create an HttpExecutionContext with values from the current thread.
    */
   def fromThread(delegate: ExecutionContext): ExecutionContextExecutor =
-    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), currentCtxGet, delegate)
+    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.safeCurrent().orElse(null), delegate)
 
   /**
    * Create an HttpExecutionContext with values from the current thread.
@@ -33,7 +30,7 @@ object HttpExecutionContext {
    * Create an HttpExecutionContext with values from the current thread.
    */
   def fromThread(delegate: Executor): ExecutionContextExecutor =
-    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), currentCtxGet, FutureConverters.fromExecutor(delegate))
+    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.safeCurrent().orElse(null), FutureConverters.fromExecutor(delegate))
 
   /**
    * Create an ExecutionContext that will, when prepared, be created with values from that thread.
@@ -63,14 +60,14 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
     def run(): Unit = {
       val thread = Thread.currentThread()
       val oldContextClassLoader = thread.getContextClassLoader()
-      val oldHttpContext = HttpExecutionContext.currentCtxGet
+      val oldHttpContext = Http.Context.safeCurrent().asScala
       thread.setContextClassLoader(contextClassLoader)
-      HttpExecutionContext.currentCtxSet(httpContext)
+      Http.Context.setCurrent(httpContext)
       try {
         runnable.run()
       } finally {
         thread.setContextClassLoader(oldContextClassLoader)
-        HttpExecutionContext.currentCtxSet(oldHttpContext)
+        oldHttpContext.map(Http.Context.setCurrent(_))
       }
     }
   })
