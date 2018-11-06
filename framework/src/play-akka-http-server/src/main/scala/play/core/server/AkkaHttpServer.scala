@@ -296,7 +296,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
       case (websocket: WebSocket, None) =>
         // WebSocket handler for non WebSocket request
-        logger.trace("Bad websocket request")
+        logger.trace(s"Bad websocket request: $request")
         val action = EssentialAction(_ => Accumulator.done(
           Results.Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required").withHeaders(
             HeaderNames.UPGRADE -> "websocket",
