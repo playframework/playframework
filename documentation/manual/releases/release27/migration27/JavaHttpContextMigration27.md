@@ -563,3 +563,73 @@ Instead you can use the `request.attrs()` method now, which provides you the sam
 
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of an `Http.Context` instance. These entries have been removed.
 Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
+
+### RoutingDSL changes
+
+Until Play 2.6, when using Java [[routing DSL|JavaRoutingDsl]], there is no other way to access the current `request` besides `Http.Context.current()`. Now the DSL has new methods where a request will be passed to the block.
+
+#### Before
+
+```java
+import play.mvc.Http;
+import play.routing.Router;
+import play.routing.RoutingDsl;
+
+import javax.inject.Inject;
+
+import static play.mvc.Results.ok;
+
+public class MyRouter {
+
+    private final RoutingDsl routingDsl;
+
+    @Inject
+    public MyRouter(RoutingDsl routingDsl) {
+        this.routingDsl = routingDsl;
+    }
+
+    public Router router() {
+        return routingDsl
+                .GET("/hello/:to")
+                .routeTo(to -> {
+                    Http.Request request = Http.Context.current().request();
+                    return ok("Hello " + to + ". Here is the request path: " + request.path());
+                })
+                .build();
+    }
+}
+```
+
+In the example above, we need to use `Http.Context.current()` to access the request. From now on, you can instead write the code like below:
+
+#### After
+
+```java
+import play.routing.Router;
+import play.routing.RoutingDsl;
+
+import javax.inject.Inject;
+
+import static play.mvc.Results.ok;
+
+public class MyRouter {
+
+    private final RoutingDsl routingDsl;
+
+    @Inject
+    public MyRouter(RoutingDsl routingDsl) {
+        this.routingDsl = routingDsl;
+    }
+
+    public Router router() {
+        return routingDsl
+                .GET("/hello/:to")
+                .routingTo((request, to) ->
+                    ok("Hello " + to + ". Here is the request path: " + request.path())
+                )
+                .build();
+    }
+}
+```
+
+An important aspect to note is that, in the new API, `Http.Request` will always be the first parameter for the function blocks.

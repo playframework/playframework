@@ -31,7 +31,7 @@ public class JavaEmbeddingPlay {
         //#simple
         Server server = Server.forRouter((components) ->
             RoutingDsl.fromComponents(components)
-                .GET("/hello/:to").routeTo(to ->
+                .GET("/hello/:to").routingTo((request, to) ->
                     ok("Hello " + to)
                 )
                 .build()
@@ -63,7 +63,7 @@ public class JavaEmbeddingPlay {
         //#config
         Server server = Server.forRouter((components) ->
             RoutingDsl.fromComponents(components)
-                .GET("/hello/:to").routeTo(to ->
+                .GET("/hello/:to").routingTo((request, to) ->
                     ok("Hello " + to)
                 )
                 .build()
