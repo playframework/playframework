@@ -79,6 +79,9 @@ public class Http {
          */
         @Deprecated
         public static Context current() {
+            if (current == null) {
+                throw new RuntimeException("The Http.Context thread-local, which is deprecated as of Play 2.7, has been disabled. To enable it set \"play.allowHttpContext = true\" in application.conf");
+            }
             Context c = current.get();
             if(c == null) {
                 throw new RuntimeException("There is no HTTP Context available from here.");
