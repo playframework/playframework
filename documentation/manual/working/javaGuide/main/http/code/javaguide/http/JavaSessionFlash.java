@@ -76,7 +76,7 @@ public class JavaSessionFlash extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-flash
                     public Result index(Http.Request request) {
-                        return ok(request.flash().getOptional("success").map(message -> message).orElse("Welcome!"));
+                        return ok(request.flash().getOptional("success").orElse("Welcome!"));
                     }
                     //#read-flash
                 }, fakeRequest().flash("success", "hi"), mat)),
