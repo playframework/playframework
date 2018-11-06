@@ -1133,7 +1133,7 @@ public class Http {
                     RequestTarget$.MODULE$.apply("/", "/", Map$.MODULE$.empty()),
                     "HTTP/1.1",
                     Headers$.MODULE$.create(),
-                    TypedMap.empty().underlying(),
+                    TypedMap.empty().asScala(),
                     new RequestBody(null)
             );
         }
@@ -1368,7 +1368,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder id(Long id) {
-            attr(new TypedKey(RequestAttrKey.Id()), id);
+            attr(new TypedKey<>(RequestAttrKey.Id()), id);
             return this;
         }
 
@@ -1381,7 +1381,7 @@ public class Http {
          * @return the request builder with extra attribute
          */
         public <T> RequestBuilder attr(TypedKey<T> key, T value) {
-            req = req.addAttr(key.underlying(), value);
+            req = req.addAttr(key.asScala(), value);
             return this;
         }
 
@@ -1392,7 +1392,7 @@ public class Http {
          * @return the request builder with extra attributes set.
          */
         public RequestBuilder attrs(TypedMap newAttrs) {
-            req = req.withAttrs(newAttrs.underlying());
+            req = req.withAttrs(newAttrs.asScala());
             return this;
         }
 
@@ -1578,7 +1578,7 @@ public class Http {
                     req.cookies(),
                     cookie.asScala()
             );
-            attr(new TypedKey(RequestAttrKey.Cookies()), new AssignedCell(newCookies));
+            attr(new TypedKey<>(RequestAttrKey.Cookies()), new AssignedCell<>(newCookies));
             return this;
         }
 
@@ -1599,7 +1599,7 @@ public class Http {
             scala.collection.immutable.Map<String,String> data = req.flash().data();
             scala.collection.immutable.Map<String,String> newData = data.updated(key, value);
             play.api.mvc.Flash newFlash = new play.api.mvc.Flash(newData);
-            attr(new TypedKey(RequestAttrKey.Flash()), new AssignedCell(newFlash));
+            attr(new TypedKey<>(RequestAttrKey.Flash()), new AssignedCell<>(newFlash));
             return this;
         }
 
@@ -1610,7 +1610,7 @@ public class Http {
          */
         public RequestBuilder flash(Map<String,String> data) {
             play.api.mvc.Flash flash = new play.api.mvc.Flash(Scala.asScala(data));
-            attr(new TypedKey(RequestAttrKey.Flash()), new AssignedCell(flash));
+            attr(new TypedKey<>(RequestAttrKey.Flash()), new AssignedCell<>(flash));
             return this;
         }
 
@@ -1631,7 +1631,7 @@ public class Http {
             scala.collection.immutable.Map<String,String> data = req.session().data();
             scala.collection.immutable.Map<String,String> newData = data.updated(key, value);
             play.api.mvc.Session newSession = new play.api.mvc.Session(newData);
-            attr(new TypedKey(RequestAttrKey.Session()), new AssignedCell(newSession));
+            attr(new TypedKey<>(RequestAttrKey.Session()), new AssignedCell<>(newSession));
             return this;
         }
 
@@ -1642,7 +1642,7 @@ public class Http {
          */
         public RequestBuilder session(Map<String,String> data) {
             play.api.mvc.Session session = new play.api.mvc.Session(Scala.asScala(data));
-              attr(new TypedKey(RequestAttrKey.Session()), new AssignedCell(session));
+              attr(new TypedKey<>(RequestAttrKey.Session()), new AssignedCell<>(session));
             return this;
         }
 

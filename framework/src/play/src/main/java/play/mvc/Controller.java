@@ -5,15 +5,9 @@
 package play.mvc;
 
 import play.i18n.Lang;
-
 import play.i18n.MessagesApi;
-import play.mvc.Http.HeaderNames;
-import play.mvc.Http.Response;
-import play.mvc.Http.Context;
-import play.mvc.Http.Request;
-import play.mvc.Http.Session;
-import play.mvc.Http.Status;
-import play.mvc.Http.Flash;
+
+import static play.mvc.Http.*;
 
 /**
  * Superclass for a Java-based controller.
