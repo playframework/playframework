@@ -2175,6 +2175,13 @@ public class Http {
         /**
          * Optionally returns the session value associated with a key.
          */
+        public Optional<String> apply(String key) {
+            return getOptional(key);
+        }
+
+        /**
+         * Optionally returns the session value associated with a key.
+         */
         public Optional<String> getOptional(String key) {
             return Optional.ofNullable(super.get(key));
         }
@@ -2480,6 +2487,13 @@ public class Http {
         @Override
         public String get(Object key) {
             return super.get(key);
+        }
+
+        /**
+         * Optionally returns the session value associated with a key.
+         */
+        public Optional<String> apply(String key) {
+            return getOptional(key);
         }
 
         /**

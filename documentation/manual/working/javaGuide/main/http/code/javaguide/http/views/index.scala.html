@@ -1,4 +1,4 @@
 @(flash: play.mvc.Http.Flash)
 @* #flash-template *@
-@flash.getOptional("success").orElse("Welcome!")
+@flash("success").orElse("Welcome!")
 @* #flash-template *@
