@@ -133,8 +133,8 @@ public class JavaRoutingDsl extends WithApplication {
         RoutingDsl routingDsl = new RoutingDsl(bodyParser, javaContextComponents);
         //#new-routing-dsl
         Router router = routingDsl
-                .GET("/hello/:to").routeTo(to ->
-                        ok("Hello " + to)
+                .GET("/hello/:to").routingTo((request, to) ->
+                    ok("Hello " + to)
                 )
                 .build();
 

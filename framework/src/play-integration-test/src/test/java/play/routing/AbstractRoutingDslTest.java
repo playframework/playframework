@@ -16,7 +16,6 @@ import play.mvc.Results;
 
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.*;

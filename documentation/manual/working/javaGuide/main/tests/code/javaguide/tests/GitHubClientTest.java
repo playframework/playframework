@@ -28,7 +28,7 @@ public class GitHubClientTest {
     @Before
     public void setup() {
         server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
-                .GET("/repositories").routeTo(() -> {
+                .GET("/repositories").routingTo(request -> {
                     ArrayNode repos = Json.newArray();
                     ObjectNode repo = Json.newObject();
                     repo.put("full_name", "octocat/Hello-World");
