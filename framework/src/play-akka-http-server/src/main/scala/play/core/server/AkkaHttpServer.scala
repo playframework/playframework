@@ -22,7 +22,7 @@ import akka.util.ByteString
 import com.typesafe.config.{ Config, ConfigMemorySize }
 import javax.net.ssl._
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpErrorHandler, Status }
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -296,7 +296,14 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
       case (websocket: WebSocket, None) =>
         // WebSocket handler for non WebSocket request
-        sys.error(s"WebSocket returned for non WebSocket request")
+        logger.trace("Bad websocket request")
+        val action = EssentialAction(_ => Accumulator.done(
+          Results.Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required").withHeaders(
+            HeaderNames.UPGRADE -> "websocket",
+            HeaderNames.CONNECTION -> HeaderNames.UPGRADE
+          )
+        ))
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
         akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
