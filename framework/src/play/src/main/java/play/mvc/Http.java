@@ -9,6 +9,7 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.typesafe.config.ConfigFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
@@ -63,7 +64,11 @@ public class Http {
     @Deprecated
     public static class Context {
 
-        public static ThreadLocal<Context> current = System.getProperty("disableHttpContextThreadLocal") != null ? null : new ThreadLocal<>();
+        /**
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static ThreadLocal<Context> current = ConfigFactory.load().getBoolean("play.allowHttpContext") ? new ThreadLocal<>() : null;
 
         /**
          * Retrieves the current HTTP context, for the current thread.
