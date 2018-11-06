@@ -89,6 +89,42 @@ public class Http {
             return c;
         }
 
+        /**
+         * Safely retrieves the current HTTP context, for the current thread.
+         *
+         * @return the context or empty if null
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static Optional<Http.Context> safeCurrent() {
+            return Optional.ofNullable(Context.current).map(threadLocal -> threadLocal.get());
+        }
+
+        /**
+         * Safely sets the current HTTP context, for the current thread. Does nothing is the context thread local is disabled.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static void setCurrent(Http.Context ctx) {
+            if(Context.current != null) {
+                Context.current.set(ctx);
+            }
+        }
+
+        /**
+         * Safely removes the current HTTP context, for the current thread. Does nothing is the context thread local is disabled.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static void clear() {
+            if(Context.current != null) {
+                Context.current.remove();
+            }
+        }
+
         //
 
         private final Long id;
