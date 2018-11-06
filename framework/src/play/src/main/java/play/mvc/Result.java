@@ -296,7 +296,7 @@ public class Result {
         if(this.flash == null) {
             return withNewFlash();
         }
-        return withFlash(this.flash.removing(keys));
+        return withFlash(this.flash.remove(keys));
     }
 
     /**
@@ -379,7 +379,7 @@ public class Result {
      * @return A copy of this result with keys removed from its session scope.
      */
     public Result removingFromSession(Http.Request request, String... keys) {
-        return withSession(session(request).removing(keys));
+        return withSession(session(request).remove(keys));
     }
 
     /**

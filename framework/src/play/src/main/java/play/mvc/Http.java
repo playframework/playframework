@@ -2189,7 +2189,7 @@ public class Http {
         /**
          * Removes the specified value from the session.
          *
-         * @deprecated Deprecated as of 2.7.0. Use {@link #removing(String...)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #remove(String...)} instead.
          */
         @Deprecated
         @Override
@@ -2201,7 +2201,7 @@ public class Http {
         /**
          * Removes any value from the session.
          */
-        public Session removing(String... keys) {
+        public Session remove(String... keys) {
             return new play.api.mvc.Session(Scala.asScala(this)).remove(keys).asJava();
         }
 
@@ -2506,7 +2506,7 @@ public class Http {
         /**
          * Removes the specified value from the flash scope.
          *
-         * @deprecated Deprecated as of 2.7.0. Use {@link #removing(String...)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #remove(String...)} instead.
          */
         @Deprecated
         @Override
@@ -2518,7 +2518,7 @@ public class Http {
         /**
          * Removes any value from the flash scope.
          */
-        public Flash removing(String... keys) {
+        public Flash remove(String... keys) {
             return new play.api.mvc.Flash(Scala.asScala(this)).remove(keys).asJava();
         }
 
