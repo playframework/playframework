@@ -8,6 +8,7 @@ import akka.actor.*;
 import akka.stream.Materializer;
 import play.libs.streams.ActorFlow;
 import play.mvc.Http;
+import play.mvc.Result;
 import play.mvc.WebSocket;
 import play.libs.F;
 
@@ -64,15 +65,13 @@ public class JavaWebSockets {
 
         //#actor-reject
         public WebSocket socket(Http.Request req) {
-            return WebSocket.Text.acceptOrResult(request -> {
-                if (req.session().getOptional("user").isPresent()) {
-                    return CompletableFuture.completedFuture(
-                            F.Either.Right(ActorFlow.actorRef(MyWebSocketActor::props,
-                                    actorSystem, materializer)));
-                } else {
-                    return CompletableFuture.completedFuture(F.Either.Left(forbidden()));
-                }
-            });
+            return WebSocket.Text.acceptOrResult(request ->
+                CompletableFuture.completedFuture(req.session().getOptional("user")
+                    .map(user -> F.Either.<Result, Flow<String, String, ?>>Right(ActorFlow.actorRef(MyWebSocketActor::props,
+                        actorSystem, materializer)))
+                    .orElseGet(() -> F.Either.Left(forbidden()))
+                )
+            );
         }
         //#actor-reject
     }
