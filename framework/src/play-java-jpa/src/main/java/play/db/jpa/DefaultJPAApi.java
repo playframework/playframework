@@ -4,6 +4,7 @@
 
 package play.db.jpa;
 
+import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.db.DBApi;
@@ -57,7 +58,7 @@ public class DefaultJPAApi implements JPAApi {
         @Deprecated
         public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
             // dependency on db api ensures that the databases are initialised
-            jpaApi = new DefaultJPAApi(jpaConfig, System.getProperty("disableJPAThreadLocal") != null ? null : context);
+            jpaApi = new DefaultJPAApi(jpaConfig, ConfigFactory.load().getBoolean("play.jpa.allowJPAEntityManagerContext") ? context : null);
             lifecycle.addStopHook(() -> {
                 jpaApi.shutdown();
                 return CompletableFuture.completedFuture(null);
