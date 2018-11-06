@@ -54,17 +54,25 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
-   * Removes any value from the session.
+   * Removes values from the session.
    *
    * For example:
    * {{{
    * session - "username"
    * }}}
    *
-   * @param key the key to remove
+   * @param keys the keys to remove
    * @return the modified session
    */
-  @varargs def -(key: String*): Session = copy(data -- key)
+  def -(keys: String*): Session = remove(keys: _*)
+
+  /**
+   * Removes values from the session.
+   *
+   * @param keys the keys to remove
+   * @return the modified session
+   */
+  @varargs def remove(keys: String*): Session = copy(data -- keys)
 
   /**
    * Retrieves the session value which is associated with the given key.

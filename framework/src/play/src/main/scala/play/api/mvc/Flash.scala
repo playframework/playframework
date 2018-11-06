@@ -54,17 +54,25 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
-   * Removes a value from the flash scope.
+   * Removes values from the flash scope.
    *
    * For example:
    * {{{
    * flash - "success"
    * }}}
    *
-   * @param key the key to remove
+   * @param keys the keys to remove
    * @return the modified flash scope
    */
-  @varargs def -(key: String*): Flash = copy(data -- key)
+  def -(keys: String*): Flash = remove(keys: _*)
+
+  /**
+   * Removes values from the flash scope.
+   *
+   * @param keys the keys to remove
+   * @return the modified flash scope
+   */
+  @varargs def remove(keys: String*): Flash = copy(data -- keys)
 
   /**
    * Retrieves the flash value that is associated with the given key.

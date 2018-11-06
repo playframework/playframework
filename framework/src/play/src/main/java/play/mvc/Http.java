@@ -2202,7 +2202,7 @@ public class Http {
          * Removes any value from the session.
          */
         public Session removing(String... keys) {
-            return new play.api.mvc.Session(Scala.asScala(this)).$minus(keys).asJava();
+            return new play.api.mvc.Session(Scala.asScala(this)).remove(keys).asJava();
         }
 
         /**
@@ -2519,7 +2519,7 @@ public class Http {
          * Removes any value from the flash scope.
          */
         public Flash removing(String... keys) {
-            return new play.api.mvc.Flash(Scala.asScala(this)).$minus(keys).asJava();
+            return new play.api.mvc.Flash(Scala.asScala(this)).remove(keys).asJava();
         }
 
         /**
