@@ -66,10 +66,13 @@ public class JavaWebSockets {
         //#actor-reject
         public WebSocket socket(Http.Request req) {
             return WebSocket.Text.acceptOrResult(request ->
-                CompletableFuture.completedFuture(req.session().getOptional("user")
-                    .map(user -> F.Either.<Result, Flow<String, String, ?>>Right(ActorFlow.actorRef(MyWebSocketActor::props,
-                        actorSystem, materializer)))
-                    .orElseGet(() -> F.Either.Left(forbidden()))
+                CompletableFuture.completedFuture(
+                        req.session()
+                           .getOptional("user")
+                           .map(user ->
+                               F.Either.<Result, Flow<String, String, ?>>Right(ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer))
+                           )
+                           .orElseGet(() -> F.Either.Left(forbidden()))
                 )
             );
         }

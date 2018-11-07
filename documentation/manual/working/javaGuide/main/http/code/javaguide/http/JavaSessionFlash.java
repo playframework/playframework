@@ -26,7 +26,8 @@ public class JavaSessionFlash extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-session
                     public Result index(Http.Request request) {
-                        return request.session().getOptional("connected")
+                        return request.session()
+                            .getOptional("connected")
                             .map(user -> ok("Hello " + user))
                             .orElseGet(() -> unauthorized("Oops, you are not connected"));
                     }
