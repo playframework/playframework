@@ -4,7 +4,7 @@
 
 package play.db.jpa;
 
-import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.db.DBApi;
@@ -52,13 +52,13 @@ public class DefaultJPAApi implements JPAApi {
         private final JPAApi jpaApi;
 
         /**
-         * @deprecated Deprecated as of 2.7.0. Use {@link #JPAApiProvider(JPAConfig, ApplicationLifecycle, DBApi)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #JPAApiProvider(JPAConfig, ApplicationLifecycle, DBApi, Config)} instead.
          */
         @Inject
         @Deprecated
-        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
+        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
             // dependency on db api ensures that the databases are initialised
-            jpaApi = new DefaultJPAApi(jpaConfig, ConfigFactory.load().getBoolean("play.jpa.allowJPAEntityManagerContext") ? context : null);
+            jpaApi = new DefaultJPAApi(jpaConfig, config.getBoolean("play.jpa.allowJPAEntityManagerContext") ? context : null);
             lifecycle.addStopHook(() -> {
                 jpaApi.shutdown();
                 return CompletableFuture.completedFuture(null);
@@ -66,8 +66,8 @@ public class DefaultJPAApi implements JPAApi {
             jpaApi.start();
         }
 
-        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi) {
-            this(jpaConfig, null, lifecycle, dbApi);
+        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
+            this(jpaConfig, null, lifecycle, dbApi, config);
         }
 
         @Override
