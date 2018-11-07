@@ -26,7 +26,7 @@ import play.api.http.{ HttpChunk, HttpEntity }
 class NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
-trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with ContentTypes {
 
   sequential
 
@@ -590,21 +590,71 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "discard cookies from result" in {
-      "on the default path with no domain and that's not secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard")))) { response =>
+      "on the default path with no domain and that's not secure" in makeRequest(Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard"))) { response =>
         response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
       }
 
-      "on the given path with no domain and not that's secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard", path = "/path")))) { response =>
+      "on the given path with no domain and not that's secure" in makeRequest(Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard", path = "/path"))) { response =>
         response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
       }
 
-      "on the given path and domain that's not secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com"))))) { response =>
+      "on the given path and domain that's not secure" in makeRequest(Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com")))) { response =>
         response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
       }
 
-      "on the given path and domain that's is secure" in makeRequest(Results.Ok("Hello world").discardingCookies((DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com"), secure = true)))) { response =>
+      "on the given path and domain that's is secure" in makeRequest(Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com"), secure = true))) { response =>
         response.headers.get(SET_COOKIE) must beSome(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
       }
+    }
+
+    "when changing the content-type" should {
+      "correct change it for strict entities" in makeRequest(Results.Ok("<h1>Hello</h1>").as(HTML)) { response =>
+        response.status must beEqualTo(OK)
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.body must beEqualTo("<h1>Hello</h1>")
+      }
+
+      "correct change it for chunked entities" in makeRequest(
+        Results.Ok.chunked(Source(List("a", "b", "c"))).as(HTML)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+          response.header(TRANSFER_ENCODING) must beSome("chunked")
+        }
+
+      "correct change it for streamed entities" in makeRequest(
+        Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, None)).as(HTML)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        }
+
+      "have no content type if set to null in strict entities" in makeRequest(
+        // First set to HTML and later to null so that we can see content type was overridden
+        Results.Ok("<h1>Hello</h1>").as(HTML).as(null)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          // Use starts with because there is also the charset
+          response.header(CONTENT_TYPE) must beNone
+          response.body must beEqualTo("<h1>Hello</h1>")
+        }
+
+      "have no content type if set to null in chunked entities" in makeRequest(
+        // First set to HTML and later to null so that we can see content type was overridden
+        Results.Ok.chunked(Source(List("a", "b", "c"))).as(HTML).as(null)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beNone
+          response.header(TRANSFER_ENCODING) must beSome("chunked")
+        }
+
+      "have no content type if set to null in streamed entities" in makeRequest(
+        // First set to HTML and later to null so that we can see content type was overridden
+        Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, Some(HTML))).as(null)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beNone
+        }
     }
   }
 
