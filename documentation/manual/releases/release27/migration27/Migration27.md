@@ -380,17 +380,53 @@ The `getHandlerFor` method on the `Server` trait was used internally by the Play
 The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
 ```scala
-val reason = CoordinatedShutdown.UnknownReason
-val runFromPhase = Some(CoordinatedShutdown.PhaseBeforeClusterShutdown)
-val coordinatedShutdown = CoodinatedShutdown(actorSystem).run(reason, runFromPhase)
+import akka.actor.ActorSystem
+import javax.inject.Inject
+
+import akka.actor.CoordinatedShutdown
+import akka.actor.CoordinatedShutdown.Reason
+
+class Shutdown @Inject()(actorSystem: ActorSystem) {
+
+  // Define your own reason to run the shutdown
+  case object CustomShutdownReason extends Reason
+
+  def shutdown() = {
+    // Use a phase that is appropriated for your application
+    val runFromPhase = Some(CoordinatedShutdown.PhaseBeforeClusterShutdown)
+    val coordinatedShutdown = CoordinatedShutdown(actorSystem).run(CustomShutdownReason, runFromPhase)
+  }
+}
 ```
 
 And for Java:
 
 ```java
-CoordinatedShutdown.Reason reason = CoordinatedShutdown.unknownReason();
-Optional<String> runFromPhase = Optional.of("");
-CoordinatedShutdown.get(actorSystem).run(reason, runFromPhase);
+import akka.actor.ActorSystem;
+import akka.actor.CoordinatedShutdown;
+
+import javax.inject.Inject;
+import java.util.Optional;
+
+class Shutdown {
+
+    public static final CoordinatedShutdown.Reason customShutdownReason = new CustomShutdownReason();
+
+    private final ActorSystem actorSystem;
+
+    @Inject
+    public Shutdown(ActorSystem actorSystem) {
+        this.actorSystem = actorSystem;
+    }
+
+    public void shutdown() {
+        // Use a phase that is appropriated for your application
+        Optional<String> runFromPhase = Optional.of(CoordinatedShutdown.PhaseBeforeClusterShutdown());
+        CoordinatedShutdown.get(actorSystem).run(customShutdownReason, runFromPhase);
+    }
+
+    public static class CustomShutdownReason implements CoordinatedShutdown.Reason {}
+}
 ```
 
 ## Change in self-signed HTTPS certificate
