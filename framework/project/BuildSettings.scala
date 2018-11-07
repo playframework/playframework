@@ -710,7 +710,10 @@ object BuildSettings {
 
       // Added Java @varargs annotation
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Session.-"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Flash.-")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Flash.-"),
+
+      // Allow to disable JPA thread local requires access to configuration
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
