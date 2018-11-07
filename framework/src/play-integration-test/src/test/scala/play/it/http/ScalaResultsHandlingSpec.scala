@@ -25,7 +25,7 @@ import play.api.http.{ HttpChunk, HttpEntity }
 class NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
-trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with ContentTypes {
 
   sequential
 
@@ -587,6 +587,56 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.status must_== 500
         (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be empty
       }
+
+    "when changing the content-type" should {
+      "correct change it for strict entities" in makeRequest(Results.Ok("<h1>Hello</h1>").as(HTML)) { response =>
+        response.status must beEqualTo(OK)
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.body must beEqualTo("<h1>Hello</h1>")
+      }
+
+      "correct change it for chunked entities" in makeRequest(
+        Results.Ok.chunked(Source(List("a", "b", "c"))).as(HTML)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+          response.header(TRANSFER_ENCODING) must beSome("chunked")
+        }
+
+      "correct change it for streamed entities" in makeRequest(
+        Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, None)).as(HTML)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        }
+
+      "have no content type if set to null in strict entities" in makeRequest(
+        // First set to HTML and later to null so that we can see content type was overridden
+        Results.Ok("<h1>Hello</h1>").as(HTML).as(null)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          // Use starts with because there is also the charset
+          response.header(CONTENT_TYPE) must beNone
+          response.body must beEqualTo("<h1>Hello</h1>")
+        }
+
+      "have no content type if set to null in chunked entities" in makeRequest(
+        // First set to HTML and later to null so that we can see content type was overridden
+        Results.Ok.chunked(Source(List("a", "b", "c"))).as(HTML).as(null)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beNone
+          response.header(TRANSFER_ENCODING) must beSome("chunked")
+        }
+
+      "have no content type if set to null in streamed entities" in makeRequest(
+        // First set to HTML and later to null so that we can see content type was overridden
+        Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, Some(HTML))).as(null)
+      ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beNone
+        }
+    }
   }
 
   def chunk(content: String) = HttpChunk.Chunk(ByteString(content))

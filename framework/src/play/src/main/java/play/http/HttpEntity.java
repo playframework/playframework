@@ -142,7 +142,7 @@ public abstract class HttpEntity {
 
         @Override
         public HttpEntity as(String contentType) {
-            return new Strict(data, Optional.of(contentType));
+            return new Strict(data, Optional.ofNullable(contentType));
         }
 
         @Override
@@ -191,7 +191,7 @@ public abstract class HttpEntity {
 
         @Override
         public HttpEntity as(String contentType) {
-            return new Streamed(data, contentLength, Optional.of(contentType));
+            return new Streamed(data, contentLength, Optional.ofNullable(contentType));
         }
 
         @Override
@@ -243,7 +243,7 @@ public abstract class HttpEntity {
 
         @Override
         public HttpEntity as(String contentType) {
-            return new Chunked(chunks, Optional.of(contentType));
+            return new Chunked(chunks, Optional.ofNullable(contentType));
         }
 
         @Override

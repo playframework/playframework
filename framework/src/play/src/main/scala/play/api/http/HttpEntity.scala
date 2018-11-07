@@ -80,7 +80,7 @@ object HttpEntity {
     def dataStream = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
     override def consumeData(implicit mat: Materializer) = Future.successful(data)
     def asJava = new JHttpEntity.Strict(data, OptionConverters.toJava(contentType))
-    def as(contentType: String) = copy(contentType = Some(contentType))
+    def as(contentType: String) = copy(contentType = Option(contentType))
   }
 
   /**
@@ -98,7 +98,7 @@ object HttpEntity {
       data.asJava,
       OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
       OptionConverters.toJava(contentType))
-    def as(contentType: String) = copy(contentType = Some(contentType))
+    def as(contentType: String) = copy(contentType = Option(contentType))
   }
 
   /**
@@ -117,7 +117,7 @@ object HttpEntity {
       case HttpChunk.Chunk(data) => data
     }
     def asJava = new JHttpEntity.Chunked(chunks.asJava, OptionConverters.toJava(contentType))
-    def as(contentType: String) = copy(contentType = Some(contentType))
+    def as(contentType: String) = copy(contentType = Option(contentType))
   }
 }
 
