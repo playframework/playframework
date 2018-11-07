@@ -38,6 +38,8 @@ class ScalaAsyncSpec extends PlaySpecification {
 //#my-execution-context
 import play.api.libs.concurrent.CustomExecutionContext
 
+// Make sure to bind the new context class to this trait using one of the custom
+// binding techniques listed on the "Scala Dependency Injection" documentation page
 trait MyExecutionContext extends ExecutionContext
 
 class MyExecutionContextImpl @Inject()(system: ActorSystem)
