@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.typesafe.config.Config;
 import play.api.inject.DefaultApplicationLifecycle;
@@ -136,12 +137,24 @@ public interface ApplicationLoader {
         }
 
         /**
+         * If an application is loaded in dev mode then this additional context is available.
+         *
+         * @return optional with the value if the application is running in dev mode or empty otherwise.
+         */
+        public Optional<play.api.ApplicationLoader.DevContext> devContext() {
+            return OptionConverters.toJava(underlying.devContext());
+        }
+
+        /**
          * Get the source mapper from the context.
          *
          * @return an optional source mapper
+         *
+         * @deprecated Deprecated as of 2.7.0. Access it using {@link #devContext()}.
          */
+        @Deprecated
         public Optional<SourceMapper> sourceMapper() {
-            return OptionConverters.toJava(underlying.sourceMapper());
+            return devContext().map(play.api.ApplicationLoader.DevContext::sourceMapper);
         }
 
         /**
