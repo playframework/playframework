@@ -67,7 +67,7 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
         runnable.run()
       } finally {
         thread.setContextClassLoader(oldContextClassLoader)
-        oldHttpContext.map(Http.Context.setCurrent(_))
+        oldHttpContext.foreach(Http.Context.setCurrent)
       }
     }
   })

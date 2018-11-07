@@ -89,7 +89,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
           JContext.setCurrent(ctx)
           invocation(ctx.request())
         } finally {
-          oldContext.map(JContext.setCurrent(_))
+          oldContext.foreach(JContext.setCurrent)
         }
       }
     }
