@@ -4,6 +4,8 @@
 
 package play.core.parsers
 
+import java.net.URLDecoder
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -200,6 +202,7 @@ object Multipart {
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
 
       val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+      val ExtendedKeyValue = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
       for {
         values <- headers
@@ -210,7 +213,9 @@ object Multipart {
               .map {
                 // unescape escaped quotes
                 case KeyValue(key, v) =>
-                  (key.trim, v.trim.replaceAll("""\\"""", "\""))
+                  (key, v.trim.replaceAll("""\\"""", "\""))
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
                 case key => (key.trim, "")
               }
               .toMap
@@ -228,6 +233,7 @@ object Multipart {
     def unapply(headers: Map[String, String]): Option[String] = {
 
       val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+      val ExtendedKeyValue = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
       for {
         values <- headers
@@ -236,7 +242,9 @@ object Multipart {
             _.split(";").iterator
               .map(_.trim)
               .map {
-                case KeyValue(key, v) => (key.trim, v.trim)
+                case KeyValue(key, v) => (key, v)
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
                 case key              => (key.trim, "")
               }
               .toMap

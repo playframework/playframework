@@ -355,20 +355,20 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       result.get must equalTo("partName")
     }
 
-    "ignore extended name in content disposition" in {
+    "parse extended name in content disposition" in {
       val result = PartInfoMatcher.unapply(
         Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName""")
       )
       result must not(beEmpty)
-      result.get must equalTo("partName")
+      result.get must equalTo("extendedName")
     }
 
-    "ignore extended filename in content disposition" in {
+    "parse extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(
-        Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt""")
+        Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''%E4%BD%A0%E5%A5%BD.txt""")
       )
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None, "form-data"))
+      result.get must equalTo(("document", "你好.txt", None, "form-data"))
     }
 
     "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
