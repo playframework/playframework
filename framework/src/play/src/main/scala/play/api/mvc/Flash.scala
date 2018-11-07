@@ -46,10 +46,28 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
+   * Adds a value to the flash scope, and returns a new flash scope.
+   *
+   * This is an alias method to [[+]].
+   *
+   * @param kv the key-value pair to add
+   * @return the modified flash scope
+   */
+  def add(kv: (String, String)): Flash = this + kv
+
+  /**
    * Adds a number of elements provided by the given map object
    * and returns a new flash scope with the added elements.
    */
-  def ++(kvs: Map[String, String]): Flash = {
+  def ++(kvs: (String, String)*): Flash = {
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new flash scope with the added elements.
+   */
+  def addAll(kvs: Map[String, String]): Flash = {
     copy(data ++ kvs)
   }
 

@@ -2233,7 +2233,7 @@ public class Http {
          * Adds a value to the session, and returns a new session.
          */
         public Session adding(String key, String value) {
-            return new play.api.mvc.Session(Scala.asScala(this)).$plus(Scala.Tuple(key, value)).asJava();
+            return new play.api.mvc.Session(Scala.asScala(this)).add(Scala.Tuple(key, value)).asJava();
         }
 
         /**
@@ -2241,7 +2241,7 @@ public class Http {
          * and returns a new session with the added elements.
          */
         public Session adding(Map<String, String> values) {
-            return new play.api.mvc.Session(Scala.asScala(this)).$plus$plus(Scala.asScala(values)).asJava();
+            return new play.api.mvc.Session(Scala.asScala(this)).addAll(Scala.asScala(values)).asJava();
         }
 
         /**
@@ -2550,7 +2550,7 @@ public class Http {
          * Adds a value to the flash scope, and returns a new flash scope.
          */
         public Flash adding(String key, String value) {
-            return new play.api.mvc.Flash(Scala.asScala(this)).$plus(Scala.Tuple(key, value)).asJava();
+            return new play.api.mvc.Flash(Scala.asScala(this)).add(Scala.Tuple(key, value)).asJava();
         }
 
         /**
@@ -2558,7 +2558,7 @@ public class Http {
          * and returns a new flash scope with the added elements.
          */
         public Flash adding(Map<String, String> values) {
-            return new play.api.mvc.Flash(Scala.asScala(this)).$plus$plus(Scala.asScala(values)).asJava();
+            return new play.api.mvc.Flash(Scala.asScala(this)).addAll(Scala.asScala(values)).asJava();
         }
 
         /**

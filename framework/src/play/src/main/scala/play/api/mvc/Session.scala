@@ -46,10 +46,28 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
+   * Adds a value to the session, and returns a new session.
+   *
+   * This is an alias method to [[+]].
+   *
+   * @param kv the key-value pair to add
+   * @return the modified session
+   */
+  def add(kv: (String, String)): Session = this + kv
+
+  /**
    * Adds a number of elements provided by the given map object
    * and returns a new session with the added elements.
    */
-  def ++(kvs: Map[String, String]): Session = {
+  def ++(kvs: (String, String)*): Session = {
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new session with the added elements.
+   */
+  def addAll(kvs: Map[String, String]): Session = {
     copy(data ++ kvs)
   }
 
