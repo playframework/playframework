@@ -9,6 +9,9 @@ There are several ways to deploy a Play application in production mode. Let's st
 
 Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=abcdefghijk`.  You must generate your own secret to use here.
 
+## Deploying Play with JPA
+ If you are using JPA, you need to take a look at [Deploying with JPA](https://www.playframework.com/documentation/2.6.x/JavaJPA#deploying-play-with-jpa).
+
 ## Using the dist task
 
 The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on SBT, the only thing the server needs is a Java installation.
