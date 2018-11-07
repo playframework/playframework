@@ -464,10 +464,6 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     withServer(app => webSocket(app)) { implicit app =>
       val ws = app.injector.instanceOf[WSClient]
       await(ws.url(s"http://localhost:$testServerPort/stream").addHttpHeaders(
-        //        "Upgrade" -> "websocket",
-        //        "Connection" -> "upgrade",
-        //        "Sec-WebSocket-Version" -> "13",
-        //        "Sec-WebSocket-Key" -> "x3JJHMbDL1EzLkh9GBhXDw==",
         "Origin" -> "http://example.com"
       ).get()).status must_== UPGRADE_REQUIRED
     }
