@@ -45,6 +45,9 @@ import java.time.Duration;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -2148,15 +2151,62 @@ public class Http {
      */
     public static class Session extends HashMap<String,String>{
 
+        /**
+         * @deprecated Deprecated as of 2.7.0.
+         */
+        @Deprecated
         public boolean isDirty = false;
 
         public Session(Map<String,String> data) {
             super(data);
         }
 
+        public Session(play.api.mvc.Session underlying) {
+            this(Scala.asJava(underlying.data()));
+        }
+
+        public Map<String, String> data() {
+            return Collections.unmodifiableMap(this);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead.
+         */
+        @Deprecated
+        @Override
+        public boolean containsKey(Object key) {
+            return super.containsKey(key);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead.
+         */
+        @Deprecated
+        @Override
+        public String get(Object key) {
+            return super.get(key);
+        }
+
+        /**
+         * Optionally returns the session value associated with a key.
+         */
+        public Optional<String> apply(String key) {
+            return getOptional(key);
+        }
+
+        /**
+         * Optionally returns the session value associated with a key.
+         */
+        public Optional<String> getOptional(String key) {
+            return Optional.ofNullable(super.get(key));
+        }
+
         /**
          * Removes the specified value from the session.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #remove(String...)} instead.
          */
+        @Deprecated
         @Override
         public String remove(Object key) {
             isDirty = true;
@@ -2164,8 +2214,18 @@ public class Http {
         }
 
         /**
-         * Adds the given value to the session.
+         * Removes any value from the session.
          */
+        public Session remove(String... keys) {
+            return new play.api.mvc.Session(Scala.asScala(this)).remove(keys).asJava();
+        }
+
+        /**
+         * Adds the given value to the session.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #adding(String, String)} instead.
+         */
+        @Deprecated
         @Override
         public String put(String key, String value) {
             isDirty = true;
@@ -2174,7 +2234,10 @@ public class Http {
 
         /**
          * Adds the given values to the session.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #adding(Map)} instead.
          */
+        @Deprecated
         @Override
         public void putAll(Map<? extends String,? extends String> values) {
             isDirty = true;
@@ -2182,8 +2245,26 @@ public class Http {
         }
 
         /**
-         * Clears the session.
+         * Adds a value to the session, and returns a new session.
          */
+        public Session adding(String key, String value) {
+            return new play.api.mvc.Session(Scala.asScala(this)).add(Scala.Tuple(key, value)).asJava();
+        }
+
+        /**
+         * Adds a number of elements provided by the given map object
+         * and returns a new session with the added elements.
+         */
+        public Session adding(Map<String, String> values) {
+            return new play.api.mvc.Session(Scala.asScala(this)).addAll(Scala.asScala(values)).asJava();
+        }
+
+        /**
+         * Clears the session.
+         *
+         * @deprecated Deprecated as of 2.7.0. Just create a new instance instead.
+         */
+        @Deprecated
         @Override
         public void clear() {
             isDirty = true;
@@ -2199,6 +2280,185 @@ public class Http {
             return new play.api.mvc.Session(Scala.asScala(this));
         }
 
+        // ### Let's deprecate all of HashMap
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        public Session(int initialCapacity, float loadFactor) {
+            super(initialCapacity, loadFactor);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        public Session(int initialCapacity) {
+            super(initialCapacity);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public int size() {
+            return super.size();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean isEmpty() {
+            return super.isEmpty();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean containsValue(Object value) {
+            return super.containsValue(value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Set<String> keySet() {
+            return super.keySet();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Collection<String> values() {
+            return super.values();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Set<Entry<String, String>> entrySet() {
+            return super.entrySet();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String getOrDefault(Object key, String defaultValue) {
+            return super.getOrDefault(key, defaultValue);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String putIfAbsent(String key, String value) {
+            return super.putIfAbsent(key, value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean remove(Object key, Object value) {
+            return super.remove(key, value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean replace(String key, String oldValue, String newValue) {
+            return super.replace(key, oldValue, newValue);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String replace(String key, String value) {
+            return super.replace(key, value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String computeIfAbsent(String key, Function<? super String, ? extends String> mappingFunction) {
+            return super.computeIfAbsent(key, mappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String computeIfPresent(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+            return super.computeIfPresent(key, remappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String compute(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+            return super.compute(key, remappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String merge(String key, String value, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+            return super.merge(key, value, remappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public void forEach(BiConsumer<? super String, ? super String> action) {
+            super.forEach(action);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public void replaceAll(BiFunction<? super String, ? super String, ? extends String> function) {
+            super.replaceAll(function);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Object clone() {
+            return super.clone();
+        }
     }
 
     /**
@@ -2208,15 +2468,62 @@ public class Http {
      */
     public static class Flash extends HashMap<String,String>{
 
+        /**
+         * @deprecated Deprecated as of 2.7.0.
+         */
+        @Deprecated
         public boolean isDirty = false;
 
         public Flash(Map<String,String> data) {
             super(data);
         }
 
+        public Flash(play.api.mvc.Flash underlying) {
+            this(Scala.asJava(underlying.data()));
+        }
+
+        public Map<String, String> data() {
+            return Collections.unmodifiableMap(this);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead.
+         */
+        @Deprecated
+        @Override
+        public boolean containsKey(Object key) {
+            return super.containsKey(key);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead.
+         */
+        @Deprecated
+        @Override
+        public String get(Object key) {
+            return super.get(key);
+        }
+
+        /**
+         * Optionally returns the session value associated with a key.
+         */
+        public Optional<String> apply(String key) {
+            return getOptional(key);
+        }
+
+        /**
+         * Optionally returns the flash scope value associated with a key.
+         */
+        public Optional<String> getOptional(String key) {
+            return Optional.ofNullable(super.get(key));
+        }
+
         /**
          * Removes the specified value from the flash scope.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #remove(String...)} instead.
          */
+        @Deprecated
         @Override
         public String remove(Object key) {
             isDirty = true;
@@ -2224,8 +2531,18 @@ public class Http {
         }
 
         /**
-         * Adds the given value to the flash scope.
+         * Removes any value from the flash scope.
          */
+        public Flash remove(String... keys) {
+            return new play.api.mvc.Flash(Scala.asScala(this)).remove(keys).asJava();
+        }
+
+        /**
+         * Adds the given value to the flash scope.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #adding(String, String)} instead.
+         */
+        @Deprecated
         @Override
         public String put(String key, String value) {
             isDirty = true;
@@ -2234,7 +2551,10 @@ public class Http {
 
         /**
          * Adds the given values to the flash scope.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #adding(Map)} instead.
          */
+        @Deprecated
         @Override
         public void putAll(Map<? extends String,? extends String> values) {
             isDirty = true;
@@ -2242,8 +2562,26 @@ public class Http {
         }
 
         /**
-         * Clears the flash scope.
+         * Adds a value to the flash scope, and returns a new flash scope.
          */
+        public Flash adding(String key, String value) {
+            return new play.api.mvc.Flash(Scala.asScala(this)).add(Scala.Tuple(key, value)).asJava();
+        }
+
+        /**
+         * Adds a number of elements provided by the given map object
+         * and returns a new flash scope with the added elements.
+         */
+        public Flash adding(Map<String, String> values) {
+            return new play.api.mvc.Flash(Scala.asScala(this)).addAll(Scala.asScala(values)).asJava();
+        }
+
+        /**
+         * Clears the flash scope.
+         *
+         * @deprecated Deprecated as of 2.7.0. Just create a new instance instead.
+         */
+        @Deprecated
         @Override
         public void clear() {
             isDirty = true;
@@ -2259,6 +2597,185 @@ public class Http {
             return new play.api.mvc.Flash(Scala.asScala(this));
         }
 
+        // ### Let's deprecate all of HashMap
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        public Flash(int initialCapacity, float loadFactor) {
+            super(initialCapacity, loadFactor);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        public Flash(int initialCapacity) {
+            super(initialCapacity);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public int size() {
+            return super.size();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean isEmpty() {
+            return super.isEmpty();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean containsValue(Object value) {
+            return super.containsValue(value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Set<String> keySet() {
+            return super.keySet();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Collection<String> values() {
+            return super.values();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Set<Entry<String, String>> entrySet() {
+            return super.entrySet();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String getOrDefault(Object key, String defaultValue) {
+            return super.getOrDefault(key, defaultValue);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String putIfAbsent(String key, String value) {
+            return super.putIfAbsent(key, value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean remove(Object key, Object value) {
+            return super.remove(key, value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public boolean replace(String key, String oldValue, String newValue) {
+            return super.replace(key, oldValue, newValue);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String replace(String key, String value) {
+            return super.replace(key, value);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String computeIfAbsent(String key, Function<? super String, ? extends String> mappingFunction) {
+            return super.computeIfAbsent(key, mappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String computeIfPresent(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+            return super.computeIfPresent(key, remappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String compute(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+            return super.compute(key, remappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public String merge(String key, String value, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+            return super.merge(key, value, remappingFunction);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public void forEach(BiConsumer<? super String, ? super String> action) {
+            super.forEach(action);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public void replaceAll(BiFunction<? super String, ? super String, ? extends String> function) {
+            super.replaceAll(function);
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap} in future Play releases.
+         */
+        @Deprecated
+        @Override
+        public Object clone() {
+            return super.clone();
+        }
     }
 
     /**

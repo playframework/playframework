@@ -706,7 +706,11 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.clearTransientLang"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.withTransientLang"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.clearTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.withTransientLang")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.withTransientLang"),
+
+      // Added Java @varargs annotation
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Session.-"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Flash.-")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
