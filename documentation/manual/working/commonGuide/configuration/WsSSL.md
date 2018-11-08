@@ -10,6 +10,9 @@ unlimited strength java cryptography extension.  You can download the policy fil
 
 ## Table of Contents
 
+> **NOTE**: The links below are relative to the `Typesafe SSLConfig`, which uses the `ssl-config` as a prefix for ssl properties.<br>
+> Play uses the `play.ws.ssl` prefix, so that, for instance the `ssl-config.loose.acceptAnyCertificate` becomes `play.ws.ssl.loose.acceptAnyCertificate` for your play `WSClient` configuration.
+
 The Play WS configuration is based on [Typesafe SSLConfig](https://lightbend.github.io/ssl-config).  For convenience, a table of contents to SSLConfig is provided:
 
 - [Quick Start to WS SSL](https://lightbend.github.io/ssl-config/WSQuickStart.html)
