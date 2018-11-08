@@ -269,10 +269,10 @@ trait JavaHelpers {
   def withContext[A](request: RequestHeader, components: JavaContextComponents)(block: JContext => A) = {
     val javaContext = createJavaContext(request, components)
     try {
-      JContext.current.set(javaContext)
+      JContext.setCurrent(javaContext)
       block(javaContext)
     } finally {
-      JContext.current.remove()
+      JContext.clear()
     }
 
   }

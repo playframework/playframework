@@ -9,6 +9,8 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
@@ -63,7 +65,24 @@ public class Http {
     @Deprecated
     public static class Context {
 
-        public static ThreadLocal<Context> current = new ThreadLocal<>();
+        private static Config config() {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Properties properties = System.getProperties();
+            scala.collection.immutable.Map<String, Object> directSettings = scala.collection.Map$.MODULE$.empty();
+
+            // We are allowing missing application conf because it can handle both cases.
+            boolean allowMissingApplicationConf = true;
+
+            // Using play.api.Configuration.load because it is more consistent with how the
+            // actual configuration is loaded for the application.
+            return play.api.Configuration.load(classLoader, properties, directSettings, allowMissingApplicationConf).underlying();
+        }
+
+        /**
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static ThreadLocal<Context> current = config().getBoolean("play.allowHttpContext") ? new ThreadLocal<>() : null;
 
         /**
          * Retrieves the current HTTP context, for the current thread.
@@ -74,11 +93,50 @@ public class Http {
          */
         @Deprecated
         public static Context current() {
+            if (current == null) {
+                throw new RuntimeException("The Http.Context thread-local, which is deprecated as of Play 2.7, has been disabled. To enable it set \"play.allowHttpContext = true\" in application.conf");
+            }
             Context c = current.get();
             if(c == null) {
                 throw new RuntimeException("There is no HTTP Context available from here.");
             }
             return c;
+        }
+
+        /**
+         * Safely retrieves the current HTTP context, for the current thread.
+         *
+         * @return the context or empty if null
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static Optional<Http.Context> safeCurrent() {
+            return Optional.ofNullable(Context.current).map(ThreadLocal::get);
+        }
+
+        /**
+         * Safely sets the current HTTP context, for the current thread. Does nothing is the context thread local is disabled.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static void setCurrent(Http.Context ctx) {
+            if(Context.current != null) {
+                Context.current.set(ctx);
+            }
+        }
+
+        /**
+         * Safely removes the current HTTP context, for the current thread. Does nothing is the context thread local is disabled.
+         *
+         * @deprecated Deprecated as of 2.7.0. <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use a request instead</a>.
+         */
+        @Deprecated
+        public static void clear() {
+            if(Context.current != null) {
+                Context.current.remove();
+            }
         }
 
         //

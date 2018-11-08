@@ -252,8 +252,7 @@ public class Form<T> {
      */
     @Deprecated
     protected Lang ctxLang() {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return ctx != null ? ctx.messages().lang() : null;
+        return Http.Context.safeCurrent().map(ctx -> ctx.messages().lang()).orElse(null);
     }
 
     /**
@@ -261,8 +260,7 @@ public class Form<T> {
      */
     @Deprecated
     protected TypedMap ctxRequestAttrs() {
-        final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-        return ctx != null ? ctx.request().attrs() : TypedMap.empty();
+        return Http.Context.safeCurrent().map(ctx -> ctx.request().attrs()).orElseGet(() -> TypedMap.empty());
     }
 
     /**
@@ -465,8 +463,7 @@ public class Form<T> {
     private Set<ConstraintViolation<Object>> runValidation(Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, String> objectData) {
         return withRequestLocale(lang, () -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
-            final Http.Context ctx = Http.Context.current != null ? Http.Context.current.get() : null;
-            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, ctx != null ? ctx.args : null, attrs, this.config);
+            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, Http.Context.safeCurrent().map(ctx -> ctx.args).orElse(null), attrs, this.config);
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);

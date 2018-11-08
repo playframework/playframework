@@ -41,7 +41,7 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], 
         def handleUsingHttpContext(parameters: Seq[AnyRef], request: Request[RequestBody])(implicit executionContext: ExecutionContext) = {
           val ctx = JavaHelpers.createJavaContext(request, contextComponents)
           try {
-            Context.current.set(ctx)
+            Context.setCurrent(ctx)
             val javaResultFuture = route.actionMethod.invoke(route.action, parameters: _*) match {
               case result: Result => Future.successful(result)
               case promise: CompletionStage[_] =>
@@ -50,7 +50,7 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], 
             }
             javaResultFuture.map(JavaHelpers.createResult(ctx, _))
           } finally {
-            Context.current.remove()
+            Context.clear()
           }
         }
 

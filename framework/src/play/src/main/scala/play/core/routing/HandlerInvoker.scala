@@ -167,10 +167,10 @@ object HandlerInvokerFactory {
 
             val callWithContext = {
               try {
-                Context.current.set(javaContext)
+                Context.setCurrent(javaContext)
                 FutureConverters.toScala(call(request.asJava))
               } finally {
-                Context.current.remove()
+                Context.clear()
               }
             }
 

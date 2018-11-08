@@ -633,3 +633,19 @@ public class MyRouter {
 ```
 
 An important aspect to note is that, in the new API, `Http.Request` will always be the first parameter for the function blocks.
+
+### Disabling the `Http.Context` and JPA thread local
+
+If you followed the above migration notes and changed all your code so it doesn't make use of API's that rely on `Http.Context` (meaning you don't get compiler warnings anymore) you can disable the `Http.Context` thread local.
+
+Just add the following line to your `application.conf` file:
+
+```
+play.allowHttpContext = false
+```
+
+To also disable the [`play.db.jpa.JPAEntityManagerContext`](api/java/play/db/jpa/JPAEntityManagerContext.html) thread local add:
+
+```
+play.jpa.allowJPAEntityManagerContext = false
+```
