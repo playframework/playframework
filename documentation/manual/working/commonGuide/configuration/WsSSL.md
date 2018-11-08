@@ -10,7 +10,9 @@ unlimited strength java cryptography extension.  You can download the policy fil
 
 ## Table of Contents
 
-The Play WS configuration is based on [Typesafe SSLConfig](https://lightbend.github.io/ssl-config).  For convenience, a table of contents to SSLConfig is provided:
+The Play WS configuration is based on [Typesafe SSLConfig](https://lightbend.github.io/ssl-config).  
+
+For convenience, a table of contents to SSLConfig is provided:
 
 - [Quick Start to WS SSL](https://lightbend.github.io/ssl-config/WSQuickStart.html)
 - [Generating X.509 Certificates](https://lightbend.github.io/ssl-config/CertificateGeneration.html)
@@ -25,6 +27,9 @@ The Play WS configuration is based on [Typesafe SSLConfig](https://lightbend.git
 - [Debugging SSL Connections](https://lightbend.github.io/ssl-config/DebuggingSSL.html)
 - [Loose Options](https://lightbend.github.io/ssl-config/LooseSSL.html)
 - [Testing SSL](https://lightbend.github.io/ssl-config/TestingSSL.html)
+
+> **NOTE**: The links below are relative to `Typesafe SSLConfig`, which uses the `ssl-config` as a prefix for ssl properties.<br>
+> Play uses the `play.ws.ssl` prefix, so that, for instance the `ssl-config.loose.acceptAnyCertificate` becomes `play.ws.ssl.loose.acceptAnyCertificate` for your play `WSClient` configuration.
 
 ## Further Reading
 
