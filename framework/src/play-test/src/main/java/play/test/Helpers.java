@@ -38,7 +38,6 @@ import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 
 import static play.libs.Scala.asScala;
-import static play.mvc.Http.Context;
 import static play.mvc.Http.Request;
 import static play.mvc.Http.RequestBuilder;
 
@@ -104,29 +103,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
 
     /**
-     * Calls a Callable which invokes a Controller or some other method with a Context.
-     *
-     * @param requestBuilder the request builder to invoke in this context.
-     * @param contextComponents the context components to run.
-     * @param callable the callable block to run.
-     * @param <V> the return type.
-     * @return the value from {@code callable}.
-     *
-     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
-     */
-    @Deprecated
-    public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
-        try {
-            Context.current.set(new Context(requestBuilder, contextComponents));
-            return callable.call();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            Context.current.remove();
-        }
-    }
-
-    /**
      * Builds a new "GET /" fake request.
      * @return the request builder.
      */
@@ -151,29 +127,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static RequestBuilder fakeRequest(Call call) {
         return fakeRequest(call.method(), call.url());
-    }
-
-    /**
-     * Builds a new Http.Context from a new request
-     * @return a new Http.Context using the default request
-     *
-     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
-     */
-    @Deprecated
-    public static Http.Context httpContext() {
-        return httpContext(new Http.RequestBuilder().build());
-    }
-
-    /**
-     * Builds a new Http.Context for a specific request
-     * @param request the Request you want to use for this Context
-     * @return a new Http.Context for this request
-     *
-     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
-     */
-    @Deprecated
-    public static Http.Context httpContext(Http.Request request) {
-        return new Http.Context(request, contextComponents());
     }
 
     /**

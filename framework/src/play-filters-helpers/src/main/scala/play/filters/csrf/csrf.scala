@@ -11,18 +11,20 @@ import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.{ HttpConfiguration, HttpErrorHandler }
-import play.api.inject.{ Binding, Module, bind }
+import play.api.inject.{ Binding, Module }
 import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider }
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.core.j.{ JavaContextComponents, JavaHelpers }
+import play.core.j.{ JavaContextComponents }
 import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, _ }
 import play.mvc.Http
 import play.utils.Reflect
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Future
+
+import play.core.Execution.Implicits.trampoline
 
 /**
  * CSRF configuration.
@@ -273,7 +275,7 @@ object CSRF {
 
   class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) extends ErrorHandler {
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
+      FutureConverters.toScala(underlying.handle(request.asJava, msg)).map(_.asScala())(trampoline)
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {

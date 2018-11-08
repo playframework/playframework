@@ -65,10 +65,4 @@ public class DefaultOpenIdClient implements OpenIdClient {
                 }, executionContext);
         return FutureConverters.toJava(scalaPromise);
     }
-
-    @Override
-    @Deprecated
-    public CompletionStage<UserInfo> verifiedId() {
-        return verifiedId(Http.Context.current().request());
-    }
 }

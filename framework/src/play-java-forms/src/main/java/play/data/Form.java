@@ -248,35 +248,6 @@ public class Form<T> {
     }
 
     /**
-     * @deprecated Deprecated as of 2.7.0.
-     */
-    @Deprecated
-    protected Lang ctxLang() {
-        return Http.Context.safeCurrent().map(ctx -> ctx.messages().lang()).orElse(null);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0.
-     */
-    @Deprecated
-    protected TypedMap ctxRequestAttrs() {
-        return Http.Context.safeCurrent().map(ctx -> ctx.request().attrs()).orElseGet(() -> TypedMap.empty());
-    }
-
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
-     * @return a copy of this form filled with the new data
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Http.Request, String...)} instead.
-     */
-    @Deprecated
-    public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(play.mvc.Controller.ctx().messages().lang(), play.mvc.Controller.request().attrs(), requestData(play.mvc.Controller.request()), allowedFields);
-    }
-
-    /**
      * Binds request data to this form - that is, handles form submission.
      *
      * @param request          the request to bind data from.
@@ -285,20 +256,6 @@ public class Form<T> {
      */
     public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
         return bind(this.messagesApi.preferred(request).lang(), request.attrs(), requestData(request), allowedFields);
-    }
-
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @param requestData      the map of data to bind from
-     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
-     * @return a copy of this form filled with the new data
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, TypedMap, Map, String...)} instead.
-     */
-    @Deprecated
-    public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        return bindFromRequestData(ctxLang(), ctxRequestAttrs(), requestData, allowedFields);
     }
 
     /**
@@ -316,20 +273,6 @@ public class Form<T> {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
         return bind(lang, attrs, data, allowedFields);
-    }
-
-    /**
-     * Binds Json data to this form - that is, handles form submission.
-     *
-     * @param data data to submit
-     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
-     * @return a copy of this form filled with the new data
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, JsonNode, String...)} instead.
-     */
-    @Deprecated
-    public Form<T> bind(JsonNode data, String... allowedFields) {
-        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     /**
@@ -463,7 +406,7 @@ public class Form<T> {
     private Set<ConstraintViolation<Object>> runValidation(Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, String> objectData) {
         return withRequestLocale(lang, () -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
-            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, Http.Context.safeCurrent().map(ctx -> ctx.args).orElse(null), attrs, this.config);
+            final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, attrs, this.config);
             final Validator validator = validatorFactory.unwrap(HibernateValidatorFactory.class).usingContext().constraintValidatorPayload(payload).getValidator();
             if (groups != null) {
                 return validator.validate(dataBinder.getTarget(), groups);
@@ -556,21 +499,6 @@ public class Form<T> {
                         convertErrorArguments(error.getArguments())
                     )
                 ).collect(Collectors.toList());
-    }
-
-    /**
-     * Binds data to this form - that is, handles form submission.
-     *
-     * @param data data to submit
-     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
-     * @return a copy of this form filled with the new data
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, Map, String...)} instead.
-     */
-    @SuppressWarnings("unchecked")
-    @Deprecated
-    public Form<T> bind(Map<String,String> data, String... allowedFields) {
-        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     /**

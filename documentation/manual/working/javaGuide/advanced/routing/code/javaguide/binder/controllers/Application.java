@@ -16,9 +16,7 @@ public class Application extends Controller {
     //#javascript-router-resource
     public Result javascriptRoutes(Http.Request request) {
         return ok(
-            //###skip: 1
-            // TODO: After Play 2.7 use create(String name, String host, JavaScriptReverseRoute... routes) instead
-            JavaScriptReverseRouter.create("jsRoutes", request.host(), "jQuery.ajax",
+            JavaScriptReverseRouter.create("jsRoutes", request.host(),
                 routes.javascript.Users.list(),
                 routes.javascript.Users.get()
             )

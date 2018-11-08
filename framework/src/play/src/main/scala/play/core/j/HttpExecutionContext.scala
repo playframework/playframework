@@ -6,9 +6,7 @@ package play.core.j
 
 import java.util.concurrent.Executor
 
-import play.mvc.Http
 import scala.compat.java8.FutureConverters
-import scala.compat.java8.OptionConverters._
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 object HttpExecutionContext {
@@ -17,7 +15,7 @@ object HttpExecutionContext {
    * Create an HttpExecutionContext with values from the current thread.
    */
   def fromThread(delegate: ExecutionContext): ExecutionContextExecutor =
-    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.safeCurrent().orElse(null), delegate)
+    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), delegate)
 
   /**
    * Create an HttpExecutionContext with values from the current thread.
@@ -30,7 +28,7 @@ object HttpExecutionContext {
    * Create an HttpExecutionContext with values from the current thread.
    */
   def fromThread(delegate: Executor): ExecutionContextExecutor =
-    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.safeCurrent().orElse(null), FutureConverters.fromExecutor(delegate))
+    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), FutureConverters.fromExecutor(delegate))
 
   /**
    * Create an ExecutionContext that will, when prepared, be created with values from that thread.
@@ -48,26 +46,15 @@ object HttpExecutionContext {
  */
 class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext) extends ExecutionContextExecutor {
 
-  var httpContext: Http.Context = null
-
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def this(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) = {
-    this(contextClassLoader, delegate)
-    this.httpContext = httpContext
-  }
-
   override def execute(runnable: Runnable) = delegate.execute(new Runnable {
     def run(): Unit = {
       val thread = Thread.currentThread()
       val oldContextClassLoader = thread.getContextClassLoader()
-      val oldHttpContext = Http.Context.safeCurrent().asScala
       thread.setContextClassLoader(contextClassLoader)
-      Http.Context.setCurrent(httpContext)
       try {
         runnable.run()
       } finally {
         thread.setContextClassLoader(oldContextClassLoader)
-        oldHttpContext.foreach(Http.Context.setCurrent)
       }
     }
   })
@@ -79,7 +66,7 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
     if (delegatePrepared eq delegate) {
       this
     } else {
-      new HttpExecutionContext(contextClassLoader, httpContext, delegatePrepared)
+      new HttpExecutionContext(contextClassLoader, delegatePrepared)
     }
   }
 }

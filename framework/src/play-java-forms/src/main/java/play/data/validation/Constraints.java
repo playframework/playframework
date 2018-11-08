@@ -85,22 +85,12 @@ public class Constraints {
     public static class ValidationPayload {
         private final Lang lang;
         private final Messages messages;
-        private final Map<String, Object> args;
         private final TypedMap attrs;
         private final Config config;
 
         public ValidationPayload(final Lang lang, final Messages messages, final TypedMap attrs, final Config config) {
-            this(lang, messages, Collections.emptyMap(), attrs, config);
-        }
-
-        /**
-         * @deprecated Deprecated as of 2.7.0. Use {@link #ValidationPayload(Lang, Messages, TypedMap, Config)} instead.
-         */
-        @Deprecated
-        public ValidationPayload(final Lang lang, final Messages messages, final Map<String, Object> args, final TypedMap attrs, final Config config) {
             this.lang = lang;
             this.messages = messages;
-            this.args = args;
             this.attrs = attrs;
             this.config = config;
         }
@@ -117,16 +107,6 @@ public class Constraints {
          */
         public Messages getMessages() {
             return this.messages;
-        }
-
-        /**
-         * @return if validation happens during a Http Request the args map of that request, otherwise null
-         *
-         * @deprecated Use {@link #getAttrs()} instead. Since 2.7.0.
-         */
-        @Deprecated
-        public Map<String, Object> getArgs() {
-            return this.args;
         }
 
         /**

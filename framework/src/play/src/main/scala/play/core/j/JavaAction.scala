@@ -20,9 +20,8 @@ import play.api.mvc._
 import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.libs.AnnotationUtils
-import play.mvc.Http.{ Context => JContext, Request => JRequest }
+import play.mvc.Http.{ Request => JRequest }
 
-import scala.compat.java8.OptionConverters._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -78,23 +77,15 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
   val executionContext: ExecutionContext = handlerComponents.executionContext
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
-    val contextComponents = handlerComponents.contextComponents
-    val javaContext: JContext = createJavaContext(req, contextComponents)
+    val javaRequest: JRequest = new RequestImpl(req)
 
     val rootAction = new JAction[Any] {
-      override def call(ctx: JContext): CompletionStage[JResult] = {
-        // The context may have changed, set it again
-        val oldContext = JContext.safeCurrent().asScala
-        try {
-          JContext.setCurrent(ctx)
-          invocation(ctx.request())
-        } finally {
-          oldContext.foreach(JContext.setCurrent)
-        }
+      override def call(req: JRequest): CompletionStage[JResult] = {
+        invocation(req)
       }
     }
 
-    val baseAction = handlerComponents.actionCreator.createAction(javaContext.request, annotations.method)
+    val baseAction = handlerComponents.actionCreator.createAction(javaRequest, annotations.method)
 
     val endOfChainAction = if (config.executeActionCreatorActionFirst) {
       rootAction
@@ -124,7 +115,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
-      new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
+      new HttpExecutionContext(javaClassLoader, trampoline)
     }
     if (logger.isDebugEnabled) {
       val actionChain = play.api.libs.Collections.unfoldLeft[JAction[_], Option[JAction[_]]](Option(firstAction)) { action =>
@@ -137,9 +128,9 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       })
       logger.debug("### End of action order")
     }
-    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext.request())) }(trampolineWithContext)
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaRequest)) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
-    val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
+    val resultFuture: Future[Result] = flattenedActionFuture.map(_.asScala())(trampoline)
     resultFuture
   }
 

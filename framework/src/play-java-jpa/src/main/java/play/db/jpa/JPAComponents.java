@@ -20,6 +20,6 @@ public interface JPAComponents extends DBComponents, ConfigurationComponents {
     }
 
     default JPAApi jpaApi() {
-        return new DefaultJPAApi.JPAApiProvider(jpaConfig(), new JPAEntityManagerContext(), applicationLifecycle(), dbApi(), config()).get();
+        return new DefaultJPAApi.JPAApiProvider(jpaConfig(), applicationLifecycle(), dbApi()).get();
     }
 }

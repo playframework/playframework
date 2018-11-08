@@ -117,20 +117,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
-    @Deprecated
-    public DynamicForm bindFromRequest(String... allowedFields) {
-        return bind(play.mvc.Controller.ctx().messages().lang(), play.mvc.Controller.request().attrs(), requestData(play.mvc.Controller.request()), allowedFields);
-    }
-
-    @Override
     public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
         return bind(this.messagesApi.preferred(request).lang(), request.attrs(), requestData(request), allowedFields);
-    }
-
-    @Override
-    @Deprecated
-    public DynamicForm bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        return bindFromRequestData(ctxLang(), ctxRequestAttrs(), requestData, allowedFields);
     }
 
     @Override
@@ -138,12 +126,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
         return bind(lang, attrs, data, allowedFields);
-    }
-
-    @Override
-    @Deprecated
-    public DynamicForm bind(JsonNode data, String... allowedFields) {
-        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     @Override
@@ -158,12 +140,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
             ),
             allowedFields
         );
-    }
-
-    @Override
-    @Deprecated
-    public DynamicForm bind(Map<String,String> data, String... allowedFields) {
-        return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
     }
 
     @Override
