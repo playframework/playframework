@@ -18,7 +18,7 @@ scalaVersion := "2.12.6"
 For Scala 2.13:
 
 ```scala
-scalaVersion := "2.13.0-M3"
+scalaVersion := "2.13.0-M5"
 ```
 
 > **Note**: Keep in mind Scala 2.13 still does not have a final version.
