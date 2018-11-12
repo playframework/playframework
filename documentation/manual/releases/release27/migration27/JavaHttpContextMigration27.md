@@ -308,7 +308,7 @@ return ok(myview.render(messages));
 Now the template:
 
 ```html
-@(implicit messages: play.i18n.Messages)
+@()(implicit messages: play.i18n.Messages)
 @{messages.at("hello")}
 ```
 
