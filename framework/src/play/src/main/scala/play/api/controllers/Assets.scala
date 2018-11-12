@@ -713,7 +713,7 @@ package controllers {
     import meta._
     import Assets._
 
-    private val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
+    protected val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
     private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
       // First check etag. Important, if there is an If-None-Match header, we MUST not check the
