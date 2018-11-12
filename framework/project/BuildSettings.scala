@@ -730,7 +730,7 @@ object BuildSettings {
     // See also:
     // 1. the root project at build.sbt file.
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, "2.13.0-M3")
+    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212)
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(

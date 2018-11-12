@@ -34,7 +34,7 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "rout
       // See also:
       // 1. the root project at build.sbt file.
       // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
+      crossScalaVersions := Seq(scala211, scala212),
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
@@ -417,7 +417,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       // See also:
       // 1. playRuntimeSettings in project/BuildSettings.scala
       // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
+      crossScalaVersions := Seq(scala211, scala212),
       playBuildRepoName in ThisBuild := "playframework",
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
