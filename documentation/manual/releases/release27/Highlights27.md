@@ -3,26 +3,6 @@
 
 This page highlights the new features of Play 2.7. If you want to learn about the changes you need to make when you migrate to Play 2.7, check out the [[Play 2.7 Migration Guide|Migration27]].
 
-## Scala 2.13 support
-
-Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. Many dependencies were updated so that we can have support for both versions.
-
-You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
-
-For Scala 2.12:
-
-```scala
-scalaVersion := "2.12.6"
-```
-
-For Scala 2.13:
-
-```scala
-scalaVersion := "2.13.0-M3"
-```
-
-> **Note**: Keep in mind Scala 2.13 still does not have a final version.
-
 ## Lifecycle managed by Akka's Coordinated Shutdown
 
 Play 2.6 introduced the usage of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.5/actors.html?language=scala#coordinated-shutdown) but still didn't use it all across the core framework or exposed it to the end user. Coordinated Shutdown is an Akka Extension with a registry of tasks that can be run in an ordered fashion during the shutdown of the Actor System.

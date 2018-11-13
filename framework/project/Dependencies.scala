@@ -8,13 +8,13 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.17")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.18")
   val akkaHttpVersion = "10.1.5"
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
 
-  val playJsonVersion = "2.6.10"
+  val playJsonVersion = "2.7.0-RC1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -281,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.0-M6"
+  val playWsStandaloneVersion = "2.0.0-RC1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
