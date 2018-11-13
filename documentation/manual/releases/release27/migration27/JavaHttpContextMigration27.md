@@ -308,7 +308,7 @@ return ok(myview.render(messages));
 Now the template:
 
 ```html
-@(implicit messages: play.i18n.Messages)
+@()(implicit messages: play.i18n.Messages)
 @{messages.at("hello")}
 ```
 
@@ -532,6 +532,60 @@ Instead, you have to explicitly pass the desired object to your templates now.
 ```
 
 There is no direct replacement for `ctx()` and `response()`.
+
+### Some template tags need an implicit `Request`, `Messages` or `Lang` instance
+
+Some template tags need to access a `Request`, `Messages` or `Lang` instance in order to work correctly.
+Until now these tags just made use of `Http.Context.current()` to retrieve such instances.
+
+Because `Http.Context` is deprecated however, such instances should now be passed as `implicit` parameters to templates which make use of such tags.
+By marking the parameter as `implicit` you don't always have to pass it on to the tag which actually needs it, but the tag can retrieve it from the implicit scope automatically.
+
+Following tags need an implicit `Request` instance to be present:
+```html
+@(arg1, arg2,...)(implicit request: play.mvc.Http.Request)
+
+These tags will automatically use the implicit request passed to this template:
+@helper.jsloader
+@helper.script
+@helper.style
+@helper.javascriptRouter
+@CSRF
+@CSRF.formField
+@CSRF.getToken
+@defaultpages.devError
+@defaultpages.devNotFound
+@defaultpages.error
+@defaultpages.badRequest
+@defaultpages.notFound
+@defaultpages.todo
+@defaultpages.unauthorized
+```
+
+Following tags need an implicit `Messages` instance to be present:
+```html
+@(arg1, arg2,...)(implicit messages: play.i18n.Messages)
+
+These tags will automatically use the implicit messages passed to this template:
+@helper.inputText
+@helper.inputDate
+@helper.inputCheckboxGroup
+@helper.inputFile
+@helper.inputRadioGroup
+@helper.inputPassword
+@helper.textarea
+@helper.input
+@helper.select
+@helper.checkbox
+```
+
+Play itself does not provide tags that need a `Lang` instance to be present, third-party modules however may do:
+
+```html
+@(arg1, arg2,...)(implicit lang: play.i18n.Lang)
+
+Third-party tags will automatically use the implicit messages passed to this template.
+```
 
 ### Changes in Java Forms related to `Http.Context`
 
