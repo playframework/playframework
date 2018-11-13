@@ -21,7 +21,7 @@ import play.core.j.{ JavaContextComponents, DefaultJavaContextComponents }
 import play.core.test.{ FakeRequest, Fakes }
 import play.http
 import play.i18n.{ Langs, MessagesApi }
-import play.mvc.{ FileMimeTypes => JFileMimeTypes, FileMimeTypesProvider => JFileMimeTypesProvider }
+import play.mvc.{ FileMimeTypes => JFileMimeTypes }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
@@ -226,7 +226,6 @@ class HttpErrorHandlerSpec extends Specification {
         BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
         BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
         BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
-        BindingKey(classOf[JFileMimeTypes]).toProvider[JFileMimeTypesProvider].eagerly(),
         BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
       )).instanceOf[HttpErrorHandler]
   }
