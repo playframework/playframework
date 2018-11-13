@@ -226,6 +226,15 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return new DynamicForm(super.rawData(), this.errors(), this.value(), this.messagesApi, this.formatters, this.validatorFactory, this.config, lang);
     }
 
+    @Override
+    public DynamicForm withDirectFieldAccess(Boolean directFieldAccess) {
+        if(directFieldAccess == null || !directFieldAccess) {
+            // Just do nothing
+            return this;
+        }
+        throw new RuntimeException("Not possible to enable direct field access for dynamic forms.");
+    }
+
     // -- tools
 
     static String asDynamicKey(String key) {
