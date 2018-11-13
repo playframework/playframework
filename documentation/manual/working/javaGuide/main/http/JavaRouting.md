@@ -143,7 +143,7 @@ And the corresponding action method:
 
 @[pass-request](code/javaguide/http/routing/controllers/Application.java)
 
-Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param. You can of course mix a `Request` param with other params. It also doesn't matter at which position the `Request` param is.
+Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param. You can, of course, mix a `Request` param with other params and it doesn't matter at which position the `Request` param is.
 
 ## Routing priority
 
