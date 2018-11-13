@@ -38,3 +38,7 @@ GET   /api/list-all         controllers.Api.listOpt(version: java.util.Optional[
 + nocsrf
 POST  /api/new              controllers.Api.newThing()
 # #nocsrf
+
+# #pass-request
+GET   /                     controllers.Application.dashboard(request: Request)
+# #pass-request

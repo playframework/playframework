@@ -55,7 +55,6 @@ class SomeService {
         Collection<Lang> candidates = Collections.singletonList(new Lang(Locale.US));
         Messages messages = messagesApi.preferred(candidates);
         String message = messages.at("home.title");
-
     }
 }
 //#current-lang-render
