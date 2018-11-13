@@ -53,7 +53,7 @@ public final class TypedKey<A> {
      * @return A fresh key.
      */
     public static <A> TypedKey<A> create() {
-        return new TypedKey(TypedKey$.MODULE$.apply());
+        return new TypedKey<>(TypedKey$.MODULE$.apply());
     }
 
     /**
@@ -64,7 +64,7 @@ public final class TypedKey<A> {
      * @return A fresh key.
      */
     public static <A> TypedKey<A> create(String displayName) {
-        return new TypedKey(TypedKey$.MODULE$.apply(displayName));
+        return new TypedKey<>(TypedKey$.MODULE$.apply(displayName));
     }
 
     @Override

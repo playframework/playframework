@@ -82,7 +82,7 @@ The API for body parser was mixing `Integer` and `Long` to define buffer lengths
 
 ## Guice compatibility changes
 
-Guice was upgraded to version [4.2.1](https://github.com/google/guice/wiki/Guice421) (also see [4.2.0 release notes](https://github.com/google/guice/wiki/Guice42)), which causes the following breaking changes:
+Guice was upgraded to version [4.2.2](https://github.com/google/guice/wiki/Guice422) (also see [4.2.1](https://github.com/google/guice/wiki/Guice421) and [4.2.0 release notes](https://github.com/google/guice/wiki/Guice42)), which causes the following breaking changes:
 
  - `play.test.TestBrowser.waitUntil` expects a `java.util.function.Function` instead of a `com.google.common.base.Function` now.
  - In Scala, when overriding the `configure()` method of `AbstractModule`, you need to prefix that method with the `override` identifier now (because it's non-abstract now).
@@ -295,12 +295,11 @@ Please see the documentation in [[CSPFilter]] for more information.
 
 ## play.mvc.Results.TODO moved to play.mvc.Controller.TODO
 
-All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO()` method in `play.mvc.Controller` instead:
+All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO(Http.Request request)` method in `play.mvc.Controller` instead:
 
 ```java
 public abstract class Controller extends Results implements Status, HeaderNames {
-    public static Result TODO() {
-        play.mvc.Http.Request request = Http.Context.current().request();
+    public static Result TODO(play.mvc.Http.Request request) {
         return status(NOT_IMPLEMENTED, views.html.defaultpages.todo.render(request.asScala()));
     }
 }
@@ -346,9 +345,9 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.6"
 
 This section lists significant updates made to our dependencies.
 
-### `Guava` version updated to 26.0-jre
+### `Guava` version updated to 27.0-jre
 
-Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 26.0-jre. Lots of changes were made in the library, and you can see the full changelog [here](https://github.com/google/guava/releases).
+Play 2.6.x provided 23.0 version of Guava library. Now it is updated to last actual version, 27.0-jre. Lots of changes were made in the library, and you can see the full changelog [here](https://github.com/google/guava/releases).
 
 ### specs2 updated to 4.2.0
 
@@ -381,19 +380,67 @@ The `getHandlerFor` method on the `Server` trait was used internally by the Play
 The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
 ```scala
-val reason = CoordinatedShutdown.UnknownReason
-val runFromPhase = Some(CoordinatedShutdown.PhaseBeforeClusterShutdown)
-val coordinatedShutdown = CoodinatedShutdown(actorSystem).run(reason, runFromPhase)
+import akka.actor.ActorSystem
+import javax.inject.Inject
+
+import akka.actor.CoordinatedShutdown
+import akka.actor.CoordinatedShutdown.Reason
+
+class Shutdown @Inject()(actorSystem: ActorSystem) {
+
+  // Define your own reason to run the shutdown
+  case object CustomShutdownReason extends Reason
+
+  def shutdown() = {
+    // Use a phase that is appropriated for your application
+    val runFromPhase = Some(CoordinatedShutdown.PhaseBeforeClusterShutdown)
+    val coordinatedShutdown = CoordinatedShutdown(actorSystem).run(CustomShutdownReason, runFromPhase)
+  }
+}
 ```
 
 And for Java:
 
 ```java
-CoordinatedShutdown.Reason reason = CoordinatedShutdown.unknownReason();
-Optional<String> runFromPhase = Optional.of("");
-CoordinatedShutdown.get(actorSystem).run(reason, runFromPhase);
+import akka.actor.ActorSystem;
+import akka.actor.CoordinatedShutdown;
+
+import javax.inject.Inject;
+import java.util.Optional;
+
+class Shutdown {
+
+    public static final CoordinatedShutdown.Reason customShutdownReason = new CustomShutdownReason();
+
+    private final ActorSystem actorSystem;
+
+    @Inject
+    public Shutdown(ActorSystem actorSystem) {
+        this.actorSystem = actorSystem;
+    }
+
+    public void shutdown() {
+        // Use a phase that is appropriated for your application
+        Optional<String> runFromPhase = Optional.of(CoordinatedShutdown.PhaseBeforeClusterShutdown());
+        CoordinatedShutdown.get(actorSystem).run(customShutdownReason, runFromPhase);
+    }
+
+    public static class CustomShutdownReason implements CoordinatedShutdown.Reason {}
+}
 ```
 
 ## Change in self-signed HTTPS certificate
 
 It is now generated under `target/dev-mode/generated.keystore` instead of directly on the root folder.
+
+## Application Secret is checked for minimum length
+
+The [[application secret|ApplicationSecret]] configuration `play.http.secret.key` is checked for a minimum length in production.  If the key is fifteen characters or fewer, a warning will be logged.  If the key is eight characters or fewer, then an error is thrown and the configuration is invalid.  You can resolve this error by setting the secret to at least 32 bytes of completely random input, such as `head -c 32 /dev/urandom | base64` or by the application secret generator, using `playGenerateSecret` or `playUpdateSecret`.
+
+The [[application secret|ApplicationSecret]] is used as the key for ensuring that a Play session cookie is valid, i.e. has been generated by the server as opposed to spoofed by an attacker.  However, the secret only specifies a string, and does not determine the amount of entropy in that string.  Anyhow, it is possible to put an upper bound on the amount of entropy in the secret simply by measuring how short it is: if the secret is eight characters long, that is at most 64 bits of entropy, which is insufficient by modern standards.
+
+## Change in default character set on "text/plain" Content Types
+
+The Text and Tolerant Text body parsers now use "US-ASCII" as the default charset, replacing the previous default of `ISO-8859-1`.
+
+This is because of some newer HTTP standards, specifically [RFC 7231, appendix B](https://tools.ietf.org/html/rfc7231#appendix-B), which states "The default charset of ISO-8859-1 for text media types has been removed; the default is now whatever the media type definition says."  The `text/plain` media type definition is defined by [RFC 6657, section 4](https://tools.ietf.org/html/rfc6657#section-4), which specifies US-ASCII.  The Text and Tolerant Text Body parsers use `text/plain` as the content type, so now default appropriately.

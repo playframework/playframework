@@ -1,8 +1,4 @@
-@()
+@(flash: play.mvc.Http.Flash)
 @* #flash-template *@
-@if(flash.containsKey("success")) {
-  @flash.get("success")
-} else {
-  Welcome!
-}
+@flash("success").orElse("Welcome!")
 @* #flash-template *@

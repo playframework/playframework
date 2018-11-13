@@ -7,7 +7,10 @@ There are several ways to deploy a Play application in production mode. Let's st
 
 ## The application secret
 
-Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=abcdefghijk`.  You must generate your own secret to use here.
+Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b`.  You must generate your own secret to use when deploying to production.
+
+## Deploying Play with JPA
+ If you are using JPA, you need to take a look at [Deploying with JPA](https://www.playframework.com/documentation/2.6.x/JavaJPA#deploying-play-with-jpa).
 
 ## Using the dist task
 
@@ -54,7 +57,7 @@ To run the application, unzip the file on the target server, and then run the sc
 
 ```bash
 $ unzip my-first-app-1.0.zip
-$ my-first-app-1.0/bin/my-first-app -Dplay.http.secret.key=abcdefghijk
+$ my-first-app-1.0/bin/my-first-app -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
@@ -221,7 +224,7 @@ This cleans and compiles your application, retrieves the required dependencies a
 For example to start an application of the project `my-first-app` from the project folder you can:
 
 ```bash
-$ target/universal/stage/bin/my-first-app -Dplay.http.secret.key=abcdefghijk
+$ target/universal/stage/bin/my-first-app -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
@@ -259,7 +262,7 @@ Now add the following configuration to your `build.sbt`:
 Now you can build the artifact by running `sbt assembly`, and run your application by running:
 
 ```
-$ java -Dplay.http.secret.key=abcdefghijk -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
+$ java -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
 ```
 
 You'll need to substitute in the right project name, version and scala version, of course.

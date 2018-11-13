@@ -25,13 +25,11 @@ public class JavaSessionFlash extends WithApplication {
     public void readSession() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-session
-                    public Result index() {
-                        String user = request().session().get("connected");
-                        if(user != null) {
-                            return ok("Hello " + user);
-                        } else {
-                            return unauthorized("Oops, you are not connected");
-                        }
+                    public Result index(Http.Request request) {
+                        return request.session()
+                            .getOptional("connected")
+                            .map(user -> ok("Hello " + user))
+                            .orElseGet(() -> unauthorized("Oops, you are not connected"));
                     }
                     //#read-session
                 }, fakeRequest().session("connected", "foo"), mat)),
@@ -42,24 +40,24 @@ public class JavaSessionFlash extends WithApplication {
     public void storeSession() {
         Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-session
-            public Result login() {
-                return ok("Welcome!").addingToSession(request(), "connected", "user@gmail.com");
+            public Result login(Http.Request request) {
+                return ok("Welcome!").addingToSession(request, "connected", "user@gmail.com");
             }
             //#store-session
         }, fakeRequest(), mat).session();
-        assertThat(session.get("connected"), equalTo("user@gmail.com"));
+        assertThat(session.getOptional("connected").get(), equalTo("user@gmail.com"));
     }
 
     @Test
     public void removeFromSession() {
         Session session = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#remove-from-session
-            public Result logout() {
-                return ok("Bye").removingFromSession(request(), "connected");
+            public Result logout(Http.Request request) {
+                return ok("Bye").removingFromSession(request, "connected");
             }
             //#remove-from-session
         }, fakeRequest().session("connected", "foo"), mat).session();
-        assertThat(session.get("connected"), nullValue());
+        assertFalse(session.getOptional("connected").isPresent());
     }
 
     @Test
@@ -71,19 +69,15 @@ public class JavaSessionFlash extends WithApplication {
             }
             //#discard-whole-session
         }, fakeRequest().session("connected", "foo"), mat).session();
-        assertThat(session.get("connected"), nullValue());
+        assertFalse(session.getOptional("connected").isPresent());
     }
 
     @Test
     public void readFlash() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#read-flash
-                    public Result index() {
-                        String message = request().flash().get("success");
-                        if(message == null) {
-                            message = "Welcome!";
-                        }
-                        return ok(message);
+                    public Result index(Http.Request request) {
+                        return ok(request.flash().getOptional("success").orElse("Welcome!"));
                     }
                     //#read-flash
                 }, fakeRequest().flash("success", "hi"), mat)),
@@ -99,14 +93,14 @@ public class JavaSessionFlash extends WithApplication {
             }
             //#store-flash
         }, fakeRequest(), mat).flash();
-        assertThat(flash.get("success"), equalTo("The item has been created"));
+        assertThat(flash.getOptional("success").get(), equalTo("The item has been created"));
     }
 
     @Test
     public void accessFlashInTemplate() {
         MockJavaAction index = new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-            public Result index() {
-                return ok(javaguide.http.views.html.index.render());
+            public Result index(Http.Request request) {
+                return ok(javaguide.http.views.html.index.render(request.flash()));
             }
         };
         assertThat(contentAsString(call(index, fakeRequest(), mat)).trim(), equalTo("Welcome!"));

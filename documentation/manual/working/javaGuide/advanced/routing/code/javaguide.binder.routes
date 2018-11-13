@@ -10,5 +10,5 @@ GET     /users/list            controllers.Users.list
 GET     /users/:id             controllers.Users.get(id: Long)
 
 # #javascript-router-routes
-GET     /javascriptRoutes      controllers.Application.javascriptRoutes
+GET     /javascriptRoutes      controllers.Application.javascriptRoutes(request: Request)
 # #javascript-router-routes

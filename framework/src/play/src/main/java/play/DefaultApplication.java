@@ -68,6 +68,7 @@ public class DefaultApplication implements Application {
      * @return the underlying application
      */
     @Override
+    @Deprecated
     public play.api.Application getWrappedApplication() {
       return application;
     }

@@ -106,6 +106,20 @@ public final class TypedMap {
         return new TypedMap(newUnderlying);
     }
 
+    /**
+     * Removes keys from the map, returning a new instance of the map.
+     *
+     * @param keys The keys to remove.
+     * @return A new instance of the map with the entries removed.
+     */
+    public TypedMap remove(TypedKey<?>... keys) {
+        play.api.libs.typedmap.TypedMap newUnderlying = underlying;
+        for (TypedKey<?> k : keys) {
+            newUnderlying = newUnderlying.remove(k.asScala());
+        }
+        return new TypedMap(newUnderlying);
+    }
+
     @Override
     public String toString() {
         return underlying.toString();

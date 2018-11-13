@@ -1,21 +1,21 @@
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
-@(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: String, controllers: Seq[String])
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: Option[String], controllers: Seq[String])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
 
-package @packageName;
+@{packageName.map("package " + _ + ";").getOrElse("")}
 
 import @(pkg.getOrElse("_routes_")).RoutesPrefix;
 
 public class routes @ob
   @for(controller <- controllers) {
-  public static final @(packageName).Reverse@controller @controller = new @(packageName).Reverse@(controller)(RoutesPrefix.byNamePrefix());}
+  public static final @{packageName.map(_ + ".").getOrElse("")}Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}Reverse@(controller)(RoutesPrefix.byNamePrefix());}
 
   public static class javascript @ob
     @for(controller <- controllers) {
-    public static final @(packageName).javascript.Reverse@controller @controller = new @(packageName).javascript.Reverse@(controller)(RoutesPrefix.byNamePrefix());}
+    public static final @{packageName.map(_ + ".").getOrElse("")}javascript.Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}javascript.Reverse@(controller)(RoutesPrefix.byNamePrefix());}
   @cb
 
 @cb

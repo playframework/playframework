@@ -48,10 +48,10 @@ case class HttpVerb(value: String) {
  * @param method The method to invoke on the controller.
  * @param parameters The parameters to pass to the method.
  */
-case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
+case class HandlerCall(packageName: Option[String], controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
   private val dynamic = if (instantiate) "@" else ""
   lazy val passJavaRequest: Boolean = parameters.getOrElse(Nil).exists(_.isJavaRequest)
-  override def toString = dynamic + packageName + "." + controller + dynamic + "." + method + parameters.map { params =>
+  override def toString = dynamic + packageName.map(_ + ".").getOrElse("") + controller + dynamic + "." + method + parameters.map { params =>
     "(" + params.mkString(", ") + ")"
   }.getOrElse("")
 }

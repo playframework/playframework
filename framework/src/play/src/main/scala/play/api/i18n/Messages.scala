@@ -5,11 +5,8 @@
 package play.api.i18n
 
 import java.net.URL
-import java.util.Collections
-import java.util.function.Function
-import java.util.stream.Collectors
-import javax.inject.{ Inject, Provider, Singleton }
 
+import javax.inject.{ Inject, Provider, Singleton }
 import play.api._
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedKey
@@ -20,7 +17,6 @@ import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
 
 import scala.annotation.implicitNotFound
-import scala.collection.mutable
 import scala.collection.breakOut
 import scala.io.Codec
 import scala.language._
@@ -482,9 +478,9 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: RequestHeader): Messages = {
-    val maybeLangFromContext = request.attrs.get(Messages.Attrs.CurrentLang)
+    val maybeLangFromRequest = request.transientLang()
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
-    val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    val lang = langs.preferred(maybeLangFromRequest.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
   }
 

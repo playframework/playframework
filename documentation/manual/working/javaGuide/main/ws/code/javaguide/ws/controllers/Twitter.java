@@ -12,6 +12,7 @@ import play.libs.oauth.OAuth.RequestToken;
 import play.libs.oauth.OAuth.ServiceInfo;
 import play.libs.ws.WSClient;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import com.google.common.base.Strings;
@@ -39,8 +40,8 @@ public class Twitter extends Controller {
         this.ws = ws;
     }
 
-    public CompletionStage<Result> homeTimeline() {
-        Optional<RequestToken> sessionTokenPair = getSessionTokenPair();
+    public CompletionStage<Result> homeTimeline(Http.Request request) {
+        Optional<RequestToken> sessionTokenPair = getSessionTokenPair(request);
         if (sessionTokenPair.isPresent()) {
             return ws.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
                     .sign(new OAuthCalculator(Twitter.KEY, sessionTokenPair.get()))
@@ -50,28 +51,25 @@ public class Twitter extends Controller {
         return CompletableFuture.completedFuture(redirect(routes.Twitter.auth()));
     }
 
-    public Result auth() {
-        String verifier = request().getQueryString("oauth_verifier");
+    public Result auth(Http.Request request) {
+        String verifier = request.getQueryString("oauth_verifier");
         if (Strings.isNullOrEmpty(verifier)) {
-            String url = routes.Twitter.auth().absoluteURL(request());
+            String url = routes.Twitter.auth().absoluteURL(request);
             RequestToken requestToken = TWITTER.retrieveRequestToken(url);
             return redirect(TWITTER.redirectUrl(requestToken.token))
-                    .addingToSession(request(), "token", requestToken.token)
-                    .addingToSession(request(), "secret", requestToken.secret);
+                    .addingToSession(request, "token", requestToken.token)
+                    .addingToSession(request, "secret", requestToken.secret);
         } else {
-            RequestToken requestToken = getSessionTokenPair().get();
+            RequestToken requestToken = getSessionTokenPair(request).get();
             RequestToken accessToken = TWITTER.retrieveAccessToken(requestToken, verifier);
             return redirect(routes.Twitter.homeTimeline())
-                    .addingToSession(request(), "token", accessToken.token)
-                    .addingToSession(request(), "secret", accessToken.secret);
+                    .addingToSession(request, "token", accessToken.token)
+                    .addingToSession(request, "secret", accessToken.secret);
         }
     }
 
-    private Optional<RequestToken> getSessionTokenPair() {
-        if (request().session().containsKey("token")) {
-            return Optional.ofNullable(new RequestToken(request().session().get("token"), request().session().get("secret")));
-        }
-        return Optional.empty();
+    private Optional<RequestToken> getSessionTokenPair(Http.Request request) {
+        return request.session().getOptional("token").map(token -> new RequestToken(token, request.session().getOptional("secret").get()));
     }
 
 }

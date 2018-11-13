@@ -57,14 +57,6 @@ object RoutesFileParser {
 
     routes.foreach { route =>
 
-      if (route.call.packageName.isEmpty) {
-        errors += RoutesCompilationError(
-          file,
-          "Missing package name",
-          Some(route.call.pos.line),
-          Some(route.call.pos.column))
-      }
-
       if (route.call.controller.isEmpty) {
         errors += RoutesCompilationError(
           file,
@@ -299,16 +291,16 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
   // Absolute method consists of a series of Java identifiers representing the package name, controller and method.
-  // Since the Scala parser is greedy, we can't easily extract this out, so just parse at least 3
-  def absoluteMethod: Parser[List[String]] = namedError(ident ~ "." ~ ident ~ "." ~ rep1sep(ident, ".") ^^ {
-    case first ~ _ ~ second ~ _ ~ rest => first :: second :: rest
+  // Since the Scala parser is greedy, we can't easily extract this out, so just parse at least 2
+  def absoluteMethod: Parser[List[String]] = namedError(ident ~ "." ~ rep1sep(ident, ".") ^^ {
+    case first ~ _ ~ rest => first :: rest
   }, "Controller method call expected")
 
   def call: Parser[HandlerCall] = opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
     case instantiate ~ absMethod ~ parameters =>
       {
         val (packageParts, classAndMethod) = absMethod.splitAt(absMethod.size - 2)
-        val packageName = packageParts.mkString(".")
+        val packageName = Option(packageParts.mkString(".")).filterNot(_.isEmpty)
         val className = classAndMethod(0)
         val methodName = classAndMethod(1)
         val dynamic = instantiate.isDefined

@@ -107,3 +107,30 @@ class ErrorHandler @Inject() (
 }
 //#default
 }
+
+package custom {
+
+//#custom-media-type
+import javax.inject._
+import play.api.http._
+
+class MyHttpErrorHandler @Inject() (
+  jsonHandler: JsonHttpErrorHandler,
+  htmlHandler: DefaultHttpErrorHandler,
+  textHandler: MyTextHttpErrorHandler
+) extends PreferredMediaTypeHttpErrorHandler(
+  "application/json" -> jsonHandler,
+  "text/html" -> htmlHandler,
+  "text/plain" -> textHandler
+)
+//#custom-media-type
+
+import play.api.mvc._
+import scala.concurrent._
+
+class MyTextHttpErrorHandler extends HttpErrorHandler {
+  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = ???
+  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = ???
+}
+
+}

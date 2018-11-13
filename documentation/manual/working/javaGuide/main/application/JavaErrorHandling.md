@@ -18,6 +18,16 @@ To use that `HttpErrorHandler` implementation, you should configure the `play.ht
 
     play.http.errorHandler = play.http.JsonHttpErrorHandler
 
+## Using both HTML and JSON, and other content types
+
+If your application uses a mixture of HTML and JSON, as is common in modern web apps, Play offers another error handler that delegates to either the HTML or JSON error handler based on the preferences specified in the client's `Accept` header. This can be specified with:
+
+    play.http.errorHandler = play.http.HtmlOrJsonHttpErrorHandler
+
+This is a suitable default choice of error handler for most applications.
+
+Finally, if you want to support other content types for errors in addition to HTML and JSON, you can extend [`PreferredMediaTypeHttpErrorHandler`](api/java/play/http/PreferredMediaTypeHttpErrorHandler.html) and add error handlers for specific content types, then specify a custom error handler as described below.
+
 ## Supplying a custom error handler
 
 If you're using [`BuiltInComponents`](api/java/play/BuiltInComponents.html) to construct your app, override the `httpRequestHandler` method to return an instance of your custom handler.

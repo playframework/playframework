@@ -269,9 +269,7 @@ public class Result {
         if(this.flash == null) {
             return withFlash(values);
         } else {
-            Map<String, String> newValues = new HashMap<>(this.flash);
-            newValues.putAll(values);
-            return withFlash(newValues);
+            return withFlash(this.flash.adding(values));
         }
     }
 
@@ -298,13 +296,7 @@ public class Result {
         if(this.flash == null) {
             return withNewFlash();
         }
-        Map<String, String> newValues = new HashMap<>(this.flash);
-        if(keys != null) {
-            for (String key : keys) {
-                newValues.remove(key);
-            }
-        }
-        return withFlash(newValues);
+        return withFlash(this.flash.remove(keys));
     }
 
     /**
@@ -364,9 +356,7 @@ public class Result {
      * @return A copy of this result with values added to its session scope.
      */
     public Result addingToSession(Http.Request request, Map<String, String> values) {
-        Map<String, String> newValues = new HashMap<>(session(request));
-        newValues.putAll(values);
-        return withSession(newValues);
+        return withSession(session(request).adding(values));
     }
 
     /**
@@ -389,13 +379,7 @@ public class Result {
      * @return A copy of this result with keys removed from its session scope.
      */
     public Result removingFromSession(Http.Request request, String... keys) {
-        Map<String, String> newValues = new HashMap<>(session(request));
-        if(keys != null) {
-            for (String key : keys) {
-                newValues.remove(key);
-            }
-        }
-        return withSession(newValues);
+        return withSession(session(request).remove(keys));
     }
 
     /**
@@ -520,6 +504,16 @@ public class Result {
      */
     public Result withHeaders(String... nameValues) {
         return new Result(JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies);
+    }
+
+    /**
+     * Discard a HTTP header in this result.
+     *
+     * @param name the header name
+     * @return the transformed copy
+     */
+    public Result discardHeader(String name) {
+        return new Result(header.discardHeader(name), body, session, flash, cookies);
     }
 
     /**

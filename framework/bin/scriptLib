@@ -33,9 +33,5 @@ printMessage() {
 }
 
 runSbt() {
-  sbt ${EXTRA_OPTS} --warn -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
-}
-
-runSbtNoisy() {
   sbt ${EXTRA_OPTS} -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }

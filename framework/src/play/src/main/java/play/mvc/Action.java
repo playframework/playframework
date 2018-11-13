@@ -71,15 +71,16 @@ public abstract class Action<T> extends Results {
      * @return a promise to the action's result
      */
     public CompletionStage<Result> call(Request req) { // TODO: Make this method abstract after removing call(Context)
-        final Context threadLocalCtx = Context.current != null ? Context.current.get() : null;
-        if(threadLocalCtx != null) {
+        return Context.safeCurrent().map(threadLocalCtx -> {
             // A previous action did explicitly set a context onto the thread local (via Http.Context.current.set(...))
             // Let's use that context so the user doesn't loose data he/she set onto that ctx (args,...)
-            return call(threadLocalCtx.withRequest(req));
-        } else {
+            Context newCtx = threadLocalCtx.withRequest(req);
+            Context.setCurrent(newCtx);
+            return call(newCtx);
+        }).orElseGet(() ->
             // A previous action did not set a context explicitly, we simply create a new one to pass on the request
-            return call(new Context(req, contextComponents));
-        }
+            call(new Context(req, contextComponents))
+        );
     }
 
     /**

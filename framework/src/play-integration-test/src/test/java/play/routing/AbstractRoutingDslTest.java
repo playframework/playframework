@@ -12,8 +12,10 @@ import play.libs.XML;
 import play.mvc.Http;
 import play.mvc.PathBindable;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -36,7 +38,215 @@ public abstract class AbstractRoutingDslTest {
     }
 
     @Test
+    public void shouldProvideJavaRequestToActionWithoutParameters() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request")
+                .routingTo(request ->
+                        request.header("X-Test")
+                            .map(Results::ok)
+                            .orElse(Results.notFound())).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToActionWithSingleParameter() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request/:p1")
+                .routingTo((request, number) ->
+                        request.header("X-Test")
+                            .map(header -> Results.ok(header + " - " + number))
+                            .orElse(Results.notFound())).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request/10",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value - 10"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToActionWith2Parameters() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request/:p1/:p2")
+                .routingTo((request, n1, n2) ->
+                        request.header("X-Test")
+                            .map(header -> Results.ok(header + " - " + n1 + " - " + n2))
+                            .orElse(Results.notFound())).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request/10/20",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value - 10 - 20"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToActionWith3Parameters() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request/:p1/:p2/:p3")
+                .routingTo((request, n1, n2, n3) ->
+                        request.header("X-Test")
+                                .map(header -> Results.ok(header + " - " + n1 + " - " + n2 + " - " + n3))
+                                .orElse(Results.notFound())).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request/10/20/30",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value - 10 - 20 - 30"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToAsyncActionWithoutParameters() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request")
+                .routingAsync(request ->
+                    CompletableFuture.completedFuture(
+                        request.header("X-Test")
+                            .map(Results::ok)
+                            .orElse(Results.notFound())
+                    )
+                ).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToAsyncActionWithSingleParameter() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request/:p1")
+                .routingAsync((request, number) ->
+                    CompletableFuture.completedFuture(
+                        request.header("X-Test")
+                            .map(header -> Results.ok(header + " - " + number))
+                            .orElse(Results.notFound())
+                    )
+                ).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request/10",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value - 10"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToAsyncActionWith2Parameters() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request/:p1/:p2")
+                .routingAsync((request, n1, n2) ->
+                    CompletableFuture.completedFuture(
+                        request.header("X-Test")
+                            .map(header -> Results.ok(header + " - " + n1 + " - " + n2))
+                            .orElse(Results.notFound())
+                    )
+                ).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request/10/20",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value - 10 - 20"));
+    }
+
+    @Test
+    public void shouldProvideJavaRequestToAsyncActionWith3Parameters() {
+        Router router = router(routingDsl -> routingDsl.GET("/with-request/:p1/:p2/:p3")
+                .routingAsync((request, n1, n2, n3) ->
+                    CompletableFuture.completedFuture(
+                        request.header("X-Test")
+                            .map(header -> Results.ok(header + " - " + n1 + " - " + n2 + " - " + n3))
+                            .orElse(Results.notFound())
+                        )
+                ).build());
+
+        String result = makeRequest(
+                router,
+                "GET",
+                "/with-request/10/20/30",
+                rb -> rb.header("X-Test", "Header value")
+        );
+        assertThat(result, equalTo("Header value - 10 - 20 - 30"));
+    }
+
+    @Test
     public void shouldPreserveRequestBodyAsText() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routingTo(request -> Results.ok(request.body().asText()))
+                .build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                rb -> rb.bodyText("The Body")
+        );
+        assertThat(result, equalTo("The Body"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsJson() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routingTo(request -> Results.ok(request.body().asJson()))
+                .build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                requestBuilder -> requestBuilder.bodyJson(Json.parse("{ \"a\": \"b\" }"))
+        );
+        assertThat(result, equalTo("{\"a\":\"b\"}"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsXml() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routingTo(request -> ok(XML.toBytes(request.body().asXml()).utf8String()))
+                .build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                requestBuilder -> requestBuilder.bodyXml(XML.fromString("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>"))
+        );
+        assertThat(result, equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsRawBuffer() {
+        Router router = router(routingDsl -> routingDsl.POST("/with-body")
+                .routingTo(request -> ok(request.body().asRaw().asBytes().utf8String()))
+                .build());
+
+        String result = makeRequest(
+                router,
+                "POST",
+                "/with-body",
+                requestBuilder -> requestBuilder.bodyRaw(ByteString.fromString("The Raw Body"))
+        );
+        assertThat(result, equalTo("The Raw Body"));
+    }
+
+    @Test
+    public void shouldPreserveRequestBodyAsTextWhenUsingHttpContext() {
         Router router = router(routingDsl -> routingDsl.POST("/with-body")
             .routeTo(() -> {
                 // This better emulates how users will access the request object
@@ -54,7 +264,7 @@ public abstract class AbstractRoutingDslTest {
     }
 
     @Test
-    public void shouldPreserveRequestBodyAsJson() {
+    public void shouldPreserveRequestBodyAsJsonWhenUsingHttpContext() {
         Router router = router(routingDsl -> routingDsl.POST("/with-body")
                 .routeTo(() -> {
                     // This better emulates how users will access the request object
@@ -72,7 +282,7 @@ public abstract class AbstractRoutingDslTest {
     }
 
     @Test
-    public void shouldPreserveRequestBodyAsXml() {
+    public void shouldPreserveRequestBodyAsXmlWhenUsingHttpContext() {
         Router router = router(routingDsl -> routingDsl.POST("/with-body")
                 .routeTo(() -> {
                     // This better emulates how users will access the request object
@@ -90,7 +300,7 @@ public abstract class AbstractRoutingDslTest {
     }
 
     @Test
-    public void shouldPreserveRequestBodyAsRawBuffer() {
+    public void shouldPreserveRequestBodyAsRawBufferWhenUsingHttpContext() {
         Router router = router(routingDsl -> routingDsl.POST("/with-body")
                 .routeTo(() -> {
                     // This better emulates how users will access the request object

@@ -9,6 +9,7 @@ import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import play.api.http.HttpConfiguration;
 import play.api.http.Status$;
@@ -37,15 +38,21 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.*;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.*;
 import static scala.collection.JavaConverters.mapAsJavaMapConverter;
 import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
@@ -235,17 +242,19 @@ public interface BodyParser<A> {
     /**
      * Parse the body as text if the Content-Type is text/plain.
      */
-    class Text extends TolerantText {
+    class Text extends BufferingBodyParser<String> {
+        private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Text.class);
+
         private final HttpErrorHandler errorHandler;
 
         public Text(long maxLength, HttpErrorHandler errorHandler) {
-            super(maxLength, errorHandler);
+            super(maxLength, errorHandler, "Error decoding text/plain body");
             this.errorHandler = errorHandler;
         }
 
         @Inject
         public Text(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler) {
-            super(httpConfiguration, errorHandler);
+            super(httpConfiguration, errorHandler, "Error decoding text/plain body");
             this.errorHandler = errorHandler;
         }
 
@@ -255,12 +264,37 @@ public interface BodyParser<A> {
                 ct -> ct.equalsIgnoreCase("text/plain"), super::apply
             );
         }
+
+        @Override
+        protected String parse(Http.RequestHeader request, ByteString bytes) throws Exception {
+            // Per RFC 7231:
+            // The default charset of ISO-8859-1 for text media types has been removed; the default is now
+            // whatever the media type definition says.
+            // Per RFC 6657:
+            // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
+            // https://tools.ietf.org/html/rfc6657#section-4
+            Charset charset = request.charset().map(Charset::forName).orElse(US_ASCII);
+            try {
+                CharsetDecoder decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
+                return decoder.decode(bytes.toByteBuffer()).toString();
+            } catch (CharacterCodingException e) {
+                String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.id(), charset);
+                logger.warn(msg);
+                return bytes.decodeString(charset); // parse and return with unmappable characters.
+            } catch (Exception e) {
+                String msg = "Unexpected exception while parsing text/plain body";
+                logger.error(msg, e);
+                return bytes.decodeString(charset);
+            }
+        }
     }
 
     /**
      * Parse the body as text without checking the Content-Type.
      */
     class TolerantText extends BufferingBodyParser<String> {
+
+        private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TolerantText.class);
 
         public TolerantText(long maxLength, HttpErrorHandler errorHandler) {
             super(maxLength, errorHandler, "Error decoding text body");
@@ -273,8 +307,45 @@ public interface BodyParser<A> {
 
         @Override
         protected String parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-            String charset = request.charset().orElse("ISO-8859-1");
-            return bytes.decodeString(charset);
+            ByteBuffer byteBuffer = bytes.toByteBuffer();
+            final Function<Charset, F.Either<Exception, String>> decode = (Charset encodingToTry) -> {
+                try {
+                    CharsetDecoder decoder = encodingToTry.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
+                    return F.Either.Right(decoder.decode(byteBuffer).toString());
+                } catch (CharacterCodingException e) {
+                    String msg = String.format("Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!", request.id(), encodingToTry);
+                    logger.warn(msg);
+                    return F.Either.Left(e);
+                } catch (Exception e) {
+                    String msg = "Unexpected exception!";
+                    logger.error(msg, e);
+                    return F.Either.Left(e);
+                }
+            };
+
+            // Run through a common set of encoders to get an idea of the best character encoding.
+
+            // Per RFC 7231:
+            // The default charset of ISO-8859-1 for text media types has been removed; the default is now
+            // whatever the media type definition says.
+            // Per RFC 6657:
+            // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
+            // https://tools.ietf.org/html/rfc6657#section-4
+            Charset charset = request.charset().map(Charset::forName).orElse(US_ASCII);
+            return decode.apply(charset).right.orElseGet(
+                    () -> {
+                        // Fallback to UTF-8 if user supplied charset doesn't work...
+                        return decode.apply(UTF_8).right.orElseGet(
+                                () -> {
+                                    // Fallback to ISO_8859_1 if UTF-8 doesn't decode right...
+                                    return decode.apply(ISO_8859_1).right.orElseGet(
+                                            () -> {
+                                                // We can't get a decent charset.
+                                                // Parse as given codeset, using ? for any unmappable characters.
+                                                return bytes.decodeString(charset);
+                                            });
+                                });
+                    });
         }
     }
 
