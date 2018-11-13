@@ -4,7 +4,6 @@
 
 package play;
 
-import play.api.ApplicationLoader;
 import play.api.http.HttpConfiguration;
 import play.api.i18n.DefaultMessagesApiProvider;
 import play.components.*;
@@ -77,7 +76,7 @@ public interface BuiltInComponents extends
     /**
      * Helper to interact with the Play build environment. Only available in dev mode.
      */
-    default Optional<ApplicationLoader.DevContext> devContext() {
+    default Optional<play.api.ApplicationLoader.DevContext> devContext() {
         return Optional.empty();
     }
 
