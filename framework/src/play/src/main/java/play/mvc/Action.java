@@ -5,9 +5,12 @@
 package play.mvc;
 
 import java.lang.reflect.AnnotatedElement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 import play.core.j.JavaContextComponents;
+import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 
@@ -51,6 +54,8 @@ public abstract class Action<T> extends Results {
      */
     public Action<?> delegate;
 
+    private static final TypedKey<Map<String, Object>> CTX_ARGS = TypedKey.<Map<String, Object>>create("http-context-args");
+
     /**
      * Executes this action with the given HTTP context and returns the result.
      *
@@ -61,7 +66,7 @@ public abstract class Action<T> extends Results {
      */
     @Deprecated // TODO: When you remove this method make call(Request) below abstract
     public CompletionStage<Result> call(Context ctx) {
-        return call(ctx.request());
+        return call(ctx.args != null && !ctx.args.isEmpty() ? ctx.request().addAttr(CTX_ARGS, ctx.args) : ctx.request());
     }
 
     /**
@@ -74,13 +79,15 @@ public abstract class Action<T> extends Results {
         return Context.safeCurrent().map(threadLocalCtx -> {
             // A previous action did explicitly set a context onto the thread local (via Http.Context.current.set(...))
             // Let's use that context so the user doesn't loose data he/she set onto that ctx (args,...)
-            Context newCtx = threadLocalCtx.withRequest(req);
+            Context newCtx = threadLocalCtx.withRequest(req.removeAttr(CTX_ARGS));
             Context.setCurrent(newCtx);
             return call(newCtx);
-        }).orElseGet(() ->
+        }).orElseGet(() -> {
             // A previous action did not set a context explicitly, we simply create a new one to pass on the request
-            call(new Context(req, contextComponents))
-        );
+            Context ctx = new Context(req.removeAttr(CTX_ARGS), contextComponents);
+            ctx.args = req.attrs().getOptional(CTX_ARGS).orElse(new HashMap<>());
+            return call(ctx);
+        });
     }
 
     /**
