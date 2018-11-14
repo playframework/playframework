@@ -6,8 +6,13 @@
 
 cd ${FRAMEWORK}
 
-printMessage "RUNNING PUBLISH LOCAL"
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
 
-runSbt "publishLocal"
+  printMessage "RUNNING PUBLISH LOCAL"
+  runSbt "publishLocal"
+  printMessage "PUBLISH LOCAL PASSED"
+else
+    printMessage "SKIPPING PUBLISH LOCAL"
+fi
 
-printMessage "PUBLISH LOCAL PASSED"
+
