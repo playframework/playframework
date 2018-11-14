@@ -93,6 +93,12 @@ trait FormSpec extends Specification {
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
         myForm hasErrors () must beEqualTo(false)
       }
+      "be valid with all fields with direct field access" in {
+        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891"), "task.name" -> Array("peter"), "task.dueDate" -> Array("15/12/2009"), "task.endDate" -> Array("2008-11-21")))
+
+        val myForm = formFactory.form("task", classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+        myForm hasErrors () must beEqualTo(false)
+      }
       "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(application()) {
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("notAnInt"), "task.name" -> Array("peter"), "task.done" -> Array("true"), "task.dueDate" -> Array("15/12/2009")))
         Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
@@ -112,12 +118,31 @@ trait FormSpec extends Specification {
         myForm hasErrors () must beEqualTo(true)
         myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
       }
+      "have an error due to missing required value with direct field access" in new WithApplication(application()) {
+        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
+
+        val myForm = formFactory.form("task", classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+        myForm hasErrors () must beEqualTo(true)
+        myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
+      }
     }
     "be valid with all fields" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+    }
+    "be valid with all fields with direct field access" in {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
+
+      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+      myForm hasErrors () must beEqualTo(false)
+    }
+    "be valid with all fields with direct field access switched on in config" in new WithApplication(application("play.forms.binding.directFieldAccess" -> "true")) {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
+
+      val myForm = formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req)
       myForm hasErrors () must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
@@ -259,6 +284,13 @@ trait FormSpec extends Specification {
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(true)
+      myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
+    }
+    "have an error due to missing required value with direct field access" in new WithApplication(application()) {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+
+      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
       myForm hasErrors () must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
     }
