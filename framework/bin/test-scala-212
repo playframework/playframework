@@ -8,7 +8,6 @@ cd ${FRAMEWORK}
 
 printMessage "RUNNING TESTS FOR SCALA 2.12"
 
-# Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
 runSbt "test"
 
 printMessage "ALL TESTS PASSED"
