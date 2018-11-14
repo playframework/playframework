@@ -51,11 +51,11 @@ You can also put any action composition annotation directly on the `Controller` 
 
 ## Passing objects from action to controller
 
-You can pass an object from an action to a controller by utilizing the context args map.
+You can pass an object from an action to a controller by utilizing request attributes.
 
 @[pass-arg-action](code/javaguide/http/JavaActionsComposition.java)
 
-Then in an action you can get the arg like this:
+Then in an action you can get the request attribute like this:
 
 @[pass-arg-action-index](code/javaguide/http/JavaActionsComposition.java)
 
