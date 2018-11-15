@@ -37,6 +37,8 @@ import play.core.Execution.Implicits.trampoline
 object Multipart {
 
   private final val maxHeaderBuffer = 4096
+  private val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+  private val ExtendedKeyValue = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
   /**
    * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
@@ -200,10 +202,6 @@ object Multipart {
     }
 
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-      val ExtendedKeyValue = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -231,10 +229,6 @@ object Multipart {
 
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-      val ExtendedKeyValue = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
-
       for {
         values <- headers
           .get("content-disposition")
