@@ -100,7 +100,7 @@ public class Form<T> {
     private final Optional<T> value;
     private final Class<?>[] groups;
     private final Lang lang;
-    private final Boolean directFieldAccess;
+    private final boolean directFieldAccess;
     final MessagesApi messagesApi;
     final Formatters formatters;
     final ValidatorFactory validatorFactory;
@@ -185,7 +185,7 @@ public class Form<T> {
      * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
-        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, null);
+        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, config.getBoolean("play.forms.binding.directFieldAccess"));
     }
 
     /**
@@ -204,7 +204,7 @@ public class Form<T> {
      * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
      * @param directFieldAccess access fields of form directly during binding instead of using getters
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang, Boolean directFieldAccess) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang, boolean directFieldAccess) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -466,7 +466,7 @@ public class Form<T> {
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
-        if((this.directFieldAccess != null && this.directFieldAccess) || (this.directFieldAccess == null && this.config.getBoolean("play.forms.binding.directFieldAccess"))) {
+        if(this.directFieldAccess) {
             // FYI: initBeanPropertyAccess() is the default, let's switch to direct field access instead
             dataBinder.initDirectFieldAccess(); // this should happen last, when everything else was set on the dataBinder already
         }
@@ -1079,7 +1079,7 @@ public class Form<T> {
      *
      * @param directFieldAccess {@code true} enables direct field access during form binding, {@code false} disables it and uses getters instead. If {@code null} falls back to config default.
      */
-    public Form withDirectFieldAccess(Boolean directFieldAccess) {
+    public Form withDirectFieldAccess(boolean directFieldAccess) {
         return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, directFieldAccess);
     }
 

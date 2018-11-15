@@ -227,8 +227,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     @Override
-    public DynamicForm withDirectFieldAccess(Boolean directFieldAccess) {
-        if(directFieldAccess == null || !directFieldAccess) {
+    public DynamicForm withDirectFieldAccess(boolean directFieldAccess) {
+        if(!directFieldAccess) {
             // Just do nothing
             return this;
         }
