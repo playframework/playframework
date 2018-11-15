@@ -36,7 +36,7 @@ public class ActionCompositionOrderTest {
     @Retention(RetentionPolicy.RUNTIME)
     @interface ActionAnnotation {}
 
-    static class ActionComposition extends Action<ControllerAnnotation> {
+    static class ActionComposition extends Action<ActionAnnotation> {
         @Override
         public CompletionStage<Result> call(Http.Request req) {
             return delegate.call(req).thenApply(result -> {
