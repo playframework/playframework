@@ -294,6 +294,14 @@ trait FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
     }
+    "be invalid when only fields (and no getters) exist but direct field access is disabled" in {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+
+      formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req) must throwA[IllegalStateException].like {
+        case e: IllegalStateException =>
+          e.getMessage must beMatching("""JSR-303 validated property '.*' does not have a corresponding accessor for data binding - check your DataBinder's configuration \(bean property versus direct field access\)""")
+      }
+    }
     "have an error due to bad value in Id field" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
