@@ -185,7 +185,7 @@ public class Form<T> {
      * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
-        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, config.getBoolean("play.forms.binding.directFieldAccess"));
+        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, config != null && config.getBoolean("play.forms.binding.directFieldAccess"));
     }
 
     /**
