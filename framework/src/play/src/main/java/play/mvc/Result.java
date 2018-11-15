@@ -265,7 +265,7 @@ public class Result {
      * @param values A map with values to add to this result’s flash
      * @return A copy of this result with values added to its flash scope.
      */
-    public Result flashing(Map<String, String> values) {
+    public Result flash(Map<String, String> values) {
         if(this.flash == null) {
             return withFlash(values);
         } else {
@@ -280,10 +280,10 @@ public class Result {
      * @param value The value to add to this result’s flash
      * @return A copy of this result with the key and value added to its flash scope.
      */
-    public Result flashing(String key, String value) {
+    public Result flash(String key, String value) {
         Map<String, String> newValues = new HashMap<>(1);
         newValues.put(key, value);
-        return flashing(newValues);
+        return flash(newValues);
     }
 
     /**
