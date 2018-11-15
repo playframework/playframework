@@ -87,6 +87,12 @@ class DynamicFormSpec extends Specification {
       }
     }
 
+    "work when switch off direct field access" in {
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config).withDirectFieldAccess(false).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      form.get("foo") must_== "bar"
+      form.value("foo").get must_== "bar"
+    }
+
     "don't throw NullPointerException when all components of form are null" in {
       val form = new DynamicForm(null, null, null, null).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
       form("foo").value().get() must_== "bar"
