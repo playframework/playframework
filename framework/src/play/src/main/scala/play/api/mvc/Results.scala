@@ -225,13 +225,13 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    *
    * For example:
    * {{{
-   * Redirect(routes.Application.index()).flashing(flash + ("success" -> "Done!"))
+   * Redirect(routes.Application.index()).flash(flash + ("success" -> "Done!"))
    * }}}
    *
    * @param flash the flash scope to set with this result
    * @return the new result
    */
-  def flashing(flash: Flash): Result = {
+  def flash(flash: Flash): Result = {
     Result.warnFlashingIfNotRedirect(flash, header)
     copy(newFlash = Some(flash))
   }
@@ -241,13 +241,13 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    *
    * For example:
    * {{{
-   * Redirect(routes.Application.index()).flashing("success" -> "Done!")
+   * Redirect(routes.Application.index()).flash("success" -> "Done!")
    * }}}
    *
    * @param values the flash values to set with this result
    * @return the new result
    */
-  def flashing(values: (String, String)*): Result = flashing(Flash(values.toMap))
+  def flash(values: (String, String)*): Result = flash(Flash(values.toMap))
 
   /**
    * Changes the result content type.
