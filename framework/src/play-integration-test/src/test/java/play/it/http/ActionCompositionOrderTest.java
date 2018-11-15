@@ -36,7 +36,7 @@ public class ActionCompositionOrderTest {
     @Retention(RetentionPolicy.RUNTIME)
     @interface ActionAnnotation {}
 
-    static class ActionComposition extends Action<ControllerAnnotation> {
+    static class ActionComposition extends Action<ActionAnnotation> {
         @Override
         public CompletionStage<Result> call(Http.Request req) {
             return delegate.call(req).thenApply(result -> {
@@ -112,6 +112,48 @@ public class ActionCompositionOrderTest {
                 String newContent = "do_NOT_treat_me_as_container_annotation" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
             });
+        }
+    }
+
+    @With(ContextArgsSetAction.class)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface ContextArgsSet {}
+
+    static class ContextArgsSetAction extends Action<ContextArgsSet> {
+        @Override
+        public CompletionStage<Result> call(Http.Context ctx) {
+            ctx.args.put("foo", "bar");
+            return delegate.call(ctx);
+        }
+    }
+
+    @With(ContextArgsGetAction.class)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface ContextArgsGet {}
+
+    static class ContextArgsGetAction extends Action<ContextArgsGet> {
+        @Override
+        public CompletionStage<Result> call(Http.Context ctx) {
+            return delegate.call(ctx).thenApply(result -> {
+                if("bar".equals(ctx.args.get("foo"))) {
+                    return Results.ok("ctx.args were set");
+                }
+                return Results.ok();
+            });
+        }
+    }
+
+    @With(NoopUsingRequestAction.class)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface NoopUsingRequest {}
+
+    static class NoopUsingRequestAction extends Action<NoopUsingRequest> {
+        @Override
+        public CompletionStage<Result> call(Http.Request req) {
+            return delegate.call(req);
         }
     }
 }

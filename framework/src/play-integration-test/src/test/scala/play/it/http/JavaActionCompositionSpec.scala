@@ -13,83 +13,117 @@ import play.core.j.MappedJavaHandlerComponents
 import play.http.{ ActionCreator, DefaultActionCreator }
 import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation, WithUsername }
 import play.mvc.{ EssentialFilter, Result, Results, Security }
-import play.mvc.Http.Cookie
+import play.mvc.Http._
 import play.routing.{ Router => JRouter }
 
 class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
-  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T = {
-    implicit val port = testServerPort
-    lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
-      case _ => JAction(app, controller)
-    }.build()
 
-    running(TestServer(port, app)) {
-      val response = await(wsUrl("/").get())
-      block(response)
+  sequential
+
+  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty, allowHttpContext: Boolean = true)(block: WSResponse => T): T = {
+    val oldThreadLocal = Context.current
+    try {
+      if (!allowHttpContext) {
+        Context.current = null
+      }
+      implicit val port = testServerPort
+      lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
+        case _ => JAction(app, controller)
+      }.build()
+
+      running(TestServer(port, app)) {
+        val response = await(wsUrl("/").get())
+        block(response)
+      }
+    } finally {
+      if (!allowHttpContext) {
+        Context.current = oldThreadLocal
+      }
     }
   }
 }
 
 class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSpec {
 
+  sequential
+
   def context(initialSettings: Map[String, AnyRef]): play.ApplicationLoader.Context = {
     import scala.collection.JavaConverters._
     play.ApplicationLoader.create(play.Environment.simple(), initialSettings.asJava)
   }
 
-  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef])(block: (WSResponse) => T): T = {
-    implicit val port = testServerPort
-    val components = new play.BuiltInComponentsFromContext(context(configuration)) {
+  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef], allowHttpContext: Boolean = true)(block: (WSResponse) => T): T = {
+    val oldThreadLocal = Context.current
+    try {
+      if (!allowHttpContext) {
+        Context.current = null
+      }
+      implicit val port = testServerPort
+      val components = new play.BuiltInComponentsFromContext(context(configuration)) {
 
-      override def javaHandlerComponents(): MappedJavaHandlerComponents = {
-        import java.util.function.{ Supplier => JSupplier }
-        super.javaHandlerComponents()
-          .addAction(classOf[ActionCompositionOrderTest.ActionComposition], new JSupplier[ActionCompositionOrderTest.ActionComposition] {
-            override def get(): ActionCompositionOrderTest.ActionComposition = new ActionCompositionOrderTest.ActionComposition()
-          })
-          .addAction(classOf[ActionCompositionOrderTest.ControllerComposition], new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
-            override def get(): ActionCompositionOrderTest.ControllerComposition = new ActionCompositionOrderTest.ControllerComposition()
-          })
-          .addAction(classOf[ActionCompositionOrderTest.WithUsernameAction], new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
-            override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
-          })
-          .addAction(classOf[ActionCompositionOrderTest.FirstAction], new JSupplier[ActionCompositionOrderTest.FirstAction] {
-            override def get(): ActionCompositionOrderTest.FirstAction = new ActionCompositionOrderTest.FirstAction()
-          })
-          .addAction(classOf[ActionCompositionOrderTest.SecondAction], new JSupplier[ActionCompositionOrderTest.SecondAction] {
-            override def get(): ActionCompositionOrderTest.SecondAction = new ActionCompositionOrderTest.SecondAction()
-          })
-          .addAction(classOf[ActionCompositionOrderTest.SomeActionAnnotationAction], new JSupplier[ActionCompositionOrderTest.SomeActionAnnotationAction] {
-            override def get(): ActionCompositionOrderTest.SomeActionAnnotationAction = new ActionCompositionOrderTest.SomeActionAnnotationAction()
-          })
+        override def javaHandlerComponents(): MappedJavaHandlerComponents = {
+          import java.util.function.{ Supplier => JSupplier }
+          super.javaHandlerComponents()
+            .addAction(classOf[ActionCompositionOrderTest.ActionComposition], new JSupplier[ActionCompositionOrderTest.ActionComposition] {
+              override def get(): ActionCompositionOrderTest.ActionComposition = new ActionCompositionOrderTest.ActionComposition()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.ControllerComposition], new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
+              override def get(): ActionCompositionOrderTest.ControllerComposition = new ActionCompositionOrderTest.ControllerComposition()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.WithUsernameAction], new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
+              override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.FirstAction], new JSupplier[ActionCompositionOrderTest.FirstAction] {
+              override def get(): ActionCompositionOrderTest.FirstAction = new ActionCompositionOrderTest.FirstAction()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.SecondAction], new JSupplier[ActionCompositionOrderTest.SecondAction] {
+              override def get(): ActionCompositionOrderTest.SecondAction = new ActionCompositionOrderTest.SecondAction()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.SomeActionAnnotationAction], new JSupplier[ActionCompositionOrderTest.SomeActionAnnotationAction] {
+              override def get(): ActionCompositionOrderTest.SomeActionAnnotationAction = new ActionCompositionOrderTest.SomeActionAnnotationAction()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.ContextArgsSetAction], new JSupplier[ActionCompositionOrderTest.ContextArgsSetAction] {
+              override def get(): ActionCompositionOrderTest.ContextArgsSetAction = new ActionCompositionOrderTest.ContextArgsSetAction()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.ContextArgsGetAction], new JSupplier[ActionCompositionOrderTest.ContextArgsGetAction] {
+              override def get(): ActionCompositionOrderTest.ContextArgsGetAction = new ActionCompositionOrderTest.ContextArgsGetAction()
+            })
+            .addAction(classOf[ActionCompositionOrderTest.NoopUsingRequestAction], new JSupplier[ActionCompositionOrderTest.NoopUsingRequestAction] {
+              override def get(): ActionCompositionOrderTest.NoopUsingRequestAction = new ActionCompositionOrderTest.NoopUsingRequestAction()
+            })
+        }
+
+        override def router(): JRouter = {
+          Router.from {
+            case _ => JAction(application().asScala(), controller, javaHandlerComponents())
+          }.asJava
+        }
+
+        override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
+
+        override def actionCreator(): ActionCreator = {
+          configuration.get[Option[String]]("play.http.actionCreator")
+            .map(Class.forName)
+            .map(c => c.getDeclaredConstructor().newInstance().asInstanceOf[ActionCreator])
+            .getOrElse(new DefaultActionCreator)
+        }
       }
 
-      override def router(): JRouter = {
-        Router.from {
-          case _ => JAction(application().asScala(), controller, javaHandlerComponents())
-        }.asJava
+      running(TestServer(port, components.application().asScala())) {
+        val response = await(wsUrl("/").get())
+        block(response)
       }
-
-      override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
-
-      override def actionCreator(): ActionCreator = {
-        configuration.get[Option[String]]("play.http.actionCreator")
-          .map(Class.forName)
-          .map(c => c.getDeclaredConstructor().newInstance().asInstanceOf[ActionCreator])
-          .getOrElse(new DefaultActionCreator)
+    } finally {
+      if (!allowHttpContext) {
+        Context.current = oldThreadLocal
       }
-    }
-
-    running(TestServer(port, components.application().asScala())) {
-      val response = await(wsUrl("/").get())
-      block(response)
     }
   }
 }
 
 trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
-  def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty)(block: WSResponse => T): T
+  def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty, allowHttpContext: Boolean = true)(block: WSResponse => T): T
 
   "When action composition is configured to invoke controller first" should {
     "execute controller composition before action composition" in makeRequest(new ComposedController {
@@ -231,6 +265,12 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
                                      |java.lang.reflect.Methodaction2
                                      |java.lang.Classaction1
                                      |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+    }
+
+    "make sure ctx.args are preserved when thread-local is disabled and a call(req) was executed in between two call(ctx)" in makeRequest(new PreserveContextArgsController(), Map(
+      "play.allowHttpContext" -> "false"
+    ), allowHttpContext = false) { response =>
+      response.body must beEqualTo("ctx.args were set")
     }
   }
 
