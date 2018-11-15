@@ -2,11 +2,12 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.mvc
+package play.core
 
 import play.api.inject._
 
 import javax.inject._
+import play.mvc.{ FileMimeTypes, StaticFileMimeTypes }
 
 import scala.concurrent.Future
 
