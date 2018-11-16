@@ -89,7 +89,7 @@ public class JavaSessionFlash extends WithApplication {
         Flash flash = call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#store-flash
             public Result save() {
-                return redirect("/home").flashing("success", "The item has been created");
+                return redirect("/home").flash("success", "The item has been created");
             }
             //#store-flash
         }, fakeRequest(), mat).flash();
