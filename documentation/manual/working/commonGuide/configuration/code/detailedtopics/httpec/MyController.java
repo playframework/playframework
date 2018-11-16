@@ -24,7 +24,7 @@ public class MyController extends Controller {
     public CompletionStage<Result> index() {
         // Use a different task with explicit EC
         return calculateResponse().thenApplyAsync(answer -> {
-            return ok("answer was " + answer).flashing("info", "Response updated!");
+            return ok("answer was " + answer).flash("info", "Response updated!");
         }, httpExecutionContext.current());
     }
 
