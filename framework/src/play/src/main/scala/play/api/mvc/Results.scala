@@ -233,8 +233,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @deprecated Use flash instead.
    */
   def flashing(flash: Flash): Result = {
-    Result.warnFlashingIfNotRedirect(flash, header)
-    copy(newFlash = Some(flash))
+    flash(flash)
   }
 
   /**
@@ -265,7 +264,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    * @deprecated Use flash instead.
    */
-  def flashing(values: (String, String)*): Result = flashing(Flash(values.toMap))
+  def flashing(values: (String, String)*): Result = flash(Flash(values.toMap))
 
   /**
    * Adds values to the flash scope for this result.
