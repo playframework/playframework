@@ -69,7 +69,7 @@ class ExampleFormSpec extends PlaySpecification with Results {
       }
 
       def successFunc(userData: UserData) = {
-        Redirect("/").flashing("success" -> "success form!")
+        Redirect("/").flash("success" -> "success form!")
       }
 
       val result = Future.successful(form.bindFromRequest().fold(errorFunc, successFunc))

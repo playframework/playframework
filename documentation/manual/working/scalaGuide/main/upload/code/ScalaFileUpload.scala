@@ -54,7 +54,7 @@ package scalaguide.upload.fileupload {
             picture.ref.moveTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
             Ok("File uploaded")
           }.getOrElse {
-            Redirect(routes.ScalaFileUploadController.index).flashing(
+            Redirect(routes.ScalaFileUploadController.index).flash(
               "error" -> "Missing file")
           }
         }
