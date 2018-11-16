@@ -1070,7 +1070,7 @@ public class Form<T> {
      * A copy of this form with the given lang set which is used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
      * and for translations in {@link #errorsAsJson()}.
      */
-    public Form withLang(Lang lang) {
+    public Form<T> withLang(Lang lang) {
         return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, this.directFieldAccess);
     }
 
@@ -1079,7 +1079,7 @@ public class Form<T> {
      *
      * @param directFieldAccess {@code true} enables direct field access during form binding, {@code false} disables it and uses getters instead. If {@code null} falls back to config default.
      */
-    public Form withDirectFieldAccess(boolean directFieldAccess) {
+    public Form<T> withDirectFieldAccess(boolean directFieldAccess) {
         return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, directFieldAccess);
     }
 
