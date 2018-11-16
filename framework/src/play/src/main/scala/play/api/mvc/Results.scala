@@ -232,9 +232,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    * @deprecated Use flash instead.
    */
-  def flashing(flash: Flash): Result = {
-    flash(flash)
-  }
+  @deprecated("Use flash instead", "2.7.0")
+  def flashing(flash: Flash): Result = this.flash(flash)
 
   /**
    * Adds values to the flash scope for this result.
@@ -264,7 +263,8 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    * @deprecated Use flash instead.
    */
-  def flashing(values: (String, String)*): Result = flash(Flash(values.toMap))
+  @deprecated("Use flash instead", "2.7.0")
+  def flashing(values: (String, String)*): Result = this.flash(values: _*)
 
   /**
    * Adds values to the flash scope for this result.
