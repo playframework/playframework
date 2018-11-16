@@ -55,7 +55,7 @@ class ServerResultUtilsSpec extends Specification {
       cookieResult(None, Ok) must beNone
     }
     "send flash if new" in {
-      cookieResult(None, Ok.flashing("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
+      cookieResult(None, Ok.flash("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"
@@ -82,7 +82,7 @@ class ServerResultUtilsSpec extends Specification {
       }
     }
     "clear old flash value when different value sent" in {
-      cookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.flashing("c" -> "d")) must beSome { cookies: Seq[Cookie] =>
+      cookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.flash("c" -> "d")) must beSome { cookies: Seq[Cookie] =>
         cookies.length must_== 1
         val cookie = cookies(0)
         cookie.name must_== "PLAY_FLASH"

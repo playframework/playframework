@@ -146,13 +146,13 @@ trait JavaHelpers {
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
       wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
-        .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
+        .flash(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
     } else {
       if (javaContext.session.isDirty) {
         wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
       } else {
         if (javaContext.flash.isDirty) {
-          wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
+          wResult.flash(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
         } else {
           wResult
         }

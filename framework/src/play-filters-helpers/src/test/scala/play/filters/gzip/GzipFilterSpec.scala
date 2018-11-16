@@ -250,7 +250,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           Ok.sendEntity(entity)
             .withHeaders(SERVER -> "Play")
             .withCookies(Cookie("cookieName", "cookieValue"))
-            .flashing("flashName" -> "flashValue")
+            .flash("flashName" -> "flashValue")
             .withSession("sessionName" -> "sessionValue"),
           chunkedThreshold = 2048 // body size is 1000
         ) { implicit app =>
@@ -269,7 +269,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           Ok.sendEntity(entity)
             .withHeaders(SERVER -> "Play")
             .withCookies(Cookie("cookieName", "cookieValue"))
-            .flashing("flashName" -> "flashValue")
+            .flash("flashName" -> "flashValue")
             .withSession("sessionName" -> "sessionValue"),
           chunkedThreshold = 512
         ) { implicit app =>
@@ -313,7 +313,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         Ok.sendEntity(entity)
           .withHeaders(SERVER -> "Play")
           .withCookies(Cookie("cookieName", "cookieValue"))
-          .flashing("flashName" -> "flashValue")
+          .flash("flashName" -> "flashValue")
           .withSession("sessionName" -> "sessionValue")
       ) { implicit app =>
           val result = makeGzipRequest(app)
@@ -342,7 +342,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         Ok("hello")
           .withHeaders(SERVER -> "Play")
           .withCookies(Cookie("cookieName", "cookieValue"))
-          .flashing("flashName" -> "flashValue")
+          .flash("flashName" -> "flashValue")
           .withSession("sessionName" -> "sessionValue")
       ) { implicit app =>
           val result = makeGzipRequest(app)

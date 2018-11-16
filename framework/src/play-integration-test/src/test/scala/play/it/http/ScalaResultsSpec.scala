@@ -68,7 +68,7 @@ class ScalaResultsSpec extends PlaySpecification {
     }
 
     "set flash on right path" in withFooPath { implicit app =>
-      cookies(Ok.flashing("user" -> "alice")).head.path must_== "/foo"
+      cookies(Ok.flash("user" -> "alice")).head.path must_== "/foo"
     }
 
     // flash cookie is discarded in PlayDefaultUpstreamHandler
