@@ -91,6 +91,8 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       // Configure logback
       val ctx = loggerFactory.asInstanceOf[LoggerContext]
 
+      ctx.reset()
+
       // Set a level change propagator to minimize the overhead of JUL
       //
       // Please note that translating a java.util.logging event into SLF4J incurs the
@@ -109,8 +111,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       levelChangePropagator.setResetJUL(true)
       ctx.addListener(levelChangePropagator)
       SLF4JBridgeHandler.install()
-
-      ctx.reset()
 
       // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
       // logging
