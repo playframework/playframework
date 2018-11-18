@@ -46,7 +46,7 @@ case class CSRFConfig(
     cookieName: Option[String] = None,
     secureCookie: Boolean = false,
     httpOnlyCookie: Boolean = false,
-    sameSiteCookie: Option[SameSite] = None,
+    sameSiteCookie: Option[SameSite] = Some(SameSite.Lax),
     createIfNotFound: RequestHeader => Boolean = CSRFConfig.defaultCreateIfNotFound,
     postBodyBuffer: Long = 102400,
     signTokens: Boolean = true,
