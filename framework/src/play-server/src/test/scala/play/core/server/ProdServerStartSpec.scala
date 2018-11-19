@@ -105,7 +105,7 @@ class ProdServerStartSpec extends Specification {
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process, false)
+      val server = ProdServerStart.start(process)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -133,7 +133,7 @@ class ProdServerStartSpec extends Specification {
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process, false)
+      val server = ProdServerStart.start(process)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -162,7 +162,7 @@ class ProdServerStartSpec extends Specification {
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process, false)
+      val server = ProdServerStart.start(process)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -181,7 +181,7 @@ class ProdServerStartSpec extends Specification {
     "exit with an error if no root dir defined" in withTempDir { tempDir =>
       val process = new FakeServerProcess()
       exitResult {
-        ProdServerStart.start(process, false)
+        ProdServerStart.start(process)
       } must beLeft
     }
 
@@ -194,7 +194,7 @@ class ProdServerStartSpec extends Specification {
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
 
-      def startServer = { ProdServerStart.start(process, false) }
+      def startServer = { ProdServerStart.start(process) }
       startServer must throwA[ExitException]
 
       pidFile.exists must beFalse

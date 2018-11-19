@@ -96,21 +96,23 @@ object DevModeBuild {
     val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
 
     def processIsRunning(pidString: String): Boolean ={
-
-      val foundProcesses = sbt.Process("jps").!! // runs the command and returns the output as a single String.
+      val foundProcesses = Common.runProcess("jps") // runs the command and returns the output as a single String.
         .split("\n") // split per line
         .filter{_.indexOf("ProdServerStart") != -1} 
       foundProcesses // filter only the Play processes
         // This assertion is flaky since `11234` contains `123`. TODO: improve matcher
         .exists(_.contains(pidString)) // see if one of them is PID
-
     }
 
-    val result = "stopProd --no-exit-sbt"::state
+    println("Preparing to stop Prod...")
+    Common.runSbtCommand("stopProd --no-exit-sbt", state)
+    println("Prod is stopping.")
+    TimeUnit.SECONDS.sleep(1)
+    println(s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}")
 
     // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
     // before the application has finished to shut down
-    val secs = 30
+    val secs = 10
     val end = System.currentTimeMillis() + secs * 1000
     while ( processIsRunning(pidString) && System.currentTimeMillis() < end) {
       TimeUnit.SECONDS.sleep(3)
@@ -119,7 +121,7 @@ object DevModeBuild {
       throw new RuntimeException(s"Assertion failed: Process $pidString didn't stop in $secs sconds.")
     }
 
-    result
+    state
   }
 
 

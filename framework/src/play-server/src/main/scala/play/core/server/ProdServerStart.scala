@@ -39,21 +39,6 @@ object ProdServerStart {
    * server.
    */
   def start(process: ServerProcess): ReloadableServer = {
-    start(process, true)
-  }
-
-  /**
-   * Starts a Play server and application for the given process. The settings
-   * for the server are based on values passed on the command line and in
-   * various system properties. Crash out by exiting the given process if there
-   * are any problems.
-   *
-   * @param process The process (real or abstract) to use for starting the
-   * server.
-   * @param exitJvmOnStop This method may be invoked from a test trying to
-   *                      simulate Prod in which case the JVM should not be exited.
-   */
-  def start(process: ServerProcess, exitJvmOnStop: Boolean = false): ReloadableServer = {
 
     try {
 
@@ -64,20 +49,10 @@ object ProdServerStart {
       val pidFile = createPidFile(process, config.configuration)
 
       try {
-
-        val initialSettings: Map[String, AnyRef] =
-          if (exitJvmOnStop) {
-            Map(
-              "akka.coordinated-shutdown.exit-jvm" -> "on"
-            )
-          } else {
-            Map.empty[String, AnyRef]
-          }
-
         // Start the application
         val application: Application = {
           val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
-          val context = ApplicationLoader.Context.create(environment, initialSettings)
+          val context = ApplicationLoader.Context.create(environment)
           val loader = ApplicationLoader(context)
           loader.load(context)
         }
