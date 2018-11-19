@@ -7,8 +7,6 @@ package play;
 import org.slf4j.Marker;
 import play.api.DefaultMarkerContext;
 
-import java.util.Arrays;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -807,7 +805,7 @@ public class Logger {
          */
         public void warn(String message, Supplier<?>... args) {
             if (isWarnEnabled()) {
-                logger.underlyingLogger().warn(message, suppliersToObj(args));
+                warn(message, suppliersToObj(args));
             }
         }
 
@@ -891,7 +889,7 @@ public class Logger {
          */
         public void error(String message, Supplier<?>... args) {
             if (isErrorEnabled()) {
-                logger.underlyingLogger().error(message, suppliersToObj(args));
+                error(message, suppliersToObj(args));
             }
         }
 
