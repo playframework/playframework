@@ -87,9 +87,35 @@ Guice was upgraded to version [4.2.2](https://github.com/google/guice/wiki/Guice
  - `play.test.TestBrowser.waitUntil` expects a `java.util.function.Function` instead of a `com.google.common.base.Function` now.
  - In Scala, when overriding the `configure()` method of `AbstractModule`, you need to prefix that method with the `override` identifier now (because it's non-abstract now).
 
-## `play.Logger` deprecated
+## Static `Logger` singletons deprecated
 
-`play.Logger` has been deprecated in favor of using SLF4J directly. You can create an SLF4J logger with `private static final Logger logger = LoggerFactory.getLogger(YourClass.class);`. If you'd like a more concise solution, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
+Most `static` methods of `play.Logger` and also almost all methods of the `play.api.Logger` singleton have been deprecated. You shouldn't use those static singletons anymore, but instead create and use instances of those classes:
+
+Java
+: ```java
+private static final play.Logger.ALogger logger = play.Logger.of(YourClass.class);
+```
+
+Scala
+: ```scala
+private val logger = play.api.Logger(YourClass.class)
+```
+
+Of course you can also just use [SLF4J](https://www.slf4j.org/) directly:
+
+Java
+: ```java
+private static final Logger logger = LoggerFactory.getLogger(YourClass.class);
+```
+
+Scala
+: ```scala
+private val logger = LoggerFactory.getLogger(YourClass.class);
+```
+
+If you'd like a more concise solution when using SLF4J directly, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
+
+> **NOTE**: `org.slf4j.Logger`, the logging interface of SLF4J, does [not yet](https://jira.qos.ch/browse/SLF4J-371) provide logging methods which accept lambda expression as parameters for lazy evaluation. `play.Logger` and `play.api.Logger`, which are mostly simple wrappers for `org.slf4j.Logger`, provide such methods however.
 
 If you have a `logger` entry in your logback.xml referencing the `application` logger, you may remove it.
 
