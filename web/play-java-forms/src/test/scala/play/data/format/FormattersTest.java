@@ -40,10 +40,6 @@ public class FormattersTest {
         assertEquals(15, integerFromAnnotatedField);
     }
 
-    /*
-        JUnit tests related to LocalDate
-     */
-
     @Test
     public void testFormattersParseLocalDateUsingField() throws NoSuchFieldException {
         java.time.LocalDate dateFromPlainField = formatters.parse(LocalDateBean.class.getDeclaredField("plainLocalDateField"), "1989-01-13");
