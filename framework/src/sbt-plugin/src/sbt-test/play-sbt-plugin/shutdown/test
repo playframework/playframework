@@ -21,14 +21,14 @@
 ### Mode.Prod tests
 ### ---------------
 
-## Cleanup previous execution leftovers.
+## 0. Cleanup previous execution leftovers.
 $ delete target/universal/stage/RUNNING_PID
 -$ exists target/universal/stage/RUNNING_PID
 $ delete target/proofs/application-actorsystem-name.txt
 -$ exists target/proofs/application-actorsystem-name.txt
 
 
-## Start prod mode
+## 1. Start prod mode
 > runProd --no-exit-sbt
 
 # The app started (wait few seconds for the app to start)
@@ -38,18 +38,17 @@ $ sleep 3
 # Mode.Prod creates a PID_FILE
 $ exists target/universal/stage/RUNNING_PID
 
+## 3. Mode.Prod exits the JVM
 # SIGTERM-ing Mode.Prod runs Coordinated Shutdown for a single Actor System
-# Mode.Prod exits runs the Coordinated Shutdown when there's a SIGTERM
-#> sigtermApplication
-#> assertActorSystemProofOfExistence application-actorsystem-name
-
-# Mode.Prod exits the JVM
-#> assertProcessIsStopped
+# Mode.Prod exits runs the Coordinated Shutdown when there's a SIGTERM.
+# SIGTERM is sent using Play's `stopProd` which extracts the `pid` from
+# `RUNNING_PID` and uses `kill` to send the SIGTERM signal.
 
 > stopProd --no-exit-sbt
 > awaitPidfileDeletion
 $ exists target/proofs/application-actorsystem-name.txt
 -$ exists target/universal/stage/RUNNING_PID
+#> assertProcessIsStopped
 
 
 
