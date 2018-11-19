@@ -21,6 +21,7 @@ format.uuid=UUID
 
 # --- Patterns for Formats
 formats.date=yyyy-MM-dd
+formats.localdate=uuuu-MM-dd
 
 # --- Errors
 error.invalid=Invalid value
