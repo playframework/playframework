@@ -75,6 +75,7 @@ public class Formats {
      * @param locale the current <code>Locale</code>
      * @return a new value
      */
+    @Override
     public Date parse(String text, Locale locale) throws java.text.ParseException {
       if (text == null || text.trim().isEmpty()) {
         return null;
@@ -97,6 +98,7 @@ public class Formats {
      * @param locale the current <code>Locale</code>
      * @return printable version of the value
      */
+    @Override
     public String print(Date value, Locale locale) {
       if (value == null) {
         return "";
