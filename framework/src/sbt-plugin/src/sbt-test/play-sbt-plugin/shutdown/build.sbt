@@ -1,12 +1,13 @@
 import java.util.concurrent.TimeUnit
+import sbt._
 
 import sbt.Keys.libraryDependencies
+
 //
 // Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
 scalaVersion := "2.12.6"
-
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
@@ -19,6 +20,8 @@ lazy val root = (project in file("."))
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
     PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
+
+    commands += DevModeBuild.assertProcessIsStopped,
 
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"

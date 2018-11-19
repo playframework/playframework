@@ -44,11 +44,10 @@ $ exists target/universal/stage/RUNNING_PID
 # SIGTERM is sent using Play's `stopProd` which extracts the `pid` from
 # `RUNNING_PID` and uses `kill` to send the SIGTERM signal.
 
-> stopProd --no-exit-sbt
+> assertProcessIsStopped
 > awaitPidfileDeletion
 $ exists target/proofs/application-actorsystem-name.txt
 -$ exists target/universal/stage/RUNNING_PID
-#> assertProcessIsStopped
 
 
 
