@@ -7,7 +7,7 @@ package scalaguide.binder.models
 import scala.Left
 import scala.Right
 import play.api.mvc.PathBindable
-import play.Logger
+import play.api.Logger
 
 //#declaration
 case class User(id: Int, name: String) {}
@@ -17,7 +17,7 @@ object User {
   // stubbed test 
 	// designed to be lightweight operation
   def findById(id: Int): Option[User] = {
-    Logger.info("findById: " + id.toString)
+    Logger(getClass).info("findById: " + id.toString)
     if (id > 3) None
     var user = new User(id, "User " + String.valueOf(id))
     Some(user)

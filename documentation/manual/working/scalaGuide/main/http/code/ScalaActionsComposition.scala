@@ -43,7 +43,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
 
       class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
-          Logger.info("Calling action")
+          Logger(getClass).info("Calling action")
           block(request)
         }
       }
@@ -81,7 +81,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       case class Logging[A](action: Action[A]) extends Action[A] {
 
         def apply(request: Request[A]): Future[Result] = {
-          Logger.info("Calling action")
+          Logger(getClass).info("Calling action")
           action(request)
         }
 
@@ -133,7 +133,7 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       //###skip:1
       val Action = actionBuilder
       def logging[A](action: Action[A]) = Action.async(action.parser) { request =>
-        Logger.info("Calling action")
+        Logger(getClass).info("Calling action")
         action(request)
       }
       //#actions-def-wrapping
