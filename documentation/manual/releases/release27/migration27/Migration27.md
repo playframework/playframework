@@ -89,7 +89,17 @@ Guice was upgraded to version [4.2.2](https://github.com/google/guice/wiki/Guice
 
 ## Static `Logger` singletons deprecated
 
-Most `static` methods of `play.Logger` and also almost all methods of the `play.api.Logger` singleton have been deprecated. You shouldn't use those static singletons anymore, but instead create and use instances of those classes:
+Most `static` methods of the Java `play.Logger` and almost all methods of the Scala `play.api.Logger` singleton object have been deprecated. These singletons wrote to the `application` logger, which is referenced in `logback.xml` as:
+
+    <logger name="application" level="DEBUG" />
+
+If you are concerned about changing your logging configuration, the simplest migration here is to define your own singleton "application" logger using `Logger("application")` (Scala) or `Logger.of("application")` (Java). All logs sent to this logger will work exactly like the Play singleton logger. While we don't recommend this approach in general, it's ultimately up to you. Play and Logback do not force you to use any specific naming scheme for your loggers.
+
+If you are comfortable making some straightforward code changes and changing your logging configuration, we instead recommend you create a new logger for each class, with a name matching the class name. This allows you to configure different log levels for each class or package. For example, to set the log level for all `com.example.models` to the info level, you can set in `logback.xml`:
+
+    <logger name="com.example.models" level="INFO" />
+
+To define the logger in each class, you can define:
 
 Java
 : ```java
@@ -98,7 +108,20 @@ private static final play.Logger.ALogger logger = play.Logger.of(YourClass.class
 
 Scala
 : ```scala
-private val logger = play.api.Logger(YourClass.class)
+import play.api.Logger
+
+private val logger = Logger(YourClass.class)
+```
+
+For Scala, Play also provides a `play.api.Logging` trait that can be mixed into a class or trait to add the `val logger: Logger` automatically:
+
+```scala
+import play.api.Logging
+
+class MyClass extends Logging {
+  // `logger` is automaticaly defined by the `Logging` trait:
+  logger.info("hello!")
+}
 ```
 
 Of course you can also just use [SLF4J](https://www.slf4j.org/) directly:
@@ -113,17 +136,13 @@ Scala
 private val logger = LoggerFactory.getLogger(YourClass.class);
 ```
 
-If you'd like a more concise solution when using SLF4J directly, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
+If you'd like a more concise solution when using SLF4J directly for Java, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
 
 > **NOTE**: `org.slf4j.Logger`, the logging interface of SLF4J, does [not yet](https://jira.qos.ch/browse/SLF4J-371) provide logging methods which accept lambda expression as parameters for lazy evaluation. `play.Logger` and `play.api.Logger`, which are mostly simple wrappers for `org.slf4j.Logger`, provide such methods however.
 
-If you have a `logger` entry in your logback.xml referencing the `application` logger, you may remove it.
+Once you have migrated away from using the `application` logger, you can remove the `logger` entry in your logback.xml referencing it:
 
     <logger name="application" level="DEBUG" />
-
-Each logger should have a unique name matching the name of the class where it is used. In this way, you can configure a different log level for each class. You can also set the log level for a given package. For example, to set the log level for all of the Play's internal classes to the info level, you can set:
-
-    <logger name="play" level="INFO" />
 
 ## Evolutions comment syntax changes
 
