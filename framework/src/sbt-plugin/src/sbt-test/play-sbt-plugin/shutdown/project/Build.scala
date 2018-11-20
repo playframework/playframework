@@ -98,7 +98,7 @@ object DevModeBuild {
     def processIsRunning(pidString: String): Boolean ={
       val foundProcesses = Common.runProcess("jps") // runs the command and returns the output as a single String.
         .split("\n") // split per line
-        .filter{_.indexOf("ProdServerStart") != -1} 
+        .filter{_.contains("ProdServerStart")}
       foundProcesses // filter only the Play processes
         // This assertion is flaky since `11234` contains `123`. TODO: improve matcher
         .exists(_.contains(pidString)) // see if one of them is PID
@@ -113,6 +113,7 @@ object DevModeBuild {
     // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
     // before the application has finished to shut down
     val secs = 10
+    // NiceToHave: replace with System.nanoTime()
     val end = System.currentTimeMillis() + secs * 1000
     while ( processIsRunning(pidString) && System.currentTimeMillis() < end) {
       TimeUnit.SECONDS.sleep(3)

@@ -28,6 +28,7 @@ lazy val root = (project in file("."))
       // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
       // before the application has finished to shut down
       val secs = 30
+      // NiceToHave: replace with System.nanoTime()
       val end = System.currentTimeMillis() + secs * 1000
       while (pidFile.exists() && System.currentTimeMillis() < end) {
         TimeUnit.SECONDS.sleep(3)
