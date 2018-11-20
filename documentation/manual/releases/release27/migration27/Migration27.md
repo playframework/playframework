@@ -103,13 +103,13 @@ To define the logger in each class, you can define:
 
 Java
 : ```java
-private static final play.Logger.ALogger logger = play.Logger.of(YourClass.class);
+import play.Logger;
+private static final Logger.ALogger logger = Logger.of(YourClass.class);
 ```
 
 Scala
 : ```scala
 import play.api.Logger
-
 private val logger = Logger(YourClass.class)
 ```
 
@@ -140,7 +140,7 @@ If you'd like a more concise solution when using SLF4J directly for Java, you ma
 
 > **NOTE**: `org.slf4j.Logger`, the logging interface of SLF4J, does [not yet](https://jira.qos.ch/browse/SLF4J-371) provide logging methods which accept lambda expression as parameters for lazy evaluation. `play.Logger` and `play.api.Logger`, which are mostly simple wrappers for `org.slf4j.Logger`, provide such methods however.
 
-Once you have migrated away from using the `application` logger, you can remove the `logger` entry in your logback.xml referencing it:
+Once you have migrated away from using the `application` logger, you can remove the `logger` entry in your `logback.xml` referencing it:
 
     <logger name="application" level="DEBUG" />
 

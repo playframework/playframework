@@ -44,7 +44,7 @@ First import the `Logger` class:
 
 @[logging-import](code/javaguide/logging/JavaLogging.java)
 
-### Creating your own loggers
+### Creating loggers
 
 You can create a new logger using the `LoggerFactory` with a `name` argument:
 
