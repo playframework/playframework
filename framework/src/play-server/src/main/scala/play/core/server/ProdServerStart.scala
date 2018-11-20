@@ -80,10 +80,12 @@ object ProdServerStart {
           // that will cause the deadlock we are trying to prevent (some code causes a `System.exit`
           // and CS causes a new invocation to `System.exit`). The safe way to proceed, then, is to
           // log the error and manually invoke CoordinatedShutdown before there's a shutdown registered.
-          LoggerFactory.getLogger(getClass).error("Can't start Play:detected " +
-            "\"akka.coordinated-shutdown.exit-jvm = on\". Using \"exit-jvm = on\" in " +
-            "Play will cause a deadlock when shutting down." +
-            "Please set \"akka.coordinated-shutdown.exit-jvm = off\".")
+          LoggerFactory.getLogger(getClass).error(
+            """Can't start Play: detected "akka.coordinated-shutdown.exit-jvm = on".
+              | Using "akka.coordinated-shutdown.exit-jvm = on" in Play will cause a deadlock when shutting down.
+              | Please set "akka.coordinated-shutdown.exit-jvm = off"""".stripMargin.replace("\n", ""))
+
+
           case object InvalidCoordinatedShutdownSettings extends CoordinatedShutdown.Reason
           application.coordinatedShutdown.run(InvalidCoordinatedShutdownSettings)
         } else {
