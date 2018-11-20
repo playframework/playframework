@@ -238,6 +238,13 @@ trait LoggerLike {
 }
 
 /**
+ * A trait that can mixed into a class or trait to add a `logger` named based on the class name.
+ */
+trait Logging {
+  protected val logger: Logger = Logger(getClass)
+}
+
+/**
  * A Play logger.
  *
  * @param logger the underlying SL4FJ logger

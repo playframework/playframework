@@ -12,7 +12,7 @@ Your application can define [`Logger`](api/scala/play/api/Logger.html) instances
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
 
-Play applications are provided a default logger named "application" or you can create your own loggers. The Play libraries use a logger named "play", and some third party libraries will have loggers with their own names.
+We recommend creating separately-named loggers for each class. Following this convention, the Play libraries use loggers namespaced under "play", and many third party libraries will have loggers based on their class names.
 
 #### Log levels
 Log levels are used to classify the severity of log messages. When you write a log request statement you will specify the severity and this will appear in generated log messages.
@@ -40,38 +40,40 @@ First import the `Logger` class and companion object:
 
 @[logging-import](code/ScalaLoggingSpec.scala)
 
-### The default Logger
+### Creating loggers
 
-The `Logger` object is your default logger and uses the name "application." You can use it to write log request statements:
-
-@[logging-default-logger](code/ScalaLoggingSpec.scala)
-
-Using Play's default logging configuration, these statements will produce console output similar to this:
-
-```text
-[debug] application - Attempting risky calculation.
-[error] application - Exception with riskyCalculation
-java.lang.ArithmeticException: / by zero
-    at controllers.Application$.controllers$Application$$riskyCalculation(Application.scala:32) ~[classes/:na]
-    at controllers.Application$$anonfun$test$1.apply(Application.scala:18) [classes/:na]
-    at controllers.Application$$anonfun$test$1.apply(Application.scala:12) [classes/:na]
-    at play.api.mvc.ActionBuilder$$anonfun$apply$17.apply(Action.scala:390) [play_2.10-2.3-M1.jar:2.3-M1]
-    at play.api.mvc.ActionBuilder$$anonfun$apply$17.apply(Action.scala:390) [play_2.10-2.3-M1.jar:2.3-M1]
-```
-
-Note that the messages have the log level, logger name, message, and stack trace if a Throwable was used in the log request.
-
-### Creating your own loggers
-
-Although it may be tempting to use the default logger everywhere, it's generally a bad design practice. Creating your own loggers with distinct names allows for flexible configuration, filtering of log output, and pinpointing the source of log messages.
-
-You can create a new logger using the `Logger.apply` factory method with a name argument:
+You can create a new logger using the `Logger.apply` factory method with a `name` argument:
 
 @[logging-create-logger-name](code/ScalaLoggingSpec.scala)
 
 A common strategy for logging application events is to use a distinct logger per class using the class name. The logging API supports this with a factory method that takes a class argument:
 
 @[logging-create-logger-class](code/ScalaLoggingSpec.scala)
+
+There is also a `Logging` trait that does this for you automatically and exposes a `protected val logger`:
+
+@[logging-trait](code/ScalaLoggingSpec.scala)
+
+Once you have a `Logger` set up, you can use it to write log statements:
+
+@[logging-example](code/ScalaLoggingSpec.scala)
+
+Using Play's default logging configuration, these statements will produce console output similar to this:
+
+```
+[debug] c.e.s.MyClass - Attempting risky calculation.
+[error] c.e.s.MyClass - Exception with riskyCalculation
+java.lang.ArithmeticException: / by zero
+    at controllers.Application.riskyCalculation(Application.java:20) ~[classes/:na]
+    at controllers.Application.index(Application.java:11) ~[classes/:na]
+    at Routes$$anonfun$routes$1$$anonfun$applyOrElse$1$$anonfun$apply$1.apply(routes_routing.scala:69) [classes/:na]
+    at Routes$$anonfun$routes$1$$anonfun$applyOrElse$1$$anonfun$apply$1.apply(routes_routing.scala:69) [classes/:na]
+    at play.core.Router$HandlerInvoker$$anon$8$$anon$2.invocation(Router.scala:203) [play_2.10-2.3-M1.jar:2.3-M1]
+```
+
+Note that the messages have the log level, logger name (in this case the class name, displayed in abbreviated form), message, and stack trace if a `Throwable` was used in the log request.
+
+There is also a `play.api.Logger` singleton object that allows you to access a logger named `application`, but its use is deprecated in Play 2.7.0 and above. You should declare your own logger instances using one of the strategies defined above.
 
 ### Using Markers and Marker Contexts
 
