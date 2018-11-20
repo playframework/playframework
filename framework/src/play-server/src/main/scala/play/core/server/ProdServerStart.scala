@@ -9,7 +9,9 @@ import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
 
 import akka.Done
 import akka.actor.CoordinatedShutdown
+import org.slf4j.LoggerFactory
 import play.api._
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -62,10 +64,6 @@ object ProdServerStart {
         val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
         val server = serverProvider.createServer(config, application)
 
-        process.addShutdownHook {
-          server.stop()
-        }
-
         application.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "remove-pid-file"){
           () =>
             // Must delete the PID file after stopping the server not before...
@@ -73,6 +71,26 @@ object ProdServerStart {
             pidFile.foreach(_.delete())
             assert(!pidFile.exists(_.exists), "PID file should not exist!")
             Future successful Done
+        }
+
+        if (application.configuration.get[Boolean]("akka.coordinated-shutdown.exit-jvm")) {
+          // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
+          // prevent the startup from completing. The problem, though, is that we can't prevent
+          // the startup using the ServerStartException because it's handled with a block of code
+          // that will cause the deadlock we are trying to prevent (some code causes a `System.exit`
+          // and CS causes a new invocation to `System.exit`). The safe way to proceed, then, is to
+          // log the error and manually invoke CoordinatedShutdown before there's a shutdown registered.
+          LoggerFactory.getLogger(getClass).error("Can't start Play:detected " +
+            "\"akka.coordinated-shutdown.exit-jvm = on\". Using \"exit-jvm = on\" in " +
+            "Play will cause a deadlock when shutting down." +
+            "Please set \"akka.coordinated-shutdown.exit-jvm = off\".")
+          case object InvalidCoordinatedShutdownSettings extends CoordinatedShutdown.Reason
+          application.coordinatedShutdown.run(InvalidCoordinatedShutdownSettings)
+        } else {
+          // Only add a shutdown hook of settings won't cause a deadlock.
+          process.addShutdownHook {
+            server.stop()
+          }
         }
 
         server
