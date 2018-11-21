@@ -22,27 +22,22 @@
 # The app started
 > verifyResourceContains / 200
 
-# Force a reload (copy a new file + produce a request)
-$ copy-file changes/HomeController.scala src/main/scala/controllers/HomeController.scala
-# Need to wait a little while, because incremental compilation timestamps.
+# invoking a certain endpoint causes a programmatic trigger of Coordinated Shuhtdown (simulates Downing)
+> verifyResourceContains /simulate-downing 200
+
+# Coordinated shutdown of the App has run but the Dev mode server isn't stopped (only the App)
+$ exists target/proofs/application-actorsystem-name.txt
+-$ exists target/universal/stage/RUNNING_PID
+# After shutting down the application, invoking another endpoint will bring the Application back
+# up again and successfully respond: shuttind down the Application doesn't cause the server to shutdown.
 $ sleep 1000
 > verifyResourceContains / 200
-$ exists target/proofs/application-actorsystem-name.txt
-$ delete target/proofs/application-actorsystem-name.txt
--$ exists target/proofs/application-actorsystem-name.txt
 
 ## Stopping Mode.Dev runs Coordinated Shutdown in both Server and Application Actor Systems
 > playStop
 $ exists target/proofs/application-actorsystem-name.txt
-
-# TODO: assert the `play-dev-mode` CS was executed
-# Asserting the `play-dev-mode` CS was executed is tricky because it's not available to the user
-# # $ exists target/proofs/play-dev-mode.txt
-
 ## Dev.Mode doesn't exit the JVM
 #  - This step is implicitly verified if the test moves forward because the JVM is still alive.
-
-
 
 ### ---------------
 ### Mode.Test tests
@@ -55,7 +50,7 @@ $ delete target/proofs/application-actorsystem-name.txt
 -$ exists target/proofs/application-actorsystem-name.txt
 
 
-## Run user integration tests
+## Run user forked tests (See build.sbt)
 > test
 
 # Mode.Test doesn't create a PID_FILE but runs CoordinatedShutdown
@@ -64,9 +59,6 @@ $ exists target/proofs/application-actorsystem-name.txt
 
 ## Test.Mode doesn't exit the JVM
 #  - This step is implicitly verified if the test moves forward because the JVM is still alive.
-
-
-
 
 ### ---------------
 ### Mode.Prod tests
@@ -89,11 +81,7 @@ $ sleep 1000
 # Mode.Prod creates a PID_FILE
 $ exists target/universal/stage/RUNNING_PID
 
-## 2. Mode.Prod exits the JVM
-# SIGTERM-ing Mode.Prod runs Coordinated Shutdown for a single Actor System
-# Mode.Prod exits runs the Coordinated Shutdown when there's a SIGTERM.
-# SIGTERM is sent using Play's `stopProd` which extracts the `pid` from
-# `RUNNING_PID` and uses `kill` to send the SIGTERM signal.
+## 2. Mode.Prod exits the JVM without deadlock on Downing
 
 > assertProcessIsStopped
 > awaitPidfileDeletion

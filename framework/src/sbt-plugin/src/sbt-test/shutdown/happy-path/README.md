@@ -41,6 +41,13 @@ Here's a list of `scripted` suites and what are the tests they exercise:
 
 7- on programmatic event (Downing): stop dev mode, run coordinated shutdown but don't exit the JVM
  
+## PID file 
+
+Running Play in Mode.Prod requires producing a `pidfile` that must be destroyed when the 
+process completes.
+
+That file must only exist during thhe life-span of a PROD process (never TEST nor DEV).
+
 ## Using custom settings
  
 a- Using `akka.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start 

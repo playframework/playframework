@@ -165,7 +165,7 @@ object DevServerStart {
               val lifecycle = new DefaultApplicationLifecycle()
               lastLifecycle = Some(lifecycle)
 
-              val newApplication = Threads.withContextClassLoader(projectClassloader) {
+              val newApplication: Application = Threads.withContextClassLoader(projectClassloader) {
                 val context = ApplicationLoader.Context.create(
                   environment,
                   initialSettings = dirAndDevSettings,
@@ -174,6 +174,12 @@ object DevServerStart {
                 )
                 val loader = ApplicationLoader(context)
                 loader.load(context)
+              }
+
+              // whether it's a programmatic or a failure-caused invocation of the coordinated shutdown, we force the application reload.
+              newApplication.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload"){ () =>
+                  buildLink.forceReload()
+                  Future.successful(Done)
               }
 
               Play.start(newApplication)
