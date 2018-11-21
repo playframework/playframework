@@ -123,7 +123,6 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== OK
     }
-
     "redirect when xForwardedProtoEnabled is not set and no header present" in new WithApplication(buildApp(
       """
         |play.filters.https.redirectEnabled = true
