@@ -123,6 +123,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== OK
     }
+
     "redirect when xForwardedProtoEnabled is not set and no header present" in new WithApplication(buildApp(
       """
         |play.filters.https.redirectEnabled = true
@@ -145,6 +146,20 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== PERMANENT_REDIRECT
     }
+
+    "not redirect when path included in redirectExcludePath" in new WithApplication(buildApp(
+      """
+        |play.filters.https.redirectEnabled = true
+        |play.filters.https.xForwardedProtoEnabled = true
+        |play.filters.https.redirectExcludePath = ["/skip"]
+      """.stripMargin, mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request("/skip").withConnection(secure).withHeaders("X-Forwarded-Proto" -> "http")).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== OK
+    }
+
   }
 
   private def request(uri: String = "/") = {

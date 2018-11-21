@@ -49,10 +49,13 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
       next(req).map(_.withHeaders(stsHeaders: _*))
     } else {
       val xForwarded = forwardedProto(req)
-      if (redirectEnabled && xForwarded) {
+      val isExcludePath = checkExcludePath(req)
+      if (redirectEnabled && xForwarded && !isExcludePath) {
         Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), redirectStatusCode))
+      } else if (isExcludePath) {
+          Accumulator.done(Results.Status(200))
       } else {
-        if (xForwarded) {
+        if (xForwarded && !isExcludePath) {
           logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
         } else {
           logger.debug(s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
@@ -72,6 +75,13 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
         s"https://$domain:$port$uri"
     }
   }
+
+  protected def checkExcludePath(req: RequestHeader): Boolean = {
+    import req.uri
+    if (redirectExcludePath.contains(req.uri)) true
+    else false
+  }
+
 }
 
 case class RedirectHttpsConfiguration(
@@ -79,7 +89,8 @@ case class RedirectHttpsConfiguration(
     redirectStatusCode: Int = PERMANENT_REDIRECT,
     sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
     redirectEnabled: Boolean = true,
-    xForwardedProtoEnabled: Boolean = false
+    xForwardedProtoEnabled: Boolean = false,
+    redirectExcludePath: Seq[String] = Seq(),
 ) {
   @deprecated("Use redirectEnabled && strictTransportSecurity.isDefined", "2.7.0")
   def hstsEnabled: Boolean = redirectEnabled && strictTransportSecurity.isDefined
@@ -91,6 +102,7 @@ private object RedirectHttpsKeys {
   val portPath = "play.filters.https.port"
   val redirectEnabledPath = "play.filters.https.redirectEnabled"
   val forwardedProtoEnabled = "play.filters.https.xForwardedProtoEnabled"
+  val excludePath           = "play.filters.https.redirectExcludePath"
 }
 
 @Singleton
@@ -118,13 +130,15 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
       e.mode == Mode.Prod
     }
     val xProtoEnabled = c.get[Boolean](forwardedProtoEnabled)
+    val redirectExcludePath = c.get[Seq[String]](excludePath)
 
     RedirectHttpsConfiguration(
       strictTransportSecurity,
       redirectStatusCode,
       port,
       redirectEnabled,
-      xProtoEnabled
+      xProtoEnabled,
+      redirectExcludePath
     )
   }
 }
