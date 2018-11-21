@@ -12,6 +12,7 @@ import akka.Done
 
 import scala.concurrent.Future
 
+// Identical to /src/main/scala but used to force a reload.
 class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem, cs: CoordinatedShutdown) extends AbstractController(c) {
 
   // This task generates a file so scripted tests can assert `CoordinatedShutdown` ran.

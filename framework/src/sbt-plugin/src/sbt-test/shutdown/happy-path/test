@@ -30,18 +30,16 @@
 # stop previously running processes (may trigger Akka's CS so must be done before file cleanup)
 > stopProd --no-exit-sbt
 
-
-
-### --------------
-### Mode.Dev tests
-### --------------
-
 ## Cleanup previous execution leftovers.
 $ delete target/proofs/application-actorsystem-name.txt
 -$ exists target/proofs/application-actorsystem-name.txt
 $ delete target/universal/stage/RUNNING_PID
 -$ exists target/universal/stage/RUNNING_PID
 
+
+### --------------
+### Mode.Dev tests
+### --------------
 
 ## Start dev mode
 > run
@@ -51,6 +49,15 @@ $ delete target/universal/stage/RUNNING_PID
 
 # The app started
 > verifyResourceContains / 200
+
+# Force a reload (copy a new file + produce a request)
+$ copy-file changes/HomeController.scala src/main/scala/controllers/HomeController.scala
+# Need to wait a little while, because incremental compilation timestamps.
+$ sleep 1000
+> verifyResourceContains / 200
+$ exists target/proofs/application-actorsystem-name.txt
+$ delete target/proofs/application-actorsystem-name.txt
+-$ exists target/proofs/application-actorsystem-name.txt
 
 ## Stopping Mode.Dev runs Coordinated Shutdown in both Server and Application Actor Systems
 > playStop
