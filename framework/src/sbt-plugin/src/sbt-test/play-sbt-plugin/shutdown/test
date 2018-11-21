@@ -15,6 +15,78 @@
 #  3. triggering the Coordinated Shutdown (was it code triggered or SIGTERM triggered)
 
 
+## WARNING: some assertions on this test are implicit.
+##  - e.g. asserting dev.mode doesn't exit the JVM is implicitly asserted by
+##    running `Mode.Dev tests` first and asserting the whole test moves on to
+##    `Mode.Test tests`
+
+
+### --------------
+### System cleanup
+### --------------
+## Cleanup previous execution leftovers.
+
+# there may be a forked running process from previous executions
+# stop previously running processes (may trigger Akka's CS so must be done before file cleanup)
+> stopProd --no-exit-sbt
+
+
+
+### --------------
+### Mode.Dev tests
+### --------------
+
+## Cleanup previous execution leftovers.
+$ delete target/proofs/application-actorsystem-name.txt
+-$ exists target/proofs/application-actorsystem-name.txt
+$ delete target/universal/stage/RUNNING_PID
+-$ exists target/universal/stage/RUNNING_PID
+
+
+## Start dev mode
+> run
+
+## Mode.Dev doesn't create a PID_FILE
+-$ exists target/universal/stage/RUNNING_PID
+
+# The app started
+> verifyResourceContains / 200
+
+## Stopping Mode.Dev runs Coordinated Shutdown in both Server and Application Actor Systems
+> playStop
+$ exists target/proofs/application-actorsystem-name.txt
+
+# TODO: assert the `play-dev-mode` CS was executed
+# Asserting the `play-dev-mode` CS was executed is tricky because it's not available to the user
+# # $ exists target/proofs/play-dev-mode.txt
+
+## Dev.Mode doesn't exit the JVM
+#  - This step is implicitly verified if the test moves forward because the JVM is still alive.
+
+
+
+### ---------------
+### Mode.Test tests
+### ---------------
+
+## Cleanup previous execution leftovers.
+$ delete target/universal/stage/RUNNING_PID
+-$ exists target/universal/stage/RUNNING_PID
+$ delete target/proofs/application-actorsystem-name.txt
+-$ exists target/proofs/application-actorsystem-name.txt
+
+
+## Run user integration tests
+> test
+
+# Mode.Test doesn't create a PID_FILE but runs CoordinatedShutdown
+-$ exists target/universal/stage/RUNNING_PID
+$ exists target/proofs/application-actorsystem-name.txt
+
+## Test.Mode doesn't exit the JVM
+#  - This step is implicitly verified if the test moves forward because the JVM is still alive.
+
+
 
 
 ### ---------------
@@ -48,71 +120,3 @@ $ exists target/universal/stage/RUNNING_PID
 > awaitPidfileDeletion
 $ exists target/proofs/application-actorsystem-name.txt
 -$ exists target/universal/stage/RUNNING_PID
-
-
-
-
-### ---------------
-### Mode.Test tests
-### ---------------
-
-## Cleanup previous execution leftovers.
-$ delete target/universal/stage/RUNNING_PID
--$ exists target/universal/stage/RUNNING_PID
-$ delete target/proofs/application-actorsystem-name.txt
--$ exists target/proofs/application-actorsystem-name.txt
-
-
-## Run user integration tests
-> test
-
-# Mode.Test doesn't create a PID_FILE but runs CoordinatedShutdown
--$ exists target/universal/stage/RUNNING_PID
-$ exists target/proofs/application-actorsystem-name.txt
-
-
-
-
-
-
-### --------------
-### Mode.Dev tests
-### --------------
-
-
-## Cleanup previous execution leftovers.
-
-# there may be a forked running process from previous executions
-# stop previously running processes (may trigger Akka's CS so must be done before file cleanup)
-> stopProd --no-exit-sbt
-
-#  - cleanActorSystemProofOfExistence
-$ delete target/proofs/application-actorsystem-name.txt
--$ exists target/proofs/application-actorsystem-name.txt
-
-#  - cleanPidFile
-$ delete target/universal/stage/RUNNING_PID
--$ exists target/universal/stage/RUNNING_PID
-
-
-
-
-## Start dev mode
-> run
-
-## Mode.Dev doesn't create a PID_FILE
--$ exists target/universal/stage/RUNNING_PID
-
-# The app started
-> verifyResourceContains / 200
-
-## Stopping Mode.Dev runs Coordinated Shutdown in both Server and Application Actor Systems
-> playStop
-$ exists target/proofs/application-actorsystem-name.txt
-
-# Asserting the `play-dev-mode` CS was executed is tricky because it's not available to the user
-# # $ exists target/proofs/play-dev-mode.txt
-
-## Dev.Mode doesn't exit the JVM
-#  - This step is implicitly verified if the test moves forward because the JVM is still alive.
-

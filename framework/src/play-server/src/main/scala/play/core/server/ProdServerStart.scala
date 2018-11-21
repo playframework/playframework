@@ -85,13 +85,14 @@ object ProdServerStart {
               | Using "akka.coordinated-shutdown.exit-jvm = on" in Play will cause a deadlock when shutting down.
               | Please set "akka.coordinated-shutdown.exit-jvm = off"""".stripMargin.replace("\n", ""))
 
-
           case object InvalidCoordinatedShutdownSettings extends CoordinatedShutdown.Reason
           application.coordinatedShutdown.run(InvalidCoordinatedShutdownSettings)
         } else {
-          // Only add a shutdown hook of settings won't cause a deadlock.
+          // Only add a shutdown hook if settings won't cause a deadlock.
           process.addShutdownHook {
-            server.stop()
+            application.coordinatedShutdown.shutdownReason() match {
+              case None => server.stop()
+            }
           }
         }
 
