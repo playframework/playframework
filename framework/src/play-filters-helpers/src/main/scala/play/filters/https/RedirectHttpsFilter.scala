@@ -53,7 +53,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
       if (redirectEnabled && xForwarded && !isExcludePath) {
         Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), redirectStatusCode))
       } else if (isExcludePath) {
-          Accumulator.done(Results.Status(200))
+        Accumulator.done(Results.Status(200))
       } else {
         if (xForwarded && !isExcludePath) {
           logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
@@ -102,7 +102,7 @@ private object RedirectHttpsKeys {
   val portPath = "play.filters.https.port"
   val redirectEnabledPath = "play.filters.https.redirectEnabled"
   val forwardedProtoEnabled = "play.filters.https.xForwardedProtoEnabled"
-  val excludePath           = "play.filters.https.redirectExcludePath"
+  val excludePath = "play.filters.https.redirectExcludePath"
 }
 
 @Singleton
@@ -153,6 +153,7 @@ class RedirectHttpsModule extends SimpleModule(
  */
 trait RedirectHttpsComponents {
   def configuration: Configuration
+
   def environment: Environment
 
   lazy val redirectHttpsConfiguration: RedirectHttpsConfiguration =
