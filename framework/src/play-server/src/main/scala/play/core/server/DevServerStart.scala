@@ -178,8 +178,8 @@ object DevServerStart {
 
               // whether it's a programmatic or a failure-caused invocation of the coordinated shutdown, we force the application reload.
               newApplication.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload"){ () =>
-                  buildLink.forceReload()
-                  Future.successful(Done)
+                buildLink.forceReload()
+                Future.successful(Done)
               }
 
               Play.start(newApplication)
