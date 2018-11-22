@@ -16,7 +16,7 @@ package sbt {
   object SbtInternals {
 
     // TODO: remove the use of this internal API
-   import sbt.internal.util.complete.DefaultParsers
+    import sbt.internal.util.complete.DefaultParsers
 
     // This is copy/pasted from https://github.com/sbt/sbt/commit/dfbb67e7d6699fd6c131d7259e1d5f72fdb097f6.
     // Command.process was remove in sbt 1.0 and put back on sbt 1.2. For this code to run

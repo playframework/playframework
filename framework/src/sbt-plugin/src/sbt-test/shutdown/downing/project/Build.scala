@@ -107,17 +107,17 @@ object DevModeBuild {
     println("Preparing to stop Prod...")
     verifyResourceContains("/simulate-downing", 200, Seq.empty[String], 3)
     println("Prod is stopping.")
-    TimeUnit.SECONDS.sleep(1)
-    println(s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}")
 
     // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
     // before the application has finished to shut down
     val secs = 10
     // NiceToHave: replace with System.nanoTime()
     val end = System.currentTimeMillis() + secs * 1000
-    while ( processIsRunning(pidString) && System.currentTimeMillis() < end) {
+    do{
+      println(s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}")
       TimeUnit.SECONDS.sleep(3)
-    }
+    }while ( processIsRunning(pidString) && System.currentTimeMillis() < end)
+
     if (processIsRunning(pidString)) {
       throw new RuntimeException(s"Assertion failed: Process $pidString didn't stop in $secs sconds.")
     }

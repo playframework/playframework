@@ -18,7 +18,7 @@ lazy val root = (project in file("."))
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
 
-    Test / fork := true ,
+    fork in test := true ,
 
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 

@@ -13,12 +13,13 @@ import scala.concurrent.{ Await, Future }
 
 class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem, cs: CoordinatedShutdown) extends AbstractController(c) {
 
+  // This timestamp is useful in logs to see if a new instance of the Controller is created.
   val startupTs = System.currentTimeMillis()
 
   // This task generates a file so scripted tests can assert `CoordinatedShutdown` ran.
   cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "application-cs-proof-of-existence") {
     () =>
-      println(s"Producing shutdownProof for id $startupTs")
+      println(s"Producing shutdown proof file for id $startupTs")
       val f = new java.io.File("target/proofs", actorSystem.name + ".txt")
       f.getParentFile.mkdirs
       f.createNewFile()
@@ -36,7 +37,7 @@ class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem
   case object CustomReason extends CoordinatedShutdown.Reason
   def downing = Action {
     println(s"calling shutdown from controller with id: $startupTs")
-    Await.result(cs.run(CustomReason), FiniteDuration(5, "seconds"))
-    Ok(s"downing conteoller with id: $startupTs")
+    cs.run(CustomReason), FiniteDuration(5, "seconds")
+    Ok(s"downing controller with id: $startupTs")
   }
 }

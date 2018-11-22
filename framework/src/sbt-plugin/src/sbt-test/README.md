@@ -1,4 +1,3 @@
-(DISCLAIMER: this file is located under `shutdown/happy-path` to avoid https://github.com/sbt/sbt/issues/4457)
 # Shutdown test suite
 
 This collection of scripted tests helps ensuring the correct resource de-alloc 
