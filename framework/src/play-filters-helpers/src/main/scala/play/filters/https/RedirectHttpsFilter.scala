@@ -56,7 +56,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
         Accumulator.done(Results.Status(200))
       } else {
         if (xForwarded && !isExcludePath) {
-          logger.info(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
+          logger.debug(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
         } else {
           logger.debug(s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
             "X-Forwarded-Proto is not present.")
@@ -77,9 +77,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
   }
 
   protected def checkExcludePath(req: RequestHeader): Boolean = {
-    import req.uri
-    if (redirectExcludePath.contains(req.uri)) true
-    else false
+    redirectExcludePath.contains(req.uri)
   }
 
 }
