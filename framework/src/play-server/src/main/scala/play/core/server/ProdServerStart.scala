@@ -92,6 +92,7 @@ object ProdServerStart {
           process.addShutdownHook {
             application.coordinatedShutdown.shutdownReason() match {
               case None => server.stop()
+              case _ =>
             }
           }
         }
