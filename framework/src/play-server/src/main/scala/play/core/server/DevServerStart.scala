@@ -176,9 +176,11 @@ object DevServerStart {
                 loader.load(context)
               }
 
-              // whether it's a programmatic or a failure-caused invocation of the coordinated shutdown, we force the application reload.
-              newApplication.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload"){ () =>
-                buildLink.forceReload()
+              newApplication.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload") { () =>
+                // we'll only force a reload if the reason for shutdown is not an Application.stop
+                if (!newApplication.coordinatedShutdown.shutdownReason().contains(ApplicationStoppedReason)) {
+                  buildLink.forceReload()
+                }
                 Future.successful(Done)
               }
 
