@@ -153,10 +153,10 @@ object ActorSystemProvider {
       // prevent the creation of the Actor System.
       val errorMessage =
         s"""Can't start Play: detected "$exitJvmPath = on". Using "$exitJvmPath = on" in
-           |Play will cause a deadlock when shutting down. Please set "$exitJvmPath = off""""
+           | Play may cause a deadlock when shutting down. Please set "$exitJvmPath = off""""
           .stripMargin.replace("\n", "")
       logger.error(errorMessage)
-      config.reportError(exitJvmPath, errorMessage)
+      throw config.reportError(exitJvmPath, errorMessage)
     }
 
     val akkaConfig: Config = {
