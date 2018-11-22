@@ -37,7 +37,7 @@ class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem
   case object CustomReason extends CoordinatedShutdown.Reason
   def downing = Action {
     println(s"calling shutdown from controller with id: $startupTs")
-    cs.run(CustomReason), FiniteDuration(5, "seconds")
+    cs.run(CustomReason)
     Ok(s"downing controller with id: $startupTs")
   }
 }
