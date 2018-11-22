@@ -11,7 +11,7 @@ Here's a list of `scripted` suites and what are the tests they exercise:
 
  * `happy-path`:
     * `6-`: Mode.Dev + file change causes dev mode reload
-    * `5-`: Mode.Dev + user stops dev mode
+    * `5-`: Mode.Dev + Ctrl-D stops dev mode
     * `3-`: Mode.Test + non-forked tests
     * `1-`: Mode.Prod finished on `SIGTERM`
  * `downing`:
@@ -19,7 +19,19 @@ Here's a list of `scripted` suites and what are the tests they exercise:
     * `4-`: Mode.Test + forked tests
     * `2-`: Mode.Prod finished on `Down`ing
 
+## General requirements
+
+#### i. PID file 
+
+Only when running Play in Mode.Prod requires producing a `pidfile` that must be deleted when the 
+process completes.
+
+That file must only exist during the life-span of a PROD process (never TEST nor DEV).
+
+
 ## Using default settings
+
+There's a first batch of use cases to be tested with default settings.
 
 ### Mode.Prod
 
@@ -35,20 +47,18 @@ Here's a list of `scripted` suites and what are the tests they exercise:
 
 ### Mode.Dev
 
-5- on user interaction: stop dev mode, run coordinated shutdown but don't exit the JVM
+5- on user interaction (Ctrl-D): stop dev mode, run coordinated shutdown but don't exit the JVM
 
-6- on file change: run coordinated shutdown but don't exit the JVM
+6- on file change: only the Application should die, run coordinated shutdown but don't exit the JVM
 
-7- on programmatic event (Downing): stop dev mode, run coordinated shutdown but don't exit the JVM
- 
-## PID file 
+7- on programmatic event (e.g. `Down`ing): only the Application should die, run coordinated shutdown but don't exit the JVM
 
-Running Play in Mode.Prod requires producing a `pidfile` that must be destroyed when the 
-process completes.
 
-That file must only exist during thhe life-span of a PROD process (never TEST nor DEV).
 
-## Using custom settings
+## Using custom settings (WIP) 
+
+There's a collection of settings with a certain impact on shutdown that deserve careful testing. Below is a 
+list of those settings. Using each of these settings may require on or many tests from the `Using default settings` list above.
  
 a- Using `akka.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start 
 
