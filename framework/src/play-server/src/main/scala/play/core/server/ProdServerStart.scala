@@ -5,13 +5,11 @@
 package play.core.server
 
 import java.io._
-import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
+import java.nio.file.{FileAlreadyExistsException, Files, StandardOpenOption}
 
 import akka.Done
 import akka.actor.CoordinatedShutdown
-import org.slf4j.LoggerFactory
 import play.api._
-import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -73,11 +71,14 @@ object ProdServerStart {
             Future successful Done
         }
 
-        // Only add a shutdown hook if settings won't cause a deadlock.
         process.addShutdownHook {
-          application.coordinatedShutdown.shutdownReason() match {
-            case None => server.stop()
-            case _ =>
+          // Only run server stop if the shutdown reason is not defined. That means the
+          // process received a SIGTERM (or other acceptable signal) instead of being
+          // stopped because of CoordinatedShutdown, for example when downing a cluster.
+          // The reason for that is we want to avoid calling coordinated shutdown from
+          // inside a JVM shutdown hook.
+          if (application.coordinatedShutdown.shutdownReason().isEmpty) {
+            server.stop()
           }
         }
 

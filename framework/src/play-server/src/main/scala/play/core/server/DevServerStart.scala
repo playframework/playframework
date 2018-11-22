@@ -177,7 +177,7 @@ object DevServerStart {
               }
 
               newApplication.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload") { () =>
-                // we'll only force a reload if the reason for shutdown is not an Application.stop
+                // We'll only force a reload if the reason for shutdown is not an Application.stop
                 if (!newApplication.coordinatedShutdown.shutdownReason().contains(ApplicationStoppedReason)) {
                   buildLink.forceReload()
                 }
