@@ -148,7 +148,7 @@ object ActorSystemProvider {
   private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
 
     val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
-    if (config.get[Boolean](exitJvmPath)) {
+    if (config.has(exitJvmPath) && config.get[Boolean](exitJvmPath)) {
       // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
       // prevent the creation of the Actor System.
       val errorMessage =
