@@ -76,7 +76,8 @@ object ProdServerStart {
           // process received a SIGTERM (or other acceptable signal) instead of being
           // stopped because of CoordinatedShutdown, for example when downing a cluster.
           // The reason for that is we want to avoid calling coordinated shutdown from
-          // inside a JVM shutdown hook.
+          // inside a JVM shutdown hook if the trigger of the JVM shutdown hook was
+          // coordinated shutdown.
           if (application.coordinatedShutdown.shutdownReason().isEmpty) {
             server.stop()
           }
