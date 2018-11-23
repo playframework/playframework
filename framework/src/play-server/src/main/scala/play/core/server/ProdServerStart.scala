@@ -5,7 +5,7 @@
 package play.core.server
 
 import java.io._
-import java.nio.file.{FileAlreadyExistsException, Files, StandardOpenOption}
+import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
 
 import akka.Done
 import akka.actor.CoordinatedShutdown
@@ -36,7 +36,7 @@ object ProdServerStart {
    * are any problems.
    *
    * @param process The process (real or abstract) to use for starting the
-   * server.
+   *                server.
    */
   def start(process: ServerProcess): ReloadableServer = {
 
@@ -62,7 +62,7 @@ object ProdServerStart {
         val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
         val server = serverProvider.createServer(config, application)
 
-        application.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "remove-pid-file"){
+        application.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "remove-pid-file") {
           () =>
             // Must delete the PID file after stopping the server not before...
             // In case of unclean shutdown or failure, leave the PID file there!
