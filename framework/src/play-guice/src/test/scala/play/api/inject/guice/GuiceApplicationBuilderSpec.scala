@@ -5,17 +5,22 @@
 package play.api.inject
 package guice
 
-import javax.inject.{ Inject, Provider, Singleton }
 import java.util.Collections
 
-import com.google.inject.{ CreationException, ProvisionException }
+import com.google.inject.CreationException
+import com.google.inject.Guice
+import com.google.inject.ProvisionException
 import com.typesafe.config.Config
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 import org.specs2.mutable.Specification
-import play.{ Environment => JavaEnvironment }
+import play.api.Configuration
 import play.api.i18n.I18nModule
 import play.api.mvc.CookiesModule
-import play.api.{ Configuration, Environment }
+import play.core.WebCommands
 import play.inject.{ Module => JavaModule }
+import play.{ Environment => JavaEnvironment }
 
 class GuiceApplicationBuilderSpec extends Specification {
 
@@ -123,6 +128,16 @@ class GuiceApplicationBuilderSpec extends Specification {
 
       builder.injector() must throwAn[CreationException].not
       builder.injector().instanceOf[GuiceApplicationBuilderSpec.C] must throwAn[ProvisionException]
+    }
+
+    "bind a unique singleton instance of WebCommands" in {
+      val applicationModule = new GuiceApplicationBuilder()
+        .load(new BuiltinModule, new I18nModule, new CookiesModule)
+        .applicationModule()
+      val injector1 = Guice.createInjector(applicationModule)
+      val injector2 = Guice.createInjector(applicationModule)
+      injector1.getInstance(classOf[WebCommands]) must_=== injector1.getInstance(classOf[WebCommands])
+      injector2.getInstance(classOf[WebCommands]) must_!== injector1.getInstance(classOf[WebCommands])
     }
 
     "display logger deprecation message" in {
