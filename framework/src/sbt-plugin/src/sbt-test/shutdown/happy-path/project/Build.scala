@@ -4,10 +4,12 @@
 import play.dev.filewatch.FileWatchService
 import play.sbt.run.toLoggerProxy
 import sbt._
+import sbt.complete.Parser
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.Properties
+import scala.sys.process.Process
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 
@@ -96,7 +98,7 @@ object DevModeBuild {
     val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
 
     def processIsRunning(pidString: String): Boolean ={
-      val foundProcesses = Common.runProcess("jps") // runs the command and returns the output as a single String.
+      val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
         .split("\n") // split per line
         .filter{_.contains("ProdServerStart")}
       foundProcesses // filter only the Play processes
@@ -105,7 +107,7 @@ object DevModeBuild {
     }
 
     println("Preparing to stop Prod...")
-    Common.runSbtCommand("stopProd --no-exit-sbt", state)
+    Command2.process("stopProd --no-exit-sbt", state)
     println("Prod is stopping.")
     TimeUnit.SECONDS.sleep(1)
     println(s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}")
@@ -125,5 +127,19 @@ object DevModeBuild {
     state
   }
 
+  // This is copy/pasted from https://github.com/sbt/sbt/commit/dfbb67e7d6699fd6c131d7259e1d5f72fdb097f6.
+  // Command.process was remove in sbt 1.0 and put back on sbt 1.2. For this code to run
+  // on sbt 0.13.x, 1.0.x, 1.1.x and 1.2.x I'm copy/pasting here.
+  private object Command2 {
+    def process(command: String, state: State): State = {
+      val parser = Command.combine(state.definedCommands)
+      Parser.parse(command, parser(state)) match {
+        case Right(s) => s() // apply command.  command side effects happen here
+        case Left(errMsg) =>
+          state.log error errMsg
+          state.fail
+      }
+    }
+  }
 
 }

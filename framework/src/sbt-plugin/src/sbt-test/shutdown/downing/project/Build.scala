@@ -7,6 +7,7 @@ import sbt._
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.sys.process.Process
 import scala.util.Properties
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
@@ -96,7 +97,7 @@ object DevModeBuild {
     val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
 
     def processIsRunning(pidString: String): Boolean ={
-      val foundProcesses = Common.runProcess("jps") // runs the command and returns the output as a single String.
+      val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
         .split("\n") // split per line
         .filter{_.contains("ProdServerStart")}
       foundProcesses // filter only the Play processes
