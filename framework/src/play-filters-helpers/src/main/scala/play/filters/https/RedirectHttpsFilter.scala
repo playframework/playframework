@@ -152,7 +152,6 @@ class RedirectHttpsModule extends SimpleModule(
  */
 trait RedirectHttpsComponents {
   def configuration: Configuration
-
   def environment: Environment
 
   lazy val redirectHttpsConfiguration: RedirectHttpsConfiguration =
