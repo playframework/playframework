@@ -108,7 +108,7 @@ final case class GuiceApplicationBuilder(
         bind[ILoggerFactory] to loggerFactory,
         bind[OptionalDevContext] to new OptionalDevContext(None),
         bind[OptionalSourceMapper].toProvider[OptionalSourceMapperProvider],
-        bind[WebCommands] to new DefaultWebCommands
+        bind[WebCommands].to(new DefaultWebCommands).in[Singleton]
       ).createModule()
   }
 
