@@ -45,7 +45,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
     import play.core.Execution.Implicits.trampoline
-    val isExcludePath = checkExcludePath(req)
+    val isExcludePath = isExcluded(req)
     if (isExcludePath) {
       logger.debug(s"Not redirecting to HTTPS because the path is included in exclude paths")
       next(req)
@@ -77,8 +77,8 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
     }
   }
 
-  protected def checkExcludePath(req: RequestHeader): Boolean = {
-    redirectExcludePath.contains(req.uri)
+  protected def isExcluded(req: RequestHeader): Boolean = {
+    config.excludePaths.contains(req.uri)
   }
 
 }
@@ -89,7 +89,7 @@ case class RedirectHttpsConfiguration(
     sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
     redirectEnabled: Boolean = true,
     xForwardedProtoEnabled: Boolean = false,
-    redirectExcludePath: Seq[String] = Seq()
+    excludePaths: Seq[String] = Seq()
 ) {
   @deprecated("Use redirectEnabled && strictTransportSecurity.isDefined", "2.7.0")
   def hstsEnabled: Boolean = redirectEnabled && strictTransportSecurity.isDefined
@@ -129,7 +129,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
       e.mode == Mode.Prod
     }
     val xProtoEnabled = c.get[Boolean](forwardedProtoEnabled)
-    val redirectExcludePath = c.get[Seq[String]](excludePaths)
+    val excludePaths = c.get[Seq[String]](RedirectHttpsKeys.excludePaths)
 
     RedirectHttpsConfiguration(
       strictTransportSecurity,
@@ -137,7 +137,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
       port,
       redirectEnabled,
       xProtoEnabled,
-      redirectExcludePath
+      excludePaths
     )
   }
 }
