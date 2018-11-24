@@ -150,7 +150,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       """
         |play.filters.https.redirectEnabled = true
         |play.filters.https.xForwardedProtoEnabled = true
-        |play.filters.https.redirectExcludePath = ["/skip"]
+        |play.filters.https.excludePaths = ["/skip"]
       """.stripMargin, mode = Mode.Test)) {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
       val result = route(app, request("/skip").withConnection(secure).withHeaders("X-Forwarded-Proto" -> "http")).get
@@ -175,6 +175,9 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       new play.filters.https.RedirectHttpsModule)
     .appRoutes(app => {
       case ("GET", "/") =>
+        val action = app.injector.instanceOf[DefaultActionBuilder]
+        action(Ok(""))
+      case ("GET", "/skip") =>
         val action = app.injector.instanceOf[DefaultActionBuilder]
         action(Ok(""))
     }).overrides(
