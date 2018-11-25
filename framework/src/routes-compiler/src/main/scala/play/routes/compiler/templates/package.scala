@@ -241,7 +241,7 @@ package object templates {
    */
   def reverseSignature(routes: Seq[Route]): String =
     reverseParameters(routes).map(p => safeKeyword(p._1.name) + ":" + p._1.typeName + {
-      Option(routes.map(_.call.parameters.get(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
+      Option(routes.map(_.call.parameters.getOrElse(Nil).filterNot(_.isJavaRequest)(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
         case None => ""
         case Some(default) => " = " + default
       }.getOrElse("")
