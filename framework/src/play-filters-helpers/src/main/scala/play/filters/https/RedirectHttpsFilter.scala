@@ -45,8 +45,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
     import play.core.Execution.Implicits.trampoline
-    val isExcludePath = isExcluded(req)
-    if (isExcludePath) {
+    if (isExcluded(req)) {
       logger.debug(s"Not redirecting to HTTPS because the path is included in exclude paths")
       next(req)
     } else if (req.secure) {
