@@ -87,7 +87,7 @@ trait Database {
    * @param block code to execute
    * @return the result of the code block
    */
-  def withTransaction[A](isolationLevel: TransactionIsolationLevel.Value)(block: Connection => A): A
+  def withTransaction[A](isolationLevel: TransactionIsolationLevel)(block: Connection => A): A
 
   /**
    * Shutdown this database, closing the underlying data source.

@@ -31,7 +31,7 @@ public enum TransactionIsolationLevel {
         return id;
     }
 
-    public TransactionIsolationLevel$.Value asScala() {
+    public play.api.db.TransactionIsolationLevel asScala() {
         return TransactionIsolationLevel$.MODULE$.apply(id);
     }
 
@@ -41,7 +41,7 @@ public enum TransactionIsolationLevel {
                 return type;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Not a valid value for transaction isolation level. See java.sql.Connection for possible options.");
     }
 
 }

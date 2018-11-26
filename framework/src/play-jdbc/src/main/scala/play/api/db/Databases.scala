@@ -8,7 +8,6 @@ import java.sql.{ Connection, Driver, DriverManager }
 
 import com.typesafe.config.Config
 import javax.sql.DataSource
-import play.api.db.TransactionIsolationLevel.TransactionIsolationLevel
 import play.api.{ Configuration, Environment }
 import play.utils.{ ProxyDriver, Reflect }
 

@@ -198,9 +198,9 @@ public interface Database {
                 return Database.this.withTransaction(block::apply);
             }
 
-            public <A> A withTransaction(Enumeration.Value isolationLevel,
+            public <A> A withTransaction(play.api.db.TransactionIsolationLevel isolationLevel,
                                          final scala.Function1<Connection, A> block) {
-                return Database.this.withTransaction(TransactionIsolationLevel.fromId(isolationLevel.id()), block::apply);
+                return Database.this.withTransaction(isolationLevel.asJava(), block::apply);
             }
         };
     }
