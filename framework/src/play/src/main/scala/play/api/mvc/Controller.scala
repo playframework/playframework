@@ -195,6 +195,34 @@ trait InjectedController extends BaseController {
 }
 
 /**
+ * A variation of [[MessagesAbstractController]] that gets its components via method injection.
+ */
+trait MessagesInjectedController extends MessagesBaseController {
+
+  private[this] var _components: MessagesControllerComponents = _
+
+  override protected def controllerComponents: MessagesControllerComponents = {
+    if (_components == null) fallbackControllerComponents else _components
+  }
+
+  /**
+   * Call this method to set the [[ControllerComponents]] instance.
+   */
+  @Inject
+  def setControllerComponents(components: MessagesControllerComponents): Unit = {
+    _components = components
+  }
+
+  /**
+   * Defines fallback components to use in case setControllerComponents has not been called.
+   */
+  protected def fallbackControllerComponents: MessagesControllerComponents = {
+    throw new NoSuchElementException(
+      "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.")
+  }
+}
+
+/**
  * The base controller components dependencies that most controllers rely on.
  */
 trait ControllerComponents {
