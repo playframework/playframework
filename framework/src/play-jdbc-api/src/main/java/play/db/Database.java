@@ -4,8 +4,6 @@
 
 package play.db;
 
-import scala.Enumeration;
-
 import javax.sql.DataSource;
 import java.sql.Connection;
 
