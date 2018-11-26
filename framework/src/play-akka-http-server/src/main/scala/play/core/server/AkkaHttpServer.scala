@@ -9,13 +9,15 @@ import java.security.{ Provider, SecureRandom }
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.annotation.ApiMayChange
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
-import akka.http.scaladsl.{ ConnectionContext, Http }
+import akka.http.scaladsl.{ ConnectionContext, Http, HttpConnectionContext }
+import akka.http.scaladsl.UseHttp2._
 import akka.stream.{ Materializer, TLSClientAuth }
 import akka.stream.scaladsl._
 import akka.util.ByteString
@@ -67,6 +69,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   implicit private val mat: Materializer = context.materializer
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
+
+  @ApiMayChange
+  private val http2AlwaysForInsecure: Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure") getOrElse false)
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -157,7 +162,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption(), secure = false))
+  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never), secure = false))
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {
