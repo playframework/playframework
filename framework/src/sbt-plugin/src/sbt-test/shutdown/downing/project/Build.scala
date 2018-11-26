@@ -7,7 +7,10 @@ import sbt._
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.sys.process.Process
 import scala.util.Properties
+import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 
 object DevModeBuild {
 
@@ -84,4 +87,45 @@ object DevModeBuild {
         }
     }
   }
+
+
+  val assertProcessIsStopped: Command = Command.args("assertProcessIsStopped", "") { (state: State, args: Seq[String]) =>
+    val pidFile = Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID"
+    if(!pidFile.exists())
+      throw new RuntimeException("RUNNING_PID file not found. Can't assert the process is stopped without knowing the process ID.")
+
+    val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
+
+    def processIsRunning(pidString: String): Boolean ={
+      val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
+        .split("\n") // split per line
+        .filter{_.contains("ProdServerStart")}
+      foundProcesses // filter only the Play processes
+        // check that there is a process line starting with 'pidString ' 
+        // (note padding with whitespace)
+        .exists(_.startsWith(pidString + " ")) 
+    }
+
+    println("Preparing to stop Prod...")
+    verifyResourceContains("/simulate-downing", 200, Seq.empty[String], 3)
+    println("Prod is stopping.")
+
+    // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
+    // before the application has finished to shut down
+    val secs = 10
+    // NiceToHave: replace with System.nanoTime()
+    val end = System.currentTimeMillis() + secs * 1000
+    do{
+      println(s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}")
+      TimeUnit.SECONDS.sleep(3)
+    }while ( processIsRunning(pidString) && System.currentTimeMillis() < end)
+
+    if (processIsRunning(pidString)) {
+      throw new RuntimeException(s"Assertion failed: Process $pidString didn't stop in $secs sconds.")
+    }
+
+    state
+  }
+
+
 }

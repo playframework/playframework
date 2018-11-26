@@ -1,0 +1,93 @@
+# Structure of this test:
+# =======================
+
+# This suite runs a few of the tests detailed on `README.md`
+
+## WARNING: some assertions on this test are implicit.
+##  - e.g. asserting dev.mode doesn't exit the JVM is implicitly asserted by
+##    running `Mode.Dev tests` first and asserting the whole test moves on to
+##    `Mode.Test tests`
+
+
+### --------------
+### Mode.Dev tests
+### --------------
+
+## Start dev mode
+> run
+
+## Mode.Dev doesn't create a PID_FILE
+-$ exists target/universal/stage/RUNNING_PID
+
+# The app started
+> verifyResourceContains / 200
+
+# invoking a certain endpoint causes a programmatic trigger of Coordinated Shutdown (simulates Downing)
+> verifyResourceContains /simulate-downing 200
+# Coordinated Shutdown may take a few seconds to complete.
+$ sleep 1000
+$ exists target/proofs/application-actorsystem-name.txt
+# Coordinated shutdown of the App has run but the Dev mode server isn't stopped (only the App)
+-$ exists target/universal/stage/RUNNING_PID
+
+# After shutting down the application, invoking another endpoint will bring the Application back
+# up again and successfully respond: shutting down the Application doesn't cause the server to shutdown.
+$ sleep 1000
+> verifyResourceContains / 200
+
+## Stopping Mode.Dev runs Coordinated Shutdown in both the Dev Server ActorSystem and the Application Actor System
+# remove the proof of execution
+$ delete target/proofs/application-actorsystem-name.txt
+> playStop
+$ exists target/proofs/application-actorsystem-name.txt
+## Dev.Mode doesn't exit the JVM
+#  - This step is implicitly verified if the test moves forward because the JVM is still alive.
+
+### ---------------
+### Mode.Test tests
+### ---------------
+
+## Cleanup previous execution leftovers.
+$ delete target/universal/stage/RUNNING_PID
+-$ exists target/universal/stage/RUNNING_PID
+$ delete target/proofs/application-actorsystem-name.txt
+-$ exists target/proofs/application-actorsystem-name.txt
+
+
+## Run user forked tests (See build.sbt)
+> test
+
+# Mode.Test doesn't create a PID_FILE but runs CoordinatedShutdown
+-$ exists target/universal/stage/RUNNING_PID
+$ exists target/proofs/application-actorsystem-name.txt
+
+## Test.Mode doesn't exit the JVM
+#  - This step is implicitly verified if the test moves forward because the JVM is still alive.
+
+### ---------------
+### Mode.Prod tests
+### ---------------
+
+## 0. Cleanup previous execution leftovers.
+$ delete target/universal/stage/RUNNING_PID
+-$ exists target/universal/stage/RUNNING_PID
+$ delete target/proofs/application-actorsystem-name.txt
+-$ exists target/proofs/application-actorsystem-name.txt
+
+
+## 1. Start prod mode
+> runProd --no-exit-sbt
+
+# The app started (wait few seconds for the app to start)
+$ sleep 1000
+> verifyResourceContains / 200
+
+# Mode.Prod creates a PID_FILE
+$ exists target/universal/stage/RUNNING_PID
+
+## 2. Mode.Prod exits the JVM without deadlock on Downing
+
+> assertProcessIsStopped
+> awaitPidfileDeletion
+$ exists target/proofs/application-actorsystem-name.txt
+-$ exists target/universal/stage/RUNNING_PID
