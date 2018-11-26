@@ -44,7 +44,7 @@ Java
 
 ## Shutdown triggers
 
-A Play process is usually terminated via a `SIGTERM` signal. When the signal is received by the Play process a JVM shutdown hook is run causing the server to stop via invoking Coordinated Shutdown.
+A Play process is usually terminated via a `SIGTERM` signal. When the Play process receives the signal, a JVM shutdown hook is run causing the server to stop via invoking Coordinated Shutdown.
 
 Other possible triggers differ from `SIGTERM` slightly. While `SIGTERM` is handled in an outside-in fashion you may trigger a shutdown from your code (or a library may detect a cause to trigger the shutdown). One such example is running your Play process as part of an Akka Cluster, or adding an endpoint on your API that would allow an admin or an orchestrator to trigger a programmatic shutdown. In these scenarios the shutdown is inside out: all the phases of the Coordinated Shutdown list are run in the appropriate order but the Actor System will terminate before the JVM shutdown hook runs.
 
