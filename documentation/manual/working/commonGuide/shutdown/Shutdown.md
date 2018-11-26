@@ -48,7 +48,7 @@ A Play process is usually terminated via a `SIGTERM` signal. When the Play proce
 
 Other possible triggers differ from `SIGTERM` slightly. While `SIGTERM` is handled in an outside-in fashion you may trigger a shutdown from your code (or a library may detect a cause to trigger the shutdown). One such example is running your Play process as part of an Akka Cluster, or adding an endpoint on your API that would allow an admin or an orchestrator to trigger a programmatic shutdown. In these scenarios the shutdown is inside out: all the phases of the Coordinated Shutdown list are run in the appropriate order but the Actor System will terminate before the JVM shutdown hook runs.
 
-When developing your Play application you should consider all the termination triggers and what steps and in which order they will run.
+When developing your Play application, you should consider all the termination triggers and what steps and in which order they will run.
 
 ## Limitations
 
