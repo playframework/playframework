@@ -377,7 +377,7 @@ The `getHandlerFor` method on the `Server` trait was used internally by the Play
 
 ## CoordinatedShutdown `play.akka.run-cs-from-phase` configuration
 
-The configuration `akka.coordinated-shutdown.exit-jvm` is not supported anymore. When that settings is enabled Play will not start and an alert will be displayed. Play ships with default values for `akka.coordinated-shutdown.*` which should be suitable for most scenarios so it's unlikely you'll need to override them. 
+The configuration `akka.coordinated-shutdown.exit-jvm` is not supported anymore. When that setting is enabled Play will not start, and an error will be logged. Play ships with default values for `akka.coordinated-shutdown.*` which should be suitable for most scenarios so it's unlikely you'll need to override them. 
 
 The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
