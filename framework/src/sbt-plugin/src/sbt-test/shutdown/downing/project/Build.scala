@@ -103,7 +103,7 @@ object DevModeBuild {
       foundProcesses // filter only the Play processes
         // check that there is a process line starting with 'pidString ' 
         // (note padding with whitespace)
-        .exists(_.contains(pidString)) // see if one of them is PID
+        .exists(_.startsWith(pidString + " ")) 
     }
 
     println("Preparing to stop Prod...")
