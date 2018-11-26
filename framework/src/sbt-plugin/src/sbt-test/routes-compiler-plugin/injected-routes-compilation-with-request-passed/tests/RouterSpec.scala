@@ -154,6 +154,10 @@ object RouterSpec extends PlaySpecification {
     controllers.routes.Application.hello().url must_== "/hello"
   }
 
+  "reverse routing a route with parameter that has default value and comes _after_ the request param" in new WithApplication() {
+    controllers.routes.Application.routedefault().url must_== "/routesdefault"
+  }
+
   "The assets reverse route support" should {
     "fingerprint assets" in new WithApplication() {
       controllers.routes.Assets.versioned("css/main.css").url must_== "/public/css/abcd1234-main.css"
