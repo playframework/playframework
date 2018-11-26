@@ -72,7 +72,7 @@ object Parameter {
 case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
   import Parameter._
 
-  def isJavaRequest = typeName.equalsIgnoreCase(requestClass) || typeName.equalsIgnoreCase(requestClassFQ)
+  def isJavaRequest = typeName == requestClass || typeName == requestClassFQ
   def typeNameReal = if (isJavaRequest) { requestClassFQ } else { typeName }
   def nameClean = if (isJavaRequest) { "req" } else { name }
   override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
