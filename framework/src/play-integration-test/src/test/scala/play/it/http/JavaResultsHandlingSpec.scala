@@ -12,9 +12,10 @@ import akka.stream.javadsl.Source
 import akka.util.ByteString
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.Application
+import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
-import play.api.libs.ws.{ DefaultWSCookie, WSCookie, WSResponse }
+import play.api.libs.ws.WSResponse
 import play.http.HttpEntity
 import play.i18n.{ Lang, MessagesApi }
 import play.it._
@@ -22,10 +23,12 @@ import play.libs.{ Comet, EventSource, Json }
 import play.mvc.Http.{ Cookie, Flash, Session }
 import play.mvc._
 
+import scala.collection.JavaConverters._
+
 class NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
-trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with ContentTypes {
 
   sequential
 
@@ -154,16 +157,55 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       )
     }
 
-    "treat headers case insensitively" in makeRequest(new MockController {
-      def action = {
-        response.setHeader("Server", "foo")
-        response.setHeader("server", "bar")
-        Results.ok("Hello world").withHeader("Other", "foo").withHeader("other", "bar")
+    "when adding headers" should {
+
+      "accept simple values" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", "foo")
+        }
+      }) { response =>
+        response.header("Other") must beSome("foo")
+        response.body must_== "Hello world"
       }
-    }) { response =>
-      response.header("Server") must beSome("bar")
-      response.header("Other") must beSome("bar")
-      response.body must_== "Hello world"
+
+      "treat headers case insensitively" in makeRequest(new MockController {
+        def action = {
+          response.setHeader("Server", "foo")
+          response.setHeader("server", "bar")
+          Results.ok("Hello world").withHeader("Other", "foo").withHeader("other", "bar")
+        }
+      }) { response =>
+        response.header("Server") must beSome("bar")
+        response.header("Other") must beSome("bar")
+        response.body must_== "Hello world"
+      }
+
+      "fail if adding null values" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", null)
+        }
+      }) { response =>
+        response.status must_== INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "discard headers" should {
+
+      "remove the header" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", "some-value").discardHeader("Other")
+        }
+      }) { response =>
+        response.header("Other") must beNone
+      }
+
+      "treat headers case insensitively" in makeRequest(new MockController {
+        def action = {
+          Results.ok("Hello world").withHeader("Other", "some-value").discardHeader("other")
+        }
+      }) { response =>
+        response.header("Other") must beNone
+      }
     }
 
     "discard cookies from result" in {
@@ -328,8 +370,6 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     "honor configuration for play.http.session.sameSite" in {
       "when configured to lax" in makeRequest(new MockController {
         def action = {
-          import scala.collection.JavaConverters._
-
           val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
           val body = HttpEntity.fromString("Hello World", "utf-8")
           val session = new Session(Map.empty[String, String].asJava)
@@ -346,8 +386,6 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "when configured to strict" in makeRequest(new MockController {
         def action = {
-          import scala.collection.JavaConverters._
-
           val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
           val body = HttpEntity.fromString("Hello World", "utf-8")
           val session = new Session(Map.empty[String, String].asJava)
@@ -465,7 +503,6 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "chunk event source results" in makeRequest(new MockController {
       def action = {
-        import scala.collection.JavaConverters._
         val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map {
           new akka.japi.function.Function[String, EventSource.Event] {
             def apply(t: String) = EventSource.Event.event(t)
@@ -501,6 +538,74 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
       response.body must_== "hello"
+    }
+
+    "when changing the content-type" should {
+      "correct change it for strict entities" in makeRequest(new MockController {
+        def action = {
+          Results.ok("<h1>Hello</h1>").as(HTML)
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.body must beEqualTo("<h1>Hello</h1>")
+      }
+
+      "correct change it for chunked entities" in makeRequest(new MockController {
+        def action = {
+          val chunks = List(ByteString("a"), ByteString("b"))
+          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          Results.ok().chunked(dataSource).as(HTML)
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(TRANSFER_ENCODING) must beSome("chunked")
+      }
+
+      "correct change it for streamed entities" in makeRequest(new MockController {
+        def action = {
+          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          new Result(
+            new ResponseHeader(200, java.util.Collections.emptyMap()),
+            new HttpEntity.Streamed(source, Optional.empty(), Optional.empty())
+          ).as(HTML) // start without content type, but later change it to HTML
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
+      "have no content type if set to null in strict entities" in makeRequest(new MockController {
+        def action = {
+          Results.ok("<h1>Hello</h1>").as(null)
+        }
+      }) { response =>
+        response.header(CONTENT_TYPE) must beNone
+        response.body must beEqualTo("<h1>Hello</h1>")
+      }
+
+      "have no content type if set to null in chunked entities" in makeRequest(new MockController {
+        def action = {
+          val chunks = List(ByteString("a"), ByteString("b"))
+          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          Results.ok().chunked(dataSource).as(null)
+        }
+      }) { response =>
+        response.header(CONTENT_TYPE) must beNone
+      }
+
+      "have no content type if set to null in streamed entities" in makeRequest(new MockController {
+        def action = {
+          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          new Result(
+            new ResponseHeader(200, java.util.Collections.emptyMap()),
+            new HttpEntity.Streamed(source, Optional.empty(), Optional.of(HTML))
+          ).as(null) // start with HTML but later change it to null which means no content type
+        }
+      }) { response =>
+        response.header(CONTENT_TYPE) must beNone
+      }
     }
 
   }

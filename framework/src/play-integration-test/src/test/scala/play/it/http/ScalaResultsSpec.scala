@@ -68,7 +68,7 @@ class ScalaResultsSpec extends PlaySpecification {
     }
 
     "set flash on right path" in withFooPath { implicit app =>
-      cookies(Ok.flashing("user" -> "alice")).head.path must_== "/foo"
+      cookies(Ok.flash("user" -> "alice")).head.path must_== "/foo"
     }
 
     // flash cookie is discarded in PlayDefaultUpstreamHandler
@@ -115,7 +115,7 @@ class ScalaResultsSpec extends PlaySpecification {
   }
 
   def withApplication[T](config: (String, Any)*)(block: Application => T): T = running(
-    _.configure(Map(config: _*) + ("play.http.secret.key" -> "foo"))
+    _.configure(Map(config: _*) + ("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
   )(block)
 
   def withFooDomain[T](block: Application => T) = withApplication("play.http.session.domain" -> ".foo.com")(block)

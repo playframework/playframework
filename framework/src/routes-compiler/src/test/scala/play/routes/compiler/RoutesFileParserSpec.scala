@@ -61,11 +61,11 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse a single element package" in {
-      parseRoute("GET /s p.c.m").call.packageName must_== "p"
+      parseRoute("GET /s p.c.m").call.packageName must_== Some("p")
     }
 
     "parse a multiple element package" in {
-      parseRoute("GET /s p1.p2.c.m").call.packageName must_== "p1.p2"
+      parseRoute("GET /s p1.p2.c.m").call.packageName must_== Some("p1.p2")
     }
 
     "parse a controller" in {
@@ -173,7 +173,7 @@ class RoutesFileParserSpec extends Specification {
     "throw an error for an invalid path" in parseError("GET s p.c.m")
     "throw an error for no path" in parseError("GET")
     "throw an error for no method" in parseError("GET /s")
-    "throw an error if no method specified" in parseError("GET /s p.c")
+    "throw an error if no method specified" in parseError("GET /s c")
     "throw an error for an invalid include path" in parseError("-> s someFile")
     "throw an error if no include file specified" in parseError("-> /s")
   }

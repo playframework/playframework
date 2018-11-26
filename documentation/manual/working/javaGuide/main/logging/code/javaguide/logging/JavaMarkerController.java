@@ -31,22 +31,21 @@ public class JavaMarkerController extends Controller {
     // #logging-log-info-with-request-context
     // ###insert: import static net.logstash.logback.marker.Markers.append;
 
-    private Marker requestMarker() {
-        Http.Request request = Http.Context.current().request();
+    private Marker requestMarker(Http.Request request) {
         return append("host", request.host())
                 .and(append("path", request.path()));
     }
 
-    public Result index() {
-        logger.info(requestMarker(), "Rendering index()");
+    public Result index(Http.Request request) {
+        logger.info(requestMarker(request), "Rendering index()");
         return ok("foo");
     }
     // #logging-log-info-with-request-context
 
     // #logging-log-info-with-async-request-context
-    public CompletionStage<Result> asyncIndex() {
+    public CompletionStage<Result> asyncIndex(Http.Request request) {
         return CompletableFuture.supplyAsync(() -> {
-            logger.info(requestMarker(), "Rendering asyncIndex()");
+            logger.info(requestMarker(request), "Rendering asyncIndex()");
             return ok("foo");
         }, httpExecutionContext.current());
     }

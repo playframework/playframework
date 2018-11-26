@@ -26,7 +26,7 @@ class DynamicFormSpec extends Specification {
   implicit val messages = messagesApi.preferred(Seq.empty)
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val validatorFactory = FormSpec.validatorFactory()
-  val config = ConfigFactory.empty()
+  val config = ConfigFactory.load()
 
   "a dynamic form" should {
 
@@ -78,6 +78,19 @@ class DynamicFormSpec extends Specification {
     "allow access to the equivalent of the raw data when filled" in {
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
       form("foo").value().get() must_== "bar"
+    }
+
+    "fail with exception when trying to switch on direct field access" in {
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      form.withDirectFieldAccess(true) must throwA[RuntimeException].like {
+        case e => e.getMessage must endWith("Not possible to enable direct field access for dynamic forms.")
+      }
+    }
+
+    "work when switch off direct field access" in {
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config).withDirectFieldAccess(false).bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
+      form.get("foo") must_== "bar"
+      form.value("foo").get must_== "bar"
     }
 
     "don't throw NullPointerException when all components of form are null" in {

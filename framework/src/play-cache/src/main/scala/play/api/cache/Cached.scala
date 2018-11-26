@@ -250,7 +250,7 @@ final class CachedBuilder(
    * The returned cache will store all responses whatever they may contain
    * @param duration how long we should store responses
    */
-  def default(duration: Duration): CachedBuilder = compose(PartialFunction((_: ResponseHeader) => duration))
+  def default(duration: Duration): CachedBuilder = compose({ case _: ResponseHeader => duration })
 
   /**
    * The returned cache will store all responses whatever they may contain

@@ -7,6 +7,7 @@ package play.api.test
 import akka.annotation.ApiMayChange
 
 import play.api.Application
+import play.core.server.ServerEndpoints
 
 /**
  * Contains information about a running TestServer. This object can be
@@ -15,4 +16,8 @@ import play.api.Application
  * We use a separate class to avoid including mutable state, such as methods
  * for closing the server.
  */
-@ApiMayChange final case class RunningServer(app: Application, endpoints: ServerEndpoints)
+@ApiMayChange final case class RunningServer(
+    app: Application,
+    endpoints: ServerEndpoints,
+    stopServer: AutoCloseable
+)

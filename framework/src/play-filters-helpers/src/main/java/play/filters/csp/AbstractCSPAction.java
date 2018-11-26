@@ -22,21 +22,18 @@ public abstract class AbstractCSPAction extends Action<CSP> {
     public abstract CSPProcessor processor();
 
     @Override
-    public CompletionStage<Result> call(Http.Context ctx) {
-        Http.Request request = ctx.request();
+    public CompletionStage<Result> call(Http.Request request) {
         Option<CSPResult> maybeResult = processor().process(request.asScala());
         if (maybeResult.isEmpty()) {
-            return delegate.call(ctx);
+            return delegate.call(request);
         }
         final CSPResult cspResult = maybeResult.get();
 
         Http.Request newRequest = toJava(cspResult.nonce())
                 .map(n -> request.addAttr(RequestAttrKey.CSPNonce().asJava(), n))
                 .orElseGet(() -> request);
-        Http.Context newCtx = ctx.withRequest(newRequest);
 
-        Http.Context.current.set(newCtx);
-        return delegate.call(newCtx).thenApply((Result result) -> {
+        return delegate.call(newRequest).thenApply((Result result) -> {
             Result r = result;
             if (cspResult.nonceHeader()) {
                 r = r.withHeader(Http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER, cspResult.nonce().get());

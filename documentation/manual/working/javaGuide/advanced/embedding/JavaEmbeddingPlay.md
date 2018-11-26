@@ -23,4 +23,4 @@ To stop the server once you've started it, simply call the `stop` method:
 
 @[stop](code/javaguide/advanced/embedding/JavaEmbeddingPlay.java)
 
-> **Note:** Play requires an application secret to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
+> **Note:** Play requires an [[application secret|ApplicationSecret]] to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.

@@ -6,6 +6,7 @@ package play.mvc;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -229,12 +230,156 @@ public class Result {
     }
 
     /**
+     * Sets a new flash for this result, discarding the existing flash.
+     *
+     * @param flash the flash to set with this result
+     * @return the new result
+     */
+    public Result withFlash(Flash flash) {
+        play.api.mvc.Result.warnFlashingIfNotRedirect(flash.asScala(), header.asScala());
+        return new Result(header, body, session, flash, cookies);
+    }
+
+    /**
+     * Sets a new flash for this result, discarding the existing flash.
+     *
+     * @param flash the flash to set with this result
+     * @return the new result
+     */
+    public Result withFlash(Map<String, String> flash) {
+        return withFlash(new Flash(flash));
+    }
+
+    /**
+     * Discards the existing flash for this result.
+     *
+     * @return the new result
+     */
+    public Result withNewFlash() {
+        return withFlash(Collections.emptyMap());
+    }
+
+    /**
+     * Adds values to the flash.
+     *
+     * @param values A map with values to add to this result’s flash
+     * @return A copy of this result with values added to its flash scope.
+     */
+    public Result flash(Map<String, String> values) {
+        if(this.flash == null) {
+            return withFlash(values);
+        } else {
+            return withFlash(this.flash.adding(values));
+        }
+    }
+
+    /**
+     * Adds the given key and value to the flash.
+     *
+     * @param key The key to add to this result’s flash
+     * @param value The value to add to this result’s flash
+     * @return A copy of this result with the key and value added to its flash scope.
+     */
+    public Result flash(String key, String value) {
+        Map<String, String> newValues = new HashMap<>(1);
+        newValues.put(key, value);
+        return flash(newValues);
+    }
+
+    /**
+     * Removes values from the flash.
+     *
+     * @param keys Keys to remove from flash
+     * @return A copy of this result with keys removed from its flash scope.
+     */
+    public Result removingFromFlash(String... keys) {
+        if(this.flash == null) {
+            return withNewFlash();
+        }
+        return withFlash(this.flash.remove(keys));
+    }
+
+    /**
      * Extracts the Session of this Result value.
      *
      * @return the session (if it was set)
      */
     public Session session() {
         return session;
+    }
+
+    /**
+     * @param request Current request
+     * @return The session carried by this result. Reads the given request’s session if this result does not has a session.
+     */
+    public Session session(Http.Request request) {
+        if(session != null) {
+            return session;
+        } else {
+            return request.session();
+        }
+    }
+
+    /**
+     * Sets a new session for this result, discarding the existing session.
+     *
+     * @param session the session to set with this result
+     * @return the new result
+     */
+    public Result withSession(Session session) {
+        return new Result(header, body, session, flash, cookies);
+    }
+
+    /**
+     * Sets a new session for this result, discarding the existing session.
+     *
+     * @param session the session to set with this result
+     * @return the new result
+     */
+    public Result withSession(Map<String, String> session) {
+        return withSession(new Session(session));
+    }
+
+    /**
+     * Discards the existing session for this result.
+     *
+     * @return the new result
+     */
+    public Result withNewSession() {
+        return withSession(Collections.emptyMap());
+    }
+
+    /**
+     * Adds values to the session.
+     *
+     * @param values A map with values to add to this result’s session
+     * @return A copy of this result with values added to its session scope.
+     */
+    public Result addingToSession(Http.Request request, Map<String, String> values) {
+        return withSession(session(request).adding(values));
+    }
+
+    /**
+     * Adds the given key and value to the session.
+     *
+     * @param key The key to add to this result’s session
+     * @param value The value to add to this result’s session
+     * @return A copy of this result with the key and value added to its session scope.
+     */
+    public Result addingToSession(Http.Request request, String key, String value) {
+        Map<String, String> newValues = new HashMap<>(1);
+        newValues.put(key, value);
+        return addingToSession(request, newValues);
+    }
+
+    /**
+     * Removes values from the session.
+     *
+     * @param keys Keys to remove from session
+     * @return A copy of this result with keys removed from its session scope.
+     */
+    public Result removingFromSession(Http.Request request, String... keys) {
+        return withSession(session(request).remove(keys));
     }
 
     /**
@@ -359,6 +504,16 @@ public class Result {
      */
     public Result withHeaders(String... nameValues) {
         return new Result(JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies);
+    }
+
+    /**
+     * Discard a HTTP header in this result.
+     *
+     * @param name the header name
+     * @return the transformed copy
+     */
+    public Result discardHeader(String name) {
+        return new Result(header.discardHeader(name), body, session, flash, cookies);
     }
 
     /**

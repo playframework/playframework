@@ -41,7 +41,10 @@ public class ApplicationProvider {
     /**
      * Handle a request directly, without using the application.
      * @param requestHeader the request made.
+     *
+     * @deprecated Deprecated as of 2.7.0. WebCommands are now handled by the DefaultHttpRequestHandler.
      */
+    @Deprecated
     public Optional<Result> handleWebCommand(Http.RequestHeader requestHeader) {
         return OptionConverters
                 .toJava(this.underlying.handleWebCommand(requestHeader.asScala()))

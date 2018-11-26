@@ -69,7 +69,7 @@ class ObjectMapping$times[R, $aParams](apply: Function$times[$aParams, R], unapp
 """
 }
 
-val scriptSource = scala.io.Source.fromFile(argv(0)).getLines.mkString("\n")
+val scriptSource = scala.io.Source.fromFile(args(0)).getLines.mkString("\n")
 
 println(s"""/*
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>

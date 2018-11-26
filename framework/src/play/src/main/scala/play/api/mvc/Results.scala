@@ -86,6 +86,20 @@ object ResponseHeader {
     if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
 }
 
+object Result {
+
+  /**
+   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
+   */
+  @inline def warnFlashingIfNotRedirect(flash: Flash, header: ResponseHeader): Unit = {
+    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
+      Logger("play").forMode(Mode.Dev).warn(
+        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+      )
+    }
+  }
+}
+
 /**
  * A simple result, which defines the response header and a body ready to send to the client.
  *
@@ -119,6 +133,21 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     copy(header = header.copy(headers = header.headers ++ headers.map {
       case (name, dateTime) => (name, dateTime.format(ResponseHeader.httpDateFormat))
     }))
+  }
+
+  /**
+   * Discards headers to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingHeader(ETAG)
+   * }}}
+   *
+   * @param header the headers to discard from this result.
+   * @return the new result
+   */
+  def discardingHeader(name: String): Result = {
+    copy(header = header.copy(headers = header.headers - name))
   }
 
   /**
@@ -201,9 +230,24 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    *
    * @param flash the flash scope to set with this result
    * @return the new result
+   * @deprecated Use flash instead.
    */
-  def flashing(flash: Flash): Result = {
-    warnFlashingIfNotRedirect(flash)
+  @deprecated("Use flash instead", "2.7.0")
+  def flashing(flash: Flash): Result = this.flash(flash)
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Redirect(routes.Application.index()).flash(flash + ("success" -> "Done!"))
+   * }}}
+   *
+   * @param flash the flash scope to set with this result
+   * @return the new result
+   */
+  def flash(flash: Flash): Result = {
+    Result.warnFlashingIfNotRedirect(flash, header)
     copy(newFlash = Some(flash))
   }
 
@@ -217,8 +261,23 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    *
    * @param values the flash values to set with this result
    * @return the new result
+   * @deprecated Use flash instead.
    */
-  def flashing(values: (String, String)*): Result = flashing(Flash(values.toMap))
+  @deprecated("Use flash instead", "2.7.0")
+  def flashing(values: (String, String)*): Result = this.flash(values: _*)
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Redirect(routes.Application.index()).flash("success" -> "Done!")
+   * }}}
+   *
+   * @param values the flash values to set with this result
+   * @return the new result
+   */
+  def flash(values: (String, String)*): Result = flash(Flash(values.toMap))
 
   /**
    * Changes the result content type.
@@ -264,17 +323,6 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     withSession(new Session(session.data -- keys))
 
   override def toString = s"Result(${header})"
-
-  /**
-   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
-   */
-  @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
-    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
-      Logger("play").forMode(Mode.Dev).warn(
-        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
-      )
-    }
-  }
 
   /**
    * Convert this result to a Java result.

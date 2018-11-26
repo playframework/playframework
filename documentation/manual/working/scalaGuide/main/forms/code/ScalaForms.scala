@@ -534,7 +534,7 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
       },
       contact => {
         val contactId = Contact.save(contact)
-        Redirect(routes.Application.showContact(contactId)).flashing("success" -> "Contact saved!")
+        Redirect(routes.Application.showContact(contactId)).flash("success" -> "Contact saved!")
       }
     )
   }

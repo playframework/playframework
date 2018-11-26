@@ -3,26 +3,6 @@
 
 This page highlights the new features of Play 2.7. If you want to learn about the changes you need to make when you migrate to Play 2.7, check out the [[Play 2.7 Migration Guide|Migration27]].
 
-## Scala 2.13 support
-
-Play 2.7 is the first release of Play to have been cross built against Scala 2.12 and 2.13. Many dependencies were updated so that we can have support for both versions.
-
-You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
-
-For Scala 2.12:
-
-```scala
-scalaVersion := "2.12.6"
-```
-
-For Scala 2.13:
-
-```scala
-scalaVersion := "2.13.0-M3"
-```
-
-> **Note**: Keep in mind Scala 2.13 still does not have a final version.
-
 ## Lifecycle managed by Akka's Coordinated Shutdown
 
 Play 2.6 introduced the usage of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.5/actors.html?language=scala#coordinated-shutdown) but still didn't use it all across the core framework or exposed it to the end user. Coordinated Shutdown is an Akka Extension with a registry of tasks that can be run in an ordered fashion during the shutdown of the Actor System.
@@ -31,9 +11,9 @@ Coordinated Shutdown internally handles Play 2.7 Play's lifecycle and an instanc
 
 You can find more details on the new section on [[Coordinated Shutdown on the Play manual|Shutdown]], or you can have a look at Akka's [reference docs on Coordinated Shutdown](https://doc.akka.io/docs/akka/2.5/actors.html?languages=scala#coordinated-shutdown).
 
-## Guice was upgraded to 4.2.1
+## Guice was upgraded to 4.2.2
 
-Guice, the default dependency injection framework used by Play, was upgraded to 4.2.1 (from 4.1.0). Have a look at the [4.2.1](https://github.com/google/guice/wiki/Guice421) and the [4.2.0](https://github.com/google/guice/wiki/Guice42) release notes. This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].
+Guice, the default dependency injection framework used by Play, was upgraded to 4.2.2 (from 4.1.0). Have a look at the [4.2.2](https://github.com/google/guice/wiki/Guice422), [4.2.1](https://github.com/google/guice/wiki/Guice421) and the [4.2.0](https://github.com/google/guice/wiki/Guice42) release notes. This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].
 
 ## Constraint annotations offered for Play Java are now @Repeatable
 
@@ -71,6 +51,7 @@ import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.ValidationPayload;
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.libs.typedmap.TypedMap;
 
 @ValidateWithPayload
 public class SomeForm implements ValidatableWithPayload<String> {
@@ -80,6 +61,7 @@ public class SomeForm implements ValidatableWithPayload<String> {
         Lang lang = payload.getLang();
         Messages messages = payload.getMessages();
         Map<String, Object> ctxArgs = payload.getArgs();
+        TypedMap attrs = payload.getAttrs();
         Config config = payload.getConfig();
         // ...
     }

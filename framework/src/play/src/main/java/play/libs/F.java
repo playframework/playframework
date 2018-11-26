@@ -23,6 +23,13 @@ public class F {
     }
 
     /**
+     * A Function with 4 arguments.
+     */
+    public interface Function4<A,B,C,D,R> {
+        R apply(A a, B b, C c, D d) throws Throwable;
+    }
+
+    /**
      * Exception thrown when an operation times out. This class provides an
      * unchecked alternative to Java's TimeoutException.
      */

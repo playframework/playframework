@@ -43,6 +43,6 @@ class TemplatesSpec extends Specification {
     Route(
       HttpVerb("GET"),
       PathPattern(Seq(StaticPart(staticPath))),
-      HandlerCall("pkg", "ctrl", true, "method", Some(params)))
+      HandlerCall(Option("pkg"), "ctrl", true, "method", Some(params)))
   }
 }

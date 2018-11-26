@@ -5,9 +5,10 @@
 package play.api.mvc
 
 import java.security.cert.X509Certificate
+import java.util.Locale
 
 import play.api.http.{ HeaderNames, MediaRange, MediaType }
-import play.api.i18n.Lang
+import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request._
 
@@ -146,6 +147,15 @@ trait RequestHeader {
   def addAttr[A](key: TypedKey[A], value: A): RequestHeader =
     withAttrs(attrs.updated(key, value))
 
+  /**
+   * Create a new versions of this object with the given attribute removed.
+   *
+   * @param key The key of the attribute to remove.
+   * @return The new version of this object with the attribute removed.
+   */
+  def removeAttr(key: TypedKey[_]): RequestHeader =
+    withAttrs(attrs - key)
+
   // -- Computed
 
   /**
@@ -216,13 +226,13 @@ trait RequestHeader {
 
   /**
    * Parses the `Session` cookie and returns the `Session` data. The request's session cookie is stored in an attribute indexed by
-   * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a Cell to store the session cookie, to allow it to be evaluated on-demand.
+   * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the session cookie, to allow it to be evaluated on-demand.
    */
   def session: Session = attrs(RequestAttrKey.Session).value
 
   /**
    * Parses the `Flash` cookie and returns the `Flash` data. The request's flash cookie is stored in an attribute indexed by
-   * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the session, to allow it to be evaluated on-demand.
+   * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the flash, to allow it to be evaluated on-demand.
    */
   def flash: Flash = attrs(RequestAttrKey.Flash).value
 
@@ -259,6 +269,52 @@ trait RequestHeader {
    */
   def withBody[A](body: A): Request[A] =
     new RequestImpl[A](connection, method, target, version, headers, attrs, body)
+
+  /**
+   * Create a new versions of this object with the given transient language set.
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @param lang The language to use.
+   * @return The new version of this object with the given transient language set.
+   */
+  def withTransientLang(lang: Lang): RequestHeader =
+    addAttr(Messages.Attrs.CurrentLang, lang)
+
+  /**
+   * Create a new versions of this object with the given transient language set.
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @param code The language to use.
+   * @return The new version of this object with the given transient language set.
+   */
+  def withTransientLang(code: String): RequestHeader =
+    withTransientLang(Lang(code))
+
+  /**
+   * Create a new versions of this object with the given transient language set.
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @param locale The language to use.
+   * @return The new version of this object with the given transient language set.
+   */
+  def withTransientLang(locale: Locale): RequestHeader =
+    withTransientLang(Lang(locale))
+
+  /**
+   * Create a new versions of this object with the given transient language removed.
+   *
+   * @return The new version of this object with the transient language removed.
+   */
+  def clearTransientLang(): RequestHeader =
+    removeAttr(Messages.Attrs.CurrentLang)
+
+  /**
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @return The current transient language of this request.
+   */
+  def transientLang(): Option[Lang] =
+    attrs.get(Messages.Attrs.CurrentLang)
 
   override def toString: String = {
     method + " " + uri

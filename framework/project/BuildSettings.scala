@@ -65,10 +65,17 @@ object BuildSettings {
   def mimaPreviousVersions(version: String): Set[String] =
     mimaPreviousMinorReleaseVersions.toSet ++ mimaPreviousPatchVersions(version)
 
+  def evictionSettings: Seq[Setting[_]] = Seq(
+    // This avoids a lot of dependency resolution warnings to be showed.
+    evictionWarningOptions in update := EvictionWarningOptions.default
+      .withWarnTransitiveEvictions(false)
+      .withWarnDirectEvictions(false)
+  )
+
   /**
    * These settings are used by all projects
    */
-  def playCommonSettings: Seq[Setting[_]] = {
+  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ {
 
     fileHeaderSettings ++ Seq(
       scalariformAutoformat := true,
@@ -98,7 +105,10 @@ object BuildSettings {
       parallelExecution in Test := false,
       testListeners in (Test,test) := Nil,
       javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
-      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
+      testOptions ++= Seq(
+        Tests.Argument(TestFrameworks.Specs2, "showtimes"),
+        Tests.Argument(TestFrameworks.JUnit, "-v")
+      ),
       bintrayPackage := "play-sbt-plugin",
       apiURL := {
         val v = version.value
@@ -223,6 +233,8 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_CONTENT_SECURITY_POLICY_NONCE_HEADER_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CONTENT_SECURITY_POLICY_REPORT_ONLY"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CONTENT_SECURITY_POLICY_REPORT_ONLY_="),
+
+      ProblemFilters.exclude[MissingTypesProblem]("play.mvc.BodyParser$Text"),
 
       ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Results.TODO"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Controller.TODO"),
@@ -650,17 +662,17 @@ object BuildSettings {
 
       // Add asJava method to Scala Messages
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.Messages.asJava"),
-      
+
       // Change implicit type from Messages to MessagesProvider to fix implicit precedence
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
-      
+
       // remove the depreciated copy method on RequestHeader
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeaderImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestImpl.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.copy*"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.copy*"),
-      
+
       // Add play.mvc.Http#Cookies getCookie method
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.getCookie"),
 
@@ -673,28 +685,56 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.StubMessagesFactory.stubMessagesApi$default$6"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
 
+      // Add companion for play.api.mvc.Result
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Result$"),
+
+      // Add singleton object to SecretConfiguration, add constants
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.SecretConfiguration$"),
+
+      // Pass Java Request to action methods as first argument when route is prefixed with '+' sign
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invocation"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.j.JavaAction.invocation"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.routing.HandlerInvokerFactory#JavaActionInvokerFactory.resultCall"),
+
+      // Allow to remove request attributes
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.removeAttr"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.removeAttr"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.-"),
+
+      // Add withTransientLang and clearTransientLang to Request
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.clearTransientLang"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.withTransientLang"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.clearTransientLang"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.withTransientLang"),
+
+      // Added Java @varargs annotation
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Session.-"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Flash.-"),
+
+      // Allow to disable JPA thread local requires access to configuration
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
+    
       // Add play.db.Database.withTransaction config
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.Database.withTransaction")
-
-  ),
+    ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   ) ++ Seq(
-    // TODO: Remove when updating to Scala 2.13.0-M4
-    // Interplay 2.0.3 adds Scala 2.13.0-M4 to crossScalaVersions, but we don't want
-    // that right because some dependencies don't have a build to M4 yet. As soon as
-    // we decide that we could release to M4, than we can remove this setting and use
-    // the one provided by interplay.
+    // TODO: Re-add ScalaVersions.scala213
+    // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
+    // that right because some dependencies don't have a build for M5 yet. As soon as
+    // we decide that we could release to M5, than we can re-add scala213 to it
     //
     // See also:
     // 1. the root project at build.sbt file.
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, "2.13.0-M3")
+    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212)
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(

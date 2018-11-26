@@ -8,6 +8,7 @@ import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
 
+import play.api.OptionalDevContext;
 import play.api.OptionalSourceMapper;
 import play.api.http.DefaultFileMimeTypesProvider;
 import play.api.http.JavaCompatibleHttpRequestHandler;
@@ -191,6 +192,8 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
         );
 
         return new JavaCompatibleHttpRequestHandler(
+                webCommands(),
+                new OptionalDevContext(OptionConverters.toScala(devContext())),
                 router().asScala(),
                 scalaErrorHandler,
                 httpConfiguration(),

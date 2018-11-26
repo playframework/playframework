@@ -67,6 +67,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
     }
 
     @Override
+    @Deprecated
     public CompletionStage<UserInfo> verifiedId() {
         return verifiedId(Http.Context.current().request());
     }

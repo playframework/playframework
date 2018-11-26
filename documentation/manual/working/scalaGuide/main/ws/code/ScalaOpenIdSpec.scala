@@ -29,7 +29,7 @@ class ScalaOpenIdSpec extends PlaySpecification {
 
   "Scala OpenId" should {
     "be injectable" in new WithApplication() with Injecting {
-      val controller = new IdController(inject[OpenIdClient], inject[ControllerComponents])(inject[ExecutionContext]) {
+      val controller = new IdController(inject[OpenIdClient], inject[ControllerComponents])(inject[ExecutionContext]) with Logging {
         //#flow
         def login = Action {
           Ok(views.html.login())
@@ -39,7 +39,7 @@ class ScalaOpenIdSpec extends PlaySpecification {
           Form(single(
             "openid" -> nonEmptyText
           )).bindFromRequest.fold({ error =>
-            Logger.info(s"bad request ${error.toString}")
+            logger.info(s"bad request ${error.toString}")
             Future.successful(BadRequest(error.toString))
           }, { openId =>
             openIdClient.redirectURL(openId, routes.Application.openIdCallback.absoluteURL())

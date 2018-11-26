@@ -11,7 +11,7 @@ There are two ways to generate a Javascript router. One is to embed the router i
 
 ### Embedded router
 
-An embedded router can be generated using the ``@javascriptRouter`` directive inside a Scala template. This is typically done inside the main decorating template.
+An embedded router can be generated using the ``@javascriptRouter`` directive inside a Twirl template. This is typically done inside the main decorating template.
 
 @[javascript-embedded-router](code/javaEmbeddedRouter.scala.html)
 

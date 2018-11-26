@@ -10,7 +10,7 @@ import play.api.http.{ FlashConfiguration, HttpConfiguration, SecretConfiguratio
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
-import scala.collection.JavaConverters._
+import scala.annotation.varargs
 
 /**
  * HTTP Flash scope.
@@ -46,24 +46,58 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
-   * Removes a value from the flash scope.
+   * Adds a value to the flash scope, and returns a new flash scope.
+   *
+   * This is an alias method to [[+]].
+   *
+   * @param kv the key-value pair to add
+   * @return the modified flash scope
+   */
+  def add(kv: (String, String)): Flash = this + kv
+
+  /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new flash scope with the added elements.
+   */
+  def ++(kvs: (String, String)*): Flash = {
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new flash scope with the added elements.
+   */
+  def addAll(kvs: Map[String, String]): Flash = {
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Removes values from the flash scope.
    *
    * For example:
    * {{{
    * flash - "success"
    * }}}
    *
-   * @param key the key to remove
+   * @param keys the keys to remove
    * @return the modified flash scope
    */
-  def -(key: String): Flash = copy(data - key)
+  def -(keys: String*): Flash = remove(keys: _*)
+
+  /**
+   * Removes values from the flash scope.
+   *
+   * @param keys the keys to remove
+   * @return the modified flash scope
+   */
+  @varargs def remove(keys: String*): Flash = copy(data -- keys)
 
   /**
    * Retrieves the flash value that is associated with the given key.
    */
   def apply(key: String): String = data(key)
 
-  lazy val asJava: Http.Flash = new Http.Flash(data.asJava)
+  lazy val asJava: Http.Flash = new Http.Flash(this)
 }
 
 /**
@@ -113,7 +147,7 @@ object Flash extends CookieBaker[Flash] with UrlEncodedCookieDataCodec {
 
   val emptyCookie = new Flash
 
-  def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = new Flash(javaFlash.asScala.toMap)
+  def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = javaFlash.asScala
 
   @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
   override val isSigned: Boolean = false

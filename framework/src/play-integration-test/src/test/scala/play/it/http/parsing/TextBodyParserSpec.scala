@@ -34,9 +34,10 @@ class TextBodyParserSpec extends PlaySpecification {
       parse("bär", Some("text/plain; charset=iso-8859-1"), "iso-8859-1") must beRight("bär")
     }
 
-    "default to iso-8859-1 encoding" in new WithApplication() {
-      parse("bär", Some("text/plain"), "iso-8859-1") must beRight("bär")
-      parse("bär", None, "iso-8859-1") must beRight("bär")
+    "default to us-ascii encoding" in new WithApplication() {
+      parse("bär", Some("text/plain"), "us-ascii") must beRight("b?r")
+      parse("bär", None, "us-ascii") must beRight("b?r")
+      parse("bär", None, "us-ascii") must beRight("b?r")
     }
 
     "accept text/plain content type" in new WithApplication() {

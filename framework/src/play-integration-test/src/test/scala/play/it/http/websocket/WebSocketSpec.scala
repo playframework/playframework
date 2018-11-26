@@ -120,6 +120,12 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
+      "allow handling non-upgrade requests withh 426 status code" in handleNonUpgradeRequestsGracefully { _ =>
+        WebSocket.acceptOrResult[String, String] { req =>
+          Future.successful(Left(Results.Status(ACCEPTED))) // The status code is ignored. This code is never reached.
+        }
+      }
+
       "aggregate text frames" in {
         val consumed = Promise[List[String]]()
         withServer(app => WebSocket.accept[String, String] { req =>
@@ -451,6 +457,15 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
         "Sec-WebSocket-Key" -> "x3JJHMbDL1EzLkh9GBhXDw==",
         "Origin" -> "http://example.com"
       ).get()).status must_== FORBIDDEN
+    }
+  }
+
+  def handleNonUpgradeRequestsGracefully(webSocket: Application => Handler) = {
+    withServer(app => webSocket(app)) { implicit app =>
+      val ws = app.injector.instanceOf[WSClient]
+      await(ws.url(s"http://localhost:$testServerPort/stream").addHttpHeaders(
+        "Origin" -> "http://example.com"
+      ).get()).status must_== UPGRADE_REQUIRED
     }
   }
 }

@@ -28,7 +28,7 @@ abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends 
       )
     }
 
-    def invocation = self.invocation
+    def invocation(req: Http.Request) = self.invocation(req)
   }
 
   def parser = action.parser
@@ -40,8 +40,11 @@ abstract class MockJavaAction(handlerComponents: JavaHandlerComponents) extends 
 
   def executionContext: ExecutionContext = handlerComponents.executionContext
 
-  def invocation = {
-    method.invoke(this) match {
+  def invocation(req: Http.Request) = {
+    // We can't do
+    // method.invoke(this, if (method.getParameterCount == 1) { req } else { Array.empty })
+    // or similar because of bugs JDK-4071957 / JDK-8046171
+    (if (method.getParameterCount == 1) { method.invoke(this, req) } else { method.invoke(this) }) match {
       case r: Result => CompletableFuture.completedFuture(r)
       case f: CompletionStage[_] => f.asInstanceOf[CompletionStage[Result]]
     }
@@ -64,12 +67,6 @@ object MockJavaActionHelper {
   def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String)(implicit mat: Materializer): Result = {
     Helpers.await(Helpers.call(action, requestBuilder.build().asScala, body)).asJava
   }
-
-  def setContext(request: play.mvc.Http.RequestBuilder, contextComponents: JavaContextComponents): Unit = {
-    Http.Context.current.set(JavaHelpers.createJavaContext(request.build().asScala, contextComponents))
-  }
-
-  def removeContext: Unit = Http.Context.current.remove()
 }
 
 /**
@@ -85,7 +82,9 @@ object MockJavaActionHelper {
 object MockJavaActionJavaMocker {
   def findActionMethod(obj: AnyRef): Method = {
     val maybeMethod = obj.getClass.getDeclaredMethods.find { method =>
-      !method.isSynthetic && method.getParameterCount == 0
+      !method.isSynthetic &&
+        (method.getParameterCount == 0 ||
+          (method.getParameterCount == 1 && method.getParameterTypes()(0) == classOf[Http.Request]))
     }
     val theMethod = maybeMethod.getOrElse(
       throw new RuntimeException("MockJavaAction must declare at least one non synthetic method")

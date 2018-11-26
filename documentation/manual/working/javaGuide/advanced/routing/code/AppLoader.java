@@ -26,7 +26,7 @@ class MyComponents extends RoutingDslComponentsFromContext
     @Override
     public Router router() {
         return routingDsl()
-                .GET("/hello/:to").routeTo(to -> ok("Hello " + to))
+                .GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to))
                 .build();
     }
 }

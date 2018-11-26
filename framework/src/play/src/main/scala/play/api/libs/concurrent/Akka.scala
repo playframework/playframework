@@ -255,7 +255,7 @@ class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicati
   private def logWarningWhenRunPhaseConfigIsPresent(): Unit = {
     val config = actorSystem.settings.config
     if (config.hasPath("play.akka.run-cs-from-phase")) {
-      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now run all the CoordinatedShutdown phases.")
+      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now runs all the CoordinatedShutdown phases.")
     }
   }
 

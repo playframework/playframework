@@ -14,6 +14,7 @@ import play.cache.caffeine.CaffeineCacheComponents;
 import play.core.j.MappedJavaHandlerComponents;
 import play.filters.components.NoHttpFiltersComponents;
 import play.libs.Json;
+import play.libs.typedmap.TypedKey;
 import play.mvc.*;
 import play.routing.Router;
 
@@ -30,9 +31,9 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-action
     public class VerboseAction extends play.mvc.Action.Simple {
-        public CompletionStage<Result> call(Http.Context ctx) {
-            log.info("Calling action for {}", ctx);
-            return delegate.call(ctx);
+        public CompletionStage<Result> call(Http.Request req) {
+            log.info("Calling action for {}", req);
+            return delegate.call(req);
         }
     }
     // #verbose-action
@@ -70,32 +71,36 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-annotation-action
     public class VerboseAnnotationAction extends Action<VerboseAnnotation> {
-        public CompletionStage<Result> call(Http.Context ctx) {
+        public CompletionStage<Result> call(Http.Request req) {
             if (configuration.value()) {
-                log.info("Calling action for {}", ctx);
+                log.info("Calling action for {}", req);
             }
-            return delegate.call(ctx);
+            return delegate.call(req);
         }
     }
     // #verbose-annotation-action
 
     static class User {
-        public static Integer findById(Integer id) { return id; }
+        public static User findById(Integer id) { return new User(); }
     }
 
     // #pass-arg-action
+    //###replace: public class Attrs {
+    static class Attrs {
+        public static final TypedKey<User> USER = TypedKey.<User>create("user");
+    }
+
     public class PassArgAction extends play.mvc.Action.Simple {
-        public CompletionStage<Result> call(Http.Context ctx) {
-            ctx.args.put("user", User.findById(1234));
-            return delegate.call(ctx);
+        public CompletionStage<Result> call(Http.Request req) {
+            return delegate.call(req.addAttr(Attrs.USER, User.findById(1234)));
         }
     }
     // #pass-arg-action
 
     // #pass-arg-action-index
     @With(PassArgAction.class)
-    public static Result passArgIndex() {
-        Object user = ctx().args.get("user");
+    public static Result passArgIndex(Http.Request request) {
+        User user = request.attrs().get(Attrs.USER);
         return ok(Json.toJson(user));
     }
     // #pass-arg-action-index
@@ -128,8 +133,8 @@ public class JavaActionsComposition extends Controller {
         }
 
         @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return cacheApi.getOrElseUpdate(configuration.key(), () -> delegate.call(ctx));
+        public CompletionStage<Result> call(Http.Request req) {
+            return cacheApi.getOrElseUpdate(configuration.key(), () -> delegate.call(req));
         }
     }
     // #action-composition-dependency-injection

@@ -601,6 +601,15 @@ trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with St
       fileMimeTypes,
       executionContext)
   }
+
+  def stubMessagesControllerComponents(): MessagesControllerComponents = {
+    val stub = stubControllerComponents()
+    new DefaultMessagesControllerComponents(
+      new DefaultMessagesActionBuilderImpl(stubBodyParser(AnyContentAsEmpty), stub.messagesApi)(stub.executionContext),
+      DefaultActionBuilder(stub.actionBuilder.parser)(stub.executionContext), stub.parsers,
+      stub.messagesApi, stub.langs, stub.fileMimeTypes, stub.executionContext
+    )
+  }
 }
 
 object Helpers extends PlayRunners

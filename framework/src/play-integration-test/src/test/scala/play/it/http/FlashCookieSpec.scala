@@ -14,6 +14,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test._
+import play.core.server.ServerEndpoint
 import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
 
 import scala.collection.JavaConverters
@@ -27,7 +28,7 @@ class FlashCookieSpec extends PlaySpecification
       import play.api.routing.sird.{ GET => SirdGet, _ }
       Router.from {
         case SirdGet(p"/flash") => components.defaultActionBuilder {
-          Redirect("/landing").flashing(
+          Redirect("/landing").flash(
             "success" -> "found"
           )
         }

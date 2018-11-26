@@ -10,7 +10,7 @@ import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfigurat
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
-import scala.collection.JavaConverters._
+import scala.annotation.varargs
 
 /**
  * HTTP Session.
@@ -46,24 +46,58 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   }
 
   /**
-   * Removes any value from the session.
+   * Adds a value to the session, and returns a new session.
+   *
+   * This is an alias method to [[+]].
+   *
+   * @param kv the key-value pair to add
+   * @return the modified session
+   */
+  def add(kv: (String, String)): Session = this + kv
+
+  /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new session with the added elements.
+   */
+  def ++(kvs: (String, String)*): Session = {
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Adds a number of elements provided by the given map object
+   * and returns a new session with the added elements.
+   */
+  def addAll(kvs: Map[String, String]): Session = {
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Removes values from the session.
    *
    * For example:
    * {{{
    * session - "username"
    * }}}
    *
-   * @param key the key to remove
+   * @param keys the keys to remove
    * @return the modified session
    */
-  def -(key: String): Session = copy(data - key)
+  def -(keys: String*): Session = remove(keys: _*)
+
+  /**
+   * Removes values from the session.
+   *
+   * @param keys the keys to remove
+   * @return the modified session
+   */
+  @varargs def remove(keys: String*): Session = copy(data -- keys)
 
   /**
    * Retrieves the session value which is associated with the given key.
    */
   def apply(key: String): String = data(key)
 
-  lazy val asJava: Http.Session = new Http.Session(data.asJava)
+  lazy val asJava: Http.Session = new Http.Session(this)
 }
 
 /**
@@ -119,7 +153,7 @@ object Session extends CookieBaker[Session] with FallbackCookieDataCodec {
 
   lazy val emptyCookie = new Session
 
-  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
+  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = javaSession.asScala
 
   @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   def config: SessionConfiguration = HttpConfiguration.current.session

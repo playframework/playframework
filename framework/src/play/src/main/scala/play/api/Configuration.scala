@@ -5,12 +5,12 @@
 package play.api
 
 import java.io._
+import java.net.{ URI, URL }
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
 import com.typesafe.config.impl.ConfigImpl
-import play.api.mvc.Cookie.SameSite
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
@@ -1077,6 +1077,9 @@ object ConfigLoader {
 
   implicit val configurationLoader: ConfigLoader[Configuration] = configLoader.map(Configuration(_))
   implicit val seqConfigurationLoader: ConfigLoader[Seq[Configuration]] = seqConfigLoader.map(_.map(Configuration(_)))
+
+  implicit val urlLoader: ConfigLoader[URL] = ConfigLoader(_.getString).map(new URL(_))
+  implicit val uriLoader: ConfigLoader[URI] = ConfigLoader(_.getString).map(new URI(_))
 
   private def javaDurationToScala(javaDuration: java.time.Duration): FiniteDuration =
     Duration.fromNanos(javaDuration.toNanos)

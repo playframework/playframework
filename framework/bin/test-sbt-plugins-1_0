@@ -13,6 +13,6 @@ printMessage "PUBLISHING PLAY LOCALLY FOR SBT ${SBT_VERSION}"
 runSbt ++${SCALA_VERSION} quickPublish publishLocal
 
 printMessage "RUNNING SCRIPTED TESTS FOR SBT ${SBT_VERSION}"
-runSbtNoisy "++${SCALA_VERSION} scripted"
+runSbt "++${SCALA_VERSION} scripted"
 
 printMessage "ALL SCRIPTED TESTS PASSED"
