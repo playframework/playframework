@@ -101,7 +101,8 @@ object DevModeBuild {
         .split("\n") // split per line
         .filter{_.contains("ProdServerStart")}
       foundProcesses // filter only the Play processes
-        // This assertion is flaky since `11234` contains `123`. TODO: improve matcher
+        // check that there is a process line starting with 'pidString ' 
+        // (note padding with whitespace)
         .exists(_.contains(pidString)) // see if one of them is PID
     }
 
