@@ -338,6 +338,17 @@ play.filters.enabled += play.filters.csp.CSPFilter
 
 Please see the documentation in [[CSPFilter|CspFilter]] for more information.
 
+## SameSite attribute for CSRF and language cookie
+
+With Play 2.6 the `SameSite` cookie attribute [[was enabled|Migration26#SameSite-attribute,-enabled-for-session-and-flash]] for session and flash by default.
+The same is true for the CSRF and the language cookie starting with Play 2.7. By default, the `SameSite` attribute of the CSRF cookie will have the same value like the session cookie has and the language cookie will use `SameSite=Lax` by default.
+You can tweak this using configuration. For example:
+
+```
+play.filters.csrf.cookie.sameSite = null // no same-site for csrf cookie
+play.i18n.langCookieSameSite = "strict" // strict same-site for language cookie
+```
+
 ## play.mvc.Results.TODO moved to play.mvc.Controller.TODO
 
 All Play's error pages have been updated to render a CSP nonce if the [[CSPFilter|CspFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO(Http.Request request)` method in `play.mvc.Controller` instead:
