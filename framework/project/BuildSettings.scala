@@ -3,8 +3,8 @@
  */
 import sbt.ScriptedPlugin._
 import sbt._
-import Keys.{ version, _ }
-import com.typesafe.tools.mima.core._
+import Keys.{version, _}
+import com.typesafe.tools.mima.core.{ProblemFilters, _}
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin

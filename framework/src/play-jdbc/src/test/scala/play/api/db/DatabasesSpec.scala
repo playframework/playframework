@@ -125,6 +125,15 @@ class DatabasesSpec extends Specification {
       }
     }
 
+    "manual setup trasaction isolation level" in new WithDatabase {
+      val db = Databases.inMemory(name = "test-manualSetupTrasactionIsolationLevel")
+
+      db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
+        c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
+        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+      }
+    }
+
     "not supply connections after shutdown" in {
       val db = Databases.inMemory(name = "test-shutdown")
       db.getConnection.close()
