@@ -13,7 +13,7 @@ val Versions = new {
   val sbtDoge = "0.1.5"
   val webjarsLocatorCore = "0.36"
   val sbtHeader = "5.0.0"
-  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.4.0-RC1")
+  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.4.0-RC2")
   val interplay: String = sys.props.getOrElse("interplay.version", "2.0.4")
 }
 
