@@ -485,7 +485,7 @@ class CSRFActionHelper(
           result.withCookies(Cookie(
             name, tokenValue,
             path = sessionConfiguration.path, domain = sessionConfiguration.domain,
-            secure = csrfConfig.secureCookie, httpOnly = csrfConfig.httpOnlyCookie))
+            secure = csrfConfig.secureCookie, httpOnly = csrfConfig.httpOnlyCookie, sameSite = csrfConfig.sameSiteCookie))
         } getOrElse {
           val newSession = result.session(request) + (tokenName -> tokenValue)
           result.withSession(newSession)
