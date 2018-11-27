@@ -15,6 +15,7 @@ import play.mvc.Http;
 import play.mvc.Http.RequestBody;
 import play.mvc.Http.RequestImpl;
 import play.mvc.Result;
+import scala.compat.java8.OptionConverters;
 
 public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
@@ -63,7 +64,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             scala.Option<String> domain = sessionConfiguration.domain();
             Http.Cookie cookie = new Http.Cookie(
                     config.cookieName().get(), token.value(), null, sessionConfiguration.path(),
-                    domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), null);
+                    domain.isDefined() ? domain.get() : null, config.secureCookie(), config.httpOnlyCookie(), OptionConverters.toJava(config.sameSiteCookie()).map(c -> c.asJava()).orElse(null));
             return result.withCookies(cookie);
         }
         return result.addingToSession(req, token.name(), token.value());

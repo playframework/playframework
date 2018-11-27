@@ -242,6 +242,23 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
     }
 
+    "work with same site cookie tokens" in {
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.sameSite" -> "lax")
+      def csrfAddToken = buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.sameSite" -> "lax")
+      def generate = signedTokenProvider.generateToken
+      def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
+      def getToken(response: WSResponse) = {
+        response.cookie("csrf").map { cookie =>
+          // WSCookie does not have a SameSite property, we need to read the response header as a workaround
+          response.headers("Set-Cookie")(0) must beMatching("""csrf=.*; SameSite=Lax; Path=\/""")
+          cookie.value
+        }
+      }
+      def compareTokens(a: String, b: String) = signedTokenProvider.compareTokens(a, b) must beTrue
+
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
+    }
+
     "work with checking failed result" in {
       def csrfCheckRequest = buildCsrfCheckRequest(true, "play.filters.csrf.cookie.name" -> "csrf")
       def csrfAddToken = buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf")
