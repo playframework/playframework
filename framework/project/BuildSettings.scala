@@ -3,8 +3,8 @@
  */
 import sbt.ScriptedPlugin._
 import sbt._
-import Keys.{ version, _ }
-import com.typesafe.tools.mima.core._
+import Keys.{version, _}
+import com.typesafe.tools.mima.core.{ProblemFilters, _}
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
@@ -713,7 +713,12 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Flash.-"),
 
       // Allow to disable JPA thread local requires access to configuration
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
+    
+      // Add play.db.Database.withTransaction config
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.Database.withTransaction")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
