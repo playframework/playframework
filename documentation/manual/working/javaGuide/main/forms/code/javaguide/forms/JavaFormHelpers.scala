@@ -31,7 +31,7 @@ class JavaFormHelpers extends PlaySpecification {
           u.setEmails(util.Arrays.asList("a@a", "b@b"))
           val userForm = formFactory.form(classOf[UserForm]).fill(u)
           val body = html.helpers(form, userForm)(messages).body
-          body.lines.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
+          body.linesIterator.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
         }
       }
 
