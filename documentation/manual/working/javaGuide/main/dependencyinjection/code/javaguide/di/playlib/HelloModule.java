@@ -11,7 +11,8 @@ import com.typesafe.config.Config;
 import java.util.Arrays;
 import java.util.List;
 import play.Environment;
-import play.inject.*;
+import play.inject.Binding;
+import play.inject.Module;
 
 public class HelloModule extends Module {
     @Override
