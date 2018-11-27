@@ -42,6 +42,7 @@ jobs:
       name: "Run tests for Scala 2.12 and Java 11"
 
 matrix:
+  fast_finish: true
   allow_failures:
     # We are not fully validating for Java 11 yet, so we allow this to
     # failure until we tackle all the problems. Anyway, having it at the
