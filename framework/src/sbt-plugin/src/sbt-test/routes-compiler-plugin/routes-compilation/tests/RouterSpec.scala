@@ -61,19 +61,19 @@ object RouterSpec extends PlaySpecification {
   "bind int parameters from the query string as a list" in {
 
     "from a list of numbers" in new WithApplication() {
-      val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
+      val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeListInt(List(1, 2, 3)).url))
       contentAsString(result) must equalTo("1,2,3")
     }
     "from a list of numbers and letters" in new WithApplication() {
-      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-slist-int?x=1&x=a&x=2"))
       status(result) must equalTo(BAD_REQUEST)
     }
     "when there is no parameter at all" in new WithApplication() {
-      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-list"))
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-slist-int"))
       contentAsString(result) must equalTo("")
     }
     "using the Java API" in new WithApplication() {
-      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-java-list?x=1&x=2&x=3"))
+      val Some(result) = route(implicitApp, FakeRequest(GET, "/take-jlist-jint?x=1&x=2&x=3"))
       contentAsString(result) must equalTo("1,2,3")
     }
   }

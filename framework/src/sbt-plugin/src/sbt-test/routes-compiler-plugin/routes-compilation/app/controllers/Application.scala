@@ -24,7 +24,7 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   def queryUser(userId: UserId) = Action {
     Ok(userId.id)
   }
-  def takeInt(i: Int) = Action {
+  def takeIntEscapes(i: Int) = Action {
     Ok(s"$i")
   }
   def takeBool(b: Boolean) = Action {
@@ -33,10 +33,10 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   def takeBool2(b: Boolean) = Action {
     Ok(s"$b")
   }
-  def takeList(x: List[Int]) = Action {
+  def takeListInt(x: List[Int]) = Action {
     Ok(x.mkString(","))
   }
-  def takeJavaList(x: java.util.List[Integer]) = Action {
+  def takeJavaListInteger(x: java.util.List[Integer]) = Action {
     Ok(x.asScala.mkString(","))
   }
   def urlcoding(dynamic: String, static: String, query: String) = Action {

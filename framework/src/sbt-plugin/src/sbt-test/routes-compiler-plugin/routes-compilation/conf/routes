@@ -11,12 +11,12 @@ GET         /instance               @controllers.InstanceController.index
 GET         /users/:userId          controllers.Application.user(userId: models.UserId)
 GET         /query-user             controllers.Application.queryUser(userId: models.UserId)
 
-GET         /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
+GET         /escapes/$i<\d+>        controllers.Application.takeIntEscapes(i: Int)
 
 GET         /take-bool              controllers.Application.takeBool(b: Boolean)
 GET         /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
-GET         /take-list              controllers.Application.takeList(x: List[Int])
-GET         /take-java-list         controllers.Application.takeJavaList(x: java.util.List[java.lang.Integer])
+GET         /take-slist-int         controllers.Application.takeListInt(x: List[Int])
+GET         /take-jlist-jint        controllers.Application.takeJavaListInteger(x: java.util.List[java.lang.Integer])
 
 GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
 
