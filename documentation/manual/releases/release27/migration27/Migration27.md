@@ -1,4 +1,5 @@
 <!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+
 # Play 2.7 Migration Guide
 
 This is a guide for migrating from Play 2.6 to Play 2.7. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.6 Migration Guide|Migration26]].
@@ -21,7 +22,7 @@ Where the "x" in `2.7.x` is the minor version of Play you want to use, for insta
 
 Although Play 2.7 still supports sbt 0.13 series, we recommend that you use sbt 1 from now. This new version is actively maintained and supported. To update, change your `project/build.properties` so that it reads:
 
-```
+```properties
 sbt.version=1.2.6
 ```
 
@@ -55,7 +56,7 @@ In Play 2.6, we extracted most of Play-WS into a [standalone project](https://gi
 
 1. `play.api.libs.ws.WSRequest.requestTimeout` now returns an `Option[Duration]` instead of an `Option[Int]`.
 
-#### Java API:
+#### Java API
 
 1. `play.libs.ws.WSRequest.getUsername` now returns an `Optional<String>` instead of a `String`.
 1. `play.libs.ws.WSRequest.getContentType` now returns an `Optional<String>` instead of a `String`.
@@ -146,7 +147,7 @@ private val logger = LoggerFactory.getLogger(YourClass.class);
 
 If you'd like a more concise solution when using SLF4J directly for Java, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
 
-> **NOTE**: `org.slf4j.Logger`, the logging interface of SLF4J, does [not yet](https://jira.qos.ch/browse/SLF4J-371) provide logging methods which accept lambda expression as parameters for lazy evaluation. `play.Logger` and `play.api.Logger`, which are mostly simple wrappers for `org.slf4j.Logger`, provide such methods however.
+> **Note**: `org.slf4j.Logger`, the logging interface of SLF4J, does [not yet](https://jira.qos.ch/browse/SLF4J-371) provide logging methods which accept lambda expression as parameters for lazy evaluation. `play.Logger` and `play.api.Logger`, which are mostly simple wrappers for `org.slf4j.Logger`, provide such methods however.
 
 Once you have migrated away from using the `application` logger, you can remove the `logger` entry in your `logback.xml` referencing it:
 
@@ -186,11 +187,11 @@ The class `play.db.jpa.JPA`, which has been deprecated in Play 2.6 already, has 
 
 With this Play release even more JPA related methods and annotations have been deprecated:
 
-* `@play.db.jpa.Transactional`
-* `play.db.jpa.JPAApi.em()`
-* `play.db.jpa.JPAApi.withTransaction(final Runnable block)`
-* `play.db.jpa.JPAApi.withTransaction(Supplier<T> block)`
-* `play.db.jpa.JPAApi.withTransaction(String name, boolean readOnly, Supplier<T> block)`
+- `@play.db.jpa.Transactional`
+- `play.db.jpa.JPAApi.em()`
+- `play.db.jpa.JPAApi.withTransaction(final Runnable block)`
+- `play.db.jpa.JPAApi.withTransaction(Supplier<T> block)`
+- `play.db.jpa.JPAApi.withTransaction(String name, boolean readOnly, Supplier<T> block)`
 
 Like already mentioned in the Play 2.6 JPA migration notes, please use a `JPAApi` injected instance as described in [[Using play.db.jpa.JPAApi|JavaJPA#Using-play.db.jpa.JPAApi]] instead of these deprecated methods and annotations.
 
@@ -402,7 +403,7 @@ You can enable the new `CSPFilter` by adding it to the `play.filters.enabled` pr
 play.filters.enabled += play.filters.csp.CSPFilter
 ```
 
-> **NOTE**: You will want to review the Content Security Policy closely to ensure it meets your needs.  The new `CSPFilter` is notably more permissive than `default-src ‘self’`, and is based off the Google Strict CSP configuration.  You can use the `report-only` functionality with a [[CSP report controller|CspFilter#Configuring-CSP-Report-Only]] to review policy violations.
+> **Note**: You will want to review the Content Security Policy closely to ensure it meets your needs.  The new `CSPFilter` is notably more permissive than `default-src ‘self’`, and is based off the Google Strict CSP configuration.  You can use the `report-only` functionality with a [[CSP report controller|CspFilter#Configuring-CSP-Report-Only]] to review policy violations.
 
 Please see the documentation in [[CSPFilter|CspFilter]] for more information.
 
@@ -412,7 +413,7 @@ With Play 2.6 the `SameSite` cookie attribute [[was enabled|Migration26#SameSite
 The same is true for the CSRF and the language cookie starting with Play 2.7. By default, the `SameSite` attribute of the CSRF cookie will have the same value like the session cookie has and the language cookie will use `SameSite=Lax` by default.
 You can tweak this using configuration. For example:
 
-```
+```hocon
 play.filters.csrf.cookie.sameSite = null // no same-site for csrf cookie
 play.i18n.langCookieSameSite = "strict" // strict same-site for language cookie
 ```
@@ -475,7 +476,7 @@ To make the default play distribution a bit smaller we removed some libraries. T
 
 BoneCP is removed. If your application is configured to use BoneCP, you need to switch to [HikariCP](http://brettwooldridge.github.io/HikariCP/) which is the default JDBC connection pool.
 
-```
+```hocon
 play.db.pool = "default"  # Use the default connection pool provided by the platform (HikariCP)
 play.db.pool = "hikaricp" # Use HikariCP
 
@@ -483,7 +484,7 @@ play.db.pool = "hikaricp" # Use HikariCP
 
 You may need to reconfigure the pool to use HikariCP. For example, if you want to configure the maximum number of connections for HikariCP, it would be as follows.
 
-```
+```hocon
 play.db.prototype.hikaricp.maximumPoolSize = 15
 ```
 
@@ -491,7 +492,7 @@ For more details, see [[JDBC configuration section|SettingsJDBC]].
 
 Also, you can use your own pool that implements `play.api.db.ConnectionPool` by specifying the fully-qualified class name.
 
-```
+```hocon
 play.db.pool=your.own.ConnectionPool
 ```
 

@@ -8,7 +8,7 @@ Regarding the API modeling, there are some duplicated concepts (like `play.mvc.R
 
 Since `play.mvc.Http.Context` is a central part of the existing APIs, deprecating it had an impact on multiple places that were depending on it, take for example `play.mvc.Controller`. This page documents these changes and how to migrate, but you can see the deprecated Javadocs for each methods too.
 
-### `Http.Context.current()` and `Http.Context.request()` deprecated
+## `Http.Context.current()` and `Http.Context.request()` deprecated
 
 That means other methods that depend directly on these two were also deprecated:
 
@@ -21,7 +21,7 @@ With Play 2.7 you can now access the current request by just adding it as a para
 
 For example, the routes files contain:
 
-```
+```routes
 GET     /       controllers.HomeController.index(request: Request)
 ```
 
@@ -47,7 +47,7 @@ Play will automatically detect a route param of type `Request` (which is an impo
 
 If you use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now. Look at this example which checks if the current request's remote address is on a blacklist:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Http;
@@ -77,7 +77,7 @@ public class HomeController extends Controller {
 }
 ```
 
-#### After
+### After
 
 ```java
 public class SecurityHelper {
@@ -104,11 +104,11 @@ public class HomeController extends Controller {
 }
 ```
 
-### `Action.call(Context)` deprecated
+## `Action.call(Context)` deprecated
 
 If you are using [[action composition|JavaActionsComposition]] you have to update your actions to avoid `Http.Context`.
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Action;
@@ -124,7 +124,7 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-#### After
+### After
 
 ```java
 import play.mvc.Action;
@@ -140,7 +140,7 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### `Http.Context.response()` and `Http.Response` class deprecated
+## `Http.Context.response()` and `Http.Response` class deprecated
 
 That means other methods that depend directly on these were also deprecated:
 
@@ -148,7 +148,7 @@ That means other methods that depend directly on these were also deprecated:
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Http;
@@ -168,7 +168,7 @@ public class FooController extends Controller {
 }
 ```
 
-#### After
+### After
 
 The code above should be written as:
 
@@ -192,7 +192,7 @@ public class FooController extends Controller {
 
 If you have action composition that depends on `Http.Context.response`, you can also rewrite it like the code below:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Action;
@@ -212,7 +212,7 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-#### After
+### After
 
 The code above should be written as:
 
@@ -233,7 +233,7 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-### Lang and Messages methods in `Http.Context` deprecated
+## Lang and Messages methods in `Http.Context` deprecated
 
 The following methods have been deprecated:
 
@@ -255,7 +255,7 @@ That means other methods that depend directly on these were also deprecated:
 
 The new way of changing lang now is to have an instance of [`play.i18n.MessagesApi`](api/java/play/i18n/MessagesApi.html) injected and call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Result;
@@ -272,7 +272,7 @@ public class FooController extends Controller {
 }
 ```
 
-#### After
+### After
 
 ```java
 import play.mvc.Result;
@@ -296,7 +296,7 @@ public class FooController extends Controller {
 
 If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example, in an action method, you have to create a `Messages` instance like:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Result;
@@ -310,7 +310,7 @@ public class MyController extends Controller {
 }
 ```
 
-#### After
+### After
 
 ```java
 import javax.inject.Inject;
@@ -321,14 +321,14 @@ import play.mvc.Result;
 import play.mvc.Controller;
 
 public class MyController extends Controller {
-    
+
     private final MessagesApi messagesApi;
-    
+
     @Inject
     public MyController(MessagesApi messagesApi) {
         this.messagesApi = messagesApi;
     }
-    
+
     public Result action() {
         Messages messages = this.messagesApi.preferred(Lang.forCode("es"));
         return ok(myview.render(messages));
@@ -347,17 +347,17 @@ import play.mvc.Result;
 import play.mvc.Controller;
 
 public class MyController extends Controller {
-    
+
     private final MessagesApi messagesApi;
-    
+
     @Inject
     public MyController(MessagesApi messagesApi) {
         this.messagesApi = messagesApi;
     }
-    
+
     public Result action() {
         Lang lang = Lang.forCode("es");
-        
+
         // Get a Message instance based on the spanish locale, however if that isn't available
         // try to choose the best fitting language based on the current request
         Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
@@ -379,7 +379,7 @@ Now the template:
 
 And the same applies to `clearLang`:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Result;
@@ -396,7 +396,7 @@ public class FooController extends Controller {
 }
 ```
 
-#### After
+### After
 
 ```java
 import play.mvc.Result;
@@ -418,7 +418,7 @@ public class FooController extends Controller {
 }
 ```
 
-### `Http.Context.session()` deprecated
+## `Http.Context.session()` deprecated
 
 That means other methods that depend directly on it were also deprecated:
 
@@ -428,7 +428,7 @@ That means other methods that depend directly on it were also deprecated:
 
 The new way to retrieve the session of a request is to call the `session()` method of an `Http.Request` instance. The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Result;
@@ -458,7 +458,7 @@ public class FooController extends Controller {
 }
 ```
 
-#### After
+### After
 
 ```java
 import play.mvc.Http;
@@ -492,7 +492,7 @@ public class FooController extends Controller {
 }
 ```
 
-### `Http.Context.flash()` deprecated
+## `Http.Context.flash()` deprecated
 
 That means other methods that depend directly on it were also deprecated:
 
@@ -502,7 +502,7 @@ That means other methods that depend directly on it were also deprecated:
 
 The new way to retrieve the flash of a request is to call the `flash()` method of a `Http.Request` instance. The new way to manipulate the flash is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Result;
@@ -532,7 +532,7 @@ public class FooController extends Controller {
 }
 ```
 
-#### After
+### After
 
 ```java
 import play.mvc.Http;
@@ -563,11 +563,11 @@ public class FooController extends Controller {
 }
 ```
 
-### Template helper methods deprecated
+## Template helper methods deprecated
 
 Inside templates, Play offered you various helper methods which rely on `Http.Context` internally. These methods are deprecated starting with Play 2.7. Instead, you have to explicitly pass the desired object to your templates now.
 
-#### Before
+### Before
 
 ```html
 @()
@@ -581,7 +581,7 @@ Inside templates, Play offered you various helper methods which rely on `Http.Co
 @Messages("some_msg_key")
 ```
 
-#### After
+### After
 
 ```html
 @(Http.Request request, Lang lang, Messages messages)
@@ -595,7 +595,7 @@ Inside templates, Play offered you various helper methods which rely on `Http.Co
 
 There is no direct replacement for `ctx()` and `response()`.
 
-### Some template tags need an implicit `Request`, `Messages` or `Lang` instance
+## Some template tags need an implicit `Request`, `Messages` or `Lang` instance
 
 Some template tags need to access a `Request`, `Messages` or `Lang` instance in order to work correctly. Until now these tags just made use of `Http.Context.current()` to retrieve such instances.
 
@@ -649,7 +649,7 @@ Play itself does not provide tags that need a `Lang` instance to be present, thi
 
 Third-party tags will automatically use the implicit messages passed to this template.
 
-### Changes in Java Forms related to `Http.Context`
+## Changes in Java Forms related to `Http.Context`
 
 When retrieving the [`Field`](api/java/play/data/Form.Field.html) of a [`Form`](api/java/play/data/Form.html) (e.g. via `myform.field("username")` or just `myform("username")` inside templates) the language of the current `Http.Context` was used to format the value of the field. Starting with Play 2.7 however this isn't the case anymore. Instead you can now explicitly set the language the form should use when retrieving a field. To make things simple and to not force you to set the language for every form explicitly, Play sets it during binding already:
 
@@ -662,16 +662,16 @@ import play.data.Form;
 import play.data.FormFactory;
 
 public class MyController extends Controller {
-    
+
     private final FormFactory formFactory;
-    
+
     @Inject
     public MyController(FormFactory formFactory) {
         this.formFactory = formFactory;
     }
-    
+
     public Result action(Http.Request request) {
-        // In this example, the language of the form will be set 
+        // In this example, the language of the form will be set
         // to the preferred language of the request.
         Form<User> form = formFactory.form(User.class).bindFromRequest(request);
         return ok(views.form.render(form));
@@ -690,18 +690,18 @@ import play.data.Form;
 import play.data.FormFactory;
 
 public class MyController extends Controller {
-    
+
     private final FormFactory formFactory;
-    
+
     @Inject
     public MyController(FormFactory formFactory) {
         this.formFactory = formFactory;
     }
-    
+
     public Result action(Http.Request request) {
         // There is first the lang from request
         Form<User> form = formFactory.form(User.class).bindFromRequest(request);
-        
+
         // Let's change the language to `es`.
         Lang lang = Lang.forCode("es");
         Form<User> formWithNewLang = form.withLang(lang);
@@ -712,19 +712,19 @@ public class MyController extends Controller {
 
 > **Note:** changing the language of the the current `Http.Context` (e.g. via `Http.Context.current().changeLang(...)` or `Http.Context.current().setTransientLang(...)`) does not have an effect on the language used to retrieve the field value of a form anymore - as explained, use `form.withLang(...)` instead.
 
-### `Http.Context` Request tags removed from `args`
+## `Http.Context` Request tags removed from `args`
 
 Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7. Therefore the `args` map of an `Http.Context` instance no longer contains these removed request tags as well. Instead you can use the `request.attrs()` method now, which provides you the same request attributes.
 
-### CSRF tokens removed from `args`
+## CSRF tokens removed from `args`
 
 The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of an `Http.Context` instance. These entries have been removed. Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
-### RoutingDSL changes
+## RoutingDSL changes
 
 Until Play 2.6, when using Java [[routing DSL|JavaRoutingDsl]], there is no other way to access the current `request` besides `Http.Context.current()`. Now the DSL has new methods where a request will be passed to the block.
 
-#### Before
+### Before
 
 ```java
 import play.mvc.Http;
@@ -758,7 +758,7 @@ public class MyRouter {
 
 In the example above, we need to use `Http.Context.current()` to access the request. From now on, you can instead write the code like below:
 
-#### After
+### After
 
 ```java
 import play.routing.Router;
@@ -790,18 +790,18 @@ public class MyRouter {
 
 An important aspect to note is that, in the new API, `Http.Request` will always be the first parameter for the function blocks.
 
-### Disabling the `Http.Context` and JPA thread local
+## Disabling the `Http.Context` and JPA thread local
 
 If you followed the above migration notes and changed all your code so it doesn't make use of API's that rely on `Http.Context` (meaning you don't get compiler warnings anymore) you can disable the `Http.Context` thread local.
 
 Just add the following line to your `application.conf` file:
 
-```
+```hocon
 play.allowHttpContext = false
 ```
 
 To also disable the [`play.db.jpa.JPAEntityManagerContext`](api/java/play/db/jpa/JPAEntityManagerContext.html) thread local add:
 
-```
+```hocon
 play.jpa.allowJPAEntityManagerContext = false
 ```
