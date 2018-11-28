@@ -24,6 +24,7 @@ For example, the routes files contain:
 ```
 GET     /       controllers.HomeController.index(request: Request)
 ```
+
 And the corresponding action method:
 
 ```java
@@ -35,7 +36,6 @@ public class HomeController extends Controller {
         return ok("Hello, your request path " + request.path());
     }
 }
-
 ```
 
 Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
@@ -45,8 +45,7 @@ Play will automatically detect a route param of type `Request` (which is an impo
 >
 >     GET    /        controllers.HomeController.index(myRequest: com.mycompany.Request)
 
-If you use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now.
-Look at this example which checks if the current request's remote address is on a blacklist:
+If you use `Http.Context.current()` in other places besides controllers you have to pass the desired data via method parameters to these places now. Look at this example which checks if the current request's remote address is on a blacklist:
 
 #### Before
 
@@ -76,7 +75,6 @@ public class HomeController extends Controller {
         return ok("Hello, your request path " + request().path());
     }
 }
-
 ```
 
 #### After
@@ -104,7 +102,6 @@ public class HomeController extends Controller {
         return ok("Hello, your request path " + request.path());
     }
 }
-
 ```
 
 ### `Action.call(Context)` deprecated
@@ -151,6 +148,8 @@ That means other methods that depend directly on these were also deprecated:
 
 `Http.Response` was deprecated with other accesses methods to it. It was mainly used to add headers and cookies, but these are already available in `play.mvc.Result` and then the API got a little confused. For Play 2.7, you should migrate code like:
 
+#### Before
+
 ```java
 import play.mvc.Http;
 import play.mvc.Result;
@@ -169,7 +168,9 @@ public class FooController extends Controller {
 }
 ```
 
-Should be written as:
+#### After
+
+The code above should be written as:
 
 ```java
 import play.mvc.Http;
@@ -191,6 +192,8 @@ public class FooController extends Controller {
 
 If you have action composition that depends on `Http.Context.response`, you can also rewrite it like the code below:
 
+#### Before
+
 ```java
 import play.mvc.Action;
 import play.mvc.Http;
@@ -209,7 +212,9 @@ public class MyAction extends Action.Simple {
 }
 ```
 
-Should be written as:
+#### After
+
+The code above should be written as:
 
 ```java
 import play.mvc.Action;
@@ -291,18 +296,76 @@ public class FooController extends Controller {
 
 If you are using `changeLang` to change the `Lang` used to render a template, you should now pass the `Messages` itself as a parameter. This will make the template clearer and easier to read. For example, in an action method, you have to create a `Messages` instance like:
 
+#### Before
+
 ```java
-Messages messages = this.messagesApi.preferred(Lang.forCode("es"));
-return ok(myview.render(messages));
+import play.mvc.Result;
+import play.mvc.Controller;
+
+public class MyController extends Controller {
+    public Result action() {
+        changeLang(Lang.forCode("es"));
+        return ok(myview.render(messages));
+    }
+}
 ```
+
+#### After
+
+```java
+import javax.inject.Inject;
+import play.i18n.Messages;
+import play.i18n.MessagesApi;
+
+import play.mvc.Result;
+import play.mvc.Controller;
+
+public class MyController extends Controller {
+    
+    private final MessagesApi messagesApi;
+    
+    @Inject
+    public MyController(MessagesApi messagesApi) {
+        this.messagesApi = messagesApi;
+    }
+    
+    public Result action() {
+        Messages messages = this.messagesApi.preferred(Lang.forCode("es"));
+        return ok(myview.render(messages));
+    }
+}
+```
+
 Or if you want to have a fallback to the languages of the request you can do that as well:
+
 ```java
-Lang lang = Lang.forCode("es");
-// Get a Message instance based on the spanish locale, however if that isn't available
-// try to choose the best fitting language based on the current request
-Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
-return ok(myview.render(messages));
+import javax.inject.Inject;
+import play.i18n.Messages;
+import play.i18n.MessagesApi;
+
+import play.mvc.Result;
+import play.mvc.Controller;
+
+public class MyController extends Controller {
+    
+    private final MessagesApi messagesApi;
+    
+    @Inject
+    public MyController(MessagesApi messagesApi) {
+        this.messagesApi = messagesApi;
+    }
+    
+    public Result action() {
+        Lang lang = Lang.forCode("es");
+        
+        // Get a Message instance based on the spanish locale, however if that isn't available
+        // try to choose the best fitting language based on the current request
+        Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
+        return ok(myview.render(messages));
+    }
+}
 ```
+
 > **Note**: To not repeat that code again and again inside each action method you could e.g. create the `Messages` instance in an action of the [[action composition chain|JavaActionsComposition]] and save that instance in a request Attribute so you can access it later.
 
 Now the template:
@@ -363,8 +426,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.session(String key, String value)`
 1. `play.mvc.Controller.session(String key)`
 
-The new way to retrieve the session of a request is to call the `session()` method of an `Http.Request` instance.
-The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
+The new way to retrieve the session of a request is to call the `session()` method of an `Http.Request` instance. The new way to manipulate the session is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
 
@@ -404,9 +466,12 @@ import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
 
+import java.util.Optional;
+
 public class FooController extends Controller {
     public Result info(Http.Request request) {
-        String user = request.session().get("current_user");
+        // Get the current user or then fallback to guest
+        String user = request.session().getOptional("current_user").orElse("guest");
         return Results.ok("Hello " + user);
     }
 
@@ -435,8 +500,7 @@ That means other methods that depend directly on it were also deprecated:
 1. `play.mvc.Controller.flash(String key, String value)`
 1. `play.mvc.Controller.flash(String key)`
 
-The new way to retrieve the flash of a request is to call the `flash()` method of a `Http.Request` instance.
-The new way to manipulate the flash is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
+The new way to retrieve the flash of a request is to call the `flash()` method of a `Http.Request` instance. The new way to manipulate the flash is to call corresponding [`play.mvc.Result`](api/java/play/mvc/Result.html) methods. For example:
 
 #### Before
 
@@ -478,7 +542,7 @@ import play.mvc.Controller;
 
 public class FooController extends Controller {
     public Result info(Http.Request request) {
-        String message = request.flash().get("message");
+        String message = request.flash().getOptional("message").orElse("The default message");
         return Results.ok("Message: " + message);
     }
 
@@ -501,9 +565,7 @@ public class FooController extends Controller {
 
 ### Template helper methods deprecated
 
-Inside templates, Play offered you various helper methods which rely on `Http.Context` internally.
-These methods are deprecated starting with Play 2.7.
-Instead, you have to explicitly pass the desired object to your templates now.
+Inside templates, Play offered you various helper methods which rely on `Http.Context` internally. These methods are deprecated starting with Play 2.7. Instead, you have to explicitly pass the desired object to your templates now.
 
 #### Before
 
@@ -535,13 +597,12 @@ There is no direct replacement for `ctx()` and `response()`.
 
 ### Some template tags need an implicit `Request`, `Messages` or `Lang` instance
 
-Some template tags need to access a `Request`, `Messages` or `Lang` instance in order to work correctly.
-Until now these tags just made use of `Http.Context.current()` to retrieve such instances.
+Some template tags need to access a `Request`, `Messages` or `Lang` instance in order to work correctly. Until now these tags just made use of `Http.Context.current()` to retrieve such instances.
 
-Because `Http.Context` is deprecated however, such instances should now be passed as `implicit` parameters to templates which make use of such tags.
-By marking the parameter as `implicit` you don't always have to pass it on to the tag which actually needs it, but the tag can retrieve it from the implicit scope automatically.
+Because `Http.Context` is deprecated however, such instances should now be passed as `implicit` parameters to templates which make use of such tags. By marking the parameter as `implicit` you don't always have to pass it on to the tag which actually needs it, but the tag can retrieve it from the implicit scope automatically.
 
 Following tags need an implicit `Request` instance to be present:
+
 ```html
 @(arg1, arg2,...)(implicit request: play.mvc.Http.Request)
 
@@ -563,6 +624,7 @@ These tags will automatically use the implicit request passed to this template:
 ```
 
 Following tags need an implicit `Messages` instance to be present:
+
 ```html
 @(arg1, arg2,...)(implicit messages: play.i18n.Messages)
 
@@ -583,40 +645,80 @@ Play itself does not provide tags that need a `Lang` instance to be present, thi
 
 ```html
 @(arg1, arg2,...)(implicit lang: play.i18n.Lang)
+```
 
 Third-party tags will automatically use the implicit messages passed to this template.
-```
 
 ### Changes in Java Forms related to `Http.Context`
 
-When retrieving the [`Field`](api/java/play/data/Form.Field.html) of a [`Form`](api/java/play/data/Form.html) (e.g. via `myform.field("username")` or just `myform("username")` inside templates) the language of the current `Http.Context` was used to format the value of the field.
-Starting with Play 2.7 however this isn't the case anymore.
-Instead you can now explicitly set the language the form should use when retrieving a field:
+When retrieving the [`Field`](api/java/play/data/Form.Field.html) of a [`Form`](api/java/play/data/Form.html) (e.g. via `myform.field("username")` or just `myform("username")` inside templates) the language of the current `Http.Context` was used to format the value of the field. Starting with Play 2.7 however this isn't the case anymore. Instead you can now explicitly set the language the form should use when retrieving a field. To make things simple and to not force you to set the language for every form explicitly, Play sets it during binding already:
 
 ```java
-Form<User> formWithNewLang = currentForm.withLang(lang);
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Controller;
+
+import play.data.Form;
+import play.data.FormFactory;
+
+public class MyController extends Controller {
+    
+    private final FormFactory formFactory;
+    
+    @Inject
+    public MyController(FormFactory formFactory) {
+        this.formFactory = formFactory;
+    }
+    
+    public Result action(Http.Request request) {
+        // In this example, the language of the form will be set 
+        // to the preferred language of the request.
+        Form<User> form = formFactory.form(User.class).bindFromRequest(request);
+        return ok(views.form.render(form));
+    }
+}
 ```
 
-To make things simple and to not force you to set the language for every form explicitly, Play sets it during binding already:
+You can also change the language of an existing form if you need:
 
 ```java
-Form<User> form = formFactory().form(User.class).bindFromRequest(request);
+import play.mvc.Result;
+import play.mvc.Controller;
+
+import play.i18n.Lang;
+import play.data.Form;
+import play.data.FormFactory;
+
+public class MyController extends Controller {
+    
+    private final FormFactory formFactory;
+    
+    @Inject
+    public MyController(FormFactory formFactory) {
+        this.formFactory = formFactory;
+    }
+    
+    public Result action(Http.Request request) {
+        // There is first the lang from request
+        Form<User> form = formFactory.form(User.class).bindFromRequest(request);
+        
+        // Let's change the language to `es`.
+        Lang lang = Lang.forCode("es");
+        Form<User> formWithNewLang = form.withLang(lang);
+        return ok(views.form.render(formWithNewLang));
+    }
+}
 ```
 
-In this example, the language of the form will be set to the preferred language of the request.
-
-Be aware that changing the language of the the current `Http.Context` (e.g. via `Http.Context.current().changeLang(...)` or `Http.Context.current().setTransientLang(...)`) does not have an effect on the language used to retrieve the field value of a form anymore - as explained, use `form.withLang(...)` instead.
+> **Note:** changing the language of the the current `Http.Context` (e.g. via `Http.Context.current().changeLang(...)` or `Http.Context.current().setTransientLang(...)`) does not have an effect on the language used to retrieve the field value of a form anymore - as explained, use `form.withLang(...)` instead.
 
 ### `Http.Context` Request tags removed from `args`
 
-Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7.
-Therefore the `args` map of an `Http.Context` instance no longer contains these removed request tags as well.
-Instead you can use the `request.attrs()` method now, which provides you the same request attributes.
+Request tags, which [[have been deprecated|Migration26#Request-tags-deprecation]] in Play 2.6, have finally been removed in Play 2.7. Therefore the `args` map of an `Http.Context` instance no longer contains these removed request tags as well. Instead you can use the `request.attrs()` method now, which provides you the same request attributes.
 
 ### CSRF tokens removed from `args`
 
-The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of an `Http.Context` instance. These entries have been removed.
-Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
+The `@AddCSRFToken` action annotation added two entries named `CSRF_TOKEN` and `CSRF_TOKEN_NAME` to the `args` map of an `Http.Context` instance. These entries have been removed. Use [[the new correct way to get the token|JavaCsrf#Getting-the-current-token]].
 
 ### RoutingDSL changes
 
