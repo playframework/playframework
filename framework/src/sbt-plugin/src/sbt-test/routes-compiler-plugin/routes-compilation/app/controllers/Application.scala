@@ -6,6 +6,7 @@ package controllers
 import play.api.mvc._
 import javax.inject.Inject
 import scala.collection.JavaConverters._
+import scala.compat.java8.OptionConverters._
 import models._
 
 class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
@@ -33,11 +34,113 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   def takeBool2(b: Boolean) = Action {
     Ok(s"$b")
   }
+  def takeString(x: String) = Action {
+    Ok(x)
+  }
+  def takeStringOption(x: Option[String]) = Action {
+    Ok(x.getOrElse("emptyOption"))
+  }
+  def takeStringOptional(x: java.util.Optional[String]) = Action {
+    Ok(x.asScala.getOrElse("emptyOptional"))
+  }
+  def takeChar(x: Char) = Action {
+    Ok(x.toString)
+  }
+  def takeCharOption(x: Option[Char]) = Action {
+    Ok(x.map(_.toString).getOrElse("emptyOption"))
+  }
+//  def takeCharOptional(x: java.util.Optional[Char]) = Action {
+//    Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+//  }
+  def takeInt(x: Int) = Action {
+    Ok(x.toString)
+  }
+  def takeIntOption(x: Option[Int]) = Action {
+    Ok(x.map(_.toString).getOrElse("emptyOption"))
+  }
+//  def takeIntOptional(x: java.util.Optional[Int]) = Action {
+//    Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+//  }
+  def takeInteger(x: Integer) = Action {
+    Ok(x.toString)
+  }
+//  def takeIntegerOption(x: Option[Integer]) = Action {
+//    Ok(x.map(_.toString).getOrElse("emptyOption"))
+//  }
+  def takeIntegerOptional(x: java.util.Optional[Integer]) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+  }
+  def takeListString(x: List[String]) = Action {
+    Ok(x.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(","))
+  }
+  def takeListStringOption(x: Option[List[String]]) = Action {
+    Ok(x.map(_.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOption"))
+  }
+//  def takeListStringOptional(x: java.util.Optional[List[String]]) = Action {
+//    Ok(x.asScala.map(_.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOptional"))
+//  }
+  def takeListChar(x: List[Char]) = Action {
+    Ok(x.mkString(","))
+  }
+  def takeListCharOption(x: Option[List[Char]]) = Action {
+    Ok(x.map(_.mkString(",")).getOrElse("emptyOption"))
+  }
+//  def takeListCharOptional(x: java.util.Optional[List[Char]]) = Action {
+//    Ok(x.asScala.map(_.mkString(",")).getOrElse("emptyOptional"))
+//  }
+  def takeJavaListString(x: java.util.List[String]) = Action {
+    Ok(x.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(","))
+  }
+//  def takeJavaListStringOption(x: Option[java.util.List[String]]) = Action {
+//    Ok(x.map(_.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOption"))
+//  }
+  def takeJavaListStringOptional(x: java.util.Optional[java.util.List[String]]) = Action {
+    Ok(x.asScala.map(_.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOptional"))
+  }
+//  def takeJavaListChar(x: java.util.List[Char]) = Action {
+//    Ok(x.asScala.mkString(","))
+//  }
+//  def takeJavaListCharOption(x: Option[java.util.List[Char]]) = Action {
+//    Ok(x.mkString(","))
+//  }
+//  def takeJavaListCharOptional(x: java.util.Optional[java.util.List[Char]]) = Action {
+//    Ok(x.asScala.mkString(","))
+//  }
   def takeListInt(x: List[Int]) = Action {
     Ok(x.mkString(","))
   }
+  def takeListIntOption(x: Option[List[Int]]) = Action {
+    Ok(x.map(_.mkString(",")).getOrElse("emptyOption"))
+  }
+//  def takeListIntOptional(x: java.util.Optional[List[Int]]) = Action {
+//    Ok(x.asScala.map(_.mkString(",")).getOrElse("emptyOptional"))
+//  }
+//  def takeJavaListInt(x: java.util.List[Int]) = Action {
+//    Ok(x.asScala.mkString(","))
+//  }
+//  def takeJavaListIntOption(x: Option[java.util.List[Int]]) = Action {
+//    Ok(x.mkString(","))
+//  }
+//  def takeJavaListIntOptional(x: java.util.Optional[java.util.List[Int]]) = Action {
+//    Ok(x.asScala.mkString(","))
+//  }
+//  def takeListInteger(x: List[Integer]) = Action {
+//    Ok(x.mkString(","))
+//  }
+//  def takeListIntegerOption(x: Option[List[Integer]]) = Action {
+//    Ok(x.mkString(","))
+//  }
+//  def takeListIntegerOptional(x: java.util.Optional[List[Integer]]) = Action {
+//    Ok(x.asScala.mkString(","))
+//  }
   def takeJavaListInteger(x: java.util.List[Integer]) = Action {
     Ok(x.asScala.mkString(","))
+  }
+//  def takeJavaListIntegerOption(x: Option[java.util.List[Integer]]) = Action {
+//    Ok(x.map(_.asScala.mkString(",")).getOrElse("emptyOption"))
+//  }
+  def takeJavaListIntegerOptional(x: java.util.Optional[java.util.List[Integer]]) = Action {
+    Ok(x.asScala.map(_.asScala.mkString(",")).getOrElse("emptyOptional"))
   }
   def urlcoding(dynamic: String, static: String, query: String) = Action {
     Ok(s"dynamic=$dynamic static=$static query=$query")
