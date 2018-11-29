@@ -478,8 +478,8 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
-      contentAsString(result) must contain("Missing parameter")
-      status(result) must equalTo(BAD_REQUEST)
+      contentAsString(result) must equalTo("abc")
+      status(result) must equalTo(OK)
     }
   )
   testQueryParamBindingWithDefault("Option[String]", "take-str-opt", "x=xyz", "xyz", // calls takeStringOption(...)
@@ -508,8 +508,8 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(BAD_REQUEST)
     },
     whenNoParam = result => {
-      contentAsString(result) must contain("Missing parameter: x")
-      status(result) must equalTo(BAD_REQUEST)
+      contentAsString(result) must equalTo("a")
+      status(result) must equalTo(OK)
     }
   )
   testQueryParamBindingWithDefault("Option[Char]", "take-char-opt", "x=z", "z", // calls takeCharOption(...)
@@ -538,8 +538,8 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(BAD_REQUEST)
     },
     whenNoParam = result => {
-      contentAsString(result) must contain("Missing parameter: x")
-      status(result) must equalTo(BAD_REQUEST)
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
     }
   )
   testQueryParamBindingWithDefault("Option[Int]", "take-int-opt", "x=789", "789", // calls takeIntOption(...)
@@ -568,8 +568,8 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(BAD_REQUEST)
     },
     whenNoParam = result => {
-      contentAsString(result) must contain("Missing parameter: x")
-      status(result) must equalTo(BAD_REQUEST)
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
     }
   )
 //  testQueryParamBindingWithDefault("Option[java.lang.Integer]", "take-jint-opt", "x=", "", // calls takeIntegerOption(...)
