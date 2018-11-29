@@ -374,7 +374,7 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-
 // https://www.scala-sbt.org/1.x/docs/Multi-Project.html#Aggregation
 //
 // Keep in mind that specific configurations (like skip in publish) will be respected.
-lazy val aggreatedProjects = Seq[ProjectReference](
+lazy val aggregatedProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,
@@ -437,4 +437,4 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       mimaReportBinaryIssues := (),
       commands += Commands.quickPublish
     ).settings(Release.settings: _*)
-    .aggregate(aggreatedProjects: _*)
+    .aggregate(aggregatedProjects: _*)
