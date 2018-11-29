@@ -72,10 +72,19 @@ object BuildSettings {
       .withWarnDirectEvictions(false)
   )
 
+  // We are not automatically promoting artifacts to Sonatype and
+  // Bintray so that we can have more control of the release process
+  // and do something if somethings fails (for example, if publishing
+  // a artifact times out).
+  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
+    playBuildPromoteBintray := false,
+    playBuildPromoteSonatype := false
+  )
+
   /**
    * These settings are used by all projects
    */
-  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ {
+  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
 
     fileHeaderSettings ++ Seq(
       scalariformAutoformat := true,
@@ -714,7 +723,7 @@ object BuildSettings {
 
       // Allow to disable JPA thread local requires access to configuration
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
-    
+
       // Add play.db.Database.withTransaction config
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
