@@ -79,6 +79,8 @@ The last helper makes it easier to generate inputs for repeated values. Suppose 
 
 @[code](code/javaguide/forms/html/UserForm.java)
 
+When you are using repeated data like this, there are two alternatives for sending the form values in the HTTP request.  First, you can suffix the parameter with an empty bracket pair, as in "emails[]".  This parameter can then be repeated in the standard way, as in `http://foo.com/request?emails[]=a@b.com&emails[]=c@d.com`.  Alternatively, the client can explicitly name the parameters uniquely with array subscripts, as in `emails[0]`, `emails[1]`, `emails[2]`, and so on.  This approach also allows you to maintain the order of a sequence of inputs.
+
 Now you have to generate as many inputs for the `emails` field as the form contains. Just use the `repeat` helper for that:
 
 @[repeat](code/javaguide/forms/helpers.scala.html)

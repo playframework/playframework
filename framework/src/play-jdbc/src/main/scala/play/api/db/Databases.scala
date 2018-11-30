@@ -5,13 +5,13 @@
 package play.api.db
 
 import java.sql.{ Connection, Driver, DriverManager }
-import javax.sql.DataSource
-
-import play.utils.{ ProxyDriver, Reflect }
 
 import com.typesafe.config.Config
-import scala.util.control.{ NonFatal, ControlThrowable }
-import play.api.{ Environment, Configuration }
+import javax.sql.DataSource
+import play.api.{ Configuration, Environment }
+import play.utils.{ ProxyDriver, Reflect }
+
+import scala.util.control.{ ControlThrowable, NonFatal }
 
 /**
  * Creation helpers for manually instantiating databases.
@@ -95,7 +95,7 @@ object Databases {
 abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
 
   private val config = Configuration(configuration)
-  val databaseConfig = DatabaseConfig.fromConfig(config, environment)
+  val databaseConfig: DatabaseConfig = DatabaseConfig.fromConfig(config, environment)
 
   // abstract methods to be implemented
 
@@ -179,6 +179,27 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
         case e: Throwable =>
           connection.rollback()
           throw e
+      }
+    }
+  }
+
+  def withTransaction[A](isolationLevel: TransactionIsolationLevel)(block: Connection => A): A = {
+    withConnection(autocommit = false) { connection =>
+      val oldIsolationLevel = connection.getTransactionIsolation
+      try {
+        connection.setTransactionIsolation(isolationLevel.id)
+        val r = block(connection)
+        connection.commit()
+        r
+      } catch {
+        case e: ControlThrowable =>
+          connection.commit()
+          throw e
+        case e: Throwable =>
+          connection.rollback()
+          throw e
+      } finally {
+        connection.setTransactionIsolation(oldIsolationLevel)
       }
     }
   }

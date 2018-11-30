@@ -324,7 +324,7 @@ Changes in `play.cache.AsyncCacheApi`:
 
 ## SecurityHeadersFilter's contentSecurityPolicy deprecated for CSPFilter
 
-The [[SecurityHeaders filter|SecurityHeaders]] has a `contentSecurityPolicy` property: this is deprecated in 2.7.0.  `contentSecurityPolicy` has been changed from `default-src 'self'` to `null` -- the default setting of `null` means that a `Content-Security-Policy` header will not be added to HTTP responses from the SecurityHeaders filter.  Please use the new [[CSPFilter]] to enable CSP functionality.
+The [[SecurityHeaders filter|SecurityHeaders]] has a `contentSecurityPolicy` property: this is deprecated in 2.7.0.  `contentSecurityPolicy` has been changed from `default-src 'self'` to `null` -- the default setting of `null` means that a `Content-Security-Policy` header will not be added to HTTP responses from the SecurityHeaders filter.  Please use the new [[CSPFilter|CspFilter]] to enable CSP functionality.
 
 If `play.filters.headers.contentSecurityPolicy` is not `null`, you will receive a warning.  It is technically possible to have `contentSecurityPolicy` and the new `CSPFilter` active at the same time, but this is not recommended.
 
@@ -334,13 +334,24 @@ You can enable the new `CSPFilter` by adding it to the `play.filters.enabled` pr
 play.filters.enabled += play.filters.csp.CSPFilter
 ```
 
-> **NOTE**: You will want to review the Content Security Policy closely to ensure it meets your needs.  The new `CSPFilter` is notably more permissive than `default-src ‘self’`, and is based off the Google Strict CSP configuration.  You can use the `report-only` functionality with a [[CSP report controller|CSPFilter#Configuring-CSP-Report-Only]] to review policy violations.
+> **NOTE**: You will want to review the Content Security Policy closely to ensure it meets your needs.  The new `CSPFilter` is notably more permissive than `default-src ‘self’`, and is based off the Google Strict CSP configuration.  You can use the `report-only` functionality with a [[CSP report controller|CspFilter#Configuring-CSP-Report-Only]] to review policy violations.
 
-Please see the documentation in [[CSPFilter]] for more information.
+Please see the documentation in [[CSPFilter|CspFilter]] for more information.
+
+## SameSite attribute for CSRF and language cookie
+
+With Play 2.6 the `SameSite` cookie attribute [[was enabled|Migration26#SameSite-attribute,-enabled-for-session-and-flash]] for session and flash by default.
+The same is true for the CSRF and the language cookie starting with Play 2.7. By default, the `SameSite` attribute of the CSRF cookie will have the same value like the session cookie has and the language cookie will use `SameSite=Lax` by default.
+You can tweak this using configuration. For example:
+
+```
+play.filters.csrf.cookie.sameSite = null // no same-site for csrf cookie
+play.i18n.langCookieSameSite = "strict" // strict same-site for language cookie
+```
 
 ## play.mvc.Results.TODO moved to play.mvc.Controller.TODO
 
-All Play's error pages have been updated to render a CSP nonce if the [[CSP filter|CSPFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO(Http.Request request)` method in `play.mvc.Controller` instead:
+All Play's error pages have been updated to render a CSP nonce if the [[CSPFilter|CspFilter]] is present.  This means that the error page templates must take a request as a parameter.  In 2.6.x, the `TODO` field was previously rendered as a static result instead of an action with an HTTP context, and so may have been called outside the controller.  In 2.7.0, the `TODO` field has been removed, and there is now a `TODO(Http.Request request)` method in `play.mvc.Controller` instead:
 
 ```java
 public abstract class Controller extends Results implements Status, HeaderNames {
@@ -421,6 +432,8 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 The `getHandlerFor` method on the `Server` trait was used internally by the Play server code when routing requests. It has been removed and replaced with a method of the same name on the `Server` object.
 
 ## CoordinatedShutdown `play.akka.run-cs-from-phase` configuration
+
+The configuration `akka.coordinated-shutdown.exit-jvm` is not supported anymore. When that setting is enabled Play will not start, and an error will be logged. Play ships with default values for `akka.coordinated-shutdown.*` which should be suitable for most scenarios so it's unlikely you'll need to override them. 
 
 The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 

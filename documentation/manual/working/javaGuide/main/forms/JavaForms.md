@@ -17,9 +17,19 @@ The `play.data` package contains several helpers to handle HTTP form data submis
 
 @[user](code/javaguide/forms/u1/User.java)
 
+As you can see, by default, you have to define getter and setter methods so Play is able to access the Form fields. You can however also enable "direct field access" (for all forms) by setting `play.forms.binding.directFieldAccess = true` in `conf/application.conf`. In this mode Play will ignore the getter and setter methods and will try to directly access the fields:
+
+@[user](code/javaguide/forms/u4/User.java)
+
+> **Note:** When using "direct field access" and a field is not accessible to Play during form binding (e.g. if a field or the class containing the field is not defined as `public`) Play will try to make a field accessible via reflection by calling [`field.setAccessible(true)`](https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/AccessibleObject.html#setAccessible-boolean-) internally. Depending on the Java version (8+), JVM and the [ Security Manager](https://docs.oracle.com/javase/tutorial/essential/environment/security.html) settings that could cause warnings about *illegal reflective access* or, in the worst case, throw a [`SecurityException`](https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityException.html)
+
 To wrap a class you have to inject a [`play.data.FormFactory`](api/java/play/data/FormFactory.html) into your Controller which then allows you to create the form:
 
 @[create](code/javaguide/forms/JavaForms.java)
+
+Instead of enabling "direct field access" for all forms, you can enable it only for specific ones:
+
+@[create](code/javaguide/forms/JavaFormsDirectFieldAccess.java)
 
 > **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/4.2.4.RELEASE/spring-framework-reference/html/validation.html).
 

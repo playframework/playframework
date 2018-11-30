@@ -146,6 +146,18 @@ object ActorSystemProvider {
   }
 
   private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
+    val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
+    if (config.get[Boolean](exitJvmPath)) {
+      // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
+      // prevent the creation of the Actor System.
+      val errorMessage =
+        s"""Can't start Play: detected "$exitJvmPath = on". Using "$exitJvmPath = on" in
+           | Play may cause a deadlock when shutting down. Please set "$exitJvmPath = off""""
+          .stripMargin.replace("\n", "")
+      logger.error(errorMessage)
+      throw config.reportError(exitJvmPath, errorMessage)
+    }
+
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 

@@ -215,7 +215,7 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.4.4"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.2")
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.2.3")
     ) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
       case "1.0" => specs2Deps.map(_ % Test)
       case "0.13" => specs2DepsForSbt.map(_ % Test)

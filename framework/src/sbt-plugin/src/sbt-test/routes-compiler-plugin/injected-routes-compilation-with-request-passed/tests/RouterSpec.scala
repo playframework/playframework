@@ -62,7 +62,7 @@ object RouterSpec extends PlaySpecification {
   "bind int parameters from the query string as a list" in {
 
     "from a list of numbers" in new WithApplication() {
-      val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(new Integer(1), new Integer(2), new Integer(3)).asJava).url))
+      val Some(result) = route(implicitApp, FakeRequest(GET, controllers.routes.Application.takeList(List(Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)).asJava).url))
       contentAsString(result) must equalTo("/take-list?x=1&x=2&x=3 1,2,3")
     }
     "from a list of numbers and letters" in new WithApplication() {
@@ -147,11 +147,15 @@ object RouterSpec extends PlaySpecification {
   }
 
   "reverse routes complex query params " in new WithApplication() {
-    controllers.routes.Application.takeList(List(new Integer(1),new Integer(2),new Integer(3)).asJava).url must_== "/take-list?x=1&x=2&x=3"
+    controllers.routes.Application.takeList(List(Integer.valueOf(1),Integer.valueOf(2),Integer.valueOf(3)).asJava).url must_== "/take-list?x=1&x=2&x=3"
   }
 
   "choose the first matching route for a call in reverse routes" in new WithApplication() {
     controllers.routes.Application.hello().url must_== "/hello"
+  }
+
+  "reverse routing a route with parameter that has default value and comes _after_ the request param" in new WithApplication() {
+    controllers.routes.Application.routedefault().url must_== "/routesdefault"
   }
 
   "The assets reverse route support" should {

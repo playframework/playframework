@@ -335,7 +335,7 @@ trait Messages extends MessagesProvider {
 /**
  * This trait is used to indicate when a Messages instance can be produced.
  */
-@implicitNotFound("An implicit MessagesProvider instance was not found.  Please see https://www.playframework.com/documentation/2.6.x/ScalaForms#Passing-MessagesProvider-to-Form-Helpers")
+@implicitNotFound("An implicit MessagesProvider instance was not found.  Please see https://www.playframework.com/documentation/latest/ScalaForms#Passing-MessagesProvider-to-Form-Helpers")
 trait MessagesProvider {
   def messages: Messages
 }

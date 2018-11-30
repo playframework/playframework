@@ -3,8 +3,8 @@
  */
 import sbt.ScriptedPlugin._
 import sbt._
-import Keys.{ version, _ }
-import com.typesafe.tools.mima.core._
+import Keys.{version, _}
+import com.typesafe.tools.mima.core.{ProblemFilters, _}
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
@@ -72,10 +72,19 @@ object BuildSettings {
       .withWarnDirectEvictions(false)
   )
 
+  // We are not automatically promoting artifacts to Sonatype and
+  // Bintray so that we can have more control of the release process
+  // and do something if somethings fails (for example, if publishing
+  // a artifact times out).
+  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
+    playBuildPromoteBintray := false,
+    playBuildPromoteSonatype := false
+  )
+
   /**
    * These settings are used by all projects
    */
-  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ {
+  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
 
     fileHeaderSettings ++ Seq(
       scalariformAutoformat := true,
@@ -713,7 +722,38 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Flash.-"),
 
       // Allow to disable JPA thread local requires access to configuration
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
+
+      // Add play.db.Database.withTransaction config
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.Database.withTransaction"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.Database.withTransaction"),
+
+      // Add SameSite attribute to CSRF cookie
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFConfig.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFConfig.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFConfig.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$10"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$11"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$5"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$6"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.apply$default$8"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$10"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$11"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$5"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$6"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.copy$default$8"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$10"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$11"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$5"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$6"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$8")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
