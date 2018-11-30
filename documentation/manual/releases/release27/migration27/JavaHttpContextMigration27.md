@@ -275,6 +275,8 @@ public class FooController extends Controller {
 ### After
 
 ```java
+import javax.inject.Inject;
+
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
@@ -284,6 +286,7 @@ import play.i18n.MessagesApi;
 public class FooController extends Controller {
     private final MessagesApi messagesApi;
 
+    @Inject
     public FooController(MessagesApi messagesApi) {
         this.messagesApi = messagesApi;
     }
@@ -399,6 +402,8 @@ public class FooController extends Controller {
 ### After
 
 ```java
+import javax.inject.Inject;
+
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.Controller;
@@ -408,6 +413,7 @@ import play.i18n.MessagesApi;
 public class FooController extends Controller {
     private final MessagesApi messagesApi;
 
+    @Inject
     public FooController(MessagesApi messagesApi) {
         this.messagesApi = messagesApi;
     }
