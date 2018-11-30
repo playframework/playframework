@@ -74,10 +74,19 @@ object BuildSettings {
       .withWarnDirectEvictions(false)
   )
 
+  // We are not automatically promoting artifacts to Sonatype and
+  // Bintray so that we can have more control of the release process
+  // and do something if somethings fails (for example, if publishing
+  // a artifact times out).
+  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
+    playBuildPromoteBintray := false,
+    playBuildPromoteSonatype := false
+  )
+
   /**
    * These settings are used by all projects
    */
-  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ {
+  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
 
     fileHeaderSettings ++ Seq(
       scalariformAutoformat := true,
