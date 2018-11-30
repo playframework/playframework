@@ -603,14 +603,16 @@ There is no direct replacement for `ctx()` and `response()`.
 
 ## Some template tags need an implicit `Request`, `Messages` or `Lang` instance
 
-Some template tags need to access a `Request`, `Messages` or `Lang` instance in order to work correctly. Until now these tags just made use of `Http.Context.current()` to retrieve such instances.
+Some template tags need to access a `Http.Request`, `Messages` or `Lang` instance in order to work correctly. Until now these tags just made use of `Http.Context.current()` to retrieve such instances.
 
 Because `Http.Context` is deprecated however, such instances should now be passed as `implicit` parameters to templates which make use of such tags. By marking the parameter as `implicit` you don't always have to pass it on to the tag which actually needs it, but the tag can retrieve it from the implicit scope automatically.
+
+> **Note:** To better understand how implicit parameters works, see [implicit parameter](https://docs.scala-lang.org/tour/implicit-parameters.html) and [where does Scala look for implicits](https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html) sections of Scala FAQ.
 
 Following tags need an implicit `Request` instance to be present:
 
 ```html
-@(arg1, arg2,...)(implicit request: play.mvc.Http.Request)
+@(arg1, arg2,...)(implicit request: Http.Request)
 
 These tags will automatically use the implicit request passed to this template:
 @helper.jsloader
@@ -629,7 +631,46 @@ These tags will automatically use the implicit request passed to this template:
 @defaultpages.unauthorized
 ```
 
-Following tags need an implicit `Messages` instance to be present:
+So, if you have a view that use some of the tags above, for example if you have a file `app/views/names.scala.html` like below:
+
+```html
+@(names: List[String])(implicit request: Http.Request)
+
+<html>
+    <head>
+        <!-- `scripts` tags requires a request to generate a CSP nonce -->
+        @script(args = 'type -> "text/javascript") {
+            alert("Just a single inline script");
+        }
+    </head>
+    <body>
+        ...
+    </body>
+</html>
+```
+
+Your controller will need to pass the request as a parameter to the `render` method:
+
+```java
+import java.util.List;
+import java.util.ArrayList;
+
+import javax.inject.Inject;
+
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Controller;
+
+public class SomeController extends Controller {
+
+    public Result action(Http.Request request) {
+        List<String> names = new ArrayList<>("Jane", "James", "Rich");
+        return ok(views.html.names.render(names, request));
+    }
+}
+```
+
+There are also the helper tags that need an implicit `Messages` instance to be present:
 
 ```html
 @(arg1, arg2,...)(implicit messages: play.i18n.Messages)
@@ -647,13 +688,70 @@ These tags will automatically use the implicit messages passed to this template:
 @helper.checkbox
 ```
 
+So, if you have a view that use some of the tags above, for example if you have a file `app/views/userForm.scala.html` like below:
+
+```html
+@(userForm: Form[User)(implicit messages: play.i18n.Messages)
+
+<html>
+    <head>
+        <title>User form page</title>
+    </head>
+
+    <body>
+        @helper.form(action = routes.UsersController.save) {
+            @helper.inputText(addressData("name"))
+            @helper.inputText(addressData("email"))
+            ...
+        })
+    </body>
+</html>
+```
+
+Your controller will then be like:
+
+```java
+import javax.inject.Inject;
+
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Controller;
+
+import play.i18n.Messages;
+import play.i18n.MessagesApi;
+
+import play.data.FormFactory;
+
+public class SomeController extends Controller {
+
+    private final FormFactory formFactory;
+    private final MessagesApi messagesApi;
+
+    @Inject
+    public SomeController(FormFactory formFactory, MessagesApi messagesApi) {
+        this.formFactory = formFactory;
+        this.messagesApi = messagesApi;
+    }
+
+    public Result action(Http.Request request) {
+        Form<User> userForm = formFactory.form(User.class);
+        // Messages instance that will be passed to render the view and
+        // inside the view will be passed implicitly to helper tags.
+        Messages messages = messagesApi.preferred(request);
+        return ok(views.html.userForm.render(userForm, messages));
+    }
+}
+```
+
+> **Note:** some of these features were previously provided by `PlayMagicForJava` and were heavily depending on `Http.Context.current()`. Passing the parameters to your view will make it more clear what is happening and where your view is depending on other data.
+
 Play itself does not provide tags that need a `Lang` instance to be present, third-party modules however may do:
 
 ```html
 @(arg1, arg2,...)(implicit lang: play.i18n.Lang)
 ```
 
-Third-party tags will automatically use the implicit messages passed to this template.
+Third-party tags will automatically use the implicit messages passed to this template. You can pass an implicit instance of `Lang` to your view just like the examples for `Http.Request` and `Messages` above.
 
 ## Changes in Java Forms related to `Http.Context`
 
