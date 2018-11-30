@@ -230,7 +230,7 @@ private[server] object ServerReloadingSpec {
   class TestRouterProvider @Inject() (action: DefaultActionBuilder) extends Provider[Router] {
     override lazy val get: Router = Router.from {
       case GET(p"/setflash") => action {
-        Results.Redirect("/getflash").flash("foo" -> "bar")
+        Results.Redirect("/getflash").flashing("foo" -> "bar")
       }
       case GET(p"/getflash") => action { request: Request[_] =>
         Results.Ok(request.flash.data.get("foo").toString)

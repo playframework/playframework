@@ -97,7 +97,7 @@ class RequestHeaderSpec extends Specification {
       req2.transientLang() must beSome(new Lang(Locale.GERMAN))
       req2.attrs.get(Messages.Attrs.CurrentLang) must beSome(new Lang(Locale.GERMAN))
 
-      val req3 = req2.clearTransientLang()
+      val req3 = req2.withoutTransientLang()
       req2 mustNotEqual req3
       req3.transientLang() must beNone
       req3.attrs.get(Messages.Attrs.CurrentLang) must beNone

@@ -262,10 +262,10 @@ public class Result {
     /**
      * Adds values to the flash.
      *
-     * @param values A map with values to add to this result’s flash
+     * @param values A map with values to add to this result's flash
      * @return A copy of this result with values added to its flash scope.
      */
-    public Result flash(Map<String, String> values) {
+    public Result flashing(Map<String, String> values) {
         if(this.flash == null) {
             return withFlash(values);
         } else {
@@ -276,14 +276,14 @@ public class Result {
     /**
      * Adds the given key and value to the flash.
      *
-     * @param key The key to add to this result’s flash
-     * @param value The value to add to this result’s flash
+     * @param key The key to add to this result's flash
+     * @param value The value to add to this result's flash
      * @return A copy of this result with the key and value added to its flash scope.
      */
-    public Result flash(String key, String value) {
+    public Result flashing(String key, String value) {
         Map<String, String> newValues = new HashMap<>(1);
         newValues.put(key, value);
-        return flash(newValues);
+        return flashing(newValues);
     }
 
     /**
@@ -296,7 +296,7 @@ public class Result {
         if(this.flash == null) {
             return withNewFlash();
         }
-        return withFlash(this.flash.remove(keys));
+        return withFlash(this.flash.removing(keys));
     }
 
     /**
@@ -310,7 +310,7 @@ public class Result {
 
     /**
      * @param request Current request
-     * @return The session carried by this result. Reads the given request’s session if this result does not has a session.
+     * @return The session carried by this result. Reads the given request's session if this result does not has a session.
      */
     public Session session(Http.Request request) {
         if(session != null) {
@@ -352,7 +352,7 @@ public class Result {
     /**
      * Adds values to the session.
      *
-     * @param values A map with values to add to this result’s session
+     * @param values A map with values to add to this result's session
      * @return A copy of this result with values added to its session scope.
      */
     public Result addingToSession(Http.Request request, Map<String, String> values) {
@@ -362,8 +362,8 @@ public class Result {
     /**
      * Adds the given key and value to the session.
      *
-     * @param key The key to add to this result’s session
-     * @param value The value to add to this result’s session
+     * @param key The key to add to this result's session
+     * @param value The value to add to this result's session
      * @return A copy of this result with the key and value added to its session scope.
      */
     public Result addingToSession(Http.Request request, String key, String value) {
@@ -379,7 +379,7 @@ public class Result {
      * @return A copy of this result with keys removed from its session scope.
      */
     public Result removingFromSession(Http.Request request, String... keys) {
-        return withSession(session(request).remove(keys));
+        return withSession(session(request).removing(keys));
     }
 
     /**
@@ -444,8 +444,8 @@ public class Result {
      *
      * @param name The name of the cookie to discard, must not be null
      */
-    public Result discardCookie(String name) {
-        return discardCookie(name, "/", null, false);
+    public Result discardingCookie(String name) {
+        return discardingCookie(name, "/", null, false);
     }
 
     /**
@@ -454,8 +454,8 @@ public class Result {
      * @param name The name of the cookie to discard, must not be null
      * @param path The path of the cookie to discard, may be null
      */
-    public Result discardCookie(String name, String path) {
-        return discardCookie(name, path, null, false);
+    public Result discardingCookie(String name, String path) {
+        return discardingCookie(name, path, null, false);
     }
 
     /**
@@ -465,8 +465,8 @@ public class Result {
      * @param path The path of the cookie te discard, may be null
      * @param domain The domain of the cookie to discard, may be null
      */
-    public Result discardCookie(String name, String path, String domain) {
-        return discardCookie(name, path, domain, false);
+    public Result discardingCookie(String name, String path, String domain) {
+        return discardingCookie(name, path, domain, false);
     }
 
     /**
@@ -477,7 +477,7 @@ public class Result {
      * @param domain The domain of the cookie to discard, may be null
      * @param secure Whether the cookie to discard is secure
      */
-    public Result discardCookie(String name, String path, String domain, boolean secure) {
+    public Result discardingCookie(String name, String path, String domain, boolean secure) {
         return withCookies(new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
     }
 
@@ -512,8 +512,8 @@ public class Result {
      * @param name the header name
      * @return the transformed copy
      */
-    public Result discardHeader(String name) {
-        return new Result(header.discardHeader(name), body, session, flash, cookies);
+    public Result withoutHeader(String name) {
+        return new Result(header.withoutHeader(name), body, session, flash, cookies);
     }
 
     /**
@@ -550,7 +550,7 @@ public class Result {
     }
 
     /**
-     * Clears the lang from this result. For example:
+     * Clears the lang cookie from this result. For example:
      *
      * <pre>
      * {@code

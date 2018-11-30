@@ -305,7 +305,7 @@ trait RequestHeader {
    *
    * @return The new version of this object with the transient language removed.
    */
-  def clearTransientLang(): RequestHeader =
+  def withoutTransientLang(): RequestHeader =
     removeAttr(Messages.Attrs.CurrentLang)
 
   /**

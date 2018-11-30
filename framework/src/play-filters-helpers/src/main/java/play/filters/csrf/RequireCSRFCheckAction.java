@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.RequestHeader;
-import play.api.mvc.Session;
 import play.inject.Injector;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -103,7 +102,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
             if (CSRF.getToken(taggedRequest).isEmpty()) {
                 if (config.cookieName().isDefined()) {
                     Option<String> domain = sessionConfiguration.domain();
-                    return result.discardCookie(config.cookieName().get(), sessionConfiguration.path(),
+                    return result.discardingCookie(config.cookieName().get(), sessionConfiguration.path(),
                             domain.isDefined() ? domain.get() : null, config.secureCookie());
                 }
                 return result.removingFromSession(req, config.tokenName());

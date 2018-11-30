@@ -84,8 +84,7 @@ package scalaguide.http.scalasessionflash {
         }
 
         def save = Action {
-          Redirect("/home").flash(
-            "success" -> "The item has been created")
+          Redirect("/home").flashing("success" -> "The item has been created")
         }
         //#using-flash
         assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res => contentAsString(res) must contain("success!"))

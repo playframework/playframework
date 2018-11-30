@@ -50,7 +50,7 @@ public class ResponseHeader {
         return Collections.unmodifiableMap(headers);
     }
 
-    public ResponseHeader discardHeader(String name) {
+    public ResponseHeader withoutHeader(String name) {
         Map<String, String> updatedHeaders = copyCurrentHeaders();
         updatedHeaders.remove(name);
         return new ResponseHeader(status, updatedHeaders, reasonPhrase);

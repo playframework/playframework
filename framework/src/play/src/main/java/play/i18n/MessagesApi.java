@@ -139,7 +139,7 @@ public class MessagesApi {
     }
 
     /**
-     * Set the lang on the given result.
+     * Given a Result and a Lang, return a new Result with the lang cookie set to the given Lang.
      *
      * @param result the result where the lang will be set.
      * @param lang the lang to set on the result
@@ -150,7 +150,7 @@ public class MessagesApi {
     }
 
     /**
-     * Clear the lang for that result.
+     * Given a Result, return a new Result with the lang cookie discarded.
      *
      * @param result the result to clear the lang.
      * @return a new result with a cleared lang.

@@ -28,7 +28,7 @@ class FlashCookieSpec extends PlaySpecification
       import play.api.routing.sird.{ GET => SirdGet, _ }
       Router.from {
         case SirdGet(p"/flash") => components.defaultActionBuilder {
-          Redirect("/landing").flash(
+          Redirect("/landing").flashing(
             "success" -> "found"
           )
         }
