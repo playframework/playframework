@@ -743,7 +743,13 @@ public class SomeController extends Controller {
 }
 ```
 
-> **Note:** some of these features were previously provided by `PlayMagicForJava` and were heavily depending on `Http.Context.current()`. Passing the parameters to your view will make it more clear what is happening and where your view is depending on other data.
+> **Note:** some of these features were previously provided by `PlayMagicForJava` and were heavily depending on `Http.Context.current()`. That is why you will see warnings like:
+>
+> ```
+> method implicitXXX in object PlayMagicForJava is deprecated (since 2.7.0): See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27
+> ```
+>
+> Passing the parameters to your view will make it more clear what is happening and where your view is depending on other data.
 
 Play itself does not provide tags that need a `Lang` instance to be present, third-party modules however may do:
 
