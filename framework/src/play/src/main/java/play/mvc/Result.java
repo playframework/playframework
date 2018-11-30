@@ -262,7 +262,7 @@ public class Result {
     /**
      * Adds values to the flash.
      *
-     * @param values A map with values to add to this result’s flash
+     * @param values A map with values to add to this result's flash
      * @return A copy of this result with values added to its flash scope.
      */
     public Result flash(Map<String, String> values) {
@@ -276,8 +276,8 @@ public class Result {
     /**
      * Adds the given key and value to the flash.
      *
-     * @param key The key to add to this result’s flash
-     * @param value The value to add to this result’s flash
+     * @param key The key to add to this result's flash
+     * @param value The value to add to this result's flash
      * @return A copy of this result with the key and value added to its flash scope.
      */
     public Result flash(String key, String value) {
@@ -310,7 +310,7 @@ public class Result {
 
     /**
      * @param request Current request
-     * @return The session carried by this result. Reads the given request’s session if this result does not has a session.
+     * @return The session carried by this result. Reads the given request's session if this result does not has a session.
      */
     public Session session(Http.Request request) {
         if(session != null) {
@@ -352,7 +352,7 @@ public class Result {
     /**
      * Adds values to the session.
      *
-     * @param values A map with values to add to this result’s session
+     * @param values A map with values to add to this result's session
      * @return A copy of this result with values added to its session scope.
      */
     public Result addingToSession(Http.Request request, Map<String, String> values) {
@@ -362,8 +362,8 @@ public class Result {
     /**
      * Adds the given key and value to the session.
      *
-     * @param key The key to add to this result’s session
-     * @param value The value to add to this result’s session
+     * @param key The key to add to this result's session
+     * @param value The value to add to this result's session
      * @return A copy of this result with the key and value added to its session scope.
      */
     public Result addingToSession(Http.Request request, String key, String value) {
@@ -527,7 +527,7 @@ public class Result {
     }
 
     /**
-     * Returns a new result with the given lang cookie. For example:
+     * Returns a new result with the given lang set in a cookie. For example:
      *
      * <pre>
      * {@code
@@ -555,7 +555,7 @@ public class Result {
      * <pre>
      * {@code
      * public Result action() {
-     *     ok("Hello").clearingLang(messagesApi);
+     *     ok("Hello").withoutLang(messagesApi);
      * }
      * }
      * </pre>
@@ -567,7 +567,7 @@ public class Result {
      *
      * @see MessagesApi#clearLang(Result)
      */
-    public Result clearingLang(MessagesApi messagesApi) {
+    public Result withoutLang(MessagesApi messagesApi) {
         return messagesApi.clearLang(this);
     }
 
