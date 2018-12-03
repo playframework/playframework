@@ -18,15 +18,15 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.7.x")
 
 Where the "x" in `2.7.x` is the minor version of Play you want to use, for instance `2.7.0`.
 
-### sbt upgrade to 1.2.6
+### sbt upgrade to 1.2.7
 
-Although Play 2.7 still supports sbt 0.13 series, we recommend that you use sbt 1 from now. This new version is actively maintained and supported. To update, change your `project/build.properties` so that it reads:
+Although Play 2.7 still supports sbt 0.13 series, we recommend that you use sbt 1.x from now. This new version is actively maintained and supported. To update, change your `project/build.properties` so that it reads:
 
-```properties
-sbt.version=1.2.6
+```
+sbt.version=1.2.7
 ```
 
-At the time of this writing `1.2.6` is the latest version in the sbt 1 family, you may be able to use newer versions too. Check for details in the release notes of your minor version of Play 2.7.x. More information at the list of [sbt releases](https://github.com/sbt/sbt/releases).
+At the time of this writing `1.2.7` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check for details in the release notes of your minor version of Play 2.7.x. More information at the list of [sbt releases](https://github.com/sbt/sbt/releases).
 
 ## API Changes
 
