@@ -162,16 +162,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("java.util.Optional[Char]", "take-char-jopt", "x=z", "z", // calls takeCharOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("Int", "take-int", "x=789", "789", // calls takeInt(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -192,16 +182,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("java.util.Optional[Int]", "take-int-jopt", "x=", "", // calls takeIntOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("java.lang.Integer", "take-jint", "x=789", "789", // calls takeInteger(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -212,16 +192,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(BAD_REQUEST)
     }
   )
-//  testQueryParamBinding("Option[java.lang.Integer]", "take-jint-opt", "x=", "", // calls takeIntegerOption(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("java.util.Optional[java.lang.Integer]", "take-jint-jopt", "x=789", "789", // calls takeIntegerOptional(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -252,16 +222,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("java.util.Optional[List[String]]", "take-slist-str-jopt", "x=x&x=y&x=z", "x,y,z", // calls takeListStringOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("List[Char]", "take-slist-char", "x=z", "z", // calls takeListChar(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Char: x must be exactly one digit in length")
@@ -282,16 +242,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("java.util.Optional[List[Char]]", "take-slist-char-jopt", "x=", "", // calls takeListCharOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("java.util.List[String]", "take-jlist-str", "x=x&x=y&x=z", "x,y,z", // calls takeJavaListString(...)
     whenNoValue = result => {
       contentAsString(result) must equalTo("emptyStringElement") // means non-empty List("") was passed to action
@@ -302,16 +252,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("Option[java.util.List[String]]", "take-jlist-str-opt", "x=x&x=y&x=z", "x,y,z", // calls takeJavaListStringOption(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("java.util.Optional[java.util.List[String]]", "take-jlist-str-jopt", "x=x&x=y&x=z", "x,y,z", // calls takeJavaListStringOptional(...)
     whenNoValue = result => {
       contentAsString(result) must equalTo("emptyStringElement") // means non-empty list Optinal.of(List("")) was passed to action
@@ -322,36 +262,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("java.util.List[Char]", "take-jlist-char", "x=", "", // calls takeJavaListChar(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("Option[java.util.List[Char]]", "take-jlist-char-opt", "x=", "", // calls takeJavaListCharOption(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("java.util.Optional[java.util.List[Char]]", "take-jlist-char-jopt", "x=", "", // calls takeJavaListCharOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("List[Int]", "take-slist-int", "x=7&x=8&x=9", "7,8,9", // calls takeListInt(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -372,76 +282,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("java.util.Optional[List[Int]]", "take-slist-int-jopt", "x=7&x=8&x=9", "", // calls takeListIntOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("java.util.List[Int]", "take-jlist-int", "x=", "", // calls takeJavaListInt(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("Option[java.util.List[Int]]", "take-jlist-int-opt", "x=", "", // calls takeJavaListIntOption(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("java.util.Optional[java.util.List[Int]]", "take-jlist-int-jopt", "x=", "", // calls takeJavaListIntOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("List[java.lang.Integer]", "take-slist-jint", "x=", "", // calls takeListInteger(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("Option[List[java.lang.Integer]]", "take-slist-jint-opt", "x=", "", // calls takeListIntegerOption(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBinding("java.util.Optional[List[java.lang.Integer]]", "take-slist-jint-jopt", "x=", "", // calls takeListIntegerOptional(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("java.util.List[java.lang.Integer]", "take-jlist-jint", "x=7&x=8&x=9", "7,8,9", // calls takeJavaListInteger(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -452,16 +292,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBinding("Option[java.util.List[java.lang.Integer]]", "take-jlist-jint-opt", "x=", "", // calls takeJavaListIntegerOption(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBinding("java.util.Optional[java.util.List[java.lang.Integer]]", "take-jlist-jint-jopt", "x=7&x=8&x=9", "7,8,9", // calls takeJavaListIntegerOptional(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -522,16 +352,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("java.util.Optional[Char]", "take-char-jopt", "x=z", "z", // calls takeCharOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("Int", "take-int", "x=789", "789", // calls takeIntWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -552,16 +372,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("java.util.Optional[Int]", "take-int-jopt", "x=", "", // calls takeIntOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("java.lang.Integer", "take-jint", "x=789", "789", // calls takeIntegerWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -572,16 +382,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("Option[java.lang.Integer]", "take-jint-opt", "x=", "", // calls takeIntegerOptionWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("java.util.Optional[java.lang.Integer]", "take-jint-jopt", "x=789", "789", // calls takeIntegerOptionalWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -612,16 +412,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("java.util.Optional[List[String]]", "take-slist-str-jopt", "x=x&x=y&x=z", "x,y,z", // calls takeListStringOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("List[Char]", "take-slist-char", "x=z", "z", // calls takeListCharWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Char: x must be exactly one digit in length")
@@ -642,16 +432,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("java.util.Optional[List[Char]]", "take-slist-char-jopt", "x=", "", // calls takeListCharOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("java.util.List[String]", "take-jlist-str", "x=x&x=y&x=z", "x,y,z", // calls takeJavaListStringWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must equalTo("emptyStringElement") // means non-empty List("") was passed to action
@@ -662,16 +442,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("Option[java.util.List[String]]", "take-jlist-str-opt", "x=x&x=y&x=z", "x,y,z", // calls takeJavaListStringOptionWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("java.util.Optional[java.util.List[String]]", "take-jlist-str-jopt", "x=x&x=y&x=z", "x,y,z", // calls takeJavaListStringOptionalWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must equalTo("emptyStringElement") // means non-empty list Optinal.of(List("")) was passed to action
@@ -682,36 +452,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("java.util.List[Char]", "take-jlist-char", "x=", "", // calls takeJavaListCharWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("Option[java.util.List[Char]]", "take-jlist-char-opt", "x=", "", // calls takeJavaListCharOptionWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("java.util.Optional[java.util.List[Char]]", "take-jlist-char-jopt", "x=", "", // calls takeJavaListCharOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("List[Int]", "take-slist-int", "x=7&x=8&x=9", "7,8,9", // calls takeListIntWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -732,76 +472,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("java.util.Optional[List[Int]]", "take-slist-int-jopt", "x=7&x=8&x=9", "", // calls takeListIntOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("java.util.List[Int]", "take-jlist-int", "x=", "", // calls takeJavaListIntWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("Option[java.util.List[Int]]", "take-jlist-int-opt", "x=", "", // calls takeJavaListIntOptionWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("java.util.Optional[java.util.List[Int]]", "take-jlist-int-jopt", "x=", "", // calls takeJavaListIntOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("List[java.lang.Integer]", "take-slist-jint", "x=", "", // calls takeListIntegerWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("Option[List[java.lang.Integer]]", "take-slist-jint-opt", "x=", "", // calls takeListIntegerOptionWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
-//  testQueryParamBindingWithDefault("java.util.Optional[List[java.lang.Integer]]", "take-slist-jint-jopt", "x=", "", // calls takeListIntegerOptionalWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("java.util.List[java.lang.Integer]", "take-jlist-jint", "x=7&x=8&x=9", "7,8,9", // calls takeJavaListIntegerWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
@@ -812,16 +482,6 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     }
   )
-//  testQueryParamBindingWithDefault("Option[java.util.List[java.lang.Integer]]", "take-jlist-jint-opt", "x=", "", // calls takeJavaListIntegerOptionWithDefault(...)
-//    whenNoValue = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    },
-//    whenNoParam = result => {
-//      contentAsString(result) must equalTo("")
-//      status(result) must equalTo(OK)
-//    }
-//  )
   testQueryParamBindingWithDefault("java.util.Optional[java.util.List[java.lang.Integer]]", "take-jlist-jint-jopt", "x=7&x=8&x=9", "7,8,9", // calls takeJavaListIntegerOptionalWithDefault(...)
     whenNoValue = result => {
       contentAsString(result) must contain("Cannot parse parameter x as Int")
