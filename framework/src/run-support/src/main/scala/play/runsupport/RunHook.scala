@@ -4,7 +4,6 @@
 
 package play.runsupport
 
-import java.net.InetSocketAddress
 import scala.collection.mutable.LinkedHashMap
 import scala.util.control.NonFatal
 
