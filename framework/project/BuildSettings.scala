@@ -768,62 +768,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.this"),
 
-      // Missing filters for Scala 2.11
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.NettyServerComponents.serverConfig"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.NettyServerComponents.environment"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.NettyServerComponents.configuration"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.NettyServerComponents.serverStopHook"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.Action"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.devContext"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.parse"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.coordinatedShutdown"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.atomicMoveWithFallback"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.asJava"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.raw"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.text"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.xml"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formUrlEncoded"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.tolerantJson"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.tolerantFormUrlEncoded"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.DefaultMaxTextLength"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.json"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.tolerantXml"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.raw$default$1"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.raw"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.text"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.xml"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formUrlEncoded"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.tolerantJson"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.tolerantFormUrlEncoded"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.DefaultMaxTextLength"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.json"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.tolerantXml"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.raw$default$1"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.withTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.withTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.withTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.transientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.removeAttr"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.withoutTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.Request.asJava"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.Request.withTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.Request.withTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.Request.withTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.Request.removeAttr"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.Request.withoutTransientLang"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.Router./:"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.Router.orElse"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.AkkaHttpServerComponents.serverConfig"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.AkkaHttpServerComponents.environment"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.AkkaHttpServerComponents.configuration"),
-      ProblemFilters.exclude[UpdateForwarderBodyProblem]("play.core.server.AkkaHttpServerComponents.serverStopHook"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi$default$6"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi$default$6"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi$default$7"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.StubControllerComponentsFactory.stubMessagesControllerComponents")
+      // Removing private[play] classes previously needed for compatibility with Scala 2.11
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
@@ -839,7 +787,7 @@ object BuildSettings {
     // See also:
     // 1. the root project at build.sbt file.
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212)
+    crossScalaVersions := Seq(ScalaVersions.scala212)
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
@@ -885,7 +833,6 @@ object BuildSettings {
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(
-          // Need to add this after updating to Scala 2.11.12
           scalacOptions += "-target:jvm-1.8"
         )
   }
