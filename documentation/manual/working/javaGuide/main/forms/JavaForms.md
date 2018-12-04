@@ -227,4 +227,4 @@ Finally we can use our custom class-level constraint to validate a form:
 
 @[user](code/javaguide/forms/customconstraint/DBAccessForm.java)
 
-> **Tip:** You might have recognised that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).
+> **Tip:** You might have recognized that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).

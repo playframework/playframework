@@ -172,7 +172,7 @@ If you wish to switch to the injected generator, add the following to your build
 routesGenerator := InjectedRoutesGenerator
 ```
 
-By default Play will automatically handle the wiring of this router for you using Guice, but depending in the DI approach you're taking, you may be able to customise it.
+By default Play will automatically handle the wiring of this router for you using Guice, but depending in the DI approach you're taking, you may be able to customize it.
 
 The injected routes generator also supports the `@` operator on routes, but it has a slightly different meaning (since everything is injected), if you prefix a controller with `@`, instead of that controller being directly injected, a JSR 330 `Provider` for that controller will be injected.  This can be used, for example, to eliminate circular dependency issues, or if you want a new action instantiated per request.
 

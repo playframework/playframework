@@ -29,7 +29,7 @@ These methods are particularly useful if you use them in combination with JUnit'
 
 @[database-junit](code/javaguide/tests/JavaTestingWithDatabases.java)
 
-> **Tip:** You can use this to externalise your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
+> **Tip:** You can use this to externalize your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
 
 ### Using an in-memory database
 

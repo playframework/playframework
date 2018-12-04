@@ -61,7 +61,7 @@ As you see you have to delimit the both Ups and Downs section by using comments 
 
 Evolutions are automatically activated if a database is configured in `application.conf` and evolution scripts are present. You can disable them by setting `play.evolutions.enabled=false`. For example when tests set up their own database you can disable evolutions for the test environment.
 
-When evolutions are activated, Play will check your database schema state before each request in DEV mode, or before starting the application in PROD mode. In DEV mode, if your database schema is not up to date, an error page will suggest that you synchronise your database schema by running the appropriate SQL script.
+When evolutions are activated, Play will check your database schema state before each request in DEV mode, or before starting the application in PROD mode. In DEV mode, if your database schema is not up to date, an error page will suggest that you synchronize your database schema by running the appropriate SQL script.
 
 [[images/evolutions.png]]
 
