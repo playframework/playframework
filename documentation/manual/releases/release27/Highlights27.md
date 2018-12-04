@@ -36,7 +36,7 @@ public class MyForm {
 }
 ```
 
-You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognise that.
+You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognize that.
 
 ## Payloads for Java `validate` and `isValid` methods
 

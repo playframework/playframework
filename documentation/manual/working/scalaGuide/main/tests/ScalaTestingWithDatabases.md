@@ -43,7 +43,7 @@ Then it can be easily used in each test with minimal boilerplate:
 
 @[custom-with-database-use](code/database/ScalaTestingWithDatabases.scala)
 
-> **Tip:** You can use this to externalise your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
+> **Tip:** You can use this to externalize your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
 
 ### Using an in-memory database
 
