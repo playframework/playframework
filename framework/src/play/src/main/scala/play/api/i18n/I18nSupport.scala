@@ -109,14 +109,17 @@ trait I18NSupportLowPriorityImplicits {
      * For example:
      * {{{
      * implicit val messagesApi: MessagesApi = ...
-     * Ok(Messages("hello.world")).clearingLang
+     * Ok(Messages("hello.world")).withoutLang
      * }}}
      *
      * @return the new result
      */
-    def clearingLang(implicit messagesApi: MessagesApi): Result = {
+    def withoutLang(implicit messagesApi: MessagesApi): Result = {
       messagesApi.clearLang(result)
     }
+
+    @deprecated("Use withoutLang", "2.7.0")
+    def clearingLang(implicit messagesApi: MessagesApi): Result = withoutLang
   }
 }
 
