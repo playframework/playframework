@@ -96,7 +96,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
     /**
      * Clear the lang for the current user.
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)} or {@link Result#clearingLang(MessagesApi)}.
+     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)} or {@link Result#withoutLang(MessagesApi)}.
      */
     @Deprecated
     public static void clearLang() {

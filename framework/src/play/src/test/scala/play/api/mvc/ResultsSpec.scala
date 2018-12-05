@@ -174,7 +174,7 @@ class ResultsSpec extends Specification {
         Some(Set(preferencesCookie, sessionCookie)))
     }
 
-    "support clearing a language cookie using clearingLang" in withApplication { app: Application =>
+    "support clearing a language cookie using withoutLang" in withApplication { app: Application =>
       implicit val messagesApi = app.injector.instanceOf[MessagesApi]
       val cookie = cookieHeaderEncoding.decodeSetCookieHeader(bake(Ok.clearingLang).header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName

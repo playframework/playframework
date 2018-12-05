@@ -81,7 +81,7 @@ class MyController @Inject()(val controllerComponents: ControllerComponents) ext
   }
 
   def homePageWithDefaultLang = Action {
-    Redirect("/user/home").clearingLang
+    Redirect("/user/home").withoutLang
   }
   // #lang-cookies
 
