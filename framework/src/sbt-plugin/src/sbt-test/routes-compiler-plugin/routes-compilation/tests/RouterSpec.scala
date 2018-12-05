@@ -92,7 +92,7 @@ object RouterSpec extends PlaySpecification {
                                     withDefault: Boolean = false) = {
     lazy val resolvedPath = s"/${path}${if(withDefault) "-d" else ""}"
     s"bind ${paramType} parameter${if(withDefault) " with default value" else ""} from the query string" in {
-      "succesfully" in new WithApplication() {
+      "successfully" in new WithApplication() {
         val Some(result) = route(implicitApp, FakeRequest(GET, s"${resolvedPath}?${successParams}"))
         contentAsString(result) must equalTo(successExpectation)
         status(result) must equalTo(OK)
@@ -118,7 +118,7 @@ object RouterSpec extends PlaySpecification {
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
-      contentAsString(result) must contain("Missing parameter")
+      contentAsString(result) must contain("Missing parameter: x")
       status(result) must equalTo(BAD_REQUEST)
     }
   )
