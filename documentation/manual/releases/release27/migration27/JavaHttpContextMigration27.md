@@ -419,7 +419,7 @@ public class FooController extends Controller {
     }
 
     public Result action() {
-        return Results.ok("Hello").clearingLang(messagesApi);
+        return Results.ok("Hello").withoutLang(messagesApi);
     }
 }
 ```
