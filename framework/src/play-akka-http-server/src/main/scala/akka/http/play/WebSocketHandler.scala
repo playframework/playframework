@@ -26,6 +26,7 @@ object WebSocketHandler {
    *
    * See https://github.com/playframework/playframework/issues/7895
    */
+  @deprecated("Please specify the subprotocol (or be explicit that you specif None)", "2.7.0")
   def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse =
     handleWebSocket(upgrade, flow, bufferLimit, None)
 
