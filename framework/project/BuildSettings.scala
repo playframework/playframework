@@ -21,6 +21,8 @@ import scalariform.formatter.preferences._
 
 import scala.util.control.NonFatal
 
+import sbtwhitesource.WhiteSourcePlugin.autoImport._
+
 object BuildSettings {
 
   // Argument for setting size of permgen space or meta space for all forked processes
@@ -849,7 +851,11 @@ object BuildSettings {
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
     publish := {},
-    publishLocal := {}
+    publishLocal := {},
+
+    // We also don't need to track dependencies for unpublished projects
+    // so we need to disable WhiteSource plugin.
+    whitesourceIgnore := true
   )
 
   /**
