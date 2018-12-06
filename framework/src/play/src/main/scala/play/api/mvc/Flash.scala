@@ -25,77 +25,68 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
   def get(key: String): Option[String] = data.get(key)
 
   /**
-   * Returns `true` if this flash scope is empty.
+   * Retrieves the flash value associated with the given key.
+   *
+   * @throws NoSuchElementException if no value exists for the key.
+   */
+  def apply(key: String): String = data(key)
+
+  /**
+   * Returns `true` if this flash is empty.
    */
   def isEmpty: Boolean = data.isEmpty
 
   /**
-   * Adds a value to the flash scope, and returns a new flash scope.
+   * Returns a new flash with the given key-value pair added.
    *
    * For example:
    * {{{
-   * flash + ("success" -> "Done!")
+   * flash + ("username" -> "bob")
    * }}}
    *
    * @param kv the key-value pair to add
-   * @return the modified flash scope
+   * @return the modified flash
    */
   def +(kv: (String, String)): Flash = {
-    require(kv._2 != null, "Cookie values cannot be null")
+    require(kv._2 != null, s"Flash value for ${kv._1} cannot be null")
     copy(data + kv)
   }
 
   /**
-   * Adds a value to the flash scope, and returns a new flash scope.
+   * Returns a new flash with elements added from the given `Iterable`.
    *
-   * This is an alias method to [[+]].
-   *
-   * @param kv the key-value pair to add
-   * @return the modified flash scope
+   * @param kvs an `Iterable` containing key-value pairs to add.
    */
-  def add(kv: (String, String)): Flash = this + kv
-
-  /**
-   * Adds a number of elements provided by the given map object
-   * and returns a new flash scope with the added elements.
-   */
-  def ++(kvs: (String, String)*): Flash = {
+  def ++(kvs: Iterable[(String, String)]): Flash = {
+    for ((k, v) <- kvs) require(v != null, s"Flash value for $k cannot be null")
     copy(data ++ kvs)
   }
 
   /**
-   * Adds a number of elements provided by the given map object
-   * and returns a new flash scope with the added elements.
-   */
-  def addAll(kvs: Map[String, String]): Flash = {
-    copy(data ++ kvs)
-  }
-
-  /**
-   * Removes values from the flash scope.
+   * Returns a new flash with the given key removed.
    *
    * For example:
    * {{{
-   * flash - "success"
+   * flash - "username"
+   * }}}
+   *
+   * @param key the key to remove
+   * @return the modified flash
+   */
+  def -(key: String): Flash = copy(data - key)
+
+  /**
+   * Returns a new flash with the given keys removed.
+   *
+   * For example:
+   * {{{
+   * flash -- Seq("username", "name")
    * }}}
    *
    * @param keys the keys to remove
-   * @return the modified flash scope
+   * @return the modified flash
    */
-  def -(keys: String*): Flash = remove(keys: _*)
-
-  /**
-   * Removes values from the flash scope.
-   *
-   * @param keys the keys to remove
-   * @return the modified flash scope
-   */
-  @varargs def remove(keys: String*): Flash = copy(data -- keys)
-
-  /**
-   * Retrieves the flash value that is associated with the given key.
-   */
-  def apply(key: String): String = data(key)
+  def --(keys: Iterable[String]): Flash = copy(data -- keys)
 
   lazy val asJava: Http.Flash = new Http.Flash(this)
 }

@@ -17,7 +17,7 @@ import scala.annotation.varargs
  *
  * Session data are encoded into an HTTP cookie, and can only contain simple `String` values.
  */
-case class Session(data: Map[String, String] = Map.empty[String, String]) {
+case class Session(data: Map[String, String] = Map.empty) {
 
   /**
    * Optionally returns the session value associated with a key.
@@ -25,12 +25,19 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   def get(key: String): Option[String] = data.get(key)
 
   /**
+   * Retrieves the session value associated with the given key.
+   *
+   * @throws NoSuchElementException if no value exists for the key.
+   */
+  def apply(key: String): String = data(key)
+
+  /**
    * Returns `true` if this session is empty.
    */
   def isEmpty: Boolean = data.isEmpty
 
   /**
-   * Adds a value to the session, and returns a new session.
+   * Returns a new session with the given key-value pair added.
    *
    * For example:
    * {{{
@@ -41,61 +48,45 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    * @return the modified session
    */
   def +(kv: (String, String)): Session = {
-    require(kv._2 != null, "Cookie values cannot be null")
+    require(kv._2 != null, s"Session value for ${kv._1} cannot be null")
     copy(data + kv)
   }
 
   /**
-   * Adds a value to the session, and returns a new session.
+   * Returns a new session with elements added from the given `Iterable`.
    *
-   * This is an alias method to [[+]].
-   *
-   * @param kv the key-value pair to add
-   * @return the modified session
+   * @param kvs an `Iterable` containing key-value pairs to add.
    */
-  def add(kv: (String, String)): Session = this + kv
-
-  /**
-   * Adds a number of elements provided by the given map object
-   * and returns a new session with the added elements.
-   */
-  def ++(kvs: (String, String)*): Session = {
+  def ++(kvs: Iterable[(String, String)]): Session = {
+    for ((k, v) <- kvs) require(v != null, s"Session value for $k cannot be null")
     copy(data ++ kvs)
   }
 
   /**
-   * Adds a number of elements provided by the given map object
-   * and returns a new session with the added elements.
-   */
-  def addAll(kvs: Map[String, String]): Session = {
-    copy(data ++ kvs)
-  }
-
-  /**
-   * Removes values from the session.
+   * Returns a new session with the given key removed.
    *
    * For example:
    * {{{
    * session - "username"
    * }}}
    *
-   * @param keys the keys to remove
+   * @param key the key to remove
    * @return the modified session
    */
-  def -(keys: String*): Session = remove(keys: _*)
+  def -(key: String): Session = copy(data - key)
 
   /**
-   * Removes values from the session.
+   * Returns a new session with the given keys removed.
+   *
+   * For example:
+   * {{{
+   * session -- Seq("username", "name")
+   * }}}
    *
    * @param keys the keys to remove
    * @return the modified session
    */
-  @varargs def remove(keys: String*): Session = copy(data -- keys)
-
-  /**
-   * Retrieves the session value which is associated with the given key.
-   */
-  def apply(key: String): String = data(key)
+  def --(keys: Iterable[String]): Session = copy(data -- keys)
 
   lazy val asJava: Http.Session = new Http.Session(this)
 }

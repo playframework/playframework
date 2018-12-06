@@ -5,8 +5,10 @@
 package play.libs.typedmap;
 
 import play.api.libs.typedmap.TypedMap$;
+import play.libs.Scala;
 import scala.compat.java8.OptionConverters;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -115,7 +117,7 @@ public final class TypedMap {
     public TypedMap remove(TypedKey<?>... keys) {
         play.api.libs.typedmap.TypedMap newUnderlying = underlying;
         for (TypedKey<?> k : keys) {
-            newUnderlying = newUnderlying.remove(k.asScala());
+            newUnderlying = newUnderlying.$minus(Scala.toSeq(Arrays.asList(k.asScala())));
         }
         return new TypedMap(newUnderlying);
     }

@@ -133,7 +133,7 @@ public class JavaResponse extends WithApplication {
             //#discard-cookie
             public Result index() {
                 return ok("<h1>Hello World!</h1>").as("text/html")
-                        .discardCookie("theme");
+                        .discardingCookie("theme");
             }
             //#discard-cookie
         }, fakeRequest(), mat).cookies();
