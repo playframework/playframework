@@ -7,7 +7,7 @@ import sbt.Keys.libraryDependencies
 // Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 //
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
@@ -16,7 +16,7 @@ lazy val root = (project in file("."))
   .settings(
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
 
     fork in test := false ,
 
