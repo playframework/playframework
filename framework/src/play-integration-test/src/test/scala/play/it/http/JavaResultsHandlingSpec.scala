@@ -193,7 +193,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "remove the header" in makeRequest(new MockController {
         def action = {
-          Results.ok("Hello world").withHeader("Other", "some-value").discardHeader("Other")
+          Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("Other")
         }
       }) { response =>
         response.header("Other") must beNone
@@ -201,7 +201,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "treat headers case insensitively" in makeRequest(new MockController {
         def action = {
-          Results.ok("Hello world").withHeader("Other", "some-value").discardHeader("other")
+          Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("other")
         }
       }) { response =>
         response.header("Other") must beNone
@@ -212,7 +212,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       "on the default path with no domain and that's not secure" in makeRequest(new MockController {
         def action = {
           response.discardCookie("Response-Discard")
-          Results.ok("Hello world").discardCookie("Result-Discard")
+          Results.ok("Hello world").discardingCookie("Result-Discard")
         }
       }) { response =>
         response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
@@ -222,7 +222,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       "on the given path with no domain and not that's secure" in makeRequest(new MockController {
         def action = {
           response.discardCookie("Response-Discard", "/path")
-          Results.ok("Hello world").discardCookie("Result-Discard", "/path")
+          Results.ok("Hello world").discardingCookie("Result-Discard", "/path")
         }
       }) { response =>
         response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
@@ -232,7 +232,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       "on the given path and domain that's not secure" in makeRequest(new MockController {
         def action = {
           response.discardCookie("Response-Discard", "/path", "playframework.com")
-          Results.ok("Hello world").discardCookie("Result-Discard", "/path", "playframework.com")
+          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com")
         }
       }) { response =>
         response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
@@ -242,7 +242,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       "on the given path and domain that's is secure" in makeRequest(new MockController {
         def action = {
           response.discardCookie("Response-Discard", "/path", "playframework.com", true)
-          Results.ok("Hello world").discardCookie("Result-Discard", "/path", "playframework.com", true)
+          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true)
         }
       }) { response =>
         response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))

@@ -146,13 +146,13 @@ trait JavaHelpers {
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
       wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
-        .flash(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
+        .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
     } else {
       if (javaContext.session.isDirty) {
         wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
       } else {
         if (javaContext.flash.isDirty) {
-          wResult.flash(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
+          wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
         } else {
           wResult
         }
@@ -338,7 +338,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def withTransientLang(locale: Locale): JRequestHeader = withTransientLang(new play.i18n.Lang(locale))
 
-  override def clearTransientLang(): JRequestHeader = removeAttr(i18n.Messages.Attrs.CurrentLang)
+  override def withoutTransientLang(): JRequestHeader = removeAttr(i18n.Messages.Attrs.CurrentLang)
 
   override def toString: String = header.toString
 
@@ -367,6 +367,6 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
     withTransientLang(play.i18n.Lang.forCode(code))
   override def withTransientLang(locale: Locale): JRequest =
     withTransientLang(new play.i18n.Lang(locale))
-  override def clearTransientLang(): JRequest =
+  override def withoutTransientLang(): JRequest =
     removeAttr(i18n.Messages.Attrs.CurrentLang)
 }

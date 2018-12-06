@@ -69,7 +69,7 @@ trait Request[+A] extends RequestHeader {
     withTransientLang(Lang(code))
   override def withTransientLang(locale: Locale): Request[A] =
     withTransientLang(Lang(locale))
-  override def clearTransientLang(): Request[A] =
+  override def withoutTransientLang(): Request[A] =
     removeAttr(Messages.Attrs.CurrentLang)
 
   override def asJava: Http.Request = this match {

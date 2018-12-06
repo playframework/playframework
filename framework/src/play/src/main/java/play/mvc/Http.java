@@ -10,7 +10,6 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
@@ -1064,7 +1063,7 @@ public class Http {
          *
          * @return The new version of this object with the transient language removed.
          */
-        default RequestHeader clearTransientLang() {
+        default RequestHeader withoutTransientLang() {
             return removeAttr(Messages.Attrs.CurrentLang);
         }
 
@@ -1125,7 +1124,7 @@ public class Http {
         }
 
         // Override return type and provide default implementation
-        default Request clearTransientLang() {
+        default Request withoutTransientLang() {
             return removeAttr(Messages.Attrs.CurrentLang);
         }
 
@@ -2262,7 +2261,7 @@ public class Http {
         /**
          * Removes the specified value from the session.
          *
-         * @deprecated Deprecated as of 2.7.0. Use {@link #remove(String...)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #removing(String...)} instead.
          */
         @Deprecated
         @Override
@@ -2272,10 +2271,10 @@ public class Http {
         }
 
         /**
-         * Removes any value from the session.
+         * Returns a new session with the given keys removed.
          */
-        public Session remove(String... keys) {
-            return new play.api.mvc.Session(Scala.asScala(this)).remove(keys).asJava();
+        public Session removing(String... keys) {
+            return new play.api.mvc.Session(Scala.asScala(this)).$minus$minus(Scala.toSeq(keys)).asJava();
         }
 
         /**
@@ -2303,18 +2302,17 @@ public class Http {
         }
 
         /**
-         * Adds a value to the session, and returns a new session.
+         * Returns a new session with the given key-value pair added.
          */
         public Session adding(String key, String value) {
-            return new play.api.mvc.Session(Scala.asScala(this)).add(Scala.Tuple(key, value)).asJava();
+            return new play.api.mvc.Session(Scala.asScala(this)).$plus(Scala.Tuple(key, value)).asJava();
         }
 
         /**
-         * Adds a number of elements provided by the given map object
-         * and returns a new session with the added elements.
+         * Returns a new session with the values from the given map added.
          */
         public Session adding(Map<String, String> values) {
-            return new play.api.mvc.Session(Scala.asScala(this)).addAll(Scala.asScala(values)).asJava();
+            return new play.api.mvc.Session(Scala.asScala(this)).$plus$plus(Scala.asScala(values)).asJava();
         }
 
         /**
@@ -2579,7 +2577,7 @@ public class Http {
         /**
          * Removes the specified value from the flash scope.
          *
-         * @deprecated Deprecated as of 2.7.0. Use {@link #remove(String...)} instead.
+         * @deprecated Deprecated as of 2.7.0. Use {@link #removing(String...)} instead.
          */
         @Deprecated
         @Override
@@ -2589,10 +2587,10 @@ public class Http {
         }
 
         /**
-         * Removes any value from the flash scope.
+         * Returns a new flash with the given keys removed.
          */
-        public Flash remove(String... keys) {
-            return new play.api.mvc.Flash(Scala.asScala(this)).remove(keys).asJava();
+        public Flash removing(String... keys) {
+            return new play.api.mvc.Flash(Scala.asScala(this)).$minus$minus(Scala.toSeq(keys)).asJava();
         }
 
         /**
@@ -2620,18 +2618,17 @@ public class Http {
         }
 
         /**
-         * Adds a value to the flash scope, and returns a new flash scope.
+         * Returns a new flash with the given key-value pair added.
          */
         public Flash adding(String key, String value) {
-            return new play.api.mvc.Flash(Scala.asScala(this)).add(Scala.Tuple(key, value)).asJava();
+            return new play.api.mvc.Flash(Scala.asScala(this)).$plus(Scala.Tuple(key, value)).asJava();
         }
 
         /**
-         * Adds a number of elements provided by the given map object
-         * and returns a new flash scope with the added elements.
+         * Returns a new flash with the values from the given map added.
          */
         public Flash adding(Map<String, String> values) {
-            return new play.api.mvc.Flash(Scala.asScala(this)).addAll(Scala.asScala(values)).asJava();
+            return new play.api.mvc.Flash(Scala.asScala(this)).$plus$plus(Scala.asScala(values)).asJava();
         }
 
         /**
