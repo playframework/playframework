@@ -523,7 +523,7 @@ Play Evolutions now correctly supports SQL92 comment syntax. This means you can 
 
 #### When a param's value is empty (e.g `?myparam=`)
 
-Routes that define query string parameters of the types
+Routes that define query string parameters of the following types:
 
 * `UUID`, `Char`, `Double`, `Float`, `Long`, `Int` or `Boolean`
 * or their Java equivalents
