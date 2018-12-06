@@ -518,3 +518,40 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.8.1"
 ### Evolutions comment syntax
 
 Play Evolutions now correctly supports SQL92 comment syntax. This means you can write evolutions using `--` at the beginning of a line instead of `#` wherever you choose. Newly generated evolutions using the Evolutions API will now also use SQL92-style comment syntax in all areas. Documentation has also been updated accordingly to prefer the SQL92 style, though the older comment style is still fully supported.
+
+### Query string parameter binding behaviour changed
+
+#### When a param's value is empty (e.g `?myparam=`)
+
+Routes that define query string parameters of the types
+
+* `UUID`, `Char`, `Double`, `Float`, `Long`, `Int` or `Boolean`
+* or their Java equivalents
+
+wrapped in
+
+* a Scala `Option` (e.g. `myparam: Option[Int]`) or
+* a Java `Optional` (e.g. `myparam: java.util.Optional[Integer]`) or
+* a Scala `List` (e.g. `myparam: List[Int]` or
+* a Java `List` (e.g. `myparam: java.util.List[Integer]`)
+
+did return a bad request if such a request's query string parameter is empty (e.g `?myparam=`).
+That was because it's not possible to parse any of the above types from an empty string (e.g. in Scala `"".toInt` raises an exception, as all other above types do for their parsing methods).
+
+As of Play 2.7 there will be no bad request anymore, but instead `None` (for Scala's `Option`), `Optional.empty()` (for Java's `Optional`) or an empty list will be passed to the action method for such query params.
+If a default value is defined (e.g. `myparam: Option[Int] ?= Option(123)`) that default value will be passed instead of course.
+
+> That default value behaviour also changed if the above types are not wrapped in an `Option`, `Optional` or a list, like `myparam: Int ?= 3`, which before Play 2.7 would also result in a bad request instead of picking up the default value.
+
+#### When a param does not exist at all
+
+Routes that define default values for query string parameters which wrap a type in
+
+* a Scala `Option` (e.g. `myparam: Option[...] ?= Option(...)`) or
+* a Java `Optional` (e.g. `myparam: java.util.Optional[...] ?= java.util.Optional.of(...)`) or
+* a Scala `List` (e.g. `myparam: List[...] ?= List(...)` or
+* a Java `List` (e.g. `myparam: java.util.List[...] ?= java.util.Arrays.asList(...)`)
+
+did not pass that default value to the action method when such a request's query string parameter does not exist at all. Instead `None`, `Optional.empty()` or an empty list was passed.
+
+As of Play 2.7 the default value will now be passed to the action method for such non existing query params.
