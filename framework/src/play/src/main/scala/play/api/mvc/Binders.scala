@@ -355,6 +355,12 @@ object QueryStringBindable {
   }
 
   /**
+   * QueryString binder for Java Character.
+   */
+  implicit def bindableCharacter: QueryStringBindable[java.lang.Character] =
+    bindableChar.transform(c => c, c => c)
+
+  /**
    * QueryString binder for Int.
    */
   implicit object bindableInt extends Parsing[Int](
@@ -611,6 +617,12 @@ object PathBindable {
     }
     def unbind(key: String, value: Char) = value.toString
   }
+
+  /**
+   * Path binder for Java Character.
+   */
+  implicit def bindableCharacter: PathBindable[java.lang.Character] =
+    bindableChar.transform(c => c, c => c)
 
   /**
    * Path binder for Int.
