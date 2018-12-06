@@ -36,7 +36,7 @@ public class MyForm {
 }
 ```
 
-You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognise that.
+You can of course also make your own custom constraints `@Repeatable` as well and Play will automatically recognize that.
 
 ## Payloads for Java `validate` and `isValid` methods
 
@@ -110,7 +110,7 @@ The CSP filter uses Google's [Strict CSP policy](https://csp.withgoogle.com/docs
 
 ## HikariCP upgraded
 
-[HikariCP](https://github.com/brettwooldridge/HikariCP) was updated to its latest major version. Have a look at the [[Migration Guide|Migration27#HikariCP]] to see what changed.
+[HikariCP](https://github.com/brettwooldridge/HikariCP) was updated to its latest major version. Have a look at the [[Migration Guide|Migration27#HikariCP-update]] to see what changed.
 
 ## Play WS `curl` filter for Java
 

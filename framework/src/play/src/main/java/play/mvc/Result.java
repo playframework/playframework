@@ -527,7 +527,7 @@ public class Result {
     }
 
     /**
-     * Returns a new result with the given lang cookie. For example:
+     * Returns a new result with the given lang set in a cookie. For example:
      *
      * <pre>
      * {@code
@@ -555,7 +555,7 @@ public class Result {
      * <pre>
      * {@code
      * public Result action() {
-     *     ok("Hello").clearingLang(messagesApi);
+     *     ok("Hello").withoutLang(messagesApi);
      * }
      * }
      * </pre>
@@ -567,7 +567,7 @@ public class Result {
      *
      * @see MessagesApi#clearLang(Result)
      */
-    public Result clearingLang(MessagesApi messagesApi) {
+    public Result withoutLang(MessagesApi messagesApi) {
         return messagesApi.clearLang(this);
     }
 

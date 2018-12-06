@@ -355,11 +355,11 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
       }
 
-      "works with Result.clearingLang" in makeRequestWithApp() { app =>
+      "works with Result.withoutLang" in makeRequestWithApp() { app =>
         new MockController() {
           override def action: Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
-            Results.ok("Hello world").clearingLang(javaMessagesApi)
+            Results.ok("Hello world").withoutLang(javaMessagesApi)
           }
         }
       } { response =>

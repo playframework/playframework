@@ -390,7 +390,7 @@ trait LegacyI18nSupport {
      *
      * For example:
      * {{{
-     * Ok(Messages("hello.world")).clearingLang
+     * Ok(Messages("hello.world")).withoutLang
      * }}}
      *
      * @return the new result

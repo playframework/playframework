@@ -52,7 +52,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Deadbolt 2 Plugin
 
 * **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
-* **Short description:** Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
+* **Short description:** Deadbolt is an authorization mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
 
 ### Play-pac4j (Java and Scala)
 

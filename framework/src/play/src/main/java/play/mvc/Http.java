@@ -1026,7 +1026,7 @@ public class Http {
         Optional<List<X509Certificate>> clientCertificateChain();
 
         /**
-         * Create a new versions of this object with the given transient language set.
+         * Create a new version of this object with the given transient language set.
          * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
          *
          * @param lang The language to use.
@@ -1037,7 +1037,7 @@ public class Http {
         }
 
         /**
-         * Create a new versions of this object with the given transient language set.
+         * Create a new version of this object with the given transient language set.
          * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
          *
          * @param code The language to use.
@@ -1048,7 +1048,7 @@ public class Http {
         }
 
         /**
-         * Create a new versions of this object with the given transient language set.
+         * Create a new version of this object with the given transient language set.
          * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
          *
          * @param locale The language to use.
@@ -1059,7 +1059,7 @@ public class Http {
         }
 
         /**
-         * Create a new versions of this object with the given transient language removed.
+         * Create a new version of this object with the given transient language removed.
          *
          * @return The new version of this object with the transient language removed.
          */
