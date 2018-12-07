@@ -29,6 +29,7 @@ import io.netty.util.ReferenceCountUtil
 import play.api.http.websocket._
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Future, Promise }
 import scala.language.implicitConversions
@@ -40,11 +41,11 @@ import scala.language.implicitConversions
 trait WebSocketClient {
 
   /**
-   * Connect to the given URI.
+   * Connect to the given URI
    *
    * @return A future that will be redeemed when the connection is closed.
    */
-  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13)(onConnect: Flow[ExtendedMessage, ExtendedMessage, _] => Unit): Future[_]
+  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13, subprotocol: Option[String] = None)(onConnect: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit): Future[_]
 
   /**
    * Shutdown the client and release all associated resources.
@@ -110,7 +111,7 @@ object WebSocketClient {
     /**
      * Connect to the given URI
      */
-    def connect(url: URI, version: WebSocketVersion)(onConnected: (Flow[ExtendedMessage, ExtendedMessage, _]) => Unit) = {
+    def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String])(onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit) = {
 
       val normalized = url.normalize()
       val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
@@ -120,7 +121,7 @@ object WebSocketClient {
       val disconnected = Promise[Unit]()
 
       client.connect(tgt.getHost, tgt.getPort).toScala.map { channel =>
-        val handshaker = WebSocketClientHandshakerFactory.newHandshaker(tgt, version, null, false, new DefaultHttpHeaders())
+        val handshaker = WebSocketClientHandshakerFactory.newHandshaker(tgt, version, subprotocol.orNull, false, new DefaultHttpHeaders())
         channel.pipeline().addLast("supervisor", new WebSocketSupervisor(disconnected, handshaker, onConnected))
         handshaker.handshake(channel)
         channel.read()
@@ -135,7 +136,7 @@ object WebSocketClient {
   }
 
   private class WebSocketSupervisor(disconnected: Promise[Unit], handshaker: WebSocketClientHandshaker,
-      onConnected: Flow[ExtendedMessage, ExtendedMessage, _] => Unit) extends ChannelInboundHandlerAdapter {
+      onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit) extends ChannelInboundHandlerAdapter {
     override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
       msg match {
         case resp: HttpResponse if handshaker.isHandshakeComplete =>
@@ -155,7 +156,9 @@ object WebSocketClient {
 
           val clientConnection = Flow.fromSinkAndSource(Sink.fromSubscriber(subscriber), Source.fromPublisher(publisher))
 
-          onConnected(webSocketProtocol(clientConnection))
+          import scala.collection.JavaConverters._
+          val responseHeaders = resp.headers().entries().asScala.toList.map(entry => (entry.getKey, entry.getValue))
+          onConnected(responseHeaders, webSocketProtocol(clientConnection))
 
         case _ => throw new WebSocketException("Unexpected message: " + msg)
       }
