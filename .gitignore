@@ -10,7 +10,6 @@ generated.truststore
 *.log
 
 # Scala-IDE specific
-bin/
 .scala_dependencies
 .classpath
 .project
