@@ -8,7 +8,7 @@ lazy val root = (project in file("."))
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
 
     InputKey[Unit]("verifyResourceContains") := {
       val args = Def.spaceDelimited("<path> <status> <words> ...").parsed

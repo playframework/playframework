@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
     PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,

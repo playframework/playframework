@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies += guice
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
 
