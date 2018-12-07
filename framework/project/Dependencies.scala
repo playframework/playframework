@@ -14,11 +14,11 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
 
-  val playJsonVersion = "2.7.0-RC1"
+  val playJsonVersion = "2.7.0-RC2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.2.0"
+  val specs2Version = "4.3.5"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -55,7 +55,7 @@ object Dependencies {
 
   val guava = "com.google.guava" % "guava" % "27.0-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-core" % "2.23.0"
+  val mockitoAll = "org.mockito" % "mockito-core" % "2.23.4"
 
   val h2database = "com.h2database" % "h2" % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
@@ -85,13 +85,13 @@ object Dependencies {
     "org.hibernate" % "hibernate-core" % "5.3.7.Final" % "test"
   )
 
-  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0")
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1")
     case _ => Nil
   }
 
-  val springFrameworkVersion = "5.1.2.RELEASE"
+  val springFrameworkVersion = "5.1.3.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -175,7 +175,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.11.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.12.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -243,10 +243,10 @@ object Dependencies {
     logback % Test
   )
 
-  val fluentleniumVersion = "3.7.0"
+  val fluentleniumVersion = "3.7.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
-  val seleniumVersion = "3.14.0"
+  val seleniumVersion = "3.141.59"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     "org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion exclude("org.jboss.netty", "netty"),
@@ -254,7 +254,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.33.0" excludeAll(
+    "org.seleniumhq.selenium" % "htmlunit-driver" % "2.33.3" excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -281,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.0-RC1"
+  val playWsStandaloneVersion = "2.0.0-RC2"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,

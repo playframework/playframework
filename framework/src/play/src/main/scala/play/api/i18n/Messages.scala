@@ -416,10 +416,13 @@ trait MessagesApi {
   def isDefinedAt(key: String)(implicit lang: Lang): Boolean
 
   /**
-   * Set the language on the result
+   * Given a [[Result]] and a [[Lang]], return a new [[Result]] with the lang cookie set to the given [[Lang]].
    */
   def setLang(result: Result, lang: Lang): Result
 
+  /**
+   * Given a [[Result]], return a new [[Result]] with the lang cookie discarded.
+   */
   def clearLang(result: Result): Result
 
   def langCookieName: String

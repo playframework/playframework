@@ -171,7 +171,7 @@ public class RequestBuilderTest {
         assertTrue(request.transientLang().isPresent());
 
         // Language attr should be removed
-        assertFalse(request.clearTransientLang().transientLang().isPresent());
+        assertFalse(request.withoutTransientLang().transientLang().isPresent());
     }
 
     @Test
