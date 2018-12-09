@@ -49,12 +49,13 @@ object PlayMagicForJava extends JavaImplicitConversions {
   }
 
   @implicitNotFound("No Http.Request implicit parameter found when accessing session. You must add it as a template parameter like @(arg1, arg2,...)(implicit request: Http.Request).")
-  def session(implicit request: Http.Request): Http.Session = request.session()
+  implicit def request2Session(implicit request: Http.Request): Http.Session = request.session()
 
   @implicitNotFound("No Http.Request implicit parameter found when accessing flash. You must add it as a template parameter like @(arg1, arg2,...)(implicit request: Http.Request).")
-  def flash(implicit request: Http.Request): Http.Flash = request.flash()
+  implicit def request2Flash(implicit request: Http.Request): Http.Flash = request.flash()
 
-  @implicitNotFound("No play.api.i18n.MessagesProvider implicit parameter found when accessing lang. You must add it as a template parameter like @(arg1, arg2,...)(implicit messages: play.i18n.Messages).")
-  def lang(implicit msg: play.api.i18n.MessagesProvider): play.api.i18n.Lang = msg.messages.lang
+  // Interferes with implicitJavaLang method above
+  //@implicitNotFound("No play.api.i18n.MessagesProvider implicit parameter found when accessing lang. You must add it as a template parameter like @(arg1, arg2,...)(implicit messages: play.i18n.Messages).")
+  //implicit def messagesProvider2Lang(implicit msg: play.api.i18n.MessagesProvider): play.api.i18n.Lang = msg.messages.lang
 
 }
