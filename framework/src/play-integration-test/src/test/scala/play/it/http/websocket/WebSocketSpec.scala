@@ -24,6 +24,7 @@ import play.api.test._
 import play.it._
 import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Future, Promise }
@@ -190,6 +191,21 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
+      "select one of the subprotocols proposed by the client" in {
+        withServer(app => WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source(Nil))
+        }) { app =>
+          import app.materializer
+          val (_, headers) = runWebSocket({ flow =>
+            sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+          }, Some("my_crazy_subprotocol"))
+          headers
+            .map { case (key, value) => (key.toLowerCase, value) }
+            .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
+            .head must be equalTo "my_crazy_subprotocol"
+        }
+      }
+
       // we keep getting timeouts on this test
       // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
@@ -353,13 +369,18 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     running(TestServer(testServerPort, app))(block(app))
   }
 
-  def runWebSocket[A](handler: (Flow[ExtendedMessage, ExtendedMessage, _]) => Future[A]): A = {
+  def runWebSocket[A](handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A]): A =
+    runWebSocket(handler, subprotocol = None) match { case (result, _) => result }
+
+  def runWebSocket[A](handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A], subprotocol: Option[String]): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult = Promise[A]()
-      await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream")) { flow =>
+      val responseHeaders = Promise[immutable.Seq[(String, String)]]()
+      await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) { (headers, flow) =>
         innerResult.completeWith(handler(flow))
+        responseHeaders.success(headers)
       })
-      await(innerResult.future)
+      (await(innerResult.future), await(responseHeaders.future))
     }
   }
 

@@ -315,7 +315,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           case Left(result) =>
             modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
+            // For now, like Netty, select an arbitrary subprotocol from the list of subprotocols proposed by the client
+            // Eventually it would be better to allow the handler to specify the protocol it selected
+            // See also https://github.com/playframework/playframework/issues/7895
+            val selectedSubprotocol = upgrade.requestedProtocols.headOption
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit, selectedSubprotocol))
         }
 
       case (websocket: WebSocket, None) =>
