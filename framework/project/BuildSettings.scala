@@ -757,7 +757,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$5"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$6"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$7"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$8")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$8"),
+
+      // Apply evolutions in DEV mode when autoApply = false
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.EvolutionsWebCommands.this")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
