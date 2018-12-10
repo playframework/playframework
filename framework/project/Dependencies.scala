@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.18")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.19")
   val akkaHttpVersion = "10.1.5"
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
 
