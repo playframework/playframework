@@ -1748,6 +1748,56 @@ public class Http {
             ));
             return this;
         }
+
+        /**
+         * Sets the transient language.
+         *
+         * @param lang The language to use.
+         * @return the builder instance
+         */
+        public RequestBuilder transientLang(Lang lang) {
+            req = req.withTransientLang(lang);
+            return this;
+        }
+
+        /**
+         * Sets the transient language.
+         *
+         * @param code The language to use.
+         * @return the builder instance
+         */
+        public RequestBuilder transientLang(String code) {
+            req = req.withTransientLang(code);
+            return this;
+        }
+
+        /**
+         * Sets the transient language.
+         *
+         * @param locale The language to use.
+         * @return the builder instance
+         */
+        public RequestBuilder transientLang(Locale locale) {
+            req = req.withTransientLang(locale);
+            return this;
+        }
+
+        /**
+         * Removes the transient language.
+         *
+         * @return the builder instance
+         */
+        public RequestBuilder withoutTransientLang() {
+            req = req.withoutTransientLang();
+            return this;
+        }
+
+        /**
+         * @return The current transient language of this builder instance.
+         */
+        Optional<Lang> transientLang() {
+            return OptionConverters.toJava(req.transientLang()).map(play.api.i18n.Lang::asJava);
+        }
     }
 
     /**
