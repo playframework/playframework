@@ -59,7 +59,7 @@ env:
 cache:
   directories:
   - $HOME/.ivy2/cache
-  - $HOME/.sbt/boot/
+  - $HOME/.sbt
 before_cache:
 - rm -rf $HOME/.ivy2/local
 - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
