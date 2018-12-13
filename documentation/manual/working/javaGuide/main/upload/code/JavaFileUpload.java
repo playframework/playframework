@@ -12,6 +12,7 @@ import org.junit.Test;
 import play.api.http.HttpErrorHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.parsers.Multipart;
+import play.libs.Files.TemporaryFile;
 import play.libs.streams.Accumulator;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -42,12 +43,12 @@ public class JavaFileUpload extends WithApplication {
     static class SyncUpload extends Controller {
         //#syncUpload
         public Result upload(Http.Request request) {
-            Http.MultipartFormData<File> body = request.body().asMultipartFormData();
-            Http.MultipartFormData.FilePart<File> picture = body.getFile("picture");
+            Http.MultipartFormData<TemporaryFile> body = request.body().asMultipartFormData();
+            Http.MultipartFormData.FilePart<TemporaryFile> picture = body.getFile("picture");
             if (picture != null) {
                 String fileName = picture.getFilename();
                 String contentType = picture.getContentType();
-                File file = picture.getFile();
+                TemporaryFile file = picture.getRef();
                 return ok("File uploaded");
             } else {
                 return badRequest().flashing("error", "Missing file");
@@ -123,7 +124,7 @@ public class JavaFileUpload extends WithApplication {
                     public Result uploadCustomMultiPart(Http.Request request) throws Exception {
                         final Http.MultipartFormData<File> formData = request.body().asMultipartFormData();
                         final Http.MultipartFormData.FilePart<File> filePart = formData.getFile("name");
-                        final File file = filePart.getFile();
+                        final File file = filePart.getRef();
                         final long size = Files.size(file.toPath());
                         Files.deleteIfExists(file.toPath());
                         return ok("Got: file size = " + size + "");

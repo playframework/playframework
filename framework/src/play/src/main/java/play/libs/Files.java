@@ -90,7 +90,7 @@ public final class Files {
         private final play.api.libs.Files.TemporaryFile temporaryFile;
         private final TemporaryFileCreator temporaryFileCreator;
 
-        DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
+        public DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
             this.temporaryFile = temporaryFile;
             this.temporaryFileCreator = new DelegateTemporaryFileCreator(temporaryFile.temporaryFileCreator());
         }
