@@ -81,7 +81,7 @@ object Multipart {
     partParser(maxMemoryBufferSize, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
-          filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType)).run(filePart.ref)
+          filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType, filePart.dispositionType)).run(filePart.ref)
         case other: Part[_] => Future.successful(other.asInstanceOf[Part[Nothing]])
       }
 
@@ -122,11 +122,11 @@ object Multipart {
   type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
 
   def handleFilePartAsTemporaryFile(temporaryFileCreator: TemporaryFileCreator): FilePartHandler[TemporaryFile] = {
-    case FileInfo(partName, filename, contentType) =>
+    case FileInfo(partName, filename, contentType, dispositionType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
         case IOResult(_, Failure(error)) => Future.failed(error)
-        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile))
+        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile, dispositionType))
       }
   }
 
@@ -138,7 +138,10 @@ object Multipart {
       fileName: String,
 
       /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
-      contentType: Option[String])
+      contentType: Option[String],
+
+      /** Disposition type in HTTP request (e.g. `form-data` or `file`) */
+      dispositionType: String = "form-data")
 
   private[play] object FileInfoMatcher {
 
@@ -178,7 +181,7 @@ object Multipart {
       result.toList
     }
 
-    def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
+    def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
 
       val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
 
@@ -191,11 +194,11 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
 
-        _ <- values.get("form-data").orElse(values.get("file"))
+        dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName <- values.get("name")
         fileName <- values.get("filename")
         contentType = headers.get("content-type")
-      } yield (partName, fileName, contentType)
+      } yield (partName, fileName, contentType, dispositionType)
     }
   }
 
@@ -357,8 +360,8 @@ object Multipart {
               def headersSize = headers.foldLeft(0)((total, value) => total + value._1.length + value._2.length)
 
               headers match {
-                case FileInfoMatcher(partName, fileName, contentType) =>
-                  handleFilePart(input, partStart, memoryBufferSize + headersSize, partName, fileName, contentType)
+                case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
+                  handleFilePart(input, partStart, memoryBufferSize + headersSize, partName, fileName, contentType, dispositionType)
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)
                 case _ =>
@@ -368,11 +371,11 @@ object Multipart {
         }
 
         def handleFilePart(input: ByteString, partStart: Int, memoryBufferSize: Int,
-          partName: String, fileName: String, contentType: Option[String]): StateResult = {
+          partName: String, fileName: String, contentType: Option[String], dispositionType: String): StateResult = {
           if (memoryBufferSize > maxMemoryBufferSize) {
             bufferExceeded(s"Memory buffer full ($maxMemoryBufferSize) on part $partName")
           } else {
-            emit(FilePart(partName, fileName, contentType, ()))
+            emit(FilePart(partName, fileName, contentType, (), dispositionType))
             handleFileData(input, partStart, memoryBufferSize)
           }
         }

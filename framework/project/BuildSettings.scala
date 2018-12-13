@@ -757,7 +757,16 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$5"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$6"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$7"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$8")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig.<init>$default$8"),
+
+      // Add dispositionType param to FilePart and FileInfo (which defaults to "form-data" anyway however)
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.parsers.Multipart#FileInfo.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.parsers.Multipart#FileInfo.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.parsers.Multipart$FileInfo$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.parsers.Multipart#FileInfo.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.this")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

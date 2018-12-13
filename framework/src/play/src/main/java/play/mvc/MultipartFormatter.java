@@ -34,7 +34,7 @@ public class MultipartFormatter {
                 if (fp.file instanceof Source) {
                     Source ref = (Source) fp.file;
                     Option<String> ct = Option.apply(fp.getContentType());
-                    return (MultipartFormData.Part)new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(fp.getKey(), fp.getFilename(), ct, ref.asScala());
+                    return (MultipartFormData.Part)new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(fp.getKey(), fp.getFilename(), ct, ref.asScala(), fp.getDispositionType());
                 }
             }
             throw new UnsupportedOperationException("Unsupported Part Class");

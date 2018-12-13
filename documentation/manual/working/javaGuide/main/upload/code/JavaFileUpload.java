@@ -83,6 +83,7 @@ public class JavaFileUpload extends WithApplication {
                 final String partname = fileInfo.partName();
                 final String contentType = fileInfo.contentType().getOrElse(null);
                 final File file = generateTempFile();
+                final String dispositionType = fileInfo.dispositionType();
 
                 final Sink<ByteString, CompletionStage<IOResult>> sink = FileIO.toPath(file.toPath());
                 return Accumulator.fromSink(
@@ -91,7 +92,8 @@ public class JavaFileUpload extends WithApplication {
                                         new Http.MultipartFormData.FilePart<>(partname,
                                                 filename,
                                                 contentType,
-                                                file))
+                                                file,
+                                                dispositionType))
                         ));
             };
         }
