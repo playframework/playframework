@@ -82,7 +82,7 @@ trait ScalaWSSpec extends PlaySpecification with ServerIntegrationSpecification 
     "send a multipart request body" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI).toPath
       val dp = MultipartFormData.DataPart("hello", "world")
-      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file))
+      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file), "form-data")
       val source: Source[MultipartFormData.Part[Source[ByteString, _]], _] = Source(List(dp, fp))
       val res = ws.url("/post").post(source)
       val jsonBody = await(res).json
@@ -94,7 +94,7 @@ trait ScalaWSSpec extends PlaySpecification with ServerIntegrationSpecification 
     "send a multipart request body via withBody" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
       val dp = MultipartFormData.DataPart("hello", "world")
-      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file.toPath))
+      val fp = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file.toPath), "form-data")
       val source = Source(List(dp, fp))
       val res = ws.url("/post").withBody(source).withMethod("POST").execute()
       val body = await(res).json

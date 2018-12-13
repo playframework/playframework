@@ -83,6 +83,7 @@ public class JavaFileUpload extends WithApplication {
                 final String partname = fileInfo.partName();
                 final String contentType = fileInfo.contentType().getOrElse(null);
                 final File file = generateTempFile();
+                final String dispositionType = fileInfo.dispositionType();
 
                 final Sink<ByteString, CompletionStage<IOResult>> sink = FileIO.toPath(file.toPath());
                 return Accumulator.fromSink(
@@ -91,7 +92,8 @@ public class JavaFileUpload extends WithApplication {
                                         new Http.MultipartFormData.FilePart<>(partname,
                                                 filename,
                                                 contentType,
-                                                file))
+                                                file,
+                                                dispositionType))
                         ));
             };
         }
@@ -115,7 +117,7 @@ public class JavaFileUpload extends WithApplication {
     public void testCustomMultipart() throws IOException {
         play.libs.Files.TemporaryFileCreator tfc = play.libs.Files.singletonTemporaryFileCreator();
         Source<ByteString, ?> source = FileIO.fromPath(Files.createTempFile("temp", "txt"));
-        Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source);
+        Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source, "form-data");
         assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
                     public Result uploadCustomMultiPart(Http.Request request) throws Exception {

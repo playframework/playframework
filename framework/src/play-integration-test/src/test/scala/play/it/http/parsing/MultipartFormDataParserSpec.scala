@@ -166,7 +166,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "return server internal error when file upload fails because temporary file creator fails" in withClientAndServer(1 /* super small total space */ ) { ws =>
       val fileBody: ByteString = ByteString.fromString("the file body")
       val sourceFileBody: Source[ByteString, NotUsed] = Source.single(fileBody)
-      val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(key = "file", filename = "file.txt", contentType = Option("text/plain"), ref = sourceFileBody)
+      val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(key = "file", filename = "file.txt", contentType = Option("text/plain"), ref = sourceFileBody, dispositionType = "form-data")
 
       val response = ws
         .url("/")
@@ -189,43 +189,43 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "parse headers with semicolon inside quotes" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="semicolon;inside.jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
-      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg")))
+      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg"), "form-data"))
     }
 
     "parse headers with escaped quote inside quotes" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
-      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")))
+      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg"), "form-data"))
     }
 
     "parse unquoted content disposition with file matcher" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "form-data"))
     }
 
     "parse unquoted content disposition with part matcher" in {
       val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName"""))
       result must not(beEmpty)
-      result.get must equalTo("partName")
+      result.get must equalTo("partName", "form-data")
     }
 
     "ignore extended name in content disposition" in {
       val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName"""))
       result must not(beEmpty)
-      result.get must equalTo("partName")
+      result.get must equalTo("partName", "form-data")
     }
 
     "ignore extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "form-data"))
     }
 
     "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """file; name=document; filename=hello.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "file"))
     }
   }
 
