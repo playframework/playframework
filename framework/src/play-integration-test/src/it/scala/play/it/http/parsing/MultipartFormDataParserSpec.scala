@@ -205,19 +205,19 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "parse headers with semicolon inside quotes" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="semicolon;inside.jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
-      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg")))
+      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg"), "form-data"))
     }
 
     "parse headers with escaped quote inside quotes" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
-      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")))
+      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg"), "form-data"))
     }
 
     "parse unquoted content disposition with file matcher" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "form-data"))
     }
 
     "parse unquoted content disposition with part matcher" in {
@@ -235,13 +235,13 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "ignore extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "form-data"))
     }
 
     "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """file; name=document; filename=hello.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "file"))
     }
   }
 

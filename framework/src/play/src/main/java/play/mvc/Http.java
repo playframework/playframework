@@ -1831,12 +1831,18 @@ public class Http {
             final String filename;
             final String contentType;
             final A file;
+            final String dispositionType;
 
             public FilePart(String key, String filename, String contentType, A file) {
+                this(key, filename, contentType, file, "form-data");
+            }
+
+            public FilePart(String key, String filename, String contentType, A file, String dispositionType) {
                 this.key = key;
                 this.filename = filename;
                 this.contentType = contentType;
                 this.file = file;
+                this.dispositionType = dispositionType;
             }
 
             /**
@@ -1873,6 +1879,15 @@ public class Http {
              */
             public A getFile() {
                 return file;
+            }
+
+            /**
+             * The disposition type.
+             *
+             * @return the disposition type
+             */
+            public String getDispositionType() {
+                return dispositionType;
             }
 
         }
