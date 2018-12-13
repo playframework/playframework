@@ -14,7 +14,7 @@ import play.api.test._
 import play.core.parsers.Multipart.{ FileInfoMatcher, PartInfoMatcher }
 import play.utils.PlayIO
 import play.api.libs.ws.WSClient
-import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.MultipartFormData.{ BadPart, FilePart }
 import play.api.routing.Router
 import play.core.server.Server
 
@@ -58,6 +58,18 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)
       |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="file4"; filename=""
+      |Content-Type: application/octet-stream
+      |
+      |the fourth file (with empty filename)
+      |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="file5"; filename=
+      |Content-Type: application/octet-stream
+      |
+      |the fifth file (with empty filename)
+      |
       |--aabbccddee--
       |""".stripMargin.linesIterator.mkString("\r\n")
 
@@ -66,6 +78,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {
       case parts =>
+        parts.dataParts must haveLength(4)
         parts.dataParts.get("text1") must beSome(Seq("the first text field"))
         parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
         parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
@@ -80,6 +93,9 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.file("file3") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
         }
+        parts.badParts must haveLength(2)
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file4"; filename=""""", "content-type" -> "application/octet-stream"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file5"; filename=""", "content-type" -> "application/octet-stream"))))
     }
   }
 
