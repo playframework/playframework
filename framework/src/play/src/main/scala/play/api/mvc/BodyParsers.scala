@@ -192,7 +192,7 @@ object MultipartFormData {
   /**
    * A file part.
    */
-  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A, dispositionType: String) extends Part[A]
+  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A, dispositionType: String = "form-data") extends Part[A]
 
   /**
    * A part that has not been properly parsed.

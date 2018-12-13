@@ -74,8 +74,7 @@ class WriteableSpec extends Specification {
           key = "thefile",
           filename = "something.text",
           contentType = Some("text/plain"),
-          ref = ref,
-          dispositionType = "form-data"
+          ref = ref
         )
       ),
       badParts = Seq.empty

@@ -141,7 +141,7 @@ object Multipart {
       contentType: Option[String],
 
       /** Disposition type in HTTP request (e.g. `form-data` or `file`) */
-      dispositionType: String)
+      dispositionType: String = "form-data")
 
   private[play] object FileInfoMatcher {
 

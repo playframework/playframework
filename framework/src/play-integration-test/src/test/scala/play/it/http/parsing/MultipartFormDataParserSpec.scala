@@ -166,7 +166,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "return server internal error when file upload fails because temporary file creator fails" in withClientAndServer(1 /* super small total space */ ) { ws =>
       val fileBody: ByteString = ByteString.fromString("the file body")
       val sourceFileBody: Source[ByteString, NotUsed] = Source.single(fileBody)
-      val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(key = "file", filename = "file.txt", contentType = Option("text/plain"), ref = sourceFileBody, dispositionType = "form-data")
+      val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(key = "file", filename = "file.txt", contentType = Option("text/plain"), ref = sourceFileBody)
 
       val response = ws
         .url("/")
@@ -207,13 +207,13 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "parse unquoted content disposition with part matcher" in {
       val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName"""))
       result must not(beEmpty)
-      result.get must equalTo("partName", "form-data")
+      result.get must equalTo("partName")
     }
 
     "ignore extended name in content disposition" in {
       val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName"""))
       result must not(beEmpty)
-      result.get must equalTo("partName", "form-data")
+      result.get must equalTo("partName")
     }
 
     "ignore extended filename in content disposition" in {

@@ -117,7 +117,7 @@ public class JavaFileUpload extends WithApplication {
     public void testCustomMultipart() throws IOException {
         play.libs.Files.TemporaryFileCreator tfc = play.libs.Files.singletonTemporaryFileCreator();
         Source<ByteString, ?> source = FileIO.fromPath(Files.createTempFile("temp", "txt"));
-        Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source, "form-data");
+        Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source);
         assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
                     public Result uploadCustomMultiPart(Http.Request request) throws Exception {

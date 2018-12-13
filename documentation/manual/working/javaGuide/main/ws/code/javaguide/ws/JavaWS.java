@@ -144,7 +144,7 @@ public class JavaWS {
 
             // #ws-post-multipart2
             Source<ByteString, ?> file = FileIO.fromPath(Paths.get("hello.txt"));
-            FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file, "form-data");
+            FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
             DataPart dp = new DataPart("key", "value");
 
             ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
