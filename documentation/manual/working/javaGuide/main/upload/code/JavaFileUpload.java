@@ -40,23 +40,6 @@ import static javaguide.testhelpers.MockJavaActionHelper.*;
 
 public class JavaFileUpload extends WithApplication {
 
-    static class SyncUpload extends Controller {
-        //#syncUpload
-        public Result upload(Http.Request request) {
-            Http.MultipartFormData<TemporaryFile> body = request.body().asMultipartFormData();
-            Http.MultipartFormData.FilePart<TemporaryFile> picture = body.getFile("picture");
-            if (picture != null) {
-                String fileName = picture.getFilename();
-                String contentType = picture.getContentType();
-                TemporaryFile file = picture.getRef();
-                return ok("File uploaded");
-            } else {
-                return badRequest().flashing("error", "Missing file");
-            }
-        }
-        //#syncUpload
-    }
-
     static class AsyncUpload extends Controller {
         //#asyncUpload
         public Result upload(Http.Request request) {

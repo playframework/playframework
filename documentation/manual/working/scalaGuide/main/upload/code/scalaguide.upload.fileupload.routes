@@ -1,5 +1,5 @@
-GET   /          controllers.ScalaFileUploadController.index()
+GET   /          controllers.HomeController.index()
 
 # #application-upload-routes
-POST  /          controllers.ScalaFileUploadController.upload()
+POST  /          controllers.HomeController.upload()
 # #application-upload-routes
