@@ -39,13 +39,63 @@ public final class Files {
 
         TemporaryFileCreator temporaryFileCreator();
 
+        /**
+         * Move the file using a {@link java.io.File}.
+         *
+         * @param to the path to the destination file
+         */
         default TemporaryFile moveTo(File to) {
             return moveTo(to, false);
         }
 
+        /**
+         * Move the file using a {@link java.io.File}.
+         *
+         * @param to the path to the destination file
+         * @param replace true if an existing file should be replaced, false otherwise.
+         */
         TemporaryFile moveTo(File to, boolean replace);
 
+        /**
+         * Move the file using a {@link java.nio.file.Path}.
+         *
+         * @param to the path to the destination file
+         */
+        default TemporaryFile moveTo(Path to) {
+            return moveTo(to, false);
+        }
+
+        /**
+         * Move the file using a {@link java.nio.file.Path}.
+         *
+         * @param to the path to the destination file
+         * @param replace true if an existing file should be replaced, false otherwise.
+         */
+        default TemporaryFile moveTo(Path to, boolean replace) {
+            return moveTo(to.toFile(), replace);
+        }
+
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         */
         TemporaryFile atomicMoveWithFallback(File to);
+
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         */
+        default TemporaryFile atomicMoveWithFallback(Path to) {
+            return atomicMoveWithFallback(to.toFile());
+        }
     }
 
     /**
