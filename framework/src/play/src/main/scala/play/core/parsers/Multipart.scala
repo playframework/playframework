@@ -4,17 +4,23 @@
 
 package play.core.parsers
 
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.collection.breakOut
 import scala.concurrent.Future
-import scala.util.Failure
+import scala.util.{ Failure, Try }
 
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.stream.{ Attributes, FlowShape, Inlet, IOResult, Outlet }
 import akka.stream.stage._
 import akka.util.ByteString
+
+import org.slf4j.LoggerFactory
 
 import play.api.libs.Files.{ TemporaryFile, TemporaryFileCreator }
 import play.api.libs.streams.Accumulator
@@ -29,6 +35,8 @@ import play.core.Execution.Implicits.trampoline
  * Utilities for handling multipart bodies
  */
 object Multipart {
+
+  lazy val logger = LoggerFactory.getLogger("play.core.parsers.Multipart")
 
   private final val maxHeaderBuffer = 4096
 
@@ -96,6 +104,40 @@ object Multipart {
         }
 
         parseError orElse bufferExceededError getOrElse {
+          val allFileParts = parts.collect {
+            case fp: FilePart[A] => fp
+          }
+
+          val emptyFileParts = allFileParts.filter(_.ref match {
+            case tempFile: TemporaryFile => Files.size(tempFile.path) <= 0
+            case file: File => Files.size(file.toPath) <= 0
+            case path: Path => Files.size(path) <= 0
+            case _ => false
+          })
+
+          val badParts = parts.collect {
+            case bad: BadPart => bad
+          } ++ emptyFileParts.map(efp => BadPart(
+            Map("content-disposition" -> s"""${efp.dispositionType}; name="${efp.key}"; filename="${efp.filename}"""") ++
+              efp.contentType.map(ct => Map("content-type" -> ct)).getOrElse(Map.empty)
+          ))
+
+          val nonEmptyFileParts = allFileParts diff emptyFileParts
+
+          emptyFileParts.foreach(_.ref match {
+            case tempFile: TemporaryFile => tempFile.temporaryFileCreator.delete(tempFile)
+            case file: File => Try(Files.deleteIfExists(file.toPath)).recoverWith {
+              case e: Exception =>
+                logger.error(s"Cannot delete $file.toPath", e)
+                Failure(e)
+            }
+            case path: Path => Try(Files.deleteIfExists(path)).recoverWith {
+              case e: Exception =>
+                logger.error(s"Cannot delete $path", e)
+                Failure(e)
+            }
+          })
+
           Future.successful(Right(MultipartFormData(
             parts
               .collect {
@@ -104,12 +146,8 @@ object Multipart {
               .map {
                 case (key, partValues) => key -> partValues.map(_.value)
               },
-            parts.collect {
-              case fp: FilePart[A] => fp
-            },
-            parts.collect {
-              case bad: BadPart => bad
-            }
+            nonEmptyFileParts,
+            badParts
           )))
         }
 

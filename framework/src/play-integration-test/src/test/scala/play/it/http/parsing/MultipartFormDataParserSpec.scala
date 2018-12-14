@@ -70,6 +70,11 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |the fifth file (with empty filename)
       |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="file6"; filename="emptyfile.txt"
+      |Content-Type: text/plain
+      |
+      |
       |--aabbccddee--
       |""".stripMargin.linesIterator.mkString("\r\n")
 
@@ -93,9 +98,10 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.file("file3") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
         }
-        parts.badParts must haveLength(2)
+        parts.badParts must haveLength(3)
         parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file4"; filename=""""", "content-type" -> "application/octet-stream"))))
         parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file5"; filename=""", "content-type" -> "application/octet-stream"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file6"; filename="emptyfile.txt"""", "content-type" -> "text/plain"))))
     }
   }
 
