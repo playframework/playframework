@@ -193,7 +193,7 @@ object Multipart {
 
         _ <- values.get("form-data").orElse(values.get("file"))
         partName <- values.get("name")
-        fileName <- values.get("filename")
+        fileName <- values.get("filename").filter(_.trim.nonEmpty)
         contentType = headers.get("content-type")
       } yield (partName, fileName, contentType)
     }
@@ -211,6 +211,7 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
         _ <- values.get("form-data")
+        _ <- Option(values.contains("filename")).filter(_ == false)
         partName <- values.get("name")
       } yield partName
     }
