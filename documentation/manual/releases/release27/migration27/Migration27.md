@@ -89,6 +89,31 @@ Other methods that were added to improve Java API:
 
 The API for body parser was mixing `Integer` and `Long` to define buffer lengths which could lead to overflow of values. The configuration is now uniformed to use `Long`. It means that if you are depending on `play.api.mvc.PlayBodyParsers.DefaultMaxTextLength` for example, you then need to use a `Long`. As such, `play.api.http.ParserConfiguration.maxMemoryBuffer` is now a `Long` too.
 
+### Java's `FilePart` exposes the `TemporaryFile` for uploaded files
+
+By default, [[uploading files|JavaFileUpload]] via the `multipart/form-data` encoding uses a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html) API which relies on storing files in a temporary filesystem.
+However, up until Play 2.6, you were not able to access that `TemporaryFile` directly, but only the [`File`](https://docs.oracle.com/javase/8/docs/api/java/io/File.html) it backs:
+
+```java
+Http.MultipartFormData<File> body = request.body().asMultipartFormData();
+Http.MultipartFormData.FilePart<File> picture = body.getFile("picture");
+if (picture != null) {
+    File file = picture.getFile();
+}
+```
+
+The [`getFile()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFile--) method used above is now deprecated, and you should use [`getRef()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getRef--) instead, which provides you a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html) instance with [some useful methods](api/java/play/libs/Files.TemporaryFile.html#method.summary).
+Starting with Play 2.7 the above code should be refactored to:
+
+```java
+Http.MultipartFormData<TemporaryFile> body = request.body().asMultipartFormData();
+Http.MultipartFormData.FilePart<TemporaryFile> picture = body.getFile("picture");
+if (picture != null) {
+    TemporaryFile tempFile = picture.getRef();
+    File file = tempFile.path().toFile();
+}
+```
+
 ### Guice compatibility changes
 
 Guice was upgraded to version [4.2.2](https://github.com/google/guice/wiki/Guice422) (also see [4.2.1](https://github.com/google/guice/wiki/Guice421) and [4.2.0 release notes](https://github.com/google/guice/wiki/Guice42)), which causes the following breaking changes:
