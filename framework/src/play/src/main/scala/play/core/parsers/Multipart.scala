@@ -196,7 +196,7 @@ object Multipart {
 
         dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName <- values.get("name")
-        fileName <- values.get("filename")
+        fileName <- values.get("filename").filter(_.trim.nonEmpty)
         contentType = headers.get("content-type")
       } yield (partName, fileName, contentType, dispositionType)
     }
@@ -214,6 +214,7 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
         _ <- values.get("form-data")
+        _ <- Option(values.contains("filename")).filter(_ == false)
         partName <- values.get("name")
       } yield partName
     }
