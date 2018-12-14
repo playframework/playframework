@@ -17,7 +17,7 @@ Now define the `upload` action:
 
 The [`getRef()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getRef--) method gives you a reference to a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html). This is the default way Play handles file uploads.
 
-At last, add a `POST` router
+And finally, add a `POST` route:
 
 @[application-upload-routes](code/javaguide.upload.fileupload.routes)
 
