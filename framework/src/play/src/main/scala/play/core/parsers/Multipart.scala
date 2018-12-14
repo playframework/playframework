@@ -128,12 +128,12 @@ object Multipart {
             case tempFile: TemporaryFile => tempFile.temporaryFileCreator.delete(tempFile)
             case file: File => Try(Files.deleteIfExists(file.toPath)).recoverWith {
               case e: Exception =>
-                logger.error(s"Cannot delete $file.toPath", e)
+                logger.error(s"Cannot delete empty file $file.toPath", e)
                 Failure(e)
             }
             case path: Path => Try(Files.deleteIfExists(path)).recoverWith {
               case e: Exception =>
-                logger.error(s"Cannot delete $path", e)
+                logger.error(s"Cannot delete empty file $path", e)
                 Failure(e)
             }
           })
