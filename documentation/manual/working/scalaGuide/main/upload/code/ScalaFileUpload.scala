@@ -54,7 +54,7 @@ package scalaguide.upload.fileupload {
             picture.ref.moveTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
             Ok("File uploaded")
           }.getOrElse {
-            Redirect(routes.ScalaFileUploadController.index).flashing("error" -> "Missing file")
+            Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
           }
         }
 
@@ -84,7 +84,7 @@ package scalaguide.upload.fileupload {
         val request = FakeRequest().withBody(tf)
 
         val controllerComponents = app.injector.instanceOf[ControllerComponents]
-        testAction(new controllers.ScalaFileUploadController(controllerComponents).upload, request)
+        testAction(new controllers.HomeController(controllerComponents).upload, request)
 
         uploaded.delete()
         success
@@ -107,7 +107,7 @@ package scalaguide.upload.fileupload {
   }
   package controllers {
 
-    class ScalaFileUploadController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(controllerComponents) {
+    class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(controllerComponents) {
 
       //#upload-file-directly-action
         def upload = Action(parse.temporaryFile) { request =>

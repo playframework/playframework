@@ -144,6 +144,16 @@ object Files {
      *
      * @param to the path to the destination file
      */
+    def atomicMoveWithFallback(to: File): TemporaryFile = atomicMoveWithFallback(to.toPath)
+
+    /**
+     * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+     *
+     * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+     * existent files or not, considering that it will always replaces, makes the API more predictable.
+     *
+     * @param to the path to the destination file
+     */
     // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
     def atomicMoveWithFallback(to: Path): TemporaryFile = {
       try {

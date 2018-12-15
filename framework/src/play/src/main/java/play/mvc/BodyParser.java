@@ -413,7 +413,7 @@ public interface BodyParser<A> {
     /**
      * Parse the body as multipart form-data without checking the Content-Type.
      */
-    class MultipartFormData extends DelegatingBodyParser<Http.MultipartFormData<File>, play.api.mvc.MultipartFormData<Files.TemporaryFile>> {
+    class MultipartFormData extends DelegatingBodyParser<Http.MultipartFormData<play.libs.Files.TemporaryFile>, play.api.mvc.MultipartFormData<Files.TemporaryFile>> {
         @Inject
         public MultipartFormData(PlayBodyParsers parsers) {
             super(parsers.multipartFormData(), JavaParsers::toJavaMultipartFormData);

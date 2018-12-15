@@ -12,6 +12,7 @@ import play.api.inject.guice.GuiceApplicationBuilder;
 import play.core.j.JavaContextComponents;
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.libs.Files;
 import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
@@ -298,7 +299,7 @@ public class RequestBuilderTest {
                 .bodyMultipart(Collections.singletonList(dp), temporaryFileCreator, app.materializer())
                 .build();
 
-        Optional<Http.MultipartFormData<File>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
+        Optional<Http.MultipartFormData<Files.TemporaryFile>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
                .apply(request)
                .run(Source.single(request.body().asBytes()), app.materializer())
                .toCompletableFuture()

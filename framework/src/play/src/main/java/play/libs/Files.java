@@ -140,6 +140,18 @@ public final class Files {
          * @param to the path to the destination file
          */
         TemporaryFile atomicMoveWithFallback(File to);
+
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         */
+        default TemporaryFile atomicMoveWithFallback(Path to) {
+            return atomicMoveWithFallback(to.toFile());
+        }
     }
 
     /**
@@ -184,7 +196,7 @@ public final class Files {
         private final play.api.libs.Files.TemporaryFile temporaryFile;
         private final TemporaryFileCreator temporaryFileCreator;
 
-        DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
+        public DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
             this.temporaryFile = temporaryFile;
             this.temporaryFileCreator = new DelegateTemporaryFileCreator(temporaryFile.temporaryFileCreator());
         }
