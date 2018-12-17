@@ -36,7 +36,14 @@ If you're using runtime dependency injection (e.g. Guice), the error handler can
 
 @[root](code/ScalaErrorHandling.scala)
 
-If you don't want to place your error handler in the root package, or if you want to be able to configure different error handlers for different environments, you can do this by configuring the `play.http.errorHandler` configuration property in `application.conf`:
+If you place your error handler in the root package (i.e. package-less) and name it `ErrorHandler`, Play will use it by default.
+
+But, in case you want to:
+
+- Add it inside a package;
+- Configure different error handlers for different environments;
+
+Then add in `application.conf` the configuration property `play.http.errorHandler` pointing to your custom error handler class:
 
     play.http.errorHandler = "com.example.ErrorHandler"
 
