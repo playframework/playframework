@@ -340,11 +340,11 @@ object Multipart {
         def parseHeader(input: ByteString, headerStart: Int, memoryBufferSize: Int): StateResult = {
           input.indexOfSlice(crlfcrlf, headerStart) match {
             case -1 if input.length - headerStart >= maxHeaderSize =>
-              bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
+              bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case -1 =>
               continue(input, headerStart)(parseHeader(_, _, memoryBufferSize))
             case headerEnd if headerEnd - headerStart >= maxHeaderSize =>
-              bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
+              bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
