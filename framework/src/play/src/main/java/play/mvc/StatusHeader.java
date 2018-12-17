@@ -478,7 +478,7 @@ public class StatusHeader extends Result {
     }
 
     /**
-     * Send a stremed response with the given source.
+     * Send a streamed response with the given source.
      *
      * @param body the source to send
      * @param contentLength the entity content length.
