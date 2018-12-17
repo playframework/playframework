@@ -36,7 +36,7 @@ If you're using runtime dependency injection (e.g. Guice), the error handler can
 
 @[root](code/ScalaErrorHandling.scala)
 
-If you place your error handler in the root package (i.e. package-less) Play will use it by default.
+If you place your error handler in the root package (i.e. package-less) and name it `ErrorHandler`, Play will use it by default.
 
 But, in case you want to:
 
