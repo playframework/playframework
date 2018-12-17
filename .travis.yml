@@ -4,6 +4,11 @@ sudo: true
 group: beta
 jdk:
   - oraclejdk8
+addons:
+  apt:
+    packages:
+      # Install xmllint used to get Akka HTTP version
+      - libxml2-utils
 stages:
   - validations
   - test
