@@ -41,6 +41,16 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |text field with unquoted name and colon
       |--aabbccddee
+      |Content-Disposition: form-data; name="file_with_space_only"; filename="with_space_only.txt"
+      |Content-Type: text/plain
+      |
+      | 
+      |--aabbccddee
+      |Content-Disposition: form-data; name="empty_file_middle"; filename="empty_file_followed_by_other_part.txt"
+      |Content-Type: text/plain
+      |
+      |
+      |--aabbccddee
       |Content-Disposition: form-data; name="file1"; filename="file1.txt"
       |Content-Type: text/plain
       |
@@ -71,7 +81,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |the fifth file (with empty filename)
       |
       |--aabbccddee
-      |Content-Disposition: form-data; name="file6"; filename="emptyfile.txt"
+      |Content-Disposition: form-data; name="empty_file_bottom"; filename="empty_file_not_followed_by_any_other_part.txt"
       |Content-Type: text/plain
       |
       |
@@ -88,7 +98,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
         parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
         parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
-        parts.files must haveLength(3)
+        parts.files must haveLength(4)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
         }
@@ -98,10 +108,14 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.file("file3") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
         }
-        parts.badParts must haveLength(3)
+        parts.file("file_with_space_only") must beSome.like {
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== " "
+        }
+        parts.badParts must haveLength(4)
         parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file4"; filename=""""", "content-type" -> "application/octet-stream"))))
         parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file5"; filename=""", "content-type" -> "application/octet-stream"))))
-        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file6"; filename="emptyfile.txt"""", "content-type" -> "text/plain"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="empty_file_middle"; filename="empty_file_followed_by_other_part.txt"""", "content-type" -> "text/plain"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="empty_file_bottom"; filename="empty_file_not_followed_by_any_other_part.txt"""", "content-type" -> "text/plain"))))
     }
   }
 
