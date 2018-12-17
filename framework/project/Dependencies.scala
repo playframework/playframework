@@ -158,7 +158,7 @@ object Dependencies {
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
 
-      "org.scala-lang" % "scala-reflect" % scalaVersion,
+      "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       scalaJava8Compat,
 
       sslConfig
