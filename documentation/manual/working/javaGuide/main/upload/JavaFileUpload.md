@@ -23,6 +23,8 @@ Now let’s define the `upload` action:
 
 @[syncUpload](code/JavaFileUpload.java)
 
+> **Note:** An empty file will be treated just like no file was uploaded at all. The same applies if the `filename` header of a `multipart/form-data` file upload part is empty - even when the file itself would not empty.
+
 ### Testing the file upload
 
 You can also write an automated JUnit test to your `upload` action:
