@@ -46,6 +46,12 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       | 
       |--aabbccddee
+      |Content-Disposition: form-data; name="file_with_newline_only"; filename="with_newline_only.txt"
+      |Content-Type: text/plain
+      |
+      |
+      |
+      |--aabbccddee
       |Content-Disposition: form-data; name="empty_file_middle"; filename="empty_file_followed_by_other_part.txt"
       |Content-Type: text/plain
       |
@@ -98,7 +104,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
         parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
         parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
-        parts.files must haveLength(4)
+        parts.files must haveLength(5)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
         }
@@ -110,6 +116,9 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         }
         parts.file("file_with_space_only") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== " "
+        }
+        parts.file("file_with_newline_only") must beSome.like {
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "\r\n"
         }
         parts.badParts must haveLength(4)
         parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file4"; filename=""""", "content-type" -> "application/octet-stream"))))
