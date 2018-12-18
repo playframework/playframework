@@ -580,3 +580,10 @@ Routes that define default values for query string parameters which wrap a type 
 did not pass that default value to the action method when such a request's query string parameter does not exist at all. Instead `None`, `Optional.empty()` or an empty list was passed.
 
 As of Play 2.7 the default value will now be passed to the action method for such non existing query params.
+
+### `multipart/form-data` file upload changes
+
+Until Play 2.6 uploading an empty file via the `multipart/form-data` encoding was treated just like uploading a non-empty file. For obvious reasons however, uploading an empty file doesn't make a lot of sense, therefore as of Play 2.7 an uploaded empty file will be treated just like no file was uploaded at all.
+Hence when retrieving an uploaded file via the [[Scala API|ScalaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] or the [[Java API|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] it will never be empty.
+
+> **Note:** The same logic applies if the `filename` header of a `multipart/form-data` file upload part is empty - even when the file itself would not empty.
