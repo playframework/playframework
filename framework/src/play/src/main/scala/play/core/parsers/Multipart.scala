@@ -340,11 +340,11 @@ object Multipart {
         def parseHeader(input: ByteString, headerStart: Int, memoryBufferSize: Int): StateResult = {
           input.indexOfSlice(crlfcrlf, headerStart) match {
             case -1 if input.length - headerStart >= maxHeaderSize =>
-              bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
+              bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case -1 =>
               continue(input, headerStart)(parseHeader(_, _, memoryBufferSize))
             case headerEnd if headerEnd - headerStart >= maxHeaderSize =>
-              bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
+              bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
@@ -360,13 +360,42 @@ object Multipart {
               // The amount of memory taken by the headers
               def headersSize = headers.foldLeft(0)((total, value) => total + value._1.length + value._2.length)
 
+              val totalMemoryBufferSize = memoryBufferSize + headersSize
+
               headers match {
                 case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
-                  handleFilePart(input, partStart, memoryBufferSize + headersSize, partName, fileName, contentType, dispositionType)
+                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput =>
+                    handleFilePart(newInput, partStart, totalMemoryBufferSize, partName, fileName, contentType, dispositionType))(newInput =>
+                    handleBadPart(newInput, partStart, totalMemoryBufferSize, headers))
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)
                 case _ =>
-                  handleBadPart(input, partStart, memoryBufferSize + headersSize, headers)
+                  handleBadPart(input, partStart, totalMemoryBufferSize, headers)
+              }
+          }
+        }
+
+        def checkEmptyBody(input: ByteString, partStart: Int, memoryBufferSize: Int)(nonEmpty: (ByteString) => StateResult)(empty: (ByteString) => StateResult): StateResult = {
+          try {
+            val currentPartEnd = boyerMoore.nextIndex(input, partStart)
+            if (currentPartEnd - partStart == 0) {
+              empty(input)
+            } else {
+              nonEmpty(input)
+            }
+          } catch {
+            case NotEnoughDataException => // "not enough data" here means not enough data to locate the needle. However we might not even need the needle...
+              if (partStart <= input.length - needle.length) {
+                // There was already enough space in the input to contain the needle, but it wasn't found in the try block above.
+                // This means the needle will start at some position _after_ partStart and there will for sure be data between
+                // partStart and the start of the needle -> the body is definitely not empty.
+                // We don't need to get more data (and also not the needle) to make a decision.
+                nonEmpty(input)
+              } else {
+                // There was not even enough space in the input to contain the needle. Only after we have enough data
+                // of at least the size of the needle we can decide if the body is empty or not.
+                state = more => checkEmptyBody(input ++ more, partStart, memoryBufferSize)(nonEmpty)(empty)
+                done()
               }
           }
         }
