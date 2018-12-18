@@ -217,7 +217,7 @@ object BuildSettings {
     // See also:
     // 1. the root project at build.sbt file.
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212)
+    crossScalaVersions := Seq(ScalaVersions.scala212)
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
@@ -263,7 +263,6 @@ object BuildSettings {
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
         .settings(
-          // Need to add this after updating to Scala 2.11.12
           scalacOptions += "-target:jvm-1.8"
         )
   }

@@ -21,6 +21,8 @@ And finally, add a `POST` route:
 
 @[application-upload-routes](code/javaguide.upload.fileupload.routes)
 
+> **Note:** An empty file will be treated just like no file was uploaded at all. The same applies if the `filename` header of a `multipart/form-data` file upload part is empty - even when the file itself would not empty.
+
 ### Testing the file upload
 
 You can also write an automated JUnit test to your `upload` action:

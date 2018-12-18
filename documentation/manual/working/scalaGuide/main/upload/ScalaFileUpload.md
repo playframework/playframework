@@ -23,6 +23,8 @@ At last, add a `POST` router
 
 @[application-upload-routes](code/scalaguide.upload.fileupload.routes)
 
+> **Note:** An empty file will be treated just like no file was uploaded at all. The same applies if the `filename` header of a `multipart/form-data` file upload part is empty - even when the file itself would not empty.
+
 ## Direct file upload
 
 Another way to send files to the server is to use Ajax to upload files asynchronously from a form. In this case, the request body will not be encoded as `multipart/form-data`, but will just contain the plain file contents.
