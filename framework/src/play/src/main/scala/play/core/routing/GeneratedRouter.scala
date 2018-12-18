@@ -104,7 +104,7 @@ abstract class GeneratedRouter extends Router {
   }
 
   //Keep the old versions for avoiding compiler failures while building for Scala 2.10,
-  // and for avoiding warnings when building for Scala 2.11
+  // and for avoiding warnings when building for newer Scala versions
   def call[A1, A2](pa1: Param[A1], pa2: Param[A2])(generator: Function2[A1, A2, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right)
       yield (a1, a2))

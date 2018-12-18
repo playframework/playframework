@@ -5,7 +5,6 @@
 package play.mvc;
 
 import akka.stream.Materializer;
-import play.core.j.AbstractFilter;
 import play.mvc.Http.RequestHeader;
 import scala.Function1;
 import scala.compat.java8.FutureConverters;
@@ -31,7 +30,7 @@ public abstract class Filter extends EssentialFilter {
     }
 
     public play.api.mvc.Filter asScala() {
-        return new AbstractFilter(materializer, this) {
+        return new play.api.mvc.Filter() {
             @Override
             public Future<play.api.mvc.Result> apply(
                     Function1<play.api.mvc.RequestHeader, Future<play.api.mvc.Result>> next,
@@ -42,6 +41,11 @@ public abstract class Filter extends EssentialFilter {
                                 requestHeader.asJava()
                         ).thenApply(Result::asScala)
                 );
+            }
+
+            @Override
+            public Materializer mat() {
+                return materializer;
             }
         };
     }
