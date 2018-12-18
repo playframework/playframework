@@ -201,8 +201,7 @@ object BuildSettings {
         previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
-    mimaBinaryIssueFilters ++= Seq(
-    ),
+    mimaBinaryIssueFilters ++= Seq(),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },

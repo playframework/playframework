@@ -7,7 +7,7 @@
 cd ${FRAMEWORK}
 
 printMessage "VALIDATE BINARY COMPATIBILITY"
-runSbt mimaReportBinaryIssues
+runSbt +mimaReportBinaryIssues
 
 
 printMessage "VALIDATE CODE FORMATTING"
