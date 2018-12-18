@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
 # Using Custom Validations
 
-The [validation package](api/scala/play/api/data/validation/) allows you to create ad-hoc constraints using the `verifying` method.  However, Play gives you the option of creating your own custom constraints, using the [`Constraint`](api/scala/play/api/data/validation/Constraint.html) case class.
+The [validation package](api/scala/play/api/data/validation/index.html) allows you to create ad-hoc constraints using the `verifying` method.  However, Play gives you the option of creating your own custom constraints, using the [`Constraint`](api/scala/play/api/data/validation/Constraint.html) case class.
 
 Here, we'll implement a simple password strength constraint that uses regular expressions to check the password is not all letters or all numbers.  A [`Constraint`](api/scala/play/api/data/validation/Constraint.html) takes a function which returns a [`ValidationResult`](api/scala/play/api/data/validation/ValidationResult.html), and we use that function to return the results of the password check:
 
