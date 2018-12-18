@@ -777,6 +777,7 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.devContext"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.parse"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.BuiltInComponents.coordinatedShutdown"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.atomicMoveWithFallback"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.asJava"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.raw"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.text"),
