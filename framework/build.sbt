@@ -252,19 +252,31 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     .enablePlugins(JavaAgent)
     // This project is just for testing Play, not really a public artifact
     .settings(disablePublishing)
+    .configs(IntegrationTest)
     .settings(
-      libraryDependencies += okHttp % Test,
-      parallelExecution in Test := false,
+      Defaults.itSettings,
+      libraryDependencies += okHttp % IntegrationTest,
+      parallelExecution in IntegrationTest := false,
       mimaPreviousArtifacts := Set.empty,
-      fork in Test := true,
-      javaOptions in Test += "-Dfile.encoding=UTF8",
-      javaAgents += jettyAlpnAgent % "test"
+      fork in IntegrationTest := true,
+      javaOptions in IntegrationTest += "-Dfile.encoding=UTF8",
+      javaAgents += jettyAlpnAgent % IntegrationTest,
+      javaOptions in IntegrationTest ++= {
+        val javaAgents = (resolvedJavaAgents in IntegrationTest).value
+        assert(javaAgents.length == 1, s"multiple java agents: $javaAgents")
+        val resolvedJavaAgent = javaAgents.head
+        val jettyAgentPath = resolvedJavaAgent.artifact.absString
+        Seq(
+          s"-Djetty.anlp.agent.jar=$jettyAgentPath",
+          "-javaagent:" + jettyAgentPath + resolvedJavaAgent.agent.arguments
+        )
+      }
     )
     .dependsOn(
-      PlayProject % "test->test",
-      PlayLogback % "test->test",
-      PlayAhcWsProject % "test->test",
-      PlayServerProject % "test->test",
+      PlayProject % "it->test",
+      PlayLogback % "it->test",
+      PlayAhcWsProject % "it->test",
+      PlayServerProject % "it->test",
       PlaySpecs2Project
     )
     .dependsOn(PlayFiltersHelpersProject)
@@ -311,7 +323,6 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     .dependsOn(
       PlayProject % "test->test",
       PlayLogback % "test->test",
-      PlayIntegrationTestProject % "test->test",
       PlayAhcWsProject,
       PlaySpecs2Project,
       PlayFiltersHelpersProject,
