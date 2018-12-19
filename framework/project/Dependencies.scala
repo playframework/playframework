@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.19")
-  val akkaHttpVersion = "10.1.5"
+  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.5")
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
@@ -85,6 +85,7 @@ object Dependencies {
     "org.hibernate" % "hibernate-core" % "5.3.7.Final" % "test"
   )
 
+  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1")
@@ -158,7 +159,7 @@ object Dependencies {
       "javax.transaction" % "jta" % "1.1",
       "javax.inject" % "javax.inject" % "1",
 
-      "org.scala-lang" % "scala-reflect" % scalaVersion,
+      scalaReflect(scalaVersion),
       scalaJava8Compat,
 
       sslConfig
@@ -207,7 +208,7 @@ object Dependencies {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
 
     Seq(
-      "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
+      scalaReflect(scalaVersion),
       typesafeConfig,
       slf4jSimple,
       playFileWatch,

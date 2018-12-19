@@ -31,10 +31,10 @@ public class MultipartFormatter {
                 return (MultipartFormData.Part) new MultipartFormData.DataPart(dp.getKey(), dp.getValue());
             } else if (part instanceof Http.MultipartFormData.FilePart) {
                 Http.MultipartFormData.FilePart fp = (Http.MultipartFormData.FilePart) part;
-                if (fp.file instanceof Source) {
-                    Source ref = (Source) fp.file;
+                if (fp.ref instanceof Source) {
+                    Source ref = (Source) fp.ref;
                     Option<String> ct = Option.apply(fp.getContentType());
-                    return (MultipartFormData.Part)new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(fp.getKey(), fp.getFilename(), ct, ref.asScala());
+                    return (MultipartFormData.Part)new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(fp.getKey(), fp.getFilename(), ct, ref.asScala(), fp.getDispositionType());
                 }
             }
             throw new UnsupportedOperationException("Unsupported Part Class");

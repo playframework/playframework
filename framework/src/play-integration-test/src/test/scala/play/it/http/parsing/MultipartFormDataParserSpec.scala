@@ -14,7 +14,7 @@ import play.api.test._
 import play.core.parsers.Multipart.{ FileInfoMatcher, PartInfoMatcher }
 import play.utils.PlayIO
 import play.api.libs.ws.WSClient
-import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.MultipartFormData.{ BadPart, FilePart }
 import play.api.routing.Router
 import play.core.server.Server
 
@@ -41,6 +41,22 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |text field with unquoted name and colon
       |--aabbccddee
+      |Content-Disposition: form-data; name="file_with_space_only"; filename="with_space_only.txt"
+      |Content-Type: text/plain
+      |
+      | 
+      |--aabbccddee
+      |Content-Disposition: form-data; name="file_with_newline_only"; filename="with_newline_only.txt"
+      |Content-Type: text/plain
+      |
+      |
+      |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="empty_file_middle"; filename="empty_file_followed_by_other_part.txt"
+      |Content-Type: text/plain
+      |
+      |
+      |--aabbccddee
       |Content-Disposition: form-data; name="file1"; filename="file1.txt"
       |Content-Type: text/plain
       |
@@ -58,6 +74,23 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)
       |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="file4"; filename=""
+      |Content-Type: application/octet-stream
+      |
+      |the fourth file (with empty filename)
+      |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="file5"; filename=
+      |Content-Type: application/octet-stream
+      |
+      |the fifth file (with empty filename)
+      |
+      |--aabbccddee
+      |Content-Disposition: form-data; name="empty_file_bottom"; filename="empty_file_not_followed_by_any_other_part.txt"
+      |Content-Type: text/plain
+      |
+      |
       |--aabbccddee--
       |""".stripMargin.linesIterator.mkString("\r\n")
 
@@ -66,11 +99,12 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {
       case parts =>
+        parts.dataParts must haveLength(4)
         parts.dataParts.get("text1") must beSome(Seq("the first text field"))
         parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
         parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
         parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
-        parts.files must haveLength(3)
+        parts.files must haveLength(5)
         parts.file("file1") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
         }
@@ -80,6 +114,17 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.file("file3") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
         }
+        parts.file("file_with_space_only") must beSome.like {
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== " "
+        }
+        parts.file("file_with_newline_only") must beSome.like {
+          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "\r\n"
+        }
+        parts.badParts must haveLength(4)
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file4"; filename=""""", "content-type" -> "application/octet-stream"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="file5"; filename=""", "content-type" -> "application/octet-stream"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="empty_file_middle"; filename="empty_file_followed_by_other_part.txt"""", "content-type" -> "text/plain"))))
+        parts.badParts must contain((BadPart(Map("content-disposition" -> """form-data; name="empty_file_bottom"; filename="empty_file_not_followed_by_any_other_part.txt"""", "content-type" -> "text/plain"))))
     }
   }
 
@@ -189,19 +234,19 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "parse headers with semicolon inside quotes" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="semicolon;inside.jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
-      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg")))
+      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg"), "form-data"))
     }
 
     "parse headers with escaped quote inside quotes" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name="document"; filename="quotes\"\".jpg"""", "content-type" -> "image/jpeg"))
       result must not(beEmpty)
-      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg")))
+      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg"), "form-data"))
     }
 
     "parse unquoted content disposition with file matcher" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "form-data"))
     }
 
     "parse unquoted content disposition with part matcher" in {
@@ -219,13 +264,13 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "ignore extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "form-data"))
     }
 
     "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """file; name=document; filename=hello.txt"""))
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None))
+      result.get must equalTo(("document", "hello.txt", None, "file"))
     }
   }
 

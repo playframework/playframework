@@ -1748,6 +1748,56 @@ public class Http {
             ));
             return this;
         }
+
+        /**
+         * Sets the transient language.
+         *
+         * @param lang The language to use.
+         * @return the builder instance
+         */
+        public RequestBuilder transientLang(Lang lang) {
+            req = req.withTransientLang(lang);
+            return this;
+        }
+
+        /**
+         * Sets the transient language.
+         *
+         * @param code The language to use.
+         * @return the builder instance
+         */
+        public RequestBuilder transientLang(String code) {
+            req = req.withTransientLang(code);
+            return this;
+        }
+
+        /**
+         * Sets the transient language.
+         *
+         * @param locale The language to use.
+         * @return the builder instance
+         */
+        public RequestBuilder transientLang(Locale locale) {
+            req = req.withTransientLang(locale);
+            return this;
+        }
+
+        /**
+         * Removes the transient language.
+         *
+         * @return the builder instance
+         */
+        public RequestBuilder withoutTransientLang() {
+            req = req.withoutTransientLang();
+            return this;
+        }
+
+        /**
+         * @return The current transient language of this builder instance.
+         */
+        Optional<Lang> transientLang() {
+            return OptionConverters.toJava(req.transientLang()).map(play.api.i18n.Lang::asJava);
+        }
     }
 
     /**
@@ -1830,13 +1880,19 @@ public class Http {
             final String key;
             final String filename;
             final String contentType;
-            final A file;
+            final A ref;
+            final String dispositionType;
 
-            public FilePart(String key, String filename, String contentType, A file) {
+            public FilePart(String key, String filename, String contentType, A ref) {
+                this(key, filename, contentType, ref, "form-data");
+            }
+
+            public FilePart(String key, String filename, String contentType, A ref, String dispositionType) {
                 this.key = key;
                 this.filename = filename;
                 this.contentType = contentType;
-                this.file = file;
+                this.ref = ref;
+                this.dispositionType = dispositionType;
             }
 
             /**
@@ -1870,9 +1926,36 @@ public class Http {
              * The File.
              *
              * @return the file
+             *
+             * @deprecated Deprecated as of 2.7.0. Use {@link #getRef()} instead, which however (when using the default Play {@code BodyParser})
+             * will give you a {@link play.libs.Files.TemporaryFile} instance instead of a {@link java.io.File} one.
+             * <a href="https://www.playframework.com/documentation/latest/Migration27#Javas-FilePart-exposes-the-TemporaryFile-for-uploaded-files">See migration guide.</a>
              */
+            @Deprecated
             public A getFile() {
-                return file;
+                if (ref instanceof Files.TemporaryFile) {
+                    // For backwards compatibility
+                    return (A)((Files.TemporaryFile) ref).path().toFile();
+                }
+                return ref;
+            }
+
+            /**
+             * The File.
+             *
+             * @return the file
+             */
+            public A getRef() {
+                return ref;
+            }
+
+            /**
+             * The disposition type.
+             *
+             * @return the disposition type
+             */
+            public String getDispositionType() {
+                return dispositionType;
             }
 
         }

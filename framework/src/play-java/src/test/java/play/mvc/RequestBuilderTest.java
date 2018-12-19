@@ -12,6 +12,7 @@ import play.api.inject.guice.GuiceApplicationBuilder;
 import play.core.j.JavaContextComponents;
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.libs.Files;
 import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
@@ -175,6 +176,51 @@ public class RequestBuilderTest {
     }
 
     @Test
+    public void testAddATransientLangToRequestBuilder() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Lang lang = new Lang(Locale.GERMAN);
+        Request request = builder.transientLang(lang).build();
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(lang, request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByCodeToRequestBuilder() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        String lang = "de";
+        Request request = builder.transientLang(lang).build();
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(Lang.forCode(lang), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByLocaleToRequestBuilder() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Locale locale = Locale.GERMAN;
+        Request request = builder.transientLang(locale).build();
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(new Lang(locale), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testClearRequestBuilderTransientLang() {
+        Lang lang = new Lang(Locale.GERMAN);
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/").transientLang(lang);
+
+        assertTrue(builder.build().transientLang().isPresent());
+        assertEquals(Optional.of(lang), builder.transientLang());
+
+        // Language attr should be removed
+        assertFalse(builder.withoutTransientLang().build().transientLang().isPresent());
+    }
+
+    @Test
     public void testFlash() {
         Application app = new GuiceApplicationBuilder().build();
         Play.start(app);
@@ -253,7 +299,7 @@ public class RequestBuilderTest {
                 .bodyMultipart(Collections.singletonList(dp), temporaryFileCreator, app.materializer())
                 .build();
 
-        Optional<Http.MultipartFormData<File>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
+        Optional<Http.MultipartFormData<Files.TemporaryFile>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
                .apply(request)
                .run(Source.single(request.body().asBytes()), app.materializer())
                .toCompletableFuture()
