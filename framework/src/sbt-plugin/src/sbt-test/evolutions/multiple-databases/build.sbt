@@ -1,4 +1,7 @@
-name := """auto-apply-false"""
+//
+// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+//
+name := """multiple-databases"""
 organization := "com.lightbend.play"
 
 version := "1.0-SNAPSHOT"
