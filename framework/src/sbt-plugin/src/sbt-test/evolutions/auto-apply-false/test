@@ -1,0 +1,21 @@
+> run
+
+# Needs evolution since autoApply=false for this test
+> verifyResourceContains / 500 evolution
+> verifyResourceContains /@evolutions/apply/default 303
+> verifyResourceContains / 200 Player1
+
+# Add a new evolution so that it will be triggered again
+$ copy-file changes/2.sql conf/evolutions/default/2.sql
+
+> verifyResourceContains / 500 evolution
+> verifyResourceContains /@evolutions/apply/default 303
+> verifyResourceContains / 200 Player2
+
+# Copy evolution with invalid commands
+$ copy-file changes/3.sql conf/evolutions/default/3.sql
+> verifyResourceContains / 500 inconsistent
+
+# Mark it resolved
+> verifyResourceContains /@evolutions/resolve/default/3 303
+> verifyResourceContains / 200 Player3

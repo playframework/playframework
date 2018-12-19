@@ -1,0 +1,10 @@
+> run
+
+# Evolutions will be applied automatically since autoApply=true
+> verifyResourceContains / 200 Player1
+> verifyResourceContains / 200 Player2
+
+# Add a new evolution to verify that it will be applied automatically
+$ copy-file changes/2.sql conf/evolutions/default/2.sql
+
+> verifyResourceContains / 200 Player3
