@@ -99,6 +99,10 @@ The router will invoke the `Assets.at` action with the following parameters:
 controllers.Assets.at("/public", "javascripts/jquery.js")
 ```
 
+Play also supports a `fallback` parameter, `fallback` file be returned if an asset cannot be found. This can be very useful for single page applications. Here is an example of a mapping that a single page application might use:
+
+@[assets-wildcard-spa](code/common.fallback.assets.routes)
+
 To route to a single static file, both the path and file have to be specified:
 
 @[assets-single-static-file](code/common.assets.routes)

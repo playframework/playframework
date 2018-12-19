@@ -623,7 +623,11 @@ package controllers {
     override def versioned(file: String) = super.versioned(file)
 
     @deprecated("Inject Assets and use Assets#at", "2.6.0")
-    override def at(path: String, file: String, aggressiveCaching: Boolean) = super.at(path, file, aggressiveCaching)
+    override def at(path: String, file: String, aggressiveCaching: Boolean, fallback: String): Action[AnyContent] = super.at(path, file, aggressiveCaching, fallback)
+    @deprecated("Inject Assets and use Assets#at", "2.6.0")
+    override def at(path: String, file: String, fallback: String): Action[AnyContent] = super.at(path, file, fallback)
+    @deprecated("Inject Assets and use Assets#at", "2.6.0")
+    override def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = super.at(path, file, aggressiveCaching)
 
     @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
     override def versioned(path: String, file: Asset) = super.versioned(path, file)
@@ -799,11 +803,14 @@ package controllers {
      * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
      * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
      */
-    def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async { implicit request =>
-      assetAt(path, file, aggressiveCaching)
+    def at(path: String, file: String, aggressiveCaching: Boolean, fallback: String): Action[AnyContent] = Action.async { implicit request =>
+      assetAt(path, file, aggressiveCaching, fallback)
     }
 
-    private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
+    def at(path: String, file: String, fallback: String): Action[AnyContent] = at(path, file, false, fallback)
+    def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = at(path, file, aggressiveCaching, "")
+
+    private def assetAt(path: String, file: String, aggressiveCaching: Boolean, fallback: String = "")(implicit request: RequestHeader): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
       val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName.map { name =>
         assetInfoForRequest(request, name)
@@ -833,7 +840,12 @@ package controllers {
               )
             })
           }
-        case None => notFound
+        case None =>
+          if ("" eq fallback) {
+            notFound
+          } else {
+            assetAt(path, fallback, aggressiveCaching)
+          }
       }
 
       pendingResult.recoverWith {
