@@ -35,6 +35,8 @@ jobs:
       name: "Run tests for Scala 2.13"
     - script: framework/bin/test-docs
       name: "Run documentation tests"
+    - script: framework/bin/it-test-scala-212
+      name: "Run it tests for Scala 2.12"
     - stage: test-sbt
       script: framework/bin/test-sbt-plugins-0_13
       name: "Scripted tests for sbt 0.13"
@@ -61,7 +63,7 @@ env:
 cache:
   directories:
   - $HOME/.ivy2/cache
-  - $HOME/.sbt/boot/
+  - $HOME/.sbt
 before_cache:
 - rm -rf $HOME/.ivy2/local
 - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
