@@ -47,6 +47,9 @@ jobs:
       jdk: openjdk11
       script: framework/bin/test-scala-212
       name: "Run tests for Scala 2.12 and Java 11"
+    - script: framework/bin/it-test-scala-212
+      jdk: openjdk11
+      name: "Run it tests for Scala 2.12 and Java 11"
 
 matrix:
   fast_finish: true
