@@ -141,7 +141,7 @@ public class UploadController extends Controller {
 
             // Use copyTo if you want to retain the file for sure when using the temporary file
             // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
-            file.copyTo(Paths.get("/tmp/picture/destination.jgp"), true);
+            file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
             return ok("File uploaded");
         } else {
             return badRequest().flashing("error", "Missing file");
