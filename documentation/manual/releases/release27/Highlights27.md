@@ -70,6 +70,7 @@ public class SomeForm implements ValidatableWithPayload<String> {
 ```
 
 In case you wrote your own [[custom class-level constraint|JavaForms#Custom-class-level-constraints-with-DI-support]], you can also pass a payload to an `isValid` method by implementing `PlayConstraintValidatorWithPayload` (instead of just `PlayConstraintValidator`):
+
 ```java
 import javax.validation.ConstraintValidatorContext;
 
@@ -125,11 +126,11 @@ ws.url("https://www.playframework.com")
 
 And then the following log will be printed:
 
-```
+```bash
 curl \
   --verbose \
   --request GET \
-  --header 'My-Header: Header Value' \\
+  --header 'My-Header: Header Value' \
   'https://www.playframework.com'
 ```
 
@@ -144,3 +145,89 @@ play.filters.gzip.compressionLevel = 9
 ```
 
 See more details at [[GzipEncoding]].
+
+## API Additions
+
+Here are some of the relevant API additions we made for Play 2.7.0.
+
+### Isolation level for Database transactions
+
+You can now chose an isolation level when using `Database.withTransaction` API. For example:
+
+Java
+: ```java
+public void someDatabaseOperation() {
+    database.withTransaction(TransactionIsolationLevel.ReadUncommitted, connection -> {
+        ResultSet resultSet = connection.prepareStatement("select * from users where id = 10").executeQuery();
+        // consume the resultSet and return some value
+    });
+}
+```
+
+Scala
+: ```scala
+def someDatabaseOperation(): Unit = {
+  database.withTransaction(TransactionIsolationLevel.ReadUncommitted) { connection =>
+    val resultSet: ResultSet = connection.prepareStatement("select * from users where id = 10").executeQuery();
+    // consume the resultSet and return some value
+  }
+}
+```
+
+The available transaction isolation levels mimic what is defined in `java.sql.Connection`.
+
+### Result `HttpEntity` streamed methods
+
+We had methods to more easily return `chunked` results:
+
+Java
+: ```java
+public Result chunked() {
+    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+    return ok().chunked(body);
+}
+```
+
+Scala
+: ```scala
+def chunked = Action {
+  val body = Source(List("first", "second", "..."))
+  Ok.chunked(body)
+}
+```
+
+But the APIs to return a streamed result were a little more verbose:
+
+Java
+: ```java
+public Result streamed() {
+    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+    return ok().sendEntity(new HttpEntity.Streamed(body, Optional.empty(), Optional.empty()));
+}
+```
+
+Scala
+: ```scala
+def streamed = Action {
+  val body = Source(List("first", "second", "...")).map(s => ByteString.fromString(s))
+  Ok.sendEntity(HttpEntity.Streamed(body, None, None))
+}
+```
+
+We then add new APIs to make it as much straightforward as `chunked`:
+
+Java
+: ```java
+public Result streamed() {
+    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+    return ok().streamed(body, Optional.empty(), Optional.empty());
+}
+```
+
+Scala
+: ````scala
+def streamed = Action {
+  val body = Source(List("first", "second", "...")).map(s => ByteString.fromString(s))
+  Ok.streamed(body, contentLength = None)
+}
+```
