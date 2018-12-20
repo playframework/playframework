@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     scalaVersion := "2.12.8",
+    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
     libraryDependencies ++= Seq(
       guice,
@@ -18,6 +19,12 @@ lazy val root = (project in file("."))
       evolutions,
       "com.h2database" % "h2" % "1.4.197"
     ),
+
+    InputKey[Unit]("applyEvolutions") := {
+      val args = Def.spaceDelimited("<path>").parsed
+      val path :: Nil = args
+      DevModeBuild.applyEvolutions(path)
+    },
 
     InputKey[Unit]("verifyResourceContains") := {
       val args = Def.spaceDelimited("<path> <status> <words> ...").parsed

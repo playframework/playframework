@@ -4,7 +4,8 @@
 
 INSERT INTO users VALUES (3, 'Player3');
 
-WRONG
+
+WRONG COMMAND TO FAIL THE MIGRATION
 
 # --- !Downs
 

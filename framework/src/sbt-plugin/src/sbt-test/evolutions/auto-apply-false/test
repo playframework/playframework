@@ -2,20 +2,31 @@
 
 # Needs evolution since autoApply=false for this test
 > verifyResourceContains / 500 evolution
-> verifyResourceContains /@evolutions/apply/default 303
+> applyEvolutions /@evolutions/apply/default
 > verifyResourceContains / 200 Player1
 
 # Add a new evolution so that it will be triggered again
 $ copy-file changes/2.sql conf/evolutions/default/2.sql
+# Give the file watcher some time to react
+$ sleep 2000
 
 > verifyResourceContains / 500 evolution
-> verifyResourceContains /@evolutions/apply/default 303
+> applyEvolutions /@evolutions/apply/default
 > verifyResourceContains / 200 Player2
 
 # Copy evolution with invalid commands
 $ copy-file changes/3.sql conf/evolutions/default/3.sql
-> verifyResourceContains / 500 inconsistent
+# Give the file watcher some time to react
+$ sleep 2000
 
-# Mark it resolved
-> verifyResourceContains /@evolutions/resolve/default/3 303
+# First try to apply evolution
+> applyEvolutions /@evolutions/apply/default
+
+# It will then fail since there is error
+> verifyResourceContains / 500 evolution
+
+# And it can be market as resolved
+> applyEvolutions /@evolutions/resolve/default/3
 > verifyResourceContains / 200 Player3
+
+> playStop
