@@ -191,6 +191,30 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         val to = creator.create(file).copyTo(destination, replace = false)
         new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
       }
+
+      "delete source file has no impact on the destination file" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        writeFile(file, "file to be moved")
+
+        val destination = parentDirectory.resolve("destination.txt")
+        creator.create(file).copyTo(destination, replace = true)
+
+        // File was copied
+        JFiles.exists(file) must beTrue
+        JFiles.exists(destination) must beTrue
+
+        // When deleting the source file the destination will NOT be delete
+        // since they are NOT using the same inode.
+        JFiles.delete(file)
+
+        // Only source is gone
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+      }
     }
 
     "when moving file" in {
