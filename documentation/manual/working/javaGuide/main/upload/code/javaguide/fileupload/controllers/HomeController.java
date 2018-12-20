@@ -21,7 +21,7 @@ public class HomeController extends Controller {
             String fileName = picture.getFilename();
             String contentType = picture.getContentType();
             TemporaryFile file = picture.getRef();
-            file.copyTo(Paths.get("/tmp/picture/destination.jgp"), true);
+            file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
             return ok("File uploaded");
         } else {
             return badRequest().flashing("error", "Missing file");
