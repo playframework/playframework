@@ -68,7 +68,7 @@ public class JavaWS {
             this.materializer = materializer;
         }
 
-        public void requestExamples() {
+        public void requestExamples() throws IOException {
             // #ws-holder
             WSRequest request = ws.url("http://example.com");
             // #ws-holder
@@ -143,8 +143,9 @@ public class JavaWS {
             // #ws-post-multipart
 
             // #ws-post-multipart2
-            Source<ByteString, ?> file = FileIO.fromPath(Paths.get("hello.txt"));
-            FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
+            Path path = Paths.get("hello.txt");
+            Source<ByteString, ?> file = FileIO.fromPath(path);
+            FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file, Files.size(path));
             DataPart dp = new DataPart("key", "value");
 
             ws.url(url).post(Source.from(Arrays.asList(fp, dp)));

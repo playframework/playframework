@@ -9,6 +9,7 @@ import play.api.libs.ws.ahc._
 import play.api.test._
 import java.io._
 import java.net.URL
+import java.nio.file.Files
 
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -239,7 +240,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         import play.api.mvc.MultipartFormData._
         val response =
         //#multipart-encoded2
-        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromPath(tmpFile.toPath)) :: DataPart("key", "value") :: List()))
+        ws.url(url).post(Source(FilePart("hello", "hello.txt", Option("text/plain"), FileIO.fromPath(tmpFile.toPath), Files.size(tmpFile.toPath)) :: DataPart("key", "value") :: List()))
         //#multipart-encoded2
 
         await(response).body must_== "world"

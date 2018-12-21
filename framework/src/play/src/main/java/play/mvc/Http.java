@@ -1882,17 +1882,19 @@ public class Http {
             final String contentType;
             final A ref;
             final String dispositionType;
+            final long fileSize;
 
-            public FilePart(String key, String filename, String contentType, A ref) {
-                this(key, filename, contentType, ref, "form-data");
+            public FilePart(String key, String filename, String contentType, A ref, long fileSize) {
+                this(key, filename, contentType, ref, fileSize, "form-data");
             }
 
-            public FilePart(String key, String filename, String contentType, A ref, String dispositionType) {
+            public FilePart(String key, String filename, String contentType, A ref, long fileSize, String dispositionType) {
                 this.key = key;
                 this.filename = filename;
                 this.contentType = contentType;
                 this.ref = ref;
                 this.dispositionType = dispositionType;
+                this.fileSize = fileSize;
             }
 
             /**
@@ -1956,6 +1958,15 @@ public class Http {
              */
             public String getDispositionType() {
                 return dispositionType;
+            }
+
+            /**
+             * The size of the file in bytes.
+             *
+             * @return the size of the file in bytes
+             */
+            public long getFileSize() {
+                return fileSize;
             }
 
         }

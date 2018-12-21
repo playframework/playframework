@@ -126,7 +126,7 @@ object Multipart {
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
         case IOResult(_, Failure(error)) => Future.failed(error)
-        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile, dispositionType))
+        case IOResult(count, _) => Future.successful(FilePart(partName, filename, contentType, tempFile, count, dispositionType))
       }
   }
 
@@ -405,7 +405,7 @@ object Multipart {
           if (memoryBufferSize > maxMemoryBufferSize) {
             bufferExceeded(s"Memory buffer full ($maxMemoryBufferSize) on part $partName")
           } else {
-            emit(FilePart(partName, fileName, contentType, (), dispositionType))
+            emit(FilePart(partName, fileName, contentType, (), -1, dispositionType))
             handleFileData(input, partStart, memoryBufferSize)
           }
         }

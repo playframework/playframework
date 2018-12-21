@@ -62,7 +62,7 @@ package scalaguide.upload.fileupload {
         val temporaryFileCreator = SingletonTemporaryFileCreator
         val tf = temporaryFileCreator.create(tmpFile)
         val request = FakeRequest().withBody(
-          MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, tf)), Nil)
+          MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, tf, JFiles.size(tf.path))), Nil)
         )
         testAction(upload, request)
 
@@ -132,13 +132,13 @@ package scalaguide.upload.fileupload {
           val fileSink = FileIO.toPath(path)
           val accumulator = Accumulator(fileSink)
           accumulator.map { case IOResult(count, status) =>
-            FilePart(partName, filename, contentType, file, dispositionType)
+            FilePart(partName, filename, contentType, file, count, dispositionType)
           }(ec)
       }
 
       def uploadCustom = Action(parse.multipartFormData(handleFilePartAsFile)) { request =>
         val fileOption = request.body.file("name").map {
-          case FilePart(key, filename, contentType, file, dispositionType) =>
+          case FilePart(key, filename, contentType, file, fileSize, dispositionType) =>
             file.toPath
         }
 
