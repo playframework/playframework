@@ -99,7 +99,7 @@ class DynamicFormSpec extends Specification {
     }
 
     "convert jField to scala Field when all components of jField are null" in {
-      val jField = new play.data.Form.Field(null, null, null, null, null, null)
+      val jField = new play.data.Form.Field(null, null, null, null, null, null, null)
       jField.indexes() must_== new java.util.ArrayList(0)
 
       val sField = javaFieldtoScalaField(jField)
