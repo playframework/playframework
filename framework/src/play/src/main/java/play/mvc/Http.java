@@ -1884,6 +1884,10 @@ public class Http {
             final String dispositionType;
             final long fileSize;
 
+            public FilePart(String key, String filename, String contentType, A ref) {
+                this(key, filename, contentType, ref, -1);
+            }
+
             public FilePart(String key, String filename, String contentType, A ref, long fileSize) {
                 this(key, filename, contentType, ref, fileSize, "form-data");
             }

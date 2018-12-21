@@ -7,7 +7,6 @@ package play.it.libs
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.{ Charset, StandardCharsets }
-import java.nio.file.Files
 import java.util
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 
@@ -147,7 +146,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
     "sending a multipart form body" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
       val dp = new Http.MultipartFormData.DataPart("hello", "world")
-      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file).asJava, Files.size(file))
+      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file).asJava)
       val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res = ws.url("/post").post(source)
@@ -160,7 +159,7 @@ trait JavaWSSpec extends PlaySpecification with ServerIntegrationSpecification w
     "send a multipart request body via multipartBody()" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
       val dp = new Http.MultipartFormData.DataPart("hello", "world")
-      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava, Files.size(file.toPath))
+      val fp = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
       val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res = ws.url("/post").setBody(multipartBody(source)).setMethod("POST").execute()
