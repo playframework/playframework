@@ -1382,6 +1382,28 @@ public class Http {
         }
 
         /**
+         * Set a Multipart Form url encoded body to this request.
+         *
+         * @param formData the URL form-encoded data part
+         * @param files the files part
+         * @return the modified builder
+         */
+        public RequestBuilder bodyMultipart(Map<String, String[]> formData, List<MultipartFormData.FilePart> files) {
+            MultipartFormData multipartFormData = new MultipartFormData() {
+                @Override
+                public Map<String, String[]> asFormUrlEncoded() {
+                    return Collections.unmodifiableMap(formData);
+                }
+
+                @Override
+                public List<FilePart> getFiles() {
+                    return Collections.unmodifiableList(files);
+                }
+            };
+            return body(new RequestBody(multipartFormData), MultipartFormatter.boundaryToContentType(MultipartFormatter.randomBoundary()));
+        }
+
+        /**
          * Set a Json Body to this request.
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
          *
