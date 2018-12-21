@@ -12,3 +12,12 @@ $ sleep 2000
 
 > playStop
 
+# Testing when running in PROD mode
+
+# Generate a secret so that won't be the cause of the failure
+> playUpdateSecret
+# Should start successfully when there are evolutions and `autoApply=true`
+> runProd -no-exit-sbt
+$ exists target/universal/stage/RUNNING_PID
+> verifyResourceContains / 200 Player1
+> stopProd --no-exit-sbt

@@ -30,3 +30,12 @@ $ sleep 2000
 > verifyResourceContains / 200 Player3
 
 > playStop
+
+# Testing when running in PROD mode
+
+# Generate a secret so that won't be the cause of the failure
+> playUpdateSecret
+# Should fail to start when there are evolutions and `autoApply=false`
+-> runProd
+# And since it fail to start, there should be no pid file
+-$ exists target/universal/stage/RUNNING_PID
