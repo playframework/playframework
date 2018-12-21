@@ -21,6 +21,7 @@ import play.{ ApplicationLoader, BuiltInComponentsFromContext }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
+import play.components.TemporaryFileComponents
 import play.core.j.JavaContextComponents
 import play.data.validation.ValidationError
 import play.libs.F.Tuple
@@ -42,6 +43,8 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 
   override def formFactory: FormFactory = app.getOrElse(application()).injector.instanceOf[FormFactory]
 
+  override def tempFileCreator: TemporaryFileCreator = app.getOrElse(application()).injector.instanceOf[TemporaryFileCreator]
+
   override def application(extraConfig: (String, Any)*): Application = {
     val builtApp = GuiceApplicationBuilder().configure(extraConfig.toMap).build()
     app = Option(builtApp)
@@ -52,7 +55,7 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
   class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty) extends BuiltInComponentsFromContext(context)
-    with FormFactoryComponents {
+    with FormFactoryComponents with TemporaryFileComponents {
     override def router(): Router = Router.empty()
 
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
@@ -72,6 +75,10 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
   override def formFactory: FormFactory = components.getOrElse{
     new MyComponents(context)
   }.formFactory()
+
+  override def tempFileCreator: TemporaryFileCreator = components.getOrElse{
+    new MyComponents(context)
+  }.tempFileCreator()
 
   override def application(extraConfig: (String, Any)*): Application = {
     val myComponents = new MyComponents(context, extraConfig.toMap)
@@ -123,6 +130,7 @@ trait FormSpec extends CommonFormSpec {
   sequential
 
   def formFactory: FormFactory
+  def tempFileCreator: TemporaryFileCreator
   def application(extraConfig: (String, Any)*): Application
   def defaultContextComponents: JavaContextComponents
 
@@ -430,7 +438,7 @@ trait FormSpec extends CommonFormSpec {
     "bind files" should {
 
       "be valid with all fields" in new WithApplication(application()) {
-        implicit val temporaryFileCreator = app.injector.instanceOf[TemporaryFileCreator]
+        implicit val temporaryFileCreator = tempFileCreator
 
         val files = createThesisTemporaryFiles()
 
