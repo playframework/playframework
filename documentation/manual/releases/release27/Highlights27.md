@@ -19,7 +19,7 @@ Guice, the default dependency injection framework used by Play, was upgraded to 
 
 Until Play 2.6, the only way to retrieve a file that was uploaded via a `multipart/form-data` encoded form was [[by calling|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] `request.body().asMultipartFormData().getFile(...)` inside the action method.
 
-Starting with Play 2.7 such an uploaded file will now also get binded to a Java Form. If you are *not* using a [[custom multipart file part body parser|JavaFileUpload#Writing-a-custom-multipart-file-part-body-parser]] all you need to do is add a `FilePart` of type `TemporaryFile` to your form:
+Starting with Play 2.7 such an uploaded file will now also be bound to a Java Form. If you are *not* using a [[custom multipart file part body parser|JavaFileUpload#Writing-a-custom-multipart-file-part-body-parser]] all you need to do is add a `FilePart` of type `TemporaryFile` to your form:
 
 ```java
 import play.libs.Files.TemporaryFile;
