@@ -3325,7 +3325,7 @@ public class Http {
         int LOCKED = 423;
         int FAILED_DEPENDENCY = 424;
         int UPGRADE_REQUIRED = 426;
-        int PRECONDITION_REQUIRED = 428
+        int PRECONDITION_REQUIRED = 428;
         int TOO_MANY_REQUESTS = 429;
 
         int INTERNAL_SERVER_ERROR = 500;
