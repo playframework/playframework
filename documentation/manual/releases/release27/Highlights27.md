@@ -178,7 +178,7 @@ The available transaction isolation levels mimic what is defined in `java.sql.Co
 
 ### Result `HttpEntity` streamed methods
 
-We had methods to more easily return `chunked` results:
+Previous versions of Play had convenient methods to stream results using HTTP chunked transfer encoding:
 
 Java
 : ```java
@@ -196,7 +196,7 @@ def chunked = Action {
 }
 ```
 
-But the APIs to return a streamed result were a little more verbose:
+In Play 2.6, there was no convenient method to return a streamed Result in the same way without using HTTP chunked encoding. You instead had to write this:
 
 Java
 : ```java
@@ -214,7 +214,7 @@ def streamed = Action {
 }
 ```
 
-We then add new APIs to make it as much straightforward as `chunked`:
+Play 2.7 fixes this by adding a new streamed method on results, that works similar to `chunked`:
 
 Java
 : ```java
