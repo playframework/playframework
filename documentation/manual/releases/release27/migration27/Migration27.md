@@ -114,6 +114,70 @@ if (picture != null) {
 }
 ```
 
+### Differentiate `moveTo` and `copyTo` in `TemporaryFile`
+
+Until Play 2.5, `moveTo` method was actually making a copy of the file to the destination and deleting the source. There was a subtle change in Play 2.6 where the file was instead being moved atomically depending on certain conditions. For such cases, both the source and destination end up using the same [`inode`](https://en.wikipedia.org/wiki/Inode) and then deleting the source implies that the destination will be deleted too.
+
+To make the API more clear around this, there are now `moveTo` and `copyTo` methods where `copyTo` always create a copy that does not share the same `inode`. So, if the application is configured to clean up temporary files (see documentation for [[Scala|ScalaFileUpload#Cleaning-up-temporary-files]] or [[Java|JavaFileUpload#Cleaning-up-temporary-files]]) and you want to retain the destination, then use `copyTo` instead of `moveTo`. For example:
+
+Java
+: ```java
+package controllers;
+
+import play.libs.Files;
+import play.mvc.*;
+
+import java.nio.file.Paths;
+
+public class UploadController extends Controller {
+
+    public Result upload(Http.Request request) {
+        Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
+        Http.MultipartFormData.FilePart<Files.TemporaryFile> picture = body.getFile("picture");
+        if (picture != null) {
+            String fileName = picture.getFilename();
+            String contentType = picture.getContentType();
+            Files.TemporaryFile file = picture.getRef();
+
+            // Use copyTo if you want to retain the file for sure when using the temporary file
+            // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
+            file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
+            return ok("File uploaded");
+        } else {
+            return badRequest().flashing("error", "Missing file");
+        }
+    }
+
+}
+```
+
+Scala
+: ```scala
+package controllers
+
+import java.nio.file.Paths
+
+import javax.inject.Inject
+import play.api.mvc._
+
+class UploadController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
+
+  def upload = Action(parse.multipartFormData) { request =>
+    request.body.file("picture").map { picture =>
+
+      val filename = Paths.get(picture.filename).getFileName
+
+      // Use copyTo if you want to retain the file for sure when using the temporary file
+      // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
+      picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
+      Ok("File uploaded")
+    }.getOrElse {
+      Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
+    }
+  }
+}
+```
+
 ### Guice compatibility changes
 
 Guice was upgraded to version [4.2.2](https://github.com/google/guice/wiki/Guice422) (also see [4.2.1](https://github.com/google/guice/wiki/Guice421) and [4.2.0 release notes](https://github.com/google/guice/wiki/Guice42)), which causes the following breaking changes:

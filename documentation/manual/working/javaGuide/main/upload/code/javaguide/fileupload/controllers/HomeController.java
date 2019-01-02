@@ -10,6 +10,8 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 
+import java.nio.file.Paths;
+
 public class HomeController extends Controller {
 
     public Result upload(Http.Request request) {
@@ -19,6 +21,7 @@ public class HomeController extends Controller {
             String fileName = picture.getFilename();
             String contentType = picture.getContentType();
             TemporaryFile file = picture.getRef();
+            file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
             return ok("File uploaded");
         } else {
             return badRequest().flashing("error", "Missing file");
