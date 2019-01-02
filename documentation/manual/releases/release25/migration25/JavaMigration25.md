@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Java Migration Guide
 
 In order to better fit in to the Java 8 ecosystem, and to allow Play Java users to make more idiomatic use of Java in their applications, Play has switched to using a number of Java 8 types such as `CompletionStage` and `Function`. Play also has new Java APIs for `EssentialAction`, `EssentialFilter`, `Router`, `BodyParser` and `HttpRequestHandler`.

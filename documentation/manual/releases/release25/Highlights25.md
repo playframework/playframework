@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.5
 
 This page highlights the new features of Play 2.5. If you want to learn about the changes you need to make to migrate to Play 2.5, check out the [[Play 2.5 Migration Guide|Migration25]].
