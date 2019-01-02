@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide;
@@ -12,10 +12,10 @@ import javax.net.ssl.*;
 import java.security.NoSuchAlgorithmException;
 
 public class CustomSSLEngineProvider implements SSLEngineProvider {
-	private ApplicationProvider applicationProvider;
+    private ApplicationProvider applicationProvider;
 
     public CustomSSLEngineProvider(ApplicationProvider applicationProvider) {
-    	this.applicationProvider = applicationProvider;	
+        this.applicationProvider = applicationProvider;
     }
 
     @Override

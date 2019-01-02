@@ -4,7 +4,7 @@ import sbt._
 import sbt.Keys.libraryDependencies
 
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
 scalaVersion := "2.12.8"

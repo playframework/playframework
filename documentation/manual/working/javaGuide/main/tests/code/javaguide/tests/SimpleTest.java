@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.tests;
@@ -16,7 +16,7 @@ public class SimpleTest {
     int a = 1 + 1;
     assertEquals(2, a);
   }
-    
+
   @Test
   public void testString() {
     String str = "Hello world";

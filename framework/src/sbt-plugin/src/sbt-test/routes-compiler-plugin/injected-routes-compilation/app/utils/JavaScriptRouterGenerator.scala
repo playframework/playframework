@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package utils
 
@@ -25,7 +25,7 @@ object JavaScriptRouterGenerator extends App {
     """
       |module.exports = jsRoutes
     """.stripMargin
-  
+
   val path = Paths.get(args(0))
   Files.createDirectories(path.getParent)
   Files.write(path, jsModule.getBytes("UTF-8"))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data;
@@ -33,14 +33,14 @@ public class FormFactory {
         this.validatorFactory = validatorFactory;
         this.config = config;
     }
-    
+
     /**
      * @return a dynamic form.
      */
     public DynamicForm form() {
         return new DynamicForm(messagesApi, formatters, validatorFactory, config);
     }
-    
+
     /**
      * @param clazz    the class to map to a form.
      * @param <T>   the type of value in the form.
@@ -49,7 +49,7 @@ public class FormFactory {
     public <T> Form<T> form(Class<T> clazz) {
         return new Form<>(clazz, messagesApi, formatters, validatorFactory, config);
     }
-    
+
     /**
      * @param <T>   the type of value in the form.
      * @param name the form's name.
@@ -59,7 +59,7 @@ public class FormFactory {
     public <T> Form<T> form(String name, Class<T> clazz) {
         return new Form<>(name, clazz, messagesApi, formatters, validatorFactory, config);
     }
-    
+
     /**
      * @param <T>   the type of value in the form.
      * @param name the form's name

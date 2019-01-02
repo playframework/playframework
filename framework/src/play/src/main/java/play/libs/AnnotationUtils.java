@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -22,7 +22,7 @@ public class AnnotationUtils {
      * Returns a new array whose entries do not contain container annotations anymore but the indirectly present annotation(s) a container annotation
      * was wrapping instead. An annotation is considered a container annotation if its indirectly present annotation(s) are annotated with {@link Repeatable}.
      * Annotations inside the given array which don't meet the above definition of a container annotations will be returned untouched.
-     * 
+     *
      * @param annotations An array of annotations to unwrap. Can contain both container and non container annotations.
      * @return A new array without container annotations but the container annotations' indirectly defined annotations.
      */
@@ -43,7 +43,7 @@ public class AnnotationUtils {
      * If the return type of an existing {@code value()} method of the passed annotation is an {@code Annotation[]} array and the annotations inside that
      * {@code Annotation[]} array are annotated with the {@link Repeatable} annotation the annotations of that array will be returned.
      * If the passed annotation does not have a {@code value()} method or the above criteria are not met an empty list will be returned instead.
-     * 
+     *
      * @param maybeContainerAnnotation The annotation which {@code value()} method will be checked for other annotations
      * @return The annotations defined by the {@code value()} method or an empty list.
      */

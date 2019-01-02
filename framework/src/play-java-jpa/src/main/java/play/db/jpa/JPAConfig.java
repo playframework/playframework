@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.jpa;
@@ -16,7 +16,7 @@ public interface JPAConfig {
     class PersistenceUnit {
         public String name;
         public String unitName;
-        
+
         public PersistenceUnit(String name, String unitName) {
             this.name = name;
             this.unitName = unitName;

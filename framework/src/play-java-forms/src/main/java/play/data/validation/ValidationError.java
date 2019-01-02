@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data.validation;
@@ -13,7 +13,7 @@ import play.i18n.Messages;
  * A form validation error.
  */
 public class ValidationError {
-    
+
     private String key;
     private List<String> messages;
     private List<Object> arguments;
@@ -27,7 +27,7 @@ public class ValidationError {
     public ValidationError(String key, String message) {
         this(key, message, ImmutableList.of());
     }
-    
+
     /**
      * Constructs a new {@code ValidationError}.
      *

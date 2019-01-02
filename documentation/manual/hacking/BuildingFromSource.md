@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Building Play from source
 
 If you want to use some unreleased changes for Play, or you want to contribute to the development of Play yourself, you'll need to compile Play from source. You’ll need a [Git client](https://git-scm.com/) to fetch the source.

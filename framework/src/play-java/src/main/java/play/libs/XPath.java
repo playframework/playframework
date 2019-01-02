@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -89,7 +89,7 @@ public class XPath {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             javax.xml.xpath.XPath xpath = factory.newXPath();
-            
+
             if (namespaces != null) {
                 PlayNamespaceContext nsContext = new PlayNamespaceContext();
                 bindUnboundedNamespaces(nsContext, namespaces);
@@ -117,7 +117,7 @@ public class XPath {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             javax.xml.xpath.XPath xpath = factory.newXPath();
-            
+
             if (namespaces != null) {
                 PlayNamespaceContext nsContext = new PlayNamespaceContext();
                 bindUnboundedNamespaces(nsContext, namespaces);

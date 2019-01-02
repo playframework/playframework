@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -44,7 +44,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |Content-Disposition: form-data; name="file_with_space_only"; filename="with_space_only.txt"
       |Content-Type: text/plain
       |
-      | 
+      |
       |--aabbccddee
       |Content-Disposition: form-data; name="file_with_newline_only"; filename="with_newline_only.txt"
       |Content-Type: text/plain

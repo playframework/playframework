@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.binder.models;
@@ -8,11 +8,11 @@ import play.mvc.PathBindable;
 
 //#declaration
 public class User implements PathBindable<User> {
-	
+
     public Long id;
     public String name;
   //#declaration
-    
+
 //#bind
 @Override
 public User bind(String key, String id) {
@@ -30,15 +30,15 @@ public String unbind(String key) {
 	return String.valueOf(id);
 }
 //#bind
-	
+
 	@Override
 	public String javascriptUnbind() {
 		return "function(k,v) {\n" +
 	             "    return v.id;" +
 	             "}";
 	}
-	
-	// stubbed test 
+
+	// stubbed test
 	// designed to be lightweight operation
 	private User findById(Long id){
 		if (id>3) return null;
@@ -46,7 +46,7 @@ public String unbind(String key) {
 		user.id = id;
 		user.name = "User " + String.valueOf(id);
 		return user;
-    	
+
 	}
 
 }

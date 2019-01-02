@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Writing functional tests
 
 Play provides a number of classes and convenience methods that assist with functional testing. Most of these can be found either in the [`play.test`](api/java/play/test/package-summary.html) package or in the [`Helpers`](api/java/play/test/Helpers.html) class.

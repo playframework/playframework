@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # OpenID Support in Play
 
 [OpenID](https://openid.net/get-an-openid/what-is-openid/) is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.

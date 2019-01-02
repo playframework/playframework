@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.testing.database
@@ -122,14 +122,14 @@ class ScalaTestingWithDatabases extends Specification {
         //#in-memory-shutdown
       }
     }
-    
+
     "manage an in memory database for the user" in {
       //#with-in-memory
       import play.api.db.Databases
 
       Databases.withInMemory() { database =>
         val connection = database.getConnection()
-        
+
         // ...
       }
       //#with-in-memory
@@ -184,14 +184,14 @@ class ScalaTestingWithDatabases extends Specification {
 
       val connection = database.getConnection()
       connection.prepareStatement("insert into test values (10, 'testing')").execute()
-      
+
       //#cleanup-evolutions-simple
       Evolutions.cleanupEvolutions(database)
       //#cleanup-evolutions-simple
-      
+
       connection.prepareStatement("select * from test").executeQuery() must throwAn[SQLException]
     }
-    
+
     "allow running evolutions from a custom path" in play.api.db.Databases.withInMemory() { database =>
       //#apply-evolutions-custom-path
       import play.api.db.evolutions._

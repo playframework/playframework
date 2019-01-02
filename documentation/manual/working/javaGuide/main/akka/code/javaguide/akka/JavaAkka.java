@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.akka;
@@ -81,7 +81,7 @@ public class JavaAkka {
             ActorRef parent = app.injector().instanceOf(play.inject.Bindings.bind(ActorRef.class).qualifiedWith("parent-actor"));
 
             try {
-                String message = (String) 
+                String message = (String)
                   ask(parent, new ParentActorProtocol.GetChild("my.config"), java.time.Duration.ofMillis(1000))
                     .thenApply(msg -> (ActorRef) msg)
                     .thenCompose(child ->

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data;
@@ -31,12 +31,12 @@ public class SomeUser implements Validatable<ValidationError> {
     @MinLength(2)
     @MaxLength(255)
     private String lastName;
-    
+
     @Required(groups = {PasswordCheck.class, LoginCheck.class})
     @MinLength(5)
     @MaxLength(255)
     private String password;
-    
+
     @Required(groups = {PasswordCheck.class})
     @MinLength(5)
     @MaxLength(255)

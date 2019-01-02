@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data.validation;
@@ -156,7 +156,7 @@ public class Constraints {
     public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
         return constraints.parallelStream().filter(c -> c.getAnnotation().annotationType().isAnnotationPresent(Display.class)).map(c -> displayableConstraint(c)).collect(Collectors.toList());
     }
-    
+
     /**
      * Converts a set of constraints to human-readable values in guaranteed order.
      * Only constraints that have an annotation that intersect with the {@code orderedAnnotations} parameter will be considered.
@@ -182,7 +182,7 @@ public class Constraints {
                         )
                 ).collect(Collectors.toList());
     }
-    
+
     /**
      * Converts a constraint to a human-readable value.
      *
@@ -663,7 +663,7 @@ public class Constraints {
     }
 
     // --- validate fields with custom validator
-    
+
     /**
      * Defines a custom validator.
      */
@@ -738,7 +738,7 @@ public class Constraints {
     }
 
     // --- validate fields with custom validator that gets payload
-    
+
     /**
      * Defines a custom validator.
      */

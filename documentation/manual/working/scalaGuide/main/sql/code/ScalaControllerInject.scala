@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.sql
@@ -16,11 +16,11 @@ class ScalaControllerInject @Inject()(db: Database, val controllerComponents: Co
   def index = Action {
     var outString = "Number is "
     val conn = db.getConnection()
-    
+
     try {
       val stmt = conn.createStatement
       val rs = stmt.executeQuery("SELECT 9 as testkey ")
-      
+
       while (rs.next()) {
         outString += rs.getString("testkey")
       }

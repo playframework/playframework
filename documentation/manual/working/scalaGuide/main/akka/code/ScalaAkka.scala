@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.akka {
@@ -39,7 +39,7 @@ class ScalaAkkaSpec extends PlaySpecification {
     "allow injecting actors" in new WithApplication {
       import controllers._
       val controller = app.injector.instanceOf[Application]
-      
+
       val helloActor = controller.helloActor
       import play.api.mvc.Results._
       import actors.HelloActor.SayHello
@@ -56,7 +56,7 @@ class ScalaAkkaSpec extends PlaySpecification {
         }
       }
       //#ask
-      
+
       contentAsString(sayHello("world")(FakeRequest())) must_== "Hello, world"
     }
 
@@ -96,7 +96,7 @@ package controllers {
 import play.api.mvc._
 import akka.actor._
 import javax.inject._
-  
+
 import actors.HelloActor
 
 @Singleton
@@ -108,7 +108,7 @@ class Application @Inject() (system: ActorSystem,
 
   //...
 }
-//#controller  
+//#controller
 }
 
 package injection {
@@ -174,13 +174,13 @@ import akka.actor._
 
 object HelloActor {
   def props = Props[HelloActor]
-  
+
   case class SayHello(name: String)
 }
 
 class HelloActor extends Actor {
   import HelloActor._
-  
+
   def receive = {
     case SayHello(name: String) =>
       sender() ! "Hello, " + name

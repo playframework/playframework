@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.tests;
@@ -18,7 +18,7 @@ import play.mvc.Result;
 import play.twirl.api.Content;
 
 public class ControllerTest {
-  
+
   @Test
   public void testIndex() {
     Result result = new HomeController().index();

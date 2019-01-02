@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.binder.controllers
@@ -33,11 +33,11 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
             //#javascript-router-resource-custom-method
         ).as(MimeTypes.JAVASCRIPT)
     }
-    
+
 }
 
 class Users @Inject()(components: ControllerComponents) extends AbstractController(components) {
-    
+
     def list = Action {
         Ok("List users")
     }

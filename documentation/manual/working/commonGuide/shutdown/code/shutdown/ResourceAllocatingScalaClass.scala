@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package shutdown
@@ -29,7 +29,7 @@ class ResourceAllocatingScalaClass @Inject() (cs: CoordinatedShutdown) {
   // ... some more code
 }
 //#shutdown-task
-  
+
   class Resources(name: String) {
     def release(): Future[Done] = ???
   }

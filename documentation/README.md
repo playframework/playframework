@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Build documentation
 
 This is the README for the Play documentation project.  The documentation project does not build with the rest of the Play projects, and uses its own sbt setup instead.  Please refer to the [main README file](../README.md) for how to build Play in general and how to [contribute](../CONTRIBUTING.md).

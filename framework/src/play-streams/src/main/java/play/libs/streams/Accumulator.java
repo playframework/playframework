@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.streams;
@@ -209,7 +209,7 @@ public abstract class Accumulator<E, A> {
      */
     public static <E, A> Accumulator<E, A> flatten(CompletionStage<Accumulator<E, A>> stage, Materializer materializer) {
         final CompletableFuture<A> result = new CompletableFuture<A>();
-        final FlattenSubscriber<A, E> subscriber = 
+        final FlattenSubscriber<A, E> subscriber =
             new FlattenSubscriber<>(stage, result, materializer);
 
         final Sink<E, CompletableFuture<A>> sink =
@@ -269,7 +269,7 @@ public abstract class Accumulator<E, A> {
 
             return this.result;
         }
-    
+
         private BiFunction<Accumulator<E, A>, Throwable, Void> handler(final Subscription sub) {
             return (acc, error) -> {
                 if (acc != null) {

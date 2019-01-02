@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -28,17 +28,17 @@ public class TimeTest {
     public void testSeconds() {
         int result1 = Time.parseDuration("1s");
         assertEquals(oneSecond, result1);
-        
+
         int result2 = Time.parseDuration("100s");
         assertEquals(oneSecond * 100, result2);
-        
+
         try {
             Time.parseDuration("1S");
             Assert.fail("Should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException iae) {
             assertEquals("Invalid duration pattern : " + "1S", iae.getMessage());
         }
-        
+
         try {
             Time.parseDuration("100S");
             Assert.fail("Should have thrown an IllegalArgumentException");
@@ -51,30 +51,30 @@ public class TimeTest {
     public void testMinutes() {
         int result1 = Time.parseDuration("1mn");
         assertEquals(oneMinute, result1);
-        
+
         int result2 = Time.parseDuration("100mn");
         assertEquals(oneMinute * 100, result2);
-        
+
         int result3 = Time.parseDuration("1min");
         assertEquals(oneMinute, result3);
-        
+
         int result4 = Time.parseDuration("100min");
         assertEquals(oneMinute * 100, result4);
-        
+
         try {
             Time.parseDuration("1MIN");
             Assert.fail("Should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException iae) {
             assertEquals("Invalid duration pattern : " + "1MIN", iae.getMessage());
         }
-        
+
         try {
             Time.parseDuration("100MN");
             Assert.fail("Should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException iae) {
             assertEquals("Invalid duration pattern : " + "100MN", iae.getMessage());
         }
-        
+
         try {
             Time.parseDuration("100mN");
             Assert.fail("Should have thrown an IllegalArgumentException");
@@ -87,17 +87,17 @@ public class TimeTest {
     public void testHours() {
         int result1 = Time.parseDuration("1h");
         assertEquals(oneHour, result1);
-        
+
         int result2 = Time.parseDuration("100h");
         assertEquals(oneHour * 100, result2);
-        
+
         try {
             Time.parseDuration("1H");
             Assert.fail("Should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException iae) {
             assertEquals("Invalid duration pattern : " + "1H", iae.getMessage());
         }
-        
+
         try {
             Time.parseDuration("100H");
             Assert.fail("Should have thrown an IllegalArgumentException");
@@ -110,17 +110,17 @@ public class TimeTest {
     public void testDays() {
         int result1 = Time.parseDuration("1d");
         assertEquals(oneDay, result1);
-        
+
         int result2 = Time.parseDuration("100d");
         assertEquals(oneDay * 100, result2);
-        
+
         try {
             Time.parseDuration("1D");
             Assert.fail("Should have thrown an IllegalArgumentException");
         } catch(IllegalArgumentException iae) {
             assertEquals("Invalid duration pattern : " + "1D", iae.getMessage());
         }
-        
+
         try {
             Time.parseDuration("100D");
             Assert.fail("Should have thrown an IllegalArgumentException");

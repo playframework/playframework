@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.cache;
@@ -56,7 +56,7 @@ public class JavaCache extends WithApplication {
         block(result);
         }
         {
-        //#time-set	
+        //#time-set
         // Cache for 15 minutes
         CompletionStage<Done> result = cache.set("item.key", frontPageNews, 60 * 15);
         //#time-set

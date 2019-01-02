@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 import play.dev.filewatch.FileWatchService
 import play.sbt.run.toLoggerProxy
@@ -101,9 +101,9 @@ object DevModeBuild {
         .split("\n") // split per line
         .filter{_.contains("ProdServerStart")}
       foundProcesses // filter only the Play processes
-        // check that there is a process line starting with 'pidString ' 
+        // check that there is a process line starting with 'pidString '
         // (note padding with whitespace)
-        .exists(_.startsWith(pidString + " ")) 
+        .exists(_.startsWith(pidString + " "))
     }
 
     println("Preparing to stop Prod...")

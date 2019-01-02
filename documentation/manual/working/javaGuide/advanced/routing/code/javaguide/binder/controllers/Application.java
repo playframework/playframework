@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.binder.controllers;
@@ -12,7 +12,7 @@ import play.mvc.Result;
 //#javascript-router-resource-imports
 
 public class Application extends Controller {
-    
+
     //#javascript-router-resource
     public Result javascriptRoutes(Http.Request request) {
         return ok(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.binder.controllers;
@@ -14,13 +14,13 @@ public class BinderApplication extends Controller {
 	//#path
     public Result user(User user){
     	return ok(user.name);
-    }    
+    }
 	//#path
-    
+
 	//#query
     public Result age(AgeRange ageRange){
     	return ok(String.valueOf(ageRange.from));
-    }    
-	//#query    
+    }
+	//#query
 }
 

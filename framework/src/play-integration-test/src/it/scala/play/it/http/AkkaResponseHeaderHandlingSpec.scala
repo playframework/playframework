@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -48,7 +48,7 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
     }
 
     "don't log a warning for Set-Cookie headers with negative ages" in {
-      val problemHeaderValue = "PLAY_FLASH=; Max-Age=-86400; Expires=Tue, 30 Jan 2018 06:29:53 GMT; Path=/; HTTPOnly"
+      val problemHeaderValue = "PLAY_FLASH=; Max-Age=-86400; Expires=Tue, 30 Jan 2019 06:29:53 GMT; Path=/; HTTPOnly"
       withServer((Action, _) => Action { rh =>
         // Test the header reported in https://github.com/playframework/playframework/issues/8205
         Results.Ok.withHeaders("Set-Cookie" -> problemHeaderValue)

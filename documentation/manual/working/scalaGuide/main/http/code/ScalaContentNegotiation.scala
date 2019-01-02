@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.http.scalacontentnegotiation {
@@ -38,7 +38,7 @@ package scalaguide.http.scalacontentnegotiation {
       }
 
       "negotiate accept type" in {
-        
+
         val list = Action { implicit request =>
 
           def ??? = Ok("ok")
