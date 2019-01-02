@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
 Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play uses [`SLF4J`](https://www.slf4j.org) as a logging facade with [Logback](https://logback.qos.ch/) as the default logging engine.

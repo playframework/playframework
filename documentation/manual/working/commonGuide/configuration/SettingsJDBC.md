@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring the JDBC pool.
 
 The Play JDBC datasource is managed by [HikariCP](https://brettwooldridge.github.io/HikariCP/).

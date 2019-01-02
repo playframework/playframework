@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Intercepting HTTP requests
 
 Play's Java APIs provide two ways of intercepting action calls. The first is called `ActionCreator`, which provides a `createAction` method that is used to create the initial action used in action composition. It handles calling the actual method for your action, which allows you to intercept requests.
