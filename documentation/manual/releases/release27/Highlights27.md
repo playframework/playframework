@@ -150,32 +150,6 @@ See more details at [[GzipEncoding]].
 
 Here are some of the relevant API additions we made for Play 2.7.0.
 
-### Isolation level for Database transactions
-
-You can now chose an isolation level when using `Database.withTransaction` API. For example:
-
-Java
-: ```java
-public void someDatabaseOperation() {
-    database.withTransaction(TransactionIsolationLevel.ReadUncommitted, connection -> {
-        ResultSet resultSet = connection.prepareStatement("select * from users where id = 10").executeQuery();
-        // consume the resultSet and return some value
-    });
-}
-```
-
-Scala
-: ```scala
-def someDatabaseOperation(): Unit = {
-  database.withTransaction(TransactionIsolationLevel.ReadUncommitted) { connection =>
-    val resultSet: ResultSet = connection.prepareStatement("select * from users where id = 10").executeQuery();
-    // consume the resultSet and return some value
-  }
-}
-```
-
-The available transaction isolation levels mimic what is defined in `java.sql.Connection`.
-
 ### Result `HttpEntity` streamed methods
 
 Previous versions of Play had convenient methods to stream results using HTTP chunked transfer encoding:
