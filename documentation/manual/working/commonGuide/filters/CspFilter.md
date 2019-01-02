@@ -291,7 +291,7 @@ In particular, there are a number of subtle interactions with CSP that are unint
 
 ### False CSP Reports
 
-There can be a number of false positives produced from [browser extensions and plugins](https://jellyhive.com/activity/posts/2019/03/26/csp-implementations-are-broken/), and these can show as coming from `about:blank`.  It can take an extended period of time to resolve real issues and work out filters.  If you would rather configure a report-only policy externally, [Report URI](https://report-uri.com) is a hosted CSP service that will collect CSP reports and provide filters.
+There can be a number of false positives produced from [browser extensions and plugins](https://jellyhive.com/activity/posts/2018/03/26/csp-implementations-are-broken/), and these can show as coming from `about:blank`.  It can take an extended period of time to resolve real issues and work out filters.  If you would rather configure a report-only policy externally, [Report URI](https://report-uri.com) is a hosted CSP service that will collect CSP reports and provide filters.
 
 ## Further Reading
 
