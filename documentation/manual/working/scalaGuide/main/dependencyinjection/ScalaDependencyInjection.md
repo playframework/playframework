@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Dependency Injection
 
 Dependency injection is a widely used design pattern that helps separate your components' behaviour from dependency resolution.  Play supports both runtime dependency injection based on [JSR 330](https://jcp.org/en/jsr/detail?id=330) (described in this page) and [[compile time dependency injection|ScalaCompileTimeDependencyInjection]] in Scala.
