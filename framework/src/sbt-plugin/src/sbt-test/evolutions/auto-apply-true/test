@@ -18,6 +18,7 @@ $ sleep 2000
 > playUpdateSecret
 # Should start successfully when there are evolutions and `autoApply=true`
 > runProd --no-exit-sbt
+$ sleep 2000
 $ exists target/universal/stage/RUNNING_PID
 > verifyResourceContains / 200 Player1
 > stopProd --no-exit-sbt
