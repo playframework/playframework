@@ -82,7 +82,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate" % "hibernate-core" % "5.3.7.Final" % "test"
+    "org.hibernate" % "hibernate-core" % "5.4.0.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
