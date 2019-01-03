@@ -70,6 +70,7 @@ public class SomeForm implements ValidatableWithPayload<String> {
 ```
 
 In case you wrote your own [[custom class-level constraint|JavaForms#Custom-class-level-constraints-with-DI-support]], you can also pass a payload to an `isValid` method by implementing `PlayConstraintValidatorWithPayload` (instead of just `PlayConstraintValidator`):
+
 ```java
 import javax.validation.ConstraintValidatorContext;
 
@@ -125,11 +126,11 @@ ws.url("https://www.playframework.com")
 
 And then the following log will be printed:
 
-```
+```bash
 curl \
   --verbose \
   --request GET \
-  --header 'My-Header: Header Value' \\
+  --header 'My-Header: Header Value' \
   'https://www.playframework.com'
 ```
 
@@ -144,3 +145,63 @@ play.filters.gzip.compressionLevel = 9
 ```
 
 See more details at [[GzipEncoding]].
+
+## API Additions
+
+Here are some of the relevant API additions we made for Play 2.7.0.
+
+### Result `HttpEntity` streamed methods
+
+Previous versions of Play had convenient methods to stream results using HTTP chunked transfer encoding:
+
+Java
+: ```java
+public Result chunked() {
+    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+    return ok().chunked(body);
+}
+```
+
+Scala
+: ```scala
+def chunked = Action {
+  val body = Source(List("first", "second", "..."))
+  Ok.chunked(body)
+}
+```
+
+In Play 2.6, there was no convenient method to return a streamed Result in the same way without using HTTP chunked encoding. You instead had to write this:
+
+Java
+: ```java
+public Result streamed() {
+    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+    return ok().sendEntity(new HttpEntity.Streamed(body, Optional.empty(), Optional.empty()));
+}
+```
+
+Scala
+: ```scala
+def streamed = Action {
+  val body = Source(List("first", "second", "...")).map(s => ByteString.fromString(s))
+  Ok.sendEntity(HttpEntity.Streamed(body, None, None))
+}
+```
+
+Play 2.7 fixes this by adding a new streamed method on results, that works similar to `chunked`:
+
+Java
+: ```java
+public Result streamed() {
+    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+    return ok().streamed(body, Optional.empty(), Optional.empty());
+}
+```
+
+Scala
+: ````scala
+def streamed = Action {
+  val body = Source(List("first", "second", "...")).map(s => ByteString.fromString(s))
+  Ok.streamed(body, contentLength = None)
+}
+```
