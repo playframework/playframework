@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -399,11 +399,11 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
   final def async(block: R[B] => Future[Result]): Action[B] = async(parser)(block)
 
   /**
-   * Constructs an `Action` that returns a future of a result, with default content.
+   * Constructs an `Action` with the given [[BodyParser]] that returns a future of a result.
    *
    * For example:
    * {{{
-   * val hello = Action.async { request =>
+   * val hello = Action.async(parse.anyContent) { request =>
    *   ws.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }

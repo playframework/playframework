@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.action
@@ -154,6 +154,13 @@ trait HeadActionSpec extends Specification with FutureAwaits with DefaultAwaitTi
 
       response.body must_== ""
       response.header(CONTENT_LENGTH) must beNone
+    }
+
+    "Keep Content-Length for streamed responses" in withServer { client =>
+      val response = await(client.url("/stream/10").head())
+
+      response.body must_== ""
+      response.header(CONTENT_LENGTH) must beSome("10")
     }
 
   }

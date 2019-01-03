@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.tools
@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.http.HttpEntity
 import play.api.libs.Files
 import play.api.libs.json.{ JsObject, _ }
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -16,7 +18,7 @@ import play.api.mvc._
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
 import play.api.routing.sird._
-import play.api.{ ApplicationLoader, BuiltInComponentsFromContext, Environment, NoHttpFiltersComponents }
+import play.api._
 import play.filters.gzip.GzipFilter
 
 /**
@@ -36,7 +38,7 @@ object HttpBinApplication {
     )
   }
 
-  private def requestWriter[A] = new Writes[Request[A]] {
+  private def requestWriter[A]: Writes[Request[A]] = new Writes[Request[A]] {
     def readFileToString(ref: Files.TemporaryFile): String = {
       new String(java.nio.file.Files.readAllBytes(ref), StandardCharsets.UTF_8)
     }
@@ -122,7 +124,7 @@ object HttpBinApplication {
 
   private def gzipFilter(mat: Materializer) = new GzipFilter()(mat)
 
-  def gzip(implicit mat: Materializer, Action: DefaultActionBuilder) = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
+  def gzip(implicit mat: Materializer, Action: DefaultActionBuilder): Routes = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
     val route: Routes = {
       case r @ p"/gzip" if r.method == method =>
         gzipFilter(mat)(Action { request =>
@@ -210,14 +212,10 @@ object HttpBinApplication {
 
   def stream(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/stream/$param<[0-9]+>") =>
-      Action { request =>
-        val body = requestHeaderWriter.writes(request).as[JsObject]
-
-        val content = 0.to(param.toInt).map { index =>
-          body ++ Json.obj("id" -> index)
-        }
-
-        Ok.chunked(Source(content)).as("application/json")
+      Action {
+        val contentLength = param.toInt
+        val content = (0 to contentLength).map(ByteString(_))
+        Ok.sendEntity(HttpEntity.Streamed(Source(content), Option(contentLength), Option("application/json")))
       }
   }
 
@@ -327,10 +325,10 @@ object HttpBinApplication {
       }
   }
 
-  def app = {
+  def app: Application = {
     new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with AhcWSComponents with NoHttpFiltersComponents {
       override implicit lazy val Action = defaultActionBuilder
-      def router = SimpleRouter(
+      override def router = SimpleRouter(
         PartialFunction.empty
           .orElse(getIp)
           .orElse(getUserAgent)

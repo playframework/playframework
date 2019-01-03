@@ -1,0 +1,26 @@
+> run
+
+# We will see that groups need some evolution
+> verifyResourceContains /groups 500 groups
+> applyEvolutions /@evolutions/apply/groups
+> verifyResourceContains /users 200 Player1
+> verifyResourceContains /groups 200 Group1
+
+# Add a new evolution to verify that it will be applied automatically
+$ copy-file changes/users/2.sql conf/evolutions/users/2.sql
+# Give the file watcher some time to react
+$ sleep 2000
+
+> verifyResourceContains /users 200 Player2
+
+# Add a new evolution to the database that requires manual intervention
+$ copy-file changes/groups/2.sql conf/evolutions/groups/2.sql
+
+# Give the file watcher some time to react
+$ sleep 2000
+
+> verifyResourceContains /groups 500 groups
+> applyEvolutions /@evolutions/apply/groups
+> verifyResourceContains /groups 200 Group2
+
+> playStop

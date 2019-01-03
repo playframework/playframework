@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -84,6 +84,26 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
+    }
+
+    "add Content-Length for streamed results" in makeRequest(new MockController {
+      def action = {
+        val body = Source.single(ByteString.fromString("1234567890"))
+        Results.ok().streamed(body, Optional.of(10L), Optional.empty())
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beSome("10")
+      response.body must_== "1234567890"
+    }
+
+    "not add Content-Length for streamed results when it is not specified" in makeRequest(new MockController {
+      def action = {
+        val body = Source.single(ByteString.fromString("1234567890"))
+        Results.ok().streamed(body, Optional.empty(), Optional.empty())
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must_== "1234567890"
     }
 
     "support responses with custom Content-Types" in makeRequest(new MockController {

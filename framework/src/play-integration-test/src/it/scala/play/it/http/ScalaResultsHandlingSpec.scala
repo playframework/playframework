@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -92,6 +92,20 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
     "add Content-Length for strict results" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
+    }
+
+    "add Content-Length header for streamed results when specified" in makeRequest {
+      Results.Ok.streamed(Source.single("1234567890"), Some(10))
+    } { response =>
+      response.header(CONTENT_LENGTH) must beSome("10")
+      response.body must_== "1234567890"
+    }
+
+    "not have Content-Length header for streamed results when not specified" in makeRequest {
+      Results.Ok.streamed(Source.single("1234567890"), None)
+    } { response =>
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must_== "1234567890"
     }
 
     def emptyStreamedEntity = Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))

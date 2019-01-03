@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+  ~ Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
   -->
 <xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
 <XRD>

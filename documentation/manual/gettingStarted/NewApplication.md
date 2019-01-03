@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Creating a new application
 
 To learn about Play hands-on, try the examples as described below, they contain everything you need to build and run them. If you have [sbt installed](https://www.scala-sbt.org/1.x/docs/Setup.html), you can create a Play  project with a single command, using our giter8 Java or Scala  template. The templates set up the project structure and dev environment for you. You can also easily integrate Play projects into your favorite IDE.

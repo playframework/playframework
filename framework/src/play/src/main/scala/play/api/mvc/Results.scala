@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -509,6 +509,23 @@ trait Results {
       Result(
         header = header,
         body = HttpEntity.Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), writeable.contentType)
+      )
+    }
+
+    /**
+     * Feed the content as the response, using a streamed entity.
+     *
+     * It will use the given Content-Type, but if is not present, then it fallsback
+     * to use the [[Writeable]] contentType.
+     *
+     * @param content Source providing the content to stream.
+     * @param contentLength an optional content length.
+     * @param contentType an optional content type.
+     */
+    def streamed[C](content: Source[C, _], contentLength: Option[Long], contentType: Option[String] = None)(implicit writeable: Writeable[C]): Result = {
+      Result(
+        header = header,
+        body = HttpEntity.Streamed(content.map(c => writeable.transform(c)), contentLength, contentType.orElse(writeable.contentType))
       )
     }
 

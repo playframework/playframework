@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring Content Security Policy Headers
 
 A good content security policy (CSP) is an essential part of securing a website.  Used properly, CSP can make XSS and injection much harder for attackers, although some attacks are [still possible](https://csp.withgoogle.com/docs/faq.html#caveats).

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -130,6 +130,13 @@ class RoutesFileParserSpec extends Specification {
       rule must beAnInstanceOf[Include]
       rule.asInstanceOf[Include].router must_== "someFile"
       rule.asInstanceOf[Include].prefix must_== "s"
+    }
+
+    "parse an include with a trailing slash" in {
+      val rule = parseRule("-> /s/ someFile")
+      rule must beAnInstanceOf[Include]
+      rule.asInstanceOf[Include].router must_== "someFile"
+      rule.asInstanceOf[Include].prefix must_== "s/"
     }
 
     "parse an include with leading whitespace" in {

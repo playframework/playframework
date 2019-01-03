@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.routing
@@ -144,10 +144,16 @@ object Router {
   }
 
   /**
-   * Add the given prefix to the given path, collapsing any slashes.
+   * Concatenate another prefix with an existing prefix, collapsing extra slashes. If the existing prefix is empty or
+   * "/" then the new prefix replaces the old one. Otherwise the new prefix is prepended to the old one with a slash in
+   * between, ignoring a final slash in the new prefix or an initial slash in the existing prefix.
    */
-  def prefixPath(prefix: String, path: String = ""): String = {
-    prefix + (if (prefix.endsWith("/")) "" else "/") + path.stripPrefix("/")
+  def concatPrefix(newPrefix: String, existingPrefix: String): String = {
+    if (existingPrefix.isEmpty || existingPrefix == "/") {
+      newPrefix
+    } else {
+      newPrefix.stripSuffix("/") + "/" + existingPrefix.stripPrefix("/")
+    }
   }
 }
 
@@ -160,17 +166,15 @@ trait SimpleRouter extends Router { self =>
     if (prefix == "/") {
       self
     } else {
+      val prefixTrailingSlash = if (prefix endsWith "/") prefix else prefix + "/"
+      val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
+        case rh: RequestHeader if rh.path == prefix || rh.path.startsWith(prefixTrailingSlash) =>
+          val newPath = "/" + rh.path.drop(prefixTrailingSlash.length)
+          rh.withTarget(rh.target.withPath(newPath))
+      }
       new Router {
-        def routes = {
-          val p = Router.prefixPath(prefix)
-          val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
-            case rh: RequestHeader if rh.path.startsWith(p) =>
-              val newPath = rh.path.drop(p.length - 1)
-              rh.withTarget(rh.target.withPath(newPath))
-          }
-          Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
-        }
-        def withPrefix(p: String) = self.withPrefix(Router.prefixPath(p, prefix))
+        def routes = Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
+        def withPrefix(p: String) = self.withPrefix(Router.concatPrefix(p, prefix))
         def documentation = self.documentation
       }
     }

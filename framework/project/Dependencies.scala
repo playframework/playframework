@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
 import Keys._
@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.19")
-  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.5")
+  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.6")
   val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
@@ -82,7 +82,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate" % "hibernate-core" % "5.3.7.Final" % "test"
+    "org.hibernate" % "hibernate-core" % "5.4.0.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"

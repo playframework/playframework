@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 import java.util.regex.Pattern
 
@@ -55,7 +55,7 @@ object BuildSettings {
     excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
          fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
          fileUriRegexFilter(".*/libs/reflect/.*"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>"))
   )
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
@@ -201,8 +201,7 @@ object BuildSettings {
         previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
-    mimaBinaryIssueFilters ++= Seq(
-    ),
+    mimaBinaryIssueFilters ++= Seq(),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },

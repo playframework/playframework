@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -475,6 +475,18 @@ public class StatusHeader extends Result {
      */
     public Result chunked(Source<ByteString, ?> chunks) {
         return new Result(status(), HttpEntity.chunked(chunks, Optional.empty()));
+    }
+
+    /**
+     * Send a streamed response with the given source.
+     *
+     * @param body the source to send
+     * @param contentLength the entity content length.
+     * @param contentType the entity content type.
+     * @return a '200 OK' response with the given body.
+     */
+    public Result streamed(Source<ByteString, ?> body, Optional<Long> contentLength, Optional<String> contentType) {
+        return new Result(status(), new HttpEntity.Streamed(body, contentLength, contentType));
     }
 
     /**
