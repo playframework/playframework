@@ -1,0 +1,41 @@
+> run
+
+# Needs evolution since autoApply=false for this test
+> verifyResourceContains / 500 evolution
+> applyEvolutions /@evolutions/apply/default
+> verifyResourceContains / 200 Player1
+
+# Add a new evolution so that it will be triggered again
+$ copy-file changes/2.sql conf/evolutions/default/2.sql
+# Give the file watcher some time to react
+$ sleep 2000
+
+> verifyResourceContains / 500 evolution
+> applyEvolutions /@evolutions/apply/default
+> verifyResourceContains / 200 Player2
+
+# Copy evolution with invalid commands
+$ copy-file changes/3.sql conf/evolutions/default/3.sql
+# Give the file watcher some time to react
+$ sleep 2000
+
+# First try to apply evolution
+> applyEvolutions /@evolutions/apply/default
+
+# It will then fail since there is error
+> verifyResourceContains / 500 evolution
+
+# And it can be market as resolved
+> applyEvolutions /@evolutions/resolve/default/3
+> verifyResourceContains / 200 Player3
+
+> playStop
+
+# Testing when running in PROD mode
+
+# Generate a secret so that won't be the cause of the failure
+> playUpdateSecret
+# Should fail to start when there are evolutions and `autoApply=false`
+-> runProd
+# And since it fail to start, there should be no pid file
+-$ exists target/universal/stage/RUNNING_PID

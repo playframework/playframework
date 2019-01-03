@@ -1,0 +1,22 @@
+@(users: List[models.User])
+
+@main("List Users") {
+  <h1>All users</h1>
+
+  <table>
+    <thead>
+      <th>
+        <td>id</td>
+        <td>username</td>
+      </th>
+    </thead>
+    <tbody>
+      @for(user <- users) {
+        <tr>
+          <td>@{user.id}</td>
+          <td>@{user.username}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
