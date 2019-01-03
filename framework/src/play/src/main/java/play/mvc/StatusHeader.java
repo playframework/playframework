@@ -478,6 +478,18 @@ public class StatusHeader extends Result {
     }
 
     /**
+     * Send a streamed response with the given source.
+     *
+     * @param body the source to send
+     * @param contentLength the entity content length.
+     * @param contentType the entity content type.
+     * @return a '200 OK' response with the given body.
+     */
+    public Result streamed(Source<ByteString, ?> body, Optional<Long> contentLength, Optional<String> contentType) {
+        return new Result(status(), new HttpEntity.Streamed(body, contentLength, contentType));
+    }
+
+    /**
      * Send a json result.
      *
      * @param json the json node to send

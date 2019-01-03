@@ -86,6 +86,26 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.body must_== "Hello world"
     }
 
+    "add Content-Length for streamed results" in makeRequest(new MockController {
+      def action = {
+        val body = Source.single(ByteString.fromString("1234567890"))
+        Results.ok().streamed(body, Optional.of(10L), Optional.empty())
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beSome("10")
+      response.body must_== "1234567890"
+    }
+
+    "not add Content-Length for streamed results when it is not specified" in makeRequest(new MockController {
+      def action = {
+        val body = Source.single(ByteString.fromString("1234567890"))
+        Results.ok().streamed(body, Optional.empty(), Optional.empty())
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must_== "1234567890"
+    }
+
     "support responses with custom Content-Types" in makeRequest(new MockController {
       def action = {
         val entity = new HttpEntity.Strict(ByteString(0xff.toByte), Optional.of("schmitch/foo; bar=bax"))

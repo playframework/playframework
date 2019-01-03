@@ -513,6 +513,23 @@ trait Results {
     }
 
     /**
+     * Feed the content as the response, using a streamed entity.
+     *
+     * It will use the given Content-Type, but if is not present, then it fallsback
+     * to use the [[Writeable]] contentType.
+     *
+     * @param content Source providing the content to stream.
+     * @param contentLength an optional content length.
+     * @param contentType an optional content type.
+     */
+    def streamed[C](content: Source[C, _], contentLength: Option[Long], contentType: Option[String] = None)(implicit writeable: Writeable[C]): Result = {
+      Result(
+        header = header,
+        body = HttpEntity.Streamed(content.map(c => writeable.transform(c)), contentLength, contentType.orElse(writeable.contentType))
+      )
+    }
+
+    /**
      * Send an HTTP entity with this status.
      */
     def sendEntity(entity: HttpEntity): Result = {
