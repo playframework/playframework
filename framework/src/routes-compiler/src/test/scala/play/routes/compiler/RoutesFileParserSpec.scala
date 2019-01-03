@@ -132,6 +132,13 @@ class RoutesFileParserSpec extends Specification {
       rule.asInstanceOf[Include].prefix must_== "s"
     }
 
+    "parse an include with a trailing slash" in {
+      val rule = parseRule("-> /s/ someFile")
+      rule must beAnInstanceOf[Include]
+      rule.asInstanceOf[Include].router must_== "someFile"
+      rule.asInstanceOf[Include].prefix must_== "s/"
+    }
+
     "parse an include with leading whitespace" in {
       val rule = parseRule(" \t-> /s someFile")
       rule must beAnInstanceOf[Include]
