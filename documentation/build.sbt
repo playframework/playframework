@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import com.typesafe.play.docs.sbtplugin.Imports._
@@ -72,12 +72,12 @@ lazy val main = Project("Play-Documentation", file("."))
       headers := Map(
         "scala" -> (HeaderPattern.cStyleBlockComment,
           """|/*
-             | * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+             | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
              | */
              |""".stripMargin),
         "java"  -> (HeaderPattern.cStyleBlockComment,
           """|/*
-             | * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+             | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
              | */
              |""".stripMargin)
       )

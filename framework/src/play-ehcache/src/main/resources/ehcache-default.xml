@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+  ~ Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
   -->
 <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../config/ehcache.xsd" updateCheck="false">
 

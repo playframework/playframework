@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play contributor guidelines
 
 The canonical version of this document can be found on the [Play contributor guidelines](https://playframework.com/contributing) page of the Play website.
@@ -31,7 +31,7 @@ Before making a contribution, it is important to make sure that the change you w
         * Features are forever, always think about whether a new feature really belongs to the core framework or if it should be implemented as a module
         * Code must conform to standard style guidelines and pass all tests (see [Run tests](https://www.playframework.com/documentation/latest/BuildingFromSource#run-tests))
     6. New files must:
-        * Have a Lightbend copyright header in the style of ``Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>``.
+        * Have a Lightbend copyright header in the style of ``Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>``.
         * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
 3. Ensure that your commits are squashed.  See [working with git](https://playframework.com/documentation/latest/WorkingWithGit) for more information.
 4. Submit a pull request.

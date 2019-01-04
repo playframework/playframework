@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # About Play releases
 
 Visit the [download page](https://www.playframework.com/download) to get started with the latest Play releases. This page lists all past major Play releases starting from 2.x.

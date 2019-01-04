@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # JSON with HTTP
 
 Play supports HTTP requests and responses with a content type of JSON by using the HTTP API in combination with the JSON library.
