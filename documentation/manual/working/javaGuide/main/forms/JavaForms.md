@@ -17,6 +17,7 @@ The `play.data` package contains several helpers to handle HTTP form data submis
 
 @[user](code/javaguide/forms/u1/User.java)
 
+The above form defines an `email` and a `password` text field and a `profilePicture` file input field, meaning the corresponding HTML form has to be defined with the `multipart/form-data` encoding to be able to upload the file.
 As you can see, by default, you have to define getter and setter methods so Play is able to access the Form fields. You can however also enable "direct field access" (for all forms) by setting `play.forms.binding.directFieldAccess = true` in `conf/application.conf`. In this mode Play will ignore the getter and setter methods and will try to directly access the fields:
 
 @[user](code/javaguide/forms/u4/User.java)
@@ -33,7 +34,7 @@ Instead of enabling "direct field access" for all forms, you can enable it only 
 
 > **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/4.2.4.RELEASE/spring-framework-reference/html/validation.html).
 
-This form can generate a `User` result value from `HashMap<String,String>` data:
+This form can generate a `User` result value from a `HashMap<String,String>` for the text data and from a `Map<String, FilePart<?>>` for the file data:
 
 @[bind](code/javaguide/forms/JavaForms.java)
 

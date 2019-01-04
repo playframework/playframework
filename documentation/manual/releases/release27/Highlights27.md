@@ -15,6 +15,59 @@ You can find more details on the new section on [[Coordinated Shutdown on the Pl
 
 Guice, the default dependency injection framework used by Play, was upgraded to 4.2.2 (from 4.1.0). Have a look at the [4.2.2](https://github.com/google/guice/wiki/Guice422), [4.2.1](https://github.com/google/guice/wiki/Guice421) and the [4.2.0](https://github.com/google/guice/wiki/Guice42) release notes. This new Guice version introduces breaking changes, so make sure you check the [[Play 2.7 Migration Guide|Migration27]].
 
+## Java forms bind `multipart/form-data` file uploads
+
+Until Play 2.6, the only way to retrieve a file that was uploaded via a `multipart/form-data` encoded form was [[by calling|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] `request.body().asMultipartFormData().getFile(...)` inside the action method.
+
+Starting with Play 2.7 such an uploaded file will now also be bound to a Java Form. If you are *not* using a [[custom multipart file part body parser|JavaFileUpload#Writing-a-custom-multipart-file-part-body-parser]] all you need to do is add a `FilePart` of type `TemporaryFile` to your form:
+
+```java
+import play.libs.Files.TemporaryFile;
+import play.mvc.Http.MultipartFormData.FilePart;
+
+public class MyForm {
+
+  private FilePart<TemporaryFile> myFile;
+	
+  public void setMyFile(final FilePart<TemporaryFile> myFile) {
+    this.myFile = myFile;
+  }
+
+  public FilePart<TemporaryFile> getMyFile() {
+    return this.myFile;
+  }
+}
+```
+
+[[Like before|JavaForms#Defining-a-form]], use the [`FormFactory`](api/java/play/data/FormFactory.html) you injected into your Controller to create the form:
+
+```java
+Form<MyForm> form = formFactory.form(MyForm.class).bindFromRequest(req);
+```
+
+If the binding was successful (form validation passed) you can access the file:
+
+```java
+MyForm myform = form.get();
+myform.getMyFile();
+```
+
+Some useful methods were added as well to work with uploaded files:
+
+```java
+// Get all files of the form
+form.files();
+
+// Access the file of a Field instance
+Field myFile = form.field("myFile");
+field.file();
+
+// To access a file of a DynamicForm instance
+dynamicForm.file("myFile");
+```
+
+> **Note:** If you are using using a [[custom multipart file part body parser|JavaFileUpload#Writing-a-custom-multipart-file-part-body-parser]] you just have to replace `TemporaryFile` with the type your body parser uses.
+
 ## Constraint annotations offered for Play Java are now @Repeatable
 
 All of the constraint annotations defined by `play.data.validation.Constraints` are now `@Repeatable`. This change lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`:

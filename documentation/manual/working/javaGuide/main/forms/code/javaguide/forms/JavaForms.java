@@ -25,6 +25,7 @@ import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.typedmap.TypedMap;
 import play.mvc.*;
+import play.mvc.Http.MultipartFormData.FilePart;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
@@ -62,16 +63,21 @@ public class JavaForms extends WithApplication {
 
         Lang lang = new Lang(Locale.getDefault());
         TypedMap attrs = TypedMap.empty();
+        FilePart<?> myProfilePicture = new FilePart<>("profilePicture", "me.jpg", "image/jpeg", null);
         //#bind
-        Map<String,String> anyData = new HashMap<>();
-        anyData.put("email", "bob@gmail.com");
-        anyData.put("password", "secret");
+        Map<String,String> textData = new HashMap<>();
+        textData.put("email", "bob@gmail.com");
+        textData.put("password", "secret");
 
-        User user = userForm.bind(lang, attrs, anyData).get();
+        Map<String, FilePart<?>> files = new HashMap<>();
+        files.put("profilePicture", myProfilePicture);
+
+        User user = userForm.bind(lang, attrs, textData, files).get();
         //#bind
 
         assertThat(user.getEmail(), equalTo("bob@gmail.com"));
         assertThat(user.getPassword(), equalTo("secret"));
+        assertThat(user.getProfilePicture(), equalTo(myProfilePicture));
     }
 
     @Test

@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,6 +97,7 @@ public class Form<T> {
     private final String rootName;
     private final Class<T> backedType;
     private final Map<String,String> rawData;
+    private final Map<String, Http.MultipartFormData.FilePart<?>> files;
     private final List<ValidationError> errors;
     private final Optional<T> value;
     private final Class<?>[] groups;
@@ -144,11 +146,19 @@ public class Form<T> {
     }
 
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
-        this(rootName, clazz, data, errors, value, (Class<?>)null, messagesApi, formatters, validatorFactory, config);
+        this(rootName, clazz, data, Collections.emptyMap(), errors, value, messagesApi, formatters, validatorFactory, config);
+    }
+
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String, Http.MultipartFormData.FilePart<?>> files, List<ValidationError> errors, Optional<T> value, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, files, errors, value, (Class<?>)null, messagesApi, formatters, validatorFactory, config);
     }
 
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
-        this(rootName, clazz, data, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory, config);
+        this(rootName, clazz, data, Collections.emptyMap(), errors, value, group, messagesApi, formatters, validatorFactory, config);
+    }
+
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String, Http.MultipartFormData.FilePart<?>> files, List<ValidationError> errors, Optional<T> value, Class<?> group, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, files, errors, value, group != null ? new Class[]{group} : null, messagesApi, formatters, validatorFactory, config);
     }
 
     /**
@@ -166,7 +176,26 @@ public class Form<T> {
      * @param config the config component.
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
-        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, null);
+        this(rootName, clazz, data, Collections.emptyMap(), errors, value, groups, messagesApi, formatters, validatorFactory, config);
+    }
+
+    /**
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
+     *
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param files the current form file data
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validatorFactory the validatorFactory component.
+     * @param config the config component.
+     */
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String, Http.MultipartFormData.FilePart<?>> files, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
+        this(rootName, clazz, data, files, errors, value, groups, messagesApi, formatters, validatorFactory, config, null);
     }
 
     /**
@@ -185,7 +214,27 @@ public class Form<T> {
      * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
-        this(rootName, clazz, data, errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, config != null && config.getBoolean("play.forms.binding.directFieldAccess"));
+        this(rootName, clazz, data, Collections.emptyMap(), errors, value, groups, messagesApi, formatters, validatorFactory, config, lang);
+    }
+
+    /**
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
+     *
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param files the current form file data
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validatorFactory the validatorFactory component.
+     * @param config the config component.
+     * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
+     */
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String, Http.MultipartFormData.FilePart<?>> files, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang) {
+        this(rootName, clazz, data, files, errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, config != null && config.getBoolean("play.forms.binding.directFieldAccess"));
     }
 
     /**
@@ -205,9 +254,31 @@ public class Form<T> {
      * @param directFieldAccess access fields of form directly during binding instead of using getters
      */
     public Form(String rootName, Class<T> clazz, Map<String,String> data, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang, boolean directFieldAccess) {
+        this(rootName, clazz, data, Collections.emptyMap(), errors, value, groups, messagesApi, formatters, validatorFactory, config, lang, directFieldAccess);
+    }
+
+    /**
+     * Creates a new <code>Form</code>.  Consider using a {@link FormFactory} rather than this constructor.
+     *
+     * @param rootName    the root name.
+     * @param clazz wrapped class
+     * @param data the current form data (used to display the form)
+     * @param files the current form file data
+     * @param errors the collection of errors associated with this form
+     * @param value optional concrete value of type <code>T</code> if the form submission was successful
+     * @param groups    the array of classes with the groups.
+     * @param messagesApi needed to look up various messages
+     * @param formatters used for parsing and printing form fields
+     * @param validatorFactory the validatorFactory component.
+     * @param config the config component.
+     * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}
+     * @param directFieldAccess access fields of form directly during binding instead of using getters
+     */
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String, Http.MultipartFormData.FilePart<?>> files, List<ValidationError> errors, Optional<T> value, Class<?>[] groups, MessagesApi messagesApi, Formatters formatters, ValidatorFactory validatorFactory, Config config, Lang lang, boolean directFieldAccess) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
+        this.files = files != null ? new HashMap<>(files) : new HashMap<>();
         this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
         this.value = value;
         this.groups = groups;
@@ -269,6 +340,31 @@ public class Form<T> {
         });
     }
 
+    protected Map<String,Http.MultipartFormData.FilePart<?>> requestFileData(Http.Request request) {
+        final Http.MultipartFormData multipartFormData = request.body().asMultipartFormData();
+        if (multipartFormData != null) {
+            return resolveDuplicateFilePartKeys(multipartFormData.getFiles());
+        }
+        return new HashMap<>();
+    }
+
+    protected <A> Map<String, Http.MultipartFormData.FilePart<?>> resolveDuplicateFilePartKeys(final List<Http.MultipartFormData.FilePart<A>> fileParts) {
+        final Map<String, List<Http.MultipartFormData.FilePart<?>>> resolvedDuplicateKeys = fileParts.stream()
+                .collect(Collectors.toMap(filePart -> filePart.getKey(), filePart -> new ArrayList<>(Arrays.asList(filePart)), (a, b) -> { a.addAll(b); return a; }));
+        final Map<String, Http.MultipartFormData.FilePart<?>> data = new HashMap<>();
+        resolvedDuplicateKeys.forEach((key, values) -> {
+            if (key.endsWith("[]")) {
+                String k = key.substring(0, key.length() - 2);
+                for (int i = 0; i < values.size(); i++) {
+                    data.put(k + "[" + i + "]", values.get(i));
+                }
+            } else if (!values.isEmpty()) {
+                data.put(key, values.get(0));
+            }
+        });
+        return data;
+    }
+
     /**
      * @deprecated Deprecated as of 2.7.0.
      */
@@ -295,7 +391,7 @@ public class Form<T> {
      */
     @Deprecated
     public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(play.mvc.Controller.ctx().messages().lang(), play.mvc.Controller.request().attrs(), requestData(play.mvc.Controller.request()), allowedFields);
+        return bind(play.mvc.Controller.ctx().messages().lang(), play.mvc.Controller.request().attrs(), requestData(play.mvc.Controller.request()), requestFileData(play.mvc.Controller.request()), allowedFields);
     }
 
     /**
@@ -306,7 +402,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
-        return bind(this.messagesApi.preferred(request).lang(), request.attrs(), requestData(request), allowedFields);
+        return bind(this.messagesApi.preferred(request).lang(), request.attrs(), requestData(request), requestFileData(request), allowedFields);
     }
 
     /**
@@ -335,9 +431,25 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequestData(Lang lang, TypedMap attrs, Map<String,String[]> requestData, String... allowedFields) {
+        return bindFromRequestData(lang, attrs, requestData, Collections.emptyMap(), allowedFields);
+    }
+
+    /**
+     * Binds request data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param attrs will be passed to validators via {@link ValidationPayload}
+     * @param requestData      the map of data to bind from
+     * @param requestFileData  the map of file data to bind from
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bindFromRequestData(Lang lang, TypedMap attrs, Map<String,String[]> requestData, Map<String, Http.MultipartFormData.FilePart<?>> requestFileData, String... allowedFields) {
         Map<String,String> data = new HashMap<>();
         fillDataWith(data, requestData);
-        return bind(lang, attrs, data, allowedFields);
+        return bind(lang, attrs, data, requestFileData, allowedFields);
     }
 
     /**
@@ -473,20 +585,22 @@ public class Form<T> {
         return dataBinder;
     }
 
-    private Map<String, String> getObjectData(Map<String, String> data) {
+    private Map<String, Object> getObjectData(Map<String, String> data, Map<String, Http.MultipartFormData.FilePart<?>> files) {
+        final Map<String, Object> dataAndFilesMerged = new HashMap<>(data);
+        dataAndFilesMerged.putAll(files);
         if (rootName != null) {
-            final Map<String, String> objectData = new HashMap<>();
-            data.forEach((key, value) -> {
+            final Map<String, Object> objectData = new HashMap<>();
+            dataAndFilesMerged.forEach((key, value) -> {
                 if (key.startsWith(rootName + ".")) {
                     objectData.put(key.substring(rootName.length() + 1), value);
                 }
             });
             return objectData;
         }
-        return data;
+        return dataAndFilesMerged;
     }
 
-    private Set<ConstraintViolation<Object>> runValidation(Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, String> objectData) {
+    private Set<ConstraintViolation<Object>> runValidation(Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, Object> objectData) {
         return withRequestLocale(lang, () -> {
             dataBinder.bind(new MutablePropertyValues(objectData));
             final ValidationPayload payload = new ValidationPayload(lang, lang != null ? new MessagesImpl(lang, this.messagesApi) : null, Http.Context.safeCurrent().map(ctx -> ctx.args).orElse(null), attrs, this.config);
@@ -612,9 +726,25 @@ public class Form<T> {
      */
     @SuppressWarnings("unchecked")
     public Form<T> bind(Lang lang, TypedMap attrs, Map<String,String> data, String... allowedFields) {
+        return bind(lang, attrs, data, Collections.emptyMap(), allowedFields);
+    }
+
+    /**
+     * Binds data to this form - that is, handles form submission.
+     *
+     * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}.
+     *             Later also used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+     *             and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
+     * @param attrs will be passed to validators via {@link ValidationPayload}
+     * @param data data to submit
+     * @param allowedFields    the fields that should be bound to the form, all fields if not specified.
+     * @return a copy of this form filled with the new data
+     */
+    @SuppressWarnings("unchecked")
+    public Form<T> bind(Lang lang, TypedMap attrs, Map<String,String> data, Map<String, Http.MultipartFormData.FilePart<?>> files, String... allowedFields) {
 
         final DataBinder dataBinder = dataBinder(allowedFields);
-        final Map<String, String> objectDataFinal = getObjectData(data);
+        final Map<String, Object> objectDataFinal = getObjectData(data, files);
 
         final Set<ConstraintViolation<Object>> validationErrors = runValidation(lang, attrs, dataBinder, objectDataFinal);
         final BindingResult result = dataBinder.getBindingResult();
@@ -629,9 +759,9 @@ public class Form<T> {
 
             errors.addAll(globalErrors);
 
-            return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang, directFieldAccess);
+            return new Form<>(rootName, backedType, data, files, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang, directFieldAccess);
         }
-        return new Form<>(rootName, backedType, data, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang, directFieldAccess);
+        return new Form<>(rootName, backedType, data, files, errors, Optional.ofNullable((T)result.getTarget()), groups, messagesApi, formatters, this.validatorFactory, config, lang, directFieldAccess);
     }
 
     /**
@@ -651,10 +781,17 @@ public class Form<T> {
     }
 
     /**
-     * @return the actual form data as unmodifiable map.
+     * @return the actual form data as unmodifiable map. Does not contain file data, use {@link #files()} to access files.
      */
     public Map<String,String> rawData() {
         return Collections.unmodifiableMap(rawData);
+    }
+
+    /**
+     * @return the the files as unmodifiable map. Use {@link #rawData()} to access other form data.
+     */
+    public Map<String,Http.MultipartFormData.FilePart<?>> files() {
+        return Collections.unmodifiableMap(files);
     }
 
     public String name() {
@@ -681,6 +818,7 @@ public class Form<T> {
         return new Form<>(
                 rootName,
                 backedType,
+                new HashMap<>(),
                 new HashMap<>(),
                 new ArrayList<>(),
                 Optional.ofNullable(value),
@@ -874,7 +1012,7 @@ public class Form<T> {
         }
         final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
         copiedErrors.add(error);
-        return new Form<T>(this.rootName, this.backedType, this.rawData, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang, this.directFieldAccess);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, this.files, copiedErrors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang, this.directFieldAccess);
     }
 
     /**
@@ -921,7 +1059,7 @@ public class Form<T> {
      * @return a copy of this form but with the errors discarded.
      */
     public Form<T> discardingErrors() {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang, this.directFieldAccess);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, this.files, new ArrayList<>(), this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, this.lang, this.directFieldAccess);
     }
 
     /**
@@ -966,8 +1104,11 @@ public class Form<T> {
 
         // Value
         String fieldValue = null;
+        Http.MultipartFormData.FilePart file = null;
         if (rawData.containsKey(key)) {
             fieldValue = rawData.get(key);
+        } else if (files.containsKey(key)) {
+            file = files.get(key);
         } else {
             if (value.isPresent()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
@@ -979,11 +1120,15 @@ public class Form<T> {
                 if (beanWrapper.isReadableProperty(objectKey)) {
                     Object oValue = beanWrapper.getPropertyValue(objectKey);
                     if (oValue != null) {
-                        if(formatters != null) {
-                            final String objectKeyFinal = objectKey;
-                            fieldValue = withRequestLocale(lang, () -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                        if(oValue instanceof Http.MultipartFormData.FilePart<?>) {
+                            file = (Http.MultipartFormData.FilePart<?>)oValue;
                         } else {
-                            fieldValue = oValue.toString();
+                            if (formatters != null) {
+                                final String objectKeyFinal = objectKey;
+                                fieldValue = withRequestLocale(lang, () -> formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                            } else {
+                                fieldValue = oValue.toString();
+                            }
                         }
                     }
                 }
@@ -1055,7 +1200,7 @@ public class Form<T> {
             }
         }
 
-        return new Field(this, key, constraints, format, errors(key), fieldValue);
+        return new Field(this, key, constraints, format, errors(key), fieldValue, file);
     }
 
     /**
@@ -1071,7 +1216,7 @@ public class Form<T> {
      * and for translations in {@link #errorsAsJson()}.
      */
     public Form<T> withLang(Lang lang) {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, this.directFieldAccess);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, this.files, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, this.directFieldAccess);
     }
 
     /**
@@ -1080,7 +1225,7 @@ public class Form<T> {
      * @param directFieldAccess {@code true} enables direct field access during form binding, {@code false} disables it and uses getters instead. If {@code null} falls back to config default.
      */
     public Form<T> withDirectFieldAccess(boolean directFieldAccess) {
-        return new Form<T>(this.rootName, this.backedType, this.rawData, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, directFieldAccess);
+        return new Form<T>(this.rootName, this.backedType, this.rawData, this.files, this.errors, this.value, this.groups, this.messagesApi, this.formatters, this.validatorFactory, this.config, lang, directFieldAccess);
     }
 
     public String toString() {
@@ -1118,6 +1263,7 @@ public class Form<T> {
         private final Tuple<String,List<Object>> format;
         private final List<ValidationError> errors;
         private final String value;
+        private final Http.MultipartFormData.FilePart<?> file;
 
         /**
          * Creates a form field.
@@ -1130,12 +1276,21 @@ public class Form<T> {
          * @param value the field value, if any
          */
         public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
+            this(form, name, constraints, format, errors, value, null);
+        }
+
+        public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, Http.MultipartFormData.FilePart<?> file) {
+            this(form, name, constraints, format, errors, null, file);
+        }
+
+        public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value, Http.MultipartFormData.FilePart<?> file) {
             this.form = form;
             this.name = name;
             this.constraints = constraints != null ? new ArrayList<>(constraints) : new ArrayList<>();
             this.format = format;
             this.errors = errors != null ? new ArrayList<>(errors) : new ArrayList<>();
             this.value = value;
+            this.file = file;
         }
 
         /**
@@ -1170,6 +1325,13 @@ public class Form<T> {
          */
         public Optional<String> value() {
             return Optional.ofNullable(value);
+        }
+
+        /**
+         * @return The file, if defined.
+         */
+        public <A> Optional<Http.MultipartFormData.FilePart<A>> file() {
+            return Optional.ofNullable((Http.MultipartFormData.FilePart<A>)file);
         }
 
         /**
@@ -1229,7 +1391,9 @@ public class Form<T> {
                 Set<Integer> result = new TreeSet<>();
                 Pattern pattern = Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
 
-                for (String key: form.rawData().keySet()) {
+                final Set<String> mergedSet = new LinkedHashSet<>(form.rawData().keySet());
+                mergedSet.addAll(form.files().keySet());
+                for (String key: mergedSet) {
                     java.util.regex.Matcher matcher = pattern.matcher(key);
                     if (matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
