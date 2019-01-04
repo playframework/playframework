@@ -3279,8 +3279,10 @@ public class Http {
 
     /**
      * Defines all standard HTTP status codes.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7231">RFC 7231</a> and <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>
      */
-    public static interface Status {
+    public interface Status {
         int CONTINUE = 100;
         int SWITCHING_PROTOCOLS = 101;
 
@@ -3325,8 +3327,11 @@ public class Http {
         int LOCKED = 423;
         int FAILED_DEPENDENCY = 424;
         int UPGRADE_REQUIRED = 426;
+
+        // See https://tools.ietf.org/html/rfc6585 for the following statuses
         int PRECONDITION_REQUIRED = 428;
         int TOO_MANY_REQUESTS = 429;
+        int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
 
         int INTERNAL_SERVER_ERROR = 500;
         int NOT_IMPLEMENTED = 501;
@@ -3335,6 +3340,9 @@ public class Http {
         int GATEWAY_TIMEOUT = 504;
         int HTTP_VERSION_NOT_SUPPORTED = 505;
         int INSUFFICIENT_STORAGE = 507;
+
+        // See https://tools.ietf.org/html/rfc6585#section-6
+        int NETWORK_AUTHENTICATION_REQUIRED = 511;
     }
 
     /** Common HTTP MIME types */

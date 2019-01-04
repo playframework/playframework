@@ -170,6 +170,8 @@ object Status extends Status {
 
 /**
  * Defines all standard HTTP status codes.
+ *
+ * See <a href="https://tools.ietf.org/html/rfc7231">RFC 7231</a> and <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>.
  */
 trait Status {
 
@@ -230,6 +232,7 @@ trait Status {
   val GATEWAY_TIMEOUT = 504
   val HTTP_VERSION_NOT_SUPPORTED = 505
   val INSUFFICIENT_STORAGE = 507
+  val NETWORK_AUTHENTICATION_REQUIRED = 511
 }
 
 /** Defines all standard HTTP headers. */

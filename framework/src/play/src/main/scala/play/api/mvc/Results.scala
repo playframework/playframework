@@ -648,8 +648,14 @@ trait Results {
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
+  /** Generates a ‘428 PRECONDITION_REQUIRED’ result. */
+  val PreconditionRequire = new Status(PRECONDITION_REQUIRED)
+
   /** Generates a ‘429 TOO_MANY_REQUESTS’ result. */
   val TooManyRequests = new Status(TOO_MANY_REQUESTS)
+
+  /** Generates a ‘431 REQUEST_HEADER_FIELDS_TOO_LARGE’ result. */
+  val RequestHeaderFieldsTooLarge = new Status(REQUEST_HEADER_FIELDS_TOO_LARGE)
 
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
   @deprecated("Use TooManyRequests instead", "2.6.0")
@@ -676,6 +682,9 @@ trait Results {
   /** Generates a ‘507 INSUFFICIENT_STORAGE’ result. */
   val InsufficientStorage = new Status(INSUFFICIENT_STORAGE)
 
+  /** Generates a ‘511 NETWORK_AUTHENTICATION_REQUIRED’ result. */
+  val NetworkAuthenticationRequired = new Status(NETWORK_AUTHENTICATION_REQUIRED)
+
   /**
    * Generates a simple result.
    *
@@ -698,7 +707,7 @@ trait Results {
    * @param queryString queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
+  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
     import java.net.URLEncoder
     val fullUrl = url + Option(queryString).filterNot(_.isEmpty).map { params =>
       (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair =>
