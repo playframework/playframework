@@ -33,9 +33,9 @@ You can also make the language implicit rather than declare it:
 
 @[use-implicit-lang](code/scalaguide/i18n/ScalaI18nService.scala)
 
-Play provides predefined messages for forms validation. 
-You can overwrite these messages either with the default message file or any language-specific message file.
-To see which messages can be overwritten, you can have a look at [`messages.default`](https://github.com/playframework/playframework/blob/%PLAY_VERSION%/framework/src/play/src/main/resources/messages.default).
+Play provides predefined messages for forms validation.  You can overwrite these messages either with the default message file or any language-specific message file. You can see below which messages can be overwritten:
+
+@[](/confs/play/messages.default)
 
 ## Using Messages and MessagesProvider
 
