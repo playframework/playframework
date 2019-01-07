@@ -41,7 +41,7 @@ public class JavaFileUploadTest extends WithApplication {
         Http.RequestBuilder request = Helpers.fakeRequest().uri("/upload")
                 .method("POST")
                 .header(Http.HeaderNames.CONTENT_TYPE, "multipart/form-data")
-                .bodyMultipart(
+                .bodyRaw(
                         Collections.singletonList(part),
                         play.libs.Files.singletonTemporaryFileCreator(),
                         app.asScala().materializer()

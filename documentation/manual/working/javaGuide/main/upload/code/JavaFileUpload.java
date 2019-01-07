@@ -114,7 +114,7 @@ public class JavaFileUpload extends WithApplication {
                         Files.deleteIfExists(file.toPath());
                         return ok("Got: file size = " + size + "");
                     }
-                }, fakeRequest("POST", "/").bodyMultipart(Collections.singletonList(dp), tfc, mat), mat)),
+                }, fakeRequest("POST", "/").bodyRaw(Collections.singletonList(dp), tfc, mat), mat)),
                 equalTo("Got: file size = 3"));
     }
 }

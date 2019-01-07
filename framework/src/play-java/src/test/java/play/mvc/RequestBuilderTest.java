@@ -296,7 +296,7 @@ public class RequestBuilderTest {
         TemporaryFileCreator temporaryFileCreator = app.injector().instanceOf(TemporaryFileCreator.class);
         Http.MultipartFormData.DataPart dp = new Http.MultipartFormData.DataPart("hello", "world");
         final Request request = new RequestBuilder().uri("http://playframework.com/")
-                .bodyMultipart(Collections.singletonList(dp), temporaryFileCreator, app.materializer())
+                .bodyRaw(Collections.singletonList(dp), temporaryFileCreator, app.materializer())
                 .build();
 
         Optional<Http.MultipartFormData<Files.TemporaryFile>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)

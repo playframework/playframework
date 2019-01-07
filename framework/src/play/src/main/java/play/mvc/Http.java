@@ -1313,14 +1313,29 @@ public class Http {
         }
 
         /**
-         * Set a Multipart Form url encoded body to this request.
+         * Set a Multipart Form url encoded body to this request saving it as a raw body.
+         *
+         * @param data the multipart-form parameters
+         * @param temporaryFileCreator the temporary file creator.
+         * @param mat a Akka Streams Materializer
+         * @return the modified builder
+         *
+         * @deprecated Deprecated as of 2.7.0. Renamed to {@link #bodyRaw(List, Files.TemporaryFileCreator, Materializer)}.
+         */
+        @Deprecated
+        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
+            return bodyRaw(data, temporaryFileCreator, mat);
+        }
+
+        /**
+         * Set a Multipart Form url encoded body to this request saving it as a raw body.
          *
          * @param data the multipart-form parameters
          * @param temporaryFileCreator the temporary file creator.
          * @param mat a Akka Streams Materializer
          * @return the modified builder
          */
-        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
+        public RequestBuilder bodyRaw(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
             String boundary = MultipartFormatter.randomBoundary();
             try {
                 ByteString materializedData = MultipartFormatter
