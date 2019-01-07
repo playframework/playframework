@@ -38,7 +38,7 @@ object Dependencies {
   val specs2DepsForSbt = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion = "2.9.7"
+  val jacksonVersion = "2.9.8"
   val jacksons = Seq(
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
@@ -72,7 +72,7 @@ object Dependencies {
   val jaxbApi = "javax.xml.bind" % "jaxb-api" % "2.3.1"
 
   val jdbcDeps = Seq(
-    "com.zaxxer" % "HikariCP" % "3.2.0",
+    "com.zaxxer" % "HikariCP" % "3.3.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database % Test,
     acolyte % Test,
