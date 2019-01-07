@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.19")
-  val akkaHttpVersion = "10.0.14"
+  val akkaHttpVersion = "10.0.15"
   val playJsonVersion = "2.6.12"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -171,7 +171,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.1"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.12.0"
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.5",
