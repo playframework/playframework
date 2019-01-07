@@ -171,7 +171,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.12.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.9.1"
 
   def routesCompilerDependencies(scalaVersion: String) = Seq(
     "commons-io" % "commons-io" % "2.5",
