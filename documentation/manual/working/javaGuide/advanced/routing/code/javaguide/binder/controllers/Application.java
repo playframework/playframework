@@ -18,7 +18,7 @@ public class Application extends Controller {
         return ok(
             //###skip: 1
             // TODO: After Play 2.7 use create(String name, String host, JavaScriptReverseRoute... routes) instead
-            JavaScriptReverseRouter.create("jsRoutes", request.host(), "jQuery.ajax",
+            JavaScriptReverseRouter.create("jsRoutes", "jQuery.ajax", request.host(),
                 routes.javascript.Users.list(),
                 routes.javascript.Users.get()
             )
@@ -29,7 +29,7 @@ public class Application extends Controller {
     public Result javascriptRoutes2(Http.Request request) {
         return ok(
             //#javascript-router-resource-custom-method
-            JavaScriptReverseRouter.create("jsRoutes", request.host(), "myAjaxMethod",
+            JavaScriptReverseRouter.create("jsRoutes", "myAjaxMethod", request.host(),
                 routes.javascript.Users.list(),
                 routes.javascript.Users.get()
             )
