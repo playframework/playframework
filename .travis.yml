@@ -27,7 +27,9 @@ jobs:
       script: framework/bin/publish-local
       name: "Run a publishLocal for the default scala version"
     - stage: test
-      script: framework/bin/test-scala-212
+      script: framework/bin/test-scala-211
+      name: "Run tests for Scala 2.11"
+    - script: framework/bin/test-scala-212
       name: "Run tests for Scala 2.12"
     - script: framework/bin/test-scala-213
       name: "Run tests for Scala 2.13"
