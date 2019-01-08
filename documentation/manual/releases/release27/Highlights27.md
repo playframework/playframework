@@ -287,7 +287,7 @@ val router = "/api" /: "v1" /: apiRouter
 
 ### Isolation level for Database transactions
 
-You can now chose an isolation level when using `play.api.db.Database.withTransaction` API (`play.db.Database` for Java users). For example:
+You can now choose an isolation level when using `play.api.db.Database.withTransaction` API (`play.db.Database` for Java users). For example:
 
 Java
 : ```java
