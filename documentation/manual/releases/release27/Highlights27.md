@@ -267,7 +267,7 @@ You can read more details at the docs for [[Java|JavaErrorHandling]] or [[Scala|
 
 ## Nicer syntax for `Router.withPrefix`
 
-In Play 2.7 we introduce some syntax sugar to use `Router.withPrefix`. Instead of writing:
+In Play 2.7 we introduce some syntax sugar to use `play.api.routing.Router.withPrefix`. Instead of writing:
 
 ```scala
 val router = apiRouter.withPrefix("/api")
@@ -287,7 +287,7 @@ val router = "/api" /: "v1" /: apiRouter
 
 ### Isolation level for Database transactions
 
-You can now chose an isolation level when using `Database.withTransaction` API. For example:
+You can now chose an isolation level when using `play.api.db.Database.withTransaction` API (`play.db.Database` for Java users). For example:
 
 Java
 : ```java
