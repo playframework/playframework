@@ -675,7 +675,7 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "correctly calculate indexes()" in {
-      
+
       val dataPart = Map(
         "someDataField[0]" -> "foo",
         "someDataField[1]" -> "foo",
