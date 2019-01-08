@@ -532,7 +532,7 @@ This section lists significant updates made to our dependencies.
 
 ### Akka update
 
-Play 2.7 uses the latest version of Akka 2.5 series. Mixing versions of Akka libraries [is not allowed](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed) and the newest versions log a warning when it detects that multiple versions of Akka artifacts are being used. You see something like:
+Play 2.7 uses the latest version of Akka 2.5 series. Mixing versions of Akka libraries [is not allowed](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed) and the newest versions log a warning when they detect that multiple versions of Akka artifacts are being used. You see something like:
 
 ```
 Detected possible incompatible versions on the classpath. Please note that a given Akka version MUST be the same across all modules of Akka that you are using, e.g. if you use [2.5.19] all other modules that are released together MUST be of the same version. Make sure you're using a compatible set of libraries. Possibly conflicting versions [2.5.4, 2.5.19] in libraries [akka-actor:2.5.19, akka-remote:2.5.4]
