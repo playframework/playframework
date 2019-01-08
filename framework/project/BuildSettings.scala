@@ -136,12 +136,15 @@ object BuildSettings {
       },
       autoAPIMappings := true,
       apiMappings += scalaInstance.value.libraryJar -> url(raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""),
-      apiMappings += {
+      apiMappings ++= {
         // Maps JDK 1.8 jar into apidoc.
-        val rtJar: String = System.getProperty("sun.boot.class.path").split(java.io.File.pathSeparator).collectFirst {
+        val rtJar = System.getProperty("sun.boot.class.path").split(java.io.File.pathSeparator).collectFirst {
           case str: String if str.endsWith(java.io.File.separator + "rt.jar") => str
-        }.get // fail hard if not found
-        file(rtJar) -> url(Docs.javaApiUrl)
+        }
+        rtJar match {
+          case None => Map.empty
+          case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
+        }
       },
       apiMappings ++= {
         // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
