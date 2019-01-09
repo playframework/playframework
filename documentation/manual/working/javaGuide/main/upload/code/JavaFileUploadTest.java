@@ -40,7 +40,6 @@ public class JavaFileUploadTest extends WithApplication {
         //###replace:     Http.RequestBuilder request = Helpers.fakeRequest().uri(routes.MyController.upload().url())
         Http.RequestBuilder request = Helpers.fakeRequest().uri("/upload")
                 .method("POST")
-                .header(Http.HeaderNames.CONTENT_TYPE, "multipart/form-data")
                 .bodyMultipart(
                         Collections.singletonList(part),
                         play.libs.Files.singletonTemporaryFileCreator(),
