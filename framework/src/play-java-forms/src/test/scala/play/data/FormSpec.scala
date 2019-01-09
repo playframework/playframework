@@ -675,18 +675,20 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "correctly calculate indexes()" in {
+
       val dataPart = Map(
         "someDataField[0]" -> "foo",
         "someDataField[1]" -> "foo",
         "someDataField[2]" -> "foo",
         "someDataField[4]" -> "foo",
-        "someDataField[59]" -> "foo",
+        "someDataField[59]" -> "foo"
       ).asJava
+
       val filePart = Map(
         "someFileField[0]" -> null,
         "someFileField[13]" -> null,
         "someFileField[24]" -> null,
-        "someFileField[85]" -> null,
+        "someFileField[85]" -> null
       ).asJava.asInstanceOf[util.Map[String, Http.MultipartFormData.FilePart[_]]]
 
       val form: Form[Object] = new Form(null, null, dataPart, filePart, null, Optional.empty[Object](), null, null, null, null, null, null)
