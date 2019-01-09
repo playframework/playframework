@@ -468,9 +468,9 @@ trait Results {
     }
 
     /**
-     * Send a file.
+     * Send a path.
      *
-     * @param content The file to send.
+     * @param content The path to send.
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
