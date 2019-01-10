@@ -59,7 +59,7 @@ If your project is using Play Ebean, you need to upgrade it:
 addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "3.0.0")
 ```
 
-### ScalaTest + Plus upgrade
+### ScalaTest + Play upgrade
 
 If your project is using [[ScalaTest + Play|ScalaTestingWithScalaTest]], you need to upgrade it:
 
