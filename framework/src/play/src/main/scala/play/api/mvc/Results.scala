@@ -649,7 +649,7 @@ trait Results {
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
   /** Generates a ‘428 PRECONDITION_REQUIRED’ result. */
-  val PreconditionRequire = new Status(PRECONDITION_REQUIRED)
+  val PreconditionRequired = new Status(PRECONDITION_REQUIRED)
 
   /** Generates a ‘429 TOO_MANY_REQUESTS’ result. */
   val TooManyRequests = new Status(TOO_MANY_REQUESTS)
