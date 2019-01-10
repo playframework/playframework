@@ -210,8 +210,8 @@ Previous versions of Play had convenient methods to stream results using HTTP ch
 Java
 : ```java
 public Result chunked() {
-    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
-    return ok().chunked(body);
+  Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+  return ok().chunked(body);
 }
 ```
 
@@ -228,8 +228,8 @@ In Play 2.6, there was no convenient method to return a streamed Result in the s
 Java
 : ```java
 public Result streamed() {
-    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
-    return ok().sendEntity(new HttpEntity.Streamed(body, Optional.empty(), Optional.empty()));
+  Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+  return ok().sendEntity(new HttpEntity.Streamed(body, Optional.empty(), Optional.empty()));
 }
 ```
 
@@ -241,20 +241,72 @@ def streamed = Action {
 }
 ```
 
-Play 2.7 fixes this by adding a new streamed method on results, that works similar to `chunked`:
+Play 2.7 fixes this by adding a new `streamed` method on results, that works similar to `chunked`:
 
 Java
 : ```java
 public Result streamed() {
-    Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
-    return ok().streamed(body, Optional.empty(), Optional.empty());
+  Source<ByteString, NotUsed> body = Source.from(Arrays.asList(ByteString.fromString("first"), ByteString.fromString("second")));
+  return ok().streamed(body, Optional.empty(), Optional.empty());
 }
 ```
 
 Scala
-: ````scala
+: ```scala
 def streamed = Action {
   val body = Source(List("first", "second", "...")).map(s => ByteString.fromString(s))
   Ok.streamed(body, contentLength = None)
 }
 ```
+
+## New Http Error Handlers
+
+Play 2.7 brings two new implementations for `play.api.http.HttpErrorHandler`. The first one is [`JsonHttpErrorHandler`](api/scala/play/api/http/JsonHttpErrorHandler.html), which will return errors formatted in JSON and is a better alternative if you are developing an REST API that accepts and returns JSON payloads. The second one is [`HtmlOrJsonHttpErrorHandler`](api/scala/play/api/http/HtmlOrJsonHttpErrorHandler.html) which returns HTML or JSON errors based on the preferences specified in client's `Accept` header. It is a better option if your application uses a mixture of HTML and JSON, as is common in modern web apps.
+
+You can read more details at the docs for [[Java|JavaErrorHandling]] or [[Scala|ScalaErrorHandling]].
+
+## Nicer syntax for `Router.withPrefix`
+
+In Play 2.7 we introduce some syntax sugar to use `play.api.routing.Router.withPrefix`. Instead of writing:
+
+```scala
+val router = apiRouter.withPrefix("/api")
+```
+
+You can now write:
+
+```scala
+val router = "/api" /: apiRouter
+```
+
+Or even combine more path segments:
+
+```scala
+val router = "/api" /: "v1" /: apiRouter
+```
+
+### Isolation level for Database transactions
+
+You can now choose an isolation level when using `play.api.db.Database.withTransaction` API (`play.db.Database` for Java users). For example:
+
+Java
+: ```java
+public void someDatabaseOperation() {
+  database.withTransaction(TransactionIsolationLevel.ReadUncommitted, connection -> {
+        ResultSet resultSet = connection.prepareStatement("select * from users where id = 10").executeQuery();
+        // consume the resultSet and return some value
+  });
+}
+```
+
+Scala
+: ```scala
+def someDatabaseOperation(): Unit = {
+  database.withTransaction(TransactionIsolationLevel.ReadUncommitted) { connection =>
+        val resultSet: ResultSet = connection.prepareStatement("select * from users where id = 10").executeQuery();
+        // consume the resultSet and return some value
+  }
+}
+```
+
+The available transaction isolation levels mimic what is defined in `java.sql.Connection`.
