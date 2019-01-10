@@ -208,7 +208,7 @@ private static final Logger.ALogger logger = Logger.of(YourClass.class);
 Scala
 : ```scala
 import play.api.Logger
-private val logger = Logger(YourClass.class)
+private val logger = Logger(classOf[YourClass])
 ```
 
 For Scala, Play also provides a `play.api.Logging` trait that can be mixed into a class or trait to add the `val logger: Logger` automatically:
@@ -231,7 +231,7 @@ private static final Logger logger = LoggerFactory.getLogger(YourClass.class);
 
 Scala
 : ```scala
-private val logger = LoggerFactory.getLogger(YourClass.class);
+private val logger = LoggerFactory.getLogger(classOf[YourClass])
 ```
 
 If you'd like a more concise solution when using SLF4J directly for Java, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
