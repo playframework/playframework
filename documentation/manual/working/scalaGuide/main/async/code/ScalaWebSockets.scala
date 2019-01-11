@@ -311,6 +311,8 @@ object Samples {
     //#streams1
     import play.api.mvc._
     import akka.stream.scaladsl._
+    import scala.util.Success
+    import scala.util.Failure
 
     def socket = WebSocket.accept[String, String] { request =>
 
