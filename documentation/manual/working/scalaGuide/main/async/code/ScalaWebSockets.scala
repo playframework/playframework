@@ -313,6 +313,7 @@ object Samples {
     import akka.stream.scaladsl._
     import scala.util.Success
     import scala.util.Failure
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     def socket = WebSocket.accept[String, String] { request =>
 
