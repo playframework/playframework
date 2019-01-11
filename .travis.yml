@@ -1,14 +1,26 @@
 language: scala
-dist: trusty
-sudo: true
-group: beta
-jdk:
-  - oraclejdk8
+
 addons:
   apt:
     packages:
       # Install xmllint used to get Akka HTTP version
       - libxml2-utils
+
+before_install:
+  - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
+
+install:
+  - $JABBA_HOME/bin/jabba install $TRAVIS_JDK
+  - unset _JAVA_OPTIONS
+  - export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+
+env:
+  global:
+    - JABBA_HOME=$HOME/.jabba
+    - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
+  matrix:
+    - TRAVIS_JDK=adopt@1.8.192-12
+
 stages:
   - validations
   - test
@@ -42,11 +54,11 @@ jobs:
       name: "Scripted tests for sbt 1"
     # Test against Open JDK 11, but only for Scala 2.12
     - stage: java11
-      jdk: openjdk11
       script: framework/bin/test-scala-212
+      env: TRAVIS_JDK=adopt@1.11.0-1
       name: "Run tests for Scala 2.12 and Java 11"
     - script: framework/bin/it-test-scala-212
-      jdk: openjdk11
+      env: TRAVIS_JDK=adopt@1.11.0-1
       name: "Run it tests for Scala 2.12 and Java 11"
 
 matrix:
@@ -55,22 +67,21 @@ matrix:
     # We are not fully validating for Java 11 yet, so we allow this to
     # failure until we tackle all the problems. Anyway, having it at the
     # build helps us to track the progress and discover problems sooner.
-    - jdk: openjdk11
-
-env:
-  global:
-    secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
+    - env: TRAVIS_JDK=adopt@1.11.0-1
 
 cache:
   directories:
-  - $HOME/.ivy2/cache
-  - $HOME/.sbt
+    - "$HOME/.ivy2/cache"
+    - "$HOME/.sbt"
+    - "$HOME/.jabba/jdk"
+
 before_cache:
-- rm -rf $HOME/.ivy2/local
-- rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
-- rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
-- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
-- find $HOME/.sbt -name "*.lock" -delete
+  - rm -rf $HOME/.ivy2/local
+  - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
+  - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt -name "*.lock" -delete
+
 notifications:
   webhooks:
     urls:
