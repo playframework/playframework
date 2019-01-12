@@ -34,12 +34,12 @@ import play.api.mvc._
  * @see <a href="https://www.w3.org/TR/referrer-policy/">Referrer Policy</a>
  */
 object SecurityHeadersFilter {
-  final val X_FRAME_OPTIONS_HEADER: String = HeaderNames.X_FRAME_OPTIONS
-  final val X_XSS_PROTECTION_HEADER: String = HeaderNames.X_XSS_PROTECTION
-  final val X_CONTENT_TYPE_OPTIONS_HEADER: String = HeaderNames.X_CONTENT_TYPE_OPTIONS
-  final val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER: String = HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES
-  final val CONTENT_SECURITY_POLICY_HEADER: String = HeaderNames.CONTENT_SECURITY_POLICY
-  final val REFERRER_POLICY: String = HeaderNames.REFERRER_POLICY
+  final val X_FRAME_OPTIONS_HEADER = HeaderNames.X_FRAME_OPTIONS
+  final val X_XSS_PROTECTION_HEADER = HeaderNames.X_XSS_PROTECTION
+  final val X_CONTENT_TYPE_OPTIONS_HEADER = HeaderNames.X_CONTENT_TYPE_OPTIONS
+  final val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES
+  final val CONTENT_SECURITY_POLICY_HEADER = HeaderNames.CONTENT_SECURITY_POLICY
+  final val REFERRER_POLICY = HeaderNames.REFERRER_POLICY
 
   /**
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
