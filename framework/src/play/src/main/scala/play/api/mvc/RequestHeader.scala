@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
 import java.security.cert.X509Certificate
+import java.util.Locale
 
 import play.api.http.{ HeaderNames, MediaRange, MediaType }
-import play.api.i18n.Lang
+import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request._
 
@@ -146,6 +147,15 @@ trait RequestHeader {
   def addAttr[A](key: TypedKey[A], value: A): RequestHeader =
     withAttrs(attrs.updated(key, value))
 
+  /**
+   * Create a new versions of this object with the given attribute removed.
+   *
+   * @param key The key of the attribute to remove.
+   * @return The new version of this object with the attribute removed.
+   */
+  def removeAttr(key: TypedKey[_]): RequestHeader =
+    withAttrs(attrs - key)
+
   // -- Computed
 
   /**
@@ -216,13 +226,13 @@ trait RequestHeader {
 
   /**
    * Parses the `Session` cookie and returns the `Session` data. The request's session cookie is stored in an attribute indexed by
-   * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a Cell to store the session cookie, to allow it to be evaluated on-demand.
+   * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the session cookie, to allow it to be evaluated on-demand.
    */
   def session: Session = attrs(RequestAttrKey.Session).value
 
   /**
    * Parses the `Flash` cookie and returns the `Flash` data. The request's flash cookie is stored in an attribute indexed by
-   * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the session, to allow it to be evaluated on-demand.
+   * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the flash, to allow it to be evaluated on-demand.
    */
   def flash: Flash = attrs(RequestAttrKey.Flash).value
 
@@ -261,57 +271,50 @@ trait RequestHeader {
     new RequestImpl[A](connection, method, target, version, headers, attrs, body)
 
   /**
-   * Copy the request.
+   * Create a new versions of this object with the given transient language set.
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @param lang The language to use.
+   * @return The new version of this object with the given transient language set.
    */
-  @deprecated("Use the with* methods instead", "2.6.0")
-  def copy(
-    id: java.lang.Long = null,
-    uri: String = null,
-    path: String = null,
-    method: String = this.method,
-    version: String = this.version,
-    queryString: Map[String, Seq[String]] = null,
-    headers: Headers = null,
-    remoteAddress: String = null,
-    secure: java.lang.Boolean = null,
-    clientCertificateChain: Option[Seq[X509Certificate]] = null): RequestHeader = {
+  def withTransientLang(lang: Lang): RequestHeader =
+    addAttr(Messages.Attrs.CurrentLang, lang)
 
-    var newHeader: RequestHeader = this
+  /**
+   * Create a new versions of this object with the given transient language set.
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @param code The language to use.
+   * @return The new version of this object with the given transient language set.
+   */
+  def withTransientLang(code: String): RequestHeader =
+    withTransientLang(Lang(code))
 
-    // We only need to modify the request when an argument is non-null.
-    if (id != null) {
-      newHeader = newHeader.addAttr(RequestAttrKey.Id, (id: Long))
-    }
-    if (uri != null) {
-      newHeader = newHeader.withTarget(newHeader.target.withUriString(uri))
-    }
-    if (path != null) {
-      newHeader = newHeader.withTarget(newHeader.target.withPath(path))
-    }
-    if (method != null) {
-      newHeader = newHeader.withMethod(method)
-    }
-    if (queryString != null) {
-      newHeader = newHeader.withTarget(newHeader.target.withQueryString(queryString))
-    }
-    if (version != null) {
-      newHeader = newHeader.withVersion(version)
-    }
-    if (headers != null) {
-      newHeader = newHeader.withHeaders(headers)
-    }
-    if (remoteAddress != null) {
-      newHeader = newHeader.withConnection(RemoteConnection(remoteAddress, newHeader.secure, newHeader.clientCertificateChain))
-    }
-    if (secure != null) {
-      newHeader = newHeader.withConnection(RemoteConnection(newHeader.remoteAddress, secure, newHeader.clientCertificateChain))
-    }
-    if (clientCertificateChain != null) {
-      newHeader = newHeader.withConnection(RemoteConnection(newHeader.remoteAddress, newHeader.secure, clientCertificateChain))
-    }
+  /**
+   * Create a new versions of this object with the given transient language set.
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @param locale The language to use.
+   * @return The new version of this object with the given transient language set.
+   */
+  def withTransientLang(locale: Locale): RequestHeader =
+    withTransientLang(Lang(locale))
 
-    newHeader
-  }
+  /**
+   * Create a new versions of this object with the given transient language removed.
+   *
+   * @return The new version of this object with the transient language removed.
+   */
+  def withoutTransientLang(): RequestHeader =
+    removeAttr(Messages.Attrs.CurrentLang)
+
+  /**
+   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
+   *
+   * @return The current transient language of this request.
+   */
+  def transientLang(): Option[Lang] =
+    attrs.get(Messages.Attrs.CurrentLang)
 
   override def toString: String = {
     method + " " + uri

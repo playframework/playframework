@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 #
 
 GET         /                       controllers.Application.index
@@ -11,12 +11,52 @@ GET         /instance               @controllers.InstanceController.index
 GET         /users/:userId          controllers.Application.user(userId: models.UserId)
 GET         /query-user             controllers.Application.queryUser(userId: models.UserId)
 
-GET         /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
+GET         /escapes/$i<\d+>        controllers.Application.takeIntEscapes(i: Int)
 
 GET         /take-bool              controllers.Application.takeBool(b: Boolean)
 GET         /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
-GET         /take-list              controllers.Application.takeList(x: List[Int])
-GET         /take-java-list         controllers.Application.takeJavaList(x: java.util.List[java.lang.Integer])
+
+GET         /take-str               controllers.Application.takeString(x: String)
+GET         /take-str-opt           controllers.Application.takeStringOption(x: Option[String])
+GET         /take-str-jopt          controllers.Application.takeStringOptional(x: java.util.Optional[String])
+GET         /take-char              controllers.Application.takeChar(x: Char)
+GET         /take-char-opt          controllers.Application.takeCharOption(x: Option[Char])
+GET         /take-int               controllers.Application.takeInt(x: Int)
+GET         /take-int-opt           controllers.Application.takeIntOption(x: Option[Int])
+GET         /take-jint              controllers.Application.takeInteger(x: java.lang.Integer)
+GET         /take-jint-jopt         controllers.Application.takeIntegerOptional(x: java.util.Optional[java.lang.Integer])
+GET         /take-slist-str         controllers.Application.takeListString(x: List[String])
+GET         /take-slist-str-opt     controllers.Application.takeListStringOption(x: Option[List[String]])
+GET         /take-slist-char        controllers.Application.takeListChar(x: List[Char])
+GET         /take-slist-char-opt    controllers.Application.takeListCharOption(x: Option[List[Char]])
+GET         /take-jlist-str         controllers.Application.takeJavaListString(x: java.util.List[String])
+GET         /take-jlist-str-jopt    controllers.Application.takeJavaListStringOptional(x: java.util.Optional[java.util.List[String]])
+GET         /take-slist-int         controllers.Application.takeListInt(x: List[Int])
+GET         /take-slist-int-opt     controllers.Application.takeListIntOption(x: Option[List[Int]])
+GET         /take-jlist-jint        controllers.Application.takeJavaListInteger(x: java.util.List[java.lang.Integer])
+GET         /take-jlist-jint-jopt   controllers.Application.takeJavaListIntegerOptional(x: java.util.Optional[java.util.List[java.lang.Integer]])
+####
+#### Same again with defaults (/take-...-d):
+####
+GET         /take-str-d             controllers.Application.takeStringWithDefault(x: String ?= "abc")
+GET         /take-str-opt-d         controllers.Application.takeStringOptionWithDefault(x: Option[String] ?= Option("abc"))
+GET         /take-str-jopt-d        controllers.Application.takeStringOptionalWithDefault(x: java.util.Optional[String] ?= java.util.Optional.of("abc"))
+GET         /take-char-d            controllers.Application.takeCharWithDefault(x: Char ?= 'a')
+GET         /take-char-opt-d        controllers.Application.takeCharOptionWithDefault(x: Option[Char] ?= Option('a'))
+GET         /take-int-d             controllers.Application.takeIntWithDefault(x: Int ?= 123)
+GET         /take-int-opt-d         controllers.Application.takeIntOptionWithDefault(x: Option[Int] ?= Option(123))
+GET         /take-jint-d            controllers.Application.takeIntegerWithDefault(x: java.lang.Integer ?= 123)
+GET         /take-jint-jopt-d       controllers.Application.takeIntegerOptionalWithDefault(x: java.util.Optional[java.lang.Integer] ?= java.util.Optional.of(123))
+GET         /take-slist-str-d       controllers.Application.takeListStringWithDefault(x: List[String] ?= List("abc", "def", "ghi"))
+GET         /take-slist-str-opt-d   controllers.Application.takeListStringOptionWithDefault(x: Option[List[String]] ?= Option(List("abc", "def", "ghi")))
+GET         /take-slist-char-d      controllers.Application.takeListCharWithDefault(x: List[Char] ?= List('a', 'b', 'c'))
+GET         /take-slist-char-opt-d  controllers.Application.takeListCharOptionWithDefault(x: Option[List[Char]] ?= Option(List('a', 'b', 'c')))
+GET         /take-jlist-str-d       controllers.Application.takeJavaListStringWithDefault(x: java.util.List[String] ?= java.util.Arrays.asList("abc", "def", "ghi"))
+GET         /take-jlist-str-jopt-d  controllers.Application.takeJavaListStringOptionalWithDefault(x: java.util.Optional[java.util.List[String]] ?= java.util.Optional.of(java.util.Arrays.asList("abc", "def", "ghi")))
+GET         /take-slist-int-d       controllers.Application.takeListIntWithDefault(x: List[Int] ?= List(1, 2, 3))
+GET         /take-slist-int-opt-d   controllers.Application.takeListIntOptionWithDefault(x: Option[List[Int]] ?= Option(List(1, 2, 3)))
+GET         /take-jlist-jint-d      controllers.Application.takeJavaListIntegerWithDefault(x: java.util.List[java.lang.Integer] ?= java.util.Arrays.asList(1, 2, 3))
+GET         /take-jlist-jint-jopt-d controllers.Application.takeJavaListIntegerOptionalWithDefault(x: java.util.Optional[java.util.List[java.lang.Integer]] ?= java.util.Optional.of(java.util.Arrays.asList(1, 2, 3)))
 
 GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -14,6 +14,7 @@ import play.api.http.{ HttpConfiguration, HttpErrorHandler }
 import play.api.inject.{ Binding, Module, bind }
 import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider }
 import play.api.libs.typedmap.TypedKey
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.core.j.{ JavaContextComponents, JavaHelpers }
@@ -31,6 +32,7 @@ import scala.concurrent.Future
  * @param cookieName If defined, the name of the cookie to read the token from/write the token to.
  * @param secureCookie If using a cookie, whether it should be secure.
  * @param httpOnlyCookie If using a cookie, whether it should have the HTTP only flag.
+ * @param sameSiteCookie If using a cookie, the cookie's SameSite attribute.
  * @param postBodyBuffer How much of the POST body should be buffered if checking the body for a token.
  * @param signTokens Whether tokens should be signed.
  * @param checkMethod Returns true if a request for that method should be checked.
@@ -44,6 +46,7 @@ case class CSRFConfig(
     cookieName: Option[String] = None,
     secureCookie: Boolean = false,
     httpOnlyCookie: Boolean = false,
+    sameSiteCookie: Option[SameSite] = Some(SameSite.Lax),
     createIfNotFound: RequestHeader => Boolean = CSRFConfig.defaultCreateIfNotFound,
     postBodyBuffer: Long = 102400,
     signTokens: Boolean = true,
@@ -68,6 +71,7 @@ case class CSRFConfig(
   def withCookieName(cookieName: ju.Optional[String]) = copy(cookieName = cookieName.asScala)
   def withSecureCookie(isSecure: Boolean) = copy(secureCookie = isSecure)
   def withHttpOnlyCookie(isHttpOnly: Boolean) = copy(httpOnlyCookie = isHttpOnly)
+  def withSameSiteCookie(sameSite: Option[SameSite]) = copy(sameSiteCookie = sameSite)
   def withCreateIfNotFound(pred: ju.function.Predicate[JRequestHeader]) =
     copy(createIfNotFound = pred.asScala.compose(_.asJava))
   def withPostBodyBuffer(bufsize: Long) = copy(postBodyBuffer = bufsize)
@@ -149,6 +153,7 @@ object CSRFConfig {
       cookieName = config.get[Option[String]]("cookie.name"),
       secureCookie = config.get[Boolean]("cookie.secure"),
       httpOnlyCookie = config.get[Boolean]("cookie.httpOnly"),
+      sameSiteCookie = HttpConfiguration.parseSameSite(config, "cookie.sameSite"),
       postBodyBuffer = config.get[ConfigMemorySize]("body.bufferSize").toBytes,
       signTokens = config.get[Boolean]("token.sign"),
       checkMethod = checkMethod,

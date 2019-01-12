@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
+import com.typesafe.config.Config;
 import org.junit.Test;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
@@ -20,8 +21,11 @@ import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
+import play.libs.typedmap.TypedMap;
 import play.mvc.*;
+import play.mvc.Http.MultipartFormData.FilePart;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
@@ -57,16 +61,23 @@ public class JavaForms extends WithApplication {
         Form<User> userForm = formFactory.form(User.class);
         //#create
 
+        Lang lang = new Lang(Locale.getDefault());
+        TypedMap attrs = TypedMap.empty();
+        FilePart<?> myProfilePicture = new FilePart<>("profilePicture", "me.jpg", "image/jpeg", null);
         //#bind
-        Map<String,String> anyData = new HashMap<>();
-        anyData.put("email", "bob@gmail.com");
-        anyData.put("password", "secret");
+        Map<String,String> textData = new HashMap<>();
+        textData.put("email", "bob@gmail.com");
+        textData.put("password", "secret");
 
-        User user = userForm.bind(anyData).get();
+        Map<String, FilePart<?>> files = new HashMap<>();
+        files.put("profilePicture", myProfilePicture);
+
+        User user = userForm.bind(lang, attrs, textData, files).get();
         //#bind
 
         assertThat(user.getEmail(), equalTo("bob@gmail.com"));
         assertThat(user.getPassword(), equalTo("secret"));
+        assertThat(user.getProfilePicture(), equalTo(myProfilePicture));
     }
 
     @Test
@@ -82,10 +93,10 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             Form<User> userForm = formFactory().form(User.class);
             //#bind-from-request
-            User user = userForm.bindFromRequest().get();
+            User user = userForm.bindFromRequest(request).get();
             //#bind-from-request
 
             return ok(user.getEmail());
@@ -95,12 +106,12 @@ public class JavaForms extends WithApplication {
     @Test
     public void constraints() {
         Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
-        assertThat(userForm.bind(ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
+        assertThat(userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors(), equalTo(true));
     }
 
     @Test
     public void adhocValidation() {
-        Result result = call(new U3UserController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new U3UserController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of("email", "e", "password", "p")), mat);
 
         // Run it through the template
@@ -109,15 +120,19 @@ public class JavaForms extends WithApplication {
 
     public class U3UserController extends MockJavaAction {
 
-        U3UserController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        U3UserController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
-            Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<javaguide.forms.u3.User> userForm = formFactory().form(javaguide.forms.u3.User.class).bindFromRequest(request);
+            Messages messages = this.messagesApi.preferred(request);
 
             if (userForm.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(userForm));
+                return badRequest(javaguide.forms.html.view.render(userForm, messages));
             } else {
                 javaguide.forms.u3.User user = userForm.get();
                 return ok("Got user " + user);
@@ -131,7 +146,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void listValidation() {
-        Result result = call(new ListValidationController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new ListValidationController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of("email", "e")), mat);
 
         // Run it through the template
@@ -186,15 +201,19 @@ public class JavaForms extends WithApplication {
 
     public class ListValidationController extends MockJavaAction {
 
-        ListValidationController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        ListValidationController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
-            Form<SignUpForm> userForm = formFactory().form(SignUpForm.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<SignUpForm> userForm = formFactory().form(SignUpForm.class).bindFromRequest(request);
+            Messages messages = this.messagesApi.preferred(request);
 
             if (userForm.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(userForm));
+                return badRequest(javaguide.forms.html.view.render(userForm, messages));
             } else {
                 SignUpForm user = userForm.get();
                 return ok("Got user " + user);
@@ -204,7 +223,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void objectValidation() {
-        Result result = call(new ObjectValidationController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new ObjectValidationController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of("email", "e")), mat);
 
         // Run it through the template
@@ -254,15 +273,19 @@ public class JavaForms extends WithApplication {
 
     public class ObjectValidationController extends MockJavaAction {
 
-        ObjectValidationController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        ObjectValidationController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
-            Form<LoginForm> adminForm = formFactory().form(LoginForm.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<LoginForm> adminForm = formFactory().form(LoginForm.class).bindFromRequest(request);
+            Messages messages = this.messagesApi.preferred(request);
 
             if (adminForm.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(adminForm));
+                return badRequest(javaguide.forms.html.view.render(adminForm, messages));
             } else {
                 LoginForm user = adminForm.get();
                 return ok("Got user " + user);
@@ -295,8 +318,8 @@ public class JavaForms extends WithApplication {
             super(javaHandlerComponents);
         }
 
-        public Result index() {
-            Form<User> userForm = formFactory().form(User.class).bindFromRequest();
+        public Result index(Http.Request request) {
+            Form<User> userForm = formFactory().form(User.class).bindFromRequest(request);
             //#handle-errors
             if (userForm.hasErrors()) {
                 return badRequest(views.html.form.render(userForm));
@@ -340,8 +363,8 @@ public class JavaForms extends WithApplication {
         }
 
         //#dynamic
-        public Result hello() {
-            DynamicForm requestData = formFactory.form().bindFromRequest();
+        public Result hello(Http.Request request) {
+            DynamicForm requestData = formFactory.form().bindFromRequest(request);
             String firstname = requestData.get("firstname");
             String lastname = requestData.get("lastname");
             return ok("Hello " + firstname + " " + lastname);
@@ -356,7 +379,7 @@ public class JavaForms extends WithApplication {
             .build();
 
         Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
-        WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
+        WithLocalTime obj = form.bind(null, TypedMap.empty(), ImmutableMap.of("time", "23:45")).get();
         assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
         assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
     }
@@ -390,7 +413,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void partialFormSignupValidation() {
-        Result result = call(new PartialFormSignupController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new PartialFormSignupController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of()), mat);
 
         // Run it through the template
@@ -399,17 +422,22 @@ public class JavaForms extends WithApplication {
 
     public class PartialFormSignupController extends MockJavaAction {
 
-        PartialFormSignupController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        PartialFormSignupController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-signup
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, SignUpCheck.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, SignUpCheck.class).bindFromRequest(request);
             //#partial-validate-signup
 
+            Messages messages = this.messagesApi.preferred(request);
+
             if (form.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(form));
+                return badRequest(javaguide.forms.html.view.render(form, messages));
             } else {
                 PartialUserForm user = form.get();
                 return ok("Got user " + user);
@@ -419,7 +447,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void partialFormLoginValidation() {
-        Result result = call(new PartialFormLoginController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new PartialFormLoginController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of()), mat);
 
         // Run it through the template
@@ -428,17 +456,23 @@ public class JavaForms extends WithApplication {
 
     public class PartialFormLoginController extends MockJavaAction {
 
-        PartialFormLoginController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        PartialFormLoginController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
+
+        public Result index(Http.Request request) {
             //#partial-validate-login
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest(request);
             //#partial-validate-login
 
+            Messages messages = this.messagesApi.preferred(request);
+
             if (form.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(form));
+                return badRequest(javaguide.forms.html.view.render(form, messages));
             } else {
                 PartialUserForm user = form.get();
                 return ok("Got user " + user);
@@ -448,7 +482,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void partialFormDefaultValidation() {
-        Result result = call(new PartialFormDefaultController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new PartialFormDefaultController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of()), mat);
 
         // Run it through the template
@@ -457,17 +491,22 @@ public class JavaForms extends WithApplication {
 
     public class PartialFormDefaultController extends MockJavaAction {
 
-        PartialFormDefaultController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        PartialFormDefaultController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-default
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest(request);
             //#partial-validate-default
 
+            Messages messages = this.messagesApi.preferred(request);
+
             if (form.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(form));
+                return badRequest(javaguide.forms.html.view.render(form, messages));
             } else {
                 PartialUserForm user = form.get();
                 return ok("Got user " + user);
@@ -477,7 +516,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void partialFormNoGroupValidation() {
-        Result result = call(new PartialFormNoGroupController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new PartialFormNoGroupController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of()), mat);
 
         // Run it through the template
@@ -486,17 +525,22 @@ public class JavaForms extends WithApplication {
 
     public class PartialFormNoGroupController extends MockJavaAction {
 
-        PartialFormNoGroupController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        PartialFormNoGroupController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#partial-validate-nogroup
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest(request);
             //#partial-validate-nogroup
 
+            Messages messages = this.messagesApi.preferred(request);
+
             if (form.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(form));
+                return badRequest(javaguide.forms.html.view.render(form, messages));
             } else {
                 PartialUserForm user = form.get();
                 return ok("Got user " + user);
@@ -506,7 +550,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void OrderedGroupSequenceValidation() {
-        Result result = call(new OrderedGroupSequenceController(instanceOf(JavaHandlerComponents.class)), fakeRequest("POST", "/")
+        Result result = call(new OrderedGroupSequenceController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("POST", "/")
                 .bodyForm(ImmutableMap.of()), mat);
 
         // Run it through the template
@@ -515,17 +559,22 @@ public class JavaForms extends WithApplication {
 
     public class OrderedGroupSequenceController extends MockJavaAction {
 
-        OrderedGroupSequenceController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        OrderedGroupSequenceController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
+        public Result index(Http.Request request) {
             //#ordered-group-sequence-validate
-            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, OrderedChecks.class).bindFromRequest();
+            Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, OrderedChecks.class).bindFromRequest(request);
             //#ordered-group-sequence-validate
 
+            Messages messages = this.messagesApi.preferred(request);
+
             if (form.hasErrors()) {
-                return badRequest(javaguide.forms.html.view.render(form));
+                return badRequest(javaguide.forms.html.view.render(form, messages));
             } else {
                 PartialUserForm user = form.get();
                 return ok("Got user " + user);
@@ -535,6 +584,8 @@ public class JavaForms extends WithApplication {
 
     //#payload-validate
     //###insert: import java.util.Map;
+
+    //###insert: import com.typesafe.config.Config;
 
     //###insert: import play.data.validation.Constraints.ValidatableWithPayload;
     //###insert: import play.data.validation.Constraints.ValidateWithPayload;
@@ -554,7 +605,9 @@ public class JavaForms extends WithApplication {
         public ValidationError validate(ValidationPayload payload) {
             Lang lang = payload.getLang();
             Messages messages = payload.getMessages();
-            Map<String, Object> ctxArgs = payload.getArgs();
+            //###insert:         Map<String, Object> ctxArgs = payload.getArgs();            //###insert:         Map<String, Object> ctxArgs = payload.getArgs();
+            TypedMap attrs = payload.getAttrs();
+            Config config = payload.getConfig();
             // ...
             //###skip: 1
             return null;

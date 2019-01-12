@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -77,7 +77,37 @@ object Files {
     def temporaryFileCreator: TemporaryFileCreator
 
     /**
-     * Move the file using a [[java.io.File]].
+     * Copy the file to the specified path destination and, if the destination exists, decide if replace it
+     * based on the `replace` parameter.
+     *
+     * @param to the destination file.
+     * @param replace if it should replace an existing file.
+     */
+    def copyTo(to: java.io.File, replace: Boolean = false): TemporaryFile = copyTo(to.toPath, replace)
+
+    /**
+     * Copy the file to the specified path destination and, if the destination exists, decide if replace it
+     * based on the `replace` parameter.
+     *
+     * @param to the path destination.
+     * @param replace if it should replace an existing file.
+     */
+    def copyTo(to: Path, replace: Boolean): TemporaryFile = {
+      val destination = try
+        if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
+        else if (!to.toFile.exists()) JFiles.copy(path, to)
+        else to
+      catch {
+        case _: FileAlreadyExistsException => to
+      }
+
+      temporaryFileCreator.create(destination)
+    }
+
+    /**
+     * Move the file to the specified destination [[java.io.File]]. In some cases, the source and destination file
+     * may point to the same `inode` meaning that deleting the source will result in the destination being deleted
+     * too. See the documentation for [[java.nio.file.Files.move()]] to see more details.
      *
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
@@ -93,7 +123,7 @@ object Files {
      * @param replace true if an existing file should be replaced, false otherwise.
      */
     def moveTo(to: Path, replace: Boolean): TemporaryFile = {
-      try {
+      val destination = try {
         if (replace)
           JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
         else if (!to.toFile.exists())
@@ -103,8 +133,18 @@ object Files {
         case ex: FileAlreadyExistsException => to
       }
 
-      temporaryFileCreator.create(to)
+      temporaryFileCreator.create(destination)
     }
+
+    /**
+     * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+     *
+     * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+     * existent files or not, considering that it will always replaces, makes the API more predictable.
+     *
+     * @param to the path to the destination file
+     */
+    def atomicMoveWithFallback(to: File): TemporaryFile = atomicMoveWithFallback(to.toPath)
 
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.

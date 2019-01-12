@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.http.scalasessionflash {
@@ -84,8 +84,7 @@ package scalaguide.http.scalasessionflash {
         }
 
         def save = Action {
-          Redirect("/home").flashing(
-            "success" -> "The item has been created")
+          Redirect("/home").flashing("success" -> "The item has been created")
         }
         //#using-flash
         assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res => contentAsString(res) must contain("success!"))

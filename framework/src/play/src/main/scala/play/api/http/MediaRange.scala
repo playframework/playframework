@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -92,7 +92,20 @@ object MediaType {
 
 object MediaRange {
 
-  private val logger = Logger(this.getClass())
+  private val logger = Logger(getClass)
+
+  /**
+   * Given a list of acceptable media ranges, find the preferred media type in the list of available media types.
+   *
+   * Note: the media types in the list should be without parameters, e.g. `text/html` not `text/html;charset=utf-8`
+   */
+  def preferred(acceptableRanges: Seq[MediaRange], availableMediaTypes: Seq[String]): Option[String] = {
+    val acceptableTypes = for {
+      mediaRange <- acceptableRanges.sorted.toStream
+      mt <- availableMediaTypes if mediaRange.accepts(mt)
+    } yield mt
+    acceptableTypes.headOption
+  }
 
   /**
    * Function and extractor object for parsing media ranges.

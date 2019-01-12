@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -170,6 +170,8 @@ object Status extends Status {
 
 /**
  * Defines all standard HTTP status codes.
+ *
+ * See <a href="https://tools.ietf.org/html/rfc7231">RFC 7231</a> and <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>.
  */
 trait Status {
 
@@ -217,9 +219,9 @@ trait Status {
   final val LOCKED = 423
   final val FAILED_DEPENDENCY = 424
   final val UPGRADE_REQUIRED = 426
+  final val PRECONDITION_REQUIRED = 428
   final val TOO_MANY_REQUESTS = 429
   final val REQUEST_HEADER_FIELDS_TOO_LARGE = 431
-
   @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
   final val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
@@ -230,6 +232,7 @@ trait Status {
   final val GATEWAY_TIMEOUT = 504
   final val HTTP_VERSION_NOT_SUPPORTED = 505
   final val INSUFFICIENT_STORAGE = 507
+  final val NETWORK_AUTHENTICATION_REQUIRED = 511
 }
 
 /** Defines all standard HTTP headers. */
@@ -338,7 +341,6 @@ trait HeaderNames {
   final val CONTENT_SECURITY_POLICY = "Content-Security-Policy"
   final val CONTENT_SECURITY_POLICY_REPORT_ONLY: String = "Content-Security-Policy-Report-Only"
   final val X_CONTENT_SECURITY_POLICY_NONCE_HEADER: String = "X-Content-Security-Policy-Nonce"
-
 }
 
 /**

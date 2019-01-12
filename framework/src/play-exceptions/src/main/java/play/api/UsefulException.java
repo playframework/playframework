@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api;
@@ -38,7 +38,7 @@ public abstract class UsefulException extends RuntimeException {
     }
 
     public String toString() {
-        return "@" + id + ": " + title;
+        return "@" + id + ": " + getMessage();
     }
 
 } 

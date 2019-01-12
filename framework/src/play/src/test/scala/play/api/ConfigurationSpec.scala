@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
 
 import java.io._
+import java.net.{ MalformedURLException, URI, URISyntaxException, URL }
 
 import com.typesafe.config.{ ConfigException, ConfigFactory }
+import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
 import scala.util.control.NonFatal
@@ -69,6 +71,44 @@ class ConfigurationSpec extends Specification {
       "handle null as Duration.Inf" in {
         val conf = config("my.duration" -> null)
         conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
+      }
+
+    }
+
+    "support getting URLs" in {
+
+      val validUrl = "https://example.com"
+      val invalidUrl = "invalid-url"
+
+      "valid URL" in {
+        val conf = config("my.url" -> validUrl)
+        val value = conf.get[URL]("my.url")
+        value must beEqualTo(new URL(validUrl))
+      }
+
+      "invalid URL" in {
+        val conf = config("my.url" -> invalidUrl)
+        def a: Nothing = { conf.get[URL]("my.url"); throw FailureException(failure("MalformedURLException should be thrown")) }
+        theBlock(a) must throwA[MalformedURLException]
+      }
+
+    }
+
+    "support getting URIs" in {
+
+      val validUri = "https://example.com"
+      val invalidUri = "%"
+
+      "valid URI" in {
+        val conf = config("my.uri" -> validUri)
+        val value = conf.get[URI]("my.uri")
+        value must beEqualTo(new URI(validUri))
+      }
+
+      "invalid URI" in {
+        val conf = config("my.uri" -> invalidUri)
+        def a: Nothing = { conf.get[URI]("my.uri"); throw FailureException(failure("URISyntaxException should be thrown")) }
+        theBlock(a) must throwA[URISyntaxException]
       }
 
     }

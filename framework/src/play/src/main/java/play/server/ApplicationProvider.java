@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.server;
@@ -41,7 +41,10 @@ public class ApplicationProvider {
     /**
      * Handle a request directly, without using the application.
      * @param requestHeader the request made.
+     *
+     * @deprecated Deprecated as of 2.7.0. WebCommands are now handled by the DefaultHttpRequestHandler.
      */
+    @Deprecated
     public Optional<Result> handleWebCommand(Http.RequestHeader requestHeader) {
         return OptionConverters
                 .toJava(this.underlying.handleWebCommand(requestHeader.asScala()))

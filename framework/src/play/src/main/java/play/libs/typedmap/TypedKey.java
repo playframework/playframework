@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.typedmap;
@@ -53,7 +53,7 @@ public final class TypedKey<A> {
      * @return A fresh key.
      */
     public static <A> TypedKey<A> create() {
-        return new TypedKey(TypedKey$.MODULE$.apply());
+        return new TypedKey<>(TypedKey$.MODULE$.apply());
     }
 
     /**
@@ -64,7 +64,7 @@ public final class TypedKey<A> {
      * @return A fresh key.
      */
     public static <A> TypedKey<A> create(String displayName) {
-        return new TypedKey(TypedKey$.MODULE$.apply(displayName));
+        return new TypedKey<>(TypedKey$.MODULE$.apply(displayName));
     }
 
     @Override

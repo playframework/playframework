@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.i18n
@@ -69,6 +69,30 @@ class MessagesSpec extends Specification {
       val cookie = api.setLang(Results.Ok, Lang("en-AU")).newCookies.head
       cookie.name must_== "PLAY_LANG"
       cookie.value must_== "en-AU"
+    }
+
+    "default for the language cookie's SameSite attribute is Lax" in {
+      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config = Configuration.reference
+      val langs = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookieSameSite must_== Option(Cookie.SameSite.Lax)
+    }
+
+    "correctly pick up the config for the language cookie's SameSite attribute" in {
+      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "Strict"))
+      val langs = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookieSameSite must_== Option(Cookie.SameSite.Strict)
+    }
+
+    "not have a value for the language cookie's SameSite attribute when misconfigured" in {
+      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "foo"))
+      val langs = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookieSameSite must_== None
     }
 
     "support getting a preferred lang from a Scala request" in {

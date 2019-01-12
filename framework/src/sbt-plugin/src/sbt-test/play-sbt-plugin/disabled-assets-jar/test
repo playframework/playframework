@@ -1,0 +1,3 @@
+# Check that no assets jar will be created
+> stage
+-$ exists target/universal/stage/lib/assets-sample.assets-sample-1.0-SNAPSHOT-assets.jar

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.ws.controllers;
@@ -28,14 +28,14 @@ public class OpenIDController extends Controller {
         return ok(views.html.login.render(""));
     }
 
-    public CompletionStage<Result> loginPost() {
+    public CompletionStage<Result> loginPost(Http.Request request) {
 
         // Form data
-        DynamicForm requestData = formFactory.form().bindFromRequest();
+        DynamicForm requestData = formFactory.form().bindFromRequest(request);
         String openID = requestData.get("openID");
 
         CompletionStage<String> redirectUrlPromise =
-                openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
+                openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request));
 
         return redirectUrlPromise
                 .thenApply(Controller::redirect)
@@ -44,9 +44,9 @@ public class OpenIDController extends Controller {
                 );
     }
 
-    public CompletionStage<Result> openIDCallback() {
+    public CompletionStage<Result> openIDCallback(Http.Request request) {
 
-        CompletionStage<UserInfo> userInfoPromise = openIdClient.verifiedId();
+        CompletionStage<UserInfo> userInfoPromise = openIdClient.verifiedId(request);
 
         CompletionStage<Result> resultPromise = userInfoPromise.thenApply(userInfo ->
                         ok(userInfo.id() + "\n" + userInfo.attributes())
@@ -74,7 +74,7 @@ class OpenIDSamples extends Controller {
 
     static OpenIdClient openIdClient;
 
-    public static void extendedAttributes() {
+    public static void extendedAttributes(Http.Request request) {
 
         String openID = "";
 
@@ -84,7 +84,7 @@ class OpenIDSamples extends Controller {
 
         CompletionStage<String> redirectUrlPromise = openIdClient.redirectURL(
                 openID,
-                routes.OpenIDController.openIDCallback().absoluteURL(request()),
+                routes.OpenIDController.openIDCallback().absoluteURL(request),
                 attributes
         );
         //#ws-openid-extended-attributes

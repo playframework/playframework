@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.runsupport
 
-import java.net.InetSocketAddress
 import scala.collection.mutable.LinkedHashMap
 import scala.util.control.NonFatal
 

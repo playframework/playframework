@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Embedding a Netty server in your application
 
 While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application. This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary. A common use case is an application with only a few simple routes. To use Netty Server embedded, you will need the following dependency:
@@ -23,7 +23,7 @@ To stop the server once you've started it, simply call the `stop` method:
 
 @[stop](code/ScalaNettyEmbeddingPlay.scala)
 
-> **Note:** Play requires an application secret to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
+> **Note:** Play requires an [[application secret|ApplicationSecret]] to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
 
 ## Logging configuration
 

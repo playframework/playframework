@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -16,7 +16,7 @@ import play.api.mvc.request.RequestAttrKey
  */
 trait CSPProcessor {
   /**
-   * Inspects the request header, and returns a CSPResult iff the
+   * Inspects the request header, and returns a CSPResult if the
    * request should be subject to CSP processing.
    *
    * If the request header has a CSP Nonce already defined,

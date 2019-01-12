@@ -1,0 +1,12 @@
+@import javaguide.upload.fileupload.controllers._
+@* #file-upload-form *@
+@helper.form(action = routes.HomeController.upload, 'enctype -> "multipart/form-data") {
+
+    <input type="file" name="picture">
+
+    <p>
+        <input type="submit">
+    </p>
+
+}
+@* #file-upload-form *@

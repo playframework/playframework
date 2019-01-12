@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package detailedtopics.httpec;
@@ -24,9 +24,7 @@ public class MyController extends Controller {
     public CompletionStage<Result> index() {
         // Use a different task with explicit EC
         return calculateResponse().thenApplyAsync(answer -> {
-            // uses Http.Context
-            ctx().flash().put("info", "Response updated!");
-            return ok("answer was " + answer);
+            return ok("answer was " + answer).flashing("info", "Response updated!");
         }, httpExecutionContext.current());
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.test;
@@ -8,6 +8,7 @@ import org.fluentlenium.adapter.FluentAdapter;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -84,7 +85,7 @@ public class TestBrowser extends FluentAdapter {
      * @return the return value.
      */
     public <T>T waitUntil(Function<WebDriver, T> f) {
-        FluentWait<WebDriver> wait = fluentWait().withTimeout(3000, TimeUnit.MILLISECONDS);
+        FluentWait<WebDriver> wait = fluentWait().withTimeout(Duration.ofMillis(3000));
         return waitUntil(wait,f);
     }
 

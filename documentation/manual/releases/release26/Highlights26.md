@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.6
 
 This page highlights the new features of Play 2.6. If you want to learn about the changes you need to make when you migrate to Play 2.6, check out the [[Play 2.6 Migration Guide|Migration26]].
@@ -11,7 +12,7 @@ You can select which version of Scala you would like to use by setting the `scal
 For Scala 2.12:
 
 ```scala
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 ```
 
 For Scala 2.11:
@@ -29,7 +30,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayService)
   .enablePlugins(RoutesCompiler) // place routes in src/main/resources, or remove if using SIRD/RoutingDsl
   .settings(
-    scalaVersion := "2.12.6",
+    scalaVersion := "2.12.8",
     libraryDependencies ++= Seq(
       guice, // remove if not using Play's Guice loader
       akkaHttpServer, // or use nettyServer for Netty
@@ -262,7 +263,7 @@ import play.api._
 logger.info("some info message")(MarkerContext(someMarker))
 ```
 
-This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html), request information can be encoded into logging statements automatically:
+This opens the door for implicit markers to be passed for logging in several statements, which makes adding context to logging much easier without resorting to MDC.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](https://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html), request information can be encoded into logging statements automatically:
 
 @[logging-request-context-trait](../../working/scalaGuide/main/logging/code/ScalaLoggingSpec.scala)
 

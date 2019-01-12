@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.http;
@@ -11,8 +11,9 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 import com.typesafe.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.Environment;
-import play.Logger;
 import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
 import play.api.http.HttpErrorHandlerExceptions;
@@ -32,6 +33,8 @@ import scala.Some;
  * and development mode is on.
  */
 public class DefaultHttpErrorHandler implements HttpErrorHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(DefaultHttpErrorHandler.class);
 
     private final Option<String> playEditor;
     private final Environment environment;
@@ -166,7 +169,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
                     return onDevServerError(request, usefulException);
             }
         } catch (Exception e) {
-            Logger.error("Error while handling error", e);
+            logger.error("Error while handling error", e);
             return CompletableFuture.completedFuture(Results.internalServerError());
         }
     }
@@ -174,7 +177,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Responsible for logging server errors.
      * <p>
-     * The base implementation uses play.Logger.error to log, which uses the SLF4J "application" logger.  If a special annotation is desired for internal server errors, you may want to use SLF4J directly with the Marker API to distinguish server errors from application errors.
+     * The base implementation uses a SLF4J Logger.  If a special annotation is desired for internal server errors, you may want to use SLF4J directly with the Marker API to distinguish server errors from application errors.
      * <p>
      * This can also be overridden to add additional logging information, eg. the id of the authenticated user.
      *
@@ -182,7 +185,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * @param usefulException The server error.
      */
     protected void logServerError(RequestHeader request, UsefulException usefulException) {
-        Logger.error(String.format("\n\n! @%s - Internal server error, for (%s) [%s] ->\n",
+        logger.error(String.format("\n\n! @%s - Internal server error, for (%s) [%s] ->\n",
                 usefulException.id, request.method(), request.uri()),
                 usefulException
         );

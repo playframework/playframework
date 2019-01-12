@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.ws.ahc;
@@ -104,6 +104,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    @Deprecated
     public CompletionStage<WSResponse> post(InputStream is) {
         return request.post(writables.body(() -> is)).thenApply(responseFunction);
     }
@@ -139,6 +140,7 @@ public class AhcWSRequest implements WSRequest {
     }
 
     @Override
+    @Deprecated
     public CompletionStage<WSResponse> put(InputStream is) {
         return request.put(writables.body(() -> is)).thenApply(responseFunction);
     }

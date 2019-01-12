@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 #  Embedding an Akka Http server in your application
 
 While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application. This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary. A common use case is an application with only a few simple routes. To use Akka HTTP Server embedded, you will need the following dependency:
@@ -23,7 +23,7 @@ To stop the server once you've started it, simply call the `stop` method:
 
 @[stop-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 
-> **Note:** Play requires an application secret to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
+> **Note:** Play requires an [[application secret|ApplicationSecret]] to be configured in order to start.  This can be configured by providing an `application.conf` file in your application, or using the `play.http.secret.key` system property.
 
 Another way is to create a Play Application via [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) in combination with the `fromApplication` method:
  

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Building Play from source
 
 If you want to use some unreleased changes for Play, or you want to contribute to the development of Play yourself, you'll need to compile Play from source. You’ll need a [Git client](https://git-scm.com/) to fetch the source.
@@ -38,7 +38,7 @@ This will build and publish Play for the default Scala version (currently 2.11.1
 Or to publish for a specific Scala version:
 
 ```bash
-> ++2.11.12 publishLocal
+> +++ 2.11.12 publishLocal
 ```
 
 ## Build the documentation
@@ -50,7 +50,7 @@ $ cd playframework/documentation
 $ sbt run
 ```
 
-You can now see the documentation at [http://localhost:9000/@documentation](http://localhost:9000/@documentation).
+You can now see the documentation at <http://localhost:9000/@documentation>.
 
 For more details on developing the Play documentation, see the [[Documentation Guidelines|Documentation]].
 

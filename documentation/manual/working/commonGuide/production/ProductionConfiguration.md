@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Production Configuration
 
 There are a number of different types of configuration that you can configure in production.  The three mains types are:
@@ -59,8 +59,8 @@ $ /path/to/bin/<project-name> -Dconfig.file=/opt/conf/prod.conf
 
 Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying then as Java System properties:
 
-```
-$ /path/to/bin/<project-name> -Dplay.http.secret.key=abcdefghijk -Ddb.default.password=toto
+```bash
+$ /path/to/bin/<project-name> -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b -Ddb.default.password=toto
 ```
 
 #### Specifying the HTTP server address and port using system properties

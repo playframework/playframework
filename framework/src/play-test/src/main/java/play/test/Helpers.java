@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.test;
@@ -111,7 +111,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @param callable the callable block to run.
      * @param <V> the return type.
      * @return the value from {@code callable}.
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static <V> V invokeWithContext(RequestBuilder requestBuilder, JavaContextComponents contextComponents, Callable<V> callable) {
         try {
             Context.current.set(new Context(requestBuilder, contextComponents));
@@ -153,7 +156,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Builds a new Http.Context from a new request
      * @return a new Http.Context using the default request
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static Http.Context httpContext() {
         return httpContext(new Http.RequestBuilder().build());
     }
@@ -162,7 +168,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Builds a new Http.Context for a specific request
      * @param request the Request you want to use for this Context
      * @return a new Http.Context for this request
+     *
+     * @deprecated Deprecated as of 2.7.0. See <a href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration guide</a>.
      */
+    @Deprecated
     public static Http.Context httpContext(Http.Request request) {
         return new Http.Context(request, contextComponents());
     }

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 import Common._
 import scala.reflect._
@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies += guice
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6")
+scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
 

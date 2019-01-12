@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.async;
@@ -7,6 +7,8 @@ package javaguide.async;
 import akka.actor.*;
 import akka.stream.Materializer;
 import play.libs.streams.ActorFlow;
+import play.mvc.Http;
+import play.mvc.Result;
 import play.mvc.WebSocket;
 import play.libs.F;
 
@@ -62,16 +64,17 @@ public class JavaWebSockets {
         private Materializer materializer;
 
         //#actor-reject
-        public WebSocket socket() {
-            return WebSocket.Text.acceptOrResult(request -> {
-                if (session().get("user") != null) {
-                    return CompletableFuture.completedFuture(
-                            F.Either.Right(ActorFlow.actorRef(MyWebSocketActor::props,
-                                    actorSystem, materializer)));
-                } else {
-                    return CompletableFuture.completedFuture(F.Either.Left(forbidden()));
-                }
-            });
+        public WebSocket socket(Http.Request req) {
+            return WebSocket.Text.acceptOrResult(request ->
+                CompletableFuture.completedFuture(
+                        req.session()
+                           .getOptional("user")
+                           .map(user ->
+                               F.Either.<Result, Flow<String, String, ?>>Right(ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer))
+                           )
+                           .orElseGet(() -> F.Either.Left(forbidden()))
+                )
+            );
         }
         //#actor-reject
     }

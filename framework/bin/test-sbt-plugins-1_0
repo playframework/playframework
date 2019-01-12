@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-SCALA_VERSION="2.12.6"
-SBT_VERSION="1.0.4"
+SCALA_VERSION="2.12.8"
+SBT_VERSION="1.2.8"
 
 cd ${FRAMEWORK}
 
@@ -13,6 +13,6 @@ printMessage "PUBLISHING PLAY LOCALLY FOR SBT ${SBT_VERSION}"
 runSbt ++${SCALA_VERSION} quickPublish publishLocal
 
 printMessage "RUNNING SCRIPTED TESTS FOR SBT ${SBT_VERSION}"
-runSbtNoisy "++${SCALA_VERSION} scripted"
+runSbt "++${SCALA_VERSION} scripted"
 
 printMessage "ALL SCRIPTED TESTS PASSED"

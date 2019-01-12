@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package views.html.helper
@@ -200,6 +200,14 @@ class HelpersSpec extends Specification {
       body must contain("""<dd class="error">This is a custom error</dd>""")
       body must contain("""<dd class="info">I am a custom constraint</dd>""")
       body must contain("""<dd class="info">Look at me! I am a custom format pattern</dd>""")
+    }
+
+    "correctly lookup _label in messages" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> "myfieldlabel").body must contain("I am the label of the field")
+    }
+
+    "correctly lookup _name in messages" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> "myfieldname").body must contain("I am the name of the field")
     }
   }
 }

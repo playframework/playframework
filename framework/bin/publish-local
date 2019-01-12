@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd ${FRAMEWORK}
+
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+
+  printMessage "RUNNING PUBLISH LOCAL"
+  runSbt "publishLocal"
+  printMessage "PUBLISH LOCAL PASSED"
+else
+    printMessage "SKIPPING PUBLISH LOCAL"
+fi
+
+

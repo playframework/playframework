@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.typedmap;
 
 import play.api.libs.typedmap.TypedMap$;
+import play.libs.Scala;
 import scala.compat.java8.OptionConverters;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -102,6 +104,20 @@ public final class TypedMap {
         play.api.libs.typedmap.TypedMap newUnderlying = underlying;
         for (TypedEntry<?> e : entries) {
             newUnderlying = newUnderlying.updated(((TypedKey<Object>) e.key()).asScala(), e.value());
+        }
+        return new TypedMap(newUnderlying);
+    }
+
+    /**
+     * Removes keys from the map, returning a new instance of the map.
+     *
+     * @param keys The keys to remove.
+     * @return A new instance of the map with the entries removed.
+     */
+    public TypedMap remove(TypedKey<?>... keys) {
+        play.api.libs.typedmap.TypedMap newUnderlying = underlying;
+        for (TypedKey<?> k : keys) {
+            newUnderlying = newUnderlying.$minus(Scala.toSeq(Arrays.asList(k.asScala())));
         }
         return new TypedMap(newUnderlying);
     }

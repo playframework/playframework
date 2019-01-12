@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -106,7 +106,7 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
 
     "put disallows null values" in {
       val c = Flash(Map("foo" -> "bar"))
-      c + (("x", null)) must throwA(new IllegalArgumentException("requirement failed: Cookie values cannot be null"))
+      c + (("x", null)) must throwA(new IllegalArgumentException("requirement failed: Flash value for x cannot be null"))
     }
 
     "be insecure by default" in {

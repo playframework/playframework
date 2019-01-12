@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package play.microbenchmark.it
 
 import java.util.concurrent.TimeUnit
@@ -8,7 +9,8 @@ import java.util.concurrent.TimeUnit
 import okhttp3.{ OkHttpClient, Protocol, Request, Response }
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
-import play.it.test.{ ApplicationFactory, HttpsEndpoint, ServerEndpoint, ServerEndpointRecipe }
+import play.api.test.{ ApplicationFactory, ServerEndpointRecipe }
+import play.core.server.ServerEndpoint
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
 import scala.util.Random
@@ -47,7 +49,7 @@ class HelloWorldBenchmark {
       case "ak-20-enc" => ServerEndpointRecipe.AkkaHttp20Encrypted
 
     }
-    val startResult = ServerEndpoint.startEndpoint(endpointRecipe, appFactory)
+    val startResult = ServerEndpointRecipe.startEndpoint(endpointRecipe, appFactory)
     serverEndpoint = startResult._1
     endpointCloseable = startResult._2
   }
@@ -101,9 +103,9 @@ object HelloWorldBenchmark {
           .readTimeout(Timeout, TimeUnit.SECONDS)
           .writeTimeout(Timeout, TimeUnit.SECONDS)
         // Add SSL options if we need to
-        val b2 = bench.serverEndpoint match {
-          case e: HttpsEndpoint =>
-            b1.sslSocketFactory(e.serverSsl.sslContext.getSocketFactory, e.serverSsl.trustManager)
+        val b2 = bench.serverEndpoint.ssl match {
+          case Some(ssl) =>
+            b1.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
           case _ => b1
         }
         b2.build()

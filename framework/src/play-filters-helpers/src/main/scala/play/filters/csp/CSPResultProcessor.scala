@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -30,7 +30,7 @@ object CSPResultProcessor {
  * depending on config.reportOnly.
  *
  * If `cspResult.nonceHeader` is defined then
- * `play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER``
+ * `play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER`
  * is set as an additional header.
  */
 class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor)

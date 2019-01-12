@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -8,20 +8,22 @@ import java.util.concurrent.CompletionStage
 
 import javax.inject._
 import play.api._
+import play.api.http.Status._
 import play.api.inject.Binding
+import play.api.libs.json._
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.http.Status._
 import play.api.routing.Router
-import play.core.j.JavaHttpErrorHandlerAdapter
 import play.core.SourceMapper
+import play.core.j.JavaHttpErrorHandlerAdapter
+import play.libs.exception.ExceptionUtils
 import play.mvc.Http
 import play.utils.{ PlayIO, Reflect }
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
-import scala.util.{ Failure, Success }
 import scala.util.control.NonFatal
+import scala.util.{ Failure, Success }
 
 /**
  * Component for handling HTTP errors in Play.
@@ -46,6 +48,54 @@ trait HttpErrorHandler {
    * @param exception The server error.
    */
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result]
+}
+
+/**
+ * An [[HttpErrorHandler]] that uses either HTML or JSON in the response depending on the client's preference.
+ */
+class HtmlOrJsonHttpErrorHandler @Inject() (
+    htmlHandler: DefaultHttpErrorHandler,
+    jsonHandler: JsonHttpErrorHandler
+) extends PreferredMediaTypeHttpErrorHandler(
+  "text/html" -> htmlHandler,
+  "application/json" -> jsonHandler
+)
+
+/**
+ * An [[HttpErrorHandler]] that delegates to one of several [[HttpErrorHandler]]s based on media type preferences.
+ *
+ * For example, to create an error handler that handles JSON and HTML, with JSON preferred by the app as default:
+ * {{{
+ *   override lazy val httpErrorHandler = PreferredMediaTypeHttpErrorHandler(
+ *     "application/json" -> new JsonHttpErrorHandler()
+ *     "text/html" -> new HtmlHttpErrorHandler(),
+ *   )
+ * }}}
+ *
+ * If the client's preferred media range matches multiple media types in the list, then the first match is chosen.
+ */
+class PreferredMediaTypeHttpErrorHandler(val handlers: (String, HttpErrorHandler)*) extends HttpErrorHandler {
+
+  private val supportedTypes: Seq[String] = handlers.map(_._1)
+  private val typeToHandler: Map[String, HttpErrorHandler] = handlers.toMap
+
+  protected val defaultHandler: HttpErrorHandler =
+    handlers.headOption.getOrElse(throw new IllegalArgumentException("handlers must not be empty"))._2
+
+  protected def preferredHandler(request: RequestHeader): HttpErrorHandler = {
+    MediaRange.preferred(request.acceptedTypes, supportedTypes).fold(defaultHandler)(typeToHandler)
+  }
+
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    preferredHandler(request).onClientError(request, statusCode, message)
+  }
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+    preferredHandler(request).onServerError(request, exception)
+  }
+}
+
+object PreferredMediaTypeHttpErrorHandler {
+  def apply(handlers: (String, HttpErrorHandler)*) = new PreferredMediaTypeHttpErrorHandler(handlers: _*)
 }
 
 object HttpErrorHandler {
@@ -88,8 +138,7 @@ class DefaultHttpErrorHandler(
     this(HttpErrorConfig(environment.mode != Mode.Prod, configuration.getOptional[String]("play.editor")), sourceMapper, router)
 
   @Inject
-  def this(environment: Environment, configuration: Configuration, sourceMapper: OptionalSourceMapper,
-    router: Provider[Router]) =
+  def this(environment: Environment, configuration: Configuration, sourceMapper: OptionalSourceMapper, router: Provider[Router]) =
     this(environment, configuration, sourceMapper.sourceMapper, Some(router.get))
 
   // Hyperlink string to wrap around Play error messages.
@@ -112,7 +161,7 @@ class DefaultHttpErrorHandler(
    * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
    * @param message The error message.
    */
-  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = statusCode match {
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = statusCode match {
     case BAD_REQUEST => onBadRequest(request, message)
     case FORBIDDEN => onForbidden(request, message)
     case NOT_FOUND => onNotFound(request, message)
@@ -187,7 +236,7 @@ class DefaultHttpErrorHandler(
    * @param request The request that triggered the server error.
    * @param exception The server error.
    */
-  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     try {
       val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
         sourceMapper,
@@ -281,6 +330,116 @@ object HttpErrorHandlerExceptions {
         def sourceName = source.map(_._1.getAbsolutePath).orNull
       }
   }
+}
+
+/**
+ * An alternative default HTTP error handler which will render errors as JSON messages instead of HTML pages.
+ *
+ * In Dev mode, exceptions thrown by the server code will be rendered in JSON messages.
+ * In Prod mode, they will not be rendered.
+ *
+ * You could override how exceptions are rendered in Dev mode by extending this class and overriding
+ * the [[formatDevServerErrorException]] method.
+ */
+class JsonHttpErrorHandler(
+    environment: Environment,
+    sourceMapper: Option[SourceMapper] = None) extends HttpErrorHandler {
+
+  @Inject
+  def this(environment: Environment, optionalSourceMapper: OptionalSourceMapper) = {
+    this(environment, optionalSourceMapper.sourceMapper)
+  }
+
+  @inline
+  private final def error(content: JsObject): JsObject = Json.obj("error" -> content)
+
+  /**
+   * Invoked when a client error occurs, that is, an error in the 4xx series.
+   *
+   * @param request The request that caused the client error.
+   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
+   * @param message The error message.
+   */
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    if (Status.isClientError(statusCode)) {
+      Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
+    } else {
+      throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
+    }
+  }
+
+  /**
+   * Invoked when a server error occurs.
+   *
+   * @param request The request that triggered the server error.
+   * @param exception The server error.
+   */
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
+    try {
+      val isProd = environment.mode == Mode.Prod
+
+      val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
+        sourceMapper,
+        isProd,
+        exception
+      )
+      logServerError(request, usefulException)
+      Future.successful(
+        InternalServerError(
+          if (isProd) prodServerError(request, usefulException)
+          else devServerError(request, usefulException)
+        )
+      )
+    } catch {
+      case NonFatal(e) =>
+        Logger.error("Error while handling error", e)
+        Future.successful(InternalServerError)
+    }
+
+  protected def devServerError(request: RequestHeader, exception: UsefulException): JsValue = {
+    error(Json.obj(
+      "id" -> exception.id,
+      "requestId" -> request.id,
+      "exception" -> Json.obj(
+        "title" -> exception.title,
+        "description" -> exception.description,
+        "stacktrace" -> formatDevServerErrorException(exception.cause)
+      )
+    ))
+  }
+
+  /**
+   * Format a [[Throwable]] as a JSON value.
+   *
+   * Override this method if you want to change how exceptions are rendered in Dev mode.
+   *
+   * @param exception
+   * @return
+   */
+  protected def formatDevServerErrorException(exception: Throwable): JsValue =
+    JsArray(ExceptionUtils.getStackFrames(exception).map(s => JsString(s.trim)))
+
+  protected def prodServerError(request: RequestHeader, exception: UsefulException): JsValue =
+    error(Json.obj("id" -> exception.id))
+
+  /**
+   * Responsible for logging server errors.
+   *
+   * This can be overridden to add additional logging information, eg. the id of the authenticated user.
+   *
+   * @param request The request that triggered the server error.
+   * @param usefulException The server error.
+   */
+  protected def logServerError(request: RequestHeader, usefulException: UsefulException): Unit = {
+    Logger.error(
+      """
+        |
+        |! @%s - Internal server error, for (%s) [%s] ->
+        | """.stripMargin.format(usefulException.id, request.method, request.uri),
+      usefulException
+    )
+  }
+
 }
 
 /**

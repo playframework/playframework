@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -180,6 +180,14 @@ public class ResultsTest {
     Result result = Results.ok().sendFile(file.toFile(), true, "测 试.tmp");
     assertEquals(result.status(), Http.Status.OK);
     assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+  }
+
+  @Test
+  public void getOptionalCookie() {
+    Result result = Results.ok().withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
+    assertTrue(result.getCookie("foo").isPresent());
+    assertEquals(result.getCookie("foo").get().name(), "foo");
+    assertFalse(result.getCookie("bar").isPresent());
   }
 
   private void mockRegularFileTypes() {

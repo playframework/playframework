@@ -1,14 +1,17 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
 import java.io._
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets._
+import java.nio.charset._
 import java.nio.file.Files
 import java.util.Locale
-import javax.inject.Inject
 
+import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.{ Flow, Sink, StreamConverters }
@@ -26,6 +29,7 @@ import play.core.parsers.Multipart
 import play.utils.PlayIO
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -188,7 +192,7 @@ object MultipartFormData {
   /**
    * A file part.
    */
-  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part[A]
+  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A, dispositionType: String = "form-data") extends Part[A]
 
   /**
    * A part that has not been properly parsed.
@@ -466,14 +470,46 @@ trait PlayBodyParsers extends BodyParserUtils {
   // -- Text parser
 
   /**
-   * Parse the body as text without checking the Content-Type.
+   * Parses the body as text without checking the Content-Type.
+   *
+   * Will attempt to parse content with an explicit charset, but will fallback to UTF-8, ISO-8859-1, and finally US-ASCII if incorrect characters are detected.
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def tolerantText(maxLength: Long): BodyParser[String] = {
-    tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
-      // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
-      bytes.decodeString(request.charset.getOrElse("ISO-8859-1"))
+  def tolerantText(maxLength: Long): BodyParser[String] = tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
+    val byteBuffer = bytes.toByteBuffer
+
+    def decode(encodingToTry: Charset): Try[String] = {
+      import java.nio.charset.CodingErrorAction
+      val decoder = encodingToTry.newDecoder.onMalformedInput(CodingErrorAction.REPORT)
+      try {
+        Success(decoder.decode(byteBuffer).toString)
+      } catch {
+        case e: CharacterCodingException =>
+          logger.warn(s"TolerantText body parser tried to parse request ${request.id} as text body with charset $encodingToTry, but it contains invalid characters!")
+          Failure(e)
+        case e: Exception =>
+          logger.error("Unexpected exception while decoding text/plain body", e)
+          Failure(e)
+      }
+    }
+
+    // Run through a common set of encoders to get an idea of the best character encoding.
+
+    // Per RFC-7321, "The default charset of ISO-8859-1 for text media types has been removed; the default is now
+    // whatever the media type definition says." and
+    // The default "charset" parameter value for "text/plain" is unchanged from [RFC2046] and remains as "US-ASCII".
+    // https://tools.ietf.org/html/rfc6657#section-4
+    val charset = request.charset.fold(US_ASCII)(Charset.forName)
+    decode(charset).recoverWith {
+      case _: CharacterCodingException => decode(UTF_8)
+    }.recoverWith {
+      case _: CharacterCodingException => decode(ISO_8859_1)
+    }.getOrElse {
+      // We can't get a decent charset.  If we added https://github.com/albfernandez/juniversalchardet
+      // then we could guess at the encoding, but that's best done in userspace rather than adding
+      // it into the core...
+      bytes.decodeString(charset)
     }
   }
 
@@ -485,13 +521,40 @@ trait PlayBodyParsers extends BodyParserUtils {
   /**
    * Parse the body as text if the Content-Type is text/plain.
    *
+   * If the charset is not explicitly declared, then the default "charset" parameter value is US-ASCII,
+   * per https://tools.ietf.org/html/rfc6657#section-4.  Use tolerantText if more flexible character
+   * decoding is desired.
+   *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def text(maxLength: Long): BodyParser[String] = when(
-    _.contentType.exists(_.equalsIgnoreCase("text/plain")),
-    tolerantText(maxLength),
-    createBadResult("Expecting text/plain body", UNSUPPORTED_MEDIA_TYPE)
-  )
+  def text(maxLength: Long): BodyParser[String] = {
+    BodyParser("text") { request =>
+      if (request.contentType.exists(_.equalsIgnoreCase("text/plain"))) {
+        val bodyParser = tolerantBodyParser("text", maxLength, "Error decoding text body") { (request, bytes) =>
+          val charset = request.charset.fold(US_ASCII)(Charset.forName)
+          import java.nio.charset.CodingErrorAction
+          val decoder = charset.newDecoder.onMalformedInput(CodingErrorAction.REPORT)
+          try {
+            // Render with assumption that all characters are valid
+            decoder.decode(bytes.toByteBuffer).toString
+          } catch {
+            case e: CharacterCodingException =>
+              // Log a warning, and render to the given charset with unmappable characters.
+              // This is slower (exception + 2 * rendering) but the happy path is just as fast.
+              logger.warn(s"Text body parser tried to parse request ${request.id} as text body with charset $charset, but it contains invalid characters!")
+              bytes.decodeString(charset)
+          }
+        }
+        bodyParser(request)
+      } else {
+        import play.core.Execution.Implicits.trampoline
+        Accumulator.done {
+          val badResult = createBadResult("Expecting text/plain body", UNSUPPORTED_MEDIA_TYPE)
+          badResult(request).map(Left.apply)
+        }
+      }
+    }
+  }
 
   /**
    * Parse the body as text if the Content-Type is text/plain.

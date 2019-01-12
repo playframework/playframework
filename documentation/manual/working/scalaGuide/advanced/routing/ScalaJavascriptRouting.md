@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Javascript Routing
 
 The play router is able to generate Javascript code to handle routing from Javascript running client side back to your application. The Javascript router aids in refactoring your application. If you change the structure of your URLs or parameter names your Javascript gets automatically updated to use that new structure.
 
 ## Generating a Javascript router
 
-The first step to using Play's Javascript router is to generate it. The router will only expose the routes that you explicitly declare thus minimising the size of the Javascript code.
+The first step to using Play's Javascript router is to generate it. The router will only expose the routes that you explicitly declare thus minimizing the size of the Javascript code.
 
 There are two ways to generate a Javascript router. One is to embed the router in the HTML page using template directives. The other is to generate Javascript resources in an action that can be downloaded, cached and shared between pages.
 

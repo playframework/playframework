@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 Before you start with Play forms, read the documentation on the [[Play enhancer|PlayEnhancer]]. The Play enhancer generates accessors for fields in Java classes for you, so that you don't have to generate them yourself. You may decide to use this as a convenience. All the examples below show manually writing accessors for your classes.
@@ -17,13 +17,24 @@ The `play.data` package contains several helpers to handle HTTP form data submis
 
 @[user](code/javaguide/forms/u1/User.java)
 
+The above form defines an `email` and a `password` text field and a `profilePicture` file input field, meaning the corresponding HTML form has to be defined with the `multipart/form-data` encoding to be able to upload the file.
+As you can see, by default, you have to define getter and setter methods so Play is able to access the Form fields. You can however also enable "direct field access" (for all forms) by setting `play.forms.binding.directFieldAccess = true` in `conf/application.conf`. In this mode Play will ignore the getter and setter methods and will try to directly access the fields:
+
+@[user](code/javaguide/forms/u4/User.java)
+
+> **Note:** When using "direct field access" and a field is not accessible to Play during form binding (e.g. if a field or the class containing the field is not defined as `public`) Play will try to make a field accessible via reflection by calling [`field.setAccessible(true)`](https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/AccessibleObject.html#setAccessible-boolean-) internally. Depending on the Java version (8+), JVM and the [ Security Manager](https://docs.oracle.com/javase/tutorial/essential/environment/security.html) settings that could cause warnings about *illegal reflective access* or, in the worst case, throw a [`SecurityException`](https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityException.html)
+
 To wrap a class you have to inject a [`play.data.FormFactory`](api/java/play/data/FormFactory.html) into your Controller which then allows you to create the form:
 
 @[create](code/javaguide/forms/JavaForms.java)
 
+Instead of enabling "direct field access" for all forms, you can enable it only for specific ones:
+
+@[create](code/javaguide/forms/JavaFormsDirectFieldAccess.java)
+
 > **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/4.2.4.RELEASE/spring-framework-reference/html/validation.html).
 
-This form can generate a `User` result value from `HashMap<String,String>` data:
+This form can generate a `User` result value from a `HashMap<String,String>` for the text data and from a `Map<String, FilePart<?>>` for the file data:
 
 @[bind](code/javaguide/forms/JavaForms.java)
 
@@ -33,7 +44,7 @@ If you have a request available in the scope, you can bind directly from the req
 
 ## Defining constraints
 
-You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 2.0)](http://beanvalidation.org/2.0/spec/) annotations:
+You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 2.0)](https://beanvalidation.org/2.0/spec/) annotations:
 
 @[user](code/javaguide/forms/u2/User.java)
 
@@ -96,7 +107,7 @@ The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs
 
 ## Advanced validation
 
-Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-380` (Bean Validation 2.0)](http://beanvalidation.org/2.0/spec/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/).
+Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-380` (Bean Validation 2.0)](https://beanvalidation.org/2.0/spec/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/).
 
 ### Cross field validation
 
@@ -179,7 +190,7 @@ For advanced usage a group of constraints can include another group. You can do 
 
 ### Defining the order of constraint groups
 
-You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this will be part](https://hibernate.atlassian.net/browse/BVAL-248) of a [future version of Bean Validation](http://beanvalidation.org/proposals/BVAL-248/))
+You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this will be part](https://hibernate.atlassian.net/browse/BVAL-248) of a [future version of Bean Validation](https://beanvalidation.org/proposals/BVAL-248/))
 
 Based on the example above let's define a group sequence:
 
@@ -248,4 +259,4 @@ Without Payload
 With Payload
 : @[user](code/javaguide/forms/customconstraint/payload/DBAccessForm.java)
 
-> **Tip:** You might have recognised that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).
+> **Tip:** You might have recognized that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).

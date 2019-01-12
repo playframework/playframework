@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
 # Lib for CI scripts
 
@@ -20,10 +20,11 @@ EXTRA_OPTS=""
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
     # `sort` is not necessary, but it is good to make it predictable.
     AKKA_VERSION=$(curl -s https://repo.akka.io/snapshots/com/typesafe/akka/akka-actor_2.12/ | grep -oEi '2\.5-[0-9]{8}-[0-9]{6}' | sort | tail -n 1)
+    AKKA_HTTP_VERSION=$(curl -s https://dl.bintray.com/akka/maven/com/typesafe/akka/akka-http-core_2.12/maven-metadata.xml | xmllint --xpath '//latest/text()' -)
 
-    echo "Using Akka SNAPSHOT ${AKKA_VERSION}"
+    echo "Using Akka SNAPSHOT ${AKKA_VERSION} and Akka HTTP SNAPSHOT ${AKKA_HTTP_VERSION}"
 
-    EXTRA_OPTS="-Dakka.version=${AKKA_VERSION}"
+    EXTRA_OPTS="-Dakka.version=${AKKA_VERSION} -Dakka.http.version=${AKKA_HTTP_VERSION}"
 fi
 
 printMessage() {
@@ -33,9 +34,5 @@ printMessage() {
 }
 
 runSbt() {
-  sbt ${EXTRA_OPTS} --warn -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
-}
-
-runSbtNoisy() {
   sbt ${EXTRA_OPTS} -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }

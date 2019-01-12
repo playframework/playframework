@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -148,7 +148,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
 
       //handle bad websocket request
       case ws: WebSocket =>
-        logger.trace("Bad websocket request")
+        logger.trace(s"Bad websocket request: $request")
         val action = EssentialAction(_ => Accumulator.done(
           Results.Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required").withHeaders(
             HeaderNames.UPGRADE -> "websocket",

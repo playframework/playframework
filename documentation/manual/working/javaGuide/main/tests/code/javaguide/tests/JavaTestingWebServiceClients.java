@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.tests;
@@ -24,7 +24,7 @@ public class JavaTestingWebServiceClients {
     public void mockService() {
         //#mock-service
         Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
-                .GET("/repositories").routeTo(() -> {
+                .GET("/repositories").routingTo(request -> {
                     ArrayNode repos = Json.newArray();
                     ObjectNode repo = Json.newObject();
                     repo.put("full_name", "octocat/Hello-World");
@@ -41,7 +41,7 @@ public class JavaTestingWebServiceClients {
     public void sendResource() throws Exception {
         //#send-resource
         Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
-                .GET("/repositories").routeTo(() ->
+                .GET("/repositories").routingTo(request ->
                         ok().sendResource("github/repositories.json")
                 )
                 .build()

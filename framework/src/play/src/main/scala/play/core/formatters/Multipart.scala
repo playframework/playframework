@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.formatters
@@ -146,19 +146,19 @@ object Multipart {
 
             def completePartFormatting(): Source[ByteString, Any] = bodyPart match {
               case MultipartFormData.DataPart(_, data) => Source.single((f ~~ ByteString(data)).get)
-              case MultipartFormData.FilePart(_, _, _, ref) => bodyPartChunks(ref)
+              case MultipartFormData.FilePart(_, _, _, ref, _) => bodyPartChunks(ref)
               case _ => throw new UnsupportedOperationException()
             }
 
             renderBoundary(f, boundary, suppressInitialCrLf = !firstBoundaryRendered)
             firstBoundaryRendered = true
 
-            val (key, filename, contentType) = bodyPart match {
-              case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"))
-              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _) => (innerKey, Option(innerFilename), innerContentType)
+            val (key, filename, contentType, dispositionType) = bodyPart match {
+              case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"), "form-data")
+              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _, innerDispositionType) => (innerKey, Option(innerFilename), innerContentType, innerDispositionType)
               case _ => throw new UnsupportedOperationException()
             }
-            renderDisposition(f, key, filename)
+            renderDisposition(f, dispositionType, key, filename)
             contentType.foreach { ct => renderContentType(f, ct) }
             renderBuffer(f)
             push(out, completePartFormatting())
@@ -194,8 +194,8 @@ object Multipart {
   private def renderFinalBoundary(f: Formatter, boundary: String): Unit =
     f ~~ CrLf ~~ '-' ~~ '-' ~~ boundary ~~ '-' ~~ '-'
 
-  private def renderDisposition(f: Formatter, contentDisposition: String, filename: Option[String]): Unit = {
-    f ~~ "Content-Disposition: form-data; name=" ~~ '"' ~~ contentDisposition ~~ '"'
+  private def renderDisposition(f: Formatter, dispositionType: String, contentDisposition: String, filename: Option[String]): Unit = {
+    f ~~ "Content-Disposition: " ~~ dispositionType ~~ "; name=" ~~ '"' ~~ contentDisposition ~~ '"'
     filename.foreach { name => f ~~ "; filename=" ~~ '"' ~~ name ~~ '"' }
     f ~~ CrLf
   }

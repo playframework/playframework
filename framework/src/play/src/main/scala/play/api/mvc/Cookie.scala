@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -45,7 +45,7 @@ case class Cookie(
     sameSite: Option[Cookie.SameSite] = None
 ) {
   lazy val asJava = {
-    new JCookie(name, value, maxAge.map(i => new Integer(i)).orNull, path, domain.orNull,
+    new JCookie(name, value, maxAge.map(i => Integer.valueOf(i)).orNull, path, domain.orNull,
       secure, httpOnly, sameSite.map(_.asJava).orNull)
   }
 }
@@ -113,7 +113,7 @@ object Cookie {
  * @param secure whether this cookie is secured
  */
 case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure)
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false)
 }
 
 /**
@@ -403,7 +403,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
   /**
    *  The cookie path.
    */
-  def path: String
+  def path: String = "/"
 
   /**
    * The value of the SameSite attribute of the cookie. Defaults to no SameSite.

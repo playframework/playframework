@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -23,9 +23,7 @@ public class SecurityTest {
 
         Http.RequestBuilder builder = new Http.RequestBuilder();
         builder.session("username", "test_user");
-        Http.Context ctx = new Http.Context(builder, null);
-        Result r = callWithSecurity(ctx, c -> {
-            Http.Request req = c.request();
+        Result r = callWithSecurity(builder.build(), req -> {
             String username = req.attrs().get(Security.USERNAME);
             assertEquals("test_user", username);
             return Results.ok().withHeader("Actual-Username", username);
@@ -36,13 +34,11 @@ public class SecurityTest {
 
     @Test
     public void testUnauthorized() throws Exception {
-        Http.RequestBuilder builder = new Http.RequestBuilder();
-        Http.Context ctx = new Http.Context(builder, null);
-        Result r = callWithSecurity(ctx, c -> { throw new AssertionError("Action should not be called"); });
+        Result r = callWithSecurity(new Http.RequestBuilder().build(), c -> { throw new AssertionError("Action should not be called"); });
         assertEquals(Http.Status.UNAUTHORIZED, r.status());
     }
 
-    private Result callWithSecurity(Http.Context ctx, Function<Http.Context, Result> f) throws Exception {
+    private Result callWithSecurity(Http.Request req, Function<Http.Request, Result> f) throws Exception {
         Injector injector = mock(Injector.class);
         when(injector.instanceOf(Security.Authenticator.class)).thenReturn(new Security.Authenticator());
         Security.AuthenticatedAction action = new Security.AuthenticatedAction(injector);
@@ -59,11 +55,11 @@ public class SecurityTest {
         };
         action.delegate = new Action<Object>() {
             @Override
-            public CompletionStage<Result> call(Http.Context ctx) {
-                Result r = f.apply(ctx);
+            public CompletionStage<Result> call(Http.Request req) {
+                Result r = f.apply(req);
                 return CompletableFuture.completedFuture(r);
             }
         };
-        return action.call(ctx).toCompletableFuture().get(1, TimeUnit.SECONDS);
+        return action.call(req).toCompletableFuture().get(1, TimeUnit.SECONDS);
     }
 }

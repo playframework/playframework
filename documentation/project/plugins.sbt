@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
 // Comment to get more information during initialization
 logLevel := Level.Warn
@@ -15,3 +15,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")
 
 // Add headers to example sources
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.0.0")
+
+// Required for Tutorial
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.4.0-M2")

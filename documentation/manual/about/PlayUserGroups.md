@@ -1,14 +1,10 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play User Groups
 
 ## New York
 
 https://www.meetup.com/Play-NYC/
-
-## Berlin
-
-https://www.meetup.com/Play-Berlin-Brandenburg/
 
 ## Cologne
 

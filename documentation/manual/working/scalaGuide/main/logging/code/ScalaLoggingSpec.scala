@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.logging
@@ -27,37 +27,37 @@ class ScalaLoggingSpec extends Specification with Mockito {
     10 / scala.util.Random.nextInt(2)
   }
 
-  "The default Logger" should {
+  "The logger" should {
     "properly log" in {
 
-      object Logger extends play.api.LoggerLike {
+      val logger = new play.api.LoggerLike {
         // Mock underlying logger implementation
         val logger = mock[org.slf4j.Logger].smart
         logger.isDebugEnabled() returns true
         logger.isErrorEnabled() returns true
       }
 
-      //#logging-default-logger
+      //#logging-example
       // Log some debug info
-      Logger.debug("Attempting risky calculation.")
+      logger.debug("Attempting risky calculation.")
 
       try {
         val result = riskyCalculation
 
         // Log result if successful
-        Logger.debug(s"Result=$result")
+        logger.debug(s"Result=$result")
       } catch {
         case t: Throwable => {
           // Log error with message and Throwable.
-          Logger.error("Exception with riskyCalculation", t)
+          logger.error("Exception with riskyCalculation", t)
         }
       }
-      //#logging-default-logger
+      //#logging-example
 
-      there was atLeastOne(Logger.logger).isDebugEnabled()
-      there was atLeastOne(Logger.logger).debug(anyString)
-      there was atMostOne(Logger.logger).isErrorEnabled()
-      there was atMostOne(Logger.logger).error(anyString, any[Throwable])
+      there was atLeastOne(logger.logger).isDebugEnabled()
+      there was atLeastOne(logger.logger).debug(anyString)
+      there was atMostOne(logger.logger).isErrorEnabled()
+      there was atMostOne(logger.logger).error(anyString, any[Throwable])
     }
 
   }
@@ -83,6 +83,20 @@ class ScalaLoggingSpec extends Specification with Mockito {
       //#logging-create-logger-class
 
       logger.underlyingLogger.getName must equalTo("scalaguide.logging.ScalaLoggingSpec")
+    }
+
+    "use Logging trait" in {
+
+      //#logging-trait
+      import play.api.Logging
+
+      class MyClassWithLogging extends Logging {
+        logger.info("Using the trait")
+      }
+      //#logging-trait
+
+      new MyClassWithLogging()
+      success
     }
 
     "allow for using multiple loggers" in {

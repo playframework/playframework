@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -25,7 +25,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   val TokenName = "csrfToken"
   val HeaderName = "Csrf-Token"
-  val CRYPTO_SECRET = "foobar"
+  val CRYPTO_SECRET = "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"
 
   def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
@@ -242,6 +242,23 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
     }
 
+    "work with same site cookie tokens" in {
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.sameSite" -> "lax")
+      def csrfAddToken = buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.sameSite" -> "lax")
+      def generate = signedTokenProvider.generateToken
+      def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
+      def getToken(response: WSResponse) = {
+        response.cookie("csrf").map { cookie =>
+          // WSCookie does not have a SameSite property, we need to read the response header as a workaround
+          response.headers("Set-Cookie")(0) must beMatching("""csrf=.*; SameSite=Lax; Path=\/""")
+          cookie.value
+        }
+      }
+      def compareTokens(a: String, b: String) = signedTokenProvider.compareTokens(a, b) must beTrue
+
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
+    }
+
     "work with checking failed result" in {
       def csrfCheckRequest = buildCsrfCheckRequest(true, "play.filters.csrf.cookie.name" -> "csrf")
       def csrfAddToken = buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf")
@@ -306,7 +323,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
       .routes(router)
       .build()
     val ws = inject[WSClient]
@@ -315,7 +332,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def withActionServer[T](config: Seq[(String, String)])(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
       .appRoutes(app => router(app))
       .build()
     val ws = inject[WSClient]

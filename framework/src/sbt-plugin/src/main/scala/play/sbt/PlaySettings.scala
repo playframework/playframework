@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt
@@ -59,6 +59,7 @@ object PlaySettings extends PlaySettingsCompat {
 
     playPlugin := false,
 
+    generateAssetsJar := true,
     externalizeResources := true,
 
     externalizeResourcesExcludes := Nil,
@@ -266,11 +267,21 @@ object PlaySettings extends PlaySettingsCompat {
     // Assets for distribution
     WebKeys.packagePrefix in Assets := assetsPrefix.value,
     playPackageAssets := (packageBin in Assets).value,
-    scriptClasspathOrdering += {
-      val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
-      val jarName = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, Some("assets"))
-      playPackageAssets.value -> ("lib/" + jarName)
-    },
+    scriptClasspathOrdering := Def.taskDyn {
+      val oldValue = scriptClasspathOrdering.value
+      // only create a assets-jar if the task is active
+      // this actually disables calling playPackageAssets, which in turn would call packageBin in Assets
+      // without these calls no assets jar will be created
+      if (generateAssetsJar.value) {
+        Def.task {
+          val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
+          val jarName = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, Some("assets"))
+          oldValue :+ playPackageAssets.value -> ("lib/" + jarName)
+        }
+      } else {
+        Def.task(oldValue)
+      }
+    }.value,
 
     // Assets for testing
     public in TestAssets := (public in TestAssets).value / assetsPrefix.value,

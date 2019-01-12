@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -133,6 +133,18 @@ You can also specify an optional parameter that does not need to be present in a
 
 @[optional](code/javaguide.http.routing.routes)
 
+### Passing the current request to an action method
+
+You can also pass on the current request to an action method. Just add it as a parameter:
+
+@[pass-request](code/javaguide.http.routing.routes)
+
+And the corresponding action method:
+
+@[pass-request](code/javaguide/http/routing/controllers/Application.java)
+
+Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param. You can, of course, mix a `Request` param with other params and it doesn't matter at which position the `Request` param is.
+
 ## Routing priority
 
 Many routes can match the same request. If there is a conflict, the first route (in declaration order) is used.
@@ -173,8 +185,6 @@ To be able to generate a relative route you need to know what to make the target
 For example, given controller endpoints like:
 
 @[relative-controller](code/javaguide/http/routing/relative/controllers/Relative.java)
-
-> **Note:** The current request is passed to the view template by calling `request()`
 
 And if you map it in the `conf/routes` file:
 

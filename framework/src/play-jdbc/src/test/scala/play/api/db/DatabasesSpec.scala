@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -122,6 +122,15 @@ class DatabasesSpec extends Specification {
         val results = c.createStatement.executeQuery("select * from test")
         results.next must beTrue
         results.next must beFalse
+      }
+    }
+
+    "manual setup trasaction isolation level" in new WithDatabase {
+      val db = Databases.inMemory(name = "test-manualSetupTrasactionIsolationLevel")
+
+      db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
+        c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
+        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
       }
     }
 

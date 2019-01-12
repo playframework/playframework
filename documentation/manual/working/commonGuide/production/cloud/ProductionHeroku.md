@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Deploying to Heroku
 
 [Heroku](https://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.
@@ -133,11 +133,11 @@ $ heroku buildpacks:set heroku/scala
 The [Scala buildpack](https://github.com/heroku/heroku-buildpack-scala) will use the `build.sbt` file in your repo to build the app.
 
 
-## Deploying Java 9 application
+## Deploying applications that use latest java versions
 
-Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying a Java 9 application will lead to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory:
+Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying an application that uses newer java version leads to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory, for example:
 ```txt
-java.runtime.version=9
+java.runtime.version=11
 ```
 
 See the [heroku documentation](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version) for more details.
@@ -264,7 +264,6 @@ Note that the creation of a Procfile is not actually required by Heroku, as Hero
 * [Using WebSockets on Heroku with Java and the Play Framework](https://devcenter.heroku.com/articles/play-java-websockets)
 * [Seed Project for Play and Heroku](https://github.com/jkutner/play-heroku-seed)
 * [Play Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
-* [Getting Started with Play, Scala, and Squeryl](https://www.artima.com/articles/play2_scala_squeryl.html)
 * [Edge Caching With Play, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
 * [Optimizing Play for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
 * [Play App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)

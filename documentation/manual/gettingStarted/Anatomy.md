@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Anatomy of a Play application
 
 ## The Play application layout
@@ -54,7 +54,7 @@ You can of course add your own packages, for example an `app/utils` package.
 
 > Note that in Play, the controllers, models and views package name conventions are now just that and can be changed if needed (such as prefixing everything with `com.yourcompany`).
 
-There is also an optional directory called `app/assets` for compiled assets such as [LESS sources](http://lesscss.org/) and [CoffeeScript sources](http://coffeescript.org/).
+There is also an optional directory called `app/assets` for compiled assets such as [LESS sources](http://lesscss.org/) and [CoffeeScript sources](https://coffeescript.org/).
 
 ## The `public/` directory
 

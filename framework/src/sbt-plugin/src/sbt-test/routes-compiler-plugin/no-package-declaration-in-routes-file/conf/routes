@@ -1,0 +1,79 @@
+#
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+#
+
+GET         /                       Application.index
+POST        /post                   Application.post
+GET         /with/:param            Application.withParam(param)
+
+GET         /instance               @InstanceController.index
+
+GET         /users/:userId          Application.user(userId: models.UserId)
+GET         /query-user             Application.queryUser(userId: models.UserId)
+
+GET         /escapes/$i<\d+>        Application.takeInt(i: Int)
+
+GET         /take-bool              Application.takeBool(b: Boolean)
+GET         /take-bool-2/:b         Application.takeBool2(b: Boolean)
+GET         /take-list              Application.takeList(x: List[Int])
+GET         /take-list-tick-param   Application.takeListTickedParam(`b[]`: List[Int])
+GET         /take-java-list         Application.takeJavaList(x: java.util.List[java.lang.Integer])
+GET         /take-ticked-params     Application.takeTickedParams(`b[]`: List[Int], `b%%`: String)
+
+GET         /urlcoding/:d/*s        Application.urlcoding(d, s, q)
+
+GET         /ident/:è27             πø$7ß.ôü65$t(è27: Int)
+
+GET         /hello                  Application.hello
+GET         /hello2                 Application.hello
+
+->          /module                 module.Routes
+
+GET         /routes                 Application.route(abstract)
+GET         /routes                 Application.route(case)
+GET         /routes                 Application.route(catch)
+GET         /routes                 Application.route(class)
+GET         /routes                 Application.route(def)
+GET         /routes                 Application.route(do)
+GET         /routes                 Application.route(else)
+GET         /routes                 Application.route(extends)
+GET         /routes                 Application.route(false)
+GET         /routes                 Application.route(final)
+GET         /routes                 Application.route(finally)
+GET         /routes                 Application.route(for)
+GET         /routes                 Application.route(forSome)
+GET         /routes                 Application.route(if)
+GET         /routes                 Application.route(implicit)
+GET         /routes                 Application.route(import)
+GET         /routes                 Application.route(lazy)
+GET         /routes                 Application.route(match)
+GET         /routes                 Application.route(new)
+GET         /routes                 Application.route(null)
+GET         /routes                 Application.route(object)
+GET         /routes                 Application.route(override)
+GET         /routes                 Application.route(package)
+GET         /routes                 Application.route(private)
+GET         /routes                 Application.route(protected)
+GET         /routes                 Application.route(return)
+GET         /routes                 Application.route(sealed)
+GET         /routes                 Application.route(super)
+GET         /routes                 Application.route(this)
+GET         /routes                 Application.route(throw)
+GET         /routes                 Application.route(trait)
+GET         /routes                 Application.route(try)
+GET         /routes                 Application.route(true)
+GET         /routes                 Application.route(type)
+GET         /routes                 Application.route(val)
+GET         /routes                 Application.route(var)
+GET         /routes                 Application.route(while)
+GET         /routestest             Application.routetest(with)
+GET         /routestest             Application.routetest(yield)
+
+# Test for default values for scala keywords
+GET         /routesdefault          Application.routedefault(type ?= "x")
+
+GET         /public/*file           controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
+
+# This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
+# generates a non interpolated string containing $routes. As does this comment.
+GET         /intwarn/:routes        Application.interpolatorWarning(routes)

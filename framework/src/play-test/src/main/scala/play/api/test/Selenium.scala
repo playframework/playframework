@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
@@ -48,12 +48,27 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    * the function throws an unignored exception,
    * the timeout expires
    *
-   * @param timeout
-   * @param timeUnit duration
+   * @param timeout the timeout amount
+   * @param timeUnit timeout unit
    * @param block code to be executed
    */
   def waitUntil[T](timeout: Int, timeUnit: TimeUnit)(block: => T): T = {
-    val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout, timeUnit)
+    val wait = new FluentWait[WebDriver](webDriver).withTimeout(java.time.Duration.ofMillis(timeUnit.toMillis(timeout)))
+    val f = (driver: WebDriver) => block
+    wait.until(f.asJava)
+  }
+
+  /**
+   * Repeatedly applies this instance's input value to the given block until one of the following occurs:
+   * the function returns neither null nor false,
+   * the function throws an unignored exception,
+   * the timeout expires
+   *
+   * @param timeout duration of how long should wait
+   * @param block code to be executed
+   */
+  def waitUntil[T](timeout: java.time.Duration)(block: => T): T = {
+    val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout)
     val f = (driver: WebDriver) => block
     wait.until(f.asJava)
   }

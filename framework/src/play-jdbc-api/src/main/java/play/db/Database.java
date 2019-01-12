@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db;
 
-import java.sql.Connection;
 import javax.sql.DataSource;
+import java.sql.Connection;
 
 /**
  * Database API for managing data sources and connections.
@@ -100,11 +100,33 @@ public interface Database {
      * connection and all created statements are automatically released. The
      * transaction is automatically committed, unless an exception occurs.
      *
+     * @param isolationLevel determines transaction isolation level
+     * @param block code to execute
+     */
+    public void withTransaction(TransactionIsolationLevel isolationLevel, ConnectionRunnable block);
+
+    /**
+     * Execute a block of code in the scope of a JDBC transaction. The
+     * connection and all created statements are automatically released. The
+     * transaction is automatically committed, unless an exception occurs.
+     *
      * @param <A> the return value's type
      * @param block code to execute
      * @return the result of the code block
      */
     public <A> A withTransaction(ConnectionCallable<A> block);
+
+    /**
+     * Execute a block of code in the scope of a JDBC transaction. The
+     * connection and all created statements are automatically released. The
+     * transaction is automatically committed, unless an exception occurs.
+     *
+     * @param isolationLevel determines transaction isolation level
+     * @param <A> the return value's type
+     * @param block code to execute
+     * @return the result of the code block
+     */
+    public <A> A withTransaction(TransactionIsolationLevel isolationLevel, ConnectionCallable<A> block);
 
     /**
      * Shutdown this database, closing the underlying data source.
@@ -174,6 +196,10 @@ public interface Database {
                 return Database.this.withTransaction(block::apply);
             }
 
+            public <A> A withTransaction(play.api.db.TransactionIsolationLevel isolationLevel,
+                                         final scala.Function1<Connection, A> block) {
+                return Database.this.withTransaction(isolationLevel.asJava(), block::apply);
+            }
         };
     }
 }

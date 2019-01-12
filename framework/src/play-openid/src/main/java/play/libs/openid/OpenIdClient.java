@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.openid;
@@ -70,6 +70,9 @@ public interface OpenIdClient {
      * Check the identity of the user from the current request, that should be the callback from the OpenID server
      *
      * @return a completion stage of the user information using the current HTTP request.
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #verifiedId(Http.RequestHeader)} instead.
      */
+    @Deprecated
     CompletionStage<UserInfo> verifiedId();
 }

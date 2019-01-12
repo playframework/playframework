@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.parsers
@@ -81,7 +81,7 @@ object Multipart {
     partParser(maxMemoryBufferSize, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
-          filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType)).run(filePart.ref)
+          filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType, filePart.dispositionType)).run(filePart.ref)
         case other: Part[_] => Future.successful(other.asInstanceOf[Part[Nothing]])
       }
 
@@ -122,11 +122,11 @@ object Multipart {
   type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
 
   def handleFilePartAsTemporaryFile(temporaryFileCreator: TemporaryFileCreator): FilePartHandler[TemporaryFile] = {
-    case FileInfo(partName, filename, contentType) =>
+    case FileInfo(partName, filename, contentType, dispositionType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
         case IOResult(_, Failure(error)) => Future.failed(error)
-        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile))
+        case _ => Future.successful(FilePart(partName, filename, contentType, tempFile, dispositionType))
       }
   }
 
@@ -138,7 +138,10 @@ object Multipart {
       fileName: String,
 
       /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
-      contentType: Option[String])
+      contentType: Option[String],
+
+      /** Disposition type in HTTP request (e.g. `form-data` or `file`) */
+      dispositionType: String = "form-data")
 
   private[play] object FileInfoMatcher {
 
@@ -178,7 +181,7 @@ object Multipart {
       result.toList
     }
 
-    def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
+    def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
 
       val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
 
@@ -191,11 +194,11 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
 
-        _ <- values.get("form-data").orElse(values.get("file"))
+        dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName <- values.get("name")
-        fileName <- values.get("filename")
+        fileName <- values.get("filename").filter(_.trim.nonEmpty)
         contentType = headers.get("content-type")
-      } yield (partName, fileName, contentType)
+      } yield (partName, fileName, contentType, dispositionType)
     }
   }
 
@@ -211,6 +214,7 @@ object Multipart {
             case key => (key.trim, "")
           }(breakOut): Map[String, String])
         _ <- values.get("form-data")
+        _ <- Option(values.contains("filename")).filter(_ == false)
         partName <- values.get("name")
       } yield partName
     }
@@ -336,15 +340,15 @@ object Multipart {
         def parseHeader(input: ByteString, headerStart: Int, memoryBufferSize: Int): StateResult = {
           input.indexOfSlice(crlfcrlf, headerStart) match {
             case -1 if input.length - headerStart >= maxHeaderSize =>
-              bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
+              bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case -1 =>
               continue(input, headerStart)(parseHeader(_, _, memoryBufferSize))
             case headerEnd if headerEnd - headerStart >= maxHeaderSize =>
-              bufferExceeded("Header length exceeded buffer size of " + memoryBufferSize)
+              bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
-                headerString.lines.map { header =>
+                headerString.linesIterator.map { header =>
                   val key :: value = header.trim.split(":").toList
 
                   (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
@@ -356,23 +360,52 @@ object Multipart {
               // The amount of memory taken by the headers
               def headersSize = headers.foldLeft(0)((total, value) => total + value._1.length + value._2.length)
 
+              val totalMemoryBufferSize = memoryBufferSize + headersSize
+
               headers match {
-                case FileInfoMatcher(partName, fileName, contentType) =>
-                  handleFilePart(input, partStart, memoryBufferSize + headersSize, partName, fileName, contentType)
+                case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
+                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput =>
+                    handleFilePart(newInput, partStart, totalMemoryBufferSize, partName, fileName, contentType, dispositionType))(newInput =>
+                    handleBadPart(newInput, partStart, totalMemoryBufferSize, headers))
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)
                 case _ =>
-                  handleBadPart(input, partStart, memoryBufferSize + headersSize, headers)
+                  handleBadPart(input, partStart, totalMemoryBufferSize, headers)
+              }
+          }
+        }
+
+        def checkEmptyBody(input: ByteString, partStart: Int, memoryBufferSize: Int)(nonEmpty: (ByteString) => StateResult)(empty: (ByteString) => StateResult): StateResult = {
+          try {
+            val currentPartEnd = boyerMoore.nextIndex(input, partStart)
+            if (currentPartEnd - partStart == 0) {
+              empty(input)
+            } else {
+              nonEmpty(input)
+            }
+          } catch {
+            case NotEnoughDataException => // "not enough data" here means not enough data to locate the needle. However we might not even need the needle...
+              if (partStart <= input.length - needle.length) {
+                // There was already enough space in the input to contain the needle, but it wasn't found in the try block above.
+                // This means the needle will start at some position _after_ partStart and there will for sure be data between
+                // partStart and the start of the needle -> the body is definitely not empty.
+                // We don't need to get more data (and also not the needle) to make a decision.
+                nonEmpty(input)
+              } else {
+                // There was not even enough space in the input to contain the needle. Only after we have enough data
+                // of at least the size of the needle we can decide if the body is empty or not.
+                state = more => checkEmptyBody(input ++ more, partStart, memoryBufferSize)(nonEmpty)(empty)
+                done()
               }
           }
         }
 
         def handleFilePart(input: ByteString, partStart: Int, memoryBufferSize: Int,
-          partName: String, fileName: String, contentType: Option[String]): StateResult = {
+          partName: String, fileName: String, contentType: Option[String], dispositionType: String): StateResult = {
           if (memoryBufferSize > maxMemoryBufferSize) {
             bufferExceeded(s"Memory buffer full ($maxMemoryBufferSize) on part $partName")
           } else {
-            emit(FilePart(partName, fileName, contentType, ()))
+            emit(FilePart(partName, fileName, contentType, (), dispositionType))
             handleFileData(input, partStart, memoryBufferSize)
           }
         }

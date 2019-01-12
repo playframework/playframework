@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -146,6 +146,18 @@ object ActorSystemProvider {
   }
 
   private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
+    val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
+    if (config.get[Boolean](exitJvmPath)) {
+      // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
+      // prevent the creation of the Actor System.
+      val errorMessage =
+        s"""Can't start Play: detected "$exitJvmPath = on". Using "$exitJvmPath = on" in
+           | Play may cause a deadlock when shutting down. Please set "$exitJvmPath = off""""
+          .stripMargin.replace("\n", "")
+      logger.error(errorMessage)
+      throw config.reportError(exitJvmPath, errorMessage)
+    }
+
     val akkaConfig: Config = {
       val akkaConfigRoot = config.get[String]("play.akka.config")
 
@@ -255,7 +267,7 @@ class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicati
   private def logWarningWhenRunPhaseConfigIsPresent(): Unit = {
     val config = actorSystem.settings.config
     if (config.hasPath("play.akka.run-cs-from-phase")) {
-      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now run all the CoordinatedShutdown phases.")
+      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now runs all the CoordinatedShutdown phases.")
     }
   }
 

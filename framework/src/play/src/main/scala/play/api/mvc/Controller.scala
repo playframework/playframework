@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -189,6 +189,34 @@ trait InjectedController extends BaseController {
    * Defines fallback components to use in case setControllerComponents has not been called.
    */
   protected def fallbackControllerComponents: ControllerComponents = {
+    throw new NoSuchElementException(
+      "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.")
+  }
+}
+
+/**
+ * A variation of [[MessagesAbstractController]] that gets its components via method injection.
+ */
+trait MessagesInjectedController extends MessagesBaseController {
+
+  private[this] var _components: MessagesControllerComponents = _
+
+  override protected def controllerComponents: MessagesControllerComponents = {
+    if (_components == null) fallbackControllerComponents else _components
+  }
+
+  /**
+   * Call this method to set the [[ControllerComponents]] instance.
+   */
+  @Inject
+  def setControllerComponents(components: MessagesControllerComponents): Unit = {
+    _components = components
+  }
+
+  /**
+   * Defines fallback components to use in case setControllerComponents has not been called.
+   */
+  protected def fallbackControllerComponents: MessagesControllerComponents = {
     throw new NoSuchElementException(
       "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.")
   }

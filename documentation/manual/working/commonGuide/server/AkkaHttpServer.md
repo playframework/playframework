@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Akka HTTP Server Backend
 
 Play uses the [Akka HTTP](https://doc.akka.io/docs/akka-http/current/index.html) server backend to implement HTTP requests and responses using Akka Streams over the network.  Akka HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
@@ -38,7 +38,7 @@ lazy val root = (project in file("."))
 
 Adding the plugin will do multiple things:
 
- - It will add the `play-akka-http2-support` module, which provides extra configuration for HTTP/2 and depends on the `akka-http2-support` module. By default HTTP/2 is enabled. It can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`.
+ - It will add the `play-akka-http2-support` module, which provides extra configuration for HTTP/2 and depends on the `akka-http2-support` module. By default HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`. Though HTTP/2 is enabled by default for both HTTPS and HTTP, it doesn't actually work for HTTP requests because it's configured to require the client to negotiate an upgrade from HTTP/1.1 but the upgrade protocol is [not yet supported](https://github.com/akka/akka-http/issues/1966) by Akka HTTP. You can however configure HTTP to *only* use HTTP/2 by passing the `http2.alwaysForInsecure` system property, but note that this means it will reject HTTP/1.1 requests.
  - Configures the [Jetty ALPN agent](https://github.com/jetty-project/jetty-alpn-agent) as a Java agent using [sbt-javaagent](https://github.com/sbt/sbt-javaagent), and automatically adds the `-javaagent` argument for `start`, `stage` and `dist` tasks (i.e. production mode). This adds ALPN support to the JDK, allowing Akka HTTP to negotiate the protocol with the client. It *does not* configure for run mode. In JDK 9 this will not be an issue, since ALPN support is provided by default.
 
 ### Using HTTP/2 in `run` mode

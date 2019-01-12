@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.di.components;
@@ -106,7 +106,7 @@ public class CompileTimeDependencyInjection {
         public Router router() {
             // routingDsl method is provided by RoutingDslComponentsFromContext
             return routingDsl()
-                    .GET("/path").routeTo(() -> Results.ok("The content"))
+                    .GET("/path").routingTo(request -> Results.ok("The content"))
                     .build();
         }
     }

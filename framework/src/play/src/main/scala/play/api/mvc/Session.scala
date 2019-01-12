@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -10,14 +10,14 @@ import play.api.http.{ HttpConfiguration, SecretConfiguration, SessionConfigurat
 import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
 import play.mvc.Http
 
-import scala.collection.JavaConverters._
+import scala.annotation.varargs
 
 /**
  * HTTP Session.
  *
  * Session data are encoded into an HTTP cookie, and can only contain simple `String` values.
  */
-case class Session(data: Map[String, String] = Map.empty[String, String]) {
+case class Session(data: Map[String, String] = Map.empty) {
 
   /**
    * Optionally returns the session value associated with a key.
@@ -25,12 +25,19 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   def get(key: String): Option[String] = data.get(key)
 
   /**
+   * Retrieves the session value associated with the given key.
+   *
+   * @throws NoSuchElementException if no value exists for the key.
+   */
+  def apply(key: String): String = data(key)
+
+  /**
    * Returns `true` if this session is empty.
    */
   def isEmpty: Boolean = data.isEmpty
 
   /**
-   * Adds a value to the session, and returns a new session.
+   * Returns a new session with the given key-value pair added.
    *
    * For example:
    * {{{
@@ -41,12 +48,22 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
    * @return the modified session
    */
   def +(kv: (String, String)): Session = {
-    require(kv._2 != null, "Cookie values cannot be null")
+    require(kv._2 != null, s"Session value for ${kv._1} cannot be null")
     copy(data + kv)
   }
 
   /**
-   * Removes any value from the session.
+   * Returns a new session with elements added from the given `Iterable`.
+   *
+   * @param kvs an `Iterable` containing key-value pairs to add.
+   */
+  def ++(kvs: Iterable[(String, String)]): Session = {
+    for ((k, v) <- kvs) require(v != null, s"Session value for $k cannot be null")
+    copy(data ++ kvs)
+  }
+
+  /**
+   * Returns a new session with the given key removed.
    *
    * For example:
    * {{{
@@ -59,11 +76,19 @@ case class Session(data: Map[String, String] = Map.empty[String, String]) {
   def -(key: String): Session = copy(data - key)
 
   /**
-   * Retrieves the session value which is associated with the given key.
+   * Returns a new session with the given keys removed.
+   *
+   * For example:
+   * {{{
+   * session -- Seq("username", "name")
+   * }}}
+   *
+   * @param keys the keys to remove
+   * @return the modified session
    */
-  def apply(key: String): String = data(key)
+  def --(keys: Iterable[String]): Session = copy(data -- keys)
 
-  lazy val asJava: Http.Session = new Http.Session(data.asJava)
+  lazy val asJava: Http.Session = new Http.Session(this)
 }
 
 /**
@@ -119,7 +144,7 @@ object Session extends CookieBaker[Session] with FallbackCookieDataCodec {
 
   lazy val emptyCookie = new Session
 
-  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = new Session(javaSession.asScala.toMap)
+  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = javaSession.asScala
 
   @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   def config: SessionConfiguration = HttpConfiguration.current.session

@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
 
 import java.sql.Connection
+
 import javax.sql.DataSource
 
 /**
@@ -76,6 +77,17 @@ trait Database {
    * @return the result of the code block
    */
   def withTransaction[A](block: Connection => A): A
+
+  /**
+   * Execute a block of code in the scope of a JDBC transaction.
+   * The connection and all created statements are automatically released.
+   * The transaction is automatically committed, unless an exception occurs.
+   *
+   * @param isolationLevel determines transaction isolation level
+   * @param block code to execute
+   * @return the result of the code block
+   */
+  def withTransaction[A](isolationLevel: TransactionIsolationLevel)(block: Connection => A): A
 
   /**
    * Shutdown this database, closing the underlying data source.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import play.Application;
@@ -26,7 +26,7 @@ class MyComponents extends RoutingDslComponentsFromContext
     @Override
     public Router router() {
         return routingDsl()
-                .GET("/hello/:to").routeTo(to -> ok("Hello " + to))
+                .GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to))
                 .build();
     }
 }

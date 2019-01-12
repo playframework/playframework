@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.i18n
@@ -61,6 +61,11 @@ case class Lang(locale: Locale) {
    * The language tag (such as fr or en-US).
    */
   lazy val code: String = locale.toLanguageTag
+
+  /**
+   * @return the Java version for this Lang.
+   */
+  def asJava: play.i18n.Lang = new play.i18n.Lang(this)
 }
 
 /**

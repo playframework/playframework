@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.j
@@ -20,8 +20,9 @@ import play.api.mvc._
 import play.mvc.{ FileMimeTypes, Action => JAction, BodyParser => JBodyParser, Result => JResult }
 import play.i18n.{ Langs => JLangs, MessagesApi => JMessagesApi }
 import play.libs.AnnotationUtils
-import play.mvc.Http.{ Context => JContext }
+import play.mvc.Http.{ Context => JContext, Request => JRequest }
 
+import scala.compat.java8.OptionConverters._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -71,7 +72,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
 
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
 
-  def invocation: CompletionStage[JResult]
+  def invocation(req: JRequest): CompletionStage[JResult]
   val annotations: JavaActionAnnotations
 
   val executionContext: ExecutionContext = handlerComponents.executionContext
@@ -81,14 +82,14 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val javaContext: JContext = createJavaContext(req, contextComponents)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): CompletionStage[JResult] = {
+      override def call(ctx: JContext): CompletionStage[JResult] = {
         // The context may have changed, set it again
-        val oldContext = JContext.current.get()
+        val oldContext = JContext.safeCurrent().asScala
         try {
-          JContext.current.set(ctx)
-          invocation
+          JContext.setCurrent(ctx)
+          invocation(ctx.request())
         } finally {
-          JContext.current.set(oldContext)
+          oldContext.foreach(JContext.setCurrent)
         }
       }
     }
@@ -136,7 +137,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       })
       logger.debug("### End of action order")
     }
-    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext)) }(trampolineWithContext)
+    val actionFuture: Future[Future[JResult]] = Future { FutureConverters.toScala(firstAction.call(javaContext.request())) }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture

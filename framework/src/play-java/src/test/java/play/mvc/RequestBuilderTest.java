@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -10,6 +10,9 @@ import play.api.Application;
 import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
 import play.core.j.JavaContextComponents;
+import play.i18n.Lang;
+import play.i18n.Messages;
+import play.libs.Files;
 import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
@@ -18,6 +21,7 @@ import play.mvc.Http.RequestBuilder;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -104,6 +108,116 @@ public class RequestBuilderTest {
         assertEquals((Long) 6L, req5.attrs().get(NUMBER));
         assertEquals(Optional.of("red"), req5.attrs().getOptional(COLOR));
         assertEquals("red", req5.attrs().get(COLOR));
+
+        Request req6 = req4.removeAttr(COLOR).removeAttr(NUMBER);
+
+        assertFalse(req6.attrs().containsKey(NUMBER));
+        assertFalse(req6.attrs().containsKey(COLOR));
+
+        Request req7 = req4.removeAttr(COLOR);
+
+        assertEquals(Optional.of(6L), req7.attrs().getOptional(NUMBER));
+        assertEquals((Long) 6L, req7.attrs().get(NUMBER));
+        assertFalse(req7.attrs().containsKey(COLOR));
+    }
+
+    @Test
+    public void testNewRequestsShouldNotHaveATransientLang() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Request request = builder.build();
+        assertFalse(request.transientLang().isPresent());
+        assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+    }
+
+    @Test
+    public void testAddATransientLangToRequest() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Lang lang = new Lang(Locale.GERMAN);
+        Request request = builder.build().withTransientLang(lang);
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(lang, request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByCodeToRequest() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        String lang = "de";
+        Request request = builder.build().withTransientLang(lang);
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(Lang.forCode(lang), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByLocaleToRequest() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Locale locale = Locale.GERMAN;
+        Request request = builder.build().withTransientLang(locale);
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(new Lang(locale), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testClearRequestTransientLang() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Lang lang = new Lang(Locale.GERMAN);
+        Request request = builder.build().withTransientLang(lang);
+        assertTrue(request.transientLang().isPresent());
+
+        // Language attr should be removed
+        assertFalse(request.withoutTransientLang().transientLang().isPresent());
+    }
+
+    @Test
+    public void testAddATransientLangToRequestBuilder() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Lang lang = new Lang(Locale.GERMAN);
+        Request request = builder.transientLang(lang).build();
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(lang, request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByCodeToRequestBuilder() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        String lang = "de";
+        Request request = builder.transientLang(lang).build();
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(Lang.forCode(lang), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testAddATransientLangByLocaleToRequestBuilder() {
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+        Locale locale = Locale.GERMAN;
+        Request request = builder.transientLang(locale).build();
+
+        assertTrue(request.transientLang().isPresent());
+        assertEquals(new Lang(locale), request.attrs().get(Messages.Attrs.CurrentLang));
+    }
+
+    @Test
+    public void testClearRequestBuilderTransientLang() {
+        Lang lang = new Lang(Locale.GERMAN);
+        RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/").transientLang(lang);
+
+        assertTrue(builder.build().transientLang().isPresent());
+        assertEquals(Optional.of(lang), builder.transientLang());
+
+        // Language attr should be removed
+        assertFalse(builder.withoutTransientLang().build().transientLang().isPresent());
     }
 
     @Test
@@ -185,7 +299,7 @@ public class RequestBuilderTest {
                 .bodyMultipart(Collections.singletonList(dp), temporaryFileCreator, app.materializer())
                 .build();
 
-        Optional<Http.MultipartFormData<File>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
+        Optional<Http.MultipartFormData<Files.TemporaryFile>> parts = app.injector().instanceOf(BodyParser.MultipartFormData.class)
                .apply(request)
                .run(Source.single(request.body().asBytes()), app.materializer())
                .toCompletableFuture()

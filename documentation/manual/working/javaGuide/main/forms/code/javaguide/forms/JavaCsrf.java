@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.forms;
@@ -11,6 +11,7 @@ import play.filters.csrf.AddCSRFToken;
 import play.filters.csrf.CSRF;
 import play.filters.csrf.RequireCSRFCheck;
 import play.libs.crypto.CSRFTokenSigner;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
 
@@ -37,9 +38,9 @@ public class JavaCsrf extends WithApplication {
         String token = tokenSigner().generateSignedToken();
         String body = contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             @AddCSRFToken
-            public Result index() {
+            public Result index(Http.Request request) {
                 //#get-token
-                Optional<CSRF.Token> token = CSRF.getToken(request());
+                Optional<CSRF.Token> token = CSRF.getToken(request);
                 //#get-token
                 return ok(token.map(CSRF.Token::value).orElse(""));
             }
@@ -53,8 +54,8 @@ public class JavaCsrf extends WithApplication {
         CSRF.Token token = new CSRF.Token("csrfToken", tokenSigner().generateSignedToken());
         String body = contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             @AddCSRFToken
-            public Result index() {
-                return ok(javaguide.forms.html.csrf.render());
+            public Result index(Http.Request request) {
+                return ok(javaguide.forms.html.csrf.render(request));
             }
         }, fakeRequest("GET", "/").session("csrfToken", token.value()), mat));
 
@@ -106,8 +107,8 @@ public class JavaCsrf extends WithApplication {
 
         //#csrf-add-token
         @AddCSRFToken
-        public Result get() {
-            return ok(CSRF.getToken(request()).map(CSRF.Token::value).orElse("no token"));
+        public Result get(Http.Request request) {
+            return ok(CSRF.getToken(request).map(CSRF.Token::value).orElse("no token"));
         }
         //#csrf-add-token
     }

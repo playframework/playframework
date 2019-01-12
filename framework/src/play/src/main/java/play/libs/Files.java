@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -8,6 +8,7 @@ import scala.util.Try;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.nio.file.CopyOption;
 import java.nio.file.Path;
 
 /**
@@ -39,13 +40,118 @@ public final class Files {
 
         TemporaryFileCreator temporaryFileCreator();
 
-        default TemporaryFile moveTo(File to) {
+        /**
+         * Copy the temporary file to the specified destination.
+         *
+         * @param destination the file destination.
+         *
+         * @see #copyTo(Path, boolean)
+         */
+        default TemporaryFile copyTo(File destination) {
+            return copyTo(destination, false);
+        }
+
+        /**
+         * Copy the file to the specified destination and, if the destination exists, decide if replace it
+         * based on the {@code replace} parameter.
+         *
+         * @param destination the file destination.
+         * @param replace if it should replace an existing file.
+         *
+         * @see #copyTo(Path, boolean)
+         */
+        default TemporaryFile copyTo(File destination, boolean replace) {
+            return copyTo(destination.toPath(), replace);
+        }
+
+        /**
+         * Copy the file to the specified path destination.
+         *
+         * @param destination the path destination.
+         *
+         * @see #copyTo(Path, boolean)
+         */
+        default TemporaryFile copyTo(Path destination) {
+            return copyTo(destination, false);
+        }
+
+        /**
+         * Copy the file to the specified path destination and, if the destination exists, decide if replace it
+         * based on the {@code replace} parameter.
+         *
+         * @param destination the path destination.
+         * @param replace if it should replace an existing file.
+         */
+        TemporaryFile copyTo(Path destination, boolean replace);
+
+        /**
+         * Move the file using a {@link java.io.File}.
+         *
+         * @param destination the path to the destination file
+         *
+         * @see #moveTo(Path, boolean)
+         */
+        default TemporaryFile moveTo(File destination) {
+            return moveTo(destination, false);
+        }
+
+        /**
+         * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
+         * may point to the same {@code inode} meaning that deleting the source will result in the destination being deleted
+         * too. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
+         *
+         * This behavior is especially relevant if you are also using the {@link play.api.libs.Files.TemporaryFileReaper}
+         * which deletes temporary files.
+         *
+         * @param destination the path to the destination file
+         * @param replace true if an existing file should be replaced, false otherwise.
+         */
+        TemporaryFile moveTo(File destination, boolean replace);
+
+        /**
+         * Move the file using a {@link java.nio.file.Path}.
+         *
+         * @param to the path to the destination file.
+         *
+         * @see #moveTo(Path, boolean)
+         */
+        default TemporaryFile moveTo(Path to) {
             return moveTo(to, false);
         }
 
-        TemporaryFile moveTo(File to, boolean replace);
+        /**
+         * Move the file using a {@link java.nio.file.Path}.
+         *
+         * @param to the path to the destination file
+         * @param replace true if an existing file should be replaced, false otherwise.
+         *
+         * @see #moveTo(Path, boolean)
+         */
+        default TemporaryFile moveTo(Path to, boolean replace) {
+            return moveTo(to.toFile(), replace);
+        }
 
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         */
         TemporaryFile atomicMoveWithFallback(File to);
+
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         */
+        default TemporaryFile atomicMoveWithFallback(Path to) {
+            return atomicMoveWithFallback(to.toFile());
+        }
     }
 
     /**
@@ -90,7 +196,7 @@ public final class Files {
         private final play.api.libs.Files.TemporaryFile temporaryFile;
         private final TemporaryFileCreator temporaryFileCreator;
 
-        DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
+        public DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
             this.temporaryFile = temporaryFile;
             this.temporaryFileCreator = new DelegateTemporaryFileCreator(temporaryFile.temporaryFileCreator());
         }
@@ -113,6 +219,11 @@ public final class Files {
         @Override
         public TemporaryFile moveTo(File to, boolean replace) {
             return new DelegateTemporaryFile(temporaryFile.moveTo(to, replace), this.temporaryFileCreator);
+        }
+
+        @Override
+        public TemporaryFile copyTo(Path destination, boolean replace) {
+            return new DelegateTemporaryFile(temporaryFile.copyTo(destination, replace), this.temporaryFileCreator);
         }
 
         @Override

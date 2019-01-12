@@ -1,14 +1,16 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.jpa;
 
-import play.api.Configuration;
-import play.api.Environment;
-import play.api.inject.Binding;
-import play.api.inject.Module;
-import scala.collection.Seq;
+import com.typesafe.config.Config;
+import play.Environment;
+import play.inject.Binding;
+import play.inject.Module;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Injection module with default JPA components.
@@ -16,10 +18,10 @@ import scala.collection.Seq;
 public class JPAModule extends Module {
 
     @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-            bind(JPAApi.class).toProvider(DefaultJPAApi.JPAApiProvider.class),
-            bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class)
+    public List<Binding<?>> bindings(final Environment environment, final Config config) {
+        return Arrays.asList(
+            bindClass(JPAApi.class).toProvider(DefaultJPAApi.JPAApiProvider.class),
+            bindClass(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class)
         );
     }
 

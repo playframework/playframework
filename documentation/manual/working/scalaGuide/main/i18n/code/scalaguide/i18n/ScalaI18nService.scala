@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.i18n
@@ -81,7 +81,7 @@ class MyController @Inject()(val controllerComponents: ControllerComponents) ext
   }
 
   def homePageWithDefaultLang = Action {
-    Redirect("/user/home").clearingLang
+    Redirect("/user/home").withoutLang
   }
   // #lang-cookies
 

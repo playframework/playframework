@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db;
@@ -145,6 +145,26 @@ public class DatabaseTest {
     }
 
     @Test
+    public void provideConnectionHelpersWithAutoCommitIsFalse() {
+        Database db = Databases.inMemory("test-withConnection(autoCommit = false");
+
+        db.withConnection(false, c -> {
+            c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
+            c.createStatement().execute("insert into test (id, name) values (1, 'alice')");
+        });
+
+        boolean result = db.withConnection(c -> {
+            ResultSet results = c.createStatement().executeQuery("select * from test");
+            assertThat(results.next(), is(false));
+            return true;
+        });
+
+        assertThat(result, is(true));
+
+        db.shutdown();
+    }
+
+    @Test
     public void provideTransactionHelper() {
         Database db = Databases.inMemory("test-withTransaction");
 
@@ -196,6 +216,27 @@ public class DatabaseTest {
         Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getDataSource(), instanceOf(LogSqlDataSource.class));
         assertThat(JNDI.initialContext().lookup("DefaultDS"), instanceOf(LogSqlDataSource.class));
+        db.shutdown();
+    }
+
+    @Test
+    public void manualSetupTrasactionIsolationLevel() throws Exception {
+        Database db = Databases.inMemory("test-withTransaction");
+
+        boolean created = db.withTransaction(TransactionIsolationLevel.Serializable, c -> {
+            c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
+            c.createStatement().execute("insert into test (id, name) values (1, 'alice')");
+            return true;
+        });
+
+        assertThat(created, is(true));
+
+        db.withConnection(c -> {
+            ResultSet results = c.createStatement().executeQuery("select * from test");
+            assertThat(results.next(), is(true));
+            assertThat(results.next(), is(false));
+        });
+
         db.shutdown();
     }
 }

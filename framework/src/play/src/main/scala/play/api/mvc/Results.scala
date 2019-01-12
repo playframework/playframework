@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -86,6 +86,20 @@ object ResponseHeader {
     if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
 }
 
+object Result {
+
+  /**
+   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
+   */
+  @inline def warnFlashingIfNotRedirect(flash: Flash, header: ResponseHeader): Unit = {
+    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
+      Logger("play").forMode(Mode.Dev).warn(
+        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+      )
+    }
+  }
+}
+
 /**
  * A simple result, which defines the response header and a body ready to send to the client.
  *
@@ -119,6 +133,21 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     copy(header = header.copy(headers = header.headers ++ headers.map {
       case (name, dateTime) => (name, dateTime.format(ResponseHeader.httpDateFormat))
     }))
+  }
+
+  /**
+   * Discards headers to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingHeader(ETAG)
+   * }}}
+   *
+   * @param header the headers to discard from this result.
+   * @return the new result
+   */
+  def discardingHeader(name: String): Result = {
+    copy(header = header.copy(headers = header.headers - name))
   }
 
   /**
@@ -203,7 +232,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @return the new result
    */
   def flashing(flash: Flash): Result = {
-    warnFlashingIfNotRedirect(flash)
+    Result.warnFlashingIfNotRedirect(flash, header)
     copy(newFlash = Some(flash))
   }
 
@@ -264,17 +293,6 @@ case class Result(header: ResponseHeader, body: HttpEntity,
     withSession(new Session(session.data -- keys))
 
   override def toString = s"Result(${header})"
-
-  /**
-   * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
-   */
-  @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
-    if (!flash.isEmpty && !Status.isRedirect(header.status)) {
-      Logger("play").forMode(Mode.Dev).warn(
-        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
-      )
-    }
-  }
 
   /**
    * Convert this result to a Java result.
@@ -372,7 +390,7 @@ trait LegacyI18nSupport {
      *
      * For example:
      * {{{
-     * Ok(Messages("hello.world")).clearingLang
+     * Ok(Messages("hello.world")).withoutLang
      * }}}
      *
      * @return the new result
@@ -491,6 +509,23 @@ trait Results {
       Result(
         header = header,
         body = HttpEntity.Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), writeable.contentType)
+      )
+    }
+
+    /**
+     * Feed the content as the response, using a streamed entity.
+     *
+     * It will use the given Content-Type, but if is not present, then it fallsback
+     * to use the [[Writeable]] contentType.
+     *
+     * @param content Source providing the content to stream.
+     * @param contentLength an optional content length.
+     * @param contentType an optional content type.
+     */
+    def streamed[C](content: Source[C, _], contentLength: Option[Long], contentType: Option[String] = None)(implicit writeable: Writeable[C]): Result = {
+      Result(
+        header = header,
+        body = HttpEntity.Streamed(content.map(c => writeable.transform(c)), contentLength, contentType.orElse(writeable.contentType))
       )
     }
 
@@ -630,8 +665,14 @@ trait Results {
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
+  /** Generates a ‘428 PRECONDITION_REQUIRED’ result. */
+  val PreconditionRequired = new Status(PRECONDITION_REQUIRED)
+
   /** Generates a ‘429 TOO_MANY_REQUESTS’ result. */
   val TooManyRequests = new Status(TOO_MANY_REQUESTS)
+
+  /** Generates a ‘431 REQUEST_HEADER_FIELDS_TOO_LARGE’ result. */
+  val RequestHeaderFieldsTooLarge = new Status(REQUEST_HEADER_FIELDS_TOO_LARGE)
 
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
   @deprecated("Use TooManyRequests instead", "2.6.0")
@@ -658,6 +699,9 @@ trait Results {
   /** Generates a ‘507 INSUFFICIENT_STORAGE’ result. */
   val InsufficientStorage = new Status(INSUFFICIENT_STORAGE)
 
+  /** Generates a ‘511 NETWORK_AUTHENTICATION_REQUIRED’ result. */
+  val NetworkAuthenticationRequired = new Status(NETWORK_AUTHENTICATION_REQUIRED)
+
   /**
    * Generates a simple result.
    *
@@ -680,7 +724,7 @@ trait Results {
    * @param queryString queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
+  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
     import java.net.URLEncoder
     val fullUrl = url + Option(queryString).filterNot(_.isEmpty).map { params =>
       (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair =>

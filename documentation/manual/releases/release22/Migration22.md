@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.2 Migration Guide
 
 This is a guide for migrating from Play 2.1 to Play 2.2. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.1 Migration Guide|Migration21]].
@@ -7,17 +7,17 @@ This is a guide for migrating from Play 2.1 to Play 2.2. If you need to migrate 
 
 ### Update the Play organization and version
 
-Play is now published under a different organisation id.  This is so that eventually we can deploy Play to Maven Central.  The old organisation id was `play`, the new one is `com.typesafe.play`.
+Play is now published under a different organization id.  This is so that eventually we can deploy Play to Maven Central.  The old organization id was `play`, the new one is `com.typesafe.play`.
 
 The version also must be updated to 2.2.0.
 
-In `project/plugins.sbt`, update the Play plugin to use the new organisation id:
+In `project/plugins.sbt`, update the Play plugin to use the new organization id:
 
 ```scala
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.0")
 ```
 
-In addition, if you have any other dependencies on Play artifacts, and you are not using the helpers to depend on them, you may have to update the organisation and version numbers there.
+In addition, if you have any other dependencies on Play artifacts, and you are not using the helpers to depend on them, you may have to update the organization and version numbers there.
 
 ### Update SBT version
 

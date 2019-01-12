@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
 
 import org.specs2.mutable._
-import java.net.URLEncoder
 
 class MediaRangeSpec extends Specification {
 
@@ -143,6 +142,29 @@ class MediaRangeSpec extends Specification {
     "gracefully handle invalid q values" in {
       parseSingleMediaRange("foo/bar;q=a") must_== new MediaRange("foo", "bar", Nil, None, Nil)
       parseSingleMediaRange("foo/bar;q=1.01") must_== new MediaRange("foo", "bar", Nil, None, Nil)
+    }
+  }
+
+  "MediaRange.preferred" should {
+    "get preferred media type for a web browser" in {
+      val ranges = MediaRange.parse("text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8")
+      MediaRange.preferred(ranges, Seq("application/json", "text/html")) must beSome("text/html")
+    }
+    "get preferred media type for a JSON API client" in {
+      val ranges = MediaRange.parse("application/json")
+      MediaRange.preferred(ranges, Seq("application/json", "text/html")) must beSome("application/json")
+    }
+    "handle equal preference by returning the first in the list" in {
+      val ranges = MediaRange.parse("text/html, application/json, */*;q=0.5")
+      MediaRange.preferred(ranges, Seq("application/json", "text/html")) must beSome("text/html")
+    }
+    "handle wildcard ranges by returning the first in the list" in {
+      val ranges = MediaRange.parse("application/xml, */*;q=0.5")
+      MediaRange.preferred(ranges, Seq("application/json", "text/html")) must beSome("application/json")
+    }
+    "return None when no type is acceptable" in {
+      val ranges = MediaRange.parse("application/json")
+      MediaRange.preferred(ranges, Seq("application/xml", "text/html")) must beNone
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -20,6 +20,13 @@ public class F {
      */
     public interface Function3<A,B,C,R> {
         R apply(A a, B b, C c) throws Throwable;
+    }
+
+    /**
+     * A Function with 4 arguments.
+     */
+    public interface Function4<A,B,C,D,R> {
+        R apply(A a, B b, C c, D d) throws Throwable;
     }
 
     /**

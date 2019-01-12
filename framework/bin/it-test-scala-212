@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd ${FRAMEWORK}
+
+printMessage "RUNNING IT TESTS FOR SCALA 2.12"
+
+runSbt "Play-Integration-Test/it:test"
+
+printMessage "ALL IT TESTS PASSED"

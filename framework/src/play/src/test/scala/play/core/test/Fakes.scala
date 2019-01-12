@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.test
@@ -57,24 +57,6 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
     withAttrs(attrs.updated(key, value))
   override def withBody[B](body: B): FakeRequest[B] =
     new FakeRequest(request.withBody(body))
-
-  @deprecated("Use with* methods instead.", "2.6.0")
-  def copyFakeRequest[B](
-    id: java.lang.Long = null,
-    uri: String = null,
-    path: String = null,
-    method: String = null,
-    version: String = null,
-    headers: Headers = null,
-    remoteAddress: String = null,
-    secure: java.lang.Boolean = null,
-    clientCertificateChain: Option[Seq[X509Certificate]] = null,
-    body: B = body): FakeRequest[B] = {
-
-    new FakeRequest[B](
-      request.copy(id, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
-        .withBody(body))
-  }
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.

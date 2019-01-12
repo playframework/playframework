@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.3
 
 This page highlights the new features of Play 2.3. If you want learn about the changes you need to make to migrate to Play 2.3, check out the [[Play 2.3 Migration Guide|Migration23]].
@@ -54,7 +54,7 @@ pipelineStages := Seq(rjs, digest, gzip)
 
 The above will order the RequireJs optimizer (sbt-rjs), the digester (sbt-digest) and then compression (sbt-gzip). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
 
-One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expires when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
+One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](https://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expires when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
 
 ### Default ivy cache and local repository
 

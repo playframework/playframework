@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -95,7 +95,7 @@ To import a Play project:
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
-You can run the created application and view the result in the default browser `http://localhost:9000`. To run a Play application:
+You can run the created application and view the result in the default browser <http://localhost:9000>. To run a Play application:
 
 1. Create a new Run Configuration -- From the main menu, select Run -> Edit Configurations
 2. Click on the + to add a new configuration

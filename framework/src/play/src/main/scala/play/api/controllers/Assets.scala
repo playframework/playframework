@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import java.io._
@@ -713,7 +713,7 @@ package controllers {
     import meta._
     import Assets._
 
-    private val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
+    protected val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
     private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
       // First check etag. Important, if there is an If-None-Match header, we MUST not check the

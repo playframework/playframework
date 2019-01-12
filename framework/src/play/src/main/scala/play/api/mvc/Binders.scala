@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -324,7 +324,7 @@ object QueryStringBindable {
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
     extends QueryStringBindable[A] {
 
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { p =>
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { p =>
       try {
         Right(parse(p))
       } catch {
@@ -347,12 +347,18 @@ object QueryStringBindable {
    * QueryString binder for Char.
    */
   implicit object bindableChar extends QueryStringBindable[Char] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { value =>
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { value =>
       if (value.length != 1) Left(s"Cannot parse parameter $key with value '$value' as Char: $key must be exactly one digit in length.")
       else Right(value.charAt(0))
     }
     def unbind(key: String, value: Char) = key + "=" + value.toString
   }
+
+  /**
+   * QueryString binder for Java Character.
+   */
+  implicit def bindableCharacter: QueryStringBindable[java.lang.Character] =
+    bindableChar.transform(c => c, c => c)
 
   /**
    * QueryString binder for Int.
@@ -611,6 +617,12 @@ object PathBindable {
     }
     def unbind(key: String, value: Char) = value.toString
   }
+
+  /**
+   * Path binder for Java Character.
+   */
+  implicit def bindableCharacter: PathBindable[java.lang.Character] =
+    bindableChar.transform(c => c, c => c)
 
   /**
    * Path binder for Int.

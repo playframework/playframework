@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.jpa;
@@ -34,15 +34,14 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
      * @return the EntityManager
      */
     public EntityManager em() {
-        Http.Context context = Http.Context.current.get();
         Deque<EntityManager> ems = this.emStack(true);
 
         if (ems.isEmpty()) {
-            if (context != null) {
+            Http.Context.safeCurrent().map(ctx -> {
                 throw new RuntimeException("No EntityManager found in the context. Try to annotate your action method with @play.db.jpa.Transactional");
-            } else {
+            }).orElseGet(() -> {
                 throw new RuntimeException("No EntityManager bound to this thread. Try wrapping this call in JPAApi.withTransaction, or ensure that the HTTP context is setup on this thread.");
-            }
+            });
         }
 
         return ems.peekFirst();
@@ -56,8 +55,7 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
      */
     @SuppressWarnings("unchecked")
     public Deque<EntityManager> emStack(boolean threadLocalFallback) {
-        Http.Context context = Http.Context.current.get();
-        if (context != null) {
+        return Http.Context.safeCurrent().map(context -> {
             Object emsObject = context.args.get(CURRENT_ENTITY_MANAGER);
             if (emsObject != null) {
                 return (Deque<EntityManager>) emsObject;
@@ -66,14 +64,14 @@ public class JPAEntityManagerContext extends ThreadLocal<Deque<EntityManager>> {
                 context.args.put(CURRENT_ENTITY_MANAGER, ems);
                 return ems;
             }
-        } else {
+        }).orElseGet(() -> {
             // Not a web request
             if (threadLocalFallback) {
                 return this.get();
             } else {
                 throw new RuntimeException("No Http.Context is present. If you want to invoke this method outside of a HTTP request, you need to wrap the call with JPA.withTransaction instead.");
             }
-        }
+        });
     }
 
     public void push(EntityManager em, boolean threadLocalFallback) {

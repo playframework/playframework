@@ -1,25 +1,22 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.i18n
 
 import java.net.URL
-import java.util.Collections
-import java.util.function.Function
-import java.util.stream.Collectors
-import javax.inject.{ Inject, Provider, Singleton }
 
+import javax.inject.{ Inject, Provider, Singleton }
 import play.api._
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedKey
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
 import play.libs.Scala
 import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
 
 import scala.annotation.implicitNotFound
-import scala.collection.mutable
 import scala.collection.breakOut
 import scala.io.Codec
 import scala.language._
@@ -257,6 +254,11 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
   override def isDefinedAt(key: String): Boolean = {
     messagesApi.isDefinedAt(key)(lang)
   }
+
+  /**
+   * @return the Java version for this Messages.
+   */
+  override def asJava: play.i18n.Messages = new play.i18n.MessagesImpl(lang.asJava, messagesApi.asJava)
 }
 
 /**
@@ -323,12 +325,17 @@ trait Messages extends MessagesProvider {
    * @return a boolean
    */
   def isDefinedAt(key: String): Boolean
+
+  /**
+   * @return the Java version for this Messages.
+   */
+  def asJava: play.i18n.Messages
 }
 
 /**
  * This trait is used to indicate when a Messages instance can be produced.
  */
-@implicitNotFound("An implicit MessagesProvider instance was not found.  Please see https://www.playframework.com/documentation/2.6.x/ScalaForms#Passing-MessagesProvider-to-Form-Helpers")
+@implicitNotFound("An implicit MessagesProvider instance was not found.  Please see https://www.playframework.com/documentation/latest/ScalaForms#Passing-MessagesProvider-to-Form-Helpers")
 trait MessagesProvider {
   def messages: Messages
 }
@@ -409,10 +416,13 @@ trait MessagesApi {
   def isDefinedAt(key: String)(implicit lang: Lang): Boolean
 
   /**
-   * Set the language on the result
+   * Given a [[Result]] and a [[Lang]], return a new [[Result]] with the lang cookie set to the given [[Lang]].
    */
   def setLang(result: Result, lang: Lang): Result
 
+  /**
+   * Given a [[Result]], return a new [[Result]] with the lang cookie discarded.
+   */
   def clearLang(result: Result): Result
 
   def langCookieName: String
@@ -420,6 +430,8 @@ trait MessagesApi {
   def langCookieSecure: Boolean
 
   def langCookieHttpOnly: Boolean
+
+  def langCookieSameSite: Option[SameSite]
 
   /**
    * @return The Java version for Messages API.
@@ -437,6 +449,7 @@ class DefaultMessagesApi @Inject() (
     val langCookieName: String = "PLAY_LANG",
     val langCookieSecure: Boolean = false,
     val langCookieHttpOnly: Boolean = false,
+    val langCookieSameSite: Option[SameSite] = None,
     val httpConfiguration: HttpConfiguration = HttpConfiguration()) extends MessagesApi {
 
   // Java API
@@ -447,6 +460,7 @@ class DefaultMessagesApi @Inject() (
       "PLAY_LANG",
       false,
       false,
+      None,
       HttpConfiguration()
     )
   }
@@ -467,9 +481,9 @@ class DefaultMessagesApi @Inject() (
   }
 
   override def preferred(request: RequestHeader): Messages = {
-    val maybeLangFromContext = request.attrs.get(Messages.Attrs.CurrentLang)
+    val maybeLangFromRequest = request.transientLang()
     val maybeLangFromCookie = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
-    val lang = langs.preferred(maybeLangFromContext.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    val lang = langs.preferred(maybeLangFromRequest.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
   }
 
@@ -508,7 +522,8 @@ class DefaultMessagesApi @Inject() (
       path = httpConfiguration.session.path,
       domain = httpConfiguration.session.domain,
       secure = langCookieSecure,
-      httpOnly = langCookieHttpOnly))
+      httpOnly = langCookieHttpOnly,
+      sameSite = langCookieSameSite))
   }
 
   override def clearLang(result: Result): Result = {
@@ -536,6 +551,7 @@ class DefaultMessagesApiProvider @Inject() (
       langCookieName = langCookieName,
       langCookieSecure = langCookieSecure,
       langCookieHttpOnly = langCookieHttpOnly,
+      langCookieSameSite = langCookieSameSite,
       httpConfiguration = httpConfiguration
     )
   }
@@ -548,6 +564,9 @@ class DefaultMessagesApiProvider @Inject() (
 
   def langCookieHttpOnly =
     config.get[Boolean]("play.i18n.langCookieHttpOnly")
+
+  def langCookieSameSite =
+    HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
     (langs.availables.map { lang =>

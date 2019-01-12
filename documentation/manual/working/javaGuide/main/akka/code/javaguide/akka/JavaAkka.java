@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.akka;
 
 import akka.actor.*;
-import static akka.pattern.PatternsCS.ask;
+import static akka.pattern.Patterns.ask;
 import com.typesafe.config.*;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
@@ -15,7 +15,6 @@ import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
-import scala.compat.java8.FutureConverters;
 import scala.concurrent.*;
 import scala.concurrent.duration.Duration;
 
@@ -83,10 +82,10 @@ public class JavaAkka {
 
             try {
                 String message = (String) 
-                  ask(parent, new ParentActorProtocol.GetChild("my.config"), 1000)
+                  ask(parent, new ParentActorProtocol.GetChild("my.config"), java.time.Duration.ofMillis(1000))
                     .thenApply(msg -> (ActorRef) msg)
                     .thenCompose(child ->
-                        ask(child, new ConfiguredChildActorProtocol.GetConfig(), 1000)
+                        ask(child, new ConfiguredChildActorProtocol.GetConfig(), java.time.Duration.ofMillis(1000))
                     ).toCompletableFuture()
                     .get(5, TimeUnit.SECONDS);
                 assertThat(message, equalTo("foo"));

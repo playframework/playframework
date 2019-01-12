@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.xml;
@@ -8,12 +8,13 @@ import org.w3c.dom.Document;
 import play.libs.XPath;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 public class JavaXmlRequests extends Controller {
     //#xml-hello
-    public Result sayHello() {
-        Document dom = request().body().asXml();
+    public Result sayHello(Http.Request request) {
+        Document dom = request.body().asXml();
         if (dom == null) {
             return badRequest("Expecting Xml data");
         } else {
@@ -29,8 +30,8 @@ public class JavaXmlRequests extends Controller {
 
     //#xml-hello-bodyparser
     @BodyParser.Of(BodyParser.Xml.class)
-    public Result sayHelloBP() {
-        Document dom = request().body().asXml();
+    public Result sayHelloBP(Http.Request request) {
+        Document dom = request.body().asXml();
         if (dom == null) {
             return badRequest("Expecting Xml data");
         } else {
@@ -46,8 +47,8 @@ public class JavaXmlRequests extends Controller {
 
     //#xml-reply
     @BodyParser.Of(BodyParser.Xml.class)
-    public Result replyHello() {
-        Document dom = request().body().asXml();
+    public Result replyHello(Http.Request request) {
+        Document dom = request.body().asXml();
         if (dom == null) {
             return badRequest("Expecting Xml data");
         } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.logging;
@@ -21,7 +21,7 @@ public class JavaLogging {
 
   public void testDefaultLogger() {
 
-    //#logging-default-logger
+    //#logging-example
     // Log some debug info
     logger.debug("Attempting risky calculation.");
 
@@ -34,7 +34,7 @@ public class JavaLogging {
       // Log error with message and Throwable.
       logger.error("Exception with riskyCalculation", t);
     }
-    //#logging-default-logger
+    //#logging-example
 
   }
 

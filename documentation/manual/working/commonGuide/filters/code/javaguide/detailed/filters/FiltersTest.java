@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.detailed.filters;
@@ -23,7 +23,7 @@ public class FiltersTest extends WithApplication {
     @Test
     public void testRequestBuilder() {
         Router router = new RoutingDsl(instanceOf(play.mvc.BodyParser.Default.class), instanceOf(JavaContextComponents.class))
-                .GET("/xx/Kiwi").routeTo(() -> Results.ok("success"))
+                .GET("/xx/Kiwi").routingTo(request -> Results.ok("success"))
                 .build();
 
         // #test-with-request-builder
@@ -39,7 +39,7 @@ public class FiltersTest extends WithApplication {
     @Test
     public void test() {
         Router router = new RoutingDsl(instanceOf(play.mvc.BodyParser.Default.class), instanceOf(JavaContextComponents.class))
-                .POST("/xx/Kiwi").routeTo(() -> Results.ok("success"))
+                .POST("/xx/Kiwi").routingTo(request -> Results.ok("success"))
                 .build();
 
         // #test-with-addCSRFToken

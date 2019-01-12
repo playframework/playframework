@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.routing
@@ -50,6 +50,7 @@ trait HandlerInvokerFactory[-T] {
 object HandlerInvokerFactory {
 
   import play.mvc.{ Result => JResult, WebSocket => JWebSocket }
+  import play.mvc.Http.{ Request => JRequest }
 
   /**
    * Create a `HandlerInvokerFactory` for a call that already produces a
@@ -105,7 +106,7 @@ object HandlerInvokerFactory {
               val javaParser = handlerComponents.getBodyParser(annotations.parser)
               javaBodyParserToScala(javaParser)
             }
-            override def invocation: CompletionStage[JResult] = resultCall(call)
+            override def invocation(req: JRequest): CompletionStage[JResult] = resultCall(req, call)
           }
         }
       }
@@ -114,7 +115,7 @@ object HandlerInvokerFactory {
     /**
      * The core logic for this Java action.
      */
-    def resultCall(call: => A): CompletionStage[JResult]
+    def resultCall(req: JRequest, call: => A): CompletionStage[JResult]
   }
 
   private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
@@ -131,10 +132,16 @@ object HandlerInvokerFactory {
   }
 
   implicit def wrapJava: HandlerInvokerFactory[JResult] = new JavaActionInvokerFactory[JResult] {
-    def resultCall(call: => JResult) = CompletableFuture.completedFuture(call)
+    def resultCall(req: JRequest, call: => JResult) = CompletableFuture.completedFuture(call)
   }
   implicit def wrapJavaPromise: HandlerInvokerFactory[CompletionStage[JResult]] = new JavaActionInvokerFactory[CompletionStage[JResult]] {
-    def resultCall(call: => CompletionStage[JResult]) = call
+    def resultCall(req: JRequest, call: => CompletionStage[JResult]) = call
+  }
+  implicit def wrapJavaRequest: HandlerInvokerFactory[JRequest => JResult] = new JavaActionInvokerFactory[JRequest => JResult] {
+    def resultCall(req: JRequest, call: => JRequest => JResult) = CompletableFuture.completedFuture(call(req))
+  }
+  implicit def wrapJavaPromiseRequest: HandlerInvokerFactory[JRequest => CompletionStage[JResult]] = new JavaActionInvokerFactory[JRequest => CompletionStage[JResult]] {
+    def resultCall(req: JRequest, call: => JRequest => CompletionStage[JResult]) = call(req)
   }
 
   /**
@@ -160,10 +167,10 @@ object HandlerInvokerFactory {
 
             val callWithContext = {
               try {
-                Context.current.set(javaContext)
+                Context.setCurrent(javaContext)
                 FutureConverters.toScala(call(request.asJava))
               } finally {
-                Context.current.remove()
+                Context.clear()
               }
             }
 

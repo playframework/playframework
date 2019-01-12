@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http;
@@ -11,6 +11,7 @@ import java.util.concurrent.CompletionStage;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import javaguide.testhelpers.MockJavaAction;
@@ -26,8 +27,8 @@ public class JavaActions extends WithApplication {
     public void simpleAction() {
         assertThat(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#simple-action
-            public Result index() {
-                return ok("Got request " + request() + "!");
+            public Result index(Http.Request request) {
+                return ok("Got request " + request + "!");
             }
             //#simple-action
         }, fakeRequest(), mat).status(), equalTo(200));

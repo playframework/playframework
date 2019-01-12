@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routing
@@ -14,7 +14,7 @@ import play.utils.UriEncoding
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], contextComponents: JavaContextComponents) {
 
@@ -25,7 +25,34 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], 
     play.api.routing.Router.from(Function.unlift { requestHeader =>
 
       // Find the first route that matches
-      routes.collectFirst(Function.unlift(route =>
+      routes.collectFirst(Function.unlift(route => {
+
+        def handleUsingRequest(parameters: Seq[AnyRef], request: Request[RequestBody])(implicit executionContext: ExecutionContext) = {
+          val actionParameters = request.asJava +: parameters
+          val javaResultFuture = route.actionMethod.invoke(route.action, actionParameters: _*) match {
+            case result: Result => Future.successful(result)
+            case promise: CompletionStage[_] =>
+              val p = promise.asInstanceOf[CompletionStage[Result]]
+              FutureConverters.toScala(p)
+          }
+          javaResultFuture.map(_.asScala())
+        }
+
+        def handleUsingHttpContext(parameters: Seq[AnyRef], request: Request[RequestBody])(implicit executionContext: ExecutionContext) = {
+          val ctx = JavaHelpers.createJavaContext(request, contextComponents)
+          try {
+            Context.setCurrent(ctx)
+            val javaResultFuture = route.actionMethod.invoke(route.action, parameters: _*) match {
+              case result: Result => Future.successful(result)
+              case promise: CompletionStage[_] =>
+                val p = promise.asInstanceOf[CompletionStage[Result]]
+                FutureConverters.toScala(p)
+            }
+            javaResultFuture.map(JavaHelpers.createResult(ctx, _))
+          } finally {
+            Context.clear()
+          }
+        }
 
         // First check method
         if (requestHeader.method == route.method) {
@@ -61,19 +88,10 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], 
               case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
               case Right(parameters) =>
                 import play.core.Execution.Implicits.trampoline
-                ActionBuilder.ignoringBody.async(bodyParser) { request =>
-                  val ctx = JavaHelpers.createJavaContext(request, contextComponents)
-                  try {
-                    Context.current.set(ctx)
-                    val javaResultFuture = route.actionMethod.invoke(route.action, parameters: _*) match {
-                      case result: Result => Future.successful(result)
-                      case promise: CompletionStage[_] =>
-                        val p = promise.asInstanceOf[CompletionStage[Result]]
-                        FutureConverters.toScala(p)
-                    }
-                    javaResultFuture.map(JavaHelpers.createResult(ctx, _))
-                  } finally {
-                    Context.current.remove()
+                ActionBuilder.ignoringBody.async(bodyParser) { request: Request[RequestBody] =>
+                  route.action match {
+                    case _: RequestFunctions.RequestFunction => handleUsingRequest(parameters, request)
+                    case _ => handleUsingHttpContext(parameters, request)
                   }
                 }
             }
@@ -81,7 +99,7 @@ private[routing] class RouterBuilderHelper(bodyParser: BodyParser[RequestBody], 
             Some(action)
           } else None
         } else None
-      ))
+      }))
     }).asJava
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.advanced.embedding;
@@ -31,7 +31,7 @@ public class JavaEmbeddingPlay {
         //#simple
         Server server = Server.forRouter((components) ->
             RoutingDsl.fromComponents(components)
-                .GET("/hello/:to").routeTo(to ->
+                .GET("/hello/:to").routingTo((request, to) ->
                     ok("Hello " + to)
                 )
                 .build()
@@ -63,7 +63,7 @@ public class JavaEmbeddingPlay {
         //#config
         Server server = Server.forRouter((components) ->
             RoutingDsl.fromComponents(components)
-                .GET("/hello/:to").routeTo(to ->
+                .GET("/hello/:to").routingTo((request, to) ->
                     ok("Hello " + to)
                 )
                 .build()

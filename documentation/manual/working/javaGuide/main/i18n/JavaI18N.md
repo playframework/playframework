@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Internationalization with Messages
 
 ## Specifying languages supported by your application
@@ -29,16 +29,7 @@ Messages are available through the [`MessagesApi`](api/java/play/i18n/MessagesAp
 
 @[current-lang-render](code/javaguide/i18n/MyService.java)
 
-The _current language_ is available via the `lang` field in the current [`Context`](api/java/play/mvc/Http.Context.html). If there's no current `Context` then the default language is used. The `Context`'s `lang` value is determined by:
-
-1. Seeing if the `Context`'s `lang` field has been set explicitly.
-2. Looking for a `PLAY_LANG` cookie in the request.
-3. Looking at the `Accept-Language` headers of the request.
-4. Using the application's default language.
-
-You can change the `Context`'s `lang` field by calling `changeLang` or `setTransientLang`. The `changeLang` method will change the field and also set a `PLAY_LANG` cookie for future requests. The `setTransientLang` will set the field for the current request, but doesn't set a cookie. See [below](#Use-in-templates) for example usage.
-
-If you don't want to use the current language you can specify a message's language explicitly:
+If you don't want to use `preferred(...)` to retrieve a `Messages` object you can directly get a message string by specifying a message's language explicitly:
 
 @[specify-lang-render](code/javaguide/i18n/JavaI18N.java)
 
@@ -48,11 +39,16 @@ Note that you should inject the [`play.i18n.MessagesApi`](api/java/play/i18n/Mes
 
 ## Use in Controllers
 
-If you are in a Controller, you get the `Messages` instance through `Http.Context`, using `Http.Context.current().messages()`:
+If you are in a Controller, you can get the `Messages` instance through the current `Http.Request`:
 
-@[show-context-messages](code/javaguide/i18n/JavaI18N.java)
+@[show-request-messages](code/javaguide/i18n/JavaI18N.java)
 
-Please note that because the `Http.Context` depends on a thread local variable, if you are referencing `Http.Context.current().messages()` from inside a `CompletionStage` block that may be in a different thread, you may need to use `HttpExecutionContext.current()` to make the HTTP context available to the thread.  Please see [[Handling asynchronous results|JavaAsync#Using-HttpExecutionContext]] for more details.
+`MessagesApi.preferred(request)` determines the language by:
+
+1. Seeing if the `Request` has a transient lang set by checking its `transientLang()` method.
+2. Looking for a `PLAY_LANG` cookie in the request.
+3. Looking at the `Accept-Language` headers of the request.
+4. Using the application's default language.
 
 To use `Messages` as part of form processing, please see [[Handling form submission|JavaForms]].
 
@@ -60,25 +56,26 @@ To use `Messages` as part of form processing, please see [[Handling form submiss
 
 Once you have the Messages object, you can pass it into the template:
 
-@[template](code/javaguide/i18n/explicitjavatemplate.scala.html)
+@[template](code/javaguide/i18n/hellotemplate.scala.html)
 
-You can also use the Scala [`Messages`](api/scala/play/api/i18n/Messages.html) object from within templates. The Scala [`Messages`](api/scala/play/api/i18n/Messages.html) object has a shorter form that's equivalent to `messages.at` which many people find useful.
+There is also a shorter form that's equivalent to `messages.at` which many people find useful.
 
-If you use the Scala [`Messages`](api/scala/play/api/i18n/Messages.html) object remember not to import the Java `play.i18n.Messages` class or they will conflict!
+@[template](code/javaguide/i18n/hellotemplateshort.scala.html)
 
-@[template](code/javaguide/i18n/helloscalatemplate.scala.html)
-
-Localized templates that use `messages.at` or the Scala `Messages` object are invoked like normal:
+Localized templates that use `messages.at(...)` or simply `messages(...)` are invoked like normal:
 
 @[default-lang-render](code/javaguide/i18n/JavaI18N.java)
 
-If you want to change the language for the template you can call `changeLang` on the current [`Context`](api/java/play/mvc/Http.Context.html). This will change the language for the current request, and set the language into a cookie so that the language is changed for future requests:
+## Changing the language
 
-@[change-lang-render](code/javaguide/i18n/JavaI18N.java)
-
-If you just want to change the language, but only for the current request and not for future requests, call `setTransientLang`:
+If you want to change the language of the current request (but not for future requests) use `Request.withTransientLang(lang)`, which sets the transient lang of the current request.
+Like explained [above](#Use-in-Controllers), the transient language of the request will be taken into account when calling `MessagesApi.preferred(request)`. This is useful to change the language of templates.
 
 @[set-transient-lang-render](code/javaguide/i18n/JavaI18N.java)
+
+If you want to permanently change the language you can do so by calling `withLang` on the `Result`. This will set a `PLAY_LANG` cookie for future requests and will therefore be used when calling `MessagesApi.preferred(request)` in a subsequent request (like shown [above](#Use-in-Controllers)).
+
+@[change-lang-render](code/javaguide/i18n/JavaI18N.java)
 
 ## Formatting messages
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import play.routing.RoutingDsl;
@@ -24,7 +24,7 @@ public class GuiceRouterProvider implements Provider<play.api.routing.Router> {
     @Override
     public play.api.routing.Router get() {
         return routingDsl
-                .GET("/hello/:to").routeTo(to -> ok("Hello " + to))
+                .GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to))
                 .build()
                 .asScala();
     }

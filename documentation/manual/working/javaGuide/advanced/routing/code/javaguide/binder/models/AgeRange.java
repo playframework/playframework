@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.binder.models;
@@ -23,8 +23,8 @@ public class AgeRange implements QueryStringBindable<AgeRange> {
 public Optional<AgeRange> bind(String key, Map<String, String[]> data) {
 	
 	try{
-		from = new Integer(data.get("from")[0]);
-		to = new Integer(data.get("to")[0]);
+		from = Integer.valueOf(data.get("from")[0]);
+		to = Integer.valueOf(data.get("to")[0]);
 		return Optional.of(this);
 		
 	} catch (Exception e){ // no parameter match return None

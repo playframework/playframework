@@ -1,19 +1,22 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.i18n;
 
 import play.libs.Scala;
 import play.mvc.Http;
+import play.mvc.Result;
 import scala.collection.Seq;
 import scala.collection.mutable.Buffer;
+import scala.compat.java8.OptionConverters;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The messages API.
@@ -117,10 +120,9 @@ public class MessagesApi {
      */
     public Messages preferred(Collection<Lang> candidates) {
         Seq<Lang> cs = Scala.asScala(candidates);
-        play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
+        play.api.i18n.Messages msgs = messages.preferred((Seq)cs);
         return new MessagesImpl(new Lang(msgs.lang()), this);
     }
-
 
     /**
      * Get a messages context appropriate for the given request.
@@ -136,6 +138,27 @@ public class MessagesApi {
         return new MessagesImpl(new Lang(msgs.lang()), this);
     }
 
+    /**
+     * Given a Result and a Lang, return a new Result with the lang cookie set to the given Lang.
+     *
+     * @param result the result where the lang will be set.
+     * @param lang the lang to set on the result
+     * @return a new result with the lang.
+     */
+    public Result setLang(Result result, Lang lang) {
+        return messages.setLang(result.asScala(), lang).asJava();
+    }
+
+    /**
+     * Given a Result, return a new Result with the lang cookie discarded.
+     *
+     * @param result the result to clear the lang.
+     * @return a new result with a cleared lang.
+     */
+    public Result clearLang(Result result) {
+        return messages.clearLang(result.asScala()).asJava();
+    }
+
     public String langCookieName() {
         return messages.langCookieName();
     }
@@ -146,6 +169,10 @@ public class MessagesApi {
 
     public boolean langCookieHttpOnly() {
         return messages.langCookieHttpOnly();
+    }
+
+    public Optional<Http.Cookie.SameSite> langCookieSameSite() {
+        return OptionConverters.toJava(messages.langCookieSameSite()).map(sameSite -> sameSite.asJava());
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.cors
@@ -309,7 +309,9 @@ private[cors] trait AbstractCORSPolicy {
   // http://tools.ietf.org/html/rfc6454#section-7.1
   private def isValidOrigin(origin: String): Boolean = {
     // Checks for encoded characters. Helps prevent CRLF injection.
-    if (origin.contains("%")) {
+    if (origin == "null") {
+      true
+    } else if (origin.contains("%")) {
       false
     } else {
       try {

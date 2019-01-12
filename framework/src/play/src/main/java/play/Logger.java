@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play;
@@ -39,12 +39,13 @@ import java.util.function.Supplier;
  * overhead.  For more complex needs, the underlying() methods may be used to get the underlying SLF4J logger, or
  * SLF4J may be used directly.
  *
- * @deprecated Deprecated as of 2.7.0. Use slf4j directly.
- * For more details see https://github.com/playframework/playframework/issues/1669
  */
-@Deprecated
 public class Logger {
 
+    /**
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+     */
+    @Deprecated
     private static final ALogger logger = of("application");
 
     /**
@@ -71,7 +72,10 @@ public class Logger {
      * Get the underlying application SLF4J logger.
      *
      * @return the underlying logger
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static org.slf4j.Logger underlying() {
         return logger.underlying();
     }
@@ -80,7 +84,10 @@ public class Logger {
      * Returns <code>true</code> if the logger instance enabled for the TRACE level?
      *
      * @return <code>true</code> if the logger instance enabled for the TRACE level?
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static boolean isTraceEnabled() {
         return logger.isTraceEnabled();
     }
@@ -89,7 +96,10 @@ public class Logger {
      * Returns <code>true</code> if the logger instance enabled for the DEBUG level?
      *
      * @return <code>true</code> if the logger instance enabled for the DEBUG level?
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static boolean isDebugEnabled() {
         return logger.isDebugEnabled();
     }
@@ -98,7 +108,10 @@ public class Logger {
      * Returns <code>true</code> if the logger instance enabled for the INFO level?
      *
      * @return <code>true</code> if the logger instance enabled for the INFO level?
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static boolean isInfoEnabled() {
         return logger.isInfoEnabled();
     }
@@ -107,7 +120,10 @@ public class Logger {
      * Returns <code>true</code> if the logger instance enabled for the WARN level?
      *
      * @return <code>true</code> if the logger instance enabled for the WARN level?
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static boolean isWarnEnabled() {
         return logger.isWarnEnabled();
     }
@@ -116,7 +132,10 @@ public class Logger {
      * Returns <code>true</code> if the logger instance enabled for the ERROR level?
      *
      * @return <code>true</code> if the logger instance enabled for the ERROR level?
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static boolean isErrorEnabled() {
         return logger.isWarnEnabled();
     }
@@ -125,7 +144,10 @@ public class Logger {
      * Log a message with the TRACE level.
      *
      * @param message message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void trace(String message) {
         logger.trace(message);
     }
@@ -134,7 +156,10 @@ public class Logger {
      * Log a message with the TRACE level.
      *
      * @param msgSupplier <code>Supplier</code> that contains message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void trace(Supplier<String> msgSupplier) {
         logger.trace(msgSupplier);
     }
@@ -144,7 +169,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args The arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void trace(String message, Object... args) {
         logger.trace(message, args);
     }
@@ -154,7 +182,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args Suppliers that contain arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void trace(String message, Supplier<?>... args) {
         logger.trace(message, args);
     }
@@ -164,7 +195,10 @@ public class Logger {
      *
      * @param message message to log
      * @param error associated exception
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void trace(String message, Throwable error) {
         logger.trace(message, error);
     }
@@ -173,7 +207,10 @@ public class Logger {
      * Log a message with the DEBUG level.
      *
      * @param message message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void debug(String message) {
         logger.debug(message);
     }
@@ -182,7 +219,10 @@ public class Logger {
      * Log a message with the DEBUG level.
      *
      * @param msgSupplier <code>Supplier</code> that contains message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void debug(Supplier<String> msgSupplier) {
         logger.debug(msgSupplier);
     }
@@ -192,7 +232,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args The arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void debug(String message, Object... args) {
         logger.debug(message, args);
     }
@@ -202,7 +245,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args Suppliers that contain arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void debug(String message, Supplier<?>... args) {
         logger.debug(message, args);
     }
@@ -212,7 +258,10 @@ public class Logger {
      *
      * @param message message to log
      * @param error associated exception
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void debug(String message, Throwable error) {
         logger.debug(message, error);
     }
@@ -221,7 +270,10 @@ public class Logger {
      * Log a message with the INFO level.
      *
      * @param message message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void info(String message) {
         logger.info(message);
     }
@@ -230,7 +282,10 @@ public class Logger {
      * Log a message with the INFO level.
      *
      * @param msgSupplier <code>Supplier</code> that contains message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void info(Supplier<String> msgSupplier) {
         logger.info(msgSupplier);
     }
@@ -240,7 +295,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args The arguments to apply to the message string
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void info(String message, Object... args) {
         logger.info(message, args);
     }
@@ -250,7 +308,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args Suppliers that contain arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void info(String message, Supplier<?>... args) {
         logger.info(message, args);
     }
@@ -260,7 +321,10 @@ public class Logger {
      *
      * @param message message to log
      * @param error associated exception
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void info(String message, Throwable error) {
         logger.info(message, error);
     }
@@ -269,7 +333,10 @@ public class Logger {
      * Log a message with the WARN level.
      *
      * @param message message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void warn(String message) {
         logger.warn(message);
     }
@@ -278,7 +345,10 @@ public class Logger {
      * Log a message with the WARN level.
      *
      * @param msgSupplier <code>Supplier</code> that contains message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void warn(Supplier<String> msgSupplier) {
         logger.warn(msgSupplier);
     }
@@ -288,7 +358,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args The arguments to apply to the message string
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void warn(String message, Object... args) {
         logger.warn(message, args);
     }
@@ -298,7 +371,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args Suppliers that contain arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void warn(String message, Supplier<?>... args) {
         logger.warn(message, args);
     }
@@ -308,7 +384,10 @@ public class Logger {
      *
      * @param message message to log
      * @param error associated exception
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void warn(String message, Throwable error) {
         logger.warn(message, error);
     }
@@ -317,7 +396,10 @@ public class Logger {
      * Log a message with the ERROR level.
      *
      * @param message message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void error(String message) {
         logger.error(message);
     }
@@ -326,7 +408,10 @@ public class Logger {
      * Log a message with the ERROR level.
      *
      * @param msgSupplier <code>Supplier</code> that contains message to log
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void error(Supplier<String> msgSupplier) {
         logger.error(msgSupplier);
     }
@@ -336,7 +421,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args The arguments to apply to the message string
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void error(String message, Object... args) {
         logger.error(message, args);
     }
@@ -346,7 +434,10 @@ public class Logger {
      *
      * @param message message to log
      * @param args Suppliers that contain arguments to apply to the message String
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void error(String message, Supplier<?> args) {
         logger.error(message, args);
     }
@@ -356,7 +447,10 @@ public class Logger {
      *
      * @param message message to log
      * @param error associated exception
+     *
+     * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
      */
+    @Deprecated
     public static void error(String message, Throwable error) {
         logger.error(message, error);
     }
@@ -541,6 +635,18 @@ public class Logger {
          */
         public void trace(String message, Object... args) {
             logger.underlyingLogger().trace(message, args);
+        }
+
+        /**
+         * Log a message with the TRACE level.
+         *
+         * @param message message to log
+         * @param args Suppliers that contain arguments to apply to the message String
+         */
+        public void trace(String message, Supplier<?>... args) {
+            if (isTraceEnabled()) {
+                trace(message, suppliersToObj(args));
+            }
         }
 
         /**
@@ -793,7 +899,7 @@ public class Logger {
          */
         public void warn(String message, Supplier<?>... args) {
             if (isWarnEnabled()) {
-                logger.underlyingLogger().warn(message, suppliersToObj(args));
+                warn(message, suppliersToObj(args));
             }
         }
 
@@ -877,7 +983,7 @@ public class Logger {
          */
         public void error(String message, Supplier<?>... args) {
             if (isErrorEnabled()) {
-                logger.underlyingLogger().error(message, suppliersToObj(args));
+                error(message, suppliersToObj(args));
             }
         }
 

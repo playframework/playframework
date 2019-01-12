@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.http.play
@@ -19,11 +19,23 @@ import play.core.server.common.WebSocketFlowHandler.{ MessageType, RawMessage }
 object WebSocketHandler {
 
   /**
+   * Handle a WebSocket without selecting a subprotocol
+   *
+   * This may cause problems with clients that propose subprotocols in the
+   * upgrade request and expect the server to pick one, such as Chrome.
+   *
+   * See https://github.com/playframework/playframework/issues/7895
+   */
+  @deprecated("Please specify the subprotocol (or be explicit that you specif None)", "2.7.0")
+  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse =
+    handleWebSocket(upgrade, flow, bufferLimit, None)
+
+  /**
    * Handle a WebSocket
    */
-  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse = upgrade match {
+  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int, subprotocol: Option[String]): HttpResponse = upgrade match {
     case lowLevel: UpgradeToWebSocketLowLevel =>
-      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit))
+      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit), subprotocol)
     case other => throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
   }
 

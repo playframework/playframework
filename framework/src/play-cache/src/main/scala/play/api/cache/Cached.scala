@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache
@@ -250,7 +250,7 @@ final class CachedBuilder(
    * The returned cache will store all responses whatever they may contain
    * @param duration how long we should store responses
    */
-  def default(duration: Duration): CachedBuilder = compose(PartialFunction((_: ResponseHeader) => duration))
+  def default(duration: Duration): CachedBuilder = compose({ case _: ResponseHeader => duration })
 
   /**
    * The returned cache will store all responses whatever they may contain

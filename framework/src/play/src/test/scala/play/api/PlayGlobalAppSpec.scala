@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -15,7 +15,8 @@ class PlayGlobalAppSpec extends Specification {
       "play.allowGlobalApplication" -> allowGlobalApp,
       "play.akka.config" -> "akka",
       "play.akka.actor-system" -> "global-app-spec",
-      "akka.coordinated-shutdown.phases.actor-system-terminate.timeout" -> "90 second"
+      "akka.coordinated-shutdown.phases.actor-system-terminate.timeout" -> "90 second",
+      "akka.coordinated-shutdown.exit-jvm" -> "off"
     ))
 
   "play.api.Play" should {

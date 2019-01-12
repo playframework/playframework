@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.jpa;
@@ -20,6 +20,6 @@ public interface JPAComponents extends DBComponents, ConfigurationComponents {
     }
 
     default JPAApi jpaApi() {
-        return new DefaultJPAApi.JPAApiProvider(jpaConfig(), new JPAEntityManagerContext(), applicationLifecycle(), dbApi()).get();
+        return new DefaultJPAApi.JPAApiProvider(jpaConfig(), new JPAEntityManagerContext(), applicationLifecycle(), dbApi(), config()).get();
     }
 }

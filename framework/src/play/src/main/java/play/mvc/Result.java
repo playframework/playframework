@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,10 +14,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import play.api.mvc.DiscardingCookie;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
 import play.http.HttpEntity;
+import play.i18n.Lang;
+import play.i18n.MessagesApi;
 import play.libs.Scala;
+import scala.Option;
 
 import static play.mvc.Http.Cookie;
 import static play.mvc.Http.Cookies;
@@ -225,6 +230,76 @@ public class Result {
     }
 
     /**
+     * Sets a new flash for this result, discarding the existing flash.
+     *
+     * @param flash the flash to set with this result
+     * @return the new result
+     */
+    public Result withFlash(Flash flash) {
+        play.api.mvc.Result.warnFlashingIfNotRedirect(flash.asScala(), header.asScala());
+        return new Result(header, body, session, flash, cookies);
+    }
+
+    /**
+     * Sets a new flash for this result, discarding the existing flash.
+     *
+     * @param flash the flash to set with this result
+     * @return the new result
+     */
+    public Result withFlash(Map<String, String> flash) {
+        return withFlash(new Flash(flash));
+    }
+
+    /**
+     * Discards the existing flash for this result.
+     *
+     * @return the new result
+     */
+    public Result withNewFlash() {
+        return withFlash(Collections.emptyMap());
+    }
+
+    /**
+     * Adds values to the flash.
+     *
+     * @param values A map with values to add to this result's flash
+     * @return A copy of this result with values added to its flash scope.
+     */
+    public Result flashing(Map<String, String> values) {
+        if(this.flash == null) {
+            return withFlash(values);
+        } else {
+            return withFlash(this.flash.adding(values));
+        }
+    }
+
+    /**
+     * Adds the given key and value to the flash.
+     *
+     * @param key The key to add to this result's flash
+     * @param value The value to add to this result's flash
+     * @return A copy of this result with the key and value added to its flash scope.
+     */
+    public Result flashing(String key, String value) {
+        Map<String, String> newValues = new HashMap<>(1);
+        newValues.put(key, value);
+        return flashing(newValues);
+    }
+
+    /**
+     * Removes values from the flash.
+     *
+     * @param keys Keys to remove from flash
+     * @return A copy of this result with keys removed from its flash scope.
+     */
+    public Result removingFromFlash(String... keys) {
+        if(this.flash == null) {
+            return withNewFlash();
+        }
+        return withFlash(this.flash.removing(keys));
+    }
+
+    /**
      * Extracts the Session of this Result value.
      *
      * @return the session (if it was set)
@@ -234,13 +309,100 @@ public class Result {
     }
 
     /**
+     * @param request Current request
+     * @return The session carried by this result. Reads the given request's session if this result does not has a session.
+     */
+    public Session session(Http.Request request) {
+        if(session != null) {
+            return session;
+        } else {
+            return request.session();
+        }
+    }
+
+    /**
+     * Sets a new session for this result, discarding the existing session.
+     *
+     * @param session the session to set with this result
+     * @return the new result
+     */
+    public Result withSession(Session session) {
+        return new Result(header, body, session, flash, cookies);
+    }
+
+    /**
+     * Sets a new session for this result, discarding the existing session.
+     *
+     * @param session the session to set with this result
+     * @return the new result
+     */
+    public Result withSession(Map<String, String> session) {
+        return withSession(new Session(session));
+    }
+
+    /**
+     * Discards the existing session for this result.
+     *
+     * @return the new result
+     */
+    public Result withNewSession() {
+        return withSession(Collections.emptyMap());
+    }
+
+    /**
+     * Adds values to the session.
+     *
+     * @param values A map with values to add to this result's session
+     * @return A copy of this result with values added to its session scope.
+     */
+    public Result addingToSession(Http.Request request, Map<String, String> values) {
+        return withSession(session(request).adding(values));
+    }
+
+    /**
+     * Adds the given key and value to the session.
+     *
+     * @param key The key to add to this result's session
+     * @param value The value to add to this result's session
+     * @return A copy of this result with the key and value added to its session scope.
+     */
+    public Result addingToSession(Http.Request request, String key, String value) {
+        Map<String, String> newValues = new HashMap<>(1);
+        newValues.put(key, value);
+        return addingToSession(request, newValues);
+    }
+
+    /**
+     * Removes values from the session.
+     *
+     * @param keys Keys to remove from session
+     * @return A copy of this result with keys removed from its session scope.
+     */
+    public Result removingFromSession(Http.Request request, String... keys) {
+        return withSession(session(request).removing(keys));
+    }
+
+    /**
      * Extracts a Cookie value from this Result value
      *
      * @param name the cookie's name.
      * @return the cookie (if it was set)
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
      */
+    @Deprecated
     public Cookie cookie(String name) {
         return cookies().get(name);
+    }
+
+    /**
+     * Extracts a Cookie value from this Result value
+     *
+     * @param name the cookie's name.
+     * @return the optional cookie
+     */
+    public Optional<Cookie> getCookie(String name) {
+        return cookies().getCookie(name);
     }
 
     /**
@@ -251,8 +413,8 @@ public class Result {
     public Cookies cookies() {
         return new Cookies() {
             @Override
-            public Cookie get(String name) {
-                return cookies.stream().filter(c -> c.name().equals(name)).findFirst().get();
+            public Optional<Cookie> getCookie(String name) {
+                return cookies.stream().filter(c -> c.name().equals(name)).findFirst();
             }
 
             @Override
@@ -282,8 +444,8 @@ public class Result {
      *
      * @param name The name of the cookie to discard, must not be null
      */
-    public Result discardCookie(String name) {
-        return discardCookie(name, "/", null, false);
+    public Result discardingCookie(String name) {
+        return discardingCookie(name, "/", null, false);
     }
 
     /**
@@ -292,8 +454,8 @@ public class Result {
      * @param name The name of the cookie to discard, must not be null
      * @param path The path of the cookie to discard, may be null
      */
-    public Result discardCookie(String name, String path) {
-        return discardCookie(name, path, null, false);
+    public Result discardingCookie(String name, String path) {
+        return discardingCookie(name, path, null, false);
     }
 
     /**
@@ -303,8 +465,8 @@ public class Result {
      * @param path The path of the cookie te discard, may be null
      * @param domain The domain of the cookie to discard, may be null
      */
-    public Result discardCookie(String name, String path, String domain) {
-        return discardCookie(name, path, domain, false);
+    public Result discardingCookie(String name, String path, String domain) {
+        return discardingCookie(name, path, domain, false);
     }
 
     /**
@@ -315,8 +477,8 @@ public class Result {
      * @param domain The domain of the cookie to discard, may be null
      * @param secure Whether the cookie to discard is secure
      */
-    public Result discardCookie(String name, String path, String domain, boolean secure) {
-        return withCookies(new Cookie(name, "", play.api.mvc.Cookie.DiscardedMaxAge(), path, domain, secure, false, null));
+    public Result discardingCookie(String name, String path, String domain, boolean secure) {
+        return withCookies(new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
     }
 
     /**
@@ -345,6 +507,16 @@ public class Result {
     }
 
     /**
+     * Discard a HTTP header in this result.
+     *
+     * @param name the header name
+     * @return the transformed copy
+     */
+    public Result withoutHeader(String name) {
+        return new Result(header.withoutHeader(name), body, session, flash, cookies);
+    }
+
+    /**
      * Return a copy of the result with a different Content-Type header.
      *
      * @param contentType the content type to set
@@ -352,6 +524,51 @@ public class Result {
      */
     public Result as(String contentType) {
         return new Result(header, body.as(contentType));
+    }
+
+    /**
+     * Returns a new result with the given lang set in a cookie. For example:
+     *
+     * <pre>
+     * {@code
+     * public Result action() {
+     *     ok("Hello").withLang(Lang.forCode("es"), messagesApi);
+     * }
+     * }
+     * </pre>
+     *
+     * Where {@code messagesApi} were injected.
+     *
+     * @param lang the new lang
+     * @param messagesApi the messages api implementation
+     * @return a new result with the given lang.
+     *
+     * @see MessagesApi#setLang(Result, Lang)
+     */
+    public Result withLang(Lang lang, MessagesApi messagesApi) {
+        return messagesApi.setLang(this, lang);
+    }
+
+    /**
+     * Clears the lang cookie from this result. For example:
+     *
+     * <pre>
+     * {@code
+     * public Result action() {
+     *     ok("Hello").withoutLang(messagesApi);
+     * }
+     * }
+     * </pre>
+     *
+     * Where {@code messagesApi} were injected.
+     *
+     * @param messagesApi the messages api implementation
+     * @return a new result without the lang
+     *
+     * @see MessagesApi#clearLang(Result)
+     */
+    public Result withoutLang(MessagesApi messagesApi) {
+        return messagesApi.clearLang(this);
     }
 
     /**

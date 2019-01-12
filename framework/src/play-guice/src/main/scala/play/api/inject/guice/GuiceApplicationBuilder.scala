@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject.guice
@@ -108,7 +108,7 @@ final case class GuiceApplicationBuilder(
         bind[ILoggerFactory] to loggerFactory,
         bind[OptionalDevContext] to new OptionalDevContext(None),
         bind[OptionalSourceMapper].toProvider[OptionalSourceMapperProvider],
-        bind[WebCommands] to new DefaultWebCommands
+        bind[WebCommands].to(new DefaultWebCommands).in[Singleton]
       ).createModule()
   }
 

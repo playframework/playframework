@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -31,13 +31,13 @@ class JavaCSPActionSpec extends PlaySpecification {
   def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application): JavaAction = new JavaAction(javaHandlerComponents) {
     val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
     def parser: BodyParser[Http.RequestBody] = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-    def invocation: CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
+    def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
     val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
   }
 
   def withActionServer[T](config: (String, String)*)(block: Application => T): T = {
     val app = GuiceApplicationBuilder()
-      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "foobar"))
+      .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
       .appRoutes(implicit app => { case _ => javaAction[JavaCSPActionSpec.MyAction]("index", myAction.index()) })
       .build()
     block(app)

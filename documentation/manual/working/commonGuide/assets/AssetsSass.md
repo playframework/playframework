@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Using Sass
 
 [Sass](http://sass-lang.com/) is a dynamic stylesheet language. It allows considerable flexibility in the way you write CSS files including support for variables, mixins and more.
@@ -48,7 +48,7 @@ The Sass file outlined above, will be compiled into `public/stylesheets/main.css
 
 ## Mixing Sass and web-jars
 
-[WebJars](http://www.webjars.org) enable us to depend on client libraries without pulling all dependencies into our own code base manually.
+[WebJars](https://www.webjars.org) enable us to depend on client libraries without pulling all dependencies into our own code base manually.
 
 Compass is a library containing all sorts of reusable functions and mixins for Sass. Unfortunately, this library is targeted towards the Ruby implementation of Sass. There is a number of useful mixins that can be extracted from it. Fortunately, these mixins are wrapped in a web-jar.
 

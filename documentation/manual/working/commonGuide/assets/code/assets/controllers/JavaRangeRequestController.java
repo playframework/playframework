@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package assets.controllers;
@@ -11,9 +11,9 @@ import java.io.File;
 public class JavaRangeRequestController extends Controller {
 
     // #range-request
-    public Result video(Long videoId) {
+    public Result video(Http.Request request, Long videoId) {
         File videoFile = getVideoFile(videoId);
-        return RangeResults.ofFile(videoFile);
+        return RangeResults.ofFile(request, videoFile);
     }
     // #range-request
 

@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http.routing.controllers;
 
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Http;
 
 public class Application extends Controller {
 
@@ -40,4 +41,10 @@ public class Application extends Controller {
     static class controllers {
         static javaguide.http.routing.reverse.controllers.routes routes = new javaguide.http.routing.reverse.controllers.routes();
     }
+
+    //#pass-request
+    public Result dashboard(Http.Request request) {
+        return ok("Hello, your request path " + request.path());
+    }
+    //#pass-request
 }

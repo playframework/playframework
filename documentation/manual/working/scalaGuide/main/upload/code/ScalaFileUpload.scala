@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.upload.fileupload {
@@ -50,12 +50,11 @@ package scalaguide.upload.fileupload {
             // only get the last part of the filename
             // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
             val filename = Paths.get(picture.filename).getFileName
-            
+
             picture.ref.moveTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
             Ok("File uploaded")
           }.getOrElse {
-            Redirect(routes.ScalaFileUploadController.index).flashing(
-              "error" -> "Missing file")
+            Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
           }
         }
 
@@ -85,7 +84,7 @@ package scalaguide.upload.fileupload {
         val request = FakeRequest().withBody(tf)
 
         val controllerComponents = app.injector.instanceOf[ControllerComponents]
-        testAction(new controllers.ScalaFileUploadController(controllerComponents).upload, request)
+        testAction(new controllers.HomeController(controllerComponents).upload, request)
 
         uploaded.delete()
         success
@@ -108,7 +107,7 @@ package scalaguide.upload.fileupload {
   }
   package controllers {
 
-    class ScalaFileUploadController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(controllerComponents) {
+    class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(controllerComponents) {
 
       //#upload-file-directly-action
         def upload = Action(parse.temporaryFile) { request =>
@@ -125,7 +124,7 @@ package scalaguide.upload.fileupload {
       type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
 
       def handleFilePartAsFile: FilePartHandler[File] = {
-        case FileInfo(partName, filename, contentType) =>
+        case FileInfo(partName, filename, contentType, dispositionType) =>
           val perms = java.util.EnumSet.of(OWNER_READ, OWNER_WRITE)
           val attr = PosixFilePermissions.asFileAttribute(perms)
           val path = JFiles.createTempFile("multipartBody", "tempFile", attr)
@@ -133,13 +132,13 @@ package scalaguide.upload.fileupload {
           val fileSink = FileIO.toPath(path)
           val accumulator = Accumulator(fileSink)
           accumulator.map { case IOResult(count, status) =>
-            FilePart(partName, filename, contentType, file)
+            FilePart(partName, filename, contentType, file, dispositionType)
           }(ec)
       }
 
       def uploadCustom = Action(parse.multipartFormData(handleFilePartAsFile)) { request =>
         val fileOption = request.body.file("name").map {
-          case FilePart(key, filename, contentType, file) =>
+          case FilePart(key, filename, contentType, file, dispositionType) =>
             file.toPath
         }
 

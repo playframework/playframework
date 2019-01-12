@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http;
@@ -37,8 +37,8 @@ public class JavaBodyParsers extends WithApplication {
     public void accessRequestBody() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
             //#access-json-body
-            public Result index() {
-                JsonNode json = request().body().asJson();
+            public Result index(Http.Request request) {
+                JsonNode json = request.body().asJson();
                 return ok("Got name: " + json.get("name").asText());
             }
             //#access-json-body
@@ -50,8 +50,8 @@ public class JavaBodyParsers extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#particular-body-parser
                     @BodyParser.Of(BodyParser.Text.class)
-                    public Result index() {
-                        RequestBody body = request().body();
+                    public Result index(Http.Request request) {
+                        RequestBody body = request.body();
                         return ok("Got text: " + body.asText());
                     }
                     //#particular-body-parser
@@ -110,8 +110,8 @@ public class JavaBodyParsers extends WithApplication {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                 //#composing-access
                 @BodyParser.Of(UserBodyParser.class)
-                public Result save() {
-                    RequestBody body = request().body();
+                public Result save(Http.Request request) {
+                    RequestBody body = request.body();
                     User user = body.as(User.class);
 
                     return ok("Got: " + user.name);
@@ -147,8 +147,8 @@ public class JavaBodyParsers extends WithApplication {
         }
 
         @BodyParser.Of(Text10Kb.class)
-        public Result index() {
-            return ok("Got body: " + request().body().asText());
+        public Result index(Http.Request request) {
+            return ok("Got body: " + request.body().asText());
         }
         //#max-length
     }
@@ -218,8 +218,8 @@ public class JavaBodyParsers extends WithApplication {
     public void testCsv() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                 @BodyParser.Of(CsvBodyParser.class)
-                public Result uploadCsv() {
-                    String value = ((List<List<String>>) request().body().as(List.class)).get(1).get(2);
+                public Result uploadCsv(Http.Request request) {
+                    String value = ((List<List<String>>) request.body().as(List.class)).get(1).get(2);
                     return ok("Got: " + value);
                 }
             }, fakeRequest().bodyText("1,2\n3,4,foo\n5,6"), mat)),

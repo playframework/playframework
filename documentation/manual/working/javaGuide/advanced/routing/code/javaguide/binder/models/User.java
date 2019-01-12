@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.binder.models;
@@ -18,7 +18,7 @@ public class User implements PathBindable<User> {
 public User bind(String key, String id) {
 
 	// findById meant to be lightweight operation
-	User user = findById(new Long(id));
+	User user = findById(Long.valueOf(id));
 	if (user == null) {
 		throw new IllegalArgumentException("User with id " + id + " not found");
 	}

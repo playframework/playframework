@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with JPA
 
 ## Adding dependencies to your project
@@ -11,7 +11,7 @@ There is no built-in JPA implementation in Play; you can choose any available im
 
 ## Exposing the datasource through JNDI
 
-JPA requires the datasource to be accessible via [JNDI](http://www.oracle.com/technetwork/java/jndi/index.html). You can expose any Play-managed datasource via JNDI by adding this configuration in `conf/application.conf`:
+JPA requires the datasource to be accessible via [JNDI](https://www.oracle.com/technetwork/java/jndi/index.html). You can expose any Play-managed datasource via JNDI by adding this configuration in `conf/application.conf`:
 
 ```
 db.default.jndiName=DefaultDS

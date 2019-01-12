@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application
 
 Writing tests for your application can be an involved process. Play supports [JUnit](https://junit.org/junit4/) and provides helpers and application stubs to make testing your application as easy as possible.
@@ -91,7 +91,7 @@ You can test your controllers using Play's [test helpers](api/java/play/test/Hel
 
 ## Unit testing view templates
 
-As a template is a standard Scala method, you can execute it from a test and check the result:
+As a template is a just a method, you can execute it from a test and check the result:
 
 @[test-template](code/javaguide/tests/ControllerTest.java)
 

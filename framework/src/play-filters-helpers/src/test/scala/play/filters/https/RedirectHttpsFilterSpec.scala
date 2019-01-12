@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.https
@@ -145,6 +145,20 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== PERMANENT_REDIRECT
     }
+
+    "not redirect when path included in redirectExcludePath" in new WithApplication(buildApp(
+      """
+        |play.filters.https.redirectEnabled = true
+        |play.filters.https.xForwardedProtoEnabled = true
+        |play.filters.https.excludePaths = ["/skip"]
+      """.stripMargin, mode = Mode.Test)) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request("/skip").withConnection(secure).withHeaders("X-Forwarded-Proto" -> "http")).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== OK
+    }
+
   }
 
   private def request(uri: String = "/") = {
@@ -161,6 +175,9 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       new play.filters.https.RedirectHttpsModule)
     .appRoutes(app => {
       case ("GET", "/") =>
+        val action = app.injector.instanceOf[DefaultActionBuilder]
+        action(Ok(""))
+      case ("GET", "/skip") =>
         val action = app.injector.instanceOf[DefaultActionBuilder]
         action(Ok(""))
     }).overrides(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -13,7 +13,7 @@ import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import org.specs2.mutable.Specification
 import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
-import play.api.{ Configuration, Environment }
+import play.api.{ Configuration, Environment, PlayException }
 
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
@@ -59,6 +59,28 @@ class ActorSystemProviderSpec extends Specification {
           .withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef("17 s"))
       } { actorSystem =>
         actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(akkaMaxDelayInSec)
+      }
+    }
+
+    "fail to start if akka.coordinated-shutdown.exit-jvm = on" in {
+      val configWithExitJvmOn = ConfigFactory.parseString("akka.coordinated-shutdown.exit-jvm = on")
+      withConfiguration { config =>
+        configWithExitJvmOn.withFallback(config)
+      }(identity) must throwA[PlayException]
+    }
+
+    "start as expected when akka.coordinated-shutdown.exit-jvm = off" in {
+      val configWithExitJvmOff = ConfigFactory.parseString(s"akka.coordinated-shutdown.exit-jvm = off")
+      withConfiguration { config =>
+        configWithExitJvmOff.withFallback(config)
+      } { actorSystem =>
+        actorSystem.dispatcher must not beNull
+      }
+    }
+
+    "start as expected with the default configuration for akka.coordinated-shutdown.exit-jvm" in {
+      withConfiguration(identity){ actorSystem =>
+        actorSystem.dispatcher must not beNull
       }
     }
 
@@ -110,11 +132,10 @@ class ActorSystemProviderSpec extends Specification {
 
   }
 
-  private def withOverriddenTimeout[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
+  private def withConfiguration[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
     val config: Config = reconfigure(Configuration
       .load(Environment.simple())
       .underlying
-      .withoutPath(playTimeoutKey)
     )
     val actorSystem = ActorSystemProvider.start(
       this.getClass.getClassLoader,
@@ -125,6 +146,12 @@ class ActorSystemProviderSpec extends Specification {
     } finally {
       Await.ready(CoordinatedShutdown(actorSystem).run(CoordinatedShutdown.UnknownReason), fiveSec)
     }
+  }
+
+  private def withOverriddenTimeout[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
+    withConfiguration { config =>
+      reconfigure(config.withoutPath(playTimeoutKey))
+    }(block)
   }
 
 }

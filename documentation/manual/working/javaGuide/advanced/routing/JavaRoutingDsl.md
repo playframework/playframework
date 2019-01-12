@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Routing DSL
 
 Play provides a DSL for routers directly in code.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
 
 The DSL uses a path pattern syntax similar to Play's compiled routes files, extracting parameters out, and invoking actions implemented using lambdas.
 
-The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  Since you will be implementing actions, you may want to import the static methods from [`Controller`](api/java/play/mvc/Controller.html), which includes factory methods for creating results, accessing the request, response and session.  So typically you will want at least the following imports:
+The DSL is provided by [`RoutingDsl`](api/java/play/routing/RoutingDsl.html).  Since you will be implementing actions, you may want to import the static methods from [`Results`](api/java/play/mvc/Results.html), which includes factory methods for creating results. The DSL gives you access to the current [Http.Request](api/java/play/mvc/Http.Request.html) and you can use it to access the session, cookies, etc. So typically you will want at least the following imports:
 
 @[imports](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
@@ -21,7 +21,9 @@ A simple example of the DSL's use is:
 
 @[simple](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
-The `:to` parameter is extracted out and passed as the first parameter to the router.  Note that the name you give to parameters in the path pattern is irrelevant, the important thing is that parameters in the path are in the same order as parameters in your lambda.  You can have anywhere from 0 to 3 parameters in the path pattern, and other HTTP methods, such as `POST`, `PUT` and `DELETE` are supported.
+The first parameter to the action block is an [Http.Request](api/java/play/mvc/Http.Request.html). Then the `:to` parameter is extracted out and passed as the first parameter to the router.  Note that the name you give to parameters in the path pattern is irrelevant, the important thing is that parameters in the path are in the same order as parameters in your lambda.  You can have anywhere from 0 to 3 parameters in the path pattern, and other HTTP methods, such as `POST`, `PUT` and `DELETE` are supported.
+
+> **Note**: it is important to notice that when using the DSL, the first parameter will always be the `Http.Request`. The next parameters are the ones you actually declared at your route pattern.
 
 Like Play's compiled router, the DSL also supports matching multi path segment parameters, this is done by prefixing the parameter with `*`:
 
@@ -37,7 +39,7 @@ In the above examples, the type of the parameters in the lambdas is undeclared, 
 
 Supported types include `Integer`, `Long`, `Float`, `Double`, `Boolean`, and any type that extends [`PathBindable`](api/java/play/mvc/PathBindable.html).
 
-Asynchronous actions are of course also supported, using the `routeAsync` method:
+Asynchronous actions are of course also supported, using the `routingAsync` method:
 
 @[async](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
@@ -67,4 +69,4 @@ and in the application loader:
 
 ### Overriding binding
 
-A router can also be provided using e.g. GuiceApplicationBuilder in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|JavaTestingWithGuice#Override-bindings]] 
+A router can also be provided using e.g. [`GuiceApplicationBuilder`](api/java/play/inject/guice/GuiceApplicationBuilder.html) in the application loader to override with custom router binding or module as detailed in [[Bindings and Modules|JavaTestingWithGuice#Override-bindings]]

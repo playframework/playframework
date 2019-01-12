@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.http.scalaactionscomposition {
@@ -15,6 +15,7 @@ import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.Logger
+import play.api.Logging
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
@@ -41,9 +42,10 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       //#basic-logging
       import play.api.mvc._
 
-      class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
+      class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+          extends ActionBuilderImpl(parser) with Logging {
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
-          Logger.info("Calling action")
+          logger.info("Calling action")
           block(request)
         }
       }
@@ -78,10 +80,10 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       //#actions-class-wrapping
       import play.api.mvc._
 
-      case class Logging[A](action: Action[A]) extends Action[A] {
+      case class Logging[A](action: Action[A]) extends Action[A] with play.api.Logging {
 
         def apply(request: Request[A]): Future[Result] = {
-          Logger.info("Calling action")
+          logger.info("Calling action")
           action(request)
         }
 
@@ -130,10 +132,11 @@ class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
       //#actions-def-wrapping
       import play.api.mvc._
 
-      //###skip:1
+      //###skip:2
+      val logger = Logger(getClass)
       val Action = actionBuilder
       def logging[A](action: Action[A]) = Action.async(action.parser) { request =>
-        Logger.info("Calling action")
+        logger.info("Calling action")
         action(request)
       }
       //#actions-def-wrapping

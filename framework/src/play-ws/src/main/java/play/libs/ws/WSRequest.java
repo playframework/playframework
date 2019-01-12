@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.ws;
@@ -80,7 +80,10 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @param body represented as an InputStream
      * @return a promise to the response
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #patch(BodyWritable)} instead.
      */
+    @Deprecated
     CompletionStage<WSResponse> patch(InputStream body);
 
     /**
@@ -138,9 +141,10 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Perform a POST on the request asynchronously.
      *
-     * @deprecated use {@link #post(BodyWritable)}
      * @param body represented as an InputStream
      * @return a promise to the response
+     *
+     * @deprecated Deprecated as of 2.6.0. Use {@link #post(BodyWritable)} instead.
      */
     @Deprecated
     CompletionStage<WSResponse> post(InputStream body);
@@ -203,7 +207,10 @@ public interface WSRequest extends StandaloneWSRequest {
      *
      * @param body represented as an InputStream
      * @return a promise to the response
+     *
+     * @deprecated Deprecated as of 2.7.0. Use {@link #put(BodyWritable)} instead.
      */
+    @Deprecated
     CompletionStage<WSResponse> put(InputStream body);
 
     /**
@@ -316,9 +323,10 @@ public interface WSRequest extends StandaloneWSRequest {
     /**
      * Set the body this request should use.
      *
-     * @deprecated use {@link #setBody(BodyWritable)}
-     * @param body Deprecated
-     * @return Deprecated
+     * @param body the request body.
+     * @return the modified WSRequest.
+     *
+     * @deprecated Deprecated as of 2.6.0. Use {@link #setBody(BodyWritable)} instead.
      */
     @Deprecated
     WSRequest setBody(InputStream body);

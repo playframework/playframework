@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -19,7 +19,7 @@ public class CookieBuilderTest {
     assertEquals(null, cookie.domain());
     assertEquals(null, cookie.maxAge());
     assertEquals(false, cookie.secure());
-    assertEquals(false, cookie.httpOnly());
+    assertEquals(true, cookie.httpOnly());
   }
 
   @Test
@@ -31,7 +31,7 @@ public class CookieBuilderTest {
     assertEquals(null, cookie.domain());
     assertEquals(null, cookie.maxAge());
     assertEquals(false, cookie.secure());
-    assertEquals(false, cookie.httpOnly());
+    assertEquals(true, cookie.httpOnly());
   }
 
   @Test
@@ -43,7 +43,7 @@ public class CookieBuilderTest {
     assertEquals(".example.com", cookie.domain());
     assertEquals(null, cookie.maxAge());
     assertEquals(false, cookie.secure());
-    assertEquals(false, cookie.httpOnly());
+    assertEquals(true, cookie.httpOnly());
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package com.typesafe.play.docs.sbtplugin
@@ -171,7 +171,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
     parallelExecution in Test := false,
     javacOptions in Test ++= Seq("-g", "-Xlint:deprecation"),
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console", "showtimes"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
   )
 

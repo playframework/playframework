@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.j
@@ -13,6 +13,7 @@ import akka.stream.Materializer
 
 import scala.collection.JavaConverters._
 import play.api.mvc._
+import play.libs.Files.{ DelegateTemporaryFile, TemporaryFile => JTemporaryFile }
 
 /**
  * provides Java centric BodyParsers
@@ -23,15 +24,15 @@ object JavaParsers {
   @deprecated("Inject PlayBodyParsers instead", "2.6.0")
   val parse = BodyParsers.parse
 
-  def toJavaMultipartFormData[A](multipart: MultipartFormData[TemporaryFile]): play.mvc.Http.MultipartFormData[File] = {
-    new play.mvc.Http.MultipartFormData[File] {
+  def toJavaMultipartFormData[A](multipart: MultipartFormData[TemporaryFile]): play.mvc.Http.MultipartFormData[JTemporaryFile] = {
+    new play.mvc.Http.MultipartFormData[JTemporaryFile] {
       lazy val asFormUrlEncoded = {
         multipart.asFormUrlEncoded.mapValues(_.toArray).asJava
       }
       lazy val getFiles = {
         multipart.files.map { file =>
           new play.mvc.Http.MultipartFormData.FilePart(
-            file.key, file.filename, file.contentType.orNull, file.ref.path.toFile)
+            file.key, file.filename, file.contentType.orNull, new DelegateTemporaryFile(file.ref).asInstanceOf[JTemporaryFile], file.dispositionType)
         }.asJava
       }
     }

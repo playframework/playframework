@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.binder.models
@@ -7,17 +7,17 @@ package scalaguide.binder.models
 import scala.Left
 import scala.Right
 import play.api.mvc.PathBindable
-import play.Logger
+import play.api.Logging
 
 //#declaration
 case class User(id: Int, name: String) {}
 //#declaration
-object User {
-  
-  // stubbed test 
+object User extends Logging {
+
+  // stubbed test
 	// designed to be lightweight operation
   def findById(id: Int): Option[User] = {
-    Logger.info("findById: " + id.toString)
+    logger.info("findById: " + id.toString)
     if (id > 3) None
     var user = new User(id, "User " + String.valueOf(id))
     Some(user)

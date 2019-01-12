@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler.templates
@@ -43,6 +43,6 @@ class TemplatesSpec extends Specification {
     Route(
       HttpVerb("GET"),
       PathPattern(Seq(StaticPart(staticPath))),
-      HandlerCall("pkg", "ctrl", true, "method", Some(params)))
+      HandlerCall(Option("pkg"), "ctrl", true, "method", Some(params)))
   }
 }

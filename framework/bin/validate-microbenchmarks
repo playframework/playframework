@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
@@ -19,6 +19,6 @@ printMessage "VALIDATING MICROBENCHMARKS"
 # We are using double-double quotes here so that the command
 # is passed to runSbt as a single command and internally be
 # passed to sbt as a single command too.
-runSbtNoisy "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1"
+runSbt "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1"
 
 printMessage "BENCHMARKS VALIDATED"

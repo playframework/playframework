@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.json;
@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.libs.Json;
 
@@ -99,8 +100,8 @@ public class JavaJsonActions extends WithApplication {
         }
 
         //#json-request-as-anycontent
-        public Result sayHello() {
-            JsonNode json = request().body().asJson();
+        public Result sayHello(Http.Request request) {
+            JsonNode json = request.body().asJson();
             if(json == null) {
                 return badRequest("Expecting Json data");
             } else {
@@ -122,8 +123,8 @@ public class JavaJsonActions extends WithApplication {
         }
 
         //#json-request-as-anyclazz
-        public Result sayHello() {
-            Optional<Person> person = request().body().parseJson(Person.class);
+        public Result sayHello(Http.Request request) {
+            Optional<Person> person = request.body().parseJson(Person.class);
             return person
               .map(p -> ok("Hello, " + p.firstName))
               .orElse(badRequest("Expecting Json data"));
@@ -139,8 +140,8 @@ public class JavaJsonActions extends WithApplication {
 
         //#json-request-as-json
         @BodyParser.Of(BodyParser.Json.class)
-        public Result sayHello() {
-            JsonNode json = request().body().asJson();
+        public Result sayHello(Http.Request request) {
+            JsonNode json = request.body().asJson();
             String name = json.findPath("name").textValue();
             if (name == null) {
                 return badRequest("Missing parameter [name]");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 import com.typesafe.play.docs.sbtplugin.Imports._
@@ -8,7 +8,9 @@ import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import sbt._
 
-lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer)
+lazy val main = Project("Play-Documentation", file("."))
+    .enablePlugins(PlayDocsPlugin, SbtTwirl)
+    .disablePlugins(PlayEnhancer)
     .settings(
       // Avoid the use of deprecated APIs in the docs
       scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
@@ -30,7 +32,9 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
 
       PlayDocsKeys.docsJarFile := Some((packageBin in(playDocs, Compile)).value),
       PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set(
+        "JavaEbean",
         "ScalaAnorm",
+        "PlaySlick",
         "PlaySlickMigrationGuide",
         "ScalaTestingWithScalaTest",
         "ScalaFunctionalTestingWithScalaTest",
@@ -40,10 +44,18 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
         "ScalaJsonTransformers"
       )),
 
-      PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get,
-      PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
-          (baseDirectory.value / "manual" / "experimental" ** "code").get,
-      PlayDocsKeys.commonManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get,
+      PlayDocsKeys.javaManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
+
+      PlayDocsKeys.scalaManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "tutorial" ** "code").get ++
+        (baseDirectory.value / "manual" / "experimental" ** "code").get,
+
+      PlayDocsKeys.commonManualSourceDirectories :=
+        (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
 
       unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
       unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
@@ -51,13 +63,18 @@ lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsP
       // Don't include sbt files in the resources
       excludeFilter in(Test, unmanagedResources) := (excludeFilter in(Test, unmanagedResources)).value || "*.sbt",
 
-      crossScalaVersions := Seq(PlayVersion.scalaVersion, "2.11.12"),
+      crossScalaVersions := Seq(PlayVersion.scalaVersion),
       scalaVersion := PlayVersion.scalaVersion,
 
       fork in Test := true,
       javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
 
-      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>"))
+      headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
+
+      // No need to show eviction warnings for Play documentation.
+      evictionWarningOptions in update := EvictionWarningOptions.default
+        .withWarnTransitiveEvictions(false)
+        .withWarnDirectEvictions(false)
     )
     .dependsOn(
       playDocs,

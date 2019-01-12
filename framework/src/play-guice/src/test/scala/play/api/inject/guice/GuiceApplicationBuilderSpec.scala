@@ -1,26 +1,43 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
 package guice
 
-import javax.inject.{ Inject, Provider, Singleton }
+import java.util.Collections
 
-import com.google.inject.{ CreationException, ProvisionException }
+import com.google.inject.CreationException
+import com.google.inject.Guice
+import com.google.inject.ProvisionException
+import com.typesafe.config.Config
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 import org.specs2.mutable.Specification
+import play.api.Configuration
 import play.api.i18n.I18nModule
 import play.api.mvc.CookiesModule
-import play.api.{ Configuration, Environment }
+import play.core.WebCommands
+import play.inject.{ Module => JavaModule }
+import play.{ Environment => JavaEnvironment }
 
 class GuiceApplicationBuilderSpec extends Specification {
 
   "GuiceApplicationBuilder" should {
 
-    "add bindings" in {
+    "add bindings with Scala" in {
+      addBindings(new GuiceApplicationBuilderSpec.AModule)
+    }
+
+    "add bindings with Java" in {
+      addBindings(new GuiceApplicationBuilderSpec.JavaAModule)
+    }
+
+    def addBindings(module: Module) = {
       val injector = new GuiceApplicationBuilder()
         .bindings(
-          new GuiceApplicationBuilderSpec.AModule,
+          module,
           bind[GuiceApplicationBuilderSpec.B].to[GuiceApplicationBuilderSpec.B1])
         .injector()
 
@@ -28,9 +45,17 @@ class GuiceApplicationBuilderSpec extends Specification {
       injector.instanceOf[GuiceApplicationBuilderSpec.B] must beAnInstanceOf[GuiceApplicationBuilderSpec.B1]
     }
 
-    "override bindings" in {
+    "override bindings with Scala" in {
+      overrideBindings(new GuiceApplicationBuilderSpec.AModule)
+    }
+
+    "override bindings with Java" in {
+      overrideBindings(new GuiceApplicationBuilderSpec.JavaAModule)
+    }
+
+    def overrideBindings(module: Module) = {
       val app = new GuiceApplicationBuilder()
-        .bindings(new GuiceApplicationBuilderSpec.AModule)
+        .bindings(module)
         .overrides(
           bind[Configuration] to new GuiceApplicationBuilderSpec.ExtendConfiguration("a" -> 1),
           bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A2])
@@ -40,10 +65,18 @@ class GuiceApplicationBuilderSpec extends Specification {
       app.injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A2]
     }
 
-    "disable modules" in {
+    "disable modules with Scala" in {
+      disableModules(new GuiceApplicationBuilderSpec.AModule)
+    }
+
+    "disable modules with Java" in {
+      disableModules(new GuiceApplicationBuilderSpec.JavaAModule)
+    }
+
+    def disableModules(module: Module) = {
       val injector = new GuiceApplicationBuilder()
-        .bindings(new GuiceApplicationBuilderSpec.AModule)
-        .disable(classOf[GuiceApplicationBuilderSpec.AModule])
+        .bindings(module)
+        .disable(module.getClass)
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must throwA[com.google.inject.ConfigurationException]
@@ -97,6 +130,16 @@ class GuiceApplicationBuilderSpec extends Specification {
       builder.injector().instanceOf[GuiceApplicationBuilderSpec.C] must throwAn[ProvisionException]
     }
 
+    "bind a unique singleton instance of WebCommands" in {
+      val applicationModule = new GuiceApplicationBuilder()
+        .load(new BuiltinModule, new I18nModule, new CookiesModule)
+        .applicationModule()
+      val injector1 = Guice.createInjector(applicationModule)
+      val injector2 = Guice.createInjector(applicationModule)
+      injector1.getInstance(classOf[WebCommands]) must_=== injector1.getInstance(classOf[WebCommands])
+      injector2.getInstance(classOf[WebCommands]) must_!== injector1.getInstance(classOf[WebCommands])
+    }
+
     "display logger deprecation message" in {
       List("logger", "logger.resource", "logger.resource.test").forall { path =>
         List("DEBUG", "WARN", "INFO", "ERROR", "TRACE", "OFF").forall { value =>
@@ -143,6 +186,10 @@ object GuiceApplicationBuilderSpec {
   @Singleton
   class C1 extends C {
     throw new EagerlyLoadedException
+  }
+
+  class JavaAModule extends JavaModule {
+    override def bindings(environment: JavaEnvironment, config: Config) = Collections.singletonList(JavaModule.bindClass(classOf[A]).to(classOf[A1]))
   }
 
   class EagerlyLoadedException extends RuntimeException

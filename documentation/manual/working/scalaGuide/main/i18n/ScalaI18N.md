@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Internationalization with Messages
 
 ## Specifying languages supported by your application
@@ -87,13 +87,13 @@ The preferred language is extracted from the `Accept-Language` header (and optio
 The [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) also adds two convenient methods to `Result`:
 
 * `result.withLang(lang: Lang)` is used to set the language using Play's language cookie. 
-* `result.clearingLang` is used to clear the language cookie.
+* `result.withoutLang` is used to clear the language cookie.
 
 For example:
 
 @[lang-cookies](code/scalaguide/i18n/ScalaI18nService.scala)
 
-The `withLang` method sets the cookie named `PLAY_LANG` for future requests, while clearingLang discards the cookie, and Play will choose the language based on the client's Accept-Language header.
+The `withLang` method sets the cookie named `PLAY_LANG` for future requests, while withoutLang discards the cookie, and Play will choose the language based on the client's Accept-Language header.
 
 The cookie name can be changed by changing the configuration parameter: `play.i18n.langCookieName`.
 
@@ -135,4 +135,4 @@ you should expect the following results:
 
 The default implementation of [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) is [`DefaultMessagesApi`](api/scala/play/api/i18n/DefaultMessagesApi.html).  You can see [[unit testing|ScalaTestingWithSpecs2#Unit-Testing-Messages]] and [[functional testing|ScalaFunctionalTestingWithSpecs2#Testing-Messages-API]] examples in the testing section of the documentation.
 
-You can also use [`Helpers.stubMessagesApi()`](api/scala/play/api/test/Helpers$.html#stubMessagesApi\(messages:Map[String,Map[String,String]],langs:play.api.i18n.Langs,langCookieName:String,langCookieSecure:Boolean,langCookieHttpOnly:Boolean,httpConfiguration:play.api.http.HttpConfiguration\):play.api.i18n.MessagesApi) in testing to provide a premade empty MessagesApi.
+You can also use [`Helpers.stubMessagesApi()`](api/scala/play/api/test/Helpers$.html#stubMessagesApi\(messages:Map[String,Map[String,String]],langs:play.api.i18n.Langs,langCookieName:String,langCookieSecure:Boolean,langCookieHttpOnly:Boolean,langCookieSameSite:Option[play.api.mvc.Cookie.SameSite],httpConfiguration:play.api.http.HttpConfiguration\):play.api.i18n.MessagesApi) in testing to provide a premade empty [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html).

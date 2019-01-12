@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.ssl
@@ -11,6 +11,8 @@ import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext, X
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.io.File
+import com.typesafe.sslconfig.{ ssl => sslconfig }
+import com.typesafe.sslconfig.util.NoopLogger
 import play.api.Logger
 import scala.util.control.NonFatal
 import play.utils.PlayIO
@@ -59,6 +61,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
     } else {
       // Load a generated key store
       logger.warn("Using generated key with self signed certificate for HTTPS. This should NOT be used in production.")
+      val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
       FakeKeyStore.keyManagerFactory(serverConfig.rootDir)
     }
 

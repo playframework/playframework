@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http
@@ -17,6 +17,7 @@ import play.api.test.FakeRequest
 import javaguide.testhelpers.MockJavaAction
 
 import play.core.j.JavaHandlerComponents
+import play.mvc.Http
 
 class JavaRouting extends Specification {
 
@@ -64,7 +65,7 @@ class JavaRouting extends Specification {
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
         header("Location", call(new MockJavaAction(app.injector.instanceOf[JavaHandlerComponents]) {
-          override def invocation = CompletableFuture.completedFuture(new javaguide.http.routing.controllers.Application().index())
+          override def invocation(req: Http.Request) = CompletableFuture.completedFuture(new javaguide.http.routing.controllers.Application().index())
         }, FakeRequest())) must beSome("/hello/Bob")
       }
     }

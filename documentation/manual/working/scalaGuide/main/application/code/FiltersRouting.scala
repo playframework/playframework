@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.advanced.filters.routing
@@ -8,11 +8,11 @@ package scalaguide.advanced.filters.routing
 import javax.inject.Inject
 import akka.stream.Materializer
 import play.api.mvc.{Result, RequestHeader, Filter}
-import play.api.Logger
+import play.api.Logging
 import play.api.routing.{HandlerDef, Router}
 import scala.concurrent.{Future, ExecutionContext}
 
-class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter {
+class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
   def apply(nextFilter: RequestHeader => Future[Result])
            (requestHeader: RequestHeader): Future[Result] = {
 
@@ -24,7 +24,7 @@ class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionCont
       val endTime = System.currentTimeMillis
       val requestTime = endTime - startTime
 
-      Logger.info(s"${action} took ${requestTime}ms and returned ${result.header.status}")
+      logger.info(s"${action} took ${requestTime}ms and returned ${result.header.status}")
 
       result.withHeaders("Request-Time" -> requestTime.toString)
     }

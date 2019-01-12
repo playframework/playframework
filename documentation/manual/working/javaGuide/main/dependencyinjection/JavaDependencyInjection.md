@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Dependency Injection
 
 Dependency injection is a widely used design pattern that helps to separate your components' behaviour from dependency resolution.  Components declare their dependencies, usually as constructor parameters, and a dependency injection framework helps you wire together those components so you don't have to do so manually.
@@ -155,7 +155,7 @@ This module can be registered with Play automatically by appending it to the `pl
 * The `Module` `bindings` method takes a Play `Environment` and `Configuration`. You can access these if you want to [configure the bindings dynamically](#Configurable-bindings).
 * Module bindings support [eager bindings](#Eager-bindings). To declare an eager binding, add `.eagerly()` at the end of your `Binding`.
 
-In order to maximise cross framework compatibility, keep in mind the following things:
+In order to maximize cross framework compatibility, keep in mind the following things:
 
 * Not all DI frameworks support just in time bindings. Make sure all components that your library provides are explicitly bound.
 * Try to keep binding keys simple - different runtime DI frameworks have very different views on what a key is and how it should be unique or not.

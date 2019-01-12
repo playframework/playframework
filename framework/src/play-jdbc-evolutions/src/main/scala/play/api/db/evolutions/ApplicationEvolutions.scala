@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -36,15 +36,123 @@ class ApplicationEvolutions @Inject() (
    */
   def start(): Unit = {
 
-    webCommands.addHandler(new EvolutionsWebCommands(evolutions, reader, config))
+    webCommands.addHandler(new EvolutionsWebCommands(dbApi, evolutions, reader, config))
 
     // allow db modules to write evolution files
     dynamicEvolutions.create()
 
-    dbApi.databases().foreach(runEvolutions)
+    // In DEV mode EvolutionsWebCommands solely handles evolutions
+    if (environment.mode != Mode.Dev) {
+      dbApi.databases().foreach(ApplicationEvolutions.runEvolutions(_, config, evolutions, reader, (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+        import Evolutions.toHumanReadableScript
+
+        environment.mode match {
+          case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
+          case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
+          case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit, schema)
+          case Mode.Prod if hasDown =>
+            logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
+            logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+
+            throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+
+          case Mode.Prod =>
+            logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
+            logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
+
+            throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+
+          case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+        }
+      }))
+    }
   }
 
-  private def runEvolutions(database: Database): Unit = {
+  start() // on construction
+}
+
+private object ApplicationEvolutions {
+
+  private val logger = Logger(classOf[ApplicationEvolutions])
+
+  val SelectPlayEvolutionsLockSql =
+    """
+      select lock from ${schema}play_evolutions_lock
+    """
+
+  val SelectPlayEvolutionsLockMysqlSql =
+    """
+      select `lock` from ${schema}play_evolutions_lock
+    """
+
+  val SelectPlayEvolutionsLockOracleSql =
+    """
+      select "lock" from ${schema}play_evolutions_lock
+    """
+
+  val CreatePlayEvolutionsLockSql =
+    """
+      create table ${schema}play_evolutions_lock (
+        lock int not null primary key
+      )
+    """
+
+  val CreatePlayEvolutionsLockMysqlSql =
+    """
+      create table ${schema}play_evolutions_lock (
+        `lock` int not null primary key
+      )
+    """
+
+  val CreatePlayEvolutionsLockOracleSql =
+    """
+      CREATE TABLE ${schema}play_evolutions_lock (
+        "lock" Number(10,0) Not Null Enable,
+        CONSTRAINT play_evolutions_lock_pk PRIMARY KEY ("lock")
+      )
+    """
+
+  val InsertIntoPlayEvolutionsLockSql =
+    """
+      insert into ${schema}play_evolutions_lock (lock) values (1)
+    """
+
+  val InsertIntoPlayEvolutionsLockMysqlSql =
+    """
+      insert into ${schema}play_evolutions_lock (`lock`) values (1)
+    """
+
+  val InsertIntoPlayEvolutionsLockOracleSql =
+    """
+      insert into ${schema}play_evolutions_lock ("lock") values (1)
+    """
+
+  val lockPlayEvolutionsLockSqls =
+    List(
+      """
+        select lock from ${schema}play_evolutions_lock where lock = 1 for update nowait
+      """
+    )
+
+  val lockPlayEvolutionsLockMysqlSqls =
+    List(
+      """
+        set innodb_lock_wait_timeout = 1
+      """,
+      """
+        select `lock` from ${schema}play_evolutions_lock where `lock` = 1 for update
+      """
+    )
+
+  val lockPlayEvolutionsLockOracleSqls =
+    List(
+      """
+        select "lock" from ${schema}play_evolutions_lock where "lock" = 1 for update nowait
+      """
+    )
+
+  def runEvolutions(database: Database, config: EvolutionsConfig, evolutions: EvolutionsApi, reader: EvolutionsReader,
+    block: (String, EvolutionsDatasourceConfig, String, Seq[Script], Boolean, Boolean) => Unit): Unit = {
     val db = database.name
     val dbConfig = config.forDatasource(db)
     if (dbConfig.enabled) {
@@ -57,28 +165,7 @@ class ApplicationEvolutions @Inject() (
         val onlyDowns = scripts.forall(_.isInstanceOf[DownScript])
 
         if (scripts.nonEmpty && !(onlyDowns && dbConfig.skipApplyDownsOnly)) {
-
-          import Evolutions.toHumanReadableScript
-
-          environment.mode match {
-            case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
-            case Mode.Dev if dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
-            case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
-            case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit, schema)
-            case Mode.Prod if hasDown =>
-              logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
-              logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
-
-              throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-
-            case Mode.Prod =>
-              logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
-              logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
-
-              throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-
-            case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-          }
+          block.apply(db, dbConfig, schema, scripts, hasDown, autocommit)
         }
       }
     }
@@ -104,10 +191,9 @@ class ApplicationEvolutions @Inject() (
   }
 
   private def createLockTableIfNecessary(url: String, c: Connection, s: Statement, dbConfig: EvolutionsDatasourceConfig): Unit = {
-    import ApplicationEvolutions._
     val (selectScript, createScript, insertScript) = url match {
       case OracleJdbcUrl() =>
-        (SelectPlayEvolutionsLockSql, CreatePlayEvolutionsLockOracleSql, InsertIntoPlayEvolutionsLockSql)
+        (SelectPlayEvolutionsLockOracleSql, CreatePlayEvolutionsLockOracleSql, InsertIntoPlayEvolutionsLockOracleSql)
       case MysqlJdbcUrl(_) =>
         (SelectPlayEvolutionsLockMysqlSql, CreatePlayEvolutionsLockMysqlSql, InsertIntoPlayEvolutionsLockMysqlSql)
       case _ =>
@@ -125,9 +211,9 @@ class ApplicationEvolutions @Inject() (
   }
 
   private def lock(url: String, c: Connection, s: Statement, dbConfig: EvolutionsDatasourceConfig, attempts: Int = 5): Unit = {
-    import ApplicationEvolutions._
     val lockScripts = url match {
       case MysqlJdbcUrl(_) => lockPlayEvolutionsLockMysqlSqls
+      case OracleJdbcUrl() => lockPlayEvolutionsLockOracleSqls
       case _ => lockPlayEvolutionsLockSqls
     }
     try {
@@ -150,75 +236,12 @@ class ApplicationEvolutions @Inject() (
     ignoring(classOf[SQLException])(c.close())
   }
 
-  start() // on construction
-
   // SQL helpers
 
   private def applySchema(sql: String, schema: String): String = {
     sql.replaceAll("\\$\\{schema}", Option(schema).filter(_.trim.nonEmpty).map(_.trim + ".").getOrElse(""))
   }
-}
 
-private object ApplicationEvolutions {
-
-  val SelectPlayEvolutionsLockSql =
-    """
-      select lock from ${schema}play_evolutions_lock
-    """
-
-  val SelectPlayEvolutionsLockMysqlSql =
-    """
-      select `lock` from ${schema}play_evolutions_lock
-    """
-
-  val CreatePlayEvolutionsLockSql =
-    """
-      create table ${schema}play_evolutions_lock (
-        lock int not null primary key
-      )
-    """
-
-  val CreatePlayEvolutionsLockMysqlSql =
-    """
-      create table ${schema}play_evolutions_lock (
-        `lock` int not null primary key
-      )
-    """
-
-  val CreatePlayEvolutionsLockOracleSql =
-    """
-      CREATE TABLE ${schema}play_evolutions_lock (
-        lock Number(10,0) Not Null Enable,
-        CONSTRAINT play_evolutions_lock_pk PRIMARY KEY (lock)
-      )
-    """
-
-  val InsertIntoPlayEvolutionsLockSql =
-    """
-      insert into ${schema}play_evolutions_lock (lock) values (1)
-    """
-
-  val InsertIntoPlayEvolutionsLockMysqlSql =
-    """
-      insert into ${schema}play_evolutions_lock (`lock`) values (1)
-    """
-
-  val lockPlayEvolutionsLockSqls =
-    List(
-      """
-        select lock from ${schema}play_evolutions_lock where lock = 1 for update nowait
-      """
-    )
-
-  val lockPlayEvolutionsLockMysqlSqls =
-    List(
-      """
-        set innodb_lock_wait_timeout = 1
-      """,
-      """
-        select `lock` from ${schema}play_evolutions_lock where `lock` = 1 for update
-      """
-    )
 }
 
 /**
@@ -356,7 +379,8 @@ class DynamicEvolutions {
  * Web command handler for applying evolutions on application start.
  */
 @Singleton
-class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: EvolutionsReader, config: EvolutionsConfig) extends HandleWebCommandSupport {
+class EvolutionsWebCommands @Inject() (dbApi: DBApi, evolutions: EvolutionsApi, reader: EvolutionsReader, config: EvolutionsConfig) extends HandleWebCommandSupport {
+  var checkedAlready = false
   def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.Result] = {
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_-]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_-]+)/([0-9]+)""".r
@@ -383,7 +407,21 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
         }
       }
 
-      case _ => None
+      case _ => {
+        if (!checkedAlready) {
+          dbApi.databases().foreach(ApplicationEvolutions.runEvolutions(_, config, evolutions, reader, (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+            import Evolutions.toHumanReadableScript
+
+            if (dbConfig.autoApply) {
+              evolutions.evolve(db, scripts, autocommit, schema)
+            } else {
+              throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+            }
+          }))
+          checkedAlready = true
+        }
+        None
+      }
 
     }
   }

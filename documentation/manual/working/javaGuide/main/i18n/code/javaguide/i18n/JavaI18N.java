@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.i18n;
@@ -13,11 +13,9 @@ import static org.junit.Assert.*;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.i18n.html.hellotemplate;
-import javaguide.i18n.html.helloscalatemplate;
+import javaguide.i18n.html.hellotemplateshort;
 import play.Application;
-import play.api.i18n.DefaultLangs;
 import play.core.j.JavaHandlerComponents;
-import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -29,7 +27,6 @@ import com.google.common.collect.ImmutableMap;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
-import scala.collection.immutable.Map;
 
 import java.util.*;
 
@@ -45,7 +42,7 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkSpecifyLangHello() {
-        MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+        MessagesApi messagesApi = instanceOf(MessagesApi.class);
         //#specify-lang-render
         String title = messagesApi.get(Lang.forCode("fr"), "hello");
         //#specify-lang-render
@@ -55,99 +52,118 @@ public class JavaI18N extends WithApplication {
 
     @Test
     public void checkDefaultHello() {
-        Result result = MockJavaActionHelper.call(new DefaultLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new DefaultLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class DefaultLangController extends MockJavaAction {
 
-        DefaultLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        DefaultLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
         //#default-lang-render
-        public Result index() {
-            return ok(hellotemplate.render()); // "hello"
+        public Result index(Http.Request request) {
+            Messages messages = this.messagesApi.preferred(request);
+            return ok(hellotemplate.render(messages));
         }
         //#default-lang-render
     }
 
     @Test
     public void checkDefaultScalaHello() {
-        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new DefaultScalaLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class DefaultScalaLangController extends MockJavaAction {
 
-        DefaultScalaLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        DefaultScalaLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
-        public Result index() {
-            return ok(helloscalatemplate.render()); // "hello"
+        public Result index(Http.Request request) {
+            Messages messages = this.messagesApi.preferred(request);
+            return ok(hellotemplateshort.render(messages)); // "hello"
         }
     }
 
     @Test
     public void checkChangeLangHello() {
-        Result result = MockJavaActionHelper.call(new ChangeLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new ChangeLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("bonjour"));
     }
 
     @Test
-    public void checkContextMessages() {
-        ContextMessagesController c = app.injector().instanceOf(ContextMessagesController.class);
+    public void checkRequestMessages() {
+        RequestMessagesController c = app.injector().instanceOf(RequestMessagesController.class);
         Result result = MockJavaActionHelper.call(c, fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("hello"));
     }
 
     public static class ChangeLangController extends MockJavaAction {
 
-        ChangeLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        ChangeLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
         //#change-lang-render
-        public Result index() {
-            ctx().changeLang("fr");
-            return ok(hellotemplate.render()); // "bonjour"
+        public Result index(Http.Request request) {
+            Lang lang = Lang.forCode("fr");
+            Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
+            return ok(hellotemplate.render(messages)).withLang(lang, messagesApi);
         }
         //#change-lang-render
     }
 
-    public static class ContextMessagesController extends MockJavaAction {
+    public static class RequestMessagesController extends MockJavaAction {
 
         @javax.inject.Inject
-        public ContextMessagesController(JavaHandlerComponents javaHandlerComponents) {
+        public RequestMessagesController(JavaHandlerComponents javaHandlerComponents) {
             super(javaHandlerComponents);
         }
 
-        //#show-context-messages
-        public Result index() {
-            Messages messages = Http.Context.current().messages();
+        @javax.inject.Inject
+        private MessagesApi messagesApi;
+
+        //#show-request-messages
+        public Result index(Http.Request request) {
+            Messages messages = this.messagesApi.preferred(request);
             String hello = messages.at("hello");
-            return ok(hellotemplate.render());
+            return ok(hellotemplate.render(messages));
         }
-        //#show-context-messages
+        //#show-request-messages
     }
 
     @Test
     public void checkSetTransientLangHello() {
-        Result result = MockJavaActionHelper.call(new SetTransientLangController(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat);
+        Result result = MockJavaActionHelper.call(new SetTransientLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)), fakeRequest("GET", "/"), mat);
         assertThat(contentAsString(result), containsString("howdy"));
     }
 
     public static class SetTransientLangController extends MockJavaAction {
 
-        SetTransientLangController(JavaHandlerComponents javaHandlerComponents) {
+        private final MessagesApi messagesApi;
+
+        SetTransientLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
             super(javaHandlerComponents);
+            this.messagesApi = messagesApi;
         }
 
         //#set-transient-lang-render
-        public Result index() {
-            ctx().setTransientLang("en-US");
-            return ok(hellotemplate.render()); // "howdy"
+        public Result index(Http.Request request) {
+            Lang lang = Lang.forCode("en-US");
+            Messages messages = this.messagesApi.preferred(request.withTransientLang(lang));
+            return ok(hellotemplate.render(messages));
         }
         //#set-transient-lang-render
     }
@@ -164,8 +180,8 @@ public class JavaI18N extends WithApplication {
         }
 
         // #accepted-languages
-        public Result index() {
-            List<Lang> langs = request().acceptLanguages();
+        public Result index(Http.Request request) {
+            List<Lang> langs = request.acceptLanguages();
             String codes = langs.stream().map(Lang::code).collect(joining(","));
             return ok(codes);
         }

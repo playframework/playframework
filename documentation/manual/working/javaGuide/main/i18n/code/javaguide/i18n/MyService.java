@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.i18n;
@@ -55,7 +55,6 @@ class SomeService {
         Collection<Lang> candidates = Collections.singletonList(new Lang(Locale.US));
         Messages messages = messagesApi.preferred(candidates);
         String message = messages.at("home.title");
-
     }
 }
 //#current-lang-render

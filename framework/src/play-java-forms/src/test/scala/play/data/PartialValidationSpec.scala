@@ -1,8 +1,10 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data
+
+import com.typesafe.config.ConfigFactory
 
 import javax.validation.Validation
 
@@ -19,7 +21,7 @@ class PartialValidationSpec extends Specification {
   val messagesApi = new DefaultMessagesApi()
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory())
+  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory(), ConfigFactory.load())
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {

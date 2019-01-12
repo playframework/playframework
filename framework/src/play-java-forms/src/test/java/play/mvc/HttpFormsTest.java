@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -14,6 +14,7 @@ import play.data.*;
 import play.data.format.Formatters;
 import play.data.Task;
 import play.data.validation.ValidationError;
+import play.i18n.Lang;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Context;
@@ -60,7 +61,7 @@ public class HttpFormsTest {
 
     private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
         return new Form<T>(formToCopy.name(), formToCopy.getBackedType(), null, formToCopy.errors(), formToCopy.value(),
-            (Class[])null, app.injector().instanceOf(MessagesApi.class), app.injector().instanceOf(Formatters.class), app.injector().instanceOf(ValidatorFactory.class));
+            (Class[])null, app.injector().instanceOf(MessagesApi.class), app.injector().instanceOf(Formatters.class), app.injector().instanceOf(ValidatorFactory.class), app.injector().instanceOf(Config.class), formToCopy.lang().orElse(null));
     }
 
     @Test
@@ -130,10 +131,9 @@ public class HttpFormsTest {
             MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
             Formatters formatters = app.injector().instanceOf(Formatters.class);
             ValidatorFactory validatorFactory = app.injector().instanceOf(ValidatorFactory.class);
+            Config config = app.injector().instanceOf(Config.class);
 
-            RequestBuilder rb = new RequestBuilder();
-            Context ctx = new Context(rb, contextComponents(app));
-            Context.current.set(ctx);
+            Lang lang = messagesApi.preferred(new RequestBuilder().build()).lang();
 
             List<String> msgs = new ArrayList<>();
             msgs.add("error.generalcustomerror");
@@ -142,7 +142,8 @@ public class HttpFormsTest {
             args.add("error.customarg");
             List<ValidationError> errors = new ArrayList<>();
             errors.add(new ValidationError("foo", msgs, args));
-            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validatorFactory);
+
+            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), null, messagesApi, formatters, validatorFactory, config, lang);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
         });

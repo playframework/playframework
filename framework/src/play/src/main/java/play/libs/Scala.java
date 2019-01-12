@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -186,6 +186,7 @@ public class Scala {
      * @return the converted Seq.
      * @param <T> the element type.
      */
+    @SafeVarargs
     public static <T> scala.collection.Seq<T> varargs(T... array) {
         return toSeq(java.util.Arrays.asList(array));
     }

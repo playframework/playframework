@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -174,7 +174,7 @@ class ResultsSpec extends Specification {
         Some(Set(preferencesCookie, sessionCookie)))
     }
 
-    "support clearing a language cookie using clearingLang" in withApplication { app: Application =>
+    "support clearing a language cookie using withoutLang" in withApplication { app: Application =>
       implicit val messagesApi = app.injector.instanceOf[MessagesApi]
       val cookie = cookieHeaderEncoding.decodeSetCookieHeader(bake(Ok.clearingLang).header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName

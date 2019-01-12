@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling file upload
 
-## Uploading files in a form using multipart/form-data
+## Uploading files in a form using `multipart/form-data`
 
-The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data. 
+The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data.
 
 > **Note:** The HTTP method used to submit the form must be `POST` (not `GET`).
 
@@ -15,7 +15,7 @@ Now define the `upload` action using a `multipartFormData` body parser:
 
 @[upload-file-action](code/ScalaFileUpload.scala)
 
-The `ref` attribute give you a reference to a `TemporaryFile`. This is the default way the `multipartFormData` parser handles file upload.
+The [`ref`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#ref:A) attribute gives you a reference to a [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html). This is the default way the `multipartFormData` parser handles file uploads.
 
 > **Note:** As always, you can also use the `anyContent` body parser and retrieve it as `request.body.asMultipartFormData`.
 
@@ -23,9 +23,11 @@ At last, add a `POST` router
 
 @[application-upload-routes](code/scalaguide.upload.fileupload.routes)
 
+> **Note:** An empty file will be treated just like no file was uploaded at all. The same applies if the `filename` header of a `multipart/form-data` file upload part is empty - even when the file itself would not empty.
+
 ## Direct file upload
 
-Another way to send files to the server is to use Ajax to upload the file asynchronously in a form. In this case the request body will not have been encoded as `multipart/form-data`, but will just contain the plain file content.
+Another way to send files to the server is to use Ajax to upload files asynchronously from a form. In this case, the request body will not be encoded as `multipart/form-data`, but will just contain the plain file contents.
 
 In this case we can just use a body parser to store the request body content in a file. For this example, let’s use the `temporaryFile` body parser:
 
@@ -41,13 +43,13 @@ If you want to use `multipart/form-data` encoding, you can still use the default
 
 ## Cleaning up temporary files
 
-Uploading files uses a [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html) API which relies on storing files in a temporary filesystem, accessible through the `ref` attribute.  All [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html) references come from a [`TemporaryFileCreator`](api/scala/play/api/libs/Files$$TemporaryFileCreator.html) trait, and the implementation can be swapped out as necessary, and there's now an [`atomicMoveWithFallback`](api/scala/play/api/libs/Files$$TemporaryFile.html#atomicMoveWithFallback\(to:java.nio.file.Path\):play.api.libs.Files.TemporaryFile) method that uses `StandardCopyOption.ATOMIC_MOVE` if available.
+Uploading files uses a [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html) API which relies on storing files in a temporary filesystem, accessible through the [`ref`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#ref:A) attribute.  All [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html) references come from a [`TemporaryFileCreator`](api/scala/play/api/libs/Files$$TemporaryFileCreator.html) trait, and the implementation can be swapped out as necessary, and there's now an [`atomicMoveWithFallback`](api/scala/play/api/libs/Files$$TemporaryFile.html#atomicMoveWithFallback\(to:java.nio.file.Path\):play.api.libs.Files.TemporaryFile) method that uses `StandardCopyOption.ATOMIC_MOVE` if available.
 
 Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html) is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted. 
 
 However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection does not occur in a timely fashion.  As such, there's also a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection method.
 
-The reaper is disabled by default, and is enabled through `application.conf`:
+The reaper is disabled by default, and is enabled through configuration of `application.conf`:
 
 ```
 play.temporaryFile {

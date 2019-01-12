@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.concurrent;
@@ -141,6 +141,7 @@ public interface Futures {
      * @param <A> the type of the completion's result.
      * @return A single CompletionStage whose methods act on the list of redeemed CompletionStage
      */
+    @SafeVarargs
     static <A> CompletionStage<List<A>> sequence(CompletionStage<A>... promises) {
         return sequence(Arrays.asList(promises));
     }

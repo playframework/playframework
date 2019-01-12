@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
 
     PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,

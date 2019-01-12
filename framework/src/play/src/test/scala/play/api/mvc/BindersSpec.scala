@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -111,14 +111,52 @@ class BindersSpec extends Specification {
     "Fail on length > 1" in {
       subject.bind("key", Map("key" -> Seq("foo"))) must be_==(Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")))
     }
-    "Fail on empty" in {
-      subject.bind("key", Map("key" -> Seq(""))) must be_==(Some(Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length.")))
+    "Be None on empty" in {
+      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+    }
+  }
+
+  "URL QueryStringBindable Java Character" should {
+    val subject = implicitly[QueryStringBindable[Character]]
+    val char: Character = 'X'
+    val string = "X"
+
+    "Unbind query string char as string" in {
+      subject.unbind("key", char) must equalTo("key=" + char.toString)
+    }
+    "Bind query string as char" in {
+      subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(char)))
+    }
+    "Fail on length > 1" in {
+      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")))
+    }
+    "Be None on empty" in {
+      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
     }
   }
 
   "URL PathBindable Char" should {
     val subject = implicitly[PathBindable[Char]]
     val char = 'X'
+    val string = "X"
+
+    "Unbind Path char as string" in {
+      subject.unbind("key", char) must equalTo(char.toString)
+    }
+    "Bind Path string as char" in {
+      subject.bind("key", string) must equalTo(Right(char))
+    }
+    "Fail on length > 1" in {
+      subject.bind("key", "foo") must be_==(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+    }
+    "Fail on empty" in {
+      subject.bind("key", "") must be_==(Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length."))
+    }
+  }
+
+  "URL PathBindable Java Character" should {
+    val subject = implicitly[PathBindable[Character]]
+    val char: Character = 'X'
     val string = "X"
 
     "Unbind Path char as string" in {

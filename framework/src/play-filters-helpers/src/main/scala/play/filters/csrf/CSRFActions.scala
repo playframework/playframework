@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -485,7 +485,7 @@ class CSRFActionHelper(
           result.withCookies(Cookie(
             name, tokenValue,
             path = sessionConfiguration.path, domain = sessionConfiguration.domain,
-            secure = csrfConfig.secureCookie, httpOnly = csrfConfig.httpOnlyCookie))
+            secure = csrfConfig.secureCookie, httpOnly = csrfConfig.httpOnlyCookie, sameSite = csrfConfig.sameSiteCookie))
         } getOrElse {
           val newSession = result.session(request) + (tokenName -> tokenValue)
           result.withSession(newSession)

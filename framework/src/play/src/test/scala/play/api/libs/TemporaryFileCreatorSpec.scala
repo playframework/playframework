@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -101,49 +101,215 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       success
     }
 
-    "replace file when moving with replace enabled" in new WithScope() {
-      val lifecycle = new DefaultApplicationLifecycle
-      val reaper = mock[TemporaryFileReaper]
-      val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+    "when copying file" in {
 
-      val file = parentDirectory.resolve("move.txt")
-      writeFile(file, "file to be moved")
+      "copy when destination does not exists and replace disabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
 
-      val destination = parentDirectory.resolve("destination.txt")
-      creator.create(file).moveTo(destination, replace = true)
+        val file = parentDirectory.resolve("copy.txt")
+        val destination = parentDirectory.resolve("does-not-exists.txt")
 
-      JFiles.exists(file) must beFalse
-      JFiles.exists(destination) must beTrue
+        // Create a source file, but not the destination
+        writeFile(file, "file to be copied")
+
+        // do the copy
+        creator.create(file).copyTo(destination, replace = false)
+
+        // Both source and destination must exist
+        JFiles.exists(file) must beTrue
+        JFiles.exists(destination) must beTrue
+
+        // Both must have the same content
+        val sourceContent = new String(java.nio.file.Files.readAllBytes(file))
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+
+        destinationContent must beEqualTo(sourceContent)
+      }
+
+      "copy when destination does not exists and replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("copy.txt")
+        val destination = parentDirectory.resolve("destination.txt")
+
+        // Create source file only
+        writeFile(file, "file to be copied")
+
+        creator.create(file).copyTo(destination, replace = true)
+
+        // Both source and destination must exist
+        JFiles.exists(file) must beTrue
+        JFiles.exists(destination) must beTrue
+
+        // Both must have the same content
+        val sourceContent = new String(java.nio.file.Files.readAllBytes(file))
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+
+        destinationContent must beEqualTo(sourceContent)
+      }
+
+      "copy when destination exists and replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("copy.txt")
+        val destination = parentDirectory.resolve("destination.txt")
+
+        // Create both files
+        writeFile(file, "file to be copied")
+        writeFile(destination, "the destination file")
+
+        creator.create(file).copyTo(destination, replace = true)
+
+        // Both source and destination must exist
+        JFiles.exists(file) must beTrue
+        JFiles.exists(destination) must beTrue
+
+        // Both must have the same content
+        val sourceContent = new String(java.nio.file.Files.readAllBytes(file))
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+
+        destinationContent must beEqualTo(sourceContent)
+      }
+
+      "do not copy when destination exists and replace disabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("do-not-replace.txt")
+        val destination = parentDirectory.resolve("already-exists.txt")
+
+        writeFile(file, "file that won't be replaced")
+        writeFile(destination, "already exists")
+
+        val to = creator.create(file).copyTo(destination, replace = false)
+        new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+      }
+
+      "delete source file has no impact on the destination file" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        writeFile(file, "file to be moved")
+
+        val destination = parentDirectory.resolve("destination.txt")
+        creator.create(file).copyTo(destination, replace = true)
+
+        // File was copied
+        JFiles.exists(file) must beTrue
+        JFiles.exists(destination) must beTrue
+
+        // When deleting the source file the destination will NOT be delete
+        // since they are NOT using the same inode.
+        JFiles.delete(file)
+
+        // Only source is gone
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+      }
     }
 
-    "do not replace file when moving with replace disabled" in new WithScope() {
-      val lifecycle = new DefaultApplicationLifecycle
-      val reaper = mock[TemporaryFileReaper]
-      val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+    "when moving file" in {
 
-      val file = parentDirectory.resolve("do-not-replace.txt")
-      val destination = parentDirectory.resolve("already-exists.txt")
+      "move when destination does not exists and replace disabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
 
-      writeFile(file, "file that won't be replaced")
-      writeFile(destination, "already exists")
+        val file = parentDirectory.resolve("move.txt")
+        val destination = parentDirectory.resolve("does-not-exists.txt")
 
-      val to = creator.create(file).moveTo(destination, replace = false)
-      new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
-    }
+        // Create a source file, but not the destination
+        writeFile(file, "file to be moved")
 
-    "move a file atomically with replace enabled" in new WithScope() {
-      val lifecycle = new DefaultApplicationLifecycle
-      val reaper = mock[TemporaryFileReaper]
-      val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        // move the file
+        creator.create(file).moveTo(destination, replace = false)
 
-      val file = parentDirectory.resolve("move.txt")
-      writeFile(file, "file to be moved")
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
 
-      val destination = parentDirectory.resolve("destination.txt")
-      creator.create(file).atomicMoveWithFallback(destination)
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+        destinationContent must beEqualTo("file to be moved")
+      }
 
-      JFiles.exists(file) must beFalse
-      JFiles.exists(destination) must beTrue
+      "move when destination does not exists and replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        val destination = parentDirectory.resolve("destination.txt")
+
+        // Create source file only
+        writeFile(file, "file to be moved")
+
+        creator.create(file).moveTo(destination, replace = true)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+        destinationContent must beEqualTo("file to be moved")
+      }
+
+      "move when destination exists and replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        val destination = parentDirectory.resolve("destination.txt")
+
+        // Create both files
+        writeFile(file, "file to be moved")
+        writeFile(destination, "the destination file")
+
+        creator.create(file).moveTo(destination, replace = true)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+        destinationContent must beEqualTo("file to be moved")
+      }
+
+      "do not move when destination exists and replace disabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("do-not-replace.txt")
+        val destination = parentDirectory.resolve("already-exists.txt")
+
+        writeFile(file, "file that won't be replaced")
+        writeFile(destination, "already exists")
+
+        val to = creator.create(file).moveTo(destination, replace = false)
+        new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+      }
+
+      "move a file atomically with replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        writeFile(file, "file to be moved")
+
+        val destination = parentDirectory.resolve("destination.txt")
+        creator.create(file).atomicMoveWithFallback(destination)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+      }
     }
 
     "works when using compile time dependency injection" in {

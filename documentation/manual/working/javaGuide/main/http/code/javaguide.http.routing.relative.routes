@@ -1,4 +1,4 @@
 #relative-hello
-GET     /foo/bar/hello              controllers.Relative.helloview
+GET     /foo/bar/hello              controllers.Relative.helloview(request: Request)
 GET     /hello/:name                controllers.Relative.hello(name)
 #relative-hello

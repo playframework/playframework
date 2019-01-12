@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt
@@ -128,6 +128,6 @@ object PlayAkkaHttp2Support extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % play.core.PlayVersion.current,
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "compile;test"
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % play.core.PlayVersion.jettyAlpnAgentVersion % "compile;test"
   )
 }

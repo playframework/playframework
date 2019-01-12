@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http;
@@ -25,9 +25,9 @@ public class JavaContentNegotiation extends WithApplication {
     public void negotiateContent() {
         assertThat(contentAsString(call(new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     //#negotiate-content
-                    public Result list() {
+                    public Result list(Http.Request request) {
                         List<Item> items = Item.find.all();
-                        if (request().accepts("text/html")) {
+                        if (request.accepts("text/html")) {
                             return ok(views.html.Application.list.render(items));
                         } else {
                             return ok(Json.toJson(items));

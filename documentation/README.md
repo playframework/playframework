@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Build documentation
 
 This is the README for the Play documentation project.  The documentation project does not build with the rest of the Play projects, and uses its own sbt setup instead.  Please refer to the [main README file](../README.md) for how to build Play in general and how to [contribute](../CONTRIBUTING.md).
@@ -85,7 +85,7 @@ cd $PLAY_HOME/framework
 sbt compile doc package
 ```
 
-All Play projects can see documentation embedded by going to [http://localhost:9000/@documentation](http://localhost:9000/@documentation).  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](https://github.com/playframework/play-doc) for generating HTML from the raw Markdown.  
+All Play projects can see documentation embedded by going to <http://localhost:9000/@documentation>.  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](https://github.com/playframework/play-doc) for generating HTML from the raw Markdown.  
 
 ## Running
 

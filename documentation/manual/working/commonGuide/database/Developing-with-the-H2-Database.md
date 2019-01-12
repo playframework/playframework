@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # H2 database
 
 > **Note:** From Play 2.6.x onwards you actually need to include the H2 Dependency on your own. To do this you just need to add the following to your build.sbt:

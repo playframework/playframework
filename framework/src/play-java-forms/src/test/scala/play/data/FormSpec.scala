@@ -1,12 +1,16 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data
 
+import java.nio.file.{ Files, Path }
 import java.util
-import java.util.Optional
+import java.util.{ Collections, Optional }
 import java.time.{ LocalDate, ZoneId }
+
+import akka.stream.javadsl.{ FileIO, Source }
+import akka.util.ByteString
 import javax.validation.{ Validation, ValidatorFactory, Configuration => vConfiguration }
 import javax.validation.groups.Default
 
@@ -17,10 +21,14 @@ import play.{ ApplicationLoader, BuiltInComponentsFromContext }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
+import play.components.TemporaryFileComponents
 import play.core.j.JavaContextComponents
 import play.data.validation.ValidationError
-import play.mvc.EssentialFilter
-import play.mvc.Http.{ Context, Request, RequestBuilder }
+import play.libs.F.Tuple
+import play.libs.Files.{ TemporaryFile, TemporaryFileCreator }
+import play.mvc.{ EssentialFilter, Http }
+import play.mvc.Http.{ Context, Request, RequestBody, RequestBuilder }
+import play.mvc.Http.MultipartFormData.{ DataPart, FilePart, Part }
 import play.routing.Router
 import play.twirl.api.Html
 
@@ -35,6 +43,8 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 
   override def formFactory: FormFactory = app.getOrElse(application()).injector.instanceOf[FormFactory]
 
+  override def tempFileCreator: TemporaryFileCreator = app.getOrElse(application()).injector.instanceOf[TemporaryFileCreator]
+
   override def application(extraConfig: (String, Any)*): Application = {
     val builtApp = GuiceApplicationBuilder().configure(extraConfig.toMap).build()
     app = Option(builtApp)
@@ -45,7 +55,7 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
   class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty) extends BuiltInComponentsFromContext(context)
-    with FormFactoryComponents {
+    with FormFactoryComponents with TemporaryFileComponents {
     override def router(): Router = Router.empty()
 
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
@@ -66,6 +76,10 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
     new MyComponents(context)
   }.formFactory()
 
+  override def tempFileCreator: TemporaryFileCreator = components.getOrElse{
+    new MyComponents(context)
+  }.tempFileCreator()
+
   override def application(extraConfig: (String, Any)*): Application = {
     val myComponents = new MyComponents(context, extraConfig.toMap)
     components = Option(myComponents)
@@ -75,11 +89,48 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
   override def defaultContextComponents: JavaContextComponents = components.getOrElse(new MyComponents(ApplicationLoader.create(play.Environment.simple()))).javaContextComponents()
 }
 
-trait FormSpec extends Specification {
+trait CommonFormSpec extends Specification {
+  def checkFileParts(fileParts: Seq[FilePart[TemporaryFile]], key: String, contentType: String, filename: String, fileContent: String, dispositionType: String = "form-data") = {
+    fileParts.foreach(filePart => {
+      filePart.getKey must equalTo(key)
+      filePart.getDispositionType must equalTo(dispositionType)
+      filePart.getContentType must equalTo(contentType)
+      filePart.getFilename must equalTo(filename)
+      Files.readAllLines(filePart.getRef.path()) must equalTo(List(fileContent).asJava)
+    })
+  }
+
+  def createTemporaryFile(suffix: String, content: String)(implicit temporaryFileCreator: TemporaryFileCreator): TemporaryFile = {
+    val file = temporaryFileCreator.create("temp", suffix)
+    Files.write(file.path(), content.getBytes())
+    file
+  }
+
+  def createThesisTemporaryFiles()(implicit temporaryFileCreator: TemporaryFileCreator): Map[String, TemporaryFile] = Map(
+    "thesisDocFile" -> createTemporaryFile("pdf", "by Lightbend founder Martin Odersky"),
+    "latexFile" -> createTemporaryFile("tex", "the final draft"),
+    "codesnippetsFile" -> createTemporaryFile("scala", "some code snippets"),
+    "bibliographyBrianGoetz" -> createTemporaryFile("epub", "Java Concurrency in Practice"),
+    "bibliographyJamesGosling" -> createTemporaryFile("mobi", "The Java Programming Language")
+  )
+
+  def createThesisRequestWithFileParts(files: Map[String, TemporaryFile]) = FormSpec.dummyMultipartRequest(
+    Map("title" -> Array("How Scala works")),
+    List(
+      new FilePart[TemporaryFile]("document", "best_thesis.pdf", "application/pdf", files("thesisDocFile")),
+      new FilePart[TemporaryFile]("attachments[]", "final_draft.tex", "application/x-tex", files("latexFile")),
+      new FilePart[TemporaryFile]("attachments[]", "examples.scala", "text/x-scala-source", files("codesnippetsFile")),
+      new FilePart[TemporaryFile]("bibliography[0]", "Java_Concurrency_in_Practice.epub", "application/epub+zip", files("bibliographyBrianGoetz")),
+      new FilePart[TemporaryFile]("bibliography[1]", "The-Java-Programming-Language.mobi", "application/x-mobipocket-ebook", files("bibliographyJamesGosling"))
+    ))
+}
+
+trait FormSpec extends CommonFormSpec {
 
   sequential
 
   def formFactory: FormFactory
+  def tempFileCreator: TemporaryFileCreator
   def application(extraConfig: (String, Any)*): Application
   def defaultContextComponents: JavaContextComponents
 
@@ -91,6 +142,12 @@ trait FormSpec extends Specification {
         Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
+        myForm hasErrors () must beEqualTo(false)
+      }
+      "be valid with all fields with direct field access" in {
+        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891"), "task.name" -> Array("peter"), "task.dueDate" -> Array("15/12/2009"), "task.endDate" -> Array("2008-11-21")))
+
+        val myForm = formFactory.form("task", classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
         myForm hasErrors () must beEqualTo(false)
       }
       "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(application()) {
@@ -112,12 +169,31 @@ trait FormSpec extends Specification {
         myForm hasErrors () must beEqualTo(true)
         myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
       }
+      "have an error due to missing required value with direct field access" in new WithApplication(application()) {
+        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
+
+        val myForm = formFactory.form("task", classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+        myForm hasErrors () must beEqualTo(true)
+        myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
+      }
     }
     "be valid with all fields" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(false)
+    }
+    "be valid with all fields with direct field access" in {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
+
+      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+      myForm hasErrors () must beEqualTo(false)
+    }
+    "be valid with all fields with direct field access switched on in config" in new WithApplication(application("play.forms.binding.directFieldAccess" -> "true")) {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
+
+      val myForm = formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req)
       myForm hasErrors () must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
@@ -262,6 +338,21 @@ trait FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
     }
+    "have an error due to missing required value with direct field access" in new WithApplication(application()) {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+
+      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+      myForm hasErrors () must beEqualTo(true)
+      myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
+    }
+    "be invalid when only fields (and no getters) exist but direct field access is disabled" in {
+      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+
+      formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req) must throwA[IllegalStateException].like {
+        case e: IllegalStateException =>
+          e.getMessage must beMatching("""JSR-303 validated property '.*' does not have a corresponding accessor for data binding - check your DataBinder's configuration \(bean property versus direct field access\)""")
+      }
+    }
     "have an error due to bad value in Id field" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
@@ -282,23 +373,33 @@ trait FormSpec extends Specification {
 
     "support repeated values for Java binding" in {
 
-      val user1 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki")))).get
+      val user1form = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"))))
+      val user1 = user1form.get
+      user1form.field("name").indexes() must beEqualTo(List.empty.asJava)
       user1.getName must beEqualTo("Kiki")
       user1.getEmails.size must beEqualTo(0)
 
-      val user2 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")))).get
+      val user2form = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"))))
+      val user2 = user2form.get
+      user2form.field("emails").indexes() must beEqualTo(List(0).asJava)
       user2.getName must beEqualTo("Kiki")
       user2.getEmails.size must beEqualTo(1)
 
-      val user3 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")))).get
+      val user3form = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))))
+      val user3 = user3form.get
+      user3form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
       user3.getName must beEqualTo("Kiki")
       user3.getEmails.size must beEqualTo(2)
 
-      val user4 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")))).get
+      val user4form = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com"))))
+      val user4 = user4form.get
+      user4form.field("emails").indexes() must beEqualTo(List(0).asJava)
       user4.getName must beEqualTo("Kiki")
       user4.getEmails.size must beEqualTo(1)
 
-      val user5 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")))).get
+      val user5form = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com"))))
+      val user5 = user5form.get
+      user5form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
       user5.getName must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
 
@@ -332,6 +433,63 @@ trait FormSpec extends Specification {
       val user = userForm.bind(new java.util.HashMap[String, String]()).get()
       userForm.hasErrors() must equalTo(false)
       (user == null) must equalTo(false)
+    }
+
+    "bind files" should {
+
+      "be valid with all fields" in new WithApplication(application()) {
+        implicit val temporaryFileCreator = tempFileCreator
+
+        val files = createThesisTemporaryFiles()
+
+        try {
+          val req = createThesisRequestWithFileParts(files)
+
+          val myForm = formFactory.form(classOf[play.data.Thesis]).bindFromRequest(req)
+
+          myForm.hasErrors() must beEqualTo(false)
+          myForm.hasGlobalErrors() must beEqualTo(false)
+
+          myForm.rawData().size() must beEqualTo(1)
+          myForm.files().size() must beEqualTo(5)
+
+          val thesis = myForm.get
+
+          thesis.getTitle must beEqualTo("How Scala works")
+          myForm.field("title").value().asScala must beSome("How Scala works")
+          myForm.field("title").file().asScala must beNone
+
+          checkFileParts(Seq(thesis.getDocument, myForm.field("document").file().get()), "document", "application/pdf", "best_thesis.pdf", "by Lightbend founder Martin Odersky")
+          myForm.field("document").value().asScala must beNone
+
+          thesis.getAttachments().size() must beEqualTo(2)
+          myForm.field("attachments").indexes() must beEqualTo(List(0, 1).asJava)
+          checkFileParts(Seq(thesis.getAttachments().get(0), myForm.field("attachments[0]").file().get()), "attachments[]", "application/x-tex", "final_draft.tex", "the final draft")
+          myForm.field("attachments[0]").value().asScala must beNone
+          checkFileParts(Seq(thesis.getAttachments().get(1), myForm.field("attachments[1]").file().get()), "attachments[]", "text/x-scala-source", "examples.scala", "some code snippets")
+          myForm.field("attachments[1]").value().asScala must beNone
+
+          thesis.getBibliography().size() must beEqualTo(2)
+          myForm.field("bibliography").indexes() must beEqualTo(List(0, 1).asJava)
+          checkFileParts(Seq(thesis.getBibliography().get(0), myForm.field("bibliography[0]").file().get()), "bibliography[0]", "application/epub+zip", "Java_Concurrency_in_Practice.epub", "Java Concurrency in Practice")
+          myForm.field("bibliography[0]").value().asScala must beNone
+          checkFileParts(Seq(thesis.getBibliography().get(1), myForm.field("bibliography[1]").file().get()), "bibliography[1]", "application/x-mobipocket-ebook", "The-Java-Programming-Language.mobi", "The Java Programming Language")
+          myForm.field("bibliography[1]").value().asScala must beNone
+        } finally {
+          files.values.foreach(temporaryFileCreator.delete(_))
+        }
+      }
+
+      "have an error due to missing required file" in new WithApplication(application()) {
+        val myForm = formFactory.form(classOf[play.data.Thesis]).bindFromRequest(FormSpec.dummyMultipartRequest(Map("title" -> Array("How Scala works"))))
+        myForm hasErrors () must beEqualTo(true)
+        myForm hasGlobalErrors () must beEqualTo(false)
+        myForm.errors().size() must beEqualTo(3)
+        myForm.files().size() must beEqualTo(0)
+        myForm.error("document").get.message() must beEqualTo("error.required")
+        myForm.error("attachments").get.message() must beEqualTo("error.required")
+        myForm.error("bibliography").get.message() must beEqualTo("error.required")
+      }
     }
 
     "support email validation" in {
@@ -516,6 +674,30 @@ trait FormSpec extends Specification {
       }
     }
 
+    "correctly calculate indexes()" in {
+      val dataPart = Map(
+        "someDataField[0]" -> "foo",
+        "someDataField[1]" -> "foo",
+        "someDataField[2]" -> "foo",
+        "someDataField[4]" -> "foo",
+        "someDataField[59]" -> "foo",
+      ).asJava
+      val filePart = Map(
+        "someFileField[0]" -> null,
+        "someFileField[13]" -> null,
+        "someFileField[24]" -> null,
+        "someFileField[85]" -> null,
+      ).asJava.asInstanceOf[util.Map[String, Http.MultipartFormData.FilePart[_]]]
+
+      val form: Form[Object] = new Form(null, null, dataPart, filePart, null, Optional.empty[Object](), null, null, null, null, null, null)
+
+      val dataField = new Form.Field(form, "someDataField", null, null, null, null, null)
+      dataField.indexes() must beEqualTo(List(0, 1, 2, 4, 59).asJava)
+
+      val fileField = new Form.Field(form, "someFileField", null, null, null, null, null)
+      fileField.indexes() must beEqualTo(List(0, 13, 24, 85).asJava)
+    }
+
     def fillNoBind(values: (String, String)*) = {
       val map = values.zipWithIndex.flatMap {
         case ((a, b), i) => Seq("foo[" + i + "].a" -> a, "foo[" + i + "].b" -> b)
@@ -523,7 +705,7 @@ trait FormSpec extends Specification {
       // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
       // used come from the form, not the input data
       new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validatorFactory())
+        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validatorFactory(), ConfigFactory.load())
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {
@@ -755,6 +937,14 @@ object FormSpec {
       .uri("http://localhost/test" + query)
       .bodyFormArrayValues(data.asJava)
       .build()
+  }
+
+  def dummyMultipartRequest(dataParts: Map[String, Array[String]] = Map.empty, fileParts: List[FilePart[TemporaryFile]] = List.empty): Request = {
+    new RequestBuilder().method("POST").uri("http://localhost/test").build().withBody(
+      new RequestBody(new Http.MultipartFormData[TemporaryFile] {
+        override def asFormUrlEncoded(): util.Map[String, Array[String]] = dataParts.asJava
+        override def getFiles: util.List[FilePart[TemporaryFile]] = fileParts.asJava
+      }))
   }
 
   def validatorFactory(): ValidatorFactory = {

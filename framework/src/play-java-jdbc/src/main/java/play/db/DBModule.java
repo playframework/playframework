@@ -1,20 +1,20 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db;
 
 import com.google.common.collect.ImmutableList;
-import play.Logger;
-import play.api.Configuration;
-import play.api.Environment;
-import play.api.inject.Binding;
-import play.api.inject.Module;
-import play.libs.Scala;
-import scala.collection.Seq;
+import com.typesafe.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import play.Environment;
+import play.inject.Binding;
+import play.inject.Module;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -22,30 +22,32 @@ import java.util.Set;
  */
 public final class DBModule extends Module {
 
+    private static final Logger logger = LoggerFactory.getLogger(DBModule.class);
+
     @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        String dbKey = configuration.underlying().getString("play.db.config");
-        String defaultDb = configuration.underlying().getString("play.db.default");
+    public List<Binding<?>> bindings(final Environment environment, final Config config) {
+        String dbKey = config.getString("play.db.config");
+        String defaultDb = config.getString("play.db.default");
 
         ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
 
-        list.add(bind(ConnectionPool.class).to(DefaultConnectionPool.class));
-        list.add(bind(DBApi.class).to(DefaultDBApi.class));
+        list.add(bindClass(ConnectionPool.class).to(DefaultConnectionPool.class));
+        list.add(bindClass(DBApi.class).to(DefaultDBApi.class));
 
         try {
-            Set<String> dbs = configuration.underlying().getConfig(dbKey).root().keySet();
+            Set<String> dbs = config.getConfig(dbKey).root().keySet();
             for (String db : dbs) {
-                list.add(bind(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
+                list.add(bindClass(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
             }
 
             if (dbs.contains(defaultDb)) {
-                list.add(bind(Database.class).to(bind(Database.class).qualifiedWith(named(defaultDb))));
+                list.add(bindClass(Database.class).to(bindClass(Database.class).qualifiedWith(named(defaultDb))));
             }
         } catch (com.typesafe.config.ConfigException.Missing ex) {
-            Logger.warn("Configuration not found for database: {}", ex.getMessage());
+            logger.warn("Configuration not found for database: {}", ex.getMessage());
         }
 
-        return Scala.toSeq(list.build());
+        return list.build();
     }
 
     private NamedDatabase named(String name) {

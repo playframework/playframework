@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Calling REST APIs with Play WS
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/index.html), which provides a way to make asynchronous HTTP calls through a WSClient instance.
@@ -161,7 +161,7 @@ curl \
 
 ## Processing the Response
 
-Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
+Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](https://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
 
 The examples given below have some common dependencies that will be shown once here for brevity.
 
@@ -187,7 +187,7 @@ The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an 
 
 ### Processing a response as XML
 
-You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
+You can process the response as an [XML literal](https://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
 
 @[scalaws-process-xml](code/ScalaWSSpec.scala)
 
@@ -221,7 +221,7 @@ Of course, you can use any other valid HTTP verb.
 
 ### Chaining WSClient calls
 
-Using for comprehensions is a good way to chain WSClient calls in a trusted environment.  You should use for comprehensions together with [Future.recover](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
+Using for comprehensions is a good way to chain WSClient calls in a trusted environment.  You should use for comprehensions together with [Future.recover](https://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
 
 @[scalaws-forcomprehension](code/ScalaWSSpec.scala)
 

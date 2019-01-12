@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
@@ -9,20 +9,22 @@ import java.security.{ Provider, SecureRandom }
 
 import akka.Done
 import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.annotation.ApiMayChange
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.model.{ headers, _ }
 import akka.http.scaladsl.settings.{ ParserSettings, ServerSettings }
 import akka.http.scaladsl.util.FastFuture._
-import akka.http.scaladsl.{ ConnectionContext, Http }
-import akka.stream.Materializer
+import akka.http.scaladsl.{ ConnectionContext, Http, HttpConnectionContext }
+import akka.http.scaladsl.UseHttp2._
+import akka.stream.{ Materializer, TLSClientAuth }
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.{ Config, ConfigMemorySize }
 import javax.net.ssl._
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, HttpErrorHandler, Status }
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -67,6 +69,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   implicit private val mat: Materializer = context.materializer
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled") getOrElse false
+
+  @ApiMayChange
+  private val http2AlwaysForInsecure: Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure") getOrElse false)
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -157,7 +162,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, ConnectionContext.noEncryption(), secure = false))
+  private val httpServerBinding = context.config.port.map(port => createServerBinding(port, HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never), secure = false))
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {
@@ -166,13 +171,32 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
       val sslContext = mockSslContext()
-      ConnectionContext.https(sslContext = sslContext)
+
+      val clientAuth: Option[TLSClientAuth] = createClientAuth()
+
+      ConnectionContext.https(
+        sslContext = sslContext,
+        clientAuth = clientAuth
+      )
     } catch {
       case NonFatal(e) =>
         logger.error(s"Cannot load SSL context", e)
         ConnectionContext.noEncryption()
     }
     createServerBinding(port, connectionContext, secure = true)
+  }
+
+  /** Creates AkkaHttp TLSClientAuth */
+  protected def createClientAuth(): Option[TLSClientAuth] = {
+
+    // Need has precedence over Want, hence the if/else if
+    if (serverConfig.get[Boolean]("https.needClientAuth")) {
+      Some(TLSClientAuth.need)
+    } else if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+      Some(TLSClientAuth.want)
+    } else {
+      None
+    }
   }
 
   if (http2Enabled) {
@@ -291,12 +315,23 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           case Left(result) =>
             modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
           case Right(flow) =>
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit))
+            // For now, like Netty, select an arbitrary subprotocol from the list of subprotocols proposed by the client
+            // Eventually it would be better to allow the handler to specify the protocol it selected
+            // See also https://github.com/playframework/playframework/issues/7895
+            val selectedSubprotocol = upgrade.requestedProtocols.headOption
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit, selectedSubprotocol))
         }
 
       case (websocket: WebSocket, None) =>
         // WebSocket handler for non WebSocket request
-        sys.error(s"WebSocket returned for non WebSocket request")
+        logger.trace(s"Bad websocket request: $request")
+        val action = EssentialAction(_ => Accumulator.done(
+          Results.Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required").withHeaders(
+            HeaderNames.UPGRADE -> "websocket",
+            HeaderNames.CONNECTION -> HeaderNames.UPGRADE
+          )
+        ))
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
         akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")

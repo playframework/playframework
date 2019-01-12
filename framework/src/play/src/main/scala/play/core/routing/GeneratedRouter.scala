@@ -1,12 +1,16 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.routing
 
+import java.util.Optional
+
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.{ HandlerDef, Router }
+
+import scala.collection.JavaConverters._
 
 /**
  * A route
@@ -66,9 +70,16 @@ case class RouteParams(path: Map[String, Either[Throwable, String]], queryString
   }
 
   def fromQuery[T](key: String, default: Option[T] = None)(implicit binder: QueryStringBindable[T]): Param[T] = {
-    Param(key, binder.bind(key, queryString).getOrElse {
-      default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
-    })
+    val bindResult = binder.bind(key, queryString)
+    if (bindResult == Some(Right(None)) || bindResult == Some(Right(Optional.empty))
+      || bindResult == Some(Right(Nil)) || bindResult == Some(Right(Nil.asJava))
+      || bindResult == Some(Right(Some(Nil))) || bindResult == Some(Right(Optional.of(Nil.asJava)))) {
+      Param(key, default.map(d => Right(d)).getOrElse(bindResult.get))
+    } else {
+      Param(key, bindResult.getOrElse {
+        default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
+      })
+    }
   }
 
 }
@@ -93,7 +104,7 @@ abstract class GeneratedRouter extends Router {
   }
 
   //Keep the old versions for avoiding compiler failures while building for Scala 2.10,
-  // and for avoiding warnings when building for Scala 2.11
+  // and for avoiding warnings when building for newer Scala versions
   def call[A1, A2](pa1: Param[A1], pa2: Param[A2])(generator: Function2[A1, A2, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right)
       yield (a1, a2))

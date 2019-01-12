@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
     // actually it should fail on any warning so that we can check that packageBin won't include any documentation
     scalacOptions in Compile := Seq("-Xfatal-warnings", "-deprecation"),
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.6"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
     play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false,
     packageDoc in Compile := { new File(".") }
   )

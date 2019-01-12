@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.cors
@@ -124,6 +124,12 @@ trait CORSCommonSpec extends PlaySpecification {
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("https://www.example.com:9000")
       header(VARY, result) must beSome(ORIGIN)
+    }
+
+    "allow null origin header" in withApplication() { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "null")).get
+
+      status(result) must_== OK
     }
 
     "forbid an empty origin header" in withApplication() { app =>

@@ -1,11 +1,15 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
+import java.util.Locale
+
+import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.mvc.Http
 
 import scala.annotation.{ implicitNotFound, tailrec }
 
@@ -57,6 +61,24 @@ trait Request[+A] extends RequestHeader {
     new RequestImpl[A](connection, method, target, version, headers, newAttrs, body)
   override def addAttr[B](key: TypedKey[B], value: B): Request[A] =
     withAttrs(attrs.updated(key, value))
+  override def removeAttr(key: TypedKey[_]): Request[A] =
+    withAttrs(attrs - key)
+  override def withTransientLang(lang: Lang): Request[A] =
+    addAttr(Messages.Attrs.CurrentLang, lang)
+  override def withTransientLang(code: String): Request[A] =
+    withTransientLang(Lang(code))
+  override def withTransientLang(locale: Locale): Request[A] =
+    withTransientLang(Lang(locale))
+  override def withoutTransientLang(): Request[A] =
+    removeAttr(Messages.Attrs.CurrentLang)
+
+  override def asJava: Http.Request = this match {
+    case req: Request[Http.RequestBody] =>
+      // This will preserve the parsed body since it is already using the Java body wrapper
+      new Http.RequestImpl(req)
+    case _ =>
+      new Http.RequestImpl(this)
+  }
 }
 
 object Request {

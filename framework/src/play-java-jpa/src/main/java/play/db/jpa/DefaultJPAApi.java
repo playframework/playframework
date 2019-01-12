@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.jpa;
 
+import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.db.DBApi;
@@ -33,24 +34,40 @@ public class DefaultJPAApi implements JPAApi {
 
     private final JPAEntityManagerContext entityManagerContext;
 
+    /**
+     * @deprecated Deprecated as of 2.7.0. Use {@link #DefaultJPAApi(JPAConfig)} instead.
+     */
+    @Deprecated
     public DefaultJPAApi(JPAConfig jpaConfig, JPAEntityManagerContext entityManagerContext) {
         this.jpaConfig = jpaConfig;
         this.entityManagerContext = entityManagerContext;
+    }
+
+    public DefaultJPAApi(JPAConfig jpaConfig) {
+        this(jpaConfig, null);
     }
 
     @Singleton
     public static class JPAApiProvider implements Provider<JPAApi> {
         private final JPAApi jpaApi;
 
+        /**
+         * @deprecated Deprecated as of 2.7.0. Use {@link #JPAApiProvider(JPAConfig, ApplicationLifecycle, DBApi, Config)} instead.
+         */
         @Inject
-        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi) {
+        @Deprecated
+        public JPAApiProvider(JPAConfig jpaConfig, JPAEntityManagerContext context, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
             // dependency on db api ensures that the databases are initialised
-            jpaApi = new DefaultJPAApi(jpaConfig, context);
+            jpaApi = new DefaultJPAApi(jpaConfig, config.getBoolean("play.jpa.allowJPAEntityManagerContext") ? context : null);
             lifecycle.addStopHook(() -> {
                 jpaApi.shutdown();
                 return CompletableFuture.completedFuture(null);
             });
             jpaApi.start();
+        }
+
+        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
+            this(jpaConfig, null, lifecycle, dbApi, config);
         }
 
         @Override
@@ -87,10 +104,13 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @return EntityManager for the specified persistence unit name
      *
-     * @deprecated The EntityManager is supplied as lambda parameter instead when using {@link #withTransaction(Function)}
+     * @deprecated Deprecated as of 2.7.0. The EntityManager is supplied as lambda parameter instead when using {@link #withTransaction(Function)}
      */
     @Deprecated
     public EntityManager em() {
+        if(entityManagerContext == null) {
+            throw new RuntimeException("EntityManager can't be acquired from a thread-local. You should instead use one of the JPAApi methods where the EntityManager is provided automatically.");
+        }
         return entityManagerContext.em();
     }
 
@@ -162,7 +182,9 @@ public class DefaultJPAApi implements JPAApi {
                 throw new RuntimeException("Could not create JPA entity manager for '" + name + "'");
             }
 
-            entityManagerContext.push(entityManager, true);
+            if (entityManagerContext != null) {
+                entityManagerContext.push(entityManager, true);
+            }
 
             if (!readOnly) {
                 tx = entityManager.getTransaction();
@@ -194,7 +216,9 @@ public class DefaultJPAApi implements JPAApi {
             throw t;
         } finally {
             if (entityManager != null) {
-                entityManagerContext.pop(true);
+                if (entityManagerContext != null) {
+                    entityManagerContext.pop(true);
+                }
                 entityManager.close();
             }
         }
@@ -219,7 +243,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(Function)}
+     * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(Function)} instead.
      */
     @Deprecated
     public <T> T withTransaction(Supplier<T> block) {
@@ -231,7 +255,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(Consumer)}
+     * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(Consumer)} instead.
      */
     @Deprecated
     public void withTransaction(final Runnable block) {
@@ -252,7 +276,7 @@ public class DefaultJPAApi implements JPAApi {
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
      *
-     * @deprecated Use {@link #withTransaction(String, boolean, Function)}
+     * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(String, boolean, Function)} instead.
      */
     @Deprecated
     public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {

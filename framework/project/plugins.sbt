@@ -1,20 +1,20 @@
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
 enablePlugins(BuildInfoPlugin)
 
 val Versions = new {
   // when updating sbtNativePackager version, be sure to also update the documentation links in
   // documentation/manual/working/commonGuide/production/Deploying.md
-  val sbtNativePackager = "1.3.5"
+  val sbtNativePackager = "1.3.14"
   val mima = "0.3.0"
   val sbtScalariform = "1.8.2"
   val sbtJavaAgent = "0.1.4"
-  val sbtJmh = "0.3.3"
+  val sbtJmh = "0.3.4"
   val sbtDoge = "0.1.5"
-  val webjarsLocatorCore = "0.33"
+  val webjarsLocatorCore = "0.36"
   val sbtHeader = "5.0.0"
-  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.4.0-M2")
-  val interplay: String = sys.props.getOrElse("interplay.version", "2.0.3")
+  val sbtTwirl: String = sys.props.getOrElse("twirl.version", "1.4.0-RC4")
+  val interplay: String = sys.props.getOrElse("interplay.version", "2.0.5")
 }
 
 buildInfoKeys := Seq[BuildInfoKey](

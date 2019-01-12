@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
-import java.security.cert.X509Certificate
+import java.util.Locale
 
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
-import play.api.i18n.Lang
+import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedKey, TypedMap }
 import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
 
@@ -65,6 +65,42 @@ class RequestHeaderSpec extends Specification {
         requestHeader.attrs(y) must_== "white"
         requestHeader.attrs(x) must_== 3
       }
+      "can set two attributes and get both back" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val r = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello"))
+        r.attrs(x) must_== 3
+        r.attrs(y) must_== "hello"
+      }
+      "can set two attributes and remove one of them" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x)
+        req.attrs.get(x) must beNone
+        req.attrs(y) must_== "hello"
+      }
+      "can set two attributes and remove both again" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x).removeAttr(y)
+        req.attrs.get(x) must beNone
+        req.attrs.get(y) must beNone
+      }
+    }
+    "handle transient lang" in {
+      val req1 = dummyRequestHeader()
+      req1.transientLang() must beNone
+      req1.attrs.get(Messages.Attrs.CurrentLang) must beNone
+
+      val req2 = req1.withTransientLang(new Lang(Locale.GERMAN))
+      req1 mustNotEqual req2
+      req2.transientLang() must beSome(new Lang(Locale.GERMAN))
+      req2.attrs.get(Messages.Attrs.CurrentLang) must beSome(new Lang(Locale.GERMAN))
+
+      val req3 = req2.withoutTransientLang()
+      req2 mustNotEqual req3
+      req3.transientLang() must beNone
+      req3.attrs.get(Messages.Attrs.CurrentLang) must beNone
     }
 
     "handle host" in {
@@ -118,68 +154,6 @@ class RequestHeaderSpec extends Specification {
         accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en-US")).inOrder)
       }
 
-    }
-
-    "deprecated copy method" in {
-
-      def checkRequestValues(
-        origReq: RequestHeader,
-        changeReq: RequestHeader => RequestHeader)(
-        id: Long = origReq.id,
-        uri: String = origReq.uri,
-        path: String = origReq.path,
-        method: String = origReq.method,
-        version: String = origReq.version,
-        queryString: Map[String, Seq[String]] = origReq.queryString,
-        headers: Headers = origReq.headers,
-        remoteAddress: String = origReq.remoteAddress,
-        secure: Boolean = origReq.secure,
-        clientCertificateChain: Option[Seq[X509Certificate]] = origReq.clientCertificateChain) = {
-        val newReq: RequestHeader = changeReq(origReq)
-        newReq.id must_== id
-        newReq.uri must_== uri
-        newReq.path must_== path
-        newReq.method must_== method
-        newReq.version must_== version
-        newReq.queryString must_== queryString
-        newReq.headers must_== headers
-        newReq.remoteAddress must_== remoteAddress
-        newReq.secure must_== secure
-        newReq.clientCertificateChain must_== clientCertificateChain
-      }
-
-      "must change request id" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(id = 999L))(id = 999L)
-      }
-      "must change request uri" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(uri = "/x/y/z"))(uri = "/x/y/z")
-      }
-      "must change request path" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(path = "/x/y/z"))(path = "/x/y/z")
-      }
-      "must change request method" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(method = "HELLO"))(method = "HELLO")
-      }
-      "must change request version" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(version = "HTTP/9.9"))(version = "HTTP/9.9")
-      }
-      "must change request queryString" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(queryString = Map("x" -> Seq("y", "z"))))(queryString = Map("x" -> Seq("y", "z")))
-      }
-      "must change request headers" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(headers = new Headers(List(("x", "y")))))(headers = new Headers(List(("x", "y"))))
-      }
-      "must change request remoteAddress" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(remoteAddress = "x"))(remoteAddress = "x")
-      }
-      "must change request secure" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(secure = true))(secure = true)
-      }
-      "must change request client certificate chain" in {
-        // Too lazy to make a real object, so take advantage of Java's weak runtime checks
-        val ccc = Some("x").asInstanceOf[Option[Seq[X509Certificate]]]
-        checkRequestValues(dummyRequestHeader(), _.copy(clientCertificateChain = ccc))(clientCertificateChain = ccc)
-      }
     }
   }
 

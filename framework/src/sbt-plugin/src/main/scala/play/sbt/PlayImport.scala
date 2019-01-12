@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt
@@ -110,6 +110,7 @@ object PlayImport extends PlayImportCompat {
     val updateSecret = TaskKey[File]("playUpdateSecret", "Update the application conf to generate an application secret", KeyRanks.BTask)
 
     val assetsPrefix = SettingKey[String]("assetsPrefix")
+    val generateAssetsJar = TaskKey[Boolean]("generateAssetsJar")
     val playPackageAssets = TaskKey[File]("playPackageAssets")
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")

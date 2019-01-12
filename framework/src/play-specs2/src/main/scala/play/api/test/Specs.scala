@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
@@ -7,7 +7,7 @@ package play.api.test
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
-import org.specs2.specification.Scope
+import org.specs2.specification.{ ForEach, Scope }
 import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Application, ApplicationLoader, Environment, Mode }
 import play.core.j.JavaContextComponents
@@ -69,6 +69,18 @@ abstract class WithServer(
       port = port,
       application = app,
       serverProvider = serverProvider))(AsResult.effectively(t))
+}
+
+/** Replacement for [[WithServer]], adding server endpoint info. */
+trait ForServer extends ForEach[RunningServer] with Scope {
+  protected def applicationFactory: ApplicationFactory
+  protected def testServerFactory: TestServerFactory = new DefaultTestServerFactory()
+
+  final protected def foreach[R: AsResult](f: RunningServer => R): Result = {
+    val app: Application = applicationFactory.create()
+    val runningServer = testServerFactory.start(app)
+    try AsResult.effectively(f(runningServer)) finally runningServer.stopServer.close()
+  }
 }
 
 /**

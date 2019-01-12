@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -7,32 +7,53 @@ package guice
 
 import java.io.File
 import java.net.URLClassLoader
+import java.util.Collections
+import java.util.function.Supplier
 
 import com.google.inject.AbstractModule
+import com.typesafe.config.Config
 import org.specs2.mutable.Specification
+import play.{ Environment => JavaEnvironment }
 import play.api.inject._
-import play.api.{ Configuration, Environment, Mode, inject }
+import play.api.{ Configuration, Environment, Mode }
+import play.inject.{ Module => JavaModule }
 
 class GuiceInjectorBuilderSpec extends Specification {
 
   "GuiceInjectorBuilder" should {
 
-    "set environment" in {
+    "set environment with Scala" in {
+      setEnvironment(new GuiceInjectorBuilderSpec.EnvironmentModule)
+    }
+
+    "set environment with Java" in {
+      setEnvironment(new GuiceInjectorBuilderSpec.JavaEnvironmentModule)
+    }
+
+    def setEnvironment(environmentModule: Module) = {
       val env = new GuiceInjectorBuilder()
         .in(Environment.simple(mode = Mode.Dev))
-        .bindings(new GuiceInjectorBuilderSpec.EnvironmentModule)
+        .bindings(environmentModule)
         .injector().instanceOf[Environment]
 
       env.mode must_== Mode.Dev
     }
 
-    "set environment values" in {
+    "set environment values with Scala" in {
+      setEnvironmentValues(new GuiceInjectorBuilderSpec.EnvironmentModule)
+    }
+
+    "set environment values with Java" in {
+      setEnvironmentValues(new GuiceInjectorBuilderSpec.JavaEnvironmentModule)
+    }
+
+    def setEnvironmentValues(environmentModule: Module) = {
       val classLoader = new URLClassLoader(Array.empty)
       val env = new GuiceInjectorBuilder()
         .in(new File("test"))
         .in(Mode.Dev)
         .in(classLoader)
-        .bindings(new GuiceInjectorBuilderSpec.EnvironmentModule)
+        .bindings(environmentModule)
         .injector().instanceOf[Environment]
 
       env.rootPath must_== new File("test")
@@ -50,13 +71,21 @@ class GuiceInjectorBuilderSpec extends Specification {
       classLoaderAware.constructionClassLoader must_== classLoader
     }
 
-    "set configuration" in {
+    "set configuration with Scala" in {
+      setConfiguration(new GuiceInjectorBuilderSpec.ConfigurationModule)
+    }
+
+    "set configuration with Java" in {
+      setConfiguration(new GuiceInjectorBuilderSpec.JavaConfigurationModule)
+    }
+
+    def setConfiguration(configurationModule: Module) = {
       val conf = new GuiceInjectorBuilder()
         .configure(Configuration("a" -> 1))
         .configure(Map("b" -> 2))
         .configure("c" -> 3)
         .configure("d.1" -> 4, "d.2" -> 5)
-        .bindings(new GuiceInjectorBuilderSpec.ConfigurationModule)
+        .bindings(configurationModule)
         .injector().instanceOf[Configuration]
 
       conf.subKeys must contain(allOf("a", "b", "c", "d"))
@@ -67,11 +96,19 @@ class GuiceInjectorBuilderSpec extends Specification {
       conf.get[Int]("d.2") must_== 5
     }
 
-    "support various bindings" in {
+    "support various bindings with Scala" in {
+      supportVariousBindings(new GuiceInjectorBuilderSpec.EnvironmentModule, new GuiceInjectorBuilderSpec.ConfigurationModule)
+    }
+
+    "support various bindings with Java" in {
+      supportVariousBindings(new GuiceInjectorBuilderSpec.JavaEnvironmentModule, new GuiceInjectorBuilderSpec.JavaConfigurationModule)
+    }
+
+    def supportVariousBindings(environmentModule: Module, configurationModule: Module) = {
       val injector = new GuiceInjectorBuilder()
         .bindings(
-          new GuiceInjectorBuilderSpec.EnvironmentModule,
-          Seq(new GuiceInjectorBuilderSpec.ConfigurationModule),
+          environmentModule,
+          Seq(configurationModule),
           new GuiceInjectorBuilderSpec.AModule,
           Seq(new GuiceInjectorBuilderSpec.BModule))
         .bindings(
@@ -87,13 +124,21 @@ class GuiceInjectorBuilderSpec extends Specification {
       injector.instanceOf[GuiceInjectorBuilderSpec.D] must beAnInstanceOf[GuiceInjectorBuilderSpec.D1]
     }
 
-    "override bindings" in {
+    "override bindings with Scala" in {
+      overrideBindings(new GuiceInjectorBuilderSpec.EnvironmentModule, new GuiceInjectorBuilderSpec.ConfigurationModule)
+    }
+
+    "override bindings with Java" in {
+      overrideBindings(new GuiceInjectorBuilderSpec.JavaEnvironmentModule, new GuiceInjectorBuilderSpec.JavaConfigurationModule)
+    }
+
+    def overrideBindings(environmentModule: Module, configurationModule: Module) = {
       val injector = new GuiceInjectorBuilder()
         .in(Mode.Dev)
         .configure("a" -> 1)
         .bindings(
-          new GuiceInjectorBuilderSpec.EnvironmentModule,
-          new GuiceInjectorBuilderSpec.ConfigurationModule)
+          environmentModule,
+          configurationModule)
         .overrides(
           bind[Environment] to Environment.simple(),
           new GuiceInjectorBuilderSpec.SetConfigurationModule(Configuration("b" -> 2)))
@@ -106,16 +151,25 @@ class GuiceInjectorBuilderSpec extends Specification {
       conf.get[Int]("b") must_== 2
     }
 
-    "disable modules" in {
+    "disable modules with Scala" in {
+      disableModules(new GuiceInjectorBuilderSpec.EnvironmentModule, new GuiceInjectorBuilderSpec.ConfigurationModule)
+    }
+
+    "disable modules with Java" in {
+      disableModules(new GuiceInjectorBuilderSpec.JavaEnvironmentModule, new GuiceInjectorBuilderSpec.JavaConfigurationModule)
+    }
+
+    def disableModules(environmentModule: Module, configurationModule: Module) = {
       val injector = new GuiceInjectorBuilder()
         .bindings(
-          new GuiceInjectorBuilderSpec.EnvironmentModule,
-          new GuiceInjectorBuilderSpec.ConfigurationModule,
+          environmentModule,
+          configurationModule,
           new GuiceInjectorBuilderSpec.AModule,
           new GuiceInjectorBuilderSpec.BModule,
           bind[GuiceInjectorBuilderSpec.C].to[GuiceInjectorBuilderSpec.C1],
           bind[GuiceInjectorBuilderSpec.D] to new GuiceInjectorBuilderSpec.D1)
         .disable[GuiceInjectorBuilderSpec.EnvironmentModule]
+        .disable[GuiceInjectorBuilderSpec.JavaEnvironmentModule]
         .disable(classOf[GuiceInjectorBuilderSpec.AModule], classOf[GuiceInjectorBuilderSpec.CModule]) // C won't be disabled
         .injector()
 
@@ -151,6 +205,18 @@ object GuiceInjectorBuilderSpec {
   class EnvironmentModule extends SimpleModule((env, _) => Seq(bind[Environment] to env))
 
   class ConfigurationModule extends SimpleModule((_, conf) => Seq(bind[Configuration] to conf))
+
+  class JavaEnvironmentModule extends JavaModule {
+    override def bindings(environment: JavaEnvironment, config: Config) = Collections.singletonList(JavaModule.bindClass(classOf[Environment]).to(new Supplier[Environment] {
+      override def get(): Environment = environment.asScala()
+    }))
+  }
+
+  class JavaConfigurationModule extends JavaModule {
+    override def bindings(environment: JavaEnvironment, config: Config) = Collections.singletonList(JavaModule.bindClass(classOf[Configuration]).to(new Supplier[Configuration] {
+      override def get(): Configuration = Configuration(config)
+    }))
+  }
 
   class SetConfigurationModule(conf: Configuration) extends AbstractModule {
     override def configure() = bind(classOf[Configuration]) toInstance conf

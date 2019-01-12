@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -63,6 +63,7 @@ abstract class Module {
   /**
    * Create a binding key for the given class.
    */
+  @deprecated("Use play.inject.Module.bindClass instead if the Module is coded in Java. Scala modules can use play.api.inject.bind[T: ClassTag]", "2.7.0")
   final def bind[T](clazz: Class[T]): BindingKey[T] = play.api.inject.bind(clazz)
 
   /**
@@ -75,6 +76,7 @@ abstract class Module {
    *
    * For Java compatibility.
    */
+  @deprecated("Use play.inject.Module instead if the Module is coded in Java.", "2.7.0")
   @varargs
   final def seq(bindings: Binding[_]*): Seq[Binding[_]] = bindings
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 import BuildSettings._
 import Dependencies._
@@ -27,14 +27,15 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "rout
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
-      // TODO: Remove when updating to Scala 2.13.0-M4
-      // Should be removed when we update to Scala 2.13.0-M4 since this is the
-      // version added by interplay.
+      // TODO: Re-add ScalaVersions.scala213
+      // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
+      // that right because some dependencies don't have a build for M5 yet. As soon as
+      // we decide that we could release to M5, than we can re-add scala213 to it
       //
       // See also:
       // 1. the root project at build.sbt file.
-      // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
+      // 2. project/BuildSettings.scala
+      crossScalaVersions := Seq(scala212),
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
@@ -146,7 +147,8 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
       parallelExecution in Test := false
     ).dependsOn(
   PlayGuiceProject,
-  PlayAkkaHttpServerProject
+  PlayAkkaHttpServerProject,
+  PlayNettyServerProject
 )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "play-specs2")
@@ -166,8 +168,7 @@ lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "play-java")
 
 lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "play-java-forms")
     .settings(
-      libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps,
-      compileOrder in Test := CompileOrder.JavaThenScala // work around SI-9853 - can be removed when dropping Scala 2.11 support
+      libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps
     ).dependsOn(
       PlayJavaProject % "compile;test->test"
     )
@@ -247,22 +248,35 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "p
     ).dependsOn(PlayProject, PlayTestProject % "test",
         PlayJavaProject % "test", PlaySpecs2Project % "test", PlayAhcWsProject % "test")
 
-// This project is just for testing Play, not really a public artifact
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "play-integration-test")
     .enablePlugins(JavaAgent)
+    // This project is just for testing Play, not really a public artifact
+    .settings(disablePublishing)
+    .configs(IntegrationTest)
     .settings(
-      libraryDependencies += okHttp % Test,
-      parallelExecution in Test := false,
+      Defaults.itSettings,
+      libraryDependencies += okHttp % IntegrationTest,
+      parallelExecution in IntegrationTest := false,
       mimaPreviousArtifacts := Set.empty,
-      fork in Test := true,
-      javaOptions in Test += "-Dfile.encoding=UTF8",
-      javaAgents += jettyAlpnAgent % "test"
+      fork in IntegrationTest := true,
+      javaOptions in IntegrationTest += "-Dfile.encoding=UTF8",
+      javaAgents += jettyAlpnAgent % IntegrationTest,
+      javaOptions in IntegrationTest ++= {
+        val javaAgents = (resolvedJavaAgents in IntegrationTest).value
+        assert(javaAgents.length == 1, s"multiple java agents: $javaAgents")
+        val resolvedJavaAgent = javaAgents.head
+        val jettyAgentPath = resolvedJavaAgent.artifact.absString
+        Seq(
+          s"-Djetty.anlp.agent.jar=$jettyAgentPath",
+          "-javaagent:" + jettyAgentPath + resolvedJavaAgent.agent.arguments
+        )
+      }
     )
     .dependsOn(
-      PlayProject % "test->test",
-      PlayLogback % "test->test",
-      PlayAhcWsProject % "test->test",
-      PlayServerProject % "test->test",
+      PlayProject % "it->test",
+      PlayLogback % "it->test",
+      PlayAhcWsProject % "it->test",
+      PlayServerProject % "it->test",
       PlaySpecs2Project
     )
     .dependsOn(PlayFiltersHelpersProject)
@@ -272,10 +286,11 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     .dependsOn(PlayAkkaHttp2SupportProject)
     .dependsOn(PlayNettyServerProject)
 
-// This project is just for microbenchmarking Play. Not published.
 // NOTE: this project depends on JMH, which is GPLv2.
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "play-microbenchmark")
     .enablePlugins(JmhPlugin, JavaAgent)
+    // This project is just for microbenchmarking Play. Not published.
+    .settings(disablePublishing)
     .settings(
       // Change settings so that IntelliJ can handle dependencies
       // from JMH to the integration tests. We can't use "compile->test"
@@ -308,7 +323,6 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     .dependsOn(
       PlayProject % "test->test",
       PlayLogback % "test->test",
-      PlayIntegrationTestProject % "test->test",
       PlayAhcWsProject,
       PlaySpecs2Project,
       PlayFiltersHelpersProject,
@@ -364,7 +378,13 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-
       libraryDependencies ++= playDocsSbtPluginDependencies
     ).dependsOn(SbtPluginProject)
 
-lazy val publishedProjects = Seq[ProjectReference](
+// These projects are aggregate by the root project and every
+// task (compile, test, publish, etc) executed for the root
+// project will also be executed for them:
+// https://www.scala-sbt.org/1.x/docs/Multi-Project.html#Aggregation
+//
+// Keep in mind that specific configurations (like skip in publish) will be respected.
+lazy val aggregatedProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,
@@ -385,6 +405,7 @@ lazy val publishedProjects = Seq[ProjectReference](
   PlayJavaJdbcProject,
   PlayJpaProject,
   PlayNettyServerProject,
+  PlayMicrobenchmarkProject,
   PlayServerProject,
   PlayLogback,
   PlayWsProject,
@@ -409,14 +430,15 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     .settings(playCommonSettings: _*)
     .settings(
       scalaVersion := (scalaVersion in PlayProject).value,
-      // TODO: Remove when updating to Scala 2.13.0-M4
-      // Should be removed when we update to Scala 2.13.0-M4 since this is the
-      // version added by interplay.
+      // TODO: Re-add ScalaVersions.scala213
+      // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
+      // that right because some dependencies don't have a build for M5 yet. As soon as
+      // we decide that we could release to M5, than we can re-add scala213 to it
       //
       // See also:
-      // 1. playRuntimeSettings in project/BuildSettings.scala
+      // 1. project/BuildSettings.scala
       // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(scala211, scala212, "2.13.0-M3"),
+      crossScalaVersions := Seq(scala211, scala212),
       playBuildRepoName in ThisBuild := "playframework",
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
@@ -425,4 +447,4 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       mimaReportBinaryIssues := (),
       commands += Commands.quickPublish
     ).settings(Release.settings: _*)
-    .aggregate(publishedProjects: _*)
+    .aggregate(aggregatedProjects: _*)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.advanced.routing;
@@ -14,6 +14,7 @@ import play.api.mvc.AnyContent;
 import play.api.mvc.BodyParser;
 import play.api.mvc.PlayBodyParsers;
 import play.core.j.JavaContextComponents;
+import play.mvc.Http;
 import play.routing.Router;
 import play.routing.RoutingDsl;
 import java.util.concurrent.CompletableFuture;
@@ -41,8 +42,8 @@ public class JavaRoutingDsl extends WithApplication {
     public void simple() {
         //#simple
         Router router = routingDsl
-            .GET("/hello/:to").routeTo(to ->
-                    ok("Hello " + to)
+            .GET("/hello/:to").routingTo( (request, to) ->
+                ok("Hello " + to)
             )
             .build();
         //#simple
@@ -54,7 +55,7 @@ public class JavaRoutingDsl extends WithApplication {
     public void fullPath() {
         //#full-path
         Router router = routingDsl
-            .GET("/assets/*file").routeTo(file ->
+            .GET("/assets/*file").routingTo( (request, file) ->
                 ok("Serving " + file)
             )
             .build();
@@ -67,7 +68,7 @@ public class JavaRoutingDsl extends WithApplication {
     public void regexp() {
         //#regexp
         Router router = routingDsl
-            .GET("/api/items/$id<[0-9]+>").routeTo(id ->
+            .GET("/api/items/$id<[0-9]+>").routingTo( (request, id) ->
                 ok("Getting item " + id)
             )
             .build();
@@ -80,7 +81,7 @@ public class JavaRoutingDsl extends WithApplication {
     public void integer() {
         //#integer
         Router router = routingDsl
-            .GET("/api/items/:id").routeTo((Integer id) ->
+            .GET("/api/items/:id").routingTo((Http.Request request, Integer id) ->
                 ok("Getting item " + id)
             )
             .build();
@@ -93,7 +94,7 @@ public class JavaRoutingDsl extends WithApplication {
     public void async() {
         //#async
         Router router = routingDsl
-            .GET("/api/items/:id").routeAsync((Integer id) ->
+            .GET("/api/items/:id").routingAsync((Http.Request request, Integer id) ->
                 CompletableFuture.completedFuture(ok("Getting item " + id))
             )
             .build();
@@ -132,8 +133,8 @@ public class JavaRoutingDsl extends WithApplication {
         RoutingDsl routingDsl = new RoutingDsl(bodyParser, javaContextComponents);
         //#new-routing-dsl
         Router router = routingDsl
-                .GET("/hello/:to").routeTo(to ->
-                        ok("Hello " + to)
+                .GET("/hello/:to").routingTo((request, to) ->
+                    ok("Hello " + to)
                 )
                 .build();
 

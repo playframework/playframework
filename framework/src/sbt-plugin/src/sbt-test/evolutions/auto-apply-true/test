@@ -1,0 +1,24 @@
+> run
+
+# Evolutions will be applied automatically since autoApply=true
+> verifyResourceContains / 200 Player1
+
+# Add a new evolution to verify that it will be applied automatically
+$ copy-file changes/2.sql conf/evolutions/default/2.sql
+# Give the file watcher some time to react
+$ sleep 2000
+
+> verifyResourceContains / 200 Player2
+
+> playStop
+
+# Testing when running in PROD mode
+
+# Generate a secret so that won't be the cause of the failure
+> playUpdateSecret
+# Should start successfully when there are evolutions and `autoApply=true`
+> runProd --no-exit-sbt
+$ sleep 2000
+$ exists target/universal/stage/RUNNING_PID
+> verifyResourceContains / 200 Player1
+> stopProd --no-exit-sbt

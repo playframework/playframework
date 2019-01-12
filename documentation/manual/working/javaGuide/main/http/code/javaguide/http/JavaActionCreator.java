@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http;
@@ -17,8 +17,8 @@ public class JavaActionCreator implements play.http.ActionCreator {
     public Action createAction(Http.Request request, Method actionMethod) {
         return new Action.Simple() {
             @Override
-            public CompletionStage<Result> call(Http.Context ctx) {
-                return delegate.call(ctx);
+            public CompletionStage<Result> call(Http.Request req) {
+                return delegate.call(req);
             }
         };
     }

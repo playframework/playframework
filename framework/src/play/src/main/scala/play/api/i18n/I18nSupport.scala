@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.i18n
@@ -109,14 +109,17 @@ trait I18NSupportLowPriorityImplicits {
      * For example:
      * {{{
      * implicit val messagesApi: MessagesApi = ...
-     * Ok(Messages("hello.world")).clearingLang
+     * Ok(Messages("hello.world")).withoutLang
      * }}}
      *
      * @return the new result
      */
-    def clearingLang(implicit messagesApi: MessagesApi): Result = {
+    def withoutLang(implicit messagesApi: MessagesApi): Result = {
       messagesApi.clearLang(result)
     }
+
+    @deprecated("Use withoutLang", "2.7.0")
+    def clearingLang(implicit messagesApi: MessagesApi): Result = withoutLang
   }
 }
 

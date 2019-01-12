@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.jpa;
@@ -29,11 +29,11 @@ public class TransactionalAction extends Action<Transactional> {
         this.jpaApi = jpaApi;
     }
 
-    public CompletionStage<Result> call(final Context ctx) {
+    public CompletionStage<Result> call(final Request req) {
         return jpaApi.withTransaction(
             configuration.value(),
             configuration.readOnly(),
-            () -> delegate.call(ctx)
+            () -> delegate.call(req)
         );
     }
 

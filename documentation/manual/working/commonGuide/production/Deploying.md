@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Deploying your application
 
 We have seen how to run a Play application in development mode, however the `run` command should not be used to run an application in production mode.  When using `run`, on each request, Play checks with sbt to see if any files have changed, and this may have significant performance impacts on your application.
@@ -7,7 +7,10 @@ There are several ways to deploy a Play application in production mode. Let's st
 
 ## The application secret
 
-Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=abcdefghijk`.  You must generate your own secret to use here.
+Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b`.  You must generate your own secret to use when deploying to production.
+
+## Deploying Play with JPA
+ If you are using JPA, you need to take a look at [Deploying with JPA](https://www.playframework.com/documentation/2.6.x/JavaJPA#deploying-play-with-jpa).
 
 ## Using the dist task
 
@@ -54,7 +57,7 @@ To run the application, unzip the file on the target server, and then run the sc
 
 ```bash
 $ unzip my-first-app-1.0.zip
-$ my-first-app-1.0/bin/my-first-app -Dplay.http.secret.key=abcdefghijk
+$ my-first-app-1.0/bin/my-first-app -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
@@ -85,7 +88,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 
 ## The Native Packager
 
-Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.4/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.14/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 [my-first-app] $ universal:packageBin
@@ -100,16 +103,16 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/) on the native packager plugin for more information.
+Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/) on the native packager plugin for more information.
 
 ### Build a server distribution
 
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/index.html#default-mappings)
+* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_server/index.html#default-mappings)
 
-More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/index.html).
+More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
@@ -152,7 +155,7 @@ s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
 
-Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.4/recipes/play.html) for more details.
+Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.14/recipes/play.html) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
@@ -160,7 +163,7 @@ To prevent Play from creating a PID just set the property to `/dev/null`:
 -Dpidfile.path=/dev/null
 ```
 
-For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.4/archetypes/java_app/customize.html).
+For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
 
@@ -221,7 +224,7 @@ This cleans and compiles your application, retrieves the required dependencies a
 For example to start an application of the project `my-first-app` from the project folder you can:
 
 ```bash
-$ target/universal/stage/bin/my-first-app -Dplay.http.secret.key=abcdefghijk
+$ target/universal/stage/bin/my-first-app -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
@@ -259,7 +262,7 @@ Now add the following configuration to your `build.sbt`:
 Now you can build the artifact by running `sbt assembly`, and run your application by running:
 
 ```
-$ java -Dplay.http.secret.key=abcdefghijk -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
+$ java -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
 ```
 
 You'll need to substitute in the right project name, version and scala version, of course.
