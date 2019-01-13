@@ -324,8 +324,8 @@ object Samples {
       val out = Source.single("Hello!").concat(Source.maybe)
 
       Flow.fromSinkAndSource(in, out)
-      .watchTermination(){ (_, fut) =>
-      fut onComplete {
+      .watchTermination(){ (_, future) =>
+      future.onComplete {
         case Success(_) =>
         //detects when client disconnected
           println("Client disconnected")
