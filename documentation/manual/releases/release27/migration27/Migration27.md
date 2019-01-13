@@ -123,57 +123,45 @@ To make the API more clear around this, there are now `moveTo` and `copyTo` meth
 Java
 : ```java
 package controllers;
-
 import play.libs.Files;
 import play.mvc.*;
-
 import java.nio.file.Paths;
-
 public class UploadController extends Controller {
-
-    public Result upload(Http.Request request) {
+  public Result upload(Http.Request request) {
         Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
         Http.MultipartFormData.FilePart<Files.TemporaryFile> picture = body.getFile("picture");
         if (picture != null) {
-            String fileName = picture.getFilename();
-            String contentType = picture.getContentType();
-            Files.TemporaryFile file = picture.getRef();
-
-            // Use copyTo if you want to retain the file for sure when using the temporary file
-            // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
-            file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
-            return ok("File uploaded");
+          String fileName = picture.getFilename();
+          String contentType = picture.getContentType();
+          Files.TemporaryFile file = picture.getRef();
+          // Use copyTo if you want to retain the file for sure when using the temporary file
+          // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
+          file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
+          return ok("File uploaded");
         } else {
-            return badRequest().flashing("error", "Missing file");
+          return badRequest().flashing("error", "Missing file");
         }
-    }
-
+  }
 }
 ```
 
 Scala
 : ```scala
 package controllers
-
 import java.nio.file.Paths
-
 import javax.inject.Inject
 import play.api.mvc._
-
 class UploadController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
-
   def upload = Action(parse.multipartFormData) { request =>
-    request.body.file("picture").map { picture =>
-
-      val filename = Paths.get(picture.filename).getFileName
-
-      // Use copyTo if you want to retain the file for sure when using the temporary file
-      // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
-      picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
-      Ok("File uploaded")
-    }.getOrElse {
-      Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
-    }
+        request.body.file("picture").map { picture =>
+          val filename = Paths.get(picture.filename).getFileName
+          // Use copyTo if you want to retain the file for sure when using the temporary file
+          // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
+          picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
+          Ok("File uploaded")
+        }.getOrElse {
+          Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
+        }
   }
 }
 ```
