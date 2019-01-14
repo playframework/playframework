@@ -31,13 +31,8 @@ jobs:
     - stage: validations
       script: framework/bin/validate-code
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: framework/bin/validate-docs
-      name: "Validate docs (links, sample code, etc.)"
     - script: framework/bin/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
-    - stage: validations
-      script: framework/bin/publish-local
-      name: "Run a publishLocal for the default scala version"
     - stage: test
       script: framework/bin/test-scala-212
       name: "Run tests for Scala 2.12"
