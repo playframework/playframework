@@ -939,12 +939,8 @@ object FormSpec {
       .build()
   }
 
-  def dummyMultipartRequest(dataParts: Map[String, Array[String]] = Map.empty, fileParts: List[FilePart[TemporaryFile]] = List.empty): Request = {
-    new RequestBuilder().method("POST").uri("http://localhost/test").build().withBody(
-      new RequestBody(new Http.MultipartFormData[TemporaryFile] {
-        override def asFormUrlEncoded(): util.Map[String, Array[String]] = dataParts.asJava
-        override def getFiles: util.List[FilePart[TemporaryFile]] = fileParts.asJava
-      }))
+  def dummyMultipartRequest(dataParts: Map[String, Array[String]] = Map.empty, fileParts: List[FilePart[_]] = List.empty): Request = {
+    new RequestBuilder().method("POST").uri("http://localhost/test").bodyMultipart(dataParts.asJava, fileParts.asJava).build()
   }
 
   def validatorFactory(): ValidatorFactory = {
