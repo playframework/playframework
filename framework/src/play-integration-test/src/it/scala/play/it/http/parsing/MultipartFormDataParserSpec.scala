@@ -106,13 +106,22 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
         parts.files must haveLength(5)
         parts.file("file1") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
+          case filePart => {
+            PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
+            filePart.fileSize must_== 16
+          }
         }
         parts.file("file2") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the second file\r\n"
+          case filePart => {
+            PlayIO.readFileAsString(filePart.ref) must_== "the second file\r\n"
+            filePart.fileSize must_== 17
+          }
         }
         parts.file("file3") must beSome.like {
-          case filePart => PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
+          case filePart => {
+            PlayIO.readFileAsString(filePart.ref) must_== "the third file (with 'Content-Disposition: file' instead of 'form-data' as used in webhook callbacks of some scanners, see issue #8527)\r\n"
+            filePart.fileSize must_== 137
+          }
         }
         parts.file("file_with_space_only") must beSome.like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== " "
@@ -211,7 +220,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "return server internal error when file upload fails because temporary file creator fails" in withClientAndServer(1 /* super small total space */ ) { ws =>
       val fileBody: ByteString = ByteString.fromString("the file body")
       val sourceFileBody: Source[ByteString, NotUsed] = Source.single(fileBody)
-      val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(key = "file", filename = "file.txt", contentType = Option("text/plain"), ref = sourceFileBody)
+      val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(key = "file", filename = "file.txt", contentType = Option("text/plain"), ref = sourceFileBody, fileSize = fileBody.size)
 
       val response = ws
         .url("/")
