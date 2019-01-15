@@ -20,7 +20,7 @@ The Play team uses [Lightbend Tech Hub](https://developer.lightbend.com/start/?g
 | Chatroom using Websockets Example         | [Download (zip)](https://example.lightbend.com/v1/download/play-java-chatroom-example)   | [Github](https://github.com/playframework/play-java-chatroom-example/tree/2.6.x)   |
 | Streaming Example                         | [Download (zip)](https://example.lightbend.com/v1/download/play-java-streaming-example)  | [Github](https://github.com/playframework/play-java-streaming-example/tree/2.6.x)  |
 | Compile Time Dependency Injection Example | [Download (zip)](https://example.lightbend.com/v1/download/play-java-compile-di-example) | [Github](https://github.com/playframework/play-java-compile-di-example/tree/2.6.x) |
-| using Dagger 2 for Compile Time DI        | [Download (zip)](https://example.lightbend.com/v1/download/play-java-dagger2-example)    | [Github](https://github.com/playframework/play-java-dagger2-example/tree/2.6.x)    |
+| Using Dagger 2 for Compile Time DI        | [Download (zip)](https://example.lightbend.com/v1/download/play-java-dagger2-example)    | [Github](https://github.com/playframework/play-java-dagger2-example/tree/2.6.x)    |
 
 ### Scala
 
