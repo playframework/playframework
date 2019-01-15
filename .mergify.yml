@@ -1,6 +1,8 @@
 pull_request_rules:
 
   - name: remove outdated reviews
+    conditions:
+      - -merged
     actions:
       dismiss_reviews:
 
