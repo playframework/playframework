@@ -33,7 +33,7 @@ class ApplicationEvolutions @Inject() (
 
   private var invalidDatabaseRevisions = 0
 
-  def finished = invalidDatabaseRevisions == 0
+  def isUpToDate = invalidDatabaseRevisions == 0
 
   /**
    * Checks the evolutions state. Called on construction.
