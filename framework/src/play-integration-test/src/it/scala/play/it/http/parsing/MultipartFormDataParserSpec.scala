@@ -41,6 +41,22 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |text field with unquoted name and colon
       |--aabbccddee
+      |Content-Disposition: form-data; name="arr[]"
+      |
+      |array value 0
+      |--aabbccddee
+      |Content-Disposition: form-data; name="arr[]"
+      |
+      |array value 1
+      |--aabbccddee
+      |Content-Disposition: form-data; name="orderedarr[0]"
+      |
+      |ordered array value 0
+      |--aabbccddee
+      |Content-Disposition: form-data; name="orderedarr[1]"
+      |
+      |ordered array value 1
+      |--aabbccddee
       |Content-Disposition: form-data; name="file_with_space_only"; filename="with_space_only.txt"
       |Content-Type: text/plain
       |
@@ -99,11 +115,15 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
     result must beRight.like {
       case parts =>
-        parts.dataParts must haveLength(4)
+        parts.dataParts must haveLength(7)
         parts.dataParts.get("text1") must beSome(Seq("the first text field"))
         parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
         parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
         parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
+        parts.dataParts.get("arr[]").get must contain(("array value 0"))
+        parts.dataParts.get("arr[]").get must contain(("array value 1"))
+        parts.dataParts.get("orderedarr[0]") must beSome(Seq("ordered array value 0"))
+        parts.dataParts.get("orderedarr[1]") must beSome(Seq("ordered array value 1"))
         parts.files must haveLength(5)
         parts.file("file1") must beSome.like {
           case filePart => {
