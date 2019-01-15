@@ -1,17 +1,11 @@
 pull_request_rules:
 
-  - name: remove outdated reviews
-    conditions:
-      - -merged
-    actions:
-      dismiss_reviews:
-
   - name: Merge PRs that are ready
     conditions:
       - status-success=continuous-integration/travis-ci/pr 
       - status-success=WIP
       - status-success=typesafe-cla-validator
-      - "#approved-reviews-by>=2"
+      - "#approved-reviews-by>=1"
       - "#review-requested=0"
       - "#changes-requested-reviews-by=0"
       - label!=block-merge
