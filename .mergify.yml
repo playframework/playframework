@@ -12,7 +12,6 @@ pull_request_rules:
       - "#approved-reviews-by>=2"
       - "#review-requested=0"
       - "#changes-requested-reviews-by=0"
-      - "#commented-reviews-by=0"
       - label!=block-merge
     actions:
       merge:
