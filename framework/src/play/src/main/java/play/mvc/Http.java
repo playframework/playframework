@@ -41,6 +41,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
@@ -1213,7 +1214,7 @@ public class Http {
          * @return the modified builder
          */
         protected RequestBuilder body(RequestBody body, String contentType) {
-            header("Content-Type", contentType);
+            header(HeaderNames.CONTENT_TYPE, contentType);
             body(body);
             return this;
         }
@@ -1230,12 +1231,56 @@ public class Http {
                 headers(getHeaders().remove(HeaderNames.CONTENT_LENGTH).remove(HeaderNames.TRANSFER_ENCODING));
             } else {
                 if (!getHeaders().get(HeaderNames.TRANSFER_ENCODING).isPresent()) {
-                    int length = body.asBytes().length();
-                    header(HeaderNames.CONTENT_LENGTH, Integer.toString(length));
+                    final MultipartFormData<?> multipartFormData = body.asMultipartFormData();
+                    if (multipartFormData != null) {
+                        header(HeaderNames.CONTENT_LENGTH, Long.toString(calcMultipartFormDataBodyLength(multipartFormData)));
+                    } else {
+                        int length = body.asBytes().length();
+                        header(HeaderNames.CONTENT_LENGTH, Integer.toString(length));
+                    }
                 }
             }
             req = req.withBody(body);
             return this;
+        }
+
+        private long calcMultipartFormDataBodyLength(final MultipartFormData<?> multipartFormData) {
+            final String boundaryToContentTypeStart = MultipartFormatter.boundaryToContentType("");
+            final String boundary = getHeaders().get(HeaderNames.CONTENT_TYPE)
+                    .filter(ct -> ct.startsWith(boundaryToContentTypeStart))
+                    .map(ct -> "\r\n--" + ct.substring(boundaryToContentTypeStart.length()))
+                    .orElseThrow(() -> new RuntimeException(("Content-Type header starting with \"" + boundaryToContentTypeStart + "\" needs to be present")));
+
+            long dataSizeSum = multipartFormData.asFormUrlEncoded().entrySet().stream().mapToLong(dataPart -> Arrays.stream(dataPart.getValue()).mapToLong(value ->
+                    partLength(boundary, "form-data", dataPart.getKey() + (dataPart.getValue().length > 1 ? "[]" : ""), null, null, value)
+            ).sum()).sum();
+
+            long fileHeadersSizeSum = multipartFormData.getFiles().stream()
+                    .mapToLong(filePart ->
+                        // Pass empty body because we add the file size sum later instead anyway (see next assignment below)
+                        partLength(boundary, filePart.getDispositionType(), filePart.getKey(), filePart.getFilename(), filePart.getContentType(), "")
+                    ).sum();
+            long fileSizeSum = multipartFormData.getFiles().stream().mapToLong(filePart -> filePart.getFileSize()).sum();
+
+            long length = dataSizeSum + fileHeadersSizeSum + fileSizeSum;
+
+            if(length > 0) {
+                // Remove trailing "\r\n" from first boundary
+                length -= 2;
+                // Add last boundary with double dash (--) at the end
+                length += (boundary + "--").getBytes(StandardCharsets.UTF_8).length;
+            }
+            return length;
+        }
+
+        private int partLength(final String boundary, final String dispositionType, final String name, final String filename, final String contentType, final String body) {
+            final String part =
+                    boundary + "\r\n" +
+                    "Content-Disposition: " + dispositionType + "; name=\"" + name  + "\"" + (filename != null ? "; filename=\"" + filename + "\"" : "") + "\r\n" +
+                    (contentType != null ? "Content-Type: " + contentType + "\r\n" : "") +
+                    "\r\n" +
+                    body;
+            return part.getBytes(StandardCharsets.UTF_8).length;
         }
 
         /**
@@ -1313,14 +1358,29 @@ public class Http {
         }
 
         /**
-         * Set a Multipart Form url encoded body to this request.
+         * Set a Multipart Form url encoded body to this request saving it as a raw body.
+         *
+         * @param data the multipart-form parameters
+         * @param temporaryFileCreator the temporary file creator.
+         * @param mat a Akka Streams Materializer
+         * @return the modified builder
+         *
+         * @deprecated Deprecated as of 2.7.0. Renamed to {@link #bodyRaw(List, Files.TemporaryFileCreator, Materializer)}.
+         */
+        @Deprecated
+        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
+            return bodyRaw(data, temporaryFileCreator, mat);
+        }
+
+        /**
+         * Set a Multipart Form url encoded body to this request saving it as a raw body.
          *
          * @param data the multipart-form parameters
          * @param temporaryFileCreator the temporary file creator.
          * @param mat a Akka Streams Materializer
          * @return the modified builder
          */
-        public RequestBuilder bodyMultipart(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
+        public RequestBuilder bodyRaw(List<MultipartFormData.Part<Source<ByteString, ?>>> data, Files.TemporaryFileCreator temporaryFileCreator, Materializer mat) {
             String boundary = MultipartFormatter.randomBoundary();
             try {
                 ByteString materializedData = MultipartFormatter
@@ -1334,6 +1394,28 @@ public class Http {
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Failure while materializing Multipart/Form Data", e);
             }
+        }
+
+        /**
+         * Set a Multipart Form url encoded body to this request.
+         *
+         * @param formData the URL form-encoded data part
+         * @param files the files part
+         * @return the modified builder
+         */
+        public RequestBuilder bodyMultipart(Map<String, String[]> formData, List<MultipartFormData.FilePart> files) {
+            MultipartFormData multipartFormData = new MultipartFormData() {
+                @Override
+                public Map<String, String[]> asFormUrlEncoded() {
+                    return Collections.unmodifiableMap(formData);
+                }
+
+                @Override
+                public List<FilePart> getFiles() {
+                    return Collections.unmodifiableList(files);
+                }
+            };
+            return body(new RequestBody(multipartFormData), MultipartFormatter.boundaryToContentType(MultipartFormatter.randomBoundary()));
         }
 
         /**
@@ -1882,17 +1964,23 @@ public class Http {
             final String contentType;
             final A ref;
             final String dispositionType;
+            final long fileSize;
 
             public FilePart(String key, String filename, String contentType, A ref) {
-                this(key, filename, contentType, ref, "form-data");
+                this(key, filename, contentType, ref, -1);
             }
 
-            public FilePart(String key, String filename, String contentType, A ref, String dispositionType) {
+            public FilePart(String key, String filename, String contentType, A ref, long fileSize) {
+                this(key, filename, contentType, ref, fileSize, "form-data");
+            }
+
+            public FilePart(String key, String filename, String contentType, A ref, long fileSize, String dispositionType) {
                 this.key = key;
                 this.filename = filename;
                 this.contentType = contentType;
                 this.ref = ref;
                 this.dispositionType = dispositionType;
+                this.fileSize = fileSize;
             }
 
             /**
@@ -1956,6 +2044,15 @@ public class Http {
              */
             public String getDispositionType() {
                 return dispositionType;
+            }
+
+            /**
+             * The size of the file in bytes.
+             *
+             * @return the size of the file in bytes
+             */
+            public long getFileSize() {
+                return fileSize;
             }
 
         }
@@ -3279,8 +3376,10 @@ public class Http {
 
     /**
      * Defines all standard HTTP status codes.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7231">RFC 7231</a> and <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>
      */
-    public static interface Status {
+    public interface Status {
         int CONTINUE = 100;
         int SWITCHING_PROTOCOLS = 101;
 
@@ -3325,7 +3424,11 @@ public class Http {
         int LOCKED = 423;
         int FAILED_DEPENDENCY = 424;
         int UPGRADE_REQUIRED = 426;
+
+        // See https://tools.ietf.org/html/rfc6585 for the following statuses
+        int PRECONDITION_REQUIRED = 428;
         int TOO_MANY_REQUESTS = 429;
+        int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
 
         int INTERNAL_SERVER_ERROR = 500;
         int NOT_IMPLEMENTED = 501;
@@ -3334,6 +3437,9 @@ public class Http {
         int GATEWAY_TIMEOUT = 504;
         int HTTP_VERSION_NOT_SUPPORTED = 505;
         int INSUFFICIENT_STORAGE = 507;
+
+        // See https://tools.ietf.org/html/rfc6585#section-6
+        int NETWORK_AUTHENTICATION_REQUIRED = 511;
     }
 
     /** Common HTTP MIME types */

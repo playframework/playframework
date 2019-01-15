@@ -19,6 +19,7 @@ public class HomeController extends Controller {
         Http.MultipartFormData.FilePart<TemporaryFile> picture = body.getFile("picture");
         if (picture != null) {
             String fileName = picture.getFilename();
+            long fileSize = picture.getFileSize();
             String contentType = picture.getContentType();
             TemporaryFile file = picture.getRef();
             file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);

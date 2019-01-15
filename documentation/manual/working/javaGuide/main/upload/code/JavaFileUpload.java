@@ -77,6 +77,7 @@ public class JavaFileUpload extends WithApplication {
                                                 filename,
                                                 contentType,
                                                 file,
+                                                results.getCount(),
                                                 dispositionType))
                         ));
             };
@@ -103,18 +104,18 @@ public class JavaFileUpload extends WithApplication {
         Path tmpFile = Files.createTempFile("temp", "txt");
         Files.write(tmpFile, "foo".getBytes());
         Source<ByteString, ?> source = FileIO.fromPath(tmpFile);
-        Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source);
+        Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp = new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source, Files.size(tmpFile));
         assertThat(contentAsString(call(new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                     @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
                     public Result uploadCustomMultiPart(Http.Request request) throws Exception {
                         final Http.MultipartFormData<File> formData = request.body().asMultipartFormData();
                         final Http.MultipartFormData.FilePart<File> filePart = formData.getFile("name");
                         final File file = filePart.getRef();
-                        final long size = Files.size(file.toPath());
+                        final long size = filePart.getFileSize();
                         Files.deleteIfExists(file.toPath());
                         return ok("Got: file size = " + size + "");
                     }
-                }, fakeRequest("POST", "/").bodyMultipart(Collections.singletonList(dp), tfc, mat), mat)),
+                }, fakeRequest("POST", "/").bodyRaw(Collections.singletonList(dp), tfc, mat), mat)),
                 equalTo("Got: file size = 3"));
     }
 }

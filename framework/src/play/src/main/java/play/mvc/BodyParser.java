@@ -673,6 +673,7 @@ public interface BodyParser<A> {
                     filePart.filename(),
                     OptionConverters.toJava(filePart.contentType()).orElse(null),
                     filePart.ref(),
+                    filePart.fileSize(),
                     filePart.dispositionType()
             );
         }
@@ -683,6 +684,7 @@ public interface BodyParser<A> {
                     filePart.getFilename(),
                     Option.apply(filePart.getContentType()),
                     filePart.getFile(),
+                    filePart.getFileSize(),
                     filePart.getDispositionType()
             );
         }

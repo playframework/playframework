@@ -89,6 +89,39 @@ Other methods that were added to improve Java API:
 
 The API for body parser was mixing `Integer` and `Long` to define buffer lengths which could lead to overflow of values. The configuration is now uniformed to use `Long`. It means that if you are depending on `play.api.mvc.PlayBodyParsers.DefaultMaxTextLength` for example, you then need to use a `Long`. As such, `play.api.http.ParserConfiguration.maxMemoryBuffer` is now a `Long` too.
 
+### New fields and methods added to `FilePart` and `FileInfo`
+
+[`Scala's`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html) and [`Java's`](api/java/play/mvc/Http.MultipartFormData.FilePart.html) `FilePart` classes have two new fields/methods which provide you the file size and the disposition type of a file that was uploaded via the `multipart/form-data` encoding:
+
+* [`fileSize`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#fileSize:Long) in the Scala API and [`getFileSize()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFileSize--) in the Java API
+* [`dispositionType`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#dispositionType:String) in the Scala API and [`getDispositionType()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getDispositionType--) in the Java API
+
+Scala's [`FileInfo`](api/scala/play/core/parsers/Multipart$.html#FileInfoextendsProductwithSerializable) class does have the `dispositionType` field now as well.
+
+If you have Scala `case` statements containing `FilePart` or `FileInfo` you need to update those statements to also include these new fields, otherwise you get compiler errors:
+
+FilePart
+: ```scala
+case FilePart(key, filename, contentType, file, fileSize, dispositionType) => ...
+// Or if you don't use these new fields:
+case FilePart(key, filename, contentType, file, _, _) => ...
+```
+
+FileInfo
+: ```scala
+case FileInfo(partName, filename, contentType, dispositionType) => ...
+// Or if you don't use these new fields:
+case FileInfo(partName, filename, contentType, _) => ...
+```
+
+### Pass size of uploaded file to `FilePart` when using a custom body parser
+
+When uploading a file via the `multipart/form-data` encoding in [[Play Scala|ScalaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] or [[Play Java|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] the `FilePart` now exposes the size of the uploaded file via [`fileSize`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#fileSize:Long) in the Scala API and [`getFileSize()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFileSize--) in the Java API.
+If you use a custom body parser for a file upload you need to pass the file size to the generated `FilePart` instance yourself. Otherwise the file size will not be set and default to `-1`. Have a look at the updated examples for a custom multipart file part body parser - in these example the `count` of the processed bytes (of the uploaded file) is passed to the created `FilePart` now:
+
+* [[Scala API example|ScalaFileUpload#Writing-your-own-body-parser]]
+* [[Java API example|JavaFileUpload#Writing-a-custom-multipart-file-part-body-parser]]
+
 ### Java's `FilePart` exposes the `TemporaryFile` for uploaded files
 
 By default, [[uploading files|JavaFileUpload]] via the `multipart/form-data` encoding uses a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html) API which relies on storing files in a temporary filesystem.
@@ -208,7 +241,7 @@ private static final Logger.ALogger logger = Logger.of(YourClass.class);
 Scala
 : ```scala
 import play.api.Logger
-private val logger = Logger(YourClass.class)
+private val logger = Logger(classOf[YourClass])
 ```
 
 For Scala, Play also provides a `play.api.Logging` trait that can be mixed into a class or trait to add the `val logger: Logger` automatically:
@@ -231,7 +264,7 @@ private static final Logger logger = LoggerFactory.getLogger(YourClass.class);
 
 Scala
 : ```scala
-private val logger = LoggerFactory.getLogger(YourClass.class);
+private val logger = LoggerFactory.getLogger(classOf[YourClass])
 ```
 
 If you'd like a more concise solution when using SLF4J directly for Java, you may also consider [Project Lombok's `@Slf4j` annotation](https://projectlombok.org/features/log).
@@ -530,6 +563,24 @@ This is because of some newer HTTP standards, specifically [RFC 7231, appendix B
 
 This section lists significant updates made to our dependencies.
 
+### Akka update
+
+Play 2.7 uses the latest version of Akka 2.5 series. Mixing versions of Akka libraries [is not allowed](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed) and the newest versions log a warning when they detect that multiple versions of Akka artifacts are being used. You see something like:
+
+```
+Detected possible incompatible versions on the classpath. Please note that a given Akka version MUST be the same across all modules of Akka that you are using, e.g. if you use [2.5.19] all other modules that are released together MUST be of the same version. Make sure you're using a compatible set of libraries. Possibly conflicting versions [2.5.4, 2.5.19] in libraries [akka-actor:2.5.19, akka-remote:2.5.4]
+```
+
+In this example, the fix would be to update `akka-remote` to the same version Play is using, e.g.:
+
+```scala
+val AkkaVersion = "2.5.19" // should match the version used by Play
+
+libraryDependencies += "com.typesafe.akka" %% "akka-remote" % AkkaVersion
+```
+
+If your application is using a version that is newer than the one used by Play, you can [[update the Akka version|ScalaAkka#Updating-Akka-version]] in your `build.sbt` file.
+
 ### HikariCP update
 
 HikariCP was updated to the latest version which finally removed the configuration `initializationFailFast`, replaced by `initializationFailTimeout`. See [HikariCP changelog](https://github.com/brettwooldridge/HikariCP/blob/dev/CHANGES) and [documentation for `initializationFailTimeout`](https://github.com/brettwooldridge/HikariCP#infrequently-used) to better understand how to use this configuration.
@@ -599,10 +650,16 @@ And for commons-lang3:
 ```scala
 // Visit https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 to see the list of versions available
 libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.8.1"
-
 ```
 
 ## Other important changes
+
+### Application starts when evolutions scripts need to be applied in `DEV` mode
+
+Up until Play 2.6, when a database needed evolutions scripts to be executed in `DEV` mode, an application would abort on startup. Therefore modules which depended on [`ApplicationEvolutions`](api/scala/play/api/db/evolutions/ApplicationEvolutions.html) were not even initialized. This meant you could be sure that if you depend on `ApplicationEvolutions` in a module, all evolution scripts were executed successfully at the time the module got initialized and you could e.g. insert data in the database from within such a module, relying on the fact that the evolutions scripts created tables or other database objects needed for your queries.
+
+Starting with Play 2.7 however, in `DEV` mode the application (and therefore all modules) will now *always* start, no matter if evolutions scripts need to be applied or not. This means you can *not* rely on the fact that evolution scripts were executed successfully and that a certain database structure is availabe at the time a module gets initialized.
+That's why we added [`ApplicationEvolutions.isUpToDate`](api/scala/play/api/db/evolutions/ApplicationEvolutions.html#isUpToDate:Boolean) which indicates if the process of applying evolutions is finished or not. Only if that method returns `true` you can be sure that all evolutions scripts were executed successfully. `isUpToDate` will become `true` at some point eventually, because each time you apply or resolve evolutions scripts in `DEV` mode an application automatically restarts, re-initializing all it's modules.
 
 ### Evolutions comment syntax
 
