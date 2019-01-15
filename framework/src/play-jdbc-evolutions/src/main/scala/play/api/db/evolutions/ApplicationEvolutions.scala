@@ -33,6 +33,12 @@ class ApplicationEvolutions @Inject() (
 
   private var invalidDatabaseRevisions = 0
 
+  /**
+   * Indicates if the process of applying evolutions scripts is finished or not.
+   * Only if that method returns true you can be sure that all evolutions scripts were executed successfully.
+   *
+   * @return true if all evolutions scripts are applied (or resolved) successfully.
+   */
   def isUpToDate = invalidDatabaseRevisions == 0
 
   /**
