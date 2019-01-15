@@ -211,6 +211,6 @@ In this example, `GET /about` redirects to an external website, but it's also po
 
 ## Custom routing
 
-Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or sird for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
+Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or SIRD for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
 
 See [[String Interpolating Routing DSL|ScalaSirdRouter]]
