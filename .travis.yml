@@ -1,32 +1,63 @@
 language: scala
-dist: trusty
-sudo: true
-group: beta
-jdk:
-  - oraclejdk8
+
+addons:
+  apt:
+    packages:
+      # Install xmllint used to get Akka HTTP version
+      - libxml2-utils
+
+before_install:
+  - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
+
+install:
+  - $JABBA_HOME/bin/jabba install $TRAVIS_JDK
+  - unset _JAVA_OPTIONS
+  - export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+
 env:
   global:
-    secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
+    - JABBA_HOME=$HOME/.jabba
+    - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
   matrix:
-    - SCRIPT=test-scala-211
-    - SCRIPT=test-scala-212
-    - SCRIPT=test-docs
-    - SCRIPT=test-sbt-plugins-0_13
-    - SCRIPT=test-sbt-plugins-1_0
-    - SCRIPT=validate-code
-    - SCRIPT=validate-microbenchmarks
-script:
-  - framework/bin/$SCRIPT
+    - TRAVIS_JDK=adopt@1.8.192-12
+
+stages:
+  - validations
+  - test
+  - test-sbt
+jobs:
+  include:
+    - stage: validations
+      script: framework/bin/validate-code
+      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+    - script: framework/bin/validate-microbenchmarks
+      name: "Validate that microbenchmarks are runnable"
+    - stage: test
+      script: framework/bin/test-scala-212
+      name: "Run tests for Scala 2.12"
+    - script: framework/bin/test-scala-211
+      name: "Run tests for Scala 2.11"
+    - script: framework/bin/test-docs
+      name: "Run documentation tests"
+    - stage: test-sbt
+      script: framework/bin/test-sbt-plugins-0_13
+      name: "Scripted tests for sbt 0.13"
+    - script: framework/bin/test-sbt-plugins-1_0
+      name: "Scripted tests for sbt 1"
+
 cache:
   directories:
-  - $HOME/.ivy2/cache
-  - $HOME/.sbt/boot/
+    - "$HOME/.ivy2/cache"
+    - "$HOME/.sbt"
+    - "$HOME/.jabba/jdk"
+
 before_cache:
-- rm -rf $HOME/.ivy2/local
-- rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
-- rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
-- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
-- find $HOME/.sbt -name "*.lock" -delete
+  - rm -rf $HOME/.ivy2/local
+  - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
+  - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt -name "*.lock" -delete
+
 notifications:
   webhooks:
     urls:
@@ -35,4 +66,3 @@ notifications:
     on_failure: always
   slack:
     secure: LIYWP1YF6DEXh4gBQ0DlaQP+kenerp7Q1AC3y/+egJYUu1g2TWmBlkcpXOcdHzrgTIUX/LYnSlhowIpsW7/YwcyLn3rOJI6SJM00DrDPRm6X1586P9DcR4XiX7MChewzbnmebx6KISt6bFtfvcd67J2cinmShwXQh2AmwvuT3Tc=
-
