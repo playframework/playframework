@@ -31,6 +31,16 @@ class ApplicationEvolutions @Inject() (
 
   private val logger = Logger(classOf[ApplicationEvolutions])
 
+  private var invalidDatabaseRevisions = 0
+
+  /**
+   * Indicates if the process of applying evolutions scripts is finished or not.
+   * Only if that method returns true you can be sure that all evolutions scripts were executed successfully.
+   *
+   * @return true if all evolutions scripts are applied (or resolved) successfully.
+   */
+  def isUpToDate = invalidDatabaseRevisions == 0
+
   /**
    * Checks the evolutions state. Called on construction.
    */
@@ -41,31 +51,36 @@ class ApplicationEvolutions @Inject() (
     // allow db modules to write evolution files
     dynamicEvolutions.create()
 
-    // In DEV mode EvolutionsWebCommands solely handles evolutions
-    if (environment.mode != Mode.Dev) {
-      dbApi.databases().foreach(ApplicationEvolutions.runEvolutions(_, config, evolutions, reader, (db, dbConfig, schema, scripts, hasDown, autocommit) => {
-        import Evolutions.toHumanReadableScript
+    dbApi.databases().foreach(ApplicationEvolutions.runEvolutions(_, config, evolutions, reader, (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+      import Evolutions.toHumanReadableScript
 
-        environment.mode match {
-          case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
-          case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
-          case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit, schema)
-          case Mode.Prod if hasDown =>
-            logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
-            logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+      def invalidDatabaseRevision() = {
+        invalidDatabaseRevisions += 1
+        throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+      }
 
-            throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+      environment.mode match {
+        case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
+        case Mode.Dev => invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands solely handles evolutions
+        case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
+        case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit, schema)
+        case Mode.Prod if hasDown =>
+          logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
+          logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
 
-          case Mode.Prod =>
-            logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
-            logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
+          invalidDatabaseRevision()
 
-            throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+        case Mode.Prod =>
+          logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
+          logger.warn(s"Run with -Dplay.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
 
-          case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-        }
-      }))
-    }
+          invalidDatabaseRevision()
+
+        case _ =>
+
+          invalidDatabaseRevision()
+      }
+    }))
   }
 
   start() // on construction
@@ -408,17 +423,22 @@ class EvolutionsWebCommands @Inject() (dbApi: DBApi, evolutions: EvolutionsApi, 
       }
 
       case _ => {
+        var autoApplyCount = 0
         if (!checkedAlready) {
           dbApi.databases().foreach(ApplicationEvolutions.runEvolutions(_, config, evolutions, reader, (db, dbConfig, schema, scripts, hasDown, autocommit) => {
             import Evolutions.toHumanReadableScript
 
             if (dbConfig.autoApply) {
               evolutions.evolve(db, scripts, autocommit, schema)
+              autoApplyCount += 1
             } else {
               throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
             }
           }))
           checkedAlready = true
+          if (autoApplyCount > 0) {
+            buildLink.forceReload()
+          }
         }
         None
       }
