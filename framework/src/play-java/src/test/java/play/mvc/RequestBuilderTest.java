@@ -20,8 +20,12 @@ import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -309,6 +313,54 @@ public class RequestBuilderTest {
         assertArrayEquals(new String[]{"world"}, parts.get().asFormUrlEncoded().get("hello"));
 
         Play.stop(app);
+    }
+
+    @Test
+    public void multipartFormContentLength() {
+        final Map<String, String[]> dataParts = new HashMap<>();
+        dataParts.put("field1", new String[]{"value1"});
+        dataParts.put("field2", new String[]{"value2-1", "value2.2"});
+
+        final List<Http.MultipartFormData.FilePart> fileParts = new ArrayList<>();
+        fileParts.add(new Http.MultipartFormData.FilePart<>("filefield1", "firstfile.txt", "text/plain", "abc", 3));
+        fileParts.add(new Http.MultipartFormData.FilePart<>("file_field_2", "secondfile.txt", "text/plain", "hello world", 11));
+
+        final Request request = new RequestBuilder().uri("http://playframework.com/")
+                .bodyMultipart(dataParts, fileParts)
+                .build();
+
+        assertNotNull(request.body().asMultipartFormData());
+        assertEquals(dataParts, request.body().asMultipartFormData().asFormUrlEncoded());
+        assertEquals(fileParts, request.body().asMultipartFormData().getFiles());
+
+        // Now let's check the calculated Content-Length. The request body should look like this when stringified:
+        // (You can copy the lines, save it with an editor with UTF-8 encoding and Windows line endings (\r\n) and the file size should be 542 bytes
+        /*
+        --somerandomboundary
+        Content-Disposition: form-data; name="field1"
+
+        value1
+        --somerandomboundary
+        Content-Disposition: form-data; name="field2[]"
+
+        value2-1
+        --somerandomboundary
+        Content-Disposition: form-data; name="field2[]"
+
+        value2.2
+        --somerandomboundary
+        Content-Disposition: form-data; name="filefield1"; filename="firstfile.txt"
+        Content-Type: text/plain
+
+        abc
+        --somerandomboundary
+        Content-Disposition: form-data; name="file_field_2"; filename="secondfile.txt"
+        Content-Type: text/plain
+
+        hello world
+        --somerandomboundary--
+        */
+        assertEquals(request.header(Http.HeaderNames.CONTENT_LENGTH).get(), "542");
     }
 
 }

@@ -5,7 +5,8 @@ import BuildSettings._
 import Dependencies._
 import Generators._
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.{javaAgents, resolvedJavaAgents}
-import com.typesafe.tools.mima.plugin.MimaKeys.{mimaPreviousArtifacts, mimaReportBinaryIssues}
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleResultTypeProblem, ProblemFilters}
+import com.typesafe.tools.mima.plugin.MimaKeys.{mimaBinaryIssueFilters, mimaPreviousArtifacts, mimaReportBinaryIssues}
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
@@ -87,7 +88,22 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
         twirlSources ++ twirlCompiledSources
       },
       Docs.apiDocsIncludeManaged := true
-    ).settings(Docs.playdocSettings: _*)
+    )
+    .settings(Docs.playdocSettings: _*)
+    .settings(
+      mimaBinaryIssueFilters := Seq(
+        // temporary exclusion for RC9
+        // RC9 contains an incomplete PR #8878 that was completed on #8913
+        // once we release 2.7.0 GA, MiMa must be configured to 2.7.0 and those exclusions can be removed
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#MultipartFormData#FilePart.this"),
+        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.apply"),
+        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.copy"),
+        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.this"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.MultipartFormData#FilePart.copy$default$5"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.MultipartFormData#FilePart.apply$default$5"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.MultipartFormData#FilePart.<init>$default$5")
+      )
+    )
     .dependsOn(
       BuildLinkProject,
       StreamsProject
