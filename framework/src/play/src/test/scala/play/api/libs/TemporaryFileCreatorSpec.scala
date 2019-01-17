@@ -189,7 +189,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         writeFile(destination, "already exists")
 
         val to = creator.create(file).copyTo(destination, replace = false)
-        new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+        new String(java.nio.file.Files.readAllBytes(to)) must contain("already exists")
       }
 
       "delete source file has no impact on the destination file" in new WithScope() {
