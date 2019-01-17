@@ -231,6 +231,101 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         writeFile(file, "file to be moved")
 
         // move the file
+        creator.create(file).moveFileTo(destination, replace = false)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+        destinationContent must beEqualTo("file to be moved")
+      }
+
+      "move when destination does not exists and replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        val destination = parentDirectory.resolve("destination.txt")
+
+        // Create source file only
+        writeFile(file, "file to be moved")
+
+        creator.create(file).moveFileTo(destination, replace = true)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+        destinationContent must beEqualTo("file to be moved")
+      }
+
+      "move when destination exists and replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        val destination = parentDirectory.resolve("destination.txt")
+
+        // Create both files
+        writeFile(file, "file to be moved")
+        writeFile(destination, "the destination file")
+
+        creator.create(file).moveFileTo(destination, replace = true)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+
+        val destinationContent = new String(java.nio.file.Files.readAllBytes(destination))
+        destinationContent must beEqualTo("file to be moved")
+      }
+
+      "do not move when destination exists and replace disabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("do-not-replace.txt")
+        val destination = parentDirectory.resolve("already-exists.txt")
+
+        writeFile(file, "file that won't be replaced")
+        writeFile(destination, "already exists")
+
+        val to = creator.create(file).moveFileTo(destination, replace = false)
+        new String(java.nio.file.Files.readAllBytes(to)) must contain("already exists")
+      }
+
+      "move a file atomically with replace enabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        writeFile(file, "file to be moved")
+
+        val destination = parentDirectory.resolve("destination.txt")
+        creator.create(file).atomicMoveFileWithFallback(destination)
+
+        JFiles.exists(file) must beFalse
+        JFiles.exists(destination) must beTrue
+      }
+    }
+
+    "when moving file with the deprecated API" in {
+
+      "move when destination does not exists and replace disabled" in new WithScope() {
+        val lifecycle = new DefaultApplicationLifecycle
+        val reaper = mock[TemporaryFileReaper]
+        val creator = new DefaultTemporaryFileCreator(lifecycle, reaper)
+
+        val file = parentDirectory.resolve("move.txt")
+        val destination = parentDirectory.resolve("does-not-exists.txt")
+
+        // Create a source file, but not the destination
+        writeFile(file, "file to be moved")
+
+        // move the file
         creator.create(file).moveTo(destination, replace = false)
 
         JFiles.exists(file) must beFalse
