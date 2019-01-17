@@ -106,8 +106,7 @@ object Files {
 
     /**
      * Move the file to the specified destination [[java.io.File]]. In some cases, the source and destination file
-     * may point to the same `inode` meaning that deleting the source will result in the destination being deleted
-     * too. See the documentation for [[java.nio.file.Files.move()]] to see more details.
+     * may point to the same `inode`. See the documentation for [[java.nio.file.Files.move()]] to see more details.
      *
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
@@ -138,8 +137,7 @@ object Files {
 
     /**
      * Move the file to the specified destination [[java.io.File]]. In some cases, the source and destination file
-     * may point to the same `inode` meaning that deleting the source will result in the destination being deleted
-     * too. See the documentation for [[java.nio.file.Files.move()]] to see more details.
+     * may point to the same `inode`. See the documentation for [[java.nio.file.Files.move()]] to see more details.
      *
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.

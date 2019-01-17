@@ -97,11 +97,7 @@ public final class Files {
 
         /**
          * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
-         * may point to the same {@code inode} meaning that deleting the source will result in the destination being deleted
-         * too. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
-         *
-         * This behavior is especially relevant if you are also using the {@link play.api.libs.Files.TemporaryFileReaper}
-         * which deletes temporary files.
+         * may point to the same {@code inode}. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
          *
          * @param destination the path to the destination file
          * @param replace true if an existing file should be replaced, false otherwise.
@@ -147,11 +143,7 @@ public final class Files {
 
         /**
          * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
-         * may point to the same {@code inode} meaning that deleting the source will result in the destination being deleted
-         * too. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
-         *
-         * This behavior is especially relevant if you are also using the {@link play.api.libs.Files.TemporaryFileReaper}
-         * which deletes temporary files.
+         * may point to the same {@code inode}. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
          *
          * @param destination the path to the destination file
          * @param replace true if an existing file should be replaced, false otherwise.
