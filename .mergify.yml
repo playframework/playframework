@@ -1,0 +1,29 @@
+pull_request_rules:
+
+  - name: Merge PRs that are ready
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr 
+      - status-success=WIP
+      - status-success=typesafe-cla-validator
+      - "#approved-reviews-by>=1"
+      - "#review-requested=0"
+      - "#changes-requested-reviews-by=0"
+      - label!=block-merge
+    actions:
+      merge:
+        method: merge
+        strict: smart
+
+  - name: Delete the merge-when-green label after merge
+    conditions:
+      - merged
+      - label=block-merge
+    actions:
+      label:
+        remove: [block-merge]
+
+  - name: Delete the PR branch after merge
+    conditions:
+      - merged
+    actions:
+      delete_head_branch: {}
