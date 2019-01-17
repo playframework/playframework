@@ -106,19 +106,18 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
         // copyTo (which is a new method in 2.7) returns Path instead of TemporaryFile
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.copyTo"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.copyTo"),
         ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.copyTo"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.copyTo"),
+        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
 
         // Rename moveTo and atomicMoveWithFallback to be able the change the return type to Path
         ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveFileTo"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.moveFileTo"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.moveFileTo$default$2"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.atomicMoveFileWithFallback"),
         ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveFileWithFallback")
       )
     )
