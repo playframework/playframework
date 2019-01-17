@@ -83,7 +83,7 @@ object Files {
      * @param to the destination file.
      * @param replace if it should replace an existing file.
      */
-    def copyTo(to: java.io.File, replace: Boolean = false): TemporaryFile = copyTo(to.toPath, replace)
+    def copyTo(to: java.io.File, replace: Boolean = false): Path = copyTo(to.toPath, replace)
 
     /**
      * Copy the file to the specified path destination and, if the destination exists, decide if replace it
@@ -92,7 +92,7 @@ object Files {
      * @param to the path destination.
      * @param replace if it should replace an existing file.
      */
-    def copyTo(to: Path, replace: Boolean): TemporaryFile = {
+    def copyTo(to: Path, replace: Boolean): Path = {
       val destination = try
         if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
         else if (!to.toFile.exists()) JFiles.copy(path, to)
@@ -101,7 +101,7 @@ object Files {
         case _: FileAlreadyExistsException => to
       }
 
-      temporaryFileCreator.create(destination)
+      destination
     }
 
     /**

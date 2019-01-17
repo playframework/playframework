@@ -47,7 +47,7 @@ public final class Files {
          *
          * @see #copyTo(Path, boolean)
          */
-        default TemporaryFile copyTo(File destination) {
+        default Path copyTo(File destination) {
             return copyTo(destination, false);
         }
 
@@ -60,7 +60,7 @@ public final class Files {
          *
          * @see #copyTo(Path, boolean)
          */
-        default TemporaryFile copyTo(File destination, boolean replace) {
+        default Path copyTo(File destination, boolean replace) {
             return copyTo(destination.toPath(), replace);
         }
 
@@ -71,7 +71,7 @@ public final class Files {
          *
          * @see #copyTo(Path, boolean)
          */
-        default TemporaryFile copyTo(Path destination) {
+        default Path copyTo(Path destination) {
             return copyTo(destination, false);
         }
 
@@ -82,7 +82,7 @@ public final class Files {
          * @param destination the path destination.
          * @param replace if it should replace an existing file.
          */
-        TemporaryFile copyTo(Path destination, boolean replace);
+        Path copyTo(Path destination, boolean replace);
 
         /**
          * Move the file using a {@link java.io.File}.
@@ -222,8 +222,8 @@ public final class Files {
         }
 
         @Override
-        public TemporaryFile copyTo(Path destination, boolean replace) {
-            return new DelegateTemporaryFile(temporaryFile.copyTo(destination, replace), this.temporaryFileCreator);
+        public Path copyTo(Path destination, boolean replace) {
+            return temporaryFile.copyTo(destination, replace);
         }
 
         @Override
