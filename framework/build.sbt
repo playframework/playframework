@@ -115,7 +115,11 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.copyTo")
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.copyTo"),
+
+        // Rename moveTo and atomicMoveWithFallback to be able the change the return type to Path
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveFileTo"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveFileWithFallback")
       )
     )
     .dependsOn(
