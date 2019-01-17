@@ -92,7 +92,7 @@ object Files {
      * @param replace true if an existing file should be replaced, false otherwise.
      */
     def moveTo(to: Path, replace: Boolean): TemporaryFile = {
-      try {
+      val destination = try {
         if (replace)
           JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
         else if (!to.toFile.exists())
@@ -102,7 +102,11 @@ object Files {
         case ex: FileAlreadyExistsException => to
       }
 
-      temporaryFileCreator.create(to)
+      new TemporaryFile {
+        override def path = destination
+        override def file = destination.toFile
+        override def temporaryFileCreator = TemporaryFile.this.temporaryFileCreator
+      }
     }
 
     /**
@@ -115,13 +119,14 @@ object Files {
      */
     // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
     def atomicMoveWithFallback(to: Path): TemporaryFile = {
-      try {
+      val destination = try {
         JFiles.move(path, to, StandardCopyOption.ATOMIC_MOVE)
       } catch {
         case outer: IOException =>
           try {
-            JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
+            val p = JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
             logger.debug(s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}")
+            p
           } catch {
             case inner: IOException =>
               inner.addSuppressed(outer)
@@ -129,7 +134,11 @@ object Files {
           }
       }
 
-      temporaryFileCreator.create(to)
+      new TemporaryFile {
+        override def path = destination
+        override def file = destination.toFile
+        override def temporaryFileCreator = TemporaryFile.this.temporaryFileCreator
+      }
     }
   }
 
