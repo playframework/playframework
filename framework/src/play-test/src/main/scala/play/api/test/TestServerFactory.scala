@@ -76,7 +76,9 @@ import scala.util.control.NonFatal
 
   protected def serverEndpoints(testServer: TestServer): ServerEndpoints = {
     val useAkkaHttp = testServer.serverProvider.get.isInstanceOf[AkkaHttpServerProvider]
-    val useHttp2 = testServer.application.configuration.get[Boolean]("play.server.akka.http2.enabled")
+    val useHttp2 = testServer.application.configuration
+      .getOptional[Boolean]("play.server.akka.http2.enabled")
+      .getOrElse(false)
 
     val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(_ => {
       val recipe = if (useAkkaHttp) {
