@@ -4,6 +4,7 @@
 
 package play.api.test
 
+import akka.annotation.ApiMayChange
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
@@ -72,7 +73,7 @@ abstract class WithServer(
 }
 
 /** Replacement for [[WithServer]], adding server endpoint info. */
-trait ForServer extends ForEach[RunningServer] with Scope {
+@ApiMayChange trait ForServer extends ForEach[RunningServer] with Scope {
   protected def applicationFactory: ApplicationFactory
   protected def testServerFactory: TestServerFactory = new DefaultTestServerFactory()
 
