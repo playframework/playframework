@@ -89,11 +89,11 @@ object Server {
    */
   private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
 
-    @inline def handleErrors(errorHandler: HttpErrorHandler): PartialFunction[Throwable, (RequestHeader, Handler)] = {
+    @inline def handleErrors(errorHandler: HttpErrorHandler, req: RequestHeader): PartialFunction[Throwable, (RequestHeader, Handler)] = {
       case e: ThreadDeath => throw e
       case e: VirtualMachineError => throw e
       case e: Throwable =>
-        val errorResult = errorHandler.onServerError(request, e)
+        val errorResult = errorHandler.onServerError(req, e)
         val errorAction = actionForResult(errorResult)
         (request, errorAction)
     }
@@ -101,18 +101,21 @@ object Server {
     try {
       // Get the Application from the try.
       val application = tryApp.get
+      // We managed to get an Application, now make a fresh request using the Application's RequestFactory.
+      // The request created by the request factory needs to be at this scope so that it can be
+      // used by application error handler. The reason for that is that this request is populated
+      // with all attributes necessary to translate it to Java.
+      // TODO: `copyRequestHeader` may be a misleading name here since the method is doing more than that.
+      val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
       try {
-        // We managed to get an Application, now make a fresh request
-        // using the Application's RequestFactory, then use the Application's
-        // logic to handle that request.
-        val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+        // We hen use the Application's logic to handle that request.
         val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
         (handlerHeader, handler)
       } catch {
-        handleErrors(application.errorHandler)
+        handleErrors(application.errorHandler, factoryMadeHeader)
       }
     } catch {
-      handleErrors(DefaultHttpErrorHandler)
+      handleErrors(DefaultHttpErrorHandler, request)
     }
   }
 
