@@ -47,7 +47,7 @@ public final class Files {
          *
          * @see #copyTo(Path, boolean)
          */
-        default TemporaryFile copyTo(File destination) {
+        default Path copyTo(File destination) {
             return copyTo(destination, false);
         }
 
@@ -60,7 +60,7 @@ public final class Files {
          *
          * @see #copyTo(Path, boolean)
          */
-        default TemporaryFile copyTo(File destination, boolean replace) {
+        default Path copyTo(File destination, boolean replace) {
             return copyTo(destination.toPath(), replace);
         }
 
@@ -71,7 +71,7 @@ public final class Files {
          *
          * @see #copyTo(Path, boolean)
          */
-        default TemporaryFile copyTo(Path destination) {
+        default Path copyTo(Path destination) {
             return copyTo(destination, false);
         }
 
@@ -82,7 +82,50 @@ public final class Files {
          * @param destination the path destination.
          * @param replace if it should replace an existing file.
          */
-        TemporaryFile copyTo(Path destination, boolean replace);
+        Path copyTo(Path destination, boolean replace);
+
+        /**
+         * Move the file using a {@link java.io.File}.
+         *
+         * @param destination the path to the destination file
+         *
+         * @see #moveFileTo(Path, boolean)
+         */
+        default Path moveFileTo(File destination) {
+            return moveFileTo(destination, false);
+        }
+
+        /**
+         * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
+         * may point to the same {@code inode}. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
+         *
+         * @param destination the path to the destination file
+         * @param replace true if an existing file should be replaced, false otherwise.
+         */
+        Path moveFileTo(File destination, boolean replace);
+
+        /**
+         * Move the file using a {@link java.nio.file.Path}.
+         *
+         * @param to the path to the destination file.
+         *
+         * @see #moveFileTo(Path, boolean)
+         */
+        default Path moveFileTo(Path to) {
+            return moveFileTo(to, false);
+        }
+
+        /**
+         * Move the file using a {@link java.nio.file.Path}.
+         *
+         * @param to the path to the destination file
+         * @param replace true if an existing file should be replaced, false otherwise.
+         *
+         * @see #moveFileTo(Path, boolean)
+         */
+        default Path moveFileTo(Path to, boolean replace) {
+            return moveFileTo(to.toFile(), replace);
+        }
 
         /**
          * Move the file using a {@link java.io.File}.
@@ -90,22 +133,24 @@ public final class Files {
          * @param destination the path to the destination file
          *
          * @see #moveTo(Path, boolean)
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(File)} instead.
          */
+        @Deprecated
         default TemporaryFile moveTo(File destination) {
             return moveTo(destination, false);
         }
 
         /**
          * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
-         * may point to the same {@code inode} meaning that deleting the source will result in the destination being deleted
-         * too. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
-         *
-         * This behavior is especially relevant if you are also using the {@link play.api.libs.Files.TemporaryFileReaper}
-         * which deletes temporary files.
+         * may point to the same {@code inode}. See the documentation for {@link java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
          *
          * @param destination the path to the destination file
          * @param replace true if an existing file should be replaced, false otherwise.
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(File, boolean)} instead.
          */
+        @Deprecated
         TemporaryFile moveTo(File destination, boolean replace);
 
         /**
@@ -114,7 +159,10 @@ public final class Files {
          * @param to the path to the destination file.
          *
          * @see #moveTo(Path, boolean)
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(Path)} instead.
          */
+        @Deprecated
         default TemporaryFile moveTo(Path to) {
             return moveTo(to, false);
         }
@@ -126,7 +174,10 @@ public final class Files {
          * @param replace true if an existing file should be replaced, false otherwise.
          *
          * @see #moveTo(Path, boolean)
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(Path, boolean)} instead.
          */
+        @Deprecated
         default TemporaryFile moveTo(Path to, boolean replace) {
             return moveTo(to.toFile(), replace);
         }
@@ -139,7 +190,7 @@ public final class Files {
          *
          * @param to the path to the destination file
          */
-        TemporaryFile atomicMoveWithFallback(File to);
+        Path atomicMoveFileWithFallback(File to);
 
         /**
          * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
@@ -149,6 +200,34 @@ public final class Files {
          *
          * @param to the path to the destination file
          */
+        default Path atomicMoveFileWithFallback(Path to) {
+            return atomicMoveFileWithFallback(to.toFile());
+        }
+
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #atomicMoveFileWithFallback(File)} instead.
+         */
+        @Deprecated
+        TemporaryFile atomicMoveWithFallback(File to);
+
+        /**
+         * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+         *
+         * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+         * existent files or not, considering that it will always replaces, makes the API more predictable.
+         *
+         * @param to the path to the destination file
+         *
+         * @deprecated Deprecated as of 2.7.0. Use {@link #atomicMoveFileWithFallback(Path)} instead.
+         */
+        @Deprecated
         default TemporaryFile atomicMoveWithFallback(Path to) {
             return atomicMoveWithFallback(to.toFile());
         }
@@ -217,16 +296,28 @@ public final class Files {
         }
 
         @Override
+        public Path moveFileTo(File to, boolean replace) {
+            return temporaryFile.moveFileTo(to, replace);
+        }
+
+        @Override
+        @Deprecated
         public TemporaryFile moveTo(File to, boolean replace) {
             return new DelegateTemporaryFile(temporaryFile.moveTo(to, replace), this.temporaryFileCreator);
         }
 
         @Override
-        public TemporaryFile copyTo(Path destination, boolean replace) {
-            return new DelegateTemporaryFile(temporaryFile.copyTo(destination, replace), this.temporaryFileCreator);
+        public Path copyTo(Path destination, boolean replace) {
+            return temporaryFile.copyTo(destination, replace);
         }
 
         @Override
+        public Path atomicMoveFileWithFallback(File to) {
+            return temporaryFile.atomicMoveFileWithFallback(to.toPath());
+        }
+
+        @Override
+        @Deprecated
         public TemporaryFile atomicMoveWithFallback(File to) {
             return new DelegateTemporaryFile(temporaryFile.atomicMoveWithFallback(to.toPath()), this.temporaryFileCreator);
         }

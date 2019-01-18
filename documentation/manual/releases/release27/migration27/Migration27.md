@@ -147,69 +147,20 @@ if (picture != null) {
 }
 ```
 
-### Differentiate `moveTo` and `copyTo` in `TemporaryFile`
+### Added `copyTo` and renamed the move methods in `TemporaryFile`
 
-Until Play 2.5, `moveTo` method was actually making a copy of the file to the destination and deleting the source. There was a subtle change in Play 2.6 where the file was instead being moved atomically depending on certain conditions. For such cases, both the source and destination end up using the same [`inode`](https://en.wikipedia.org/wiki/Inode) and then deleting the source implies that the destination will be deleted too.
+Until Play 2.5, the `moveTo` method was actually making a copy of the file to the destination and deleting the source. There was a subtle change in Play 2.6 where the file was instead being moved atomically depending on certain conditions. For such cases, both the source and destination end up using the same [`inode`](https://en.wikipedia.org/wiki/Inode).
+To make the API more clear around this, there is now a `copyTo` method which always creates a copy that does not share the `inode` of the source file.
 
-To make the API more clear around this, there are now `moveTo` and `copyTo` methods where `copyTo` always create a copy that does not share the same `inode`. So, if the application is configured to clean up temporary files (see documentation for [[Scala|ScalaFileUpload#Cleaning-up-temporary-files]] or [[Java|JavaFileUpload#Cleaning-up-temporary-files]]) and you want to retain the destination, then use `copyTo` instead of `moveTo`. For example:
+Another change in Play 2.7 is, that methods in `TemporaryFile`, which move a file, have been renamed:
 
-Java
-: ```java
-package controllers;
+| **deprecated method**          | **new method**
+|--------------------------------|-----------------------------------
+| `moveTo(...)`                  | `moveFileTo(...)`
+| `atomicMoveWithFallback(...)`  | `atomicMoveFileWithFallback(...)`
 
-import play.libs.Files;
-import play.mvc.*;
-
-import java.nio.file.Paths;
-
-public class UploadController extends Controller {
-
-    public Result upload(Http.Request request) {
-        Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
-        Http.MultipartFormData.FilePart<Files.TemporaryFile> picture = body.getFile("picture");
-        if (picture != null) {
-            String fileName = picture.getFilename();
-            String contentType = picture.getContentType();
-            Files.TemporaryFile file = picture.getRef();
-
-            // Use copyTo if you want to retain the file for sure when using the temporary file
-            // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
-            file.copyTo(Paths.get("/tmp/picture/destination.jpg"), true);
-            return ok("File uploaded");
-        } else {
-            return badRequest().flashing("error", "Missing file");
-        }
-    }
-
-}
-```
-
-Scala
-: ```scala
-package controllers
-
-import java.nio.file.Paths
-
-import javax.inject.Inject
-import play.api.mvc._
-
-class UploadController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
-
-  def upload = Action(parse.multipartFormData) { request =>
-    request.body.file("picture").map { picture =>
-
-      val filename = Paths.get(picture.filename).getFileName
-
-      // Use copyTo if you want to retain the file for sure when using the temporary file
-      // reaper. Use moveTo if you are not using the reaper or don't care about keeping the files.
-      picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
-      Ok("File uploaded")
-    }.getOrElse {
-      Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
-    }
-  }
-}
-```
+These new methods return a `Path` instead of a `TemporaryFile` now. Returning a `TemporaryFile` from these methods was a mistake from the beginning, because someone could get the wrong impression that such returned files are actual temporary files, which automatically will be removed by Play's temporary file cleaning facilities eventually at some point - which however isn't true.
+Because these methods are intended to be used when moving files out of Play's internal temp folder (where uploaded files get stored initially), it makes sense that eventually it's a developer's responsibility what to do with a moved destination file (and if, how and when to delete it). Changing the return type now clarifies that.
 
 ### Guice compatibility changes
 
