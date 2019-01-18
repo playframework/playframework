@@ -95,7 +95,7 @@ object Server {
       case e: Throwable =>
         val errorResult = errorHandler.onServerError(req, e)
         val errorAction = actionForResult(errorResult)
-        (request, errorAction)
+        (req, errorAction)
     }
 
     try {
