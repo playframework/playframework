@@ -105,8 +105,8 @@ object Server {
       // The request created by the request factory needs to be at this scope so that it can be
       // used by application error handler. The reason for that is that this request is populated
       // with all attributes necessary to translate it to Java.
-      // TODO: `copyRequestHeader` may be a misleading name here since the method is doing more than that.
-      val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+      // TODO: `copyRequestHeader` is a misleading name here since it is also populating the request with attributes
+      //       such as id, session, flash, etc.
       val enrichedRequest: RequestHeader = application.requestFactory.copyRequestHeader(request)
       try {
         // We hen use the Application's logic to handle that request.

@@ -88,6 +88,8 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Optional<SourceMapper> sourceMapper() {
+        // Using `devContext()` method here instead of `context.sourceMapper()` because it will then
+        // respect any overrides a user might define.
         return devContext().map(play.api.ApplicationLoader.DevContext::sourceMapper);
     }
 
@@ -98,6 +100,9 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public WebCommands webCommands() {
+        // We are maintaining state for webCommands because it is a mutable object
+        // where it is possible to add new handlers. Therefor the state needs to be
+        // consistent everywhere it is called.
         return this._webCommands.get();
     }
 
