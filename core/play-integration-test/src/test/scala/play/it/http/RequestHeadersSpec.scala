@@ -68,6 +68,21 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
       }
 
     }
+
+    "respect max header count setting" in {
+      withServerAndConfig("play.server.akka.max-header-count" -> "2")((Action, _) => Action(Results.Ok)) { port =>
+        // Note that, BasicHttpClient adds an extra Host header
+        val responses = BasicHttpClient.makeRequests(port)(
+          // Has two headers
+          BasicRequest("GET", "/", "HTTP/1.1", Map("a" -> "valid"), ""),
+          // Has three headers that exceed the max count 2
+          BasicRequest("GET", "/", "HTTP/1.1", Map("a" -> "invalid", "b" -> "invalid"), "")
+        )
+
+        responses.head.status must beEqualTo(OK)
+        responses.last.status must beEqualTo(BAD_REQUEST)
+      }
+    }
   }
 }
 

@@ -24,6 +24,7 @@ import akka.stream.TLSClientAuth
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
@@ -114,6 +115,15 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
+  /**
+   * Parses the config uses Config's built-in parsing of byte values but limits to the range of Int.
+   */
+  private def getIntBytes(config: Config, path: String): Int = {
+    val value: Long = config.getBytes(path)
+    if (value <= Int.MaxValue) value.toInt
+    else throw new ConfigException.BadValue(path, s"Value must not be larger than ${Int.MaxValue}")
+  }
+
   /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
   protected val parserSettings: ParserSettings = createParserSettings()
 
@@ -122,6 +132,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     ParserSettings(akkaHttpConfig)
       .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
       .withMaxHeaderValueLength(akkaServerConfig.get[ConfigMemorySize]("max-header-value-length").toBytes.toInt)
+      .withMaxHeaderCount(getIntBytes(akkaServerConfig.underlying, "max-header-count"))
       .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
