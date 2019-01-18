@@ -11,7 +11,7 @@ pull_request_rules:
       - label!=block-merge
     actions:
       merge:
-        method: merge
+        method: squash
         strict: smart
 
   - name: Delete the merge-when-green label after merge
