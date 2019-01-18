@@ -83,7 +83,7 @@ object Files {
      * @param to the destination file.
      * @param replace if it should replace an existing file.
      */
-    def copyTo(to: java.io.File, replace: Boolean = false): TemporaryFile = copyTo(to.toPath, replace)
+    def copyTo(to: java.io.File, replace: Boolean = false): Path = copyTo(to.toPath, replace)
 
     /**
      * Copy the file to the specified path destination and, if the destination exists, decide if replace it
@@ -92,7 +92,7 @@ object Files {
      * @param to the path destination.
      * @param replace if it should replace an existing file.
      */
-    def copyTo(to: Path, replace: Boolean): TemporaryFile = {
+    def copyTo(to: Path, replace: Boolean): Path = {
       val destination = try
         if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
         else if (!to.toFile.exists()) JFiles.copy(path, to)
@@ -101,19 +101,18 @@ object Files {
         case _: FileAlreadyExistsException => to
       }
 
-      temporaryFileCreator.create(destination)
+      destination
     }
 
     /**
      * Move the file to the specified destination [[java.io.File]]. In some cases, the source and destination file
-     * may point to the same `inode` meaning that deleting the source will result in the destination being deleted
-     * too. See the documentation for [[java.nio.file.Files.move()]] to see more details.
+     * may point to the same `inode`. See the documentation for [[java.nio.file.Files.move()]] to see more details.
      *
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
      */
-    def moveTo(to: java.io.File, replace: Boolean = false): TemporaryFile = {
-      moveTo(to.toPath, replace)
+    def moveFileTo(to: java.io.File, replace: Boolean = false): Path = {
+      moveFileTo(to.toPath, replace)
     }
 
     /**
@@ -122,7 +121,7 @@ object Files {
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
      */
-    def moveTo(to: Path, replace: Boolean): TemporaryFile = {
+    def moveFileTo(to: Path, replace: Boolean): Path = {
       val destination = try {
         if (replace)
           JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
@@ -133,7 +132,40 @@ object Files {
         case ex: FileAlreadyExistsException => to
       }
 
-      temporaryFileCreator.create(destination)
+      destination
+    }
+
+    /**
+     * Move the file to the specified destination [[java.io.File]]. In some cases, the source and destination file
+     * may point to the same `inode`. See the documentation for [[java.nio.file.Files.move()]] to see more details.
+     *
+     * @param to the path to the destination file
+     * @param replace true if an existing file should be replaced, false otherwise.
+     *
+     * @deprecated Since 2.7.0. Use [[moveFileTo()]] instead.
+     */
+    @deprecated("Use moveFileTo instead", "2.7.0")
+    def moveTo(to: java.io.File, replace: Boolean = false): TemporaryFile = {
+      moveTo(to.toPath, replace)
+    }
+
+    /**
+     * Move the file using a [[java.nio.file.Path]].
+     *
+     * @param to the path to the destination file
+     * @param replace true if an existing file should be replaced, false otherwise.
+     *
+     * @deprecated Since 2.7.0. Use [[moveFileTo()]] instead.
+     */
+    @deprecated("Use moveFileTo instead", "2.7.0")
+    def moveTo(to: Path, replace: Boolean): TemporaryFile = {
+      val destination = moveFileTo(to, replace)
+
+      new TemporaryFile {
+        override def path = destination
+        override def file = destination.toFile
+        override def temporaryFileCreator = TemporaryFile.this.temporaryFileCreator
+      }
     }
 
     /**
@@ -144,7 +176,7 @@ object Files {
      *
      * @param to the path to the destination file
      */
-    def atomicMoveWithFallback(to: File): TemporaryFile = atomicMoveWithFallback(to.toPath)
+    def atomicMoveFileWithFallback(to: File): Path = atomicMoveFileWithFallback(to.toPath)
 
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
@@ -155,14 +187,15 @@ object Files {
      * @param to the path to the destination file
      */
     // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
-    def atomicMoveWithFallback(to: Path): TemporaryFile = {
-      try {
+    def atomicMoveFileWithFallback(to: Path): Path = {
+      val destination = try {
         JFiles.move(path, to, StandardCopyOption.ATOMIC_MOVE)
       } catch {
         case outer: IOException =>
           try {
-            JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
+            val p = JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
             logger.debug(s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}")
+            p
           } catch {
             case inner: IOException =>
               inner.addSuppressed(outer)
@@ -170,7 +203,42 @@ object Files {
           }
       }
 
-      temporaryFileCreator.create(to)
+      destination
+    }
+
+    /**
+     * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+     *
+     * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+     * existent files or not, considering that it will always replaces, makes the API more predictable.
+     *
+     * @param to the path to the destination file
+     *
+     * @deprecated Since 2.7.0. Use [[atomicMoveFileWithFallback()]] instead.
+     */
+    @deprecated("Use atomicMoveFileWithFallback instead", "2.7.0")
+    def atomicMoveWithFallback(to: File): TemporaryFile = atomicMoveWithFallback(to.toPath)
+
+    /**
+     * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
+     *
+     * This always tries to replace existent files. Since it is platform dependent if atomic moves replaces
+     * existent files or not, considering that it will always replaces, makes the API more predictable.
+     *
+     * @param to the path to the destination file
+     *
+     * @deprecated Since 2.7.0. Use [[atomicMoveFileWithFallback()]] instead.
+     */
+    // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
+    @deprecated("Use atomicMoveFileWithFallback instead", "2.7.0")
+    def atomicMoveWithFallback(to: Path): TemporaryFile = {
+      val destination = atomicMoveFileWithFallback(to)
+
+      new TemporaryFile {
+        override def path = destination
+        override def file = destination.toFile
+        override def temporaryFileCreator = TemporaryFile.this.temporaryFileCreator
+      }
     }
   }
 

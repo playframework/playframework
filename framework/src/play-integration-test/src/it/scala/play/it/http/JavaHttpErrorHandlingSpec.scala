@@ -5,56 +5,85 @@
 package play.it.http
 
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 import java.util
+import java.util.concurrent.{CompletableFuture, CompletionStage}
 
-import play.api.http.{DefaultHttpErrorHandler, HttpErrorHandler}
-import play.api.mvc._
-import play.api.routing.Router
+import javax.inject.Provider
+import play._
+import play.api.mvc.RequestHeader
 import play.api.test.{ApplicationFactories, ApplicationFactory, PlaySpecification}
-import play.api._
+import play.api.{OptionalSourceMapper, Application => ScalaApplication}
 import play.core.{BuildLink, HandleWebCommandSupport, SourceMapper}
+import play.http.HttpErrorHandler
 import play.it.test.{EndpointIntegrationSpecification, OkHttpEndpointSupport}
+import play.mvc.{EssentialAction, EssentialFilter, Http, Result}
+import play.routing.{RequestFunctions, RoutingDslComponents}
 
-import scala.concurrent.Future
-
-class HttpErrorHandlingSpec extends PlaySpecification
-  with EndpointIntegrationSpecification with ApplicationFactories with OkHttpEndpointSupport {
+class JavaHttpErrorHandlingSpec extends PlaySpecification
+  with EndpointIntegrationSpecification
+  with ApplicationFactories
+  with OkHttpEndpointSupport {
 
   def createApplicationFactory(applicationContext: ApplicationLoader.Context, webCommandHandler: Option[HandleWebCommandSupport], filters: Seq[EssentialFilter]): ApplicationFactory = new ApplicationFactory {
-    override def create(): Application = {
-      val components = new BuiltInComponentsFromContext(applicationContext) {
+    override def create(): ScalaApplication = {
+      val components = new BuiltInComponentsFromContext(applicationContext) with RoutingDslComponents {
+
+        import scala.collection.JavaConverters._
+        import scala.compat.java8.OptionConverters
 
         // Add the web command handler if it is available
-        webCommandHandler.foreach(super.webCommands.addHandler)
+        webCommandHandler.foreach(webCommands().addHandler)
 
-        import play.api.mvc.Results._
-        import play.api.routing.sird
-        import play.api.routing.sird._
-        override lazy val router: Router = Router.from {
-          case sird.GET(p"/error") => throw new RuntimeException("action exception!")
-          case sird.GET(p"/") => Action { Ok("Done!") }
+        override def httpFilters(): util.List[mvc.EssentialFilter] = filters.asJava
+
+        override def router(): routing.Router = {
+          routingDsl()
+            .GET("/").routingTo(new RequestFunctions.Params0[play.mvc.Result] {
+              override def apply(t: Http.Request): mvc.Result = play.mvc.Results.ok("Done!")
+            })
+            .GET("/error").routingTo(new RequestFunctions.Params0[play.mvc.Result] {
+              override def apply(t: Http.Request): mvc.Result = throw new RuntimeException("action exception!")
+            })
+            .build()
         }
 
-        override def httpFilters: Seq[EssentialFilter] = filters
+        //  Config config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes
+        override def httpErrorHandler(): HttpErrorHandler = {
+          val mapper = OptionConverters.toScala(applicationContext.devContext()).map(_.sourceMapper)
 
-        override lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(sourceMapper = applicationContext.devContext.map(_.sourceMapper), router = Some(router)) {
-          override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-            Future.successful(InternalServerError(message))
+          val routesProvider: Provider[play.api.routing.Router] = new Provider[play.api.routing.Router] {
+            override def get(): play.api.routing.Router = router().asScala()
           }
 
-          override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-            Future.successful(InternalServerError(s"got exception: ${exception.getMessage}"))
+          new play.http.DefaultHttpErrorHandler(
+            this.config(),
+            this.environment(),
+            new OptionalSourceMapper(mapper),
+            routesProvider
+          ) {
+            override def onClientError(request: Http.RequestHeader, statusCode: Int, message: String): CompletionStage[Result] = {
+              CompletableFuture.completedFuture(mvc.Results.internalServerError(message))
+            }
+
+            override def onServerError(request: Http.RequestHeader, exception: Throwable): CompletionStage[Result] = {
+              exception match {
+                case ite: InvocationTargetException => CompletableFuture.completedFuture(mvc.Results.internalServerError(s"got exception: ${exception.getCause.getMessage}"))
+                case rex: Throwable => CompletableFuture.completedFuture(mvc.Results.internalServerError(s"got exception: ${exception.getMessage}"))
+              }
+            }
           }
         }
       }
-      components.application
+
+      components.application().asScala()
     }
   }
 
   "The configured HttpErrorHandler" should {
 
     val appFactory: ApplicationFactory = createApplicationFactory(
-      applicationContext = ApplicationLoader.Context.create(Environment.simple()),
+      applicationContext = new ApplicationLoader.Context(Environment.simple()),
       webCommandHandler = None,
       filters = Seq(
         new EssentialFilter {
@@ -65,7 +94,13 @@ class HttpErrorHandlingSpec extends PlaySpecification
       )
     )
 
-    "handle exceptions that happen in action" in appFactory.withAllOkHttpEndpoints { endpoint =>
+    val appFactoryWithoutFilters: ApplicationFactory = createApplicationFactory(
+      applicationContext = new ApplicationLoader.Context(Environment.simple()),
+      webCommandHandler = None,
+      filters = Seq.empty
+    )
+
+    "handle exceptions that happen in action" in appFactoryWithoutFilters.withAllOkHttpEndpoints { endpoint =>
       val request = new okhttp3.Request.Builder()
         .url(endpoint.endpoint.pathUrl("/error"))
         .get()
@@ -99,10 +134,12 @@ class HttpErrorHandlingSpec extends PlaySpecification
         override def sourceOf(className: String, line: Option[Int]): Option[(File, Option[Int])] = None
       }
 
-      val applicationContext = ApplicationLoader.Context.create(
-        environment = Environment.simple(mode = Mode.Dev),
-        devContext = Some(ApplicationLoader.DevContext(devSourceMapper, buildLink))
+      val scalaApplicationContext = play.api.ApplicationLoader.Context.create(
+        environment = play.api.Environment.simple(mode = play.api.Mode.Dev),
+        devContext = Some(play.api.ApplicationLoader.DevContext(devSourceMapper, buildLink))
       )
+
+      val applicationContext = new ApplicationLoader.Context(scalaApplicationContext)
 
       val appWithActionException: ApplicationFactory = createApplicationFactory(
         applicationContext = applicationContext,
@@ -114,22 +151,22 @@ class HttpErrorHandlingSpec extends PlaySpecification
         applicationContext = applicationContext,
         webCommandHandler = None,
         filters = Seq(
-        new EssentialFilter {
-          def apply(next: EssentialAction) = {
-            throw new RuntimeException("filter exception!")
+          new EssentialFilter {
+            def apply(next: EssentialAction) = {
+              throw new RuntimeException("filter exception!")
+            }
           }
-        }
-      ))
+        ))
 
       val appWithWebCommandExceptions: ApplicationFactory = createApplicationFactory(
         applicationContext = applicationContext,
         webCommandHandler = Some(
-        new HandleWebCommandSupport {
-          override def handleWebCommand(request: RequestHeader, buildLink: BuildLink, path: File): Option[Result] = {
-            throw new RuntimeException("webcommand exception!")
+          new HandleWebCommandSupport {
+            override def handleWebCommand(request: RequestHeader, buildLink: BuildLink, path: File): Option[api.mvc.Result] = {
+              throw new RuntimeException("webcommand exception!")
+            }
           }
-        }
-      ), Seq.empty)
+        ), Seq.empty)
 
       "handle exceptions that happens in action" in appWithActionException.withAllOkHttpEndpoints { endpoint =>
         val request = new okhttp3.Request.Builder()

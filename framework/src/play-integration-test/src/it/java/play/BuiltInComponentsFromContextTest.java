@@ -7,7 +7,10 @@ package play;
 import org.junit.Before;
 import org.junit.Test;
 import play.api.http.HttpConfiguration;
+import play.api.mvc.RequestHeader;
 import play.components.BodyParserComponents;
+import play.core.BuildLink;
+import play.core.HandleWebCommandSupport;
 import play.filters.components.HttpFiltersComponents;
 import play.mvc.EssentialFilter;
 import play.mvc.Http;
@@ -16,12 +19,14 @@ import play.mvc.Results;
 import play.routing.Router;
 import play.routing.RoutingDsl;
 import play.test.Helpers;
+import scala.Option;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class BuiltInComponentsFromContextTest {
 
@@ -36,7 +41,7 @@ public class BuiltInComponentsFromContextTest {
         @Override
         public Router router() {
             return new RoutingDsl(defaultBodyParser(), javaContextComponents())
-                    .GET("/").routeTo(() -> Results.ok("index"))
+                    .GET("/").routingTo(req -> Results.ok("index"))
                     .build();
         }
     }
@@ -188,5 +193,26 @@ public class BuiltInComponentsFromContextTest {
     @Test
     public void temporaryFileCreatorMustBeASingleton() {
         assertThat(this.componentsFromContext.tempFileCreator(), sameInstance(this.componentsFromContext.tempFileCreator()));
+    }
+
+    @Test
+    public void shouldKeepStateForWebCommands() {
+        componentsFromContext.webCommands().addHandler(new HandleWebCommandSupport() {
+            @Override
+            public Option<play.api.mvc.Result> handleWebCommand(RequestHeader request, BuildLink buildLink, File path) {
+                // We don't care at this test what the handler is doing.
+                // So we can throw an exception and check against it to
+                // verify that the components are maintaining its state.
+                throw new RuntimeException("Expected");
+            }
+        });
+
+        try {
+            // We also don't care about the parameters
+            componentsFromContext.webCommands().handleWebCommand(null, null, null);
+            fail("Should throw an exception");
+        } catch(RuntimeException ex) {
+            assertEquals("Expected", ex.getMessage());
+        }
     }
 }
