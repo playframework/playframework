@@ -107,12 +107,13 @@ object Server {
       // with all attributes necessary to translate it to Java.
       // TODO: `copyRequestHeader` may be a misleading name here since the method is doing more than that.
       val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
+      val enrichedRequest: RequestHeader = application.requestFactory.copyRequestHeader(request)
       try {
         // We hen use the Application's logic to handle that request.
-        val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+        val (handlerHeader, handler) = application.requestHandler.handlerForRequest(enrichedRequest)
         (handlerHeader, handler)
       } catch {
-        handleErrors(application.errorHandler, factoryMadeHeader)
+        handleErrors(application.errorHandler, enrichedRequest)
       }
     } catch {
       handleErrors(DefaultHttpErrorHandler, request)
