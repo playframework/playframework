@@ -20,7 +20,9 @@ import play.api.libs.concurrent.CoordinatedShutdownProvider;
 import play.api.mvc.request.DefaultRequestFactory;
 import play.api.mvc.request.RequestFactory;
 
+import play.core.DefaultWebCommands;
 import play.core.SourceMapper;
+import play.core.WebCommands;
 import play.core.j.*;
 
 import play.http.DefaultHttpErrorHandler;
@@ -68,6 +70,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     private final Supplier<HttpErrorHandler> _httpErrorHandler = lazy(this::createHttpErrorHandler);
     private final Supplier<MappedJavaHandlerComponents> _javaHandlerComponents = lazy(this::createJavaHandlerComponents);
+    private final Supplier<WebCommands> _webCommands = lazy(this::createWebCommands);
 
     public BuiltInComponentsFromContext(ApplicationLoader.Context context) {
         this.context = context;
@@ -85,7 +88,26 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
 
     @Override
     public Optional<SourceMapper> sourceMapper() {
-        return context.sourceMapper();
+        // Using `devContext()` method here instead of `context.sourceMapper()` because it will then
+        // respect any overrides a user might define.
+        return devContext().map(play.api.ApplicationLoader.DevContext::sourceMapper);
+    }
+
+    @Override
+    public Optional<play.api.ApplicationLoader.DevContext> devContext() {
+        return context.devContext();
+    }
+
+    @Override
+    public WebCommands webCommands() {
+        // We are maintaining state for webCommands because it is a mutable object
+        // where it is possible to add new handlers. Therefor the state needs to be
+        // consistent everywhere it is called.
+        return this._webCommands.get();
+    }
+
+    private WebCommands createWebCommands() {
+        return new DefaultWebCommands();
     }
 
     @Override
