@@ -55,7 +55,7 @@ When you add a route to the `routes` file, Play's routes compiler will automatic
 
 You are now ready to test the new page. If you stopped the application for some reason, restart it with the `sbt run` command.
 
-Enter the URL <http://localhost:9000> to view the results of your work. The browser should respond with something like the following:
+Enter the URL <http://localhost:9000/hello> to view the results of your work. The browser should respond with something like the following:
 
 [[images/hello-page.png]]
 
