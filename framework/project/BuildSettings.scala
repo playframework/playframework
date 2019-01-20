@@ -138,9 +138,11 @@ object BuildSettings {
       apiMappings += scalaInstance.value.libraryJar -> url(raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""),
       apiMappings ++= {
         // Maps JDK 1.8 jar into apidoc.
-        val rtJar = System.getProperty("sun.boot.class.path").split(java.io.File.pathSeparator).collectFirst {
-          case str: String if str.endsWith(java.io.File.separator + "rt.jar") => str
-        }
+        val rtJar = sys.props.get("sun.boot.class.path").flatMap(cp =>
+          cp.split(java.io.File.pathSeparator).collectFirst {
+            case str if str.endsWith(java.io.File.separator + "rt.jar") => str
+          }
+        )
         rtJar match {
           case None => Map.empty
           case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
