@@ -14,7 +14,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
 
-  val playJsonVersion = "2.7.0-RC2"
+  val playJsonVersion = "2.7.0"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
