@@ -107,7 +107,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
 
-    "org.hibernate.validator" % "hibernate-validator" % "6.0.13.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.0.14.Final",
 
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
@@ -281,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.0-RC2"
+  val playWsStandaloneVersion = "2.0.0"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
