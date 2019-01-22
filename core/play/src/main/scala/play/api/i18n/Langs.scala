@@ -57,6 +57,7 @@ case class Lang(locale: Locale) {
    *
    * @param accept The accepted language
    */
+  @deprecated("For the Locale Lookup, use Langs#preferred instead", "2.7.0")
   def satisfies(accept: Lang): Boolean =
     Locale.lookup(Seq(new Locale.LanguageRange(code)).asJava, Seq(accept.locale).asJava) != null
 
@@ -81,10 +82,12 @@ object Lang {
   import play.api.libs.json.Writes
 
   val jsonOWrites: OWrites[Lang] =
-    implicitly[ContravariantFunctor[OWrites]].contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
+    implicitly[ContravariantFunctor[OWrites]]
+      .contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
 
   implicit val jsonTagWrites: Writes[Lang] =
-    implicitly[ContravariantFunctor[Writes]].contramap[Locale, Lang](Writes.localeWrites, _.locale)
+    implicitly[ContravariantFunctor[Writes]]
+      .contramap[Locale, Lang](Writes.localeWrites, _.locale)
 
   val jsonOReads: Reads[Lang] = Reads.localeObjectReads.map(Lang(_))
 
@@ -151,8 +154,19 @@ trait Langs {
    *
    * Will select the preferred language, based on what languages are available, or return the default language if
    * none of the candidates are available.
+   *
+   * This implements the Matching of Language Tags specified in RFC 4647 section 3.4.
+   *
+   * @param candidates List of candidates ordered by user's preferences
    */
-  def preferred(candidates: Seq[Lang]): Lang
+  def preferred(candidates: Seq[Lang]): Lang =
+    Option {
+      val languageRanges =
+        candidates.map(accept => new Locale.LanguageRange(accept.code))
+      val availableLocales = availables.map(_.locale)
+      Locale.lookup(languageRanges.asJava, availableLocales.asJava)
+    }.map(Lang.apply)
+      .getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
 
   /**
    * @return the Java version for this Langs.
@@ -166,10 +180,6 @@ class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) 
   // Java API
   def this() = this(Seq(Lang.defaultLang))
 
-  def preferred(candidates: Seq[Lang]): Lang =
-    candidates
-      .collectFirst(Function.unlift(lang => availables.find(_.satisfies(lang))))
-      .getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
 }
 
 @Singleton
