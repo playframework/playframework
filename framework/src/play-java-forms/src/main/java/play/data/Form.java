@@ -69,6 +69,8 @@ public class Form<T> {
     /** Statically compiled Pattern for replacing "typeMismatch" in Form errors. */
     private static final Pattern REPLACE_TYPEMISMATCH = Pattern.compile("typeMismatch", Pattern.LITERAL);
 
+    private static final String INVALID_MSG_KEY = "error.invalid";
+
     /**
      * Defines a form element's display name.
      */
@@ -471,12 +473,13 @@ public class Form<T> {
                 ImmutableList.Builder<String> builder = ImmutableList.builder();
                 Optional<Messages> msgs = Optional.ofNullable(Http.Context.current.get()).map(Http.Context::messages);
                 for (String code: error.getCodes()) {
-                    code = REPLACE_TYPEMISMATCH.matcher(code).replaceAll(Matcher.quoteReplacement("error.invalid"));
+                    code = REPLACE_TYPEMISMATCH.matcher(code).replaceAll(Matcher.quoteReplacement(INVALID_MSG_KEY));
                     if (!msgs.isPresent() || msgs.get().isDefinedAt(code)) {
                         builder.add(code);
                     }
                 }
-                return new ValidationError(key, builder.build().reverse(),
+                final ImmutableList<String> messages = builder.build();
+                return new ValidationError(key, messages.isEmpty() ? Arrays.asList(INVALID_MSG_KEY) : messages.reverse(),
                         convertErrorArguments(error.getArguments()));
             } else {
                 return new ValidationError(key, error.getDefaultMessage(),

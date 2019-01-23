@@ -5,9 +5,12 @@ package play.mvc;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.junit.After;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
+import play.api.i18n.DefaultLangs;
+import play.core.j.DefaultJavaContextComponents;
 import play.core.j.JavaContextComponents;
 import play.data.*;
 import play.data.format.Formatters;
@@ -60,6 +63,12 @@ public class HttpFormsTest {
     private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
         return new Form<T>(formToCopy.name(), formToCopy.getBackedType(), null, formToCopy.allErrors(), formToCopy.value(),
             (Class[])null, app.injector().instanceOf(MessagesApi.class), app.injector().instanceOf(Formatters.class), app.injector().instanceOf(Validator.class));
+    }
+
+    @After
+    public void after() {
+        // make sure we clean the current http context after each test run
+        Context.current.remove();
     }
 
     @Test
@@ -144,6 +153,29 @@ public class HttpFormsTest {
             Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), errors, Optional.empty(), messagesApi, formatters, validator);
 
             assertThat(form.errorsAsJson().get("foo").toString()).isEqualTo("[\"It looks like something was not correct\"]");
+        });
+    }
+
+    @Test
+    public void testErrorsAsJsonWithEmptyMessages() {
+        withApplication((app) -> {
+            // The messagesApi is empty
+            MessagesApi emptyMessagesApi = play.test.Helpers.stubMessagesApi();
+            Formatters formatters = app.injector().instanceOf(Formatters.class);
+            Validator validator = app.injector().instanceOf(Validator.class);
+
+            // The context has to contain the empty messagesApi
+            RequestBuilder rb = new RequestBuilder();
+            Context ctx = new Context(rb, new DefaultJavaContextComponents(emptyMessagesApi, new DefaultLangs().asJava(), null, null));
+            Context.current.set(ctx);
+
+            // Also the form should contain the empty messagesApi
+            Form<Money> form = new Form<>(null, Money.class, new HashMap<>(), new ArrayList<>(), Optional.empty(), emptyMessagesApi, formatters, validator);
+
+            Map<String, String> data = new HashMap<>();
+            data.put("amount", "I am not a BigDecimal, I am a String that doesn't even represent a number! Binding to a BigDecimal will fail!");
+
+            assertThat(form.bind(data).errorsAsJson().toString()).isEqualTo("{\"amount\":[\"error.invalid\"]}");
         });
     }
 
