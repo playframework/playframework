@@ -101,7 +101,7 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   /**
    * Transform the Headers to a Map by ignoring multiple values.
    */
-  lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse("")).toMap
+  lazy val toSimpleMap: Map[String, String] = TreeMap.newBuilder[String, String](CaseInsensitiveOrdered).++=(toMap.mapValues(_.headOption.getOrElse(""))).result()
 
   lazy val asJava: play.mvc.Http.Headers = new play.mvc.Http.Headers(this.toMap.mapValues(_.asJava).toMap.asJava)
 

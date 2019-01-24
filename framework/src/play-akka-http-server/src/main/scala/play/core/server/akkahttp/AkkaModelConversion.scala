@@ -276,7 +276,7 @@ private[server] class AkkaModelConversion(
   ).map(_.toLowerCase(Locale.ROOT))
 
   private def convertHeaders(headers: Iterable[(String, String)]): immutable.Seq[HttpHeader] = {
-    headers.flatMap {
+    headers.iterator.flatMap {
       case (name, value) =>
         val lowerName = name.toLowerCase(Locale.ROOT)
         if (lowerName == "set-cookie") {
@@ -288,7 +288,7 @@ private[server] class AkkaModelConversion(
           resultUtils.validateHeaderValueChars(value)
           RawHeader(name, value) :: Nil
         }
-    }(collection.breakOut): Vector[HttpHeader]
+    }.toVector
   }
 
   private def parseHeader(name: String, value: String): Seq[HttpHeader] = {
