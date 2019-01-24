@@ -126,7 +126,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
   }
 
   def scripts(reader: EvolutionsReader): Seq[Script] = {
-    scripts(reader.evolutions(database.name))
+    scripts(reader.evolutions(database.name).toList)
   }
 
   /**
@@ -432,7 +432,7 @@ trait EvolutionsReader {
   /**
    * Read the evolutions for the given db
    */
-  def evolutions(db: String): Seq[Evolution]
+  def evolutions(db: String): scala.collection.Seq[Evolution]
 }
 
 /**

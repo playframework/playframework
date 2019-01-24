@@ -7,7 +7,6 @@ package play.api.db.evolutions
 import java.sql.{ Statement, Connection, SQLException }
 import javax.inject.{ Inject, Provider, Singleton }
 
-import scala.collection.breakOut
 import scala.util.control.Exception.ignoring
 
 import play.api.db.{ Database, DBApi }
@@ -352,8 +351,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
     // Since not all the datasources will necessarily appear in the db map, because some will come from deprecated
     // configuration, we create a map of them to the default config, and then override any of them with the ones
     // from db.
-    val datasourceConfigMap = (datasources.map(_ -> config)(
-      breakOut): Map[String, Configuration]) ++ config.
+    val datasourceConfigMap = datasources.map(_ -> config).toMap ++ config.
       getPrototypedMap("db", "")
 
     val datasourceConfig: Map[String, DefaultEvolutionsDatasourceConfig] =
@@ -367,7 +365,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
           val autoApplyDowns = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApplyDowns", s"applyDownEvolutions.$datasource")
           val skipApplyDownsOnly = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "skipApplyDownsOnly", s"skipApplyDownsOnly.$datasource")
           datasource -> new DefaultEvolutionsDatasourceConfig(enabled, schema, autocommit, useLocks, autoApply, autoApplyDowns, skipApplyDownsOnly)
-      }(breakOut)
+      }
 
     new DefaultEvolutionsConfig(defaultConfig, datasourceConfig)
   }
