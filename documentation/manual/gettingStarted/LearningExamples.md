@@ -8,6 +8,6 @@ If you are new to Play, we recommend following the Hello World tutorial for Java
 1. [Play Java Hello World](https://developer.lightbend.com/start/?group=play&project=play-java-hello-world-tutorial)
 2. [Play Scala Hello World](https://developer.lightbend.com/start/?group=play&project=play-scala-starter-example)
 
-The tutorial is self-contained; when you run it by following the directions in the readme, the application displays the remaining steps on a web page. You might find it convenient to have [[the same Tutorial instructions|HelloWorldTutorial.md]] open in a different tab or browser window while you are working with the example code. 
+The tutorial is self-contained; when you run it by following the directions in the readme, the application displays the remaining steps on a web page. You might find it convenient to have [[the same Tutorial instructions|HelloWorldTutorial]] open in a different tab or browser window while you are working with the example code. 
 
 > **Note**: the example projects are not configured for out of the box security.

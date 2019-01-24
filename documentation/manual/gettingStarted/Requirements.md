@@ -43,4 +43,4 @@ If you are ready to start your own project and want to use Gradle, refer to the 
 
 ## Congratulations!
 
-You are now ready to work with Play! to learn about Play hands-on, try the examples as described on the next page. If you have [sbt installed](https://www.scala-sbt.org/1.x/docs/Setup.html), you can create a new Play  project with a [[single command|NewApplication]], using our giter8 Java or Scala template. The templates set up the project structure and dev environment for you. You can also easily integrate Play projects into your favorite [[IDE|IDE.md]].
+You are now ready to work with Play! to learn about Play hands-on, try the examples as described on the next page. If you have [sbt installed](https://www.scala-sbt.org/1.x/docs/Setup.html), you can create a new Play  project with a [[single command|NewApplication]], using our giter8 Java or Scala template. The templates set up the project structure and dev environment for you. You can also easily integrate Play projects into your favorite [[IDE|IDE]].
