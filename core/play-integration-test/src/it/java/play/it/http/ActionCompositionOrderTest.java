@@ -156,4 +156,17 @@ public class ActionCompositionOrderTest {
             return delegate.call(req);
         }
     }
+
+    @With(SingletonActionAnnotationAction.class)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface SingletonActionAnnotation {}
+
+    @javax.inject.Singleton
+    static class SingletonActionAnnotationAction extends Action<SingletonActionAnnotation> {
+        @Override
+        public CompletionStage<Result> call(Http.Request req) {
+            return delegate.call(req);
+        }
+    }
 }
