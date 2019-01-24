@@ -38,7 +38,18 @@ public class MessagesApi {
         return messages;
     }
 
-        /**
+    /**
+     * Converts the varargs to a scala buffer,
+     * takes care of wrapping varargs into a intermediate list if necessary
+     *
+     * @param args the message arguments
+     * @return scala type for message processing
+     */
+    private static Seq<Object> convertArgsToScalaBuffer(final Object... args) {
+        return scala.collection.JavaConverters.asScalaBufferConverter(wrapArgsToListIfNeeded(args)).asScala().toList();
+    }
+
+    /**
      * Wraps arguments passed into a list if necessary.
      *
      * Returns the first value as is if it is the only argument and a subtype of `java.util.List`
@@ -67,7 +78,8 @@ public class MessagesApi {
      * @return the formatted message or a default rendering if the key wasn't defined
      */
     public String get(play.api.i18n.Lang lang, String key, Object... args) {
-        return messages.apply(key, Scala.varargs(args), lang);
+        Seq<Object> scalaArgs = convertArgsToScalaBuffer(args);
+        return messages.apply(key, scalaArgs, lang);
     }
 
     /**
@@ -82,7 +94,8 @@ public class MessagesApi {
      */
     public String get(play.api.i18n.Lang lang, List<String> keys, Object... args) {
         Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
-        return messages.apply(keyArgs.toSeq(), Scala.varargs(args), lang);
+        Seq<Object> scalaArgs = convertArgsToScalaBuffer(args);
+        return messages.apply(keyArgs.toSeq(), scalaArgs, lang);
     }
 
     /**
