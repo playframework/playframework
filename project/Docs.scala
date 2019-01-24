@@ -2,13 +2,18 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
+import sbt.internal.BuildStructure
 import sbt.Keys._
 import sbt.File
+import sbt.util.CacheStoreFactory
+import sbt.internal.inc.AnalyzingCompiler
 import java.net.URLClassLoader
 import org.webjars.FileSystemCache
 import org.webjars.WebJarExtractor
 import interplay.Playdoc
 import interplay.Playdoc.autoImport._
+import xsbti.compile.Compilers
+import sbt.io.Path._
 
 object Docs {
 
@@ -68,7 +73,7 @@ object Docs {
       val apiDocMappings = (apiBase ** "*").get.pair(rebase(apiBase, "play/docs/content/api"))
 
       // The play version is added so that resource paths are versioned
-      val webjarMappings = webjars.***.pair(rebase(webjars, "play/docs/content/webjars/" + version.value))
+      val webjarMappings = webjars.allPaths.pair(rebase(webjars, "play/docs/content/webjars/" + version.value))
 
       // Gather all the conf files into the project
       val referenceConfMappings = allConfs.value.map {
@@ -112,6 +117,14 @@ object Docs {
     val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
     val apiTarget = new File(targetDir, "apidocs")
 
+    val apiMappings = Keys.apiMappings.value
+    val compilers = Keys.compilers.value
+    val useCache = apiDocsUseCache.value
+    val classpath = apiDocsClasspath.value
+    val apiDocsScalaSources = Docs.apiDocsScalaSources.value
+    val apiDocsJavaSources = Docs.apiDocsJavaSources.value
+    val streams = sbt.Keys.streams.value
+
     if ((publishArtifact in packageDoc).value) {
 
       val version = Keys.version.value
@@ -121,12 +134,11 @@ object Docs {
         version
       }
 
-      val scalaCache = new File(targetDir, "scalaapidocs.cache")
-      val javaCache  = new File(targetDir, "javaapidocs.cache")
+      val scalaCache = CacheStoreFactory(new File(targetDir, "scalaapidocs.cache"))
+      val javaCache = CacheStoreFactory(new File(targetDir, "javaapidocs.cache"))
 
       val label = "Play " + version
       // Use the apiMappings value from the "doc" command
-      val apiMappings              = Keys.apiMappings.value
       val externalDocsScalacOption = Opts.doc.externalAPI(apiMappings).head.replace("-doc-external-doc:", "")
 
       val options = Seq(
@@ -141,18 +153,19 @@ object Docs {
         s"-doc-external-doc:${externalDocsScalacOption}"
       )
 
-      val compilers = Keys.compilers.value
-      val useCache  = apiDocsUseCache.value
-      val classpath = apiDocsClasspath.value
+      compilers.scalac.scalaInstance
+      val scalac: AnalyzingCompiler = ??? //new AnalyzingCompiler(compilers.scalac.scalaInstance(), compilers.scalac().scalaInstance().compilerJar(), compilers.scalac.classpathOptions)
+//      val scalac = new AnalyzingCompiler(compilers.scalac.scalaInstance(), compilers.scalac().scalaInstance().compilerJar(), compilers.scalac.classpathOptions)
+
 
       val scaladoc = {
-        if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
-        else DocNoCache.scaladoc(label, compilers.scalac)
+        if (useCache) Doc.scaladoc(label, scalaCache, scalac)
+        else DocNoCache.scaladoc(label, scalac)
       }
       // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
       // are the parameter names of the method that does eventually get called:
       // (sources, classpath, outputDirectory, options, maxErrors, log)
-      scaladoc(apiDocsScalaSources.value, classpath, apiTarget / "scala", options, 10, streams.value.log)
+      scaladoc(apiDocsScalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
 
       val javadocOptions = Seq(
         "-windowtitle",
@@ -176,11 +189,13 @@ object Docs {
         "play.api:play.core"
       )
 
+      val javac = sbt.internal.inc.javac.JavaCompiler.local.get
+
       val javadoc = {
-        if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
-        else DocNoCache.javadoc(label, compilers)
+//        if (useCache) Doc.javadoc(label, javaCache, javac)
+        /*else */DocNoCache.javadoc(label, compilers)
       }
-      javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
+      javadoc(apiDocsJavaSources, classpath, apiTarget / "java", javadocOptions, 10, streams.log)
     }
 
     val externalJavadocLinks = {
@@ -297,7 +312,9 @@ object Docs {
         if (includeApiDocs) childRef +: aggregated(childRef) else aggregated(childRef)
       }
     }
-    val rootProjectId  = Load.getRootProject(structure.units)(build)
+
+    val rootProjectId = structure.rootProject(build)
+    structure.rootProject(build)
     val rootProjectRef = ProjectRef(build, rootProjectId)
     aggregated(rootProjectRef)
   }
@@ -329,15 +346,12 @@ object Docs {
 
   // Generate documentation but avoid caching the inputs because of https://github.com/sbt/sbt/issues/1614
   object DocNoCache {
-    type GenerateDoc = (Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
+    type GenerateDoc = RawCompileLike.Gen//(Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
 
-    def scaladoc(label: String, compile: compiler.AnalyzingCompiler): GenerateDoc =
+    def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String, compilers: Compiler.Compilers): GenerateDoc =
-      RawCompileLike.prepare(
-        label + " Java API documentation",
-        RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javac.doc)
-      )
+    def javadoc(label: String, compilers: Compilers): GenerateDoc = ???
+//      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javaTools().javac().))
   }
 }

@@ -15,13 +15,13 @@ import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay._
 import interplay.ScalaVersions._
-import sbt.Keys.version
-import sbt.Keys._
+import sbt.Keys.{version, _}
 import sbt.ScriptedPlugin._
-import sbt.Resolver
-import sbt._
-
+import sbt.{Resolver, config, _}
+import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
+import scalariform.formatter.preferences._
 import scala.util.control.NonFatal
+import scala.sys.process.stringToProcess
 
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
@@ -190,6 +190,7 @@ object BuildSettings {
     }
   )
 
+
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
@@ -273,8 +274,8 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
-    scriptedLaunchOpts ++= Seq(
+//    ScriptedImport.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
+    ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
       "-Dscala.version=" + sys.props
@@ -288,6 +289,7 @@ object BuildSettings {
     ScriptedPlugin.scriptedSettings ++ Seq(
       ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
+
 
   def disablePublishing = Seq[Setting[_]](
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
