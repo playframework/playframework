@@ -22,8 +22,12 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
   sequential
 
+  // To make the test clear and also avoid code editors to trim
+  // empty spaces here.s
+  val emptySpace = " "
+
   val body =
-    """
+    s"""
       |--aabbccddee
       |Content-Disposition: form-data; name="text1"
       |
@@ -60,7 +64,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |Content-Disposition: form-data; name="file_with_space_only"; filename="with_space_only.txt"
       |Content-Type: text/plain
       |
-      |
+      |${emptySpace}
       |--aabbccddee
       |Content-Disposition: form-data; name="file_with_newline_only"; filename="with_newline_only.txt"
       |Content-Type: text/plain
