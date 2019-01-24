@@ -221,7 +221,7 @@ private[cors] trait AbstractCORSPolicy {
               request.headers.get(ACCESS_CONTROL_REQUEST_HEADERS) match {
                 case None => List.empty[String]
                 case Some(headerVal) =>
-                  headerVal.trim.split(',').map(_.trim.toLowerCase(java.util.Locale.ENGLISH))(collection.breakOut)
+                  headerVal.trim.split(',').iterator.map(_.trim.toLowerCase(java.util.Locale.ENGLISH)).toList
               }
             }
 
