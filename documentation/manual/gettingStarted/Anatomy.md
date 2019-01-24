@@ -116,7 +116,7 @@ dist
 
 ## Default SBT layout
 
-You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
+You also have the option of using the default layout used by SBT and Maven. In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
 
 ```
 disablePlugins(PlayLayoutPlugin)
