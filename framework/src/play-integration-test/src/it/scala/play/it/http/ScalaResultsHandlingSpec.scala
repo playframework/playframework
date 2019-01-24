@@ -424,8 +424,8 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.headers.get(SET_COOKIE) must beSome.like {
           case rawCookieHeaders =>
             val decodedCookieHeaders: Set[Set[Cookie]] = rawCookieHeaders.map { headerValue =>
-              cookieHeaderEncoding.decodeSetCookieHeader(headerValue).to[Set]
-            }.to[Set]
+              cookieHeaderEncoding.decodeSetCookieHeader(headerValue).toSet
+            }.toSet
             decodedCookieHeaders must_== (Set(Set(aCookie), Set(bCookie), Set(cCookie)))
         }
       }

@@ -60,7 +60,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |Content-Disposition: form-data; name="file_with_space_only"; filename="with_space_only.txt"
       |Content-Type: text/plain
       |
-      | 
+      |
       |--aabbccddee
       |Content-Disposition: form-data; name="file_with_newline_only"; filename="with_newline_only.txt"
       |Content-Type: text/plain
@@ -108,7 +108,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |
       |--aabbccddee--
-      |""".stripMargin.linesIterator.mkString("\r\n")
+      |""".stripMargin.lines.mkString("\r\n")
 
   def parse(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers]
 
