@@ -17,7 +17,6 @@ import play.mvc.Http
 import play.utils.{ PlayIO, Resources }
 
 import scala.annotation.implicitNotFound
-import scala.collection.breakOut
 import scala.io.Codec
 import scala.language._
 import scala.util.parsing.combinator._
@@ -109,7 +108,7 @@ object Messages extends MessagesImplicits {
    */
   def parse(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
     new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
-      messages.map { message => message.key -> message.pattern }(breakOut)
+      messages.map { message => message.key -> message.pattern }.toMap
     }
   }
 
@@ -572,7 +571,7 @@ class DefaultMessagesApiProvider @Inject() (
     (langs.availables.map { lang =>
       val code = lang.code
       code -> loadMessages(s"messages.${code}")
-    }(breakOut): Map[String, Map[String, String]]).
+    }.toMap: Map[String, Map[String, String]]).
       +("default" -> loadMessages("messages")) + (
         "default.play" -> loadMessages("messages.default"))
   }

@@ -164,7 +164,7 @@ public class Scala {
      * @return the converted Seq.
      * @param <T> the element type.
      */
-    public static <T> scala.collection.Seq<T> toSeq(java.util.List<T> list) {
+    public static <T> scala.collection.immutable.Seq<T> toSeq(java.util.List<T> list) {
         return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
     }
 
@@ -175,7 +175,7 @@ public class Scala {
      * @return the converted Seq.
      * @param <T> the element type.
      */
-    public static <T> scala.collection.Seq<T> toSeq(T[] array) {
+    public static <T> scala.collection.immutable.Seq<T> toSeq(T[] array) {
         return toSeq(java.util.Arrays.asList(array));
     }
 
@@ -187,8 +187,8 @@ public class Scala {
      * @param <T> the element type.
      */
     @SafeVarargs
-    public static <T> scala.collection.Seq<T> varargs(T... array) {
-        return toSeq(java.util.Arrays.asList(array));
+    public static <T> scala.collection.immutable.Seq<T> varargs(T... array) {
+        return toSeq(java.util.Arrays.asList(array)).toList();
     }
 
     /**

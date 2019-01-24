@@ -147,6 +147,8 @@ object Cookies extends CookieHeaderEncoding {
     override def get(name: String) = cookiesByName.get(name)
 
     override def foreach[U](f: Cookie => U) = cookies.foreach(f)
+
+    def iterator: Iterator[Cookie] = cookies.iterator
   }
 
 }
@@ -182,6 +184,7 @@ trait CookieHeaderEncoding {
       decodeSetCookieHeader(headerValue)
         .groupBy(_.name)
         .mapValues(_.head)
+        .toMap
     )
     case None => fromMap(Map.empty)
   }
@@ -191,6 +194,7 @@ trait CookieHeaderEncoding {
       decodeCookieHeader(headerValue)
         .groupBy(_.name)
         .mapValues(_.head)
+        .toMap
     )
     case None => fromMap(Map.empty)
   }
@@ -199,9 +203,11 @@ trait CookieHeaderEncoding {
     def get(name: String) = cookies.get(name)
     override def toString = cookies.toString
 
-    def foreach[U](f: (Cookie) => U): Unit = {
+    override def foreach[U](f: (Cookie) => U): Unit = {
       cookies.values.foreach(f)
     }
+
+    def iterator: Iterator[Cookie] = cookies.valuesIterator
   }
 
   /**
@@ -520,7 +526,7 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
                 encVal.tail, "UTF-8"))
 
           }
-        }(scala.collection.breakOut)
+        }.toMap
       }
     }
 
@@ -587,7 +593,6 @@ trait JWTCookieDataCodec extends CookieDataCodec {
     import io.jsonwebtoken._
 
     import scala.collection.JavaConverters._
-    import scala.collection.breakOut
 
     try {
       // Get all the claims
@@ -595,7 +600,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
       // Pull out the JWT data claim and only return that.
       val data = claimMap(jwtConfiguration.dataClaim).asInstanceOf[java.util.Map[String, AnyRef]]
-      data.asScala.map{ case (k, v) => (k, v.toString) }(breakOut)
+      data.asScala.mapValues{ v => v.toString }.toMap
     } catch {
       case e: IllegalStateException =>
         // Used in the case where the header algorithm does not match.

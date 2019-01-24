@@ -44,7 +44,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
       case m if m.constraints.nonEmpty => m.key -> m.constraints.collect {
         case Constraint(Some(name), args) => name -> args
       }
-    }(scala.collection.breakOut)
+    }.toMap
 
   /**
    * Formats associated to this form, indexed by field name. *
@@ -52,7 +52,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   val formats: Map[String, (String, Seq[Any])] =
     mapping.mappings.flatMap { m =>
       m.format.map { fmt => m.key -> fmt }
-    }(scala.collection.breakOut)
+    }.toMap
 
   /**
    * Binds data to this form, i.e. handles form submission.
@@ -82,16 +82,16 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
       (request.body match {
         case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
         case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined => body.asMultipartFormData.get.asFormUrlEncoded
-        case body: play.api.mvc.AnyContent if body.asJson.isDefined => FormUtils.fromJson(js = body.asJson.get).mapValues(Seq(_))
+        case body: play.api.mvc.AnyContent if body.asJson.isDefined => FormUtils.fromJson(js = body.asJson.get).mapValues(Seq(_)).toMap
         case body: Map[_, _] => body.asInstanceOf[Map[String, Seq[String]]]
         case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
         case body: Either[_, play.api.mvc.MultipartFormData[_]] => body match {
           case Right(b) => b.asFormUrlEncoded
           case Left(_) => Map.empty[String, Seq[String]]
         }
-        case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_))
+        case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_)).toMap
         case _ => Map.empty[String, Seq[String]]
-      }) ++ (if (!request.method.equalsIgnoreCase(HttpVerbs.POST) && !request.method.equalsIgnoreCase(HttpVerbs.PUT) && !request.method.equalsIgnoreCase(HttpVerbs.PATCH)) { request.queryString } else { Nil })
+      }) ++ (if (!request.method.equalsIgnoreCase(HttpVerbs.POST) && !request.method.equalsIgnoreCase(HttpVerbs.PUT) && !request.method.equalsIgnoreCase(HttpVerbs.PATCH)) { request.queryString } else { Map.empty })
     }
   }
 
@@ -238,7 +238,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     Json.toJson(
       errors.groupBy(_.key).mapValues { errors =>
         errors.map(e => messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
-      }
+      }.toMap
     )
 
   }

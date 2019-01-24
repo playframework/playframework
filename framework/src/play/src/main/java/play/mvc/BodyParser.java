@@ -26,7 +26,6 @@ import play.libs.XML;
 import play.libs.streams.Accumulator;
 import scala.Function1;
 import scala.Option;
-import scala.collection.Seq;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
@@ -487,10 +486,11 @@ public interface BodyParser<A> {
 
         @Override
         protected final Accumulator<ByteString, F.Either<Result, A>> apply1(Http.RequestHeader request) {
-            return Accumulator.strict(
+            Accumulator<ByteString, ByteString> byteStringByteStringAccumulator = Accumulator.strict(
                     maybeStrictBytes -> CompletableFuture.completedFuture(maybeStrictBytes.orElse(ByteString.empty())),
                     Sink.fold(ByteString.empty(), ByteString::concat)
-            ).mapFuture(bytes -> {
+            );
+            Accumulator<ByteString, F.Either<Result, A>> byteStringEitherAccumulator = byteStringByteStringAccumulator.mapFuture(bytes -> {
                 try {
                     return CompletableFuture.completedFuture(F.Either.Right(parse(request, bytes)));
                 } catch (Exception e) {
@@ -498,6 +498,7 @@ public interface BodyParser<A> {
                             .thenApply(F.Either::<Result, A>Left);
                 }
             }, JavaParsers.trampoline());
+            return byteStringEitherAccumulator;
         }
 
         /**
@@ -640,20 +641,8 @@ public interface BodyParser<A> {
             @Override
             public Map<String, String[]> asFormUrlEncoded() {
                 return mapAsJavaMapConverter(
-                        scalaFormData.asFormUrlEncoded().mapValues(arrayFunction())
+                        scalaFormData.asFormUrlEncoded().mapValues(x -> x.toArray(null)).<String, String[]>toMap(null)
                 ).asJava();
-            }
-
-            // maps from Scala Seq to String array
-            private Function1<Seq<String>, String[]> arrayFunction() {
-                return new AbstractFunction1<Seq<String>, String[]>() {
-                    @Override
-                    public String[] apply(Seq<String> v1) {
-                        String[] array = new String[v1.size()];
-                        v1.copyToArray(array);
-                        return array;
-                    }
-                };
             }
 
             @Override

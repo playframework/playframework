@@ -205,7 +205,7 @@ object HttpConfiguration {
           case _ => Option.empty[(String, String)] // skip invalid
         }
     }
-  }(scala.collection.breakOut)
+  }.toMap
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
 

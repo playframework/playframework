@@ -152,10 +152,13 @@ trait DefaultWriteables extends LowPriorityWriteables {
 
     Writeable[MultipartFormData[A]](
       transform = { form: MultipartFormData[A] =>
-        formatDataParts(form.dataParts) ++ form.files.flatMap { file =>
+        //ByteString was not correctly migrated to 2.13...
+        val x: Seq[Byte] = form.files.flatMap { file =>
           val fileBytes = aWriteable.transform(file)
           filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
-        } ++ codec.encode(s"--$boundary--")
+        }
+        val a: ByteString = formatDataParts(form.dataParts) ++ ByteString(x: _*) ++ codec.encode(s"--$boundary--")
+        a
       },
       contentType = Some(s"multipart/form-data; boundary=$boundary")
     )

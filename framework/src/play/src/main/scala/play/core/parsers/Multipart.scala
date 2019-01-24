@@ -6,7 +6,6 @@ package play.core.parsers
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.collection.breakOut
 import scala.concurrent.Future
 import scala.util.Failure
 
@@ -187,12 +186,12 @@ object Multipart {
 
       for {
         values <- headers.get("content-disposition").
-          map(split(_).map(_.trim).map {
+          map(split(_).iterator.map(_.trim).map {
             // unescape escaped quotes
             case KeyValue(key, v) =>
               (key.trim, v.trim.replaceAll("""\\"""", "\""))
             case key => (key.trim, "")
-          }(breakOut): Map[String, String])
+          }.toMap)
 
         dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName <- values.get("name")
@@ -209,10 +208,10 @@ object Multipart {
 
       for {
         values <- headers.get("content-disposition").map(
-          _.split(";").map(_.trim).map {
+          _.split(";").iterator.map(_.trim).map {
             case KeyValue(key, v) => (key.trim, v.trim)
             case key => (key.trim, "")
-          }(breakOut): Map[String, String])
+          }.toMap)
         _ <- values.get("form-data")
         _ <- Option(values.contains("filename")).filter(_ == false)
         partName <- values.get("name")
@@ -348,7 +347,7 @@ object Multipart {
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
-                headerString.linesIterator.map { header =>
+                headerString.lines.map { header =>
                   val key :: value = header.trim.split(":").toList
 
                   (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
