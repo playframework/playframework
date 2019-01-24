@@ -112,7 +112,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       |
       |
       |--aabbccddee--
-      |""".stripMargin.lines.mkString("\r\n")
+      |""".stripMargin.linesIterator.mkString("\r\n")
 
   def parse(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers]
 
