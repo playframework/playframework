@@ -24,22 +24,20 @@ import play.http.HttpErrorHandler;
 import play.libs.F;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
-import scala.Function1;
 import scala.Option;
+import scala.collection.JavaConverters;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
+import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.*;
 import java.util.List;
 import java.util.Locale;
@@ -47,12 +45,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.*;
-import static scala.collection.JavaConverters.mapAsJavaMapConverter;
 import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
 /**
@@ -640,9 +636,17 @@ public interface BodyParser<A> {
 
             @Override
             public Map<String, String[]> asFormUrlEncoded() {
-                return mapAsJavaMapConverter(
-                        scalaFormData.asFormUrlEncoded().mapValues(x -> x.toArray(null)).<String, String[]>toMap(null)
-                ).asJava();
+                return JavaConverters
+                        .mapAsJavaMap(scalaFormData.asFormUrlEncoded())
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> seqToArray(entry.getValue())));
+            }
+
+            private String[] seqToArray(scala.collection.Seq<String> seq) {
+                String[] array = new String[seq.size()];
+                seq.copyToArray(array);
+                return array;
             }
 
             @Override
