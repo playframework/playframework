@@ -213,6 +213,9 @@ object BuildSettings {
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   ) ++ Seq(
+    // See also:
+    // 1. the root project at build.sbt file.
+    // 2. RoutesCompilerProject project
     crossScalaVersions := Seq(ScalaVersions.scala212, ScalaVersions.scala213)
   )
 
