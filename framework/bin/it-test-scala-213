@@ -8,6 +8,6 @@ cd ${FRAMEWORK}
 
 printMessage "RUNNING IT TESTS FOR SCALA 2.13"
 
-runSbt "+++2.13.0-M5 Play-Integration-Test/it:test"
+runSbt "++2.13.0-M5 Play-Integration-Test/it:test"
 
 printMessage "ALL IT TESTS PASSED"
