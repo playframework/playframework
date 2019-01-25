@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
+import javax.net.ssl.SSLSession
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
 import play.api.test.ApplicationFactory
@@ -116,7 +117,9 @@ object HelloWorldBenchmark {
         // Add SSL options if we need to
         val b2 = bench.serverEndpoint.ssl match {
           case Some(ssl) =>
-            b1.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
+            b1
+              .sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
+              .hostnameVerifier((s: String, sslSession: SSLSession) => true)
           case _ => b1
         }
         b2.build()
