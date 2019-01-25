@@ -14,6 +14,8 @@ import interplay.Playdoc
 import interplay.Playdoc.autoImport._
 import xsbti.compile.Compilers
 import sbt.io.Path._
+import interplay.Playdoc
+import interplay.Playdoc.autoImport._
 
 object Docs {
 

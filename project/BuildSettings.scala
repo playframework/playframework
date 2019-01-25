@@ -20,6 +20,8 @@ import sbt.ScriptedPlugin._
 import sbt.{Resolver, config, _}
 import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
 import scalariform.formatter.preferences._
+import scala.sys.process.stringToProcess
+
 import scala.util.control.NonFatal
 import scala.sys.process.stringToProcess
 
@@ -189,7 +191,6 @@ object BuildSettings {
       } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
     }
   )
-
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
