@@ -108,7 +108,7 @@ object Messages extends MessagesImplicits {
    */
   def parse(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
     new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
-      messages.map { message => message.key -> message.pattern }.toMap
+      messages.iterator.map { message => message.key -> message.pattern }.toMap
     }
   }
 
@@ -568,7 +568,7 @@ class DefaultMessagesApiProvider @Inject() (
     HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
-    (langs.availables.map { lang =>
+    (langs.availables.iterator.map { lang =>
       val code = lang.code
       code -> loadMessages(s"messages.${code}")
     }.toMap: Map[String, Map[String, String]]).

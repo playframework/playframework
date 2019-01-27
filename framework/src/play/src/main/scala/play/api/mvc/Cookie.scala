@@ -516,7 +516,7 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
       if (data.isEmpty) {
         Map.empty[String, String]
       } else {
-        data.split("&").flatMap { pair =>
+        data.split("&").iterator.flatMap { pair =>
           pair.span(_ != '=') match { // "foo=bar".span(_ != '=') -> (foo,=bar)
             case (_, "") => // Skip invalid
               Option.empty[(String, String)]

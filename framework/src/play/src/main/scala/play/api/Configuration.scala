@@ -1101,7 +1101,7 @@ object ConfigLoader {
       val obj = config.getObject(path)
       val conf = obj.toConfig
 
-      obj.keySet().asScala.map { key =>
+      obj.keySet().asScala.iterator.map { key =>
         // quote and escape the key in case it contains dots or special characters
         val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
         key -> valueLoader.load(conf, path)
