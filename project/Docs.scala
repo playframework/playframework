@@ -16,6 +16,8 @@ import xsbti.compile.Compilers
 import sbt.io.Path._
 import interplay.Playdoc
 import interplay.Playdoc.autoImport._
+import xsbti.compile.JavaTools
+import sbt.inc.Doc.JavaDoc
 
 object Docs {
 
@@ -155,7 +157,7 @@ object Docs {
         s"-doc-external-doc:${externalDocsScalacOption}"
       )
 
-      compilers.scalac.scalaInstance
+
       val scalac: AnalyzingCompiler = ??? //new AnalyzingCompiler(compilers.scalac.scalaInstance(), compilers.scalac().scalaInstance().compilerJar(), compilers.scalac.classpathOptions)
 //      val scalac = new AnalyzingCompiler(compilers.scalac.scalaInstance(), compilers.scalac().scalaInstance().compilerJar(), compilers.scalac.classpathOptions)
 
@@ -191,13 +193,15 @@ object Docs {
         "play.api:play.core"
       )
 
-      val javac = sbt.internal.inc.javac.JavaCompiler.local.get
+      //val javac = sbt.internal.inc.javac.JavaCompiler.local.get
+
+//      val incToolOptions = new xsbti.compile.IncToolOptions(None, false)
 
       val javadoc = {
-//        if (useCache) Doc.javadoc(label, javaCache, javac)
-        /*else */DocNoCache.javadoc(label, compilers)
+        if (useCache) sbt.inc.Doc.cachedJavadoc(label, javaCache, compilers.javaTools())
+        else DocNoCache.javadoc(label, compilers)
       }
-      javadoc(apiDocsJavaSources, classpath, apiTarget / "java", javadocOptions, 10, streams.log)
+//      javadoc.run(apiDocsJavaSources, classpath, apiTarget / "java", incToolOptions, javadocOptions, streams.log)
     }
 
     val externalJavadocLinks = {
@@ -348,12 +352,41 @@ object Docs {
 
   // Generate documentation but avoid caching the inputs because of https://github.com/sbt/sbt/issues/1614
   object DocNoCache {
-    type GenerateDoc = RawCompileLike.Gen//(Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
+    type GenerateDoc = RawCompileLike.Gen //(Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
+//    (Seq[java.io.File], Seq[java.io.File], java.io.File, Seq[String], Int, sbt.internal.util.ManagedLogger) => Unit
 
     def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String, compilers: Compilers): GenerateDoc = ???
-//      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javaTools().javac().))
+    def javadoc(label: String, compilers: Compilers): sbt.inc.Doc.JavaDoc =
+      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javaTools().javadoc.run))
+
+//          RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, Doc.))
+    //      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javaTools().javac().doc))
+    //    RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, Doc.javadoc))
+
+    private def javadocHelper(sources: Seq[java.io.File],
+                              classpath: Seq[java.io.File],
+                              output: java.io.File,
+                              opts: Seq[String],
+                              maxError: Int,
+                              logger: sbt.internal.util.ManagedLogger): sbt.inc.Doc.JavaDoc = {
+//      val x = new JavaDoc {
+//        def run(sources: List[File],
+//                classpath: List[File],
+//                outputDirectory: File,
+//                options: List[String],
+//                incToolOptions: IncToolOptions,
+//                log: Logger,
+//                reporter: Reporter): Unit =
+//          if (sources.isEmpty) log.info("No sources available, skipping " + description + "...")
+//          else {
+//            log.info(description.capitalize + " to " + outputDirectory.absolutePath + "...")
+//            doc.run(sources, classpath, outputDirectory, options, incToolOptions, log, reporter)
+//            log.info(description.capitalize + " successful.")
+//          }
+//      }
+//    x.run(sources, classpath, output, opts, ???, logger, logger)
+    }
   }
 }

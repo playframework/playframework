@@ -275,7 +275,7 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-//    ScriptedImport.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
+    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
     ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
@@ -290,7 +290,6 @@ object BuildSettings {
     ScriptedPlugin.scriptedSettings ++ Seq(
       ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
-
 
   def disablePublishing = Seq[Setting[_]](
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
