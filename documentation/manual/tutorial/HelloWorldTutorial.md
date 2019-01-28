@@ -24,17 +24,17 @@ As illustrated below, Play is a full-stack framework with all of the components 
 
 [[images/play-stack.png]]
 
-Play APIs are available in both Java and Scala. The Framework uses [Akka](https://akka.io) and [Akka HTTP](https://doc.akka.io/docs/akka-http/current/index.html) under the hood. This endows Play applications with a stateless, non-blocking, event-driven architecture that provides horizontal and vertical scalability and uses resources more efficiently. Play projects contain Scala components, but because Play has a Java API, you do not need to learn Scala to use Play successfully if you are a Java developer.
+Play APIs are available in both Java and Scala. The Framework uses [Akka](https://akka.io) and [Akka HTTP](https://doc.akka.io/docs/akka-http/current/index.html) under the hood. This endows Play applications with a stateless, non-blocking, event-driven architecture that provides horizontal and vertical scalability and uses resources more efficiently. Play projects contain Scala components, but because Play has a Java API, Java developers do not need to learn Scala to use Play successfully.
 
 Here are just a few of the reasons developers love using Play Framework:
 
 - Its Model-View-Controller (MVC) architecture is familiar and easy to learn.
 - Direct support of common web development tasks and hot reloading saves precious development time.
-- A large active community that promotes knowledge sharing.
-- Use of [Twirl templates](https://github.com/playframework/twirl) to render pages. The Twirl template language is:
-  - Easy to learn
-  - Requires no special editor
-  - Provides type safety
-  - Is compiled so that errors display in the browser
+- A large active community promotes knowledge sharing.
+- [Twirl templates](https://github.com/playframework/twirl) render pages. The Twirl template language is:
+    - Easy to learn
+    - Requires no special editor
+    - Provides type safety
+    - Is compiled so that errors display in the browser
 
 To learn more about Play's benefits, see Play's [[Introduction]] and [[Philosophy]]. Now, let's dive into what a Play application looks like.
