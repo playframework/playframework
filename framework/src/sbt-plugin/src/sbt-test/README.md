@@ -103,5 +103,5 @@ Provides a few test for custom behaviors depending on the HTTP backend used.
 In Test mode, Play provides tools to handle the Server and Application lifecycles. These tools must create a server
 using the configured backend and the specified protocols:
 
-* test the backend is Akka HTTP of Netty
+* test the backend is Akka HTTP or Netty
 * test HTTP/2 is dis/enabled 
