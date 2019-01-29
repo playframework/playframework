@@ -39,7 +39,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
       val req: AHCRequest = r.underlying.buildRequest()
 
       import scala.collection.JavaConverters._
-      val paramsList: Seq[Param] = req.getQueryParams.asScala
+      val paramsList: scala.collection.Seq[Param] = req.getQueryParams.asScala
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo1")) must beTrue
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo2")) must beTrue
       paramsList.count(p => p.getName == "foo") must beEqualTo(2)
@@ -400,7 +400,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv) extends Specification with Mockito wi
 
       val response = makeAhcResponse(ahcResponse)
 
-      val cookies: Seq[WSCookie] = response.cookies
+      val cookies: scala.collection.Seq[WSCookie] = response.cookies
       val cookie = cookies.head
 
       cookie.name must ===(name)

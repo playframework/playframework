@@ -54,7 +54,7 @@ trait LoggerConfigurator {
   /**
    * Shutdown the logger infrastructure.
    */
-  def shutdown()
+  def shutdown(): Unit
 
 }
 

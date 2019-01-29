@@ -459,7 +459,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
       case _ => None
     }
 
-    new Headers(s.split("\r?\n").flatMap(split(_, ":\\s*")))
+    new Headers(s.split("\r?\n").toSeq.flatMap(split(_, ":\\s*")))
   }
 
   def processHeaders(config: Map[String, Any], headers: Headers): Seq[(ForwardedEntry, Either[String, ParsedForwardedEntry], Option[Boolean])] = {

@@ -35,7 +35,7 @@ object QueryStringParameterExtractor {
         _.span(_ != '=') match {
           case (key, v) => key -> v.drop(1) // '=' prefix
         }
-      }.groupBy(_._1).mapValues(_.toSeq.map(_._2))
+      }.groupBy(_._1).mapValues(_.toSeq.map(_._2)).toMap
     }
 
   def required(name: String) = new RequiredQueryStringParameter(name)

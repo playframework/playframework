@@ -18,7 +18,7 @@ private[server] class NettyHeadersWrapper(nettyHeaders: HttpHeaders) extends Hea
     // Lazily initialize the header sequence using the Netty headers. It's OK
     // if we do this operation concurrently because the operation is idempotent.
     if (_headers == null) {
-      _headers = nettyHeaders.entries.asScala.map(h => h.getKey -> h.getValue)
+      _headers = nettyHeaders.entries.asScala.toSeq.map(h => h.getKey -> h.getValue)
     }
     _headers
   }
@@ -28,5 +28,5 @@ private[server] class NettyHeadersWrapper(nettyHeaders: HttpHeaders) extends Hea
     val value = nettyHeaders.get(key)
     if (value == null) scala.sys.error("Header doesn't exist") else value
   }
-  override def getAll(key: String): Seq[String] = nettyHeaders.getAll(key).asScala
+  override def getAll(key: String): Seq[String] = nettyHeaders.getAll(key).asScala.toSeq
 }

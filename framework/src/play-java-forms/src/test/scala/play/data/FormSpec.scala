@@ -64,7 +64,7 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
       val javaExtraConfig = extraConfig.mapValues {
         case v: Seq[Any] => v.asJava
         case v => v
-      }.asJava
+      }.toMap.asJava
       ConfigFactory.parseMap(javaExtraConfig).withFallback(super.config())
     }
   }

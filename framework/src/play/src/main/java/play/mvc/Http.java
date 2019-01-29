@@ -68,7 +68,7 @@ public class Http {
         private static Config config() {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             Properties properties = System.getProperties();
-            scala.collection.immutable.Map<String, Object> directSettings = scala.collection.Map$.MODULE$.empty();
+            scala.collection.immutable.Map<String, Object> directSettings = scala.collection.immutable.Map$.MODULE$.empty();
 
             // We are allowing missing application conf because it can handle both cases.
             boolean allowMissingApplicationConf = true;

@@ -58,7 +58,7 @@ abstract class Module {
    * @param configuration The configuration
    * @return A sequence of bindings
    */
-  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]]
+  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]]
 
   /**
    * Create a binding key for the given class.
@@ -78,7 +78,7 @@ abstract class Module {
    */
   @deprecated("Use play.inject.Module instead if the Module is coded in Java.", "2.7.0")
   @varargs
-  final def seq(bindings: Binding[_]*): Seq[Binding[_]] = bindings
+  final def seq(bindings: Binding[_]*): scala.collection.Seq[Binding[_]] = bindings
 }
 
 /**

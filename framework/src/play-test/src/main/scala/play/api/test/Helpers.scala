@@ -392,9 +392,11 @@ trait ResultExtractors {
     Await.result(of.map { result =>
       val cookies = result.newCookies
       new Cookies {
-        lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).mapValues(_.head)
+        lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).mapValues(_.head).toMap
         override def get(name: String): Option[Cookie] = cookiesByName.get(name)
         override def foreach[U](f: Cookie => U): Unit = cookies.foreach(f)
+
+        def iterator: Iterator[Cookie] = cookiesByName.valuesIterator
       }
     }(play.core.Execution.trampoline), timeout.duration)
   }

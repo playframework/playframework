@@ -9,8 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.19")
-  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.6")
-  val akkaHttpVersion_2_13 = "10.1.3" // akka-http dropped support for Scala 2.13: https://github.com/akka/akka-http/issues/2166
+  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.7")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
 
@@ -228,7 +227,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "1.8.2"
+  val playDocVersion = "2.0.0"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -282,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache" % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.0"
+  val playWsStandaloneVersion = "2.0.1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml" % playWsStandaloneVersion,
@@ -337,17 +336,11 @@ object Dependencies {
 
         project.dependsOn(withConfig)
       } else {
-        project.settings(libraryDependencies += {
-          val akkaHttpVersion = CrossVersion.partialVersion(scalaVersion.value) match {
-            case Some((2, 13)) => Dependencies.akkaHttpVersion_2_13
-            case _ => Dependencies.akkaHttpVersion
-          }
-          val dep = "com.typesafe.akka" %% module % akkaHttpVersion
-          val withConfig =
-            if (config == "") dep
-            else dep % config
-          withConfig
-        })
+        val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
+        val withConfig =
+          if (config == "") dep
+          else dep % config
+        project.settings(libraryDependencies += withConfig)
       }
   }
 }

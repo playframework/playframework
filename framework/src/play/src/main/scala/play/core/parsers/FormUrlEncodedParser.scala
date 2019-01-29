@@ -19,7 +19,7 @@ object FormUrlEncodedParser {
   def parseNotPreservingOrder(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
     // Generate the pairs of values from the string.
     parseToPairs(data, encoding).groupBy(_._1).
-      map(param => param._1 -> param._2.map(_._2))(scala.collection.breakOut)
+      mapValues(_.map(_._2)).toMap
   }
 
   /**

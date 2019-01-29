@@ -544,7 +544,7 @@ object QueryStringBindable {
   implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: ClassTag[T]) = new QueryStringBindable[T] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       try {
-        val o = ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
+        val o = ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, params.mapValues(_.toArray).toMap.asJava)
         if (o.isPresent) {
           Some(Right(o.get))
         } else {

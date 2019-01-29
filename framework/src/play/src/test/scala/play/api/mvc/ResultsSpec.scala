@@ -144,7 +144,7 @@ class ResultsSpec extends Specification {
         cookies2: List[Cookie],
         expected: Option[Set[Cookie]]) = {
         val result = bake { Ok("hello").withCookies(cookies1: _*).withCookies(cookies2: _*) }
-        result.header.headers.get("Set-Cookie").map(cookieHeaderEncoding.decodeSetCookieHeader(_).to[Set]) must_== expected
+        result.header.headers.get("Set-Cookie").map(cookieHeaderEncoding.decodeSetCookieHeader(_).toSet) must_== expected
       }
       val preferencesCookie = Cookie("preferences", "blue")
       val sessionCookie = Cookie("session", "items")

@@ -30,7 +30,7 @@ class DefaultDBApi(
   }
 
   private lazy val databaseByName: Map[String, Database] =
-    databases.map(db => (db.name, db))(scala.collection.breakOut)
+    databases.iterator.map(db => (db.name, db)).toMap
 
   def database(name: String): Database = {
     databaseByName.getOrElse(name, throw new IllegalArgumentException(s"Could not find database for $name"))

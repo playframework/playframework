@@ -70,7 +70,7 @@ case class AllowedHostsConfig(allowed: Seq[String], shouldProtect: RequestHeader
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
   import scala.compat.java8.FunctionConverters._
 
-  def withHostPatterns(hosts: java.util.List[String]): AllowedHostsConfig = copy(allowed = hosts.asScala)
+  def withHostPatterns(hosts: java.util.List[String]): AllowedHostsConfig = copy(allowed = hosts.asScala.toSeq)
   def withShouldProtect(shouldProtect: java.util.function.Predicate[JRequestHeader]): AllowedHostsConfig =
     copy(shouldProtect = shouldProtect.asScala.compose(_.asJava))
 }

@@ -40,19 +40,19 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * Constraints associated with this form, indexed by field name.
    */
   val constraints: Map[String, Seq[(String, Seq[Any])]] =
-    mapping.mappings.collect {
+    mapping.mappings.iterator.collect {
       case m if m.constraints.nonEmpty => m.key -> m.constraints.collect {
         case Constraint(Some(name), args) => name -> args
       }
-    }(scala.collection.breakOut)
+    }.toMap
 
   /**
    * Formats associated to this form, indexed by field name. *
    */
   val formats: Map[String, (String, Seq[Any])] =
-    mapping.mappings.flatMap { m =>
+    mapping.mappings.iterator.flatMap { m =>
       m.format.map { fmt => m.key -> fmt }
-    }(scala.collection.breakOut)
+    }.toMap
 
   /**
    * Binds data to this form, i.e. handles form submission.
@@ -95,7 +95,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     }
   }
 
-  def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
+  def bindFromRequest(data: Iterable[(String, Seq[String])]): Form[T] = {
     bind {
       data.foldLeft(Map.empty[String, String]) {
         case (s, (key, values)) if key.endsWith("[]") => s ++ values.zipWithIndex.map { case (v, i) => (key.dropRight(2) + "[" + i + "]") -> v }
@@ -238,7 +238,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     Json.toJson(
       errors.groupBy(_.key).mapValues { errors =>
         errors.map(e => messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
-      }
+      }.toMap
     )
 
   }
