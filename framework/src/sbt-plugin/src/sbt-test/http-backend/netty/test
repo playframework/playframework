@@ -1,0 +1,4 @@
+# Asserts the backend is Netty via checking a particular header is missing on the response
+# Asserts tests don't start an HTTP/2 endpoint
+
+> test
