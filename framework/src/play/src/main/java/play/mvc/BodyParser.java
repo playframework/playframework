@@ -22,6 +22,7 @@ import play.core.parsers.FormUrlEncodedParser;
 import play.core.parsers.Multipart;
 import play.http.HttpErrorHandler;
 import play.libs.F;
+import play.libs.Scala;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
 import scala.Option;
@@ -641,13 +642,7 @@ public interface BodyParser<A> {
                         .mapAsJavaMap(scalaFormData.asFormUrlEncoded())
                         .entrySet()
                         .stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> seqToArray(entry.getValue())));
-            }
-
-            private String[] seqToArray(scala.collection.Seq<String> seq) {
-                String[] array = new String[seq.size()];
-                seq.copyToArray(array);
-                return array;
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
             }
 
             @Override
