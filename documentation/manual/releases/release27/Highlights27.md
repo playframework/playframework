@@ -285,6 +285,21 @@ Or even combine more path segments:
 val router = "/api" /: "v1" /: apiRouter
 ```
 
+## Concatenating Routers
+
+In Play 2.7 we introduce a new method `orElse` to programatically compose `Routers`. 
+You can now compose routers as following:
+
+Java
+: ```java
+Router router = oneRouter.orElse(anotherRouter)
+```
+
+Scala
+: ```scala
+val router = oneRouter.orElse(anotherRouter)
+```
+
 ### Isolation level for Database transactions
 
 You can now choose an isolation level when using `play.api.db.Database.withTransaction` API (`play.db.Database` for Java users). For example:
