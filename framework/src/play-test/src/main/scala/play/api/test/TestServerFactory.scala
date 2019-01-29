@@ -6,13 +6,11 @@ package play.api.test
 
 import java.util.concurrent.locks.Lock
 
-import scala.util.control.NonFatal
-
 import akka.annotation.ApiMayChange
-
 import play.api.{ Application, Configuration, Mode }
-import play.core.server.{ AkkaHttpServer, ServerConfig, ServerEndpoint, ServerEndpoints, ServerProvider }
-import play.core.server.SelfSignedSSLEngineProvider
+import play.core.server._
+
+import scala.util.control.NonFatal
 
 /** Creates a server for an application. */
 @ApiMayChange trait TestServerFactory {
@@ -70,20 +68,44 @@ import play.core.server.SelfSignedSSLEngineProvider
     sc.copy(configuration = sc.configuration ++ overrideServerConfiguration(app))
   }
 
-  protected def overrideServerConfiguration(app: Application): Configuration = Configuration(
-    "play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName,
-    "play.server.akka.http2.enabled" -> true)
+  protected def overrideServerConfiguration(app: Application): Configuration =
+    Configuration("play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName)
 
-  protected def serverProvider(app: Application): ServerProvider = AkkaHttpServer.provider
+  protected def serverProvider(app: Application): ServerProvider =
+    ServerProvider.fromConfiguration(getClass.getClassLoader, serverConfig(app).configuration)
 
   protected def serverEndpoints(testServer: TestServer): ServerEndpoints = {
-    val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(_ =>
-      ServerEndpointRecipe.AkkaHttp11Plaintext.createEndpointFromServer(testServer)
-    )
-    val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(_ =>
-      ServerEndpointRecipe.AkkaHttp20Encrypted.createEndpointFromServer(testServer)
-    )
+    val useAkkaHttp = testServer.serverProvider.get.isInstanceOf[AkkaHttpServerProvider]
+    val useHttp2 = testServer.application.configuration
+      .getOptional[Boolean]("play.server.akka.http2.enabled")
+      .getOrElse(false)
+
+    val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(_ => {
+      val recipe = if (useAkkaHttp) {
+        if (useHttp2) {
+          ServerEndpointRecipe.AkkaHttp20Plaintext
+        } else {
+          ServerEndpointRecipe.AkkaHttp11Plaintext
+        }
+      } else {
+        ServerEndpointRecipe.Netty11Plaintext
+      }
+      recipe.createEndpointFromServer(testServer)
+    })
+
+    val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(_ => {
+      val recipe = if (useAkkaHttp) {
+        if (useHttp2) {
+          ServerEndpointRecipe.AkkaHttp20Encrypted
+        } else {
+          ServerEndpointRecipe.AkkaHttp11Encrypted
+        }
+      } else {
+        ServerEndpointRecipe.Netty11Encrypted
+      }
+      recipe.createEndpointFromServer(testServer)
+    })
+
     ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
   }
-
 }

@@ -9,7 +9,7 @@ cd ${FRAMEWORK}
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
 
   printMessage "RUNNING PUBLISH LOCAL"
-  runSbt "publishLocal"
+  runSbt "+publishLocal"
   printMessage "PUBLISH LOCAL PASSED"
 else
     printMessage "SKIPPING PUBLISH LOCAL"
