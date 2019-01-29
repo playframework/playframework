@@ -213,15 +213,10 @@ object BuildSettings {
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   ) ++ Seq(
-    // TODO: Re-add ScalaVersions.scala213
-    // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
-    // that right because some dependencies don't have a build for M5 yet. As soon as
-    // we decide that we could release to M5, than we can re-add scala213 to it
-    //
     // See also:
     // 1. the root project at build.sbt file.
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212)
+    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, ScalaVersions.scala213)
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(

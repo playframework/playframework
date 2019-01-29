@@ -22,25 +22,23 @@ import play.core.parsers.FormUrlEncodedParser;
 import play.core.parsers.Multipart;
 import play.http.HttpErrorHandler;
 import play.libs.F;
+import play.libs.Scala;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
-import scala.Function1;
 import scala.Option;
-import scala.collection.Seq;
+import scala.collection.JavaConverters;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
+import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.*;
 import java.util.List;
 import java.util.Locale;
@@ -48,12 +46,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.*;
-import static scala.collection.JavaConverters.mapAsJavaMapConverter;
 import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
 /**
@@ -487,10 +483,11 @@ public interface BodyParser<A> {
 
         @Override
         protected final Accumulator<ByteString, F.Either<Result, A>> apply1(Http.RequestHeader request) {
-            return Accumulator.strict(
+            Accumulator<ByteString, ByteString> byteStringByteStringAccumulator = Accumulator.strict(
                     maybeStrictBytes -> CompletableFuture.completedFuture(maybeStrictBytes.orElse(ByteString.empty())),
                     Sink.fold(ByteString.empty(), ByteString::concat)
-            ).mapFuture(bytes -> {
+            );
+            Accumulator<ByteString, F.Either<Result, A>> byteStringEitherAccumulator = byteStringByteStringAccumulator.mapFuture(bytes -> {
                 try {
                     return CompletableFuture.completedFuture(F.Either.Right(parse(request, bytes)));
                 } catch (Exception e) {
@@ -498,6 +495,7 @@ public interface BodyParser<A> {
                             .thenApply(F.Either::<Result, A>Left);
                 }
             }, JavaParsers.trampoline());
+            return byteStringEitherAccumulator;
         }
 
         /**
@@ -639,21 +637,12 @@ public interface BodyParser<A> {
 
             @Override
             public Map<String, String[]> asFormUrlEncoded() {
-                return mapAsJavaMapConverter(
-                        scalaFormData.asFormUrlEncoded().mapValues(arrayFunction())
-                ).asJava();
-            }
-
-            // maps from Scala Seq to String array
-            private Function1<Seq<String>, String[]> arrayFunction() {
-                return new AbstractFunction1<Seq<String>, String[]>() {
-                    @Override
-                    public String[] apply(Seq<String> v1) {
-                        String[] array = new String[v1.size()];
-                        v1.copyToArray(array);
-                        return array;
-                    }
-                };
+                // TODO have this transformations in Scala is easier.
+                return JavaConverters
+                        .mapAsJavaMap(scalaFormData.asFormUrlEncoded())
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
             }
 
             @Override

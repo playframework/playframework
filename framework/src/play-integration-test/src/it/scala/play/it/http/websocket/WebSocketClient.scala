@@ -50,7 +50,7 @@ trait WebSocketClient {
   /**
    * Shutdown the client and release all associated resources.
    */
-  def shutdown()
+  def shutdown(): Unit
 }
 
 object WebSocketClient {
@@ -125,7 +125,7 @@ object WebSocketClient {
         channel.pipeline().addLast("supervisor", new WebSocketSupervisor(disconnected, handshaker, onConnected))
         handshaker.handshake(channel)
         channel.read()
-      }.onFailure {
+      }.failed.foreach {
         case t => disconnected.tryFailure(t)
       }
 

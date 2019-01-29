@@ -46,12 +46,12 @@ case class CSPConfig(
 
   def withHashes(hashes: java.util.List[CSPHashConfig]): CSPConfig = {
     import scala.collection.JavaConverters._
-    copy(hashes = hashes.asScala)
+    copy(hashes = hashes.asScala.toSeq)
   }
 
   def withDirectives(directives: java.util.List[CSPDirective]): CSPConfig = {
     import scala.collection.JavaConverters._
-    copy(directives = directives.asScala)
+    copy(directives = directives.asScala.toSeq)
   }
 }
 
@@ -112,7 +112,7 @@ object CSPConfig {
     }
 
     val drctves = config.get[Configuration]("directives")
-    val directivesConfig: Seq[CSPDirective] = drctves.entrySet.to[Seq].flatMap {
+    val directivesConfig: Seq[CSPDirective] = drctves.entrySet.toSeq.flatMap {
       case (k, v) if v.unwrapped() == null =>
         None
       case (k, v) =>
@@ -123,7 +123,7 @@ object CSPConfig {
       reportOnly = reportOnly,
       shouldFilterRequest = shouldFilterRequest,
       nonce = nonceConfig,
-      hashes = hashConfigs,
+      hashes = hashConfigs.toSeq,
       directives = directivesConfig)
   }
 }

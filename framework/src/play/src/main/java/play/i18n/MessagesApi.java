@@ -7,7 +7,7 @@ package play.i18n;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
-import scala.collection.Seq;
+import scala.collection.immutable.Seq;
 import scala.collection.mutable.Buffer;
 import scala.compat.java8.OptionConverters;
 
@@ -45,8 +45,8 @@ public class MessagesApi {
      * @param args the message arguments
      * @return scala type for message processing
      */
-    private static Buffer<Object> convertArgsToScalaBuffer(final Object... args) {
-        return scala.collection.JavaConverters.asScalaBufferConverter(wrapArgsToListIfNeeded(args)).asScala();
+    private static Seq<Object> convertArgsToScalaBuffer(final Object... args) {
+        return scala.collection.JavaConverters.asScalaBufferConverter(wrapArgsToListIfNeeded(args)).asScala().toList();
     }
 
     /**
@@ -78,7 +78,7 @@ public class MessagesApi {
      * @return the formatted message or a default rendering if the key wasn't defined
      */
     public String get(play.api.i18n.Lang lang, String key, Object... args) {
-        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
+        Seq<Object> scalaArgs = convertArgsToScalaBuffer(args);
         return messages.apply(key, scalaArgs, lang);
     }
 
@@ -94,7 +94,7 @@ public class MessagesApi {
      */
     public String get(play.api.i18n.Lang lang, List<String> keys, Object... args) {
         Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
-        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
+        Seq<Object> scalaArgs = convertArgsToScalaBuffer(args);
         return messages.apply(keyArgs.toSeq(), scalaArgs, lang);
     }
 

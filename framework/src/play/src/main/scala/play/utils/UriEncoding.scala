@@ -242,7 +242,7 @@ object UriEncoding {
    * }}}
    */
   private[utils] def splitString(s: String, c: Char): Seq[String] = {
-    val result = scala.collection.mutable.ListBuffer.empty[String]
+    val result = scala.collection.immutable.List.newBuilder[String]
     import scala.annotation.tailrec
     @tailrec
     def splitLoop(start: Int): Unit = if (start < s.length) {
@@ -257,7 +257,7 @@ object UriEncoding {
       result += ""
     }
     splitLoop(0)
-    result
+    result.result()
   }
 
 }

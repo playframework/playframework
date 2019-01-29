@@ -28,7 +28,7 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
   /**
    * Return the current headers of the request being constructed
    */
-  override def headers: Map[String, Seq[String]] = underlying.headers
+  override def headers: Map[String, scala.collection.Seq[String]] = underlying.headers
 
   /**
    * Get the underlying response object, i.e. play.shaded.ahc.org.asynchttpclient.Response
@@ -57,7 +57,7 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
   /**
    * Get all the cookies.
    */
-  override def cookies: Seq[WSCookie] = underlying.cookies
+  override def cookies: scala.collection.Seq[WSCookie] = underlying.cookies
 
   /**
    * Get only one cookie, using the cookie name.
@@ -79,7 +79,7 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
    * Return the current headers of the request being constructed
    */
   @deprecated("Please use request.headers", since = "2.6.0")
-  override def allHeaders: Map[String, Seq[String]] = underlying.headers
+  override def allHeaders: Map[String, scala.collection.Seq[String]] = underlying.headers
 
   /**
    * The response body as Xml.

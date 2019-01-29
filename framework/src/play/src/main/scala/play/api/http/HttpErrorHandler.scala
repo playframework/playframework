@@ -361,7 +361,7 @@ class JsonHttpErrorHandler(
    * @param message The error message.
    */
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    if (Status.isClientError(statusCode)) {
+    if (play.api.http.Status.isClientError(statusCode)) {
       Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
     } else {
       throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")

@@ -402,7 +402,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     }
 
   def onFramesConsumed[A](onDone: List[A] => Unit): Sink[A, _] = consumeFrames[A].mapMaterializedValue { future =>
-    future.onSuccess {
+    future.foreach {
       case list => onDone(list)
     }
   }

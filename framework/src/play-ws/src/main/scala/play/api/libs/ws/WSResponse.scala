@@ -30,7 +30,7 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
   /**
    * Return the current headers for this response.
    */
-  override def headers: Map[String, Seq[String]]
+  override def headers: Map[String, scala.collection.Seq[String]]
 
   /**
    * Get the underlying response object.
@@ -40,7 +40,7 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
   /**
    * Get all the cookies.
    */
-  override def cookies: Seq[WSCookie]
+  override def cookies: scala.collection.Seq[WSCookie]
 
   /**
    * Get only one cookie, using the cookie name.
@@ -51,7 +51,7 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
 
   override def header(name: String): Option[String] = super.header(name)
 
-  override def headerValues(name: String): Seq[String] = super.headerValues(name)
+  override def headerValues(name: String): scala.collection.Seq[String] = super.headerValues(name)
 
   /**
    * The response body as the given type.  This renders as the given type.
@@ -96,7 +96,7 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
   override def bodyAsSource: Source[ByteString, _]
 
   @deprecated("Use response.headers", "2.6.0")
-  def allHeaders: Map[String, Seq[String]]
+  def allHeaders: Map[String, scala.collection.Seq[String]]
 
   def xml: Elem
 

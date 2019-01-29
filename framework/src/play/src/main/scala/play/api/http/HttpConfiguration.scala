@@ -192,7 +192,7 @@ object HttpConfiguration {
     }
   }
 
-  def parseFileMimeTypes(config: Configuration): Map[String, String] = config.get[String]("play.http.fileMimeTypes").split('\n').flatMap { l =>
+  def parseFileMimeTypes(config: Configuration): Map[String, String] = config.get[String]("play.http.fileMimeTypes").split('\n').iterator.flatMap { l =>
     val line = l.trim
 
     line.splitAt(1) match {
@@ -205,7 +205,7 @@ object HttpConfiguration {
           case _ => Option.empty[(String, String)] // skip invalid
         }
     }
-  }(scala.collection.breakOut)
+  }.toMap
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
 

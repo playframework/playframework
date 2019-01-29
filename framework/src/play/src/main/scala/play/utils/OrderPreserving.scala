@@ -15,14 +15,14 @@ object OrderPreserving {
     val m = mutable.Map.empty[K, mutable.Builder[V, Seq[V]]]
 
     // Run through the seq and create builders for each unique key, effectively doing the grouping
-    for ((key, value) <- seq) m.getOrElseUpdate(key, mutable.Seq.newBuilder[V]) += value
+    for ((key, value) <- seq) m.getOrElseUpdate(key, Seq.newBuilder[V]) += value
 
     // Create a builder for the resulting ListMap. Note that this one is immutable and will retain insertion order
     val b = ListMap.newBuilder[K, Seq[V]]
 
     // Note that we are NOT going through m (didn't retain order) but we are iterating over the original seq
     // just to get the keys so we can look up the values in m with them. This is how order is maintained.
-    for ((k, v) <- seq.iterator) b += k -> m.getOrElse(k, mutable.Seq.newBuilder[V]).result
+    for ((k, v) <- seq.iterator) b += k -> m.getOrElse(k, Seq.newBuilder[V]).result
 
     // Get the builder to produce the final result
     b.result

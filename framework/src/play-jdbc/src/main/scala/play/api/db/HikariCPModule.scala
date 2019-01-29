@@ -106,7 +106,7 @@ private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Config
     }
 
     def toMillis(duration: Duration) = {
-      if (duration.isFinite()) duration.toMillis
+      if (duration.isFinite) duration.toMillis
       else 0l
     }
 

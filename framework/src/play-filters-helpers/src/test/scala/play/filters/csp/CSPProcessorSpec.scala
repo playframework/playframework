@@ -125,7 +125,7 @@ class CSPProcessorSpec extends PlaySpecification {
     }
   }
 
-  def parse(policyText: String): (Policy, Seq[Notice]) = {
+  def parse(policyText: String): (Policy, scala.collection.Seq[Notice]) = {
     val notices = new util.ArrayList[Notice]
     val origin = URI.parse("http://example.com")
     val policy = Parser.parse(policyText, origin, notices)

@@ -24,7 +24,7 @@ public class JavaScriptReverseRouter {
      */
     public static JavaScript create(String name, String ajaxMethod, String host, JavaScriptReverseRoute... routes) {
         return play.api.routing.JavaScriptReverseRouter.apply(
-            name, Scala.Option(ajaxMethod), host, Scala.toSeq(routes)
+            name, Scala.Option(ajaxMethod), host, Scala.varargs(routes)
         );
     }
 
