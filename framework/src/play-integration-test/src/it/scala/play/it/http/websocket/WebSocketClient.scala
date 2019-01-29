@@ -50,7 +50,7 @@ trait WebSocketClient {
   /**
    * Shutdown the client and release all associated resources.
    */
-  def shutdown()
+  def shutdown(): Unit
 }
 
 object WebSocketClient {
