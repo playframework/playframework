@@ -15,8 +15,9 @@ Before following the tutorial instructions:
     1. [Play Java Starter Example](https://developer.lightbend.com/start/?group=play&project=play-java-starter-example)
     1. [Play Scala Starter Example](https://developer.lightbend.com/start/?group=play&project=play-scala-starter-example)
 1. Unzip and run the example following the steps in the `README.md` file.
+
  
-The tutorial is self-contained; instructions display as a web page in the application. Tutorial contents are repeated here for your convenience. The tutorial includes a deliberate mistake and having the instructions open in the documentation will make it easier to follow when you encounter the error.
+> **Note**: When you run the tutorial application, it displays web pages with the same content and instructions contained here in the documentation. The tutorial includes a deliberate mistake and having the documenation and application pages open in different tabs or browsers allows you to consult the documentation for the fix when you encounter the error.
 
 ## Introduction to Play
 
