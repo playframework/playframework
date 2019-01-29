@@ -20,8 +20,8 @@ import sbt.ScriptedPlugin._
 import sbt.{Resolver, config, _}
 import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
 import scalariform.formatter.preferences._
-import scala.sys.process.stringToProcess
 
+import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 import scala.sys.process.stringToProcess
 
@@ -87,6 +87,9 @@ object BuildSettings {
     playBuildPromoteSonatype := false
   )
 
+  val DocsApplication = config("docs").hide
+  val SourcesApplication = config("sources").hide
+
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
     crossScalaVersions -= scala211, // until using https://github.com/playframework/interplay/pull/58
@@ -99,6 +102,7 @@ object BuildSettings {
       Resolver.typesafeIvyRepo("releases")
     ),
     evictionSettings,
+    ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
     scalacOptions in (Compile, doc) := {
       // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
