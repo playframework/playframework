@@ -1,14 +1,12 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
-import java.io.File
-
 import sbt._
 import sbt.internal.BuildStructure
 import sbt.Keys._
 import sbt.File
 import sbt.util.CacheStoreFactory
-import sbt.internal.inc.{AnalyzingCompiler, LoggedReporter, ZincComponentManager}
+import sbt.internal.inc.{AnalyzingCompiler, LoggedReporter}
 import java.net.URLClassLoader
 import org.webjars.FileSystemCache
 import org.webjars.WebJarExtractor
@@ -120,18 +118,9 @@ object Docs {
       )
 
   // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
-  def apiDocsTask = Def.task {
-
+  def apiDocsTask = Def.taskDyn {
     val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
     val apiTarget = new File(targetDir, "apidocs")
-
-    val apiMappings = Keys.apiMappings.value
-    val compilers = Keys.compilers.value
-    val useCache = apiDocsUseCache.value
-    val classpath = apiDocsClasspath.value
-    val apiDocsScalaSources = Docs.apiDocsScalaSources.value
-    val apiDocsJavaSources = Docs.apiDocsJavaSources.value
-    val streams = sbt.Keys.streams.value
 
     if ((publishArtifact in packageDoc).value) {
 
@@ -147,6 +136,7 @@ object Docs {
 
       val label = "Play " + version
       // Use the apiMappings value from the "doc" command
+      val apiMappings = Keys.apiMappings.value
       val externalDocsScalacOption = Opts.doc.externalAPI(apiMappings).head.replace("-doc-external-doc:", "")
 
       val options = Seq(
@@ -161,10 +151,16 @@ object Docs {
         s"-doc-external-doc:${externalDocsScalacOption}"
       )
 
+      val compilers = Keys.compilers.value
+      val useCache = apiDocsUseCache.value
+      val classpath = apiDocsClasspath.value
+      val apiDocsScalaSources = Docs.apiDocsScalaSources.value
+      val apiDocsJavaSources = Docs.apiDocsJavaSources.value
+      val streams = sbt.Keys.streams.value
 
       val scalaCompiler = compilers.scalac()
       val provider = ZincCompilerUtil.constantBridgeProvider(scalaCompiler.scalaInstance, new File("random"))
-      val scalac = new AnalyzingCompiler(scalaCompiler.scalaInstance, provider, scalaCompiler.classpathOptions(), (a: Seq[String])=>(), None)
+      val scalac = new AnalyzingCompiler(scalaCompiler.scalaInstance, provider, scalaCompiler.classpathOptions(), (a: Seq[String]) => (), None)
 
       val scaladoc = {
         if (useCache) Doc.scaladoc(label, scalaCache, scalac)
@@ -243,7 +239,7 @@ object Docs {
       }
       IO.write(f, newContent)
     }
-    apiTarget
+    Def.task(apiTarget)
   }
 
   // Converts an artifact into a Javadoc URL.
@@ -320,9 +316,7 @@ object Docs {
         if (includeApiDocs) childRef +: aggregated(childRef) else aggregated(childRef)
       }
     }
-
     val rootProjectId = structure.rootProject(build)
-    structure.rootProject(build)
     val rootProjectRef = ProjectRef(build, rootProjectId)
     aggregated(rootProjectRef)
   }
@@ -354,20 +348,19 @@ object Docs {
 
   // Generate documentation but avoid caching the inputs because of https://github.com/sbt/sbt/issues/1614
   object DocNoCache {
-    type GenerateDoc = RawCompileLike.Gen //(Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
-//    (Seq[java.io.File], Seq[java.io.File], java.io.File, Seq[String], Int, sbt.internal.util.ManagedLogger) => Unit
+    type GenerateDoc = RawCompileLike.Gen
 
     def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String,  compiler: Compilers, maxRetry: Int, logger: ManagedLogger): sbt.inc.Doc.JavaDoc = {
+    def javadoc(label: String,  compiler: Compilers, maxRetry: Int, managedLogger: ManagedLogger): sbt.inc.Doc.JavaDoc = {
       new JavaDoc {
         override def run(sources: List[File], classpath: List[File], outputDirectory: File, options: List[String], incToolOptions: IncToolOptions, log: Logger, reporter: Reporter): Unit = {
           def helper(sources: Seq[File], classpath: Seq[File], outputDirectory: File, options: Seq[String], maxErrors: Int, log: Logger): Unit = {
             compiler.javaTools().javadoc().run(sources.toArray, options.toArray, incToolOptions, reporter, log)
           }
           val impl = RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, helper))
-          impl(sources, classpath, outputDirectory, options, maxRetry, logger)
+          impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
         }
       }
     }
