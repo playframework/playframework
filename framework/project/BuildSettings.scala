@@ -206,6 +206,12 @@ object BuildSettings {
         previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
+    mimaPreviousArtifacts := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
+        case _                       => mimaPreviousArtifacts.value
+      }
+    },
     mimaBinaryIssueFilters ++= Seq(),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
