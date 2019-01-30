@@ -91,7 +91,12 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
         }
         case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_))
         case _ => Map.empty[String, Seq[String]]
-      }) ++ (if (!request.method.equalsIgnoreCase(HttpVerbs.POST) && !request.method.equalsIgnoreCase(HttpVerbs.PUT) && !request.method.equalsIgnoreCase(HttpVerbs.PATCH)) { request.queryString } else { Nil })
+      }) ++ {
+        request.method.toUpperCase match {
+          case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Nil
+          case _ => request.queryString
+        }
+      }
     }
   }
 
