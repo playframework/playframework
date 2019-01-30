@@ -79,7 +79,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    */
   def bindFromRequest()(implicit request: play.api.mvc.Request[_]): Form[T] = {
     bindFromRequest {
-      (request.body match {
+      ((request.body match {
         case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
         case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined => body.asMultipartFormData.get.asFormUrlEncoded
         case body: play.api.mvc.AnyContent if body.asJson.isDefined => FormUtils.fromJson(js = body.asJson.get).mapValues(Seq(_))
@@ -93,14 +93,14 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
         case _ => Map.empty[String, Seq[String]]
       }) ++ {
         request.method.toUpperCase match {
-          case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Nil
+          case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
           case _ => request.queryString
         }
-      }
+      }).toMap
     }
   }
 
-  def bindFromRequest(data: Iterable[(String, Seq[String])]): Form[T] = {
+  def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
     bind {
       data.foldLeft(Map.empty[String, String]) {
         case (s, (key, values)) if key.endsWith("[]") => s ++ values.zipWithIndex.map { case (v, i) => (key.dropRight(2) + "[" + i + "]") -> v }
