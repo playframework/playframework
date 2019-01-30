@@ -93,3 +93,15 @@ b- Using `akka.coordinated-shutdown.reason-overrides....exit-jvm` for a custom r
 c- (TODO) Using a custom `exit-code` is honored
 
 d- (TODO) Using a custom `exit-code` for a custom reason is honored
+
+## HTTP backend test suite
+
+Provides a few test for custom behaviors depending on the HTTP backend used.
+
+### Test mode must use user settings
+
+In Test mode, Play provides tools to handle the Server and Application lifecycles. These tools must create a server
+using the configured backend and the specified protocols:
+
+* test the backend is Akka HTTP or Netty
+* test HTTP/2 is dis/enabled 
