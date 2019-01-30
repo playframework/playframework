@@ -79,7 +79,7 @@ class DBApiProvider(
       .map(injector => ConnectionPool.fromConfig(config.getString("play.db.pool"), injector, environment, defaultConnectionPool))
       .getOrElse(ConnectionPool.fromConfig(config.getString("play.db.pool"), environment, defaultConnectionPool))
     val configs = if (config.hasPath(dbKey)) {
-      Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
+      Configuration(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying).toMap
     } else Map.empty[String, Config]
     val db = new DefaultDBApi(configs, pool, environment, maybeInjector.getOrElse(NewInstanceInjector))
     lifecycle.addStopHook { () => Future.fromTry(Try(db.shutdown())) }

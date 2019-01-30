@@ -337,7 +337,7 @@ trait GuiceableModuleConversions {
    * Convert the given Play module to a Guice module.
    */
   def guice(env: Environment, conf: Configuration, binderOptions: Set[BinderOption])(module: PlayModule): GuiceModule =
-    guice(module.bindings(env, conf), binderOptions)
+    guice(module.bindings(env, conf).toSeq, binderOptions)
 
   /**
    * Convert the given Play bindings to a Guice module.

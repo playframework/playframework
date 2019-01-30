@@ -166,7 +166,7 @@ private[server] object ForwardedHeaderHandler {
         val params = (for {
           fhs <- headers.getAll("Forwarded")
           fh <- fhs.split(",\\s*")
-        } yield (fh.split(";").flatMap {
+        } yield (fh.split(";").iterator.flatMap {
           _.span(_ != '=') match {
             case (_, "") => Option.empty[(String, String)] // no value
 
@@ -178,7 +178,7 @@ private[server] object ForwardedHeaderHandler {
               Some(name -> value)
             }
           }
-        }(scala.collection.breakOut): Map[String, String]))
+        }.toMap))
 
         params.map { paramMap: Map[String, String] =>
           ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))

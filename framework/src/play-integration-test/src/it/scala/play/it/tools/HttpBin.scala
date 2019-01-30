@@ -33,7 +33,7 @@ object HttpBinApplication {
     def writes(r: RequestHeader): JsValue = Json.obj(
       "origin" -> r.remoteAddress,
       "url" -> "",
-      "args" -> r.queryString.mapValues(_.head),
+      "args" -> r.queryString.mapValues(_.head).toMap[String, String],
       "headers" -> r.headers.toSimpleMap
     )
   }
@@ -58,7 +58,7 @@ object HttpBinApplication {
             // Anything else
             case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
               Json.obj(
-                "form" -> m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) },
+                "form" -> JsObject(m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) }),
                 "file" -> JsString(m.mfd.file("upload").map(v => readFileToString(v.ref)).getOrElse(""))
               )
             case b =>

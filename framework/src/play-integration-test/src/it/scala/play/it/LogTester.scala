@@ -29,7 +29,7 @@ object LogTester {
       }
 
       def events: immutable.Seq[ILoggingEvent] = synchronized {
-        eventBuffer.to[immutable.Seq]
+        eventBuffer.toList
       }
     }
 

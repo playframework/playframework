@@ -285,7 +285,7 @@ private[play] final class ServerResultUtils(
   def splitSetCookieHeaders(headers: Map[String, String]): Iterable[(String, String)] = {
     if (headers.contains(SET_COOKIE)) {
       // Rewrite the headers with Set-Cookie split into separate headers
-      headers.to[Seq].flatMap {
+      headers.toSeq.flatMap {
         case (SET_COOKIE, value) =>
           splitSetCookieHeaderValue(value)
             .map { cookiePart =>

@@ -133,7 +133,7 @@ object Configuration {
   def from(data: Map[String, Any]): Configuration = {
 
     def toJava(data: Any): Any = data match {
-      case map: Map[_, _] => map.mapValues(toJava).asJava
+      case map: Map[_, _] => map.mapValues(toJava).toMap.asJava
       case iterable: Iterable[_] => iterable.map(toJava).asJava
       case v => v
     }
@@ -1031,20 +1031,20 @@ object ConfigLoader {
   import scala.collection.JavaConverters._
 
   implicit val stringLoader: ConfigLoader[String] = ConfigLoader(_.getString)
-  implicit val seqStringLoader: ConfigLoader[Seq[String]] = ConfigLoader(_.getStringList).map(_.asScala)
+  implicit val seqStringLoader: ConfigLoader[Seq[String]] = ConfigLoader(_.getStringList).map(_.asScala.toSeq)
 
   implicit val intLoader: ConfigLoader[Int] = ConfigLoader(_.getInt)
-  implicit val seqIntLoader: ConfigLoader[Seq[Int]] = ConfigLoader(_.getIntList).map(_.asScala.map(_.toInt))
+  implicit val seqIntLoader: ConfigLoader[Seq[Int]] = ConfigLoader(_.getIntList).map(_.asScala.map(_.toInt).toSeq)
 
   implicit val booleanLoader: ConfigLoader[Boolean] = ConfigLoader(_.getBoolean)
   implicit val seqBooleanLoader: ConfigLoader[Seq[Boolean]] =
-    ConfigLoader(_.getBooleanList).map(_.asScala.map(_.booleanValue))
+    ConfigLoader(_.getBooleanList).map(_.asScala.map(_.booleanValue).toSeq)
 
   implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] =
     ConfigLoader(_.getDuration).map(javaDurationToScala)
 
   implicit val seqFiniteDurationLoader: ConfigLoader[Seq[FiniteDuration]] =
-    ConfigLoader(_.getDurationList).map(_.asScala.map(javaDurationToScala))
+    ConfigLoader(_.getDurationList).map(_.asScala.map(javaDurationToScala).toSeq)
 
   implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader { config => path =>
     if (config.getIsNull(path)) Duration.Inf
@@ -1058,22 +1058,22 @@ object ConfigLoader {
 
   implicit val doubleLoader: ConfigLoader[Double] = ConfigLoader(_.getDouble)
   implicit val seqDoubleLoader: ConfigLoader[Seq[Double]] =
-    ConfigLoader(_.getDoubleList).map(_.asScala.map(_.doubleValue))
+    ConfigLoader(_.getDoubleList).map(_.asScala.map(_.doubleValue).toSeq)
 
   implicit val numberLoader: ConfigLoader[Number] = ConfigLoader(_.getNumber)
-  implicit val seqNumberLoader: ConfigLoader[Seq[Number]] = ConfigLoader(_.getNumberList).map(_.asScala)
+  implicit val seqNumberLoader: ConfigLoader[Seq[Number]] = ConfigLoader(_.getNumberList).map(_.asScala.toSeq)
 
   implicit val longLoader: ConfigLoader[Long] = ConfigLoader(_.getLong)
   implicit val seqLongLoader: ConfigLoader[Seq[Long]] =
-    ConfigLoader(_.getLongList).map(_.asScala.map(_.longValue))
+    ConfigLoader(_.getLongList).map(_.asScala.map(_.longValue).toSeq)
 
   implicit val bytesLoader: ConfigLoader[ConfigMemorySize] = ConfigLoader(_.getMemorySize)
-  implicit val seqBytesLoader: ConfigLoader[Seq[ConfigMemorySize]] = ConfigLoader(_.getMemorySizeList).map(_.asScala)
+  implicit val seqBytesLoader: ConfigLoader[Seq[ConfigMemorySize]] = ConfigLoader(_.getMemorySizeList).map(_.asScala.toSeq)
 
   implicit val configLoader: ConfigLoader[Config] = ConfigLoader(_.getConfig)
   implicit val configListLoader: ConfigLoader[ConfigList] = ConfigLoader(_.getList)
   implicit val configObjectLoader: ConfigLoader[ConfigObject] = ConfigLoader(_.getObject)
-  implicit val seqConfigLoader: ConfigLoader[Seq[Config]] = ConfigLoader(_.getConfigList).map(_.asScala)
+  implicit val seqConfigLoader: ConfigLoader[Seq[Config]] = ConfigLoader(_.getConfigList).map(_.asScala.toSeq)
 
   implicit val configurationLoader: ConfigLoader[Configuration] = configLoader.map(Configuration(_))
   implicit val seqConfigurationLoader: ConfigLoader[Seq[Configuration]] = seqConfigLoader.map(_.map(Configuration(_)))
@@ -1101,11 +1101,11 @@ object ConfigLoader {
       val obj = config.getObject(path)
       val conf = obj.toConfig
 
-      obj.keySet().asScala.map { key =>
+      obj.keySet().asScala.iterator.map { key =>
         // quote and escape the key in case it contains dots or special characters
         val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
         key -> valueLoader.load(conf, path)
-      }(scala.collection.breakOut)
+      }.toMap
     }
   }
 }

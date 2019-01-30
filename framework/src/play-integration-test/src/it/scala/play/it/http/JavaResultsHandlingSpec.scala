@@ -289,7 +289,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           .withCookies(Http.Cookie.builder("framework", "Play").withSameSite(Http.Cookie.SameSite.STRICT).build())
       }
     }) { response =>
-      val cookieHeader: Seq[String] = response.headers("Set-Cookie")
+      val cookieHeader = response.headers("Set-Cookie")
       cookieHeader(0) must contain("bar=KitKat")
       cookieHeader(0) must contain("SameSite=Lax")
 

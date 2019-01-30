@@ -206,6 +206,12 @@ object BuildSettings {
         previousVersions.map(v => organization.value % moduleName.value %  v)
       }
     },
+    mimaPreviousArtifacts := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
+        case _                       => mimaPreviousArtifacts.value
+      }
+    },
     mimaBinaryIssueFilters ++= Seq(),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
@@ -213,15 +219,10 @@ object BuildSettings {
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
   ) ++ Seq(
-    // TODO: Re-add ScalaVersions.scala213
-    // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
-    // that right because some dependencies don't have a build for M5 yet. As soon as
-    // we decide that we could release to M5, than we can re-add scala213 to it
-    //
     // See also:
     // 1. the root project at build.sbt file.
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212)
+    crossScalaVersions := Seq(ScalaVersions.scala211, ScalaVersions.scala212, ScalaVersions.scala213)
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(

@@ -68,14 +68,14 @@ trait JavaHelpers {
 
   def javaMapOfListToScalaSeqOfPairs(m: java.util.Map[String, java.util.List[String]]): Seq[(String, String)] = {
     for {
-      (k, arr) <- m.asScala.to[Vector]
+      (k, arr) <- m.asScala.toVector
       el <- arr.asScala
     } yield (k, el)
   }
 
   def javaMapOfArraysToScalaSeqOfPairs(m: java.util.Map[String, Array[String]]): Seq[(String, String)] = {
     for {
-      (k, arr) <- m.asScala.to[Vector]
+      (k, arr) <- m.asScala.toVector
       el <- arr
     } yield (k, el)
   }
@@ -308,7 +308,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def acceptLanguages: util.List[i18n.Lang] = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
-  override def queryString: util.Map[String, Array[String]] = header.queryString.mapValues(_.toArray).asJava
+  override def queryString: util.Map[String, Array[String]] = header.queryString.mapValues(_.toArray).toMap.asJava
 
   override def acceptedTypes: util.List[MediaRange] = header.acceptedTypes.asJava
 

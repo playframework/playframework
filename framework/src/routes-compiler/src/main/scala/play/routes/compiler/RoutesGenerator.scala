@@ -6,8 +6,6 @@ package play.routes.compiler
 
 import java.io.File
 
-import scala.collection.breakOut
-
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 trait RoutesGenerator {
@@ -102,7 +100,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           router -> Dependency(
             router.replace('.', '_') + "_" + index, router, inc)
         }
-      }(breakOut)
+      }.toMap
 
     // Generate dependency descriptors for all routes
     val routesDeps: Map[(Option[String], String, Boolean), Dependency[Route]] =
@@ -118,7 +116,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
 
             key -> Dependency(ident, dep, route)
           }
-      }(breakOut)
+      }.toMap
 
     // Get the distinct dependency descriptors in the same order as defined in the routes file
     val orderedDeps = rules.map {

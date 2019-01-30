@@ -432,7 +432,7 @@ object Files {
     def fromConfiguration(config: Configuration): TemporaryFileReaperConfiguration = {
       def duration(key: String): FiniteDuration = {
         Duration(config.get[String](key)) match {
-          case d: FiniteDuration if d.isFinite() =>
+          case d: FiniteDuration if d.isFinite =>
             d
           case _ =>
             throw new IllegalStateException(s"Only finite durations are allowed for $key")

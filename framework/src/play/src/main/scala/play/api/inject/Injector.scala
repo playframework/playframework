@@ -115,7 +115,7 @@ class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.em
  * Wraps an existing injector, ensuring all calls have the correct context `ClassLoader` set.
  */
 private[play] class ContextClassLoaderInjector(delegate: Injector, classLoader: ClassLoader) extends Injector {
-  override def instanceOf[T: ClassManifest]: T = withContext { delegate.instanceOf[T] }
+  override def instanceOf[T: ClassTag]: T = withContext { delegate.instanceOf[T] }
   override def instanceOf[T](clazz: Class[T]): T = withContext { delegate.instanceOf(clazz) }
   override def instanceOf[T](key: BindingKey[T]): T = withContext { delegate.instanceOf(key) }
 

@@ -28,15 +28,10 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "rout
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
-      // TODO: Re-add ScalaVersions.scala213
-      // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
-      // that right because some dependencies don't have a build for M5 yet. As soon as
-      // we decide that we could release to M5, than we can re-add scala213 to it
-      //
       // See also:
       // 1. the root project at build.sbt file.
       // 2. project/BuildSettings.scala
-      crossScalaVersions := Seq(scala211, scala212),
+      crossScalaVersions := Seq(scala211, scala212, scala213),
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
@@ -64,6 +59,14 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .settings(
       libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
         jimfs % Test,
+
+      unmanagedSourceDirectories in Compile ++= {
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, v)) if v >= 13 => (sourceDirectory in Compile).value / s"java-scala-2.13+" :: Nil
+          case Some((2, v)) if v <= 12 => (sourceDirectory in Compile).value / s"java-scala-2.13-" :: Nil
+          case _                       => Nil
+        }
+      },
 
       sourceGenerators in Compile += Def.task(PlayVersion(
         version.value,
@@ -464,15 +467,10 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     .settings(playCommonSettings: _*)
     .settings(
       scalaVersion := (scalaVersion in PlayProject).value,
-      // TODO: Re-add ScalaVersions.scala213
-      // Interplay 2.0.4 adds Scala 2.13.0-M5 to crossScalaVersions, but we don't want
-      // that right because some dependencies don't have a build for M5 yet. As soon as
-      // we decide that we could release to M5, than we can re-add scala213 to it
-      //
       // See also:
       // 1. project/BuildSettings.scala
       // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(scala211, scala212),
+      crossScalaVersions := Seq(scala211, scala212, scala213),
       playBuildRepoName in ThisBuild := "playframework",
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),

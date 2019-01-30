@@ -18,7 +18,7 @@ import java.util.function.Function;
 /**
  * Class that contains useful java &lt;-&gt; scala conversion helpers.
  */
-public class Scala {
+public class Scala extends CrossScala {
 
     /**
      * Wraps a Scala Option, handling None as null.
@@ -155,40 +155,6 @@ public class Scala {
         T[] arr = (T[]) Array.newInstance(clazz, scalaList.length());
         scalaList.copyToArray(arr);
         return arr;
-    }
-
-    /**
-     * Converts a Java List to Scala Seq.
-     *
-     * @param list    the java list.
-     * @return the converted Seq.
-     * @param <T> the element type.
-     */
-    public static <T> scala.collection.Seq<T> toSeq(java.util.List<T> list) {
-        return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
-    }
-
-    /**
-     * Converts a Java Array to Scala Seq.
-     *
-     * @param array    the java array.
-     * @return the converted Seq.
-     * @param <T> the element type.
-     */
-    public static <T> scala.collection.Seq<T> toSeq(T[] array) {
-        return toSeq(java.util.Arrays.asList(array));
-    }
-
-    /**
-     * Converts a Java varargs to Scala Seq.
-     *
-     * @param array    the java array.
-     * @return the converted Seq.
-     * @param <T> the element type.
-     */
-    @SafeVarargs
-    public static <T> scala.collection.Seq<T> varargs(T... array) {
-        return toSeq(java.util.Arrays.asList(array));
     }
 
     /**
