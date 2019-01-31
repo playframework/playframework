@@ -95,33 +95,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .settings(Docs.playdocSettings: _*)
     .settings(
       mimaBinaryIssueFilters := Seq(
-        // temporary exclusion for RC9
-        // RC9 contains an incomplete PR #8878 that was completed on #8913
-        // once we release 2.7.0 GA, MiMa must be configured to 2.7.0 and those exclusions can be removed
-        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#MultipartFormData#FilePart.this"),
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.apply"),
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.copy"),
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.this"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.MultipartFormData#FilePart.copy$default$5"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.MultipartFormData#FilePart.apply$default$5"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.MultipartFormData#FilePart.<init>$default$5"),
-
-        // copyTo (which is a new method in 2.7) returns Path instead of TemporaryFile
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.copyTo"),
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.copyTo"),
-
-        // Rename moveTo and atomicMoveWithFallback to be able the change the return type to Path
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveFileTo"),
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.moveFileTo"),
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.moveFileTo$default$2"),
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.Files#TemporaryFile.atomicMoveFileWithFallback"),
-        ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveFileWithFallback")
       )
     )
     .dependsOn(
