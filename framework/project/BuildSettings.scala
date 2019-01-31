@@ -212,7 +212,12 @@ object BuildSettings {
         case _                       => mimaPreviousArtifacts.value
       }
     },
-    mimaBinaryIssueFilters ++= Seq(),
+    mimaBinaryIssueFilters ++= Seq(
+        // Scala 2.11 removed
+        ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
+        ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
+        ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$")
+    ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
