@@ -61,7 +61,7 @@ object BuildSettings {
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
 
   // Versions of previous minor releases being checked for binary compatibility
-  val mimaPreviousMinorReleaseVersions: Seq[String] = Nil // Seq("2.8.0")
+  val mimaPreviousMinorReleaseVersions: Seq[String] = Seq("2.7.0")
   def mimaPreviousPatchVersions(version: String): Seq[String] = version match {
     case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
     case _ => sys.error(s"Cannot find previous versions for $version")
@@ -212,7 +212,12 @@ object BuildSettings {
         case _                       => mimaPreviousArtifacts.value
       }
     },
-    mimaBinaryIssueFilters ++= Seq(),
+    mimaBinaryIssueFilters ++= Seq(
+        // Scala 2.11 removed
+        ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
+        ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
+        ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$")
+    ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
