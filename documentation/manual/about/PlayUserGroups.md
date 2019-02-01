@@ -28,7 +28,6 @@ https://www.meetup.com/play-argentina/
 
 ## Japan
 
-* http://www.playframework-ja.org/
 * https://groups.google.com/forum/?fromgroups#!forum/play_ja
 
 ## Republic of Korea 
