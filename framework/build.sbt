@@ -355,7 +355,6 @@ lazy val PlayEhcacheProject = PlayCrossBuiltProject("Play-Ehcache", "play-ehcach
 
 lazy val PlayCaffeineCacheProject = PlayCrossBuiltProject("Play-Caffeine-Cache", "play-caffeine-cache")
     .settings(
-      mimaPreviousArtifacts := Set.empty,
       libraryDependencies ++= playCaffeineDeps
     )
     .dependsOn(
