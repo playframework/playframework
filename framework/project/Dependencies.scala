@@ -8,12 +8,12 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.19")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.20")
   val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.7")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
 
-  val playJsonVersion = "2.7.0"
+  val playJsonVersion = "2.7.1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -164,10 +164,10 @@ object Dependencies {
       sslConfig
     ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.31.Final"
+  val nettyVersion = "4.1.33.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.2",
     "io.netty" % "netty-transport-native-epoll" % nettyVersion classifier "linux-x86_64"
   ) ++ specs2Deps.map(_ % Test)
 
