@@ -52,7 +52,7 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava = "com.google.guava" % "guava" % "27.0-jre"
+  val guava = "com.google.guava" % "guava" % "27.0.1-jre"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-core" % "2.23.4"
 
