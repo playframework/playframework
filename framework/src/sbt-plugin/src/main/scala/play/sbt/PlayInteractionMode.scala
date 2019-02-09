@@ -57,11 +57,24 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     val consoleReader = new ConsoleReader
     try f(consoleReader) finally consoleReader.close()
   }
+
+  /***
+    * See if a new stop key character has been set
+    */
+  private val stopKeys = {
+    val stopCharacterCode = Option(System.getProperty("play.run.stopKeyCharacterCode")).map(_.toInt) match {
+      case Some(characterCode) => characterCode
+      case _ => 13
+    }
+
+    4 | -1 | stopCharacterCode
+  }
+
   private def waitForKey(): Unit = {
     withConsoleReader { consoleReader =>
       def waitEOF(): Unit = {
         consoleReader.readCharacter() match {
-          case 4 | 13 | -1 =>
+          case stopKeys =>
           // Note: we have to listen to -1 for jline2, for some reason...
           // STOP on Ctrl-D, Enter or EOF.
           case 11 =>
