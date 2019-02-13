@@ -2,9 +2,10 @@
 
 # Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
+# shellcheck source=bin/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-cd ${DOCUMENTATION}
+cd "$DOCUMENTATION"
 
 printMessage "RUNNING DOCUMENTATION VALIDATION"
 runSbt evaluateSbtFiles
@@ -20,7 +21,7 @@ printMessage "ALL DOCUMENTATION VALIDATION PASSED"
 # Only checks diffs inside the documentation directory
 git diff --exit-code . || (
   echo "ERROR: Documentation copyright or sources license header check failed, see differences above."
-  echo "To fix, run './addMarkdownCopyright' script inside documentation directory or 'sbt test:compile' inside framework directory."
+  echo "To fix, run the './addMarkdownCopyright' script inside the documentation directory or 'sbt test:compile' at the root of the repo."
   echo "After that you can update your pull request."
   false
 )

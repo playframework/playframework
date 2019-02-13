@@ -26,8 +26,8 @@ Before making a contribution, it is important to make sure that the change you w
         * Introducing new, heavy external dependencies
     5. The Play API design rules are the following:
         * Play is a Java and Scala framework, make sure any changes have feature parity in both the Scala and Java APIs.
-        * Java APIs should go to `framework/play/src/main/java`, package structure is `play.myapipackage.xxxx`
-        * Scala APIs should go to `framework/play/src/main/scala`, where the package structure is `play.api.myapipackage`
+        * Java APIs should go to `core/play/src/main/java`, package structure is `play.myapipackage.xxxx`
+        * Scala APIs should go to `core/play/src/main/scala`, where the package structure is `play.api.myapipackage`
         * Features are forever, always think about whether a new feature really belongs to the core framework or if it should be implemented as a module
         * Code must conform to standard style guidelines and pass all tests (see [Run tests](https://www.playframework.com/documentation/latest/BuildingFromSource#run-tests))
     6. New files must:

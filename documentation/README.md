@@ -50,7 +50,7 @@ There is no out of the box integration, but you can use IntelliJ IDEA's [Scala p
 Before you run the tests make sure you have the latest snapshot version of the Play library in your local repository. This can be achieved through:
 
 ```
-(cd ../framework && sbt publishLocal)
+(cd .. && sbt publishLocal)
 ```
 
 You can run the test suite for the documentation using:
@@ -81,7 +81,7 @@ sbt
 There is no distinct packaging of HTML files in the project.  Instead, the main project has a `/project/Docs` SBT file that will package the documentation with the rest of the application.
 
 ```
-cd $PLAY_HOME/framework
+cd $PLAY_HOME
 sbt compile doc package
 ```
 

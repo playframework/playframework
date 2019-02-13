@@ -2,9 +2,10 @@
 
 # Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
+# shellcheck source=bin/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-cd ${FRAMEWORK}
+cd "$BASEDIR"
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
 
@@ -14,5 +15,3 @@ if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
 else
     printMessage "SKIPPING PUBLISH LOCAL"
 fi
-
-

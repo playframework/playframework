@@ -239,7 +239,7 @@ object BuildSettings {
    * A project that is shared between the SBT runtime and the Play runtime
    */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
-    Project(name, file("src/" + dir))
+    Project(name, file(dir))
         .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
@@ -253,7 +253,7 @@ object BuildSettings {
    * A project that is only used when running in development.
    */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
-    Project(name, file("src/" + dir))
+    Project(name, file(dir))
         .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
         .settings(playCommonSettings: _*)
         .settings(
@@ -268,7 +268,7 @@ object BuildSettings {
    * A project that is in the Play runtime
    */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
-    Project(name, file("src/" + dir))
+    Project(name, file(dir))
         .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
         .settings(playRuntimeSettings: _*)
         .settings(omnidocSettings: _*)
@@ -279,7 +279,7 @@ object BuildSettings {
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
     omnidocSnapshotBranch := snapshotBranch,
-    omnidocPathPrefix := "framework/"
+    omnidocPathPrefix := ""
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
@@ -315,7 +315,7 @@ object BuildSettings {
    * A project that runs in the SBT runtime
    */
   def PlaySbtProject(name: String, dir: String): Project = {
-    Project(name, file("src/" + dir))
+    Project(name, file(dir))
         .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
         .settings(playCommonSettings: _*)
   }
@@ -324,7 +324,7 @@ object BuildSettings {
    * A project that *is* an SBT plugin
    */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
-    Project(name, file("src/" + dir))
+    Project(name, file(dir))
         .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
         .settings(playCommonSettings: _*)
         .settings(playScriptedSettings: _*)

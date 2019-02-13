@@ -128,7 +128,7 @@ object Docs {
         // into the FILE_SOURCE variable below, which is definitely not what we want.
         // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
         "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath,
-        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala",
+        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "€{FILE_PATH}.scala",
         s"-doc-external-doc:${externalDocsScalacOption}")
 
       val compilers = Keys.compilers.value

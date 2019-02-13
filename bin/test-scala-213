@@ -2,6 +2,7 @@
 
 # Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
+# shellcheck source=bin/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 # We are not running Scala 2.13 job for scheduled builds because they use
@@ -9,7 +10,7 @@
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
     printMessage "SKIPPING TESTS FOR SCALA 2.13"
 else
-    cd ${FRAMEWORK}
+    cd "$BASEDIR"
 
     printMessage "RUNNING TESTS FOR SCALA 2.13"
 

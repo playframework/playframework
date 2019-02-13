@@ -8,9 +8,8 @@ set -e
 set -o pipefail
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-BASEDIR=${DIR}/../..
-FRAMEWORK=${BASEDIR}/framework
-DOCUMENTATION=${BASEDIR}/documentation
+BASEDIR=$DIR/..
+export DOCUMENTATION=$BASEDIR/documentation
 
 export CURRENT_BRANCH=${TRAVIS_BRANCH}
 
@@ -34,5 +33,5 @@ printMessage() {
 }
 
 runSbt() {
-  sbt ${EXTRA_OPTS} -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+  sbt "$EXTRA_OPTS" -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }
