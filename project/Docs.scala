@@ -282,7 +282,9 @@ object Docs {
   def allClasspaths(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     // Full classpath is necessary to ensure that scaladoc and javadoc can see the compiled classes of the other language.
-    val tasks = projects flatMap { fullClasspath in Compile in _ get structure.data }
+    val tasks = projects.flatMap { p =>
+      (fullClasspath in Compile in p).get(structure.data)
+    }
     tasks.join.map(_.flatten.map(_.data).distinct)
   }
 

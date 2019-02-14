@@ -4,7 +4,6 @@
 import java.util.regex.Pattern
 
 import bintray.BintrayPlugin.autoImport._
-import com.typesafe.sbt.SbtScalariform.autoImport._
 import com.typesafe.sbt.pgp.PgpKeys
 import com.typesafe.tools.mima.core.{ProblemFilters, _}
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -17,7 +16,6 @@ import interplay._
 import sbt.Keys.{version, _}
 import sbt.ScriptedPlugin._
 import sbt.{Resolver, _}
-import scalariform.formatter.preferences._
 
 import scala.util.control.NonFatal
 
@@ -91,14 +89,6 @@ object BuildSettings {
   def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
 
     fileHeaderSettings ++ Seq(
-      scalariformAutoformat := true,
-      scalariformPreferences := scalariformPreferences.value
-          .setPreference(SpacesAroundMultiImports, true)
-          .setPreference(SpaceInsideParentheses, false)
-          .setPreference(DanglingCloseParenthesis, Preserve)
-          .setPreference(PreserveSpaceBeforeArguments, true)
-          .setPreference(DoubleIndentConstructorArguments, true)
-    ) ++ Seq(
       homepage := Some(url("https://playframework.com")),
       ivyLoggingLevel := UpdateLogging.DownloadOnly,
       resolvers ++= Seq(
