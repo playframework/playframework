@@ -9,6 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -148,6 +149,14 @@ class HelpersSpec extends Specification {
       "return an empty map when there is no query string parameters" in {
         val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
         request.queryString must beEmpty
+      }
+      "have application/json Content-Type when withJsonBody is called" in {
+        val request = FakeRequest().withJsonBody(Json.obj())
+        request.contentType must beSome(JSON)
+      }
+      "have application/json Content-Type when withJsonBody is called with explicit headers [compatibility check]" in {
+        val request = FakeRequest().withJsonBody(Json.obj()).withHeaders(CONTENT_TYPE -> JSON)
+        request.contentType must beSome(JSON)
       }
     }
   }
