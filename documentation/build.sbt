@@ -80,7 +80,10 @@ lazy val main = Project("Play-Documentation", file("."))
              | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
              | */
              |""".stripMargin)
-      )
+      ),
+
+      sourceDirectories in format in Test ++= (unmanagedSourceDirectories in Test).value,
+      sourceDirectories in format in Test ++= (unmanagedResourceDirectories in Test).value
     )
     .dependsOn(
       playDocs,

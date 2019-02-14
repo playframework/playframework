@@ -7,8 +7,8 @@ val Versions = new {
   // documentation/manual/working/commonGuide/production/Deploying.md
   val sbtNativePackager = "1.3.15"
   val mima = "0.3.0"
-  val sbtScalariform = "1.8.2"
   val sbtJavaAgent = "0.1.4"
+  val sbtJavaFormatter = "0.4.3"
   val sbtJmh = "0.2.27"
   val sbtDoge = "0.1.5"
   val webjarsLocatorCore = "0.33"
@@ -30,8 +30,8 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 addSbtPlugin("com.typesafe.play" % "interplay" % Versions.interplay)
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % Versions.sbtTwirl)
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % Versions.mima)
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % Versions.sbtScalariform)
 addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % Versions.sbtJavaAgent)
+addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter" % Versions.sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % Versions.sbtJmh)
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % Versions.sbtHeader)
 
