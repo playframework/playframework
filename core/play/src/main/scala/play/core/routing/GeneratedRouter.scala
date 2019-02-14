@@ -105,6 +105,7 @@ abstract class GeneratedRouter extends Router {
 
   //Keep the old versions for avoiding compiler failures while building for Scala 2.10,
   // and for avoiding warnings when building for newer Scala versions
+  // format: off
   def call[A1, A2](pa1: Param[A1], pa2: Param[A2])(generator: Function2[A1, A2, Handler]): Handler = {
     (for (a1 <- pa1.value.right; a2 <- pa2.value.right)
       yield (a1, a2))
@@ -224,6 +225,7 @@ abstract class GeneratedRouter extends Router {
       yield (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21))
       .fold(badRequest, { case (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) => generator(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) })
   }
+  // format: on
 
   def call[T](params: List[Param[_]])(generator: (Seq[_]) => Handler): Handler =
     (params.foldLeft[Either[String, Seq[_]]](Right(Seq[T]())) { (seq, param) => seq.right.flatMap(s => param.value.right.map(s :+ _)) }).fold(badRequest, generator)
