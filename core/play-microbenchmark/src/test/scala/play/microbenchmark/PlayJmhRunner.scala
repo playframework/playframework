@@ -15,7 +15,7 @@ object PlayJmhRunner {
 
   def main(args: Array[String]): Unit = {
     val jettyAnlpAgentJarPath = System.getProperty("jetty.anlp.agent.jar")
-    val extraArgs = Array("-jvmArgsPrepend", s"-javaagent:$jettyAnlpAgentJarPath")
+    val extraArgs             = Array("-jvmArgsPrepend", s"-javaagent:$jettyAnlpAgentJarPath")
     org.openjdk.jmh.Main.main(args ++ extraArgs)
   }
 

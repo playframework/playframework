@@ -34,6 +34,7 @@ import play.core.server.ServerEndpoint.ClientSsl
 }
 
 @ApiMayChange object ServerEndpoint {
+
   /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
   final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
 }

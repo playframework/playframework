@@ -18,7 +18,7 @@ import sbt._
  */
 object PlayFilters extends AutoPlugin {
   override def requires = PlayWeb
-  override def trigger = allRequirements
+  override def trigger  = allRequirements
 
   override def projectSettings =
     Seq(libraryDependencies += PlayImport.filters)

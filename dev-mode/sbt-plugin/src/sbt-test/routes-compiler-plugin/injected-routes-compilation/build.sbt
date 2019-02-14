@@ -17,7 +17,7 @@ sourceDirectory in Test := baseDirectory.value / "tests"
 scalaSource in Test := baseDirectory.value / "tests"
 
 // Generate a js router so we can test it with mocha
-val generateJsRouter = TaskKey[Seq[File]]("generate-js-router")
+val generateJsRouter        = TaskKey[Seq[File]]("generate-js-router")
 val generateJsRouterBadHost = TaskKey[Seq[File]]("generate-js-router-bad-host")
 
 generateJsRouter := {
@@ -26,8 +26,9 @@ generateJsRouter := {
 }
 
 generateJsRouterBadHost := {
-  (runMain in Compile).toTask(
-    """ utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutesBadHost.js "'}}};alert(1);a={a:{a:{a:'" """).value
+  (runMain in Compile)
+    .toTask(""" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutesBadHost.js "'}}};alert(1);a={a:{a:{a:'" """)
+    .value
   Seq(target.value / "web" / "jsrouter" / "jsRoutesBadHost.js")
 }
 
@@ -62,7 +63,8 @@ compile in Compile := {
 scalacOptions ++= {
   Seq(
     "-deprecation",
-    "-encoding", "UTF-8",
+    "-encoding",
+    "UTF-8",
     "-feature",
     "-language:existentials",
     "-language:higherKinds",

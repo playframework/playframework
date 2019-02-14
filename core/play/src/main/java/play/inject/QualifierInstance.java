@@ -9,26 +9,26 @@ import java.lang.annotation.Annotation;
 /**
  * A qualifier annotation instance.
  *
- * See the {@link Module} class for information on how to provide bindings.
+ * <p>See the {@link Module} class for information on how to provide bindings.
  */
 public final class QualifierInstance<T extends Annotation> extends QualifierAnnotation {
-    private final play.api.inject.QualifierInstance<T> underlying;
+  private final play.api.inject.QualifierInstance<T> underlying;
 
-    public QualifierInstance(final T instance) {
-        this(play.api.inject.QualifierInstance.apply(instance));
-    }
+  public QualifierInstance(final T instance) {
+    this(play.api.inject.QualifierInstance.apply(instance));
+  }
 
-    public QualifierInstance(final play.api.inject.QualifierInstance<T> underlying) {
-        super();
-        this.underlying = underlying;
-    }
+  public QualifierInstance(final play.api.inject.QualifierInstance<T> underlying) {
+    super();
+    this.underlying = underlying;
+  }
 
-    public T getInstance() {
-        return underlying.instance();
-    }
+  public T getInstance() {
+    return underlying.instance();
+  }
 
-    @Override
-    public play.api.inject.QualifierInstance asScala() {
-        return underlying;
-    }
+  @Override
+  public play.api.inject.QualifierInstance asScala() {
+    return underlying;
+  }
 }

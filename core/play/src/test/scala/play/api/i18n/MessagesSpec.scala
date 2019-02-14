@@ -9,25 +9,24 @@ import java.io.File
 import org.specs2.mutable._
 import play.api.http.HttpConfiguration
 import play.api.i18n.Messages.MessageSource
-import play.api.mvc.{ Cookie, Results }
-import play.api.{ Configuration, Environment, Mode, PlayException }
+import play.api.mvc.Cookie
+import play.api.mvc.Results
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
+import play.api.PlayException
 import play.core.test.FakeRequest
 
 class MessagesSpec extends Specification {
   val testMessages = Map(
-    "default" -> Map(
-      "title" -> "English Title",
-      "foo" -> "English foo",
-      "bar" -> "English pub"),
-    "fr" -> Map(
-      "title" -> "Titre francais",
-      "foo" -> "foo francais"),
-    "fr-CH" -> Map(
-      "title" -> "Titre suisse"))
+    "default" -> Map("title" -> "English Title", "foo" -> "English foo", "bar" -> "English pub"),
+    "fr"      -> Map("title" -> "Titre francais", "foo" -> "foo francais"),
+    "fr-CH"   -> Map("title" -> "Titre suisse")
+  )
   val api = {
-    val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+    val env    = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
     val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH")))
-    val langs = new DefaultLangsProvider(config).get
+    val langs  = new DefaultLangsProvider(config).get
     new DefaultMessagesApi(testMessages, langs)
   }
 
@@ -41,28 +40,28 @@ class MessagesSpec extends Specification {
   "MessagesApi" should {
     "fall back to less specific translation" in {
       // Direct lookups
-      translate("title", "fr", "CH") must be equalTo Some("Titre suisse")
-      translate("title", "fr", "") must be equalTo Some("Titre francais")
-      isDefinedAt("title", "fr", "CH") must be equalTo true
-      isDefinedAt("title", "fr", "") must be equalTo true
+      (translate("title", "fr", "CH") must be).equalTo(Some("Titre suisse"))
+      (translate("title", "fr", "") must be).equalTo(Some("Titre francais"))
+      (isDefinedAt("title", "fr", "CH") must be).equalTo(true)
+      (isDefinedAt("title", "fr", "") must be).equalTo(true)
 
       // Region that is missing
-      translate("title", "fr", "FR") must be equalTo Some("Titre francais")
-      isDefinedAt("title", "fr", "FR") must be equalTo true
+      (translate("title", "fr", "FR") must be).equalTo(Some("Titre francais"))
+      (isDefinedAt("title", "fr", "FR") must be).equalTo(true)
 
       // Translation missing in the given region
-      translate("foo", "fr", "CH") must be equalTo Some("foo francais")
-      translate("bar", "fr", "CH") must be equalTo Some("English pub")
-      isDefinedAt("foo", "fr", "CH") must be equalTo true
-      isDefinedAt("bar", "fr", "CH") must be equalTo true
+      (translate("foo", "fr", "CH") must be).equalTo(Some("foo francais"))
+      (translate("bar", "fr", "CH") must be).equalTo(Some("English pub"))
+      (isDefinedAt("foo", "fr", "CH") must be).equalTo(true)
+      (isDefinedAt("bar", "fr", "CH") must be).equalTo(true)
 
       // Unrecognized language
-      translate("title", "bo", "GO") must be equalTo Some("English Title")
-      isDefinedAt("title", "bo", "GO") must be equalTo true
+      (translate("title", "bo", "GO") must be).equalTo(Some("English Title"))
+      (isDefinedAt("title", "bo", "GO") must be).equalTo(true)
 
       // Missing translation
-      translate("garbled", "fr", "CH") must be equalTo None
-      isDefinedAt("garbled", "fr", "CH") must be equalTo false
+      (translate("garbled", "fr", "CH") must be).equalTo(None)
+      (isDefinedAt("garbled", "fr", "CH") must be).equalTo(false)
     }
 
     "support setting the language on a result" in {
@@ -72,25 +71,25 @@ class MessagesSpec extends Specification {
     }
 
     "default for the language cookie's SameSite attribute is Lax" in {
-      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config = Configuration.reference
-      val langs = new DefaultLangsProvider(config).get
+      val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config      = Configuration.reference
+      val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
       messagesApi.langCookieSameSite must_== Option(Cookie.SameSite.Lax)
     }
 
     "correctly pick up the config for the language cookie's SameSite attribute" in {
-      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "Strict"))
-      val langs = new DefaultLangsProvider(config).get
+      val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config      = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "Strict"))
+      val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
       messagesApi.langCookieSameSite must_== Option(Cookie.SameSite.Strict)
     }
 
     "not have a value for the language cookie's SameSite attribute when misconfigured" in {
-      val env = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "foo"))
-      val langs = new DefaultLangsProvider(config).get
+      val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config      = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "foo"))
+      val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
       messagesApi.langCookieSameSite must_== None
     }
@@ -109,16 +108,28 @@ class MessagesSpec extends Specification {
         api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "de"))).lang must_== Lang("en")
       }
       "when a cookie and an acceptable lang are available" in {
-        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr"))
-          .withHeaders("Accept-Language" -> "en")).lang must_== Lang("fr")
+        api
+          .preferred(
+            FakeRequest()
+              .withCookies(Cookie("PLAY_LANG", "fr"))
+              .withHeaders("Accept-Language" -> "en")
+          )
+          .lang must_== Lang("fr")
       }
 
     }
 
     "report error for invalid lang" in {
       {
-        val langs = new DefaultLangsProvider(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language")))).get
-        val messagesApi = new DefaultMessagesApiProvider(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev), Configuration.reference, langs, HttpConfiguration()).get
+        val langs = new DefaultLangsProvider(
+          Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language")))
+        ).get
+        val messagesApi = new DefaultMessagesApiProvider(
+          new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
+          Configuration.reference,
+          langs,
+          HttpConfiguration()
+        ).get
       } must throwA[PlayException]
     }
   }

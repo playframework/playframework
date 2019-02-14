@@ -7,21 +7,30 @@ package play.it.test
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{ ActorSystem, Terminated }
+import akka.actor.ActorSystem
+import akka.actor.Terminated
 import akka.stream.ActorMaterializer
-import com.typesafe.sslconfig.ssl.{ SSLConfigSettings, SSLLooseConfig }
+import com.typesafe.sslconfig.ssl.SSLConfigSettings
+import com.typesafe.sslconfig.ssl.SSLLooseConfig
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.Configuration
-import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
-import play.api.libs.ws.{ WSClient, WSClientConfig, WSRequest, WSResponse }
+import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.ws.ahc.AhcWSClientConfig
+import play.api.libs.ws.WSClient
+import play.api.libs.ws.WSClientConfig
+import play.api.libs.ws.WSRequest
+import play.api.libs.ws.WSResponse
 import play.api.mvc.Call
-import play.api.test.{ ApplicationFactory, DefaultAwaitTimeout, FutureAwaits }
+import play.api.test.ApplicationFactory
+import play.api.test.DefaultAwaitTimeout
+import play.api.test.FutureAwaits
 import play.core.server.ServerEndpoint
 
 import scala.annotation.implicitNotFound
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but
@@ -34,16 +43,20 @@ trait WSEndpointSupport {
   /** Describes a [[WSClient]] that is bound to a particular [[ServerEndpoint]]. */
   @implicitNotFound("Use withAllWSEndpoints { implicit wsEndpoint: WSEndpoint => ... } to get a value")
   trait WSEndpoint {
+
     /** The endpoint to connect to. */
     def endpoint: ServerEndpoint
+
     /** The client to connect with. */
     def client: WSClient
+
     /**
      * Build a request to the endpoint using the given path.
      */
     def buildRequest(path: String): WSRequest = {
       client.url(s"${endpoint.scheme}://localhost:" + endpoint.port + path)
     }
+
     /**
      * Make a request to the endpoint using the given path.
      */
@@ -63,6 +76,7 @@ trait WSEndpointSupport {
   def wsUrl(path: String)(implicit endpointClient: WSEndpoint): WSRequest = {
     endpointClient.buildRequest(path)
   }
+
   /**
    * Build a request to the running server endpoint using the given call.
    *
@@ -109,9 +123,9 @@ trait WSEndpointSupport {
         // we can't easily get it to our WSClient due to limitations in
         // the ssl-config library.
         val sslLooseConfig: SSLLooseConfig = SSLLooseConfig().withAcceptAnyCertificate(true)
-        val sslConfig: SSLConfigSettings = SSLConfigSettings().withLoose(sslLooseConfig)
+        val sslConfig: SSLConfigSettings   = SSLConfigSettings().withLoose(sslLooseConfig)
         val wsClientConfig: WSClientConfig = WSClientConfig(ssl = sslConfig)
-        val ahcWsClientConfig = AhcWSClientConfig(wsClientConfig = wsClientConfig, maxRequestRetry = 0)
+        val ahcWsClientConfig              = AhcWSClientConfig(wsClientConfig = wsClientConfig, maxRequestRetry = 0)
 
         implicit val materializer = ActorMaterializer(namePrefix = Some("WSEndpointSupport"))(actorSystem)
         AhcWSClient(ahcWsClientConfig)
@@ -122,13 +136,15 @@ trait WSEndpointSupport {
         Await.ready(terminated, Duration(20, TimeUnit.SECONDS))
       }
     }
-    try block(serverClient) finally serverClient.close()
+    try block(serverClient)
+    finally serverClient.close()
   }
 
   /**
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllWSEndpoints()]] method.
    */
   implicit class WSApplicationFactory(appFactory: ApplicationFactory) {
+
     /**
      * Helper that creates a specs2 fragment for the server endpoints given in
      * [[allEndpointRecipes]]. Each fragment creates an application, starts a server,
@@ -143,6 +159,8 @@ trait WSEndpointSupport {
      * }}}
      */
     def withAllWSEndpoints[A: AsResult](block: WSEndpoint => A): Fragment =
-      appFactory.withAllEndpoints { endpoint: ServerEndpoint => withWSEndpoint(endpoint)(block) }
+      appFactory.withAllEndpoints { endpoint: ServerEndpoint =>
+        withWSEndpoint(endpoint)(block)
+      }
   }
 }

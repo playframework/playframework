@@ -8,9 +8,12 @@ import com.typesafe.config.ConfigFactory
 import javax.inject.Inject
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, ControllerComponents }
-import play.api.test.{ FakeRequest, PlaySpecification }
-import play.api.{ Application, Configuration }
+import play.api.mvc.AbstractController
+import play.api.mvc.ControllerComponents
+import play.api.test.FakeRequest
+import play.api.test.PlaySpecification
+import play.api.Application
+import play.api.Configuration
 
 import scala.reflect.ClassTag
 
@@ -49,9 +52,10 @@ class ScalaCSPReportSpec extends PlaySpecification {
           |    "status-code": 200
           |  }
           |}
-        """.stripMargin)
+        """.stripMargin
+      )
 
-      val request = FakeRequest("POST", "/report-to").withJsonBody(chromeJson)
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(chromeJson)
       val Some(result) = route(app, request)
 
       contentAsJson(result) must be_==(Json.obj("violation" -> "child-src https://45.55.25.245:8123/"))
@@ -68,9 +72,10 @@ class ScalaCSPReportSpec extends PlaySpecification {
           |    "violated-directive": "img-src https://45.55.25.245:8123/"
           |  }
           |}
-        """.stripMargin)
+        """.stripMargin
+      )
 
-      val request = FakeRequest("POST", "/report-to").withJsonBody(firefoxJson)
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(firefoxJson)
       val Some(result) = route(app, request)
 
       contentAsJson(result) must be_==(Json.obj("violation" -> "img-src https://45.55.25.245:8123/"))
@@ -86,9 +91,10 @@ class ScalaCSPReportSpec extends PlaySpecification {
           |    "blocked-uri": "http://google.com"
           |  }
           |}
-        """.stripMargin)
+        """.stripMargin
+      )
 
-      val request = FakeRequest("POST", "/report-to").withJsonBody(webkitJson)
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(webkitJson)
       val Some(result) = route(app, request)
 
       contentAsJson(result) must be_==(Json.obj("violation" -> "default-src https://45.55.25.245:8123/"))
@@ -96,7 +102,7 @@ class ScalaCSPReportSpec extends PlaySpecification {
 
     "work with a old webkit style csp-report" in withApplication() { implicit app =>
       val request = FakeRequest("POST", "/report-to").withFormUrlEncodedBody(
-        "document-url" -> "http://45.55.25.245:8123/csp?os=OS%2520X&device=&browser_version=3.6&browser=firefox&os_version=Yosemite",
+        "document-url"       -> "http://45.55.25.245:8123/csp?os=OS%2520X&device=&browser_version=3.6&browser=firefox&os_version=Yosemite",
         "violated-directive" -> "object-src https://45.55.25.245:8123/"
       )
       val Some(result) = route(app, request)
@@ -109,7 +115,8 @@ class ScalaCSPReportSpec extends PlaySpecification {
 
 object ScalaCSPReportSpec {
 
-  class MyAction @Inject() (cspReportAction: CSPReportActionBuilder, cc: ControllerComponents) extends AbstractController(cc) {
+  class MyAction @Inject()(cspReportAction: CSPReportActionBuilder, cc: ControllerComponents)
+      extends AbstractController(cc) {
     def cspReport = cspReportAction { implicit request =>
       val json = Json.toJson(Map("violation" -> request.body.violatedDirective))
       Ok(json)

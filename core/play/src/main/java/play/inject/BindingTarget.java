@@ -7,13 +7,12 @@ package play.inject;
 /**
  * A binding target.
  *
- * This abstract class captures the four possible types of targets.
+ * <p>This abstract class captures the four possible types of targets.
  *
- * See the {@link Module} class for information on how to provide bindings.
+ * <p>See the {@link Module} class for information on how to provide bindings.
  */
 public abstract class BindingTarget<T> {
-    BindingTarget() {
-    }
+  BindingTarget() {}
 
-    public abstract play.api.inject.BindingTarget<T> asScala();
+  public abstract play.api.inject.BindingTarget<T> asScala();
 }

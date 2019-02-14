@@ -59,7 +59,8 @@ case class CORSConfig(
 
   def withPreflightMaxAge(maxAge: Duration): CORSConfig = copy(preflightMaxAge = maxAge)
 
-  def withServeForbiddenOrigins(serveForbiddenOrigins: Boolean): CORSConfig = copy(serveForbiddenOrigins = serveForbiddenOrigins)
+  def withServeForbiddenOrigins(serveForbiddenOrigins: Boolean): CORSConfig =
+    copy(serveForbiddenOrigins = serveForbiddenOrigins)
 
   import scala.collection.JavaConverters._
   import scala.compat.java8.FunctionConverters._
@@ -73,7 +74,8 @@ case class CORSConfig(
 
   def withExposedHeaders(headers: java.util.List[String]): CORSConfig = withExposedHeaders(headers.asScala.toSeq)
 
-  def withPreflightMaxAge(maxAge: java.time.Duration): CORSConfig = withPreflightMaxAge(Duration.fromNanos(maxAge.toNanos))
+  def withPreflightMaxAge(maxAge: java.time.Duration): CORSConfig =
+    withPreflightMaxAge(Duration.fromNanos(maxAge.toNanos))
 }
 
 /**
@@ -140,26 +142,26 @@ object CORSConfig {
     CORSConfig(
       allowedOrigins = config.get[Option[Seq[String]]]("allowedOrigins") match {
         case Some(allowed) => Origins.Matching(allowed.toSet)
-        case None => Origins.All
+        case None          => Origins.All
       },
-      isHttpMethodAllowed =
-        config.get[Option[Seq[String]]]("allowedHttpMethods").map { methods =>
+      isHttpMethodAllowed = config
+        .get[Option[Seq[String]]]("allowedHttpMethods")
+        .map { methods =>
           val s = methods.toSet
           s.contains _
-        }.getOrElse(_ => true),
-      isHttpHeaderAllowed =
-        config.get[Option[Seq[String]]]("allowedHttpHeaders").map { headers =>
+        }
+        .getOrElse(_ => true),
+      isHttpHeaderAllowed = config
+        .get[Option[Seq[String]]]("allowedHttpHeaders")
+        .map { headers =>
           val s = headers.map(_.toLowerCase(java.util.Locale.ENGLISH)).toSet
           s.contains _
-        }.getOrElse(_ => true),
-      exposedHeaders =
-        config.get[Seq[String]]("exposedHeaders"),
-      supportsCredentials =
-        config.get[Boolean]("supportsCredentials"),
-      preflightMaxAge =
-        config.get[Duration]("preflightMaxAge"),
-      serveForbiddenOrigins =
-        config.get[Boolean]("serveForbiddenOrigins")
+        }
+        .getOrElse(_ => true),
+      exposedHeaders = config.get[Seq[String]]("exposedHeaders"),
+      supportsCredentials = config.get[Boolean]("supportsCredentials"),
+      preflightMaxAge = config.get[Duration]("preflightMaxAge"),
+      serveForbiddenOrigins = config.get[Boolean]("serveForbiddenOrigins")
     )
   }
 }

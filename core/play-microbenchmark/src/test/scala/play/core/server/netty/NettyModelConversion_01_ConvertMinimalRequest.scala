@@ -6,7 +6,8 @@ package play.core.server.netty
 
 import io.netty.channel.Channel
 import io.netty.handler.codec.http.HttpRequest
-import org.openjdk.jmh.annotations.{ TearDown, _ }
+import org.openjdk.jmh.annotations.TearDown
+import org.openjdk.jmh.annotations._
 import play.api.http.HttpConfiguration
 import play.api.mvc.RequestHeader
 import play.api.mvc.request.DefaultRequestFactory
@@ -16,12 +17,12 @@ class NettyModelConversion_01_ConvertMinimalRequest {
 
   // Cache some values that will be used in the benchmark
   private val nettyConversion = NettyHelpers.conversion
-  private val requestFactory = new DefaultRequestFactory(HttpConfiguration())
-  private val remoteAddress = NettyHelpers.localhost
+  private val requestFactory  = new DefaultRequestFactory(HttpConfiguration())
+  private val remoteAddress   = NettyHelpers.localhost
 
   // Benchmark state
-  private var channel: Channel = null
-  private var request: HttpRequest = null
+  private var channel: Channel      = null
+  private var request: HttpRequest  = null
   private var result: RequestHeader = null
 
   @Setup(Level.Iteration)

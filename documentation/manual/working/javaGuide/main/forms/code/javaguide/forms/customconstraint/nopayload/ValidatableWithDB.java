@@ -4,10 +4,10 @@
 
 package javaguide.forms.customconstraint.nopayload;
 
-//#interface
+// #interface
 import play.db.Database;
 
 public interface ValidatableWithDB<T> {
-    public T validate(final Database db);
+  public T validate(final Database db);
 }
-//#interface
+// #interface

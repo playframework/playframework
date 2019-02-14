@@ -5,16 +5,22 @@
 package play.api.inject
 
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ Callable, CompletionStage, ConcurrentLinkedDeque }
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.ConcurrentLinkedDeque
 
 import akka.Done
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import javax.inject.Singleton
 import play.api.Logger
 
 import scala.annotation.tailrec
 import scala.compat.java8.FutureConverters
-import scala.concurrent.{ Future, Promise }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * Application lifecycle register.
@@ -79,7 +85,10 @@ trait ApplicationLifecycle {
    *
    * @return A future that will be redeemed once all hooks have executed.
    */
-  @deprecated("Do not invoke stop() directly. Instead, use CoordinatedShutdown.run to stop and release your resources.", "2.7.0")
+  @deprecated(
+    "Do not invoke stop() directly. Instead, use CoordinatedShutdown.run to stop and release your resources.",
+    "2.7.0"
+  )
   def stop(): Future[_]
 
   /**
@@ -92,13 +101,13 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
+class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
   private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
   override def addStopHook(hook: () => Future[_]): Unit = hooks.push(hook)
 
   private val stopPromise: Promise[Done] = Promise()
-  private val started = new AtomicBoolean(false)
+  private val started                    = new AtomicBoolean(false)
 
   /**
    * Call to shutdown the application.

@@ -15,12 +15,13 @@ import org.specs2.specification.AfterAll
 import play.core.test.FakeRequest
 import play.api.http.ParserConfiguration
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 class RawBodyParserSpec extends Specification with AfterAll {
 
-  implicit val system = ActorSystem("raw-body-parser-spec")
+  implicit val system       = ActorSystem("raw-body-parser-spec")
   implicit val materializer = ActorMaterializer()
 
   def afterAll(): Unit = {
@@ -29,9 +30,11 @@ class RawBodyParserSpec extends Specification with AfterAll {
   }
 
   val config = ParserConfiguration()
-  val parse = PlayBodyParsers()
+  val parse  = PlayBodyParsers()
 
-  def parse(body: ByteString, memoryThreshold: Long = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)): Either[Result, RawBuffer] = {
+  def parse(body: ByteString, memoryThreshold: Long = config.maxMemoryBuffer, maxLength: Long = config.maxDiskBuffer)(
+      parser: BodyParser[RawBuffer] = parse.raw(memoryThreshold, maxLength)
+  ): Either[Result, RawBuffer] = {
     val request = FakeRequest(method = "GET", "/x")
 
     Await.result(parser(request).run(Source.single(body)), Duration.Inf)
@@ -43,9 +46,10 @@ class RawBodyParserSpec extends Specification with AfterAll {
       // Feed a strict element rather than a singleton source, strict element triggers
       // fast path with zero materialization.
       Await.result(parse.raw.apply(FakeRequest()).run(body), Duration.Inf) must beRight.like {
-        case rawBuffer => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes mustEqual body
-        }
+        case rawBuffer =>
+          rawBuffer.asBytes() must beSome.like {
+            case outBytes => outBytes mustEqual body
+          }
       }
     }
 
@@ -54,9 +58,10 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
       "successfully" in {
         parse(body)() must beRight.like {
-          case rawBuffer => rawBuffer.asBytes() must beSome.like {
-            case outBytes => outBytes mustEqual body
-          }
+          case rawBuffer =>
+            rawBuffer.asBytes() must beSome.like {
+              case outBytes => outBytes mustEqual body
+            }
         }
       }
 
@@ -64,10 +69,11 @@ class RawBodyParserSpec extends Specification with AfterAll {
         import scala.concurrent.ExecutionContext.Implicits.global
 
         parse(body)(parse.flatten(Future.successful(parse.raw()))) must beRight.like {
-          case rawBuffer => rawBuffer.asBytes() must beSome.like {
-            case outBytes =>
-              outBytes mustEqual body
-          }
+          case rawBuffer =>
+            rawBuffer.asBytes() must beSome.like {
+              case outBytes =>
+                outBytes mustEqual body
+            }
         }
       }
     }

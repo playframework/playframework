@@ -5,11 +5,17 @@
 package play.api.libs.concurrent
 
 import akka.Done
-import akka.actor.setup.{ ActorSystemSetup, Setup }
-import akka.actor.{ CoordinatedShutdown, _ }
-import akka.stream.{ ActorMaterializer, Materializer }
-import com.typesafe.config.{ Config, ConfigValueFactory }
-import javax.inject.{ Inject, Provider, Singleton }
+import akka.actor.setup.ActorSystemSetup
+import akka.actor.setup.Setup
+import akka.actor.CoordinatedShutdown
+import akka.actor._
+import akka.stream.ActorMaterializer
+import akka.stream.Materializer
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigValueFactory
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._
@@ -97,7 +103,8 @@ trait AkkaComponents {
  * Provider for the actor system
  */
 @Singleton
-class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration) extends Provider[ActorSystem] {
+class ActorSystemProvider @Inject()(environment: Environment, configuration: Configuration)
+    extends Provider[ActorSystem] {
 
   lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
 
@@ -107,7 +114,7 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
  * Provider for the default flow materializer
  */
 @Singleton
-class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
+class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Materializer] {
   lazy val get: Materializer = ActorMaterializer()(actorSystem)
 }
 
@@ -115,7 +122,7 @@ class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider
  * Provider for the default execution context
  */
 @Singleton
-class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
+class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get = actorSystem.dispatcher
 }
 
@@ -152,8 +159,8 @@ object ActorSystemProvider {
       // prevent the creation of the Actor System.
       val errorMessage =
         s"""Can't start Play: detected "$exitJvmPath = on". Using "$exitJvmPath = on" in
-           | Play may cause a deadlock when shutting down. Please set "$exitJvmPath = off""""
-          .stripMargin.replace("\n", "")
+           | Play may cause a deadlock when shutting down. Please set "$exitJvmPath = off"""".stripMargin
+          .replace("\n", "")
       logger.error(errorMessage)
       throw config.reportError(exitJvmPath, errorMessage)
     }
@@ -163,19 +170,20 @@ object ActorSystemProvider {
 
       // normalize timeout values for Akka's use
       // TODO: deprecate this setting (see https://github.com/playframework/playframework/issues/8442)
-      val playTimeoutKey = "play.akka.shutdown-timeout"
+      val playTimeoutKey      = "play.akka.shutdown-timeout"
       val playTimeoutDuration = Try(config.get[Duration](playTimeoutKey)).getOrElse(Duration.Inf)
 
       // Typesafe config used internally by Akka doesn't support "infinite".
       // Also, the value expected is an integer so can't use Long.MaxValue.
       // Finally, Akka requires the delay to be less than a certain threshold.
-      val akkaMaxDelay = Int.MaxValue / 1000
+      val akkaMaxDelay    = Int.MaxValue / 1000
       val akkaMaxDuration = Duration(akkaMaxDelay, "seconds")
       val normalisedDuration =
         if (playTimeoutDuration > akkaMaxDuration) akkaMaxDuration else playTimeoutDuration
 
       val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
-      config.get[Config](akkaConfigRoot)
+      config
+        .get[Config](akkaConfigRoot)
         // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
         .withFallback(config.underlying)
         // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
@@ -190,7 +198,7 @@ object ActorSystemProvider {
     val bootstrapSetup = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
     val actorSystemSetup = additionalSetup match {
       case Some(setup) => ActorSystemSetup(bootstrapSetup, setup)
-      case None => ActorSystemSetup(bootstrapSetup)
+      case None        => ActorSystemSetup(bootstrapSetup)
     }
 
     val system = ActorSystem(name, actorSystemSetup)
@@ -217,7 +225,9 @@ trait InjectedActorSupport {
    * @param context The context to create the actor from.
    * @return An ActorRef for the created actor.
    */
-  def injectedChild(create: => Actor, name: String, props: Props => Props = identity)(implicit context: ActorContext): ActorRef = {
+  def injectedChild(create: => Actor, name: String, props: Props => Props = identity)(
+      implicit context: ActorContext
+  ): ActorRef = {
     context.actorOf(props(Props(create)), name)
   }
 }
@@ -228,7 +238,7 @@ trait InjectedActorSupport {
 class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props) extends Provider[ActorRef] {
 
   @Inject private var actorSystem: ActorSystem = _
-  @Inject private var injector: Injector = _
+  @Inject private var injector: Injector       = _
   lazy val get = {
     val creation = Props(injector.instanceOf[T])
     actorSystem.actorOf(props(creation), name)
@@ -243,7 +253,8 @@ private object CoordinatedShutdownProvider {
  * Provider for the coordinated shutdown
  */
 @Singleton
-class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle) extends Provider[CoordinatedShutdown] {
+class CoordinatedShutdownProvider @Inject()(actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
+    extends Provider[CoordinatedShutdown] {
 
   import CoordinatedShutdownProvider.logger
 
@@ -251,15 +262,14 @@ class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicati
 
     logWarningWhenRunPhaseConfigIsPresent()
 
-    val cs = CoordinatedShutdown(actorSystem)
+    val cs                               = CoordinatedShutdown(actorSystem)
     implicit val exCtx: ExecutionContext = actorSystem.dispatcher
 
     // Once the ActorSystem is built we can register the ApplicationLifecycle stopHooks as a CoordinatedShutdown phase.
-    CoordinatedShutdown(actorSystem).addTask(
-      CoordinatedShutdown.PhaseServiceStop,
-      "application-lifecycle-stophook") { () =>
+    CoordinatedShutdown(actorSystem).addTask(CoordinatedShutdown.PhaseServiceStop, "application-lifecycle-stophook") {
+      () =>
         applicationLifecycle.stop().map(_ => Done)
-      }
+    }
 
     cs
   }
@@ -267,9 +277,10 @@ class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicati
   private def logWarningWhenRunPhaseConfigIsPresent(): Unit = {
     val config = actorSystem.settings.config
     if (config.hasPath("play.akka.run-cs-from-phase")) {
-      logger.warn("Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now runs all the CoordinatedShutdown phases.")
+      logger.warn(
+        "Configuration 'play.akka.run-cs-from-phase' was deprecated and has no effect. Play now runs all the CoordinatedShutdown phases."
+      )
     }
   }
 
 }
-

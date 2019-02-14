@@ -13,24 +13,22 @@ import java.util.Date;
 
 public class Subtask {
 
-    @Constraints.Min(10)
-    public Long id;
+  @Constraints.Min(10)
+  public Long id;
 
-    @Constraints.Required
-    public String name;
+  @Constraints.Required public String name;
 
-    public Boolean done = true;
+  public Boolean done = true;
 
-    @Constraints.Required
-    @DateTime(pattern = "dd/MM/yyyy")
-    public Date dueDate;
+  @Constraints.Required
+  @DateTime(pattern = "dd/MM/yyyy")
+  public Date dueDate;
 
-    public Date endDate;
+  public Date endDate;
 
-    @I18Constraint(value = "patterns.zip")
-    public String zip;
+  @I18Constraint(value = "patterns.zip")
+  public String zip;
 
-    @AnotherI18NConstraint(value = "patterns.zip")
-    public String anotherZip;
-
+  @AnotherI18NConstraint(value = "patterns.zip")
+  public String anotherZip;
 }

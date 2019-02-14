@@ -26,9 +26,9 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    * Initialize the Logger when there's no application ClassLoader available.
    */
   def init(rootPath: java.io.File, mode: Mode): Unit = {
-    val properties = Map("application.home" -> rootPath.getAbsolutePath)
+    val properties   = Map("application.home" -> rootPath.getAbsolutePath)
     val resourceName = if (mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
-    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
+    val resourceUrl  = Option(this.getClass.getClassLoader.getResource(resourceName))
     configure(properties, resourceUrl)
   }
 
@@ -56,7 +56,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       // We only apply logback-test.xml in Test mode. See https://github.com/playframework/playframework/issues/8361
       val testConfigs = env.mode match {
         case Mode.Test => Stream(TEST_AUTOCONFIG_FILE)
-        case _ => Stream.empty
+        case _         => Stream.empty
       }
       (testConfigs ++ Stream(
         GROOVY_AUTOCONFIG_FILE,
@@ -65,7 +65,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       )).flatMap(env.resource).headOption
     }
 
-    val configUrl = explicitResourceUrl orElse explicitFileUrl orElse explicitUrl orElse defaultResourceUrl
+    val configUrl = explicitResourceUrl.orElse(explicitFileUrl).orElse(explicitUrl).orElse(defaultResourceUrl)
 
     val properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties)
 

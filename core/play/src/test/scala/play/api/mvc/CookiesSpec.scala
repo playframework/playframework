@@ -4,12 +4,15 @@
 
 package play.api.mvc
 
-import java.time.{ Instant, ZoneId }
+import java.time.Instant
+import java.time.ZoneId
 
 import org.specs2.mutable._
-import play.api.http.{ JWTConfiguration, SecretConfiguration }
+import play.api.http.JWTConfiguration
+import play.api.http.SecretConfiguration
 import play.api.mvc.Cookie.SameSite
-import play.core.cookie.encoding.{ DefaultCookie, ServerCookieEncoder }
+import play.core.cookie.encoding.DefaultCookie
+import play.core.cookie.encoding.ServerCookieEncoder
 import play.core.test._
 
 import scala.concurrent.duration._
@@ -26,7 +29,7 @@ class CookiesSpec extends Specification {
       val originalCookie = Cookie(name = "cookie", value = "value")
 
       val headerString = Cookies.encodeCookieHeader(Seq(originalCookie))
-      val c = Cookies.fromCookieHeader(Some(headerString))
+      val c            = Cookies.fromCookieHeader(Some(headerString))
 
       c must beAnInstanceOf[Cookies]
     }
@@ -74,8 +77,8 @@ class CookiesSpec extends Specification {
 
   "trait Cookies#get" should {
     val originalCookie = Cookie(name = "cookie", value = "value")
-    def headerString = Cookies.encodeCookieHeader(Seq(originalCookie))
-    def c: Cookies = Cookies.fromCookieHeader(Some(headerString))
+    def headerString   = Cookies.encodeCookieHeader(Seq(originalCookie))
+    def c: Cookies     = Cookies.fromCookieHeader(Some(headerString))
 
     "get a cookie" in withApplication {
       c.get("cookie") must beSome[Cookie].which { cookie =>
@@ -90,8 +93,8 @@ class CookiesSpec extends Specification {
 
   "trait Cookies#apply" should {
     val originalCookie = Cookie(name = "cookie", value = "value")
-    def headerString = Cookies.encodeCookieHeader(Seq(originalCookie))
-    def c: Cookies = Cookies.fromCookieHeader(Some(headerString))
+    def headerString   = Cookies.encodeCookieHeader(Seq(originalCookie))
+    def c: Cookies     = Cookies.fromCookieHeader(Some(headerString))
 
     "apply for a cookie" in {
       val cookie = c("cookie")
@@ -116,14 +119,14 @@ class CookiesSpec extends Specification {
 
     "contain elements for some cookies" in {
       val headerString = Cookies.encodeCookieHeader(Seq(cookie1, cookie2))
-      val c: Cookies = Cookies.fromCookieHeader(Some(headerString))
+      val c: Cookies   = Cookies.fromCookieHeader(Some(headerString))
       c must contain(allOf(cookie1, cookie2))
     }
 
     // technically the same as above
     "run a foreach for a cookie" in {
       val headerString = Cookies.encodeCookieHeader(Seq(cookie1))
-      val c: Cookies = Cookies.fromCookieHeader(Some(headerString))
+      val c: Cookies   = Cookies.fromCookieHeader(Some(headerString))
 
       var myCookie: Cookie = null
       c.foreach { cookie =>
@@ -149,15 +152,17 @@ class CookiesSpec extends Specification {
     }
     "handle SameSite cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=strict")
-      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Strict)))
+      decoded must contain(
+        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Strict))
+      )
     }
   }
 
   "merging cookies" should {
     "replace old cookies with new cookies of the same name" in {
-      val originalRequest = FakeRequest().withCookies(Cookie("foo", "fooValue1"), Cookie("bar", "barValue2"))
+      val originalRequest        = FakeRequest().withCookies(Cookie("foo", "fooValue1"), Cookie("bar", "barValue2"))
       val requestWithMoreCookies = originalRequest.withCookies(Cookie("foo", "fooValue2"), Cookie("baz", "bazValue"))
-      val cookies = requestWithMoreCookies.cookies
+      val cookies                = requestWithMoreCookies.cookies
       cookies.toSet must_== Set(
         Cookie("foo", "fooValue2"),
         Cookie("bar", "barValue2"),
@@ -165,9 +170,14 @@ class CookiesSpec extends Specification {
       )
     }
     "return one cookie for each name" in {
-      val cookies = FakeRequest().withCookies(
-        Cookie("foo", "foo1"), Cookie("foo", "foo2"), Cookie("bar", "bar"), Cookie("baz", "baz")
-      ).cookies
+      val cookies = FakeRequest()
+        .withCookies(
+          Cookie("foo", "foo1"),
+          Cookie("foo", "foo2"),
+          Cookie("bar", "bar"),
+          Cookie("baz", "baz")
+        )
+        .cookies
       cookies.toSet must_== Set(
         Cookie("foo", "foo2"),
         Cookie("bar", "bar"),
@@ -177,10 +187,10 @@ class CookiesSpec extends Specification {
   }
 
   class TestJWTCookieDataCodec extends JWTCookieDataCodec {
-    val secretConfiguration = SecretConfiguration()
-    val jwtConfiguration = JWTConfiguration()
-    override protected def uniqueId(): Option[String] = None
-    override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
+    val secretConfiguration                           = SecretConfiguration()
+    val jwtConfiguration                              = JWTConfiguration()
+    protected override def uniqueId(): Option[String] = None
+    override val clock                                = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
   }
 
   "trait JWTCookieData" should {
@@ -188,11 +198,14 @@ class CookiesSpec extends Specification {
 
     "encode map to string" in {
       val jwtValue = codec.encode(Map("hello" -> "world"))
-      jwtValue must beEqualTo("eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk")
+      jwtValue must beEqualTo(
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
+      )
     }
 
     "decode string to map" in {
-      val jwtValue = "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
+      val jwtValue =
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
       codec.decode(jwtValue) must contain("hello" -> "world")
     }
 
@@ -207,18 +220,20 @@ class CookiesSpec extends Specification {
     }
 
     "return empty map given a bad string" in {
-      val jwtValue = ".eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
+      val jwtValue =
+        ".eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
       codec.decode(jwtValue) must beEmpty
     }
 
     "return empty map given a JWT with a bad signatureAlgorithm" in {
       val goodCodec = new TestJWTCookieDataCodec {
         override val jwtConfiguration = JWTConfiguration(signatureAlgorithm = "HS256")
-        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
+        override val clock            = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
       }
 
       // alg: "none"
-      val badJwt = "eyJhbGciOiJub25lIn0.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.Xv7-BTFyhGvi_NavNvQpvcPf1clHijcei-1EFlSLfLQ"
+      val badJwt =
+        "eyJhbGciOiJub25lIn0.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.Xv7-BTFyhGvi_NavNvQpvcPf1clHijcei-1EFlSLfLQ"
       goodCodec.decode(badJwt) must beEmpty
     }
 
@@ -229,7 +244,7 @@ class CookiesSpec extends Specification {
 
       val newCodec = new TestJWTCookieDataCodec {
         override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
-        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(80000), ZoneId.of("UTC"))
+        override val clock            = java.time.Clock.fixed(Instant.ofEpochMilli(80000), ZoneId.of("UTC"))
       }
 
       val oldJwt = oldCodec.encode(Map("hello" -> "world"))
@@ -239,7 +254,7 @@ class CookiesSpec extends Specification {
     "return value given an expired JWT inside of clock skew" in {
       val oldCodec = new TestJWTCookieDataCodec {
         override val jwtConfiguration = JWTConfiguration(expiresAfter = Some(10.seconds))
-        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
+        override val clock            = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
       }
 
       val newCodec = new TestJWTCookieDataCodec {
@@ -257,7 +272,7 @@ class CookiesSpec extends Specification {
 
       val newCodec = new TestJWTCookieDataCodec {
         override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
-        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(80000), ZoneId.of("UTC"))
+        override val clock            = java.time.Clock.fixed(Instant.ofEpochMilli(80000), ZoneId.of("UTC"))
       }
 
       val newJwt = newCodec.encode(Map("hello" -> "world"))
@@ -267,12 +282,12 @@ class CookiesSpec extends Specification {
     "return value given a not before JWT inside of clock skew" in {
       val oldCodec = new TestJWTCookieDataCodec {
         override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
-        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
+        override val clock            = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
       }
 
       val newCodec = new TestJWTCookieDataCodec {
         override val jwtConfiguration = JWTConfiguration(clockSkew = 60.seconds)
-        override val clock = java.time.Clock.fixed(Instant.ofEpochMilli(60000), ZoneId.of("UTC"))
+        override val clock            = java.time.Clock.fixed(Instant.ofEpochMilli(60000), ZoneId.of("UTC"))
       }
 
       val newJwt = newCodec.encode(Map("hello" -> "world"))
@@ -291,7 +306,8 @@ class CookiesSpec extends Specification {
     }
 
     "decode a JWT cookie encoding" in {
-      val signedEncoding = "eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
+      val signedEncoding =
+        "eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
       sessionCookieBaker.decode(signedEncoding) must contain("hello" -> "world")
     }
 
@@ -305,7 +321,8 @@ class CookiesSpec extends Specification {
     }
 
     "encode to JWT" in {
-      val jwtEncoding = "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
+      val jwtEncoding =
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
       sessionCookieBaker.encode(Map("hello" -> "world")) must beEqualTo(jwtEncoding)
     }
   }

@@ -6,8 +6,10 @@ package play.filters.cors
 
 import akka.stream.Materializer
 import akka.util.ByteString
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
-import play.core.j.{ JavaContextComponents, JavaHttpErrorHandlerAdapter }
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorHandler
+import play.core.j.JavaContextComponents
+import play.core.j.JavaHttpErrorHandlerAdapter
 
 import scala.concurrent.Future
 import play.api.Logger
@@ -40,16 +42,27 @@ import play.api.mvc._
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 class CORSFilter(
-    override protected val corsConfig: CORSConfig = CORSConfig(),
-    override protected val errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
-    private val pathPrefixes: Seq[String] = Seq("/")) extends EssentialFilter with AbstractCORSPolicy {
+    protected override val corsConfig: CORSConfig = CORSConfig(),
+    protected override val errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+    private val pathPrefixes: Seq[String] = Seq("/")
+) extends EssentialFilter
+    with AbstractCORSPolicy {
 
   // Java constructor
-  def this(corsConfig: CORSConfig, errorHandler: play.http.HttpErrorHandler, pathPrefixes: java.util.List[String], contextComponents: JavaContextComponents) = {
-    this(corsConfig, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents), Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*))
+  def this(
+      corsConfig: CORSConfig,
+      errorHandler: play.http.HttpErrorHandler,
+      pathPrefixes: java.util.List[String],
+      contextComponents: JavaContextComponents
+  ) = {
+    this(
+      corsConfig,
+      new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents),
+      Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
+    )
   }
 
-  override protected val logger = Logger(classOf[CORSFilter])
+  protected override val logger = Logger(classOf[CORSFilter])
 
   override def apply(next: EssentialAction): EssentialAction = new EssentialAction {
     override def apply(request: RequestHeader): Accumulator[ByteString, Result] = {
@@ -68,8 +81,11 @@ object CORSFilter {
     val Origin: TypedKey[String] = TypedKey("CORS_ORIGIN")
   }
 
-  def apply(corsConfig: CORSConfig = CORSConfig(), errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
-    pathPrefixes: Seq[String] = Seq("/"))(implicit mat: Materializer) =
+  def apply(
+      corsConfig: CORSConfig = CORSConfig(),
+      errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+      pathPrefixes: Seq[String] = Seq("/")
+  )(implicit mat: Materializer) =
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)
 
 }

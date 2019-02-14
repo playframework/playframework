@@ -5,10 +5,13 @@
 package play.api.libs.crypto
 
 import java.nio.charset.StandardCharsets
-import java.security.{ MessageDigest, SecureRandom }
+import java.security.MessageDigest
+import java.security.SecureRandom
 import java.time.Clock
 
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 import play.api.libs.Codecs
 
@@ -61,14 +64,17 @@ trait CSRFTokenSigner {
    *
    * @deprecated Please use `java.security.MessageDigest.isEqual(a.getBytes("utf-8"), b.getBytes("utf-8"))` over this method.
    */
-  @deprecated("Please use java.security.MessageDigest.isEqual(a.getBytes(\"utf-8\"), b.getBytes(\"utf-8\")) over this method.", "2.6.0")
+  @deprecated(
+    "Please use java.security.MessageDigest.isEqual(a.getBytes(\"utf-8\"), b.getBytes(\"utf-8\")) over this method.",
+    "2.6.0"
+  )
   def constantTimeEquals(a: String, b: String): Boolean
 }
 
 /**
  * This class is used for generating random tokens for CSRF.
  */
-class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) extends CSRFTokenSigner {
+class DefaultCSRFTokenSigner @Inject()(signer: CookieSigner, clock: Clock) extends CSRFTokenSigner {
 
   // If you're running on an older version of Windows, you may be using
   // SHA1PRNG.  So immediately calling nextBytes with a seed length
@@ -87,7 +93,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
    * @return The signed token
    */
   def signToken(token: String): String = {
-    val nonce = clock.millis()
+    val nonce  = clock.millis()
     val joined = nonce + "-" + token
     signer.sign(joined) + "-" + joined
   }
@@ -101,7 +107,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
   def extractSignedToken(token: String): Option[String] = {
     token.split("-", 3) match {
       case Array(signature, nonce, raw) if isEqual(signature, signer.sign(nonce + "-" + raw)) => Some(raw)
-      case _ => None
+      case _                                                                                  => None
     }
   }
 
@@ -149,6 +155,6 @@ object CSRFTokenSigner {
 }
 
 @Singleton
-class CSRFTokenSignerProvider @Inject() (signer: CookieSigner) extends Provider[CSRFTokenSigner] {
+class CSRFTokenSignerProvider @Inject()(signer: CookieSigner) extends Provider[CSRFTokenSigner] {
   lazy val get: CSRFTokenSigner = new DefaultCSRFTokenSigner(signer, Clock.systemUTC())
 }

@@ -5,7 +5,8 @@
 package play.it.http
 
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing._
 import play.api.test._
@@ -15,7 +16,7 @@ import play.it._
 import scala.concurrent.Future
 import scala.util.Random
 
-class NettyBadClientHandlingSpec extends BadClientHandlingSpec with NettyIntegrationSpecification
+class NettyBadClientHandlingSpec    extends BadClientHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
@@ -25,16 +26,19 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
     def withServer[T](errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
       val port = testServerPort
 
-      val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with HttpFiltersComponents {
+      val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple()))
+      with HttpFiltersComponents {
         def router = {
           import sird._
           Router.from {
-            case sird.POST(p"/action" ? q_o"query=$query") => Action { request =>
-              Results.Ok(query.getOrElse("_"))
-            }
-            case _ => Action {
-              Results.Ok
-            }
+            case sird.POST(p"/action" ? q_o"query=$query") =>
+              Action { request =>
+                Results.Ok(query.getOrElse("_"))
+              }
+            case _ =>
+              Action {
+                Results.Ok
+              }
           }
         }
         override lazy val httpErrorHandler = errorHandler

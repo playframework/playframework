@@ -37,21 +37,31 @@ private[sird] object QueryStringParameterMacros {
     c.prefix.tree match {
       case Apply(_, List(Apply(_, rawParts))) =>
         // extract the part literals
-        val parts = rawParts map { case Literal(Constant(const: String)) => const }
+        val parts = rawParts.map { case Literal(Constant(const: String)) => const }
 
         // Extract paramName, and validate
         val startOfString = c.enclosingPosition.point + name.length + 1
         val paramName = parts.head match {
           case paramEquals(param) => param
-          case _ => c.abort(c.enclosingPosition.withPoint(startOfString), "Invalid start of string for query string extractor '" + parts.head + "', extractor string must have format " + name + "\"param=$extracted\"")
+          case _ =>
+            c.abort(
+              c.enclosingPosition.withPoint(startOfString),
+              "Invalid start of string for query string extractor '" + parts.head + "', extractor string must have format " + name + "\"param=$extracted\""
+            )
         }
 
         if (parts.length == 1) {
-          c.abort(c.enclosingPosition.withPoint(startOfString + paramName.length), "Unexpected end of String, expected parameter extractor, eg $extracted")
+          c.abort(
+            c.enclosingPosition.withPoint(startOfString + paramName.length),
+            "Unexpected end of String, expected parameter extractor, eg $extracted"
+          )
         }
 
         if (parts.length > 2) {
-          c.abort(c.enclosingPosition, "Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: " + name + "\"param1=$param1\" & " + name + "\"param2=$param2\"")
+          c.abort(
+            c.enclosingPosition,
+            "Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: " + name + "\"param1=$param1\" & " + name + "\"param2=$param2\""
+          )
         }
 
         if (parts(1).nonEmpty) {

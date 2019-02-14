@@ -11,12 +11,12 @@ import java.time.Clock;
 
 public interface CryptoComponents {
 
-    CookieSigner cookieSigner();
+  CookieSigner cookieSigner();
 
-    CSRFTokenSigner csrfTokenSigner();
+  CSRFTokenSigner csrfTokenSigner();
 
-    // TODO Should this be part of the interface?
-    default Clock clock() {
-        return Clock.systemUTC();
-    }
+  // TODO Should this be part of the interface?
+  default Clock clock() {
+    return Clock.systemUTC();
+  }
 }

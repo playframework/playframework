@@ -18,30 +18,31 @@ import play.inject.ApplicationLifecycle;
 
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
-/**
- * @deprecated Deprecated since 2.7.0. Use {@link ValidatorFactoryProvider} instead.
- */
+/** @deprecated Deprecated since 2.7.0. Use {@link ValidatorFactoryProvider} instead. */
 @Deprecated
 @Singleton
 public class ValidatorProvider implements Provider<Validator> {
 
-    private ValidatorFactory validatorFactory;
+  private ValidatorFactory validatorFactory;
 
-    @Inject
-    public ValidatorProvider(ConstraintValidatorFactory constraintValidatorFactory, final ApplicationLifecycle lifecycle) {
-        this.validatorFactory = Validation.byDefaultProvider().configure()
-                .constraintValidatorFactory(constraintValidatorFactory)
-                .messageInterpolator(new ParameterMessageInterpolator())
-                .buildValidatorFactory();
+  @Inject
+  public ValidatorProvider(
+      ConstraintValidatorFactory constraintValidatorFactory, final ApplicationLifecycle lifecycle) {
+    this.validatorFactory =
+        Validation.byDefaultProvider()
+            .configure()
+            .constraintValidatorFactory(constraintValidatorFactory)
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory();
 
-        lifecycle.addStopHook(() -> {
-            this.validatorFactory.close();
-            return CompletableFuture.completedFuture(null);
+    lifecycle.addStopHook(
+        () -> {
+          this.validatorFactory.close();
+          return CompletableFuture.completedFuture(null);
         });
-    }
+  }
 
-    public Validator get() {
-        return this.validatorFactory.getValidator();
-    }
-
+  public Validator get() {
+    return this.validatorFactory.getValidator();
+  }
 }

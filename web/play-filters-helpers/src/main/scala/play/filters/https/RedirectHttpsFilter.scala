@@ -4,13 +4,18 @@
 
 package play.filters.https
 
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 import play.api.http.HeaderNames._
 import play.api.http.Status._
-import play.api.inject.{ SimpleModule, bind }
+import play.api.inject.SimpleModule
+import play.api.inject.bind
 import play.api.mvc._
-import play.api.{ Configuration, Environment, Mode }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
 import play.api.Logger
 import play.api.http.HeaderNames
 
@@ -24,7 +29,7 @@ import play.api.http.HeaderNames
  * https://www.playframework.com/documentation/latest/RedirectHttpsFilter
  */
 @Singleton
-class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends EssentialFilter {
+class RedirectHttpsFilter @Inject()(config: RedirectHttpsConfiguration) extends EssentialFilter {
 
   import RedirectHttpsKeys._
   import config._
@@ -58,8 +63,10 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
         if (xForwarded) {
           logger.debug(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
         } else {
-          logger.debug(s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
-            "X-Forwarded-Proto is not present.")
+          logger.debug(
+            s"Not redirecting to HTTPS because $forwardedProtoEnabled flag is set and " +
+              "X-Forwarded-Proto is not present."
+          )
         }
         next(req)
       }
@@ -67,7 +74,8 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
   }
 
   protected def createHttpsRedirectUrl(req: RequestHeader): String = {
-    import req.{ domain, uri }
+    import req.domain
+    import req.uri
     sslPort match {
       case None | Some(443) =>
         s"https://$domain$uri"
@@ -95,17 +103,17 @@ case class RedirectHttpsConfiguration(
 }
 
 private object RedirectHttpsKeys {
-  val stsPath = "play.filters.https.strictTransportSecurity"
-  val statusCodePath = "play.filters.https.redirectStatusCode"
-  val portPath = "play.filters.https.port"
-  val redirectEnabledPath = "play.filters.https.redirectEnabled"
+  val stsPath               = "play.filters.https.strictTransportSecurity"
+  val statusCodePath        = "play.filters.https.redirectStatusCode"
+  val portPath              = "play.filters.https.port"
+  val redirectEnabledPath   = "play.filters.https.redirectEnabled"
   val forwardedProtoEnabled = "play.filters.https.xForwardedProtoEnabled"
-  val excludePaths = "play.filters.https.excludePaths"
+  val excludePaths          = "play.filters.https.excludePaths"
 }
 
 @Singleton
-class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
-  extends Provider[RedirectHttpsConfiguration] {
+class RedirectHttpsConfigurationProvider @Inject()(c: Configuration, e: Environment)
+    extends Provider[RedirectHttpsConfiguration] {
 
   import RedirectHttpsKeys._
 
@@ -113,7 +121,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
 
   lazy val get: RedirectHttpsConfiguration = {
     val strictTransportSecurity = c.get[Option[String]](stsPath)
-    val redirectStatusCode = c.get[Int](statusCodePath)
+    val redirectStatusCode      = c.get[Int](statusCodePath)
     if (!isRedirect(redirectStatusCode)) {
       throw c.reportError(statusCodePath, s"Status Code $redirectStatusCode is not a Redirect status code!")
     }
@@ -128,7 +136,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
       e.mode == Mode.Prod
     }
     val xProtoEnabled = c.get[Boolean](forwardedProtoEnabled)
-    val excludePaths = c.get[Seq[String]](RedirectHttpsKeys.excludePaths)
+    val excludePaths  = c.get[Seq[String]](RedirectHttpsKeys.excludePaths)
 
     RedirectHttpsConfiguration(
       strictTransportSecurity,
@@ -141,10 +149,11 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
   }
 }
 
-class RedirectHttpsModule extends SimpleModule(
-  bind[RedirectHttpsConfiguration].toProvider[RedirectHttpsConfigurationProvider],
-  bind[RedirectHttpsFilter].toSelf
-)
+class RedirectHttpsModule
+    extends SimpleModule(
+      bind[RedirectHttpsConfiguration].toProvider[RedirectHttpsConfigurationProvider],
+      bind[RedirectHttpsFilter].toSelf
+    )
 
 /**
  * The Redirect to HTTPS filter components for compile time dependency injection.

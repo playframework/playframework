@@ -10,18 +10,16 @@ import play.filters.https.RedirectHttpsConfiguration;
 import play.filters.https.RedirectHttpsConfigurationProvider;
 import play.filters.https.RedirectHttpsFilter;
 
-/**
- * The Redirect to HTTPS filter components for compile time dependency injection.
- */
+/** The Redirect to HTTPS filter components for compile time dependency injection. */
 public interface RedirectHttpsComponents extends ConfigurationComponents {
 
-    Environment environment();
+  Environment environment();
 
-    default RedirectHttpsConfiguration redirectHttpsConfiguration() {
-        return new RedirectHttpsConfigurationProvider(configuration(), environment().asScala()).get();
-    }
+  default RedirectHttpsConfiguration redirectHttpsConfiguration() {
+    return new RedirectHttpsConfigurationProvider(configuration(), environment().asScala()).get();
+  }
 
-    default RedirectHttpsFilter redirectHttpsFilter() {
-        return new RedirectHttpsFilter(redirectHttpsConfiguration());
-    }
+  default RedirectHttpsFilter redirectHttpsFilter() {
+    return new RedirectHttpsFilter(redirectHttpsConfiguration());
+  }
 }

@@ -8,18 +8,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A simple evolutions reader that uses a map to store evolutions
- */
+/** A simple evolutions reader that uses a map to store evolutions */
 public class SimpleEvolutionsReader extends EvolutionsReader {
-    private final Map<String, List<Evolution>> evolutions;
+  private final Map<String, List<Evolution>> evolutions;
 
-    public SimpleEvolutionsReader(Map<String, List<Evolution>> evolutions) {
-        this.evolutions = evolutions;
-    }
+  public SimpleEvolutionsReader(Map<String, List<Evolution>> evolutions) {
+    this.evolutions = evolutions;
+  }
 
-    @Override
-    public Collection<Evolution> getEvolutions(String db) {
-        return evolutions.get(db);
-    }
+  @Override
+  public Collection<Evolution> getEvolutions(String db) {
+    return evolutions.get(db);
+  }
 }

@@ -4,10 +4,15 @@
 
 package play.api.test
 
-import play.api.http.{ SecretConfiguration, SessionConfiguration }
-import play.api.libs.crypto.{ CSRFTokenSigner, CSRFTokenSignerProvider, DefaultCookieSigner }
-import play.api.mvc.{ Request, RequestHeader }
-import play.filters.csrf.{ CSRFActionHelper, CSRFConfig }
+import play.api.http.SecretConfiguration
+import play.api.http.SessionConfiguration
+import play.api.libs.crypto.CSRFTokenSigner
+import play.api.libs.crypto.CSRFTokenSignerProvider
+import play.api.libs.crypto.DefaultCookieSigner
+import play.api.mvc.Request
+import play.api.mvc.RequestHeader
+import play.filters.csrf.CSRFActionHelper
+import play.filters.csrf.CSRFConfig
 
 /**
  * Exposes methods to make using requests with CSRF tokens easier.
@@ -18,7 +23,9 @@ object CSRFTokenHelper {
 
   private val csrfConfig = CSRFConfig()
 
-  private val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(new DefaultCookieSigner(SecretConfiguration())).get
+  private val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(
+    new DefaultCookieSigner(SecretConfiguration())
+  ).get
 
   private val csrfActionHelper = new CSRFActionHelper(
     sessionConfiguration = sessionConfiguration,

@@ -4,18 +4,20 @@
 
 package play.api.libs.crypto
 
-import java.time.{ Clock, Instant, ZoneId }
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 
 import org.specs2.mutable._
 import play.api.http.SecretConfiguration
 
 class CSRFTokenSignerSpec extends Specification {
 
-  val key = "0123456789abcdef"
+  val key                 = "0123456789abcdef"
   val secretConfiguration = SecretConfiguration(key, None)
-  val clock = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
-  val signer = new DefaultCookieSigner(secretConfiguration)
-  val tokenSigner = new DefaultCSRFTokenSigner(signer, clock)
+  val clock               = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
+  val signer              = new DefaultCookieSigner(secretConfiguration)
+  val tokenSigner         = new DefaultCSRFTokenSigner(signer, clock)
 
   "tokenSigner.generateToken" should {
     "be successful" in {
@@ -37,10 +39,9 @@ class CSRFTokenSignerSpec extends Specification {
     "be successful" in {
       val token1: String = "b3ba23c672b5e115b0c44335544dbf42934f70f5-1445022964749-0FFFFFFFFFFFFFFFFFFFFF24"
       val token2: String = "b3ba23c672b5e115b0c44335544dbf42934f70f5-1445022964749-0FFFFFFFFFFFFFFFFFFFFF24"
-      val actual = tokenSigner.compareSignedTokens(token1, token2)
+      val actual         = tokenSigner.compareSignedTokens(token1, token2)
       actual must beTrue
     }
   }
 
 }
-

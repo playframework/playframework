@@ -9,9 +9,13 @@ import java.util.Locale
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
-import play.api.i18n.{ Lang, Messages }
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
-import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
+import play.api.i18n.Lang
+import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 
 class RequestHeaderSpec extends Specification {
 
@@ -58,7 +62,8 @@ class RequestHeaderSpec extends Specification {
       "overrides current attribute value" in {
         val x = TypedKey[Int]
         val y = TypedKey[String]
-        val requestHeader = dummyRequestHeader().withAttrs(TypedMap(y -> "hello"))
+        val requestHeader = dummyRequestHeader()
+          .withAttrs(TypedMap(y -> "hello"))
           .addAttr(x, 3)
           .addAttr(y, "white")
 
@@ -73,15 +78,15 @@ class RequestHeaderSpec extends Specification {
         r.attrs(y) must_== "hello"
       }
       "can set two attributes and remove one of them" in {
-        val x = TypedKey[Int]("x")
-        val y = TypedKey[String]("y")
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[String]("y")
         val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x)
         req.attrs.get(x) must beNone
         req.attrs(y) must_== "hello"
       }
       "can set two attributes and remove both again" in {
-        val x = TypedKey[Int]("x")
-        val y = TypedKey[String]("y")
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[String]("y")
         val req = dummyRequestHeader().withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x).removeAttr(y)
         req.attrs.get(x) must beNone
         req.attrs.get(y) must beNone
@@ -117,11 +122,19 @@ class RequestHeaderSpec extends Specification {
         rh.host must_== "example.com:8080"
       }
       "absolute uri with port and invalid characters" in {
-        val rh = dummyRequestHeader("GET", "https://example.com:8080/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader(
+          "GET",
+          "https://example.com:8080/classified-search/classifieds?version=GTI|V8",
+          Headers(HOST -> "playframework.com")
+        )
         rh.host must_== "example.com:8080"
       }
       "relative uri with invalid characters" in {
-        val rh = dummyRequestHeader("GET", "/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader(
+          "GET",
+          "/classified-search/classifieds?version=GTI|V8",
+          Headers(HOST -> "playframework.com")
+        )
         rh.host must_== "playframework.com"
       }
     }
@@ -157,14 +170,16 @@ class RequestHeaderSpec extends Specification {
     }
   }
 
-  private def accept(value: String) = dummyRequestHeader(
-    headers = Headers("Accept-Language" -> value)
-  ).acceptLanguages
+  private def accept(value: String) =
+    dummyRequestHeader(
+      headers = Headers("Accept-Language" -> value)
+    ).acceptLanguages
 
   private def dummyRequestHeader(
-    requestMethod: String = "GET",
-    requestUri: String = "/",
-    headers: Headers = Headers()): RequestHeader = {
+      requestMethod: String = "GET",
+      requestUri: String = "/",
+      headers: Headers = Headers()
+  ): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
       connection = RemoteConnection("", false, None),
       method = requestMethod,

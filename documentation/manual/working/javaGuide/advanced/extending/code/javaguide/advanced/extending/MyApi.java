@@ -5,7 +5,6 @@
 package javaguide.advanced.extending;
 
 // #module-class-api
-public class MyApi {
+public class MyApi {}
 
-}
 // #module-class-api

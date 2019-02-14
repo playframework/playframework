@@ -13,8 +13,9 @@ import play.BuiltInComponentsFromContext;
  * @see play.BuiltInComponentsFromContext
  * @see play.routing.RoutingDslComponents
  */
-public abstract class RoutingDslComponentsFromContext extends BuiltInComponentsFromContext implements RoutingDslComponents {
-    public RoutingDslComponentsFromContext(ApplicationLoader.Context context) {
-        super(context);
-    }
+public abstract class RoutingDslComponentsFromContext extends BuiltInComponentsFromContext
+    implements RoutingDslComponents {
+  public RoutingDslComponentsFromContext(ApplicationLoader.Context context) {
+    super(context);
+  }
 }

@@ -16,7 +16,10 @@ package object routing {
   }
 
   def queryString(items: List[Option[String]]) = {
-    Option(items.filter(_.isDefined).map(_.get).filterNot(_.isEmpty)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
+    Option(items.filter(_.isDefined).map(_.get).filterNot(_.isEmpty))
+      .filterNot(_.isEmpty)
+      .map("?" + _.mkString("&"))
+      .getOrElse("")
   }
 
 }

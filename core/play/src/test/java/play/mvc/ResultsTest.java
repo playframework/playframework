@@ -67,7 +67,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendPath(file);
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
   }
 
   @Test
@@ -75,7 +76,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendPath(file);
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
   }
 
   @Test
@@ -83,7 +85,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendPath(file, /*inline*/ false);
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
   }
 
   @Test
@@ -91,7 +94,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendPath(file, /* inline */ false);
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
   }
 
   @Test
@@ -99,7 +103,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendPath(file, "foo.bar");
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
   }
 
   @Test
@@ -107,7 +112,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendPath(file, true, "foo.bar");
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
   }
 
   @Test
@@ -115,7 +121,9 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendPath(file, true, "测 试.tmp");
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(),
+        "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
   }
 
   // -- File tests
@@ -131,7 +139,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendFile(file.toFile());
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
   }
 
   @Test
@@ -139,7 +148,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendFile(file.toFile());
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
   }
 
   @Test
@@ -147,7 +157,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendFile(file.toFile(), /* inline */ false);
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
   }
 
   @Test
@@ -155,7 +166,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendFile(file.toFile(), /* inline */ false);
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
   }
 
   @Test
@@ -163,7 +175,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.unauthorized().sendFile(file.toFile(), "foo.bar");
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
   }
 
   @Test
@@ -171,7 +184,8 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendFile(file.toFile(), true, "foo.bar");
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
   }
 
   @Test
@@ -179,22 +193,30 @@ public class ResultsTest {
     this.mockRegularFileTypes();
     Result result = Results.ok().sendFile(file.toFile(), true, "测 试.tmp");
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+    assertEquals(
+        result.header(HeaderNames.CONTENT_DISPOSITION).get(),
+        "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
   }
 
   @Test
   public void getOptionalCookie() {
-    Result result = Results.ok().withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
+    Result result =
+        Results.ok()
+            .withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
     assertTrue(result.getCookie("foo").isPresent());
     assertEquals(result.getCookie("foo").get().name(), "foo");
     assertFalse(result.getCookie("bar").isPresent());
   }
 
   private void mockRegularFileTypes() {
-    HttpConfiguration httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(Configuration.reference(), play.api.Environment.simple(new File("."), Mode.TEST.asScala())).get();
-    final DefaultFileMimeTypes defaultFileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes()).get();
+    HttpConfiguration httpConfiguration =
+        new HttpConfiguration.HttpConfigurationProvider(
+                Configuration.reference(),
+                play.api.Environment.simple(new File("."), Mode.TEST.asScala()))
+            .get();
+    final DefaultFileMimeTypes defaultFileMimeTypes =
+        new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes()).get();
     final FileMimeTypes fileMimeTypes = new FileMimeTypes(defaultFileMimeTypes);
     when(this.ctx.fileMimeTypes()).thenReturn(fileMimeTypes);
   }
-
 }

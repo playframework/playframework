@@ -8,7 +8,8 @@ import java.io.File
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.mvc.{ Cookie, MultipartFormData }
+import play.api.mvc.Cookie
+import play.api.mvc.MultipartFormData
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
@@ -17,7 +18,7 @@ import scala.concurrent.Future
  * A WS Request builder.
  */
 trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
-  override type Self = WSRequest
+  override type Self     = WSRequest
   override type Response = WSResponse
 
   /**

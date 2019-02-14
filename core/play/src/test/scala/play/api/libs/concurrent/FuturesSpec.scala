@@ -32,7 +32,7 @@ class FuturesSpec extends Specification {
 
     "time out if duration is too small" in {
       implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val ec          = actorSystem.dispatcher
       val future = new MyService().calculateWithTimeout(100 millis).recover {
         case _: TimeoutException =>
           -1L
@@ -44,7 +44,7 @@ class FuturesSpec extends Specification {
 
     "succeed eventually with the raw calculation" in {
       implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val ec          = actorSystem.dispatcher
       val future = new MyService().rawCalculation().recover {
         case _: TimeoutException =>
           -1L
@@ -56,7 +56,7 @@ class FuturesSpec extends Specification {
 
     "succeed with a timeout duration" in {
       implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val ec          = actorSystem.dispatcher
       val future = new MyService().calculateWithTimeout(600 millis).recover {
         case _: TimeoutException =>
           -1L
@@ -67,9 +67,9 @@ class FuturesSpec extends Specification {
     }
 
     "succeed with delay" in {
-      implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
-      val futures: Futures = Futures.actorSystemToFutures
+      implicit val actorSystem   = ActorSystem()
+      implicit val ec            = actorSystem.dispatcher
+      val futures: Futures       = Futures.actorSystemToFutures
       val future: Future[String] = futures.delay(1 second).map(_ => "hello world")
 
       val result = Await.result(future, timeoutDuration) must be_==("hello world")
@@ -83,7 +83,7 @@ class FuturesSpec extends Specification {
 
     "timeout with a duration" in {
       implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val ec          = actorSystem.dispatcher
       val future = new MyService().rawCalculation().withTimeout(100 millis).recover {
         case _: TimeoutException =>
           -1L
@@ -95,7 +95,7 @@ class FuturesSpec extends Specification {
 
     "succeed with a duration" in {
       implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val ec          = actorSystem.dispatcher
       val future = new MyService().rawCalculation().withTimeout(500 millis).recover {
         case _: TimeoutException =>
           -1L
@@ -106,8 +106,8 @@ class FuturesSpec extends Specification {
     }
 
     "timeout with an implicit akka.util.Timeout" in {
-      implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val actorSystem     = ActorSystem()
+      implicit val ec              = actorSystem.dispatcher
       implicit val implicitTimeout = akka.util.Timeout(100 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
@@ -119,8 +119,8 @@ class FuturesSpec extends Specification {
     }
 
     "succeed with an implicit akka.util.Timeout" in {
-      implicit val actorSystem = ActorSystem()
-      implicit val ec = actorSystem.dispatcher
+      implicit val actorSystem     = ActorSystem()
+      implicit val ec              = actorSystem.dispatcher
       implicit val implicitTimeout = akka.util.Timeout(500 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>

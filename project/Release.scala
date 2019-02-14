@@ -41,7 +41,7 @@ object Release {
     def runCommand(command: String, state: State): State = {
       val newState = Parser.parse(command, state.combinedParser) match {
         case Right(cmd) => cmd()
-        case Left(msg) => throw sys.error(s"Invalid programmatic input:\n$msg")
+        case Left(msg)  => throw sys.error(s"Invalid programmatic input:\n$msg")
       }
       if (newState.remainingCommands.isEmpty) {
         newState

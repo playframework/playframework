@@ -31,7 +31,7 @@ class JavaErrorHandling extends PlaySpecification with WsTestClient {
     }
 
     "allow providing a custom error handler" in new WithServer(fakeApp[ErrorHandler]) {
-      await(wsUrl("/error").get()).body must not startWith("A server error occurred: ")
+      (await(wsUrl("/error").get()).body must not).startWith("A server error occurred: ")
     }
   }
 }

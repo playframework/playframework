@@ -8,16 +8,14 @@ import play.core.j.JavaContextComponents;
 import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.http.HttpErrorHandler;
 
-/**
- * The HTTP Error handler Java Components.
- */
+/** The HTTP Error handler Java Components. */
 public interface HttpErrorHandlerComponents {
 
-    JavaContextComponents javaContextComponents();
+  JavaContextComponents javaContextComponents();
 
-    HttpErrorHandler httpErrorHandler();
+  HttpErrorHandler httpErrorHandler();
 
-    default play.api.http.HttpErrorHandler scalaHttpErrorHandler() {
-        return new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaContextComponents());
-    }
+  default play.api.http.HttpErrorHandler scalaHttpErrorHandler() {
+    return new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaContextComponents());
+  }
 }

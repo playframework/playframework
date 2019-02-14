@@ -17,11 +17,11 @@ class BuiltInComponentsSpec extends Specification {
     "use the Environment ClassLoader for runtime injection" in {
       val classLoader = new URLClassLoader(Array())
       val components = new BuiltInComponents {
-        override val environment: Environment = Environment(new File("."), classLoader, Mode.Test)
-        override def configuration: Configuration = Configuration.load(environment)
+        override val environment: Environment                          = Environment(new File("."), classLoader, Mode.Test)
+        override def configuration: Configuration                      = Configuration.load(environment)
         override def applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
-        override def router: Router = ???
-        override def httpFilters: Seq[EssentialFilter] = ???
+        override def router: Router                                    = ???
+        override def httpFilters: Seq[EssentialFilter]                 = ???
       }
       components.environment.classLoader must_== classLoader
       val constructedObject = components.injector.instanceOf[BuiltInComponentsSpec.ClassLoaderAware]

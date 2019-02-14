@@ -15,7 +15,9 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = RedValidator.class)
 public @interface ValidateRed {
 
-    String message() default "red";
-    Class<?>[] groups() default {};
-    Class<?>[] payload() default {};
+  String message() default "red";
+
+  Class<?>[] groups() default {};
+
+  Class<?>[] payload() default {};
 }

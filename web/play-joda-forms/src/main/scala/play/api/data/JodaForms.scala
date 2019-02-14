@@ -31,7 +31,10 @@ object JodaForms {
    * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
    * @param timeZone the `org.joda.time.DateTimeZone` to use for parsing and formatting
    */
-  def jodaDate(pattern: String, timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault): Mapping[org.joda.time.DateTime] = Forms.of[org.joda.time.DateTime] as jodaDateTimeFormat(pattern, timeZone)
+  def jodaDate(
+      pattern: String,
+      timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault
+  ): Mapping[org.joda.time.DateTime] = Forms.of[org.joda.time.DateTime].as(jodaDateTimeFormat(pattern, timeZone))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `org.joda.time.LocalDatetype`).
@@ -53,6 +56,7 @@ object JodaForms {
    *
    * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
    */
-  def jodaLocalDate(pattern: String): Mapping[org.joda.time.LocalDate] = Forms.of[org.joda.time.LocalDate] as jodaLocalDateFormat(pattern)
+  def jodaLocalDate(pattern: String): Mapping[org.joda.time.LocalDate] =
+    Forms.of[org.joda.time.LocalDate].as(jodaLocalDateFormat(pattern))
 
 }

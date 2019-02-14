@@ -7,9 +7,13 @@ package play.api.mvc
 import java.security.cert.X509Certificate
 import java.util.Locale
 
-import play.api.http.{ HeaderNames, MediaRange, MediaType }
-import play.api.i18n.{ Lang, Messages }
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
+import play.api.http.HeaderNames
+import play.api.http.MediaRange
+import play.api.http.MediaType
+import play.api.i18n.Lang
+import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request._
 
 import scala.annotation.implicitNotFound
@@ -184,7 +188,7 @@ trait RequestHeader {
     import RequestHeader.AbsoluteUri
     uri match {
       case AbsoluteUri(proto, hostPort, rest) => hostPort
-      case _ => headers.get(HeaderNames.HOST).getOrElse("")
+      case _                                  => headers.get(HeaderNames.HOST).getOrElse("")
     }
   }
 
@@ -197,7 +201,8 @@ trait RequestHeader {
    * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
    */
   lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
-    val langs = RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
+    val langs =
+      RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
     langs.sortWith((a, b) => a._1 > b._1).flatMap(_._2)
   }
 
@@ -255,8 +260,8 @@ trait RequestHeader {
    * Returns the charset of the request for text-based body
    */
   lazy val charset: Option[String] = for {
-    mt <- mediaType
-    param <- mt.parameters.find(_._1.equalsIgnoreCase("charset"))
+    mt      <- mediaType
+    param   <- mt.parameters.find(_._1.equalsIgnoreCase("charset"))
     charset <- param._2
   } yield charset
 
@@ -340,7 +345,7 @@ object RequestHeader {
     } yield {
       RequestHeader.qPattern.findFirstMatchIn(value) match {
         case Some(m) => (m.group(1).toDouble, m.before.toString)
-        case None => (1.0, value) // “The default value is q=1.”
+        case None    => (1.0, value) // “The default value is q=1.”
       }
     }
   }
@@ -355,4 +360,5 @@ private[play] class RequestHeaderImpl(
     override val target: RequestTarget,
     override val version: String,
     override val headers: Headers,
-    override val attrs: TypedMap) extends RequestHeader
+    override val attrs: TypedMap
+) extends RequestHeader

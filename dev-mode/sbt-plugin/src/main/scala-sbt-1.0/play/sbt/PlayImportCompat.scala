@@ -5,7 +5,11 @@
 package play.sbt
 
 import sbt.Keys._
-import sbt.{ Def, Level, Scope, Settings, State }
+import sbt.Def
+import sbt.Level
+import sbt.Scope
+import sbt.Settings
+import sbt.State
 import sbt.internal.LogManager
 import sbt.internal.util.ManagedLogger
 

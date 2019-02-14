@@ -19,11 +19,9 @@ import java.nio.file.{ Files => JFiles }
  *
  * @tparam A the content type
  */
-@implicitNotFound(
-  "Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]"
-)
+@implicitNotFound("Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]")
 class Writeable[-A](val transform: A => ByteString, val contentType: Option[String]) {
-  def toEntity(a: A): HttpEntity = HttpEntity.Strict(transform(a), contentType)
+  def toEntity(a: A): HttpEntity      = HttpEntity.Strict(transform(a), contentType)
   def map[B](f: B => A): Writeable[B] = new Writeable(b => transform(f(b)), contentType)
 }
 
@@ -52,7 +50,10 @@ trait LowPriorityWriteables {
   /**
    * `Writeable` for `play.twirl.api.Content` values.
    */
-  implicit def writeableOf_Content[C <: play.twirl.api.Content](implicit codec: Codec, ct: ContentTypeOf[C]): Writeable[C] = {
+  implicit def writeableOf_Content[C <: play.twirl.api.Content](
+      implicit codec: Codec,
+      ct: ContentTypeOf[C]
+  ): Writeable[C] = {
     Writeable(content => codec.encode(content.body))
   }
 
@@ -66,7 +67,10 @@ trait DefaultWriteables extends LowPriorityWriteables {
   /**
    * `Writeable` for `play.twirl.api.Xml` values. Trims surrounding whitespace.
    */
-  implicit def writeableOf_XmlContent(implicit codec: Codec, ct: ContentTypeOf[play.twirl.api.Xml]): Writeable[play.twirl.api.Xml] = {
+  implicit def writeableOf_XmlContent(
+      implicit codec: Codec,
+      ct: ContentTypeOf[play.twirl.api.Xml]
+  ): Writeable[play.twirl.api.Xml] = {
     Writeable(xml => codec.encode(xml.body.trim))
   }
 
@@ -89,8 +93,11 @@ trait DefaultWriteables extends LowPriorityWriteables {
    */
   implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String, Seq[String]]] = {
     import java.net.URLEncoder
-    Writeable(formData =>
-      codec.encode(formData.flatMap(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).mkString("&"))
+    Writeable(
+      formData =>
+        codec.encode(
+          formData.flatMap(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).mkString("&")
+        )
     )
   }
 
@@ -111,7 +118,10 @@ trait DefaultWriteables extends LowPriorityWriteables {
   /**
    * `Writeable` for `MultipartFormData` when using [[TemporaryFile]]s.
    */
-  def writeableOf_MultipartFormData(codec: Codec, contentType: Option[String]): Writeable[MultipartFormData[TemporaryFile]] = {
+  def writeableOf_MultipartFormData(
+      codec: Codec,
+      contentType: Option[String]
+  ): Writeable[MultipartFormData[TemporaryFile]] = {
     writeableOf_MultipartFormData(
       codec,
       Writeable[FilePart[TemporaryFile]](
@@ -125,29 +135,35 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * `Writeable` for `MultipartFormData`.
    */
   def writeableOf_MultipartFormData[A](
-    codec: Codec,
-    aWriteable: Writeable[FilePart[A]]
+      codec: Codec,
+      aWriteable: Writeable[FilePart[A]]
   ): Writeable[MultipartFormData[A]] = {
 
     val boundary: String = "--------" + scala.util.Random.alphanumeric.take(20).mkString("")
 
     def formatDataParts(data: Map[String, Seq[String]]) = {
-      val dataParts = data.flatMap {
-        case (name, values) =>
-          values.map { value =>
-            s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
-          }
-      }.mkString("")
+      val dataParts = data
+        .flatMap {
+          case (name, values) =>
+            values.map { value =>
+              s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
+            }
+        }
+        .mkString("")
       codec.encode(dataParts)
     }
 
     def filePartHeader(file: FilePart[A]) = {
-      val name = s""""${file.key}""""
+      val name     = s""""${file.key}""""
       val filename = s""""${file.filename}""""
-      val contentType = file.contentType.map { ct =>
-        s"${HeaderNames.CONTENT_TYPE}: $ct\r\n"
-      }.getOrElse("")
-      codec.encode(s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n")
+      val contentType = file.contentType
+        .map { ct =>
+          s"${HeaderNames.CONTENT_TYPE}: $ct\r\n"
+        }
+        .getOrElse("")
+      codec.encode(
+        s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n"
+      )
     }
 
     Writeable[MultipartFormData[A]](

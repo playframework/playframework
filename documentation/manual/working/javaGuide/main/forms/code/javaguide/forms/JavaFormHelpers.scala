@@ -5,8 +5,10 @@
 package javaguide.forms
 
 import play.api.Application
-import play.api.test.{PlaySpecification, WithApplication}
-import javaguide.forms.html.{User, UserForm}
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
+import javaguide.forms.html.User
+import javaguide.forms.html.UserForm
 
 import java.util
 
@@ -17,21 +19,25 @@ class JavaFormHelpers extends PlaySpecification {
   "java form helpers" should {
     def withFormFactory[A](block: (play.data.FormFactory, play.i18n.Messages) => A)(implicit app: Application): A = {
       val requestBuilder = new Http.RequestBuilder()
-      val request = requestBuilder.build()
-      val formFactory = app.injector.instanceOf[play.data.FormFactory]
-      val messagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
+      val request        = requestBuilder.build()
+      val formFactory    = app.injector.instanceOf[play.data.FormFactory]
+      val messagesApi    = app.injector.instanceOf[play.i18n.MessagesApi]
       block(formFactory, messagesApi.preferred(request))
     }
     {
       def segment(name: String)(implicit app: Application) = {
         withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
           val form = formFactory.form(classOf[User])
-          val u = new UserForm
+          val u    = new UserForm
           u.setName("foo")
           u.setEmails(util.Arrays.asList("a@a", "b@b"))
           val userForm = formFactory.form(classOf[UserForm]).fill(u)
-          val body = html.helpers(form, userForm)(messages).body
-          body.linesIterator.dropWhile(_ != "<span class=\"" + name + "\">").drop(1).takeWhile(_ != "</span>").mkString("\n")
+          val body     = html.helpers(form, userForm)(messages).body
+          body.linesIterator
+            .dropWhile(_ != "<span class=\"" + name + "\">")
+            .drop(1)
+            .takeWhile(_ != "</span>")
+            .mkString("\n")
         }
       }
 
@@ -83,6 +89,5 @@ class JavaFormHelpers extends PlaySpecification {
     }
 
   }
-
 
 }

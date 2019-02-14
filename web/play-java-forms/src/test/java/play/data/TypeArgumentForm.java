@@ -12,33 +12,33 @@ import java.util.Optional;
 
 public class TypeArgumentForm {
 
-    private List<@Constraints.Min(0) Integer> list;
+  private List<@Constraints.Min(0) Integer> list;
 
-    private Map<@Constraints.MinLength(3) String, @Constraints.Min(6) Integer> map;
+  private Map<@Constraints.MinLength(3) String, @Constraints.Min(6) Integer> map;
 
-    private Optional<@Constraints.MinLength(9) String> optional;
+  private Optional<@Constraints.MinLength(9) String> optional;
 
-    public List<Integer> getList() {
-        return list;
-    }
+  public List<Integer> getList() {
+    return list;
+  }
 
-    public void setList(final List<Integer> list) {
-        this.list = list;
-    }
+  public void setList(final List<Integer> list) {
+    this.list = list;
+  }
 
-    public Map<String, Integer> getMap() {
-        return map;
-    }
+  public Map<String, Integer> getMap() {
+    return map;
+  }
 
-    public void setMap(final Map<String, Integer> map) {
-        this.map = map;
-    }
+  public void setMap(final Map<String, Integer> map) {
+    this.map = map;
+  }
 
-    public Optional<String> getOptional() {
-        return optional;
-    }
+  public Optional<String> getOptional() {
+    return optional;
+  }
 
-    public void setOptional(final Optional<String> optional) {
-        this.optional = optional;
-    }
+  public void setOptional(final Optional<String> optional) {
+    this.optional = optional;
+  }
 }

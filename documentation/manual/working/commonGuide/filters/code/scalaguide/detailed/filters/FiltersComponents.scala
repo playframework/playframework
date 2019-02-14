@@ -6,15 +6,20 @@ package scalaguide.detailed.filters
 
 // #appending-filters-compile-time-di
 import akka.util.ByteString
-import play.api.{ApplicationLoader, BuiltInComponentsFromContext, NoHttpFiltersComponents}
+import play.api.ApplicationLoader
+import play.api.BuiltInComponentsFromContext
+import play.api.NoHttpFiltersComponents
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{EssentialAction, EssentialFilter, RequestHeader, Result}
+import play.api.mvc.EssentialAction
+import play.api.mvc.EssentialFilter
+import play.api.mvc.RequestHeader
+import play.api.mvc.Result
 import play.api.routing.Router
 import play.filters.csrf.CSRFFilter
 
 // ###replace: class MyAppComponents(context: ApplicationLoader.Context)
 class AddHttpFiltersComponents(context: ApplicationLoader.Context)
-  extends BuiltInComponentsFromContext(context)
+    extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents {
 
   lazy val loggingFilter = new LoggingFilter()
@@ -30,7 +35,7 @@ class AddHttpFiltersComponents(context: ApplicationLoader.Context)
 // #removing-filters-compile-time-di
 // ###replace: class MyAppComponents(context: ApplicationLoader.Context)
 class RemoveHttpFilterComponents(context: ApplicationLoader.Context)
-  extends BuiltInComponentsFromContext(context)
+    extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents {
 
   override def httpFilters: Seq[EssentialFilter] = {
@@ -44,14 +49,13 @@ class RemoveHttpFilterComponents(context: ApplicationLoader.Context)
 // #remove-all-filters-compile-time-di
 // ###replace: class MyAppComponents(context: ApplicationLoader.Context)
 class RemoveAllHttpFiltersComponents(context: ApplicationLoader.Context)
-  extends BuiltInComponentsFromContext(context)
+    extends BuiltInComponentsFromContext(context)
     with NoHttpFiltersComponents {
 
   override def router: Router = Router.empty // implement the router as needed
 
 }
 // #remove-all-filters-compile-time-di
-
 
 class LoggingFilter extends EssentialFilter {
   override def apply(next: EssentialAction): EssentialAction = new EssentialAction {

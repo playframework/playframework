@@ -5,7 +5,8 @@
 package play.it.http
 
 import java.io.ByteArrayInputStream
-import java.util.{ Arrays, Optional }
+import java.util.Arrays
+import java.util.Optional
 
 import akka.NotUsed
 import akka.stream.javadsl.Source
@@ -17,31 +18,43 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.http.HttpEntity
-import play.i18n.{ Lang, MessagesApi }
+import play.i18n.Lang
+import play.i18n.MessagesApi
 import play.it._
-import play.libs.{ Comet, EventSource, Json }
-import play.mvc.Http.{ Cookie, Flash, Session }
+import play.libs.Comet
+import play.libs.EventSource
+import play.libs.Json
+import play.mvc.Http.Cookie
+import play.mvc.Http.Flash
+import play.mvc.Http.Session
 import play.mvc._
 
 import scala.collection.JavaConverters._
 
-class NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
+class NettyJavaResultsHandlingSpec    extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
-trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with ContentTypes {
+trait JavaResultsHandlingSpec
+    extends PlaySpecification
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with ContentTypes {
 
   sequential
 
   "Java results handling" should {
     def makeRequest[T](
-      controller: MockController,
-      additionalConfig: Map[String, String] = Map.empty,
-      followRedirects: Boolean = true
+        controller: MockController,
+        additionalConfig: Map[String, String] = Map.empty,
+        followRedirects: Boolean = true
     )(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
-        case _ => JAction(app, controller)
-      }.build()
+      lazy val app: Application = GuiceApplicationBuilder()
+        .configure(additionalConfig)
+        .routes {
+          case _ => JAction(app, controller)
+        }
+        .build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
@@ -49,11 +62,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       }
     }
 
-    def makeRequestWithApp[T](additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(controller: Application => MockController)(block: WSResponse => T) = {
+    def makeRequestWithApp[T](additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(
+        controller: Application => MockController
+    )(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
-        case _ => JAction(app, controller(app))
-      }.build()
+      lazy val app: Application = GuiceApplicationBuilder()
+        .configure(additionalConfig)
+        .routes {
+          case _ => JAction(app, controller(app))
+        }
+        .build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
@@ -160,8 +178,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
         // the Netty and Akka HTTP backends actually return.
-        beSome("application/json; charset=UTF-8") or
-        beSome("application/json")
+        beSome("application/json; charset=UTF-8").or(beSome("application/json"))
       )
     }
 
@@ -173,7 +190,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
         // the Netty and Akka HTTP backends actually return.
-        beSome("application/xml; charset=windows-1252") or beSome("application/xml;charset=Windows-1252")
+        beSome("application/xml; charset=windows-1252").or(beSome("application/xml;charset=Windows-1252"))
       )
     }
 
@@ -235,8 +252,12 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           Results.ok("Hello world").discardingCookie("Result-Discard")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        )
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        )
       }
 
       "on the given path with no domain and not that's secure" in makeRequest(new MockController {
@@ -245,8 +266,12 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
+        )
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
+        )
       }
 
       "on the given path and domain that's not secure" in makeRequest(new MockController {
@@ -255,8 +280,18 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) =>
+            s.startsWith(
+              "Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
+            )
+        )
+        response.headers("Set-Cookie") must contain(
+          (s: String) =>
+            s.startsWith(
+              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
+            )
+        )
       }
 
       "on the given path and domain that's is secure" in makeRequest(new MockController {
@@ -265,14 +300,25 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true)
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
-        response.headers("Set-Cookie") must contain((s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) =>
+            s.startsWith(
+              "Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
+            )
+        )
+        response.headers("Set-Cookie") must contain(
+          (s: String) =>
+            s.startsWith(
+              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
+            )
+        )
       }
     }
 
     "add cookies in Result" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world")
+        Results
+          .ok("Hello world")
           .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
           .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
       }
@@ -284,7 +330,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies with SameSite policy in Result" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world")
+        Results
+          .ok("Hello world")
           .withCookies(Http.Cookie.builder("bar", "KitKat").withSameSite(Http.Cookie.SameSite.LAX).build())
           .withCookies(Http.Cookie.builder("framework", "Play").withSameSite(Http.Cookie.SameSite.STRICT).build())
       }
@@ -302,12 +349,14 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         new MockController() {
           override def action: Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
-            val result = Results.ok("Hello world")
+            val result          = Results.ok("Hello world")
             javaMessagesApi.setLang(result, Lang.forCode("pt-BR"))
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
+        )
       }
 
       "works with Result.withLang" in makeRequestWithApp() { app =>
@@ -318,12 +367,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
+        )
       }
 
-      "respect play.i18n.langCookieName configuration" in makeRequestWithApp(additionalConfig = Map(
-        "play.i18n.langCookieName" -> "LANG_TEST_COOKIE"
-      )) { app =>
+      "respect play.i18n.langCookieName configuration" in makeRequestWithApp(
+        additionalConfig = Map(
+          "play.i18n.langCookieName" -> "LANG_TEST_COOKIE"
+        )
+      ) { app =>
         new MockController() {
           override def action: Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
@@ -331,12 +384,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; SameSite=Lax; Path=/"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; SameSite=Lax; Path=/")
+        )
       }
 
-      "respect play.i18n.langCookieSecure configuration" in makeRequestWithApp(additionalConfig = Map(
-        "play.i18n.langCookieSecure" -> "true"
-      )) { app =>
+      "respect play.i18n.langCookieSecure configuration" in makeRequestWithApp(
+        additionalConfig = Map(
+          "play.i18n.langCookieSecure" -> "true"
+        )
+      ) { app =>
         new MockController() {
           override def action: Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
@@ -344,12 +401,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Secure"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Secure")
+        )
       }
 
-      "respect play.i18n.langCookieHttpOnly configuration" in makeRequestWithApp(additionalConfig = Map(
-        "play.i18n.langCookieHttpOnly" -> "true"
-      )) { app =>
+      "respect play.i18n.langCookieHttpOnly configuration" in makeRequestWithApp(
+        additionalConfig = Map(
+          "play.i18n.langCookieHttpOnly" -> "true"
+        )
+      ) { app =>
         new MockController() {
           override def action: Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
@@ -357,7 +418,9 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly")
+        )
       }
 
     }
@@ -367,12 +430,14 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         new MockController() {
           override def action: Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
-            val result = Results.ok("Hello world")
+            val result          = Results.ok("Hello world")
             javaMessagesApi.clearLang(result)
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        )
       }
 
       "works with Result.withoutLang" in makeRequestWithApp() { app =>
@@ -383,51 +448,60 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain((s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        )
       }
     }
 
     "honor configuration for play.http.session.sameSite" in {
-      "when configured to lax" in makeRequest(new MockController {
-        def action = {
-          val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
-          val body = HttpEntity.fromString("Hello World", "utf-8")
-          val session = new Session(Map.empty[String, String].asJava)
-          val flash = new Flash(Map.empty[String, String].asJava)
-          val cookies = List.empty[Cookie].asJava
+      "when configured to lax" in makeRequest(
+        new MockController {
+          def action = {
+            val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
+            val body           = HttpEntity.fromString("Hello World", "utf-8")
+            val session        = new Session(Map.empty[String, String].asJava)
+            val flash          = new Flash(Map.empty[String, String].asJava)
+            val cookies        = List.empty[Cookie].asJava
 
-          val result = new Result(responseHeader, body, session, flash, cookies)
-          result.session().put("bar", "KitKat")
-          result
-        }
-      }, Map("play.http.session.sameSite" -> "lax")) { response =>
+            val result = new Result(responseHeader, body, session, flash, cookies)
+            result.session().put("bar", "KitKat")
+            result
+          }
+        },
+        Map("play.http.session.sameSite" -> "lax")
+      ) { response =>
         response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Lax"))
       }
 
-      "when configured to strict" in makeRequest(new MockController {
-        def action = {
-          val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
-          val body = HttpEntity.fromString("Hello World", "utf-8")
-          val session = new Session(Map.empty[String, String].asJava)
-          val flash = new Flash(Map.empty[String, String].asJava)
-          val cookies = List.empty[Cookie].asJava
+      "when configured to strict" in makeRequest(
+        new MockController {
+          def action = {
+            val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
+            val body           = HttpEntity.fromString("Hello World", "utf-8")
+            val session        = new Session(Map.empty[String, String].asJava)
+            val flash          = new Flash(Map.empty[String, String].asJava)
+            val cookies        = List.empty[Cookie].asJava
 
-          val result = new Result(responseHeader, body, session, flash, cookies)
-          result.session().put("bar", "KitKat")
-          result
-        }
-      }, Map("play.http.session.sameSite" -> "strict")) { response =>
+            val result = new Result(responseHeader, body, session, flash, cookies)
+            result.session().put("bar", "KitKat")
+            result
+          }
+        },
+        Map("play.http.session.sameSite" -> "strict")
+      ) { response =>
         response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Strict"))
       }
     }
 
     "handle duplicate withCookies in Result" in {
-      val result = Results.ok("Hello world")
+      val result = Results
+        .ok("Hello world")
         .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
         .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
 
       import scala.collection.JavaConverters._
-      val cookies = result.cookies().iterator().asScala.toList
+      val cookies      = result.cookies().iterator().asScala.toList
       val cookieValues = cookies.map(_.value)
       cookieValues must not contain ("KitKat")
       cookieValues must contain("Mars")
@@ -435,7 +509,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "handle duplicate cookies" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world")
+        Results
+          .ok("Hello world")
           .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
           .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
       }
@@ -477,9 +552,11 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     "add cookies in both Response and Result" in makeRequest(new MockController {
       def action = {
         response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
-        Results.ok("Hello world").withCookies(
-          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
-        )
+        Results
+          .ok("Hello world")
+          .withCookies(
+            new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
+          )
       }
     }) { response =>
       response.headers("Set-Cookie")(0) must contain("bar=KitKat")
@@ -497,14 +574,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     "chunk comet results from string" in makeRequest(new MockController {
       def action = {
         import scala.collection.JavaConverters._
-        val dataSource = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
+        val dataSource  = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
         val cometSource = dataSource.via(Comet.string("callback"))
         Results.ok().chunked(cometSource)
       }
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script>callback('a');</script><script>callback('b');</script><script>callback('c');</script>")
+      response.body must contain(
+        "<html><body><script>callback('a');</script><script>callback('b');</script><script>callback('c');</script>"
+      )
     }
 
     "chunk comet results from json" in makeRequest(new MockController {
@@ -512,7 +591,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
         val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(Arrays.asList(objectNode))
-        val cometSource = dataSource.via(Comet.json("callback"))
+        val cometSource                           = dataSource.via(Comet.json("callback"))
         Results.ok().chunked(cometSource)
       }
     }) { response =>
@@ -573,7 +652,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "correct change it for chunked entities" in makeRequest(new MockController {
         def action = {
-          val chunks = List(ByteString("a"), ByteString("b"))
+          val chunks     = List(ByteString("a"), ByteString("b"))
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(HTML)
         }
@@ -607,7 +686,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "have no content type if set to null in chunked entities" in makeRequest(new MockController {
         def action = {
-          val chunks = List(ByteString("a"), ByteString("b"))
+          val chunks     = List(ByteString("a"), ByteString("b"))
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(null)
         }

@@ -4,18 +4,18 @@
 
 package javaguide.di.constructor;
 
-//#constructor
+// #constructor
 import javax.inject.*;
 import play.libs.ws.*;
 
 public class MyComponent {
-    private final WSClient ws;
+  private final WSClient ws;
 
-    @Inject
-    public MyComponent(WSClient ws) {
-        this.ws = ws;
-    }
+  @Inject
+  public MyComponent(WSClient ws) {
+    this.ws = ws;
+  }
 
-    // ...
+  // ...
 }
-//#constructor
+// #constructor

@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * This is the WS Client interface for Java.
  *
- * Most of the time you will access this through dependency injection, i.e.
+ * <p>Most of the time you will access this through dependency injection, i.e.
  *
  * <pre>
  * <code>import javax.inject.Inject;
@@ -28,32 +28,31 @@ import java.io.IOException;
  */
 public interface WSClient extends java.io.Closeable {
 
-    /**
-     * The underlying implementation of the client, if any.  You must cast the returned value to the type you want.
-     *
-     * @return the backing object.
-     */
-    Object getUnderlying();
+  /**
+   * The underlying implementation of the client, if any. You must cast the returned value to the
+   * type you want.
+   *
+   * @return the backing object.
+   */
+  Object getUnderlying();
 
-    /**
-     * @return the Scala version for this WSClient.
-     */
-    play.api.libs.ws.WSClient asScala();
+  /** @return the Scala version for this WSClient. */
+  play.api.libs.ws.WSClient asScala();
 
-    /**
-     * Returns a WSRequest object representing the URL.  You can append additional
-     * properties on the WSRequest by chaining calls, and execute the request to
-     * return an asynchronous {@code Promise<WSResponse>}.
-     *
-     * @param url the URL to request
-     * @return the request
-     */
-    WSRequest url(String url);
+  /**
+   * Returns a WSRequest object representing the URL. You can append additional properties on the
+   * WSRequest by chaining calls, and execute the request to return an asynchronous {@code
+   * Promise<WSResponse>}.
+   *
+   * @param url the URL to request
+   * @return the request
+   */
+  WSRequest url(String url);
 
-    /**
-     * Closes this client, and releases underlying resources.
-     * <p>
-     * Use this for manually instantiated clients.
-     */
-    void close() throws IOException;
+  /**
+   * Closes this client, and releases underlying resources.
+   *
+   * <p>Use this for manually instantiated clients.
+   */
+  void close() throws IOException;
 }

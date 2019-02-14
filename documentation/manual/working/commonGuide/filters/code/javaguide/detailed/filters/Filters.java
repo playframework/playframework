@@ -17,15 +17,16 @@ import java.util.List;
 
 public class Filters extends DefaultHttpFilters {
 
-    @Inject
-    public Filters(EnabledFilters enabledFilters, CORSFilter corsFilter) {
-        super(combine(enabledFilters.asJava().getFilters(), corsFilter.asJava()));
-    }
+  @Inject
+  public Filters(EnabledFilters enabledFilters, CORSFilter corsFilter) {
+    super(combine(enabledFilters.asJava().getFilters(), corsFilter.asJava()));
+  }
 
-    private static List<EssentialFilter> combine(List<EssentialFilter> filters, EssentialFilter toAppend) {
-        List<EssentialFilter> combinedFilters = new ArrayList<>(filters);
-        combinedFilters.add(toAppend);
-        return combinedFilters;
-    }
+  private static List<EssentialFilter> combine(
+      List<EssentialFilter> filters, EssentialFilter toAppend) {
+    List<EssentialFilter> combinedFilters = new ArrayList<>(filters);
+    combinedFilters.add(toAppend);
+    return combinedFilters;
+  }
 }
 // #filters-combine-enabled-filters

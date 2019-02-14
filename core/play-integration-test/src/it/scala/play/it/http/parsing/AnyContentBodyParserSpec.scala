@@ -15,8 +15,8 @@ class AnyContentBodyParserSpec extends PlaySpecification {
   "The anyContent body parser" should {
     def parse(method: String, contentType: Option[String], body: ByteString)(implicit app: Application) = {
       implicit val mat = app.materializer
-      val parsers = app.injector.instanceOf[PlayBodyParsers]
-      val request = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
+      val parsers      = app.injector.instanceOf[PlayBodyParsers]
+      val request      = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
       await(parsers.anyContent(request).run(Source.single(body)))
     }
 
@@ -30,9 +30,10 @@ class AnyContentBodyParserSpec extends PlaySpecification {
 
     "parse empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
       parse("PUT", None, ByteString.empty) must beRight.like {
-        case AnyContentAsRaw(rawBuffer) => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes must beEmpty
-        }
+        case AnyContentAsRaw(rawBuffer) =>
+          rawBuffer.asBytes() must beSome.like {
+            case outBytes => outBytes must beEmpty
+          }
       }
     }
 
@@ -60,9 +61,10 @@ class AnyContentBodyParserSpec extends PlaySpecification {
 
     "parse unknown bodies as raw for PUT requests" in new WithApplication(_.globalApp(false)) {
       parse("PUT", None, ByteString.empty) must beRight.like {
-        case AnyContentAsRaw(rawBuffer) => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes must beEmpty
-        }
+        case AnyContentAsRaw(rawBuffer) =>
+          rawBuffer.asBytes() must beSome.like {
+            case outBytes => outBytes must beEmpty
+          }
       }
     }
 

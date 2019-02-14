@@ -7,7 +7,9 @@ package com.typesafe.play.docs.sbtplugin
 import sbt._
 import sbt.io.Path._
 import sbt.compiler.Eval
-import sbt.internal.{ BuildStructure, EvaluateConfigurations, Load }
+import sbt.internal.BuildStructure
+import sbt.internal.EvaluateConfigurations
+import sbt.internal.Load
 
 private[sbtplugin] trait PlayDocsPluginCompat {
 
@@ -15,7 +17,12 @@ private[sbtplugin] trait PlayDocsPluginCompat {
     sbt.internal.PlayLoad.defaultLoad(state, localBase)
   }
 
-  def evaluateConfigurations(sbtFile: java.io.File, imports: Seq[String], classLoader: ClassLoader, eval: () => Eval): Seq[Def.Setting[_]] = {
+  def evaluateConfigurations(
+      sbtFile: java.io.File,
+      imports: Seq[String],
+      classLoader: ClassLoader,
+      eval: () => Eval
+  ): Seq[Def.Setting[_]] = {
     sbt.internal.PlayEvaluateConfigurations.evaluateConfigurations(sbtFile, imports, classLoader, eval)
   }
 }

@@ -37,44 +37,47 @@ trait RunHook {
 
 }
 
-case class RunHookCompositeThrowable(val throwables: Set[Throwable]) extends Exception(
-  "Multiple exceptions thrown during RunHook run: " +
-    throwables.map(t => t + "\n" + t.getStackTrace.take(10).++("...").mkString("\n")).mkString("\n\n")
-)
+case class RunHookCompositeThrowable(val throwables: Set[Throwable])
+    extends Exception(
+      "Multiple exceptions thrown during RunHook run: " +
+        throwables.map(t => t + "\n" + t.getStackTrace.take(10).++("...").mkString("\n")).mkString("\n\n")
+    )
 
 object RunHook {
 
   // A bit of a magic hack to clean up the PlayRun file
   implicit class RunHooksRunner(val hooks: Seq[RunHook]) extends AnyVal {
+
     /**
      * Runs all the hooks in the sequence of hooks.
      * Reports last failure if any have failure.
      */
-    def run(f: RunHook => Unit, suppressFailure: Boolean = false): Unit = try {
+    def run(f: RunHook => Unit, suppressFailure: Boolean = false): Unit =
+      try {
 
-      val failures: LinkedHashMap[RunHook, Throwable] = LinkedHashMap.empty
+        val failures: LinkedHashMap[RunHook, Throwable] = LinkedHashMap.empty
 
-      hooks foreach { hook =>
-        try {
-          f(hook)
-        } catch {
-          case NonFatal(e) =>
-            failures += hook -> e
+        hooks.foreach { hook =>
+          try {
+            f(hook)
+          } catch {
+            case NonFatal(e) =>
+              failures += hook -> e
+          }
         }
-      }
 
-      // Throw failure if it occurred....
-      if (!suppressFailure && failures.nonEmpty) {
-        if (failures.size == 1) {
-          throw failures.values.head
-        } else {
-          throw RunHookCompositeThrowable(failures.values.toSet)
+        // Throw failure if it occurred....
+        if (!suppressFailure && failures.nonEmpty) {
+          if (failures.size == 1) {
+            throw failures.values.head
+          } else {
+            throw RunHookCompositeThrowable(failures.values.toSet)
+          }
         }
+      } catch {
+        case NonFatal(e) if suppressFailure =>
+        // Ignoring failure in running hooks... (CCE thrown here)
       }
-    } catch {
-      case NonFatal(e) if suppressFailure =>
-      // Ignoring failure in running hooks... (CCE thrown here)
-    }
   }
 
 }

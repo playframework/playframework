@@ -38,9 +38,9 @@ trait AcceptExtractors {
    */
   object Accepts {
     import play.api.http.MimeTypes
-    val Json = Accepting(MimeTypes.JSON)
-    val Html = Accepting(MimeTypes.HTML)
-    val Xml = Accepting(MimeTypes.XML)
+    val Json       = Accepting(MimeTypes.JSON)
+    val Html       = Accepting(MimeTypes.HTML)
+    val Xml        = Accepting(MimeTypes.XML)
     val JavaScript = Accepting(MimeTypes.JAVASCRIPT)
   }
 
@@ -60,6 +60,6 @@ trait AcceptExtractors {
  * }}}
  */
 case class Accepting(mimeType: String) {
-  def unapply(request: RequestHeader): Boolean = request.accepts(mimeType)
+  def unapply(request: RequestHeader): Boolean               = request.accepts(mimeType)
   def unapply(mediaRange: play.api.http.MediaRange): Boolean = mediaRange.accepts(mimeType)
 }

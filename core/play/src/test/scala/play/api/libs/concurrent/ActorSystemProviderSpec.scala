@@ -7,22 +7,29 @@ package play.api.libs.concurrent
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.Done
-import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
 import akka.actor.CoordinatedShutdown._
-import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import org.specs2.mutable.Specification
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
-import play.api.{ Configuration, Environment, PlayException }
+import play.api.Configuration
+import play.api.Environment
+import play.api.PlayException
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 class ActorSystemProviderSpec extends Specification {
 
   val akkaMaxDelayInSec = 2147483
-  val fiveSec = Duration(5, "seconds")
-  val oneSec = Duration(100, "milliseconds")
+  val fiveSec           = Duration(5, "seconds")
+  val oneSec            = Duration(100, "milliseconds")
 
   val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
   val playTimeoutKey = "play.akka.shutdown-timeout"
@@ -79,7 +86,7 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     "start as expected with the default configuration for akka.coordinated-shutdown.exit-jvm" in {
-      withConfiguration(identity){ actorSystem =>
+      withConfiguration(identity) { actorSystem =>
         actorSystem.dispatcher must not beNull
       }
     }
@@ -100,10 +107,13 @@ class ActorSystemProviderSpec extends Specification {
         .load(Environment.simple())
         .underlying
         // Add a custom phase which executes after the last one defined by Akka.
-        .withValue("akka.coordinated-shutdown.phases.custom-defined-phase.depends-on", ConfigValueFactory.fromIterable(java.util.Arrays.asList("actor-system-terminate")))
+        .withValue(
+          "akka.coordinated-shutdown.phases.custom-defined-phase.depends-on",
+          ConfigValueFactory.fromIterable(java.util.Arrays.asList("actor-system-terminate"))
+        )
 
       // Custom phase CustomDefinedPhase
-      val PhaseCustomDefinedPhase = "custom-defined-phase"
+      val PhaseCustomDefinedPhase         = "custom-defined-phase"
       val phaseCustomDefinedPhaseExecuted = new AtomicBoolean(false)
 
       val actorSystem = ActorSystemProvider.start(
@@ -112,7 +122,7 @@ class ActorSystemProviderSpec extends Specification {
       )
 
       val lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
-      val cs = new CoordinatedShutdownProvider(actorSystem, lifecycle).get
+      val cs                              = new CoordinatedShutdownProvider(actorSystem, lifecycle).get
 
       def run(atomicBoolean: AtomicBoolean) = () => {
         atomicBoolean.set(true)
@@ -133,9 +143,10 @@ class ActorSystemProviderSpec extends Specification {
   }
 
   private def withConfiguration[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
-    val config: Config = reconfigure(Configuration
-      .load(Environment.simple())
-      .underlying
+    val config: Config = reconfigure(
+      Configuration
+        .load(Environment.simple())
+        .underlying
     )
     val actorSystem = ActorSystemProvider.start(
       this.getClass.getClassLoader,

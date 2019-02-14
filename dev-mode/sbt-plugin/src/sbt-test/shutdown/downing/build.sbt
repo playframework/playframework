@@ -17,15 +17,10 @@ lazy val root = (project in file("."))
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
-
-    fork in test := true ,
-
+    fork in test := true,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-
     PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
-
     commands += DevModeBuild.assertProcessIsStopped,
-
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"
       // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
@@ -42,9 +37,8 @@ lazy val root = (project in file("."))
         println("Application stopped.")
       }
     },
-
     InputKey[Unit]("verifyResourceContains") := {
-      val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
+      val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
       DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
     }

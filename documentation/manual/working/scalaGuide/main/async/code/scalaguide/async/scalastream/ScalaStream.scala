@@ -4,17 +4,25 @@
 
 package scalaguide.async.scalastream
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import javax.inject.Inject
 
-import akka.stream.scaladsl.{FileIO, Source, StreamConverters}
+import akka.stream.scaladsl.FileIO
+import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.StreamConverters
 import akka.util.ByteString
 import play.api.http.HttpEntity
-import play.api.mvc.{BaseController, ControllerComponents, ResponseHeader, Result}
+import play.api.mvc.BaseController
+import play.api.mvc.ControllerComponents
+import play.api.mvc.ResponseHeader
+import play.api.mvc.Result
 
 import scala.concurrent.ExecutionContext
 
-class ScalaStreamController @Inject()(val controllerComponents: ControllerComponents)(implicit executionContext: ExecutionContext) extends BaseController {
+class ScalaStreamController @Inject()(val controllerComponents: ControllerComponents)(
+    implicit executionContext: ExecutionContext
+) extends BaseController {
 
   //#by-default
   def index = Action {
@@ -33,8 +41,8 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
 
   private def createSourceFromFile = {
     //#create-source-from-file
-    val file = new java.io.File("/tmp/fileToServe.pdf")
-    val path: java.nio.file.Path = file.toPath
+    val file                          = new java.io.File("/tmp/fileToServe.pdf")
+    val path: java.nio.file.Path      = file.toPath
     val source: Source[ByteString, _] = FileIO.fromPath(path)
     //#create-source-from-file
   }
@@ -42,8 +50,8 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
   //#streaming-http-entity
   def streamed = Action {
 
-    val file = new java.io.File("/tmp/fileToServe.pdf")
-    val path: java.nio.file.Path = file.toPath
+    val file                          = new java.io.File("/tmp/fileToServe.pdf")
+    val path: java.nio.file.Path      = file.toPath
     val source: Source[ByteString, _] = FileIO.fromPath(path)
 
     Result(
@@ -56,8 +64,8 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
   //#streaming-http-entity-with-content-length
   def streamedWithContentLength = Action {
 
-    val file = new java.io.File("/tmp/fileToServe.pdf")
-    val path: java.nio.file.Path = file.toPath
+    val file                          = new java.io.File("/tmp/fileToServe.pdf")
+    val path: java.nio.file.Path      = file.toPath
     val source: Source[ByteString, _] = FileIO.fromPath(path)
 
     val contentLength = Some(file.length())
@@ -97,19 +105,18 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
 
   private def sourceFromInputStream = {
     //#create-source-from-input-stream
-    val data = getDataStream
+    val data                               = getDataStream
     val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data)
     //#create-source-from-input-stream
   }
 
   //#chunked-from-input-stream
   def chunked = Action {
-    val data = getDataStream
+    val data                               = getDataStream
     val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data)
     Ok.chunked(dataContent)
   }
   //#chunked-from-input-stream
-
 
   //#chunked-from-source
   def chunkedFromSource = Action {

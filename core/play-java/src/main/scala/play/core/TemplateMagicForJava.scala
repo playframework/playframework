@@ -50,10 +50,14 @@ object PlayMagicForJava extends ToScalaImplicits with ToJavaImplicits {
     ctx.messages().asScala
   }
 
-  @implicitNotFound("No Http.Request implicit parameter found when accessing session. You must add it as a template parameter like @(arg1, arg2,...)(implicit request: Http.Request).")
+  @implicitNotFound(
+    "No Http.Request implicit parameter found when accessing session. You must add it as a template parameter like @(arg1, arg2,...)(implicit request: Http.Request)."
+  )
   implicit def request2Session(implicit request: Http.Request): Http.Session = request.session()
 
-  @implicitNotFound("No Http.Request implicit parameter found when accessing flash. You must add it as a template parameter like @(arg1, arg2,...)(implicit request: Http.Request).")
+  @implicitNotFound(
+    "No Http.Request implicit parameter found when accessing flash. You must add it as a template parameter like @(arg1, arg2,...)(implicit request: Http.Request)."
+  )
   implicit def request2Flash(implicit request: Http.Request): Http.Flash = request.flash()
 
   // TODO: Uncomment when the implicitJavaLang method above gets removed (methods interfere)

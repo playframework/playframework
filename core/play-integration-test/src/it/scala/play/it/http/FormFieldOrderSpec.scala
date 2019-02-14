@@ -6,14 +6,18 @@ package play.it.http
 
 import play.api.mvc._
 import play.api.test._
-import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.it.test.EndpointIntegrationSpecification
+import play.it.test.OkHttpEndpointSupport
 
-class FormFieldOrderSpec extends PlaySpecification
-  with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+class FormFieldOrderSpec
+    extends PlaySpecification
+    with EndpointIntegrationSpecification
+    with OkHttpEndpointSupport
+    with ApplicationFactories {
 
   "Form URL Decoding " should {
 
-    val urlEncoded = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
+    val urlEncoded  = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 
     val fakeAppFactory: ApplicationFactory = withAction { actionBuilder =>
@@ -22,11 +26,10 @@ class FormFieldOrderSpec extends PlaySpecification
         request.contentType must beSome(contentType)
         // The following just ingests the request body and converts it to a sequence of strings of the form name=value
         val pairs: Seq[String] = {
-          request.body.asFormUrlEncoded map {
-            params: Map[String, Seq[String]] =>
-              {
-                for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
-              }.toSeq
+          request.body.asFormUrlEncoded.map { params: Map[String, Seq[String]] =>
+            {
+              for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
+            }.toSeq
           }
         }.getOrElse(Seq.empty[String])
         // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the

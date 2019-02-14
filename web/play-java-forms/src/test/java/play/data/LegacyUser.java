@@ -11,9 +11,8 @@ import play.data.validation.Constraints.Validatable;
 // doesn't get triggered as well - so the validate() method here should NEVER run.
 public class LegacyUser implements Validatable<String> {
 
-    @Override
-    public String validate() {
-        return "Some global error";
-    }
-
+  @Override
+  public String validate() {
+    return "Some global error";
+  }
 }

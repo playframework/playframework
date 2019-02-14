@@ -76,24 +76,25 @@ class JavaJsonSpec extends Specification {
     "deserialize to a POJO from request body" in new JsonScope(Json.newDefaultMapper()) {
 
       val validRequest: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(testJson))
-      val javaPOJO = validRequest.body.parseJson(classOf[JavaPOJO]).get()
+      val javaPOJO                                = validRequest.body.parseJson(classOf[JavaPOJO]).get()
 
       javaPOJO.getBar must_== "baz"
       javaPOJO.getFoo must_== "bar"
-      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861l)
+      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861L)
       javaPOJO.getOptNumber must_== Optional.of(55555)
 
       val testNotJsonBody: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody("foo"))
       testNotJsonBody.body.parseJson(classOf[JavaPOJO]) must_== Optional.empty()
 
-      val testJsonMissingFields: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(mapper.createObjectNode()))
+      val testJsonMissingFields: Request[Http.RequestBody] =
+        Request[Http.RequestBody](FakeRequest(), new RequestBody(mapper.createObjectNode()))
       testJsonMissingFields.body.parseJson(classOf[JavaPOJO]).get().getBar must_== null
     }
     "ignore unknown fields when deserializing to a POJO" in new JsonScope(Json.newDefaultMapper()) {
       val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
       javaPOJO.getBar must_== "baz"
       javaPOJO.getFoo must_== "bar"
-      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861l)
+      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861L)
       javaPOJO.getOptNumber must_== Optional.of(55555)
     }
   }
