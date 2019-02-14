@@ -8,15 +8,15 @@ import java.net.URI
 import java.security.cert.X509Certificate
 
 import akka.util.ByteString
-import play.api.http.{ HeaderNames, HttpConfiguration }
+import play.api.http.{ HeaderNames, HttpConfiguration, Writeable }
 import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
 import play.api.libs.json.JsValue
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.api.mvc.request._
 import play.core.parsers.FormUrlEncodedParser
+import Helpers.{ CONTENT_LENGTH, CONTENT_TYPE }
 
-import scala.concurrent.Future
 import scala.xml.NodeSeq
 
 /**
@@ -53,8 +53,12 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
     new FakeRequest(request.withHeaders(newHeaders))
   override def withAttrs(attrs: TypedMap): FakeRequest[A] =
     new FakeRequest(request.withAttrs(attrs))
-  override def withBody[B](body: B): FakeRequest[B] =
-    new FakeRequest(request.withBody(body))
+  def withBody[B](body: B)(implicit w: Writeable[B]): FakeRequest[B] = {
+    val bytes = w.transform(body)
+    val contentType = headers.get(CONTENT_TYPE).orElse(w.contentType).map(CONTENT_TYPE -> _)
+    val contentLength = headers.get(CONTENT_LENGTH).orElse(Some(bytes.length.toString)).map(CONTENT_LENGTH -> _)
+    new FakeRequest(request.withBody(body)).withHeaders(contentLength.toSeq ++ contentType.toSeq: _*)
+  }
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
@@ -90,35 +94,35 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
   /**
    * Set a Form url encoded body to this request.
    */
-  def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
+  def withFormUrlEncodedBody(data: (String, String)*)(implicit w: Writeable[AnyContentAsFormUrlEncoded]): FakeRequest[AnyContentAsFormUrlEncoded] = {
     withBody(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
   /**
    * Adds a JSON body to the request.
    */
-  def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
+  def withJsonBody(json: JsValue)(implicit w: Writeable[AnyContentAsJson]): FakeRequest[AnyContentAsJson] = {
     withBody(body = AnyContentAsJson(json))
   }
 
   /**
    * Adds an XML body to the request.
    */
-  def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
+  def withXmlBody(xml: NodeSeq)(implicit w: Writeable[AnyContentAsXml]): FakeRequest[AnyContentAsXml] = {
     withBody(body = AnyContentAsXml(xml))
   }
 
   /**
    * Adds a text body to the request.
    */
-  def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
+  def withTextBody(text: String)(implicit w: Writeable[AnyContentAsText]): FakeRequest[AnyContentAsText] = {
     withBody(body = AnyContentAsText(text))
   }
 
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
+  def withRawBody(bytes: ByteString)(implicit w: Writeable[AnyContentAsRaw]): FakeRequest[AnyContentAsRaw] = {
     val temporaryFileCreator = SingletonTemporaryFileCreator
     withBody(body = AnyContentAsRaw(RawBuffer(bytes.size, temporaryFileCreator, bytes)))
   }
@@ -126,8 +130,8 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
   /**
    * Adds a multipart form data body to the request
    */
-  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]): FakeRequest[AnyContentAsMultipartFormData] = {
-    withBody(body = AnyContentAsMultipartFormData(form))
+  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile])(implicit w: Writeable[AnyContentAsMultipartFormData]): FakeRequest[AnyContentAsMultipartFormData] = {
+    withBody(body = AnyContentAsMultipartFormData(form)).withHeaders(headers.remove(CONTENT_TYPE, CONTENT_LENGTH))
   }
 
   /**
