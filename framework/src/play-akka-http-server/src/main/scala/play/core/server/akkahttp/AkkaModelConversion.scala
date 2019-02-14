@@ -228,11 +228,37 @@ private[server] class AkkaModelConversion(
     }
   }
 
+  /**
+   * Retains a local cache of Content-Type strings to the resolved [[ContentType]] value to avoid future work to
+   * fully parse the same string on future responses
+   */
+  private[this] val contentTypeCache: java.util.concurrent.ConcurrentHashMap[String, ContentType] = {
+    val map = new java.util.concurrent.ConcurrentHashMap[String, ContentType]()
+    //  This mapping is commonly used and doesn't need to contain a codec
+    map.put(play.api.http.ContentTypes.JSON, ContentTypes.`application/json`)
+    map.put(play.api.http.ContentTypes.BINARY, ContentTypes.`application/octet-stream`)
+    map
+  }
+
   def parseContentType(contentType: Option[String]): ContentType = {
-    contentType.fold(ContentTypes.NoContentType: ContentType) { ct =>
-      ContentType.parse(ct).left.map { errors =>
-        throw new RuntimeException(s"Error parsing response Content-Type: <$ct>: $errors")
-      }.merge
+    //  Parsing the content type as if it were a client provided value is not fast, but can be cached on first use
+    def parseAndCacheSlowPath(ct: String): ContentType = {
+      ContentType.parse(ct) match {
+        case Right(parsed) =>
+          contentTypeCache.putIfAbsent(ct, parsed)
+          parsed
+        case Left(errors) => throw new RuntimeException(s"Error parsing response Content-Type: <$ct>: $errors")
+      }
+    }
+    contentType match {
+      case None => ContentTypes.NoContentType
+      case Some(ct) =>
+        val cached = contentTypeCache.get(ct)
+        if (cached ne null) {
+          cached
+        } else {
+          parseAndCacheSlowPath(ct)
+        }
     }
   }
 
