@@ -113,10 +113,11 @@ class NettyServer(
       case other          => other
     }
     config.entrySet().asScala.filterNot(_.getKey.startsWith("child.")).foreach { option =>
-      if (ChannelOption.exists(option.getKey)) {
-        setOption(ChannelOption.valueOf(option.getKey), unwrap(option.getValue))
+      val cleanKey = option.getKey.stripPrefix("\"").stripSuffix("\"")
+      if (ChannelOption.exists(cleanKey)) {
+        setOption(ChannelOption.valueOf(cleanKey), unwrap(option.getValue))
       } else {
-        logger.warn("Ignoring unknown Netty channel option: " + option.getKey)
+        logger.warn("Ignoring unknown Netty channel option: " + cleanKey)
         transport match {
           case Native =>
             logger.warn(
