@@ -1,0 +1,38 @@
+# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+
+# Lib for CI scripts
+
+set -e
+set -o pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASEDIR=$DIR/..
+export DOCUMENTATION=$BASEDIR/documentation
+
+export CURRENT_BRANCH=${TRAVIS_BRANCH}
+
+EXTRA_OPTS=""
+
+# Check if it is a scheduled build
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    # `sort` is not necessary, but it is good to make it predictable.
+    AKKA_VERSION=$(curl -s https://repo.akka.io/snapshots/com/typesafe/akka/akka-actor_2.12/ | grep -oEi '2\.5-[0-9]{8}-[0-9]{6}' | sort | tail -n 1)
+
+    echo "Using Akka SNAPSHOT ${AKKA_VERSION}"
+
+    EXTRA_OPTS="-Dakka.version=${AKKA_VERSION}"
+fi
+
+printMessage() {
+  echo "[info]"
+  echo "[info] ---- $1"
+  echo "[info]"
+}
+
+runSbt() {
+  sbt "$EXTRA_OPTS" --warn -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+}
+
+runSbtNoisy() {
+  sbt ${EXTRA_OPTS} -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+}

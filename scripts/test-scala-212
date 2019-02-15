@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd "$BASEDIR"
+
+printMessage "RUNNING TESTS FOR SCALA 2.12"
+
+# Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
+runSbt "+++2.12.6 test"
+
+printMessage "ALL TESTS PASSED"
