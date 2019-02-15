@@ -30,41 +30,41 @@ jobs:
   include:
     # Validations stage
     - stage: validations
-      script: framework/bin/validate-code
+      script: scripts/validate-code
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: framework/bin/validate-docs
+    - script: scripts/validate-docs
       name: "Validate docs (links, sample code, etc.)"
-    - script: framework/bin/validate-microbenchmarks
+    - script: scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
-    - script: framework/bin/publish-local
+    - script: scripts/publish-local
       name: "Run a publishLocal for the default scala version"
     # Test stage
     - stage: test
-      script: framework/bin/test-scala-211
+      script: scripts/test-scala-211
       name: "Run tests for Scala 2.11"
-    - script: framework/bin/test-scala-212
+    - script: scripts/test-scala-212
       name: "Run tests for Scala 2.12"
-    - script: framework/bin/test-scala-213
+    - script: scripts/test-scala-213
       name: "Run tests for Scala 2.13"
-    - script: framework/bin/test-docs
+    - script: scripts/test-docs
       name: "Run documentation tests"
-    - script: framework/bin/it-test-scala-212
+    - script: scripts/it-test-scala-212
       name: "Run it tests for Scala 2.12"
-    - script: framework/bin/it-test-scala-213
+    - script: scripts/it-test-scala-213
       name: "Run it tests for Scala 2.13"
     # Test-sbt stage
     - stage: test-sbt
-      script: framework/bin/test-sbt-plugins-0_13
+      script: scripts/test-sbt-plugins-0_13
       name: "Scripted tests for sbt 0.13"
-    - script: framework/bin/test-sbt-plugins-1_0
+    - script: scripts/test-sbt-plugins-1_0
       name: "Scripted tests for sbt 1"
     # Java 11 stage
     # Test against Open JDK 11, but only for Scala 2.12
     - stage: java11
-      script: framework/bin/test-scala-212
+      script: scripts/test-scala-212
       env: TRAVIS_JDK=adopt@1.11.0-1
       name: "Run tests for Scala 2.12 and Java 11"
-    - script: framework/bin/it-test-scala-212
+    - script: scripts/it-test-scala-212
       env: TRAVIS_JDK=adopt@1.11.0-1
       name: "Run it tests for Scala 2.12 and Java 11"
 
