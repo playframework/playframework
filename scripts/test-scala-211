@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
@@ -11,7 +11,7 @@ if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
     exit
 fi
 
-cd ${FRAMEWORK}
+cd "$BASEDIR"
 
 printMessage "RUNNING TESTS FOR SCALA 2.11"
 
