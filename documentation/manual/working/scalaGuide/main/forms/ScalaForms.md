@@ -151,7 +151,7 @@ There are several input helpers, but the most helpful are:
 * [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-checkbox) element.
 * [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
 
-> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/framework/src/play/src/main/scala/views/helper) package on Github.
+> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/core/play/src/main/scala/views/helper) package on Github.
 
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 
