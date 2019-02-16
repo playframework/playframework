@@ -104,4 +104,4 @@ lazy val main = Project("Play-Documentation", file("."))
 
 lazy val playDocs = playProject("Play-Docs")
 
-def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile / "framework", name)
+def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile, name)
