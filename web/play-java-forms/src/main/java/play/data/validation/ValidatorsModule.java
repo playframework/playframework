@@ -16,12 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ValidatorsModule extends Module {
-    @Override
-    public List<Binding<?>> bindings(final Environment environment, final Config config) {
-        return Arrays.asList(
-                bindClass(ConstraintValidatorFactory.class).to(DefaultConstraintValidatorFactory.class),
-                bindClass(Validator.class).toProvider(ValidatorProvider.class),
-                bindClass(ValidatorFactory.class).toProvider(ValidatorFactoryProvider.class)
-        );
-    }
+  @Override
+  public List<Binding<?>> bindings(final Environment environment, final Config config) {
+    return Arrays.asList(
+        bindClass(ConstraintValidatorFactory.class).to(DefaultConstraintValidatorFactory.class),
+        bindClass(Validator.class).toProvider(ValidatorProvider.class),
+        bindClass(ValidatorFactory.class).toProvider(ValidatorFactoryProvider.class));
+  }
 }

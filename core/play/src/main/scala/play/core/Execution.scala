@@ -8,8 +8,10 @@ import java.util.concurrent.ForkJoinPool
 
 import play.api.Play
 
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
-import scala.util.{ Failure, Success }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * Provides access to Play's internal ExecutionContext.
@@ -23,7 +25,7 @@ private[play] object Execution {
   def internalContext: ExecutionContextExecutor = {
     Play.privateMaybeApplication match {
       case Success(app) => app.actorSystem.dispatcher
-      case Failure(_) => common
+      case Failure(_)   => common
     }
   }
 

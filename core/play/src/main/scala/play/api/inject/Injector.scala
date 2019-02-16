@@ -82,6 +82,7 @@ object NewInstanceInjector extends Injector {
  * @param components The components that this injector provides.
  */
 class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.empty) extends Injector {
+
   /**
    * Get an instance of the given class from the injector.
    */
@@ -115,16 +116,17 @@ class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.em
  * Wraps an existing injector, ensuring all calls have the correct context `ClassLoader` set.
  */
 private[play] class ContextClassLoaderInjector(delegate: Injector, classLoader: ClassLoader) extends Injector {
-  override def instanceOf[T: ClassTag]: T = withContext { delegate.instanceOf[T] }
-  override def instanceOf[T](clazz: Class[T]): T = withContext { delegate.instanceOf(clazz) }
+  override def instanceOf[T: ClassTag]: T           = withContext { delegate.instanceOf[T] }
+  override def instanceOf[T](clazz: Class[T]): T    = withContext { delegate.instanceOf(clazz) }
   override def instanceOf[T](key: BindingKey[T]): T = withContext { delegate.instanceOf(key) }
 
   @inline
   private def withContext[T](body: => T): T = {
-    val thread = Thread.currentThread()
+    val thread         = Thread.currentThread()
     val oldClassLoader = thread.getContextClassLoader
     thread.setContextClassLoader(classLoader)
-    try body finally thread.setContextClassLoader(oldClassLoader)
+    try body
+    finally thread.setContextClassLoader(oldClassLoader)
   }
 
 }

@@ -18,9 +18,10 @@ object NettyTestServer extends App {
 
   val server = NettyServer.fromRouterWithComponents(serverConfig) { c =>
     {
-      case GET(p"/") => c.defaultActionBuilder { implicit req =>
-        Results.Ok(s"Hello world")
-      }
+      case GET(p"/") =>
+        c.defaultActionBuilder { implicit req =>
+          Results.Ok(s"Hello world")
+        }
     }
   }
   println("Server (Netty) started: http://127.0.0.1:8000/ ")

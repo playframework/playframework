@@ -12,12 +12,12 @@ import play.libs.ws.*;
 import java.util.concurrent.CompletionStage;
 
 public class MyClient implements WSBodyReadables, WSBodyWritables {
-    private final WSClient ws;
+  private final WSClient ws;
 
-    @Inject
-    public MyClient(WSClient ws) {
-        this.ws = ws;
-    }
-    // ...
+  @Inject
+  public MyClient(WSClient ws) {
+    this.ws = ws;
+  }
+  // ...
 }
 // #ws-controller

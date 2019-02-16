@@ -56,6 +56,7 @@ object Forms {
    * @param unapply A function able to create A1 from a value of R (If R is a case class you can use its own unapply function)
    * @return a mapping for type `R`
    */
+  // format: off
   def mapping[R, A1](a1: (String, Mapping[A1]))(apply: Function1[A1, R])(unapply: Function1[R, Option[(A1)]]): Mapping[R] = {
     new ObjectMapping1(apply, unapply, a1)
   }
@@ -143,6 +144,7 @@ object Forms {
   def mapping[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18]), a19: (String, Mapping[A19]), a20: (String, Mapping[A20]), a21: (String, Mapping[A21]), a22: (String, Mapping[A22]))(apply: Function22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R])(unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)]]): Mapping[R] = {
     new ObjectMapping22(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22)
   }
+  // format: on
 
   /**
    * Creates a Mapping for a single value.
@@ -175,6 +177,7 @@ object Forms {
    *
    * @return a mapping for a tuple `(A,B)`
    */
+  // format: off
   def tuple[A1, A2](a1: (String, Mapping[A1]), a2: (String, Mapping[A2])): Mapping[(A1, A2)] = mapping(a1, a2)((a1: A1, a2: A2) => (a1, a2))((t: (A1, A2)) => Some(t))
 
   def tuple[A1, A2, A3](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3])): Mapping[(A1, A2, A3)] = mapping(a1, a2, a3)((a1: A1, a2: A2, a3: A3) => (a1, a2, a3))((t: (A1, A2, A3)) => Some(t))
@@ -216,6 +219,7 @@ object Forms {
   def tuple[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18]), a19: (String, Mapping[A19]), a20: (String, Mapping[A20]), a21: (String, Mapping[A21])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] = mapping(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21))((t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) => Some(t))
 
   def tuple[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18]), a19: (String, Mapping[A19]), a20: (String, Mapping[A20]), a21: (String, Mapping[A21]), a22: (String, Mapping[A22])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)] = mapping(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22)((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21, a22: A22) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22))((t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)) => Some(t))
+  // format: on
 
   // --
 
@@ -253,7 +257,7 @@ object Forms {
    * Form("username" -> nonEmptyText)
    * }}}
    */
-  val nonEmptyText: Mapping[String] = text verifying Constraints.nonEmpty
+  val nonEmptyText: Mapping[String] = text.verifying(Constraints.nonEmpty)
 
   /**
    * Constructs a simple mapping for a text field.
@@ -267,9 +271,9 @@ object Forms {
    * @param maxLength maximum text length
    */
   def text(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = (minLength, maxLength) match {
-    case (min, Int.MaxValue) => text verifying Constraints.minLength(min)
-    case (0, max) => text verifying Constraints.maxLength(max)
-    case (min, max) => text verifying (Constraints.minLength(min), Constraints.maxLength(max))
+    case (min, Int.MaxValue) => text.verifying(Constraints.minLength(min))
+    case (0, max)            => text.verifying(Constraints.maxLength(max))
+    case (min, max)          => text.verifying(Constraints.minLength(min), Constraints.maxLength(max))
   }
 
   /**
@@ -283,7 +287,8 @@ object Forms {
    * @param minLength Text min length.
    * @param maxLength Text max length.
    */
-  def nonEmptyText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = text(minLength, maxLength) verifying Constraints.nonEmpty
+  def nonEmptyText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] =
+    text(minLength, maxLength).verifying(Constraints.nonEmpty)
 
   /**
    * Constructs a simple mapping for a numeric field.
@@ -386,16 +391,21 @@ object Forms {
     numberMapping[Byte](Byte.MinValue, Byte.MaxValue, min, max, strict)
 
   @inline private def numberMapping[N: Numeric: Formatter](
-    typeMin: N, typeMax: N, min: N, max: N, strict: Boolean): Mapping[N] = {
+      typeMin: N,
+      typeMax: N,
+      min: N,
+      max: N,
+      strict: Boolean
+  ): Mapping[N] = {
     val number = of[N]
     if (min == typeMin && max == typeMax) {
       number
     } else if (min == typeMin) {
-      number verifying Constraints.max(max, strict)
+      number.verifying(Constraints.max(max, strict))
     } else if (max == typeMax) {
-      number verifying Constraints.min(min, strict)
+      number.verifying(Constraints.min(min, strict))
     } else {
-      number verifying (Constraints.min(min, strict), Constraints.max(max, strict))
+      number.verifying(Constraints.min(min, strict), Constraints.max(max, strict))
     }
   }
 
@@ -419,7 +429,8 @@ object Forms {
    * @param precision The maximum total number of digits (including decimals)
    * @param scale The maximum number of decimals
    */
-  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some((precision, scale)))
+  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] =
+    of[BigDecimal].as(bigDecimalFormat(Some((precision, scale))))
 
   /**
    * Constructs a simple mapping for a date field.
@@ -474,7 +485,8 @@ object Forms {
    * @param mapping The mapping to make optional.
    * @param value The default value when mapping and the field is not present.
    */
-  def default[A](mapping: Mapping[A], value: A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
+  def default[A](mapping: Mapping[A], value: A): Mapping[A] =
+    OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
 
   /**
    * Defines a repeated mapping.
@@ -522,7 +534,8 @@ object Forms {
    *
    * @param mapping The mapping to make repeated.
    */
-  def indexedSeq[A](mapping: Mapping[A]): Mapping[IndexedSeq[A]] = RepeatedMapping(mapping).transform(_.toIndexedSeq, _.toList)
+  def indexedSeq[A](mapping: Mapping[A]): Mapping[IndexedSeq[A]] =
+    RepeatedMapping(mapping).transform(_.toIndexedSeq, _.toList)
 
   /**
    * Defines a repeated mapping with the Vector semantic.
@@ -547,7 +560,8 @@ object Forms {
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def date(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.util.Date] = of[java.util.Date] as dateFormat(pattern, timeZone)
+  def date(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.util.Date] =
+    of[java.util.Date].as(dateFormat(pattern, timeZone))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
@@ -576,7 +590,7 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
    */
-  def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern)
+  def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date].as(sqlDateFormat(pattern))
 
   /**
    * Constructs a simple mapping for a timestamp field (mapped as `java.sql.Timestamp type`).
@@ -599,7 +613,10 @@ object Forms {
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def sqlTimestamp(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.sql.Timestamp] = of[java.sql.Timestamp] as sqlTimestampFormat(pattern, timeZone)
+  def sqlTimestamp(
+      pattern: String,
+      timeZone: java.util.TimeZone = java.util.TimeZone.getDefault
+  ): Mapping[java.sql.Timestamp] = of[java.sql.Timestamp].as(sqlTimestampFormat(pattern, timeZone))
 
   /**
    * Constructs a simple mapping for an e-mail field.
@@ -611,7 +628,7 @@ object Forms {
    *   Form("email" -> email)
    * }}}
    */
-  val email: Mapping[String] = of[String] verifying Constraints.emailAddress
+  val email: Mapping[String] = of[String].verifying(Constraints.emailAddress)
 
   /**
    * Constructs a simple mapping for a Boolean field, such as a check-box.
@@ -643,7 +660,7 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
    */
-  def localDate(pattern: String): Mapping[java.time.LocalDate] = of[java.time.LocalDate] as localDateFormat(pattern)
+  def localDate(pattern: String): Mapping[java.time.LocalDate] = of[java.time.LocalDate].as(localDateFormat(pattern))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `java.time.LocalDateTime type`).
@@ -665,7 +682,8 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
    */
-  def localDateTime(pattern: String): Mapping[java.time.LocalDateTime] = of[java.time.LocalDateTime] as localDateTimeFormat(pattern)
+  def localDateTime(pattern: String): Mapping[java.time.LocalDateTime] =
+    of[java.time.LocalDateTime].as(localDateTimeFormat(pattern))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `java.time.LocalTime type`).
@@ -687,8 +705,8 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
    */
-  def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime] as localTimeFormat(pattern)
+  def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime].as(localTimeFormat(pattern))
 
-  def checked(msg: String): Mapping[Boolean] = boolean verifying (msg, _ == true)
+  def checked(msg: String): Mapping[Boolean] = boolean.verifying(msg, _ == true)
 
 }

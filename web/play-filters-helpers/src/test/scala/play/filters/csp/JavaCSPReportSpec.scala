@@ -29,14 +29,17 @@ class JavaCSPReportSpec extends PlaySpecification {
 
   private def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
   private def javaContextComponents(implicit app: Application) = inject[JavaContextComponents]
-  private def myAction(implicit app: Application) = inject[JavaCSPReportSpec.MyAction]
+  private def myAction(implicit app: Application)              = inject[JavaCSPReportSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application): JavaAction = new JavaAction(javaHandlerComponents) {
-    val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
-    def parser: play.api.mvc.BodyParser[Http.RequestBody] = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-    def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
-    val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
-  }
+  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application): JavaAction =
+    new JavaAction(javaHandlerComponents) {
+      val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
+      def parser: play.api.mvc.BodyParser[Http.RequestBody] =
+        HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
+      def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
+      val annotations =
+        new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
+    }
 
   def withActionServer[T](config: (String, String)*)(block: Application => T): T = {
     val app = GuiceApplicationBuilder()
@@ -61,9 +64,10 @@ class JavaCSPReportSpec extends PlaySpecification {
           |    "status-code": 200
           |  }
           |}
-        """.stripMargin)
+        """.stripMargin
+      )
 
-      val request = FakeRequest("POST", "/report-to").withJsonBody(chromeJson)
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(chromeJson)
       val Some(result) = route(app, request)
 
       contentAsJson(result) must be_==(Json.obj("violation" -> "child-src https://45.55.25.245:8123/"))
@@ -80,9 +84,10 @@ class JavaCSPReportSpec extends PlaySpecification {
           |    "violated-directive": "img-src https://45.55.25.245:8123/"
           |  }
           |}
-        """.stripMargin)
+        """.stripMargin
+      )
 
-      val request = FakeRequest("POST", "/report-to").withJsonBody(firefoxJson)
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(firefoxJson)
       val Some(result) = route(app, request)
 
       contentAsJson(result) must be_==(Json.obj("violation" -> "img-src https://45.55.25.245:8123/"))
@@ -98,9 +103,10 @@ class JavaCSPReportSpec extends PlaySpecification {
           |    "blocked-uri": "http://google.com"
           |  }
           |}
-        """.stripMargin)
+        """.stripMargin
+      )
 
-      val request = FakeRequest("POST", "/report-to").withJsonBody(webkitJson)
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(webkitJson)
       val Some(result) = route(app, request)
 
       contentAsJson(result) must be_==(Json.obj("violation" -> "default-src https://45.55.25.245:8123/"))
@@ -108,7 +114,7 @@ class JavaCSPReportSpec extends PlaySpecification {
 
     "work with a old webkit style csp-report" in withActionServer() { implicit app =>
       val request = FakeRequest("POST", "/report-to").withFormUrlEncodedBody(
-        "document-url" -> "http://45.55.25.245:8123/csp?os=OS%2520X&device=&browser_version=3.6&browser=firefox&os_version=Yosemite",
+        "document-url"       -> "http://45.55.25.245:8123/csp?os=OS%2520X&device=&browser_version=3.6&browser=firefox&os_version=Yosemite",
         "violated-directive" -> "object-src https://45.55.25.245:8123/"
       )
       val Some(result) = route(app, request)
@@ -126,7 +132,7 @@ object JavaCSPReportSpec {
     def cspReport: Result = {
       import scala.collection.JavaConverters._
       val cspReport: JavaCSPReport = Http.Context.current().request().body.as(classOf[JavaCSPReport])
-      val json = play.libs.Json.toJson(Map("violation" -> cspReport.violatedDirective).asJava)
+      val json                     = play.libs.Json.toJson(Map("violation" -> cspReport.violatedDirective).asJava)
       Results.ok(json).as(play.mvc.Http.MimeTypes.JSON)
     }
   }

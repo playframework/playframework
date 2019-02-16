@@ -14,17 +14,17 @@ import scala.util.parsing.input.CharSequenceReader
 
 object ContentEncoding {
   // Taken from https://www.iana.org/assignments/http-parameters/http-parameters.xhtml
-  val Aes128gcm = "aes128gcm"
-  val Gzip = "gzip"
-  val Brotli = "br"
-  val Compress = "compress"
-  val Deflate = "deflate"
-  val Exi = "exi"
+  val Aes128gcm   = "aes128gcm"
+  val Gzip        = "gzip"
+  val Brotli      = "br"
+  val Compress    = "compress"
+  val Deflate     = "deflate"
+  val Exi         = "exi"
   val Pack200Gzip = "pack200-gzip"
-  val Identity = "identity"
+  val Identity    = "identity"
   // not official but common
   val Bzip2 = "bzip2"
-  val Xz = "xz"
+  val Xz    = "xz"
 
   val `*` = "*"
 }
@@ -34,6 +34,7 @@ object ContentEncoding {
  * name (or *), and an optional q-value.
  */
 case class EncodingPreference(name: String = "*", qValue: Option[BigDecimal] = None) {
+
   /**
    * `true` if this is a wildcard `*` preference.
    */
@@ -42,7 +43,7 @@ case class EncodingPreference(name: String = "*", qValue: Option[BigDecimal] = N
   /**
    * The effective q-value. Defaults to 1 if none is specified.
    */
-  val q: BigDecimal = qValue getOrElse 1.0
+  val q: BigDecimal = qValue.getOrElse(1.0)
 
   /**
    * Check if this encoding preference matches the specified encoding name.
@@ -51,25 +52,27 @@ case class EncodingPreference(name: String = "*", qValue: Option[BigDecimal] = N
 }
 
 object EncodingPreference {
+
   /**
    * Ordering for encodings, in order of highest priority to lowest priority.
    */
-  implicit val ordering: Ordering[EncodingPreference] = ordering(_ compare _)
+  implicit val ordering: Ordering[EncodingPreference] = ordering(_.compare(_))
 
   /**
    * An ordering for EncodingPreferences with a specific function for comparing names. Useful to allow the server to
    * provide a preference.
    */
-  def ordering(compareByName: (String, String) => Int): Ordering[EncodingPreference] = new Ordering[EncodingPreference] {
-    def compare(a: EncodingPreference, b: EncodingPreference) = {
-      val qCompare = a.q compare b.q
-      val compare = if (qCompare != 0) -qCompare else compareByName(a.name, b.name)
-      if (compare != 0) compare
-      else if (a.matchesAny) 1
-      else if (b.matchesAny) -1
-      else 0
+  def ordering(compareByName: (String, String) => Int): Ordering[EncodingPreference] =
+    new Ordering[EncodingPreference] {
+      def compare(a: EncodingPreference, b: EncodingPreference) = {
+        val qCompare = a.q.compare(b.q)
+        val compare  = if (qCompare != 0) -qCompare else compareByName(a.name, b.name)
+        if (compare != 0) compare
+        else if (a.matchesAny) 1
+        else if (b.matchesAny) -1
+        else 0
+      }
     }
-  }
 }
 
 /**
@@ -85,9 +88,12 @@ trait AcceptEncoding {
   /**
    * A list of encoding preferences, sorted from most to least preferred, and normalized to lowercase names.
    */
-  lazy val preferences: Seq[EncodingPreference] = headers.flatMap(AcceptEncoding.parseHeader).map { e =>
-    e.copy(name = e.name.toLowerCase)
-  }.sorted
+  lazy val preferences: Seq[EncodingPreference] = headers
+    .flatMap(AcceptEncoding.parseHeader)
+    .map { e =>
+      e.copy(name = e.name.toLowerCase)
+    }
+    .sorted
 
   /**
    * Returns `true` if we can safely fall back to the identity encoding if no supported encoding is found.
@@ -112,18 +118,23 @@ trait AcceptEncoding {
     // filter matches to ones in the choices
     val filteredMatches = preferences.filter(e => e.q > 0 && choices.exists(e.matches))
     // get top preference by finding max q and then getting preferred option among those
-    val preference = if (filteredMatches.isEmpty) None else {
-      val maxQ = filteredMatches.maxBy(_.q).q
-      filteredMatches.filter(maxQ == _.q).sortBy { pref =>
-        val idx = choices.indexWhere(pref.matches)
-        if (idx == -1) Int.MaxValue else idx
-      }.headOption
-    }
+    val preference =
+      if (filteredMatches.isEmpty) None
+      else {
+        val maxQ = filteredMatches.maxBy(_.q).q
+        filteredMatches
+          .filter(maxQ == _.q)
+          .sortBy { pref =>
+            val idx = choices.indexWhere(pref.matches)
+            if (idx == -1) Int.MaxValue else idx
+          }
+          .headOption
+      }
     // return the name of the encoding if it matches any, otherwise identity if it is accepted by the client
     preference match {
       case Some(pref) if !pref.matchesAny => Some(pref.name)
-      case _ if identityAllowed => Some(ContentEncoding.Identity)
-      case _ => None
+      case _ if identityAllowed           => Some(ContentEncoding.Identity)
+      case _                              => None
     }
   }
 }
@@ -173,10 +184,10 @@ object AcceptEncoding {
 
     private val logger = Logger(this.getClass())
 
-    val separatorChars = "()<>@,;:\\\"/[]?={} \t"
+    val separatorChars  = "()<>@,;:\\\"/[]?={} \t"
     val separatorBitSet = BitSet(separatorChars.toCharArray.map(_.toInt): _*)
-    val qChars = "Qq"
-    val qBitSet = BitSet(qChars.toCharArray.map(_.toInt): _*)
+    val qChars          = "Qq"
+    val qBitSet         = BitSet(qChars.toCharArray.map(_.toInt): _*)
 
     type Elem = Char
 
@@ -207,7 +218,7 @@ object AcceptEncoding {
         logger.debug(msg + ": " + charSeqToString(chars))
         None
     }
-    val badQValue = badPart(c => c != ',' && c != ';', "Bad q value format")
+    val badQValue   = badPart(c => c != ',' && c != ';', "Bad q value format")
     val badEncoding = badPart(c => c != ',', "Bad encoding")
 
     def tolerant[T](p: Parser[T], bad: Parser[Option[T]]) = p.map(Some.apply) | bad

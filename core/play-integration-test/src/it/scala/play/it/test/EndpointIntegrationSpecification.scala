@@ -4,11 +4,16 @@
 
 package play.it.test
 
-import org.specs2.execute.{ AsResult, PendingUntilFixed, Result, ResultExecution }
+import org.specs2.execute.AsResult
+import org.specs2.execute.PendingUntilFixed
+import org.specs2.execute.Result
+import org.specs2.execute.ResultExecution
 import org.specs2.mutable.SpecLike
 import org.specs2.specification.core.Fragment
 
-import play.api.test.{ ApplicationFactories, ApplicationFactory, ServerEndpointRecipe }
+import play.api.test.ApplicationFactories
+import play.api.test.ApplicationFactory
+import play.api.test.ServerEndpointRecipe
 import play.core.server.ServerEndpoint
 
 /**
@@ -17,14 +22,13 @@ import play.core.server.ServerEndpoint
  *
  * @see [[ServerEndpoint]]
  */
-trait EndpointIntegrationSpecification
-  extends SpecLike with PendingUntilFixed
-  with ApplicationFactories {
+trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed with ApplicationFactories {
 
   /**
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllEndpoints()]] method.
    */
   implicit class ApplicationFactoryEndpointBaker(val appFactory: ApplicationFactory) {
+
     /**
      * Helper that creates a specs2 fragment for the given server endpoints.
      * Each fragment creates an application, starts a server
@@ -65,6 +69,7 @@ trait EndpointIntegrationSpecification
    * Implicit class that enhances code blocks with some `pendingUntilFixed`-style methods.
    */
   implicit class EndpointsPendingUntilFixed[T: AsResult](block: => T) {
+
     /**
      * Same as `pendingUntilFixed`, but only if a condition is met.
      * Otherwise the test executes as normal.

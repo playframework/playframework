@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
 import models._
 
-class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
+class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }
@@ -62,10 +62,32 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
     Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
   }
   def takeListString(x: List[String]) = Action {
-    Ok(x.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(","))
+    Ok(
+      x.map(
+          str =>
+            if (str.isEmpty) {
+              "emptyStringElement"
+            } else {
+              str
+            }
+        )
+        .mkString(",")
+    )
   }
   def takeListStringOption(x: Option[List[String]]) = Action {
-    Ok(x.map(_.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOption"))
+    Ok(
+      x.map(
+          _.map(
+            str =>
+              if (str.isEmpty) {
+                "emptyStringElement"
+              } else {
+                str
+              }
+          ).mkString(",")
+        )
+        .getOrElse("emptyOption")
+    )
   }
   def takeListChar(x: List[Char]) = Action {
     Ok(x.mkString(","))
@@ -74,10 +96,36 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
     Ok(x.map(_.mkString(",")).getOrElse("emptyOption"))
   }
   def takeJavaListString(x: java.util.List[String]) = Action {
-    Ok(x.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(","))
+    Ok(
+      x.asScala
+        .map(
+          str =>
+            if (str.isEmpty) {
+              "emptyStringElement"
+            } else {
+              str
+            }
+        )
+        .mkString(",")
+    )
   }
   def takeJavaListStringOptional(x: java.util.Optional[java.util.List[String]]) = Action {
-    Ok(x.asScala.map(_.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOptional"))
+    Ok(
+      x.asScala
+        .map(
+          _.asScala
+            .map(
+              str =>
+                if (str.isEmpty) {
+                  "emptyStringElement"
+                } else {
+                  str
+                }
+            )
+            .mkString(",")
+        )
+        .getOrElse("emptyOptional")
+    )
   }
   def takeListInt(x: List[Int]) = Action {
     Ok(x.mkString(","))
@@ -119,10 +167,32 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
     Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
   }
   def takeListStringWithDefault(x: List[String]) = Action {
-    Ok(x.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(","))
+    Ok(
+      x.map(
+          str =>
+            if (str.isEmpty) {
+              "emptyStringElement"
+            } else {
+              str
+            }
+        )
+        .mkString(",")
+    )
   }
   def takeListStringOptionWithDefault(x: Option[List[String]]) = Action {
-    Ok(x.map(_.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOption"))
+    Ok(
+      x.map(
+          _.map(
+            str =>
+              if (str.isEmpty) {
+                "emptyStringElement"
+              } else {
+                str
+              }
+          ).mkString(",")
+        )
+        .getOrElse("emptyOption")
+    )
   }
   def takeListCharWithDefault(x: List[Char]) = Action {
     Ok(x.mkString(","))
@@ -131,10 +201,36 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
     Ok(x.map(_.mkString(",")).getOrElse("emptyOption"))
   }
   def takeJavaListStringWithDefault(x: java.util.List[String]) = Action {
-    Ok(x.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(","))
+    Ok(
+      x.asScala
+        .map(
+          str =>
+            if (str.isEmpty) {
+              "emptyStringElement"
+            } else {
+              str
+            }
+        )
+        .mkString(",")
+    )
   }
   def takeJavaListStringOptionalWithDefault(x: java.util.Optional[java.util.List[String]]) = Action {
-    Ok(x.asScala.map(_.asScala.map(str => if(str.isEmpty){"emptyStringElement"}else{str}).mkString(",")).getOrElse("emptyOptional"))
+    Ok(
+      x.asScala
+        .map(
+          _.asScala
+            .map(
+              str =>
+                if (str.isEmpty) {
+                  "emptyStringElement"
+                } else {
+                  str
+                }
+            )
+            .mkString(",")
+        )
+        .getOrElse("emptyOptional")
+    )
   }
   def takeListIntWithDefault(x: List[Int]) = Action {
     Ok(x.mkString(","))

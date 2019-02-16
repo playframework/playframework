@@ -11,8 +11,8 @@ package scalaguide.hello {
     import play.twirl.api.Html
 
     object html {
-      def index(): Html = Html("Index page")
-      def hello(): Html = Html("Hello page")
+      def index(): Html             = Html("Index page")
+      def hello(): Html             = Html("Hello page")
       def hello(name: String): Html = Html(s"Hello $name")
     }
   }

@@ -18,29 +18,31 @@ import play.routing.Router;
 
 public class RoutedLoggingFilter extends Filter {
 
-    private static final Logger log = LoggerFactory.getLogger(RoutedLoggingFilter.class);
+  private static final Logger log = LoggerFactory.getLogger(RoutedLoggingFilter.class);
 
-    @Inject
-    public RoutedLoggingFilter(Materializer mat) {
-        super(mat);
-    }
+  @Inject
+  public RoutedLoggingFilter(Materializer mat) {
+    super(mat);
+  }
 
-    @Override
-    public CompletionStage<Result> apply(
-            Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
-            Http.RequestHeader requestHeader) {
-        long startTime = System.currentTimeMillis();
-        return nextFilter.apply(requestHeader).thenApply(result -> {
-            HandlerDef handlerDef = requestHeader.attrs().get(Router.Attrs.HANDLER_DEF);
-            String actionMethod = handlerDef.controller() + "." + handlerDef.method();
-            long endTime = System.currentTimeMillis();
-            long requestTime = endTime - startTime;
+  @Override
+  public CompletionStage<Result> apply(
+      Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
+      Http.RequestHeader requestHeader) {
+    long startTime = System.currentTimeMillis();
+    return nextFilter
+        .apply(requestHeader)
+        .thenApply(
+            result -> {
+              HandlerDef handlerDef = requestHeader.attrs().get(Router.Attrs.HANDLER_DEF);
+              String actionMethod = handlerDef.controller() + "." + handlerDef.method();
+              long endTime = System.currentTimeMillis();
+              long requestTime = endTime - startTime;
 
-            log.info("{} took {}ms and returned {}",
-                actionMethod, requestTime, result.status());
+              log.info("{} took {}ms and returned {}", actionMethod, requestTime, result.status());
 
-            return result.withHeader("Request-Time", "" + requestTime);
-        });
-    }
+              return result.withHeader("Request-Time", "" + requestTime);
+            });
+  }
 }
 // #routing-info-access

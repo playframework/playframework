@@ -17,7 +17,8 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
 
   assert(
     Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
-    "Only strict entities can be cached, streamed entities cannot be cached")
+    "Only strict entities can be cached, streamed entities cannot be cached"
+  )
 
   /**
    * Create an empty object. Must call `readExternal` after calling
@@ -37,15 +38,18 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
     cachedResult
   }
   override def readExternal(in: ObjectInput): Unit = {
-    assert(in.readByte() == SerializableResult.encodingVersion, "Result was serialised from a different version of Play")
+    assert(
+      in.readByte() == SerializableResult.encodingVersion,
+      "Result was serialised from a different version of Play"
+    )
 
     val status = in.readInt()
 
     val headerMap = {
       val headerLength = in.readInt()
-      val mapBuilder = Map.newBuilder[String, String]
+      val mapBuilder   = Map.newBuilder[String, String]
       for (_ <- 0 until headerLength) {
-        val name = in.readUTF()
+        val name  = in.readUTF()
         val value = in.readUTF()
         mapBuilder += ((name, value))
       }
@@ -60,7 +64,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
         None
       }
       val sizeOfBody: Int = in.readInt()
-      val buffer = new Array[Byte](sizeOfBody)
+      val buffer          = new Array[Byte](sizeOfBody)
       @tailrec
       def readBytes(offset: Int, length: Int): Unit = {
         if (length > 0) {
@@ -98,7 +102,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
       }
       val body = cachedResult.body match {
         case HttpEntity.Strict(data, _) => data
-        case other => throw new IllegalStateException("Non strict body cannot be materialized")
+        case other                      => throw new IllegalStateException("Non strict body cannot be materialized")
       }
       out.writeInt(body.length)
       out.write(body.toArray)

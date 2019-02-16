@@ -5,9 +5,11 @@
 package play.filters.csp
 
 import java.util.Base64
-import java.util.regex.{ Matcher, Pattern }
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import javax.inject.Singleton
 import play.api.mvc.RequestHeader
 import play.api.mvc.request.RequestAttrKey
 
@@ -15,6 +17,7 @@ import play.api.mvc.request.RequestAttrKey
  * This trait processes a request header for CSP related logic.
  */
 trait CSPProcessor {
+
   /**
    * Inspects the request header, and returns a CSPResult if the
    * request should be subject to CSP processing.
@@ -42,7 +45,7 @@ object CSPProcessor {
  *
  * @param config the CSPConfig to use for processing rules.
  */
-class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
+class DefaultCSPProcessor @Inject()(config: CSPConfig) extends CSPProcessor {
 
   protected val noncePattern: Pattern = Pattern.compile(config.nonce.pattern, Pattern.LITERAL)
 
@@ -67,12 +70,14 @@ class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
   }
 
   protected def generateLine(nonce: Option[String]): String = {
-    val cspLineWithNonce = nonce.map { n =>
-      noncePattern.matcher(cspLine).replaceAll(Matcher.quoteReplacement(s"'nonce-$n'"))
-    }.getOrElse(cspLine)
+    val cspLineWithNonce = nonce
+      .map { n =>
+        noncePattern.matcher(cspLine).replaceAll(Matcher.quoteReplacement(s"'nonce-$n'"))
+      }
+      .getOrElse(cspLine)
 
-    hashPatterns.foldLeft(cspLineWithNonce)((line, pair) =>
-      pair._1.matcher(line).replaceAll(Matcher.quoteReplacement(s"'${pair._2}'"))
+    hashPatterns.foldLeft(cspLineWithNonce)(
+      (line, pair) => pair._1.matcher(line).replaceAll(Matcher.quoteReplacement(s"'${pair._2}'"))
     )
   }
 

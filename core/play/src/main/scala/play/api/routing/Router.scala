@@ -5,8 +5,10 @@
 package play.api.routing
 
 import play.api.libs.typedmap.TypedKey
-import play.api.{ Configuration, Environment }
-import play.api.mvc.{ Handler, RequestHeader }
+import play.api.Configuration
+import play.api.Environment
+import play.api.mvc.Handler
+import play.api.mvc.RequestHeader
 import play.api.routing.Router.Routes
 import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
@@ -16,6 +18,7 @@ import play.utils.Reflect
  */
 trait Router {
   self =>
+
   /**
    * The actual routes of the router.
    */
@@ -59,8 +62,8 @@ trait Router {
    */
   final def orElse(other: Router): Router = new Router {
     def documentation: Seq[(String, String, String)] = self.documentation ++ other.documentation
-    def withPrefix(prefix: String): Router = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
-    def routes: Routes = self.routes.orElse(other.routes)
+    def withPrefix(prefix: String): Router           = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
+    def routes: Routes                               = self.routes.orElse(other.routes)
   }
 
 }
@@ -99,6 +102,7 @@ object Router {
     import play.api.mvc.RequestHeader
 
     implicit class WithHandlerDef(val request: RequestHeader) extends AnyVal {
+
       /**
        * The [[HandlerDef]] representing the routes file entry (if any) on this request.
        */
@@ -118,6 +122,7 @@ object Router {
    * Request attributes used by the router.
    */
   object Attrs {
+
     /**
      * Key for the [[HandlerDef]] used to handle the request.
      */
@@ -138,9 +143,9 @@ object Router {
    * Never returns an handler from the routes function.
    */
   val empty: Router = new Router {
-    def documentation = Nil
+    def documentation              = Nil
     def withPrefix(prefix: String) = this
-    def routes = PartialFunction.empty
+    def routes                     = PartialFunction.empty
   }
 
   /**
@@ -166,16 +171,16 @@ trait SimpleRouter extends Router { self =>
     if (prefix == "/") {
       self
     } else {
-      val prefixTrailingSlash = if (prefix endsWith "/") prefix else prefix + "/"
+      val prefixTrailingSlash = if (prefix.endsWith("/")) prefix else prefix + "/"
       val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
         case rh: RequestHeader if rh.path == prefix || rh.path.startsWith(prefixTrailingSlash) =>
           val newPath = "/" + rh.path.drop(prefixTrailingSlash.length)
           rh.withTarget(rh.target.withPath(newPath))
       }
       new Router {
-        def routes = Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
+        def routes                = Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
         def withPrefix(p: String) = self.withPrefix(Router.concatPrefix(p, prefix))
-        def documentation = self.documentation
+        def documentation         = self.documentation
       }
     }
   }
@@ -186,6 +191,7 @@ class SimpleRouterImpl(routesProvider: => Router.Routes) extends SimpleRouter {
 }
 
 object SimpleRouter {
+
   /**
    * Create a new simple router from the given routes
    */

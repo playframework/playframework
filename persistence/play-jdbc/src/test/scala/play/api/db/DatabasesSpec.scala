@@ -7,7 +7,8 @@ package play.api.db
 import java.sql.SQLException
 
 import org.jdbcdslog.LogSqlDataSource
-import org.specs2.mutable.{ After, Specification }
+import org.specs2.mutable.After
+import org.specs2.mutable.Specification
 
 class DatabasesSpec extends Specification {
 
@@ -33,7 +34,7 @@ class DatabasesSpec extends Specification {
 
     "create database with log sql" in new WithDatabase {
       val config = Map("logSql" -> "true")
-      val db = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
+      val db     = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
       db.dataSource must beAnInstanceOf[LogSqlDataSource]
     }
 
@@ -62,7 +63,7 @@ class DatabasesSpec extends Specification {
     }
 
     "supply connections" in new WithDatabase {
-      val db = Databases.inMemory(name = "test-connection")
+      val db         = Databases.inMemory(name = "test-connection")
       val connection = db.getConnection
       connection.createStatement.execute("create table test (id bigint not null, name varchar(255))")
       connection.close()
@@ -145,7 +146,7 @@ class DatabasesSpec extends Specification {
 
     "not supply connections after shutdown a database with log sql" in {
       val config = Map("logSql" -> "true")
-      val db = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
+      val db     = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
 
       db.getConnection.close()
       db.shutdown()

@@ -33,9 +33,9 @@ object AkkaStreams {
    * flow.
    */
   def bypassWith[In, FlowIn, Out](
-    splitter: Flow[In, Either[FlowIn, Out], _],
-    mergeStrategy: Graph[UniformFanInShape[Out, Out], _] = onlyFirstCanFinishMerge[Out](2)): Flow[FlowIn, Out, _] => Flow[In, Out, _] = { flow =>
-
+      splitter: Flow[In, Either[FlowIn, Out], _],
+      mergeStrategy: Graph[UniformFanInShape[Out, Out], _] = onlyFirstCanFinishMerge[Out](2)
+  ): Flow[FlowIn, Out, _] => Flow[In, Out, _] = { flow =>
     val bypasser = Flow.fromGraph(GraphDSL.create[FlowShape[Either[FlowIn, Out], Out]]() { implicit builder =>
       import GraphDSL.Implicits._
 
@@ -43,7 +43,7 @@ object AkkaStreams {
       // However, that means the bypasser must block cancel, since when this flow finishes, the merge
       // will result in a cancel flowing up through the bypasser, which could lead to dropped messages.
       val broadcast = builder.add(Broadcast[Either[FlowIn, Out]](2, eagerCancel = true))
-      val merge = builder.add(mergeStrategy)
+      val merge     = builder.add(mergeStrategy)
 
       // Normal flow
       broadcast.out(0) ~> Flow[Either[FlowIn, Out]].collect {
@@ -58,7 +58,7 @@ object AkkaStreams {
       FlowShape(broadcast.in, merge.out)
     })
 
-    splitter via bypasser
+    splitter.via(bypasser)
   }
 
   def onlyFirstCanFinishMerge[T](inputPorts: Int) = GraphDSL.create[UniformFanInShape[T, T]]() { implicit builder =>
@@ -80,35 +80,36 @@ object AkkaStreams {
   /**
    * A flow that will ignore upstream finishes.
    */
-  def ignoreAfterFinish[T]: Flow[T, T, _] = Flow[T].via(new GraphStage[FlowShape[T, T]] {
+  def ignoreAfterFinish[T]: Flow[T, T, _] =
+    Flow[T].via(new GraphStage[FlowShape[T, T]] {
 
-    val in = Inlet[T]("AkkaStreams.in")
-    val out = Outlet[T]("AkkaStreams.out")
+      val in  = Inlet[T]("AkkaStreams.in")
+      val out = Outlet[T]("AkkaStreams.out")
 
-    override def shape: FlowShape[T, T] = FlowShape.of(in, out)
+      override def shape: FlowShape[T, T] = FlowShape.of(in, out)
 
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
-      new GraphStageLogic(shape) with OutHandler with InHandler {
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+        new GraphStageLogic(shape) with OutHandler with InHandler {
 
-        override def onPush(): Unit = push(out, grab(in))
+          override def onPush(): Unit = push(out, grab(in))
 
-        override def onPull(): Unit = {
-          if (!isClosed(in)) {
-            pull(in)
+          override def onPull(): Unit = {
+            if (!isClosed(in)) {
+              pull(in)
+            }
           }
-        }
 
-        override def onUpstreamFinish() = {
-          if (isAvailable(out)) onPull()
-        }
+          override def onUpstreamFinish() = {
+            if (isAvailable(out)) onPull()
+          }
 
-        override def onUpstreamFailure(cause: Throwable) = {
-          if (isAvailable(out)) onPull()
-        }
+          override def onUpstreamFailure(cause: Throwable) = {
+            if (isAvailable(out)) onPull()
+          }
 
-        setHandlers(in, out, this)
-      }
-  })
+          setHandlers(in, out, this)
+        }
+    })
 
   /**
    * A flow that will ignore downstream cancellation, and instead will continue receiving and ignoring the stream.

@@ -12,14 +12,17 @@ import akka.stream.Materializer
 import play.api.i18n.MessagesApi
 import play.utils.Threads
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import javax.xml.parsers.SAXParserFactory
 import play.libs.XML.Constants
 import javax.xml.XMLConstants
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * Application mode, either `Dev`, `Test`, or `Prod`.
@@ -36,7 +39,7 @@ object Mode {
   @deprecated("Use play.api.Mode instead of play.api.Mode.Value", "2.6.0")
   type Value = play.api.Mode
 
-  case object Dev extends play.api.Mode(play.Mode.DEV)
+  case object Dev  extends play.api.Mode(play.Mode.DEV)
   case object Test extends play.api.Mode(play.Mode.TEST)
   case object Prod extends play.api.Mode(play.Mode.PROD)
 
@@ -85,13 +88,15 @@ object Play {
     if (_currentApp.get != null) {
       Success(_currentApp.get)
     } else {
-      Failure(sys.error(
-        s"""
-           |The global application reference is disabled. Play's global state is deprecated and will
-           |be removed in a future release. You should use dependency injection instead. To enable
-           |the global application anyway, set $GlobalAppConfigKey = true.
+      Failure(
+        sys.error(
+          s"""
+             |The global application reference is disabled. Play's global state is deprecated and will
+             |be removed in a future release. You should use dependency injection instead. To enable
+             |the global application anyway, set $GlobalAppConfigKey = true.
        """.stripMargin
-      ))
+        )
+      )
 
     }
   }
@@ -141,18 +146,18 @@ object Play {
     // Set the current app if the global application is enabled
     // Also set it if the current app is null, in order to display more useful errors if we try to use the app
     if (globalApp) {
-      logger.warn(
-        s"""
-          |You are using the deprecated global state to set and access the current running application. If you
-          |need an instance of Application, set $GlobalAppConfigKey = false and use Dependency Injection instead.
+      logger.warn(s"""
+                     |You are using the deprecated global state to set and access the current running application. If you
+                     |need an instance of Application, set $GlobalAppConfigKey = false and use Dependency Injection instead.
         """.stripMargin)
       _currentApp.set(app)
 
       // It's possible to stop the Application using Coordinated Shutdown, when that happens the Application
       // should no longer be considered the current App
-      app.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "unregister-global-app"){ () =>
-        unsetGlobalApp(app)
-        Future.successful(Done)
+      app.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "unregister-global-app") {
+        () =>
+          unsetGlobalApp(app)
+          Future.successful(Done)
       }
     }
 
@@ -164,7 +169,9 @@ object Play {
   def stop(app: Application): Unit = {
     if (app != null) {
       Threads.withContextClassLoader(app.classloader) {
-        try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
+        try {
+          Await.ready(app.stop(), Duration.Inf)
+        } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
   }

@@ -47,6 +47,7 @@ import scala.language.experimental.macros
 package object sird extends RequestMethodExtractors with PathBindableExtractors {
 
   implicit class UrlContext(sc: StringContext) {
+
     /**
      * String interpolator for extracting parameters out of URL paths.
      *

@@ -28,8 +28,8 @@ object PlayService extends AutoPlugin {
 
 @deprecated("Use PlayWeb instead for a web project.", "2.7.0")
 object Play extends AutoPlugin {
-  override def requires = JavaServerAppPackaging && SbtTwirl && SbtJsTask && RoutesCompiler
-  val autoImport = PlayImport
+  override def requires        = JavaServerAppPackaging && SbtTwirl && SbtJsTask && RoutesCompiler
+  val autoImport               = PlayImport
   override def projectSettings = PlaySettings.defaultSettings
 }
 
@@ -39,7 +39,7 @@ object Play extends AutoPlugin {
  * Declares common settings for both Java and Scala based web projects, as well as sbt-web and assets settings.
  */
 object PlayWeb extends AutoPlugin {
-  override def requires = PlayService && SbtTwirl && SbtJsTask && RoutesCompiler
+  override def requires        = PlayService && SbtTwirl && SbtJsTask && RoutesCompiler
   override def projectSettings = PlaySettings.webSettings
 }
 
@@ -112,7 +112,7 @@ object PlayNettyServer extends AutoPlugin {
  */
 object PlayAkkaHttpServer extends AutoPlugin {
   override def requires = PlayService
-  override def trigger = allRequirements
+  override def trigger  = allRequirements
 
   override def projectSettings = Seq(
     libraryDependencies += PlayImport.akkaHttpServer
@@ -128,6 +128,6 @@ object PlayAkkaHttp2Support extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % play.core.PlayVersion.current,
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % play.core.PlayVersion.jettyAlpnAgentVersion % "compile;test"
+    javaAgents += "org.mortbay.jetty.alpn"     % "jetty-alpn-agent"         % play.core.PlayVersion.jettyAlpnAgentVersion % "compile;test"
   )
 }

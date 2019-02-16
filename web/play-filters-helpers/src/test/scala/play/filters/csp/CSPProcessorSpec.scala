@@ -5,13 +5,15 @@
 package play.filters.csp
 
 import play.api.mvc.RequestHeader
-import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.test.FakeRequest
+import play.api.test.PlaySpecification
 import com.shapesecurity.salvation._
 import com.shapesecurity.salvation.data._
 import java.util
 
 import com.shapesecurity.salvation.directiveValues.HashSource.HashAlgorithm
-import com.shapesecurity.salvation.directives.{ DirectiveValue, UpgradeInsecureRequestsDirective }
+import com.shapesecurity.salvation.directives.DirectiveValue
+import com.shapesecurity.salvation.directives.UpgradeInsecureRequestsDirective
 
 import scala.collection.JavaConverters._
 
@@ -21,17 +23,17 @@ class CSPProcessorSpec extends PlaySpecification {
 
     "produce a result when shouldFilterRequest is true" in {
       val shouldFilterRequest: RequestHeader => Boolean = _ => true
-      val config = CSPConfig(shouldFilterRequest = shouldFilterRequest)
-      val processor = new DefaultCSPProcessor(config)
-      val maybeResult = processor.process(FakeRequest())
+      val config                                        = CSPConfig(shouldFilterRequest = shouldFilterRequest)
+      val processor                                     = new DefaultCSPProcessor(config)
+      val maybeResult                                   = processor.process(FakeRequest())
       maybeResult must beSome
     }
 
     "not produce a result when shouldFilterRequest is false" in {
       val shouldFilterRequest: RequestHeader => Boolean = _ => false
-      val config = CSPConfig(shouldFilterRequest = shouldFilterRequest)
-      val processor = new DefaultCSPProcessor(config)
-      val maybeResult = processor.process(FakeRequest())
+      val config                                        = CSPConfig(shouldFilterRequest = shouldFilterRequest)
+      val processor                                     = new DefaultCSPProcessor(config)
+      val maybeResult                                   = processor.process(FakeRequest())
       maybeResult must beNone
     }
 
@@ -40,9 +42,9 @@ class CSPProcessorSpec extends PlaySpecification {
   "CSP directives" should {
 
     "have no effect with a default CSPConfig" in {
-      val processor = new DefaultCSPProcessor(CSPConfig())
-      val cspResult = processor.process(FakeRequest()).get
-      val nonce = cspResult.nonce.get
+      val processor         = new DefaultCSPProcessor(CSPConfig())
+      val cspResult         = processor.process(FakeRequest()).get
+      val nonce             = cspResult.nonce.get
       val (policy, notices) = parse(cspResult.directives)
 
       notices must beEmpty
@@ -50,9 +52,9 @@ class CSPProcessorSpec extends PlaySpecification {
     }
 
     "have no effect with reportOnly" in {
-      val processor = new DefaultCSPProcessor(CSPConfig(reportOnly = true))
-      val cspResult = processor.process(FakeRequest()).get
-      val nonce = cspResult.nonce.get
+      val processor         = new DefaultCSPProcessor(CSPConfig(reportOnly = true))
+      val cspResult         = processor.process(FakeRequest()).get
+      val nonce             = cspResult.nonce.get
       val (policy, notices) = parse(cspResult.directives)
 
       notices must beEmpty
@@ -61,10 +63,10 @@ class CSPProcessorSpec extends PlaySpecification {
 
     "have effect with a nonce" in {
       val directives: Seq[CSPDirective] = Seq(CSPDirective("script-src", CPSNonceConfig.DEFAULT_CSP_NONCE_PATTERN))
-      val processor: CSPProcessor = new DefaultCSPProcessor(CSPConfig(directives = directives))
-      val cspResult = processor.process(FakeRequest()).get
-      val nonce = cspResult.nonce.get
-      val (policy, notices) = parse(cspResult.directives)
+      val processor: CSPProcessor       = new DefaultCSPProcessor(CSPConfig(directives = directives))
+      val cspResult                     = processor.process(FakeRequest()).get
+      val nonce                         = cspResult.nonce.get
+      val (policy, notices)             = parse(cspResult.directives)
 
       notices must beEmpty
       policy.hasSomeEffect must beTrue
@@ -72,12 +74,12 @@ class CSPProcessorSpec extends PlaySpecification {
     }
 
     "have effect with a hash" in {
-      val hashConfig = CSPHashConfig("sha256", "RpniQm4B6bHP0cNtv7w1p6pVcgpm5B/eu1DNEYyMFXc=", "%CSP_MYSCRIPT_HASH%")
-      val directives = Seq(CSPDirective("script-src", "%CSP_MYSCRIPT_HASH%"))
-      val processor = new DefaultCSPProcessor(CSPConfig(hashes = Seq(hashConfig), directives = directives))
-      val Some(cspResult) = processor.process(FakeRequest())
+      val hashConfig        = CSPHashConfig("sha256", "RpniQm4B6bHP0cNtv7w1p6pVcgpm5B/eu1DNEYyMFXc=", "%CSP_MYSCRIPT_HASH%")
+      val directives        = Seq(CSPDirective("script-src", "%CSP_MYSCRIPT_HASH%"))
+      val processor         = new DefaultCSPProcessor(CSPConfig(hashes = Seq(hashConfig), directives = directives))
+      val Some(cspResult)   = processor.process(FakeRequest())
       val (policy, notices) = parse(cspResult.directives)
-      val base64Value = new Base64Value(hashConfig.hash)
+      val base64Value       = new Base64Value(hashConfig.hash)
 
       notices must beEmpty
       policy.hasSomeEffect must beTrue
@@ -88,11 +90,13 @@ class CSPProcessorSpec extends PlaySpecification {
       val directives = Seq(
         CSPDirective("upgrade-insecure-requests", "")
       )
-      val processor = new DefaultCSPProcessor(CSPConfig(directives = directives))
-      val Some(cspResult) = processor.process(FakeRequest())
+      val processor         = new DefaultCSPProcessor(CSPConfig(directives = directives))
+      val Some(cspResult)   = processor.process(FakeRequest())
       val (policy, notices) = parse(cspResult.directives)
 
-      val directive = policy.getDirectiveByType[DirectiveValue, UpgradeInsecureRequestsDirective](classOf[UpgradeInsecureRequestsDirective])
+      val directive = policy.getDirectiveByType[DirectiveValue, UpgradeInsecureRequestsDirective](
+        classOf[UpgradeInsecureRequestsDirective]
+      )
       directive must not beNull
     }
 
@@ -115,8 +119,8 @@ class CSPProcessorSpec extends PlaySpecification {
         CSPDirective("style-src", "'none'"),
         CSPDirective("worker-src", "'none'")
       )
-      val processor = new DefaultCSPProcessor(CSPConfig(directives = directives))
-      val Some(cspResult) = processor.process(FakeRequest())
+      val processor         = new DefaultCSPProcessor(CSPConfig(directives = directives))
+      val Some(cspResult)   = processor.process(FakeRequest())
       val (policy, notices) = parse(cspResult.directives)
 
       // We're more interested in parsing successfully than in the actual effect here
@@ -127,8 +131,8 @@ class CSPProcessorSpec extends PlaySpecification {
 
   def parse(policyText: String): (Policy, scala.collection.Seq[Notice]) = {
     val notices = new util.ArrayList[Notice]
-    val origin = URI.parse("http://example.com")
-    val policy = Parser.parse(policyText, origin, notices)
+    val origin  = URI.parse("http://example.com")
+    val policy  = Parser.parse(policyText, origin, notices)
     (policy, notices.asScala)
   }
 

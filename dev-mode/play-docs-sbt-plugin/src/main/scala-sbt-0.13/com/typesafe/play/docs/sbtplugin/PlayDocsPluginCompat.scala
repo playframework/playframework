@@ -13,7 +13,12 @@ private[sbtplugin] trait PlayDocsPluginCompat {
     Load.defaultLoad(state, localBase, state.log)
   }
 
-  def evaluateConfigurations(sbtFile: java.io.File, imports: Seq[String], classLoader: ClassLoader, eval: () => Eval): Seq[Def.Setting[_]] = {
+  def evaluateConfigurations(
+      sbtFile: java.io.File,
+      imports: Seq[String],
+      classLoader: ClassLoader,
+      eval: () => Eval
+  ): Seq[Def.Setting[_]] = {
     EvaluateConfigurations.evaluateConfiguration(eval(), sbtFile, imports)(classLoader)
   }
 }

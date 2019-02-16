@@ -6,7 +6,8 @@ package play.it.api
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import play.api.http.SecretConfiguration
-import play.api.{ Environment, Mode }
+import play.api.Environment
+import play.api.Mode
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.PlaySpecification
 import play.it.LogTester
@@ -28,7 +29,7 @@ class SecretConfigurationParserSpec extends PlaySpecification {
       (secret, events)
     } match {
       case scala.util.Success((secret, events)) => (Option(secret), events)
-      case scala.util.Failure(_) => (None, Seq.empty)
+      case scala.util.Failure(_)                => (None, Seq.empty)
     }
   }
 
@@ -47,20 +48,38 @@ class SecretConfigurationParserSpec extends PlaySpecification {
       }
 
       "log an warning when secret length is smaller than SHORTEST_SECRET_LENGTH chars" in {
-        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * (SecretConfiguration.SHORTEST_SECRET_LENGTH - 1)))
-        events.map(_.getFormattedMessage).find(_.contains("The application secret is too short and does not have the recommended amount of entropy")) must beSome
+        val (secret, events) = parseSecret(mode = Mode.Dev)(
+          "play.http.secret.key" -> ("x" * (SecretConfiguration.SHORTEST_SECRET_LENGTH - 1))
+        )
+        events
+          .map(_.getFormattedMessage)
+          .find(_.contains("The application secret is too short and does not have the recommended amount of entropy")) must beSome
         secret must beSome
       }
 
       "log a warning when secret length is smaller then SHORT_SECRET_LENGTH chars" in {
-        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * (SecretConfiguration.SHORT_SECRET_LENGTH - 1)))
-        events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beSome
+        val (secret, events) =
+          parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * (SecretConfiguration.SHORT_SECRET_LENGTH - 1)))
+        events
+          .map(_.getFormattedMessage)
+          .find(
+            _.contains(
+              "Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure"
+            )
+          ) must beSome
         secret must beSome
       }
 
       "return the value without warnings when it is configured respecting the requirements" in {
-        val (secret, events) = parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * SecretConfiguration.SHORT_SECRET_LENGTH))
-        events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beNone
+        val (secret, events) =
+          parseSecret(mode = Mode.Dev)("play.http.secret.key" -> ("x" * SecretConfiguration.SHORT_SECRET_LENGTH))
+        events
+          .map(_.getFormattedMessage)
+          .find(
+            _.contains(
+              "Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure"
+            )
+          ) must beNone
         secret must beSome
       }
     }
@@ -77,19 +96,34 @@ class SecretConfigurationParserSpec extends PlaySpecification {
       }
 
       "fail when value length is smaller than SHORTEST_SECRET_LENGTH chars" in {
-        val (secret, _) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "x" * (SecretConfiguration.SHORTEST_SECRET_LENGTH - 1))
+        val (secret, _) = parseSecret(mode = Mode.Prod)(
+          "play.http.secret.key" -> "x" * (SecretConfiguration.SHORTEST_SECRET_LENGTH - 1)
+        )
         secret must beNone
       }
 
       "log a warning when value length is smaller than SHORT_SECRET_LENGTH chars" in {
-        val (secret, events) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "x" * (SecretConfiguration.SHORT_SECRET_LENGTH - 1))
-        events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beSome
+        val (secret, events) =
+          parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "x" * (SecretConfiguration.SHORT_SECRET_LENGTH - 1))
+        events
+          .map(_.getFormattedMessage)
+          .find(
+            _.contains(
+              "Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure"
+            )
+          ) must beSome
         secret must beSome
       }
 
       "return the value without warnings when it is configured respecting the requirements" in {
         val (secret, events) = parseSecret(mode = Mode.Prod)("play.http.secret.key" -> "12345678901234567890")
-        events.map(_.getFormattedMessage).find(_.contains("Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure")) must beNone
+        events
+          .map(_.getFormattedMessage)
+          .find(
+            _.contains(
+              "Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure"
+            )
+          ) must beNone
         secret must beSome("12345678901234567890")
       }
     }

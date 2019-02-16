@@ -4,26 +4,31 @@
 package controllers
 
 import akka.Done
-import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
 import javax.inject.Inject
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents }
+import play.api.mvc.AbstractController
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.ControllerComponents
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 
-class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem, cs: CoordinatedShutdown) extends AbstractController(c) {
+class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem, cs: CoordinatedShutdown)
+    extends AbstractController(c) {
 
   // This timestamp is useful in logs to see if a new instance of the Controller is created.
   val startupTs = System.currentTimeMillis()
 
   // This task generates a file so scripted tests can assert `CoordinatedShutdown` ran.
-  cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "application-cs-proof-of-existence") {
-    () =>
-      println(s"Producing shutdown proof file for id $startupTs")
-      val f = new java.io.File("target/proofs", actorSystem.name + ".txt")
-      f.getParentFile.mkdirs
-      f.createNewFile()
-      Future.successful(Done)
+  cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "application-cs-proof-of-existence") { () =>
+    println(s"Producing shutdown proof file for id $startupTs")
+    val f = new java.io.File("target/proofs", actorSystem.name + ".txt")
+    f.getParentFile.mkdirs
+    f.createNewFile()
+    Future.successful(Done)
   }
 
   def index: Action[AnyContent] = Action {

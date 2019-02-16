@@ -9,17 +9,17 @@ import play.data.validation.Constraints.ValidateWith;
 
 public class RepeatableConstraintsForm {
 
-    @ValidateWith(BlueValidator.class)
-    @ValidateWith(GreenValidator.class)
-    @Pattern(value="[a-c]", message="Should be a - c")
-    @Pattern(value="[c-h]", message="Should be c - h")
-    private String name;
+  @ValidateWith(BlueValidator.class)
+  @ValidateWith(GreenValidator.class)
+  @Pattern(value = "[a-c]", message = "Should be a - c")
+  @Pattern(value = "[c-h]", message = "Should be c - h")
+  private String name;
 
-    public String getName() {
-        return this.name;
-    }
+  public String getName() {
+    return this.name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 }

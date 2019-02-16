@@ -4,16 +4,22 @@
 
 package play.api.libs
 
-import java.io.{ File, IOException }
+import java.io.File
+import java.io.IOException
 import java.lang.ref.Reference
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{ Files => JFiles, _ }
-import java.time.{ Clock, Instant }
+import java.time.Clock
+import java.time.Instant
 import java.util.function.Predicate
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
-import akka.actor.{ ActorSystem, Cancellable }
-import com.google.common.base.{ FinalizablePhantomReference, FinalizableReferenceQueue }
+import akka.actor.ActorSystem
+import akka.actor.Cancellable
+import com.google.common.base.FinalizablePhantomReference
+import com.google.common.base.FinalizableReferenceQueue
 import com.google.common.collect.Sets
 import org.slf4j.LoggerFactory
 import play.api.Configuration
@@ -22,7 +28,8 @@ import play.api.inject.ApplicationLifecycle
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.implicitConversions
-import scala.util.{ Failure, Try }
+import scala.util.Failure
+import scala.util.Try
 
 /**
  * FileSystem utilities.
@@ -37,6 +44,7 @@ object Files {
    * try to clean up any leaked files, e.g. when the Application or JVM stops.
    */
   trait TemporaryFileCreator {
+
     /**
      * Creates a temporary file.
      *
@@ -93,10 +101,9 @@ object Files {
      * @param replace if it should replace an existing file.
      */
     def copyTo(to: Path, replace: Boolean): Path = {
-      val destination = try
-        if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
-        else if (!to.toFile.exists()) JFiles.copy(path, to)
-        else to
+      val destination = try if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
+      else if (!to.toFile.exists()) JFiles.copy(path, to)
+      else to
       catch {
         case _: FileAlreadyExistsException => to
       }
@@ -162,8 +169,8 @@ object Files {
       val destination = moveFileTo(to, replace)
 
       new TemporaryFile {
-        override def path = destination
-        override def file = destination.toFile
+        override def path                 = destination
+        override def file                 = destination.toFile
         override def temporaryFileCreator = TemporaryFile.this.temporaryFileCreator
       }
     }
@@ -194,7 +201,9 @@ object Files {
         case outer: IOException =>
           try {
             val p = JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
-            logger.debug(s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}")
+            logger.debug(
+              s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}"
+            )
             p
           } catch {
             case inner: IOException =>
@@ -235,8 +244,8 @@ object Files {
       val destination = atomicMoveFileWithFallback(to)
 
       new TemporaryFile {
-        override def path = destination
-        override def file = destination.toFile
+        override def path                 = destination
+        override def file                 = destination.toFile
         override def temporaryFileCreator = TemporaryFile.this.temporaryFileCreator
       }
     }
@@ -248,13 +257,13 @@ object Files {
    * application / JVM terminates abnormally.
    */
   @Singleton
-  class DefaultTemporaryFileCreator @Inject() (
+  class DefaultTemporaryFileCreator @Inject()(
       applicationLifecycle: ApplicationLifecycle,
-      temporaryFileReaper: TemporaryFileReaper)
-    extends TemporaryFileCreator {
+      temporaryFileReaper: TemporaryFileReaper
+  ) extends TemporaryFileCreator {
 
     private val logger = play.api.Logger(this.getClass)
-    private val frq = new FinalizableReferenceQueue()
+    private val frq    = new FinalizableReferenceQueue()
 
     // Much of the PhantomReference implementation is taken from
     // the Google Guava documentation example
@@ -311,7 +320,8 @@ object Files {
      */
     class DefaultTemporaryFile private[DefaultTemporaryFileCreator] (
         val path: Path,
-        val temporaryFileCreator: TemporaryFileCreator) extends TemporaryFile {
+        val temporaryFileCreator: TemporaryFileCreator
+    ) extends TemporaryFile {
       def file: File = path.toFile
     }
 
@@ -319,18 +329,23 @@ object Files {
      * Application stop hook which deletes the temporary folder recursively (including subfolders).
      */
     applicationLifecycle.addStopHook { () =>
-      Future.successful(JFiles.walkFileTree(playTempFolder, new SimpleFileVisitor[Path] {
-        override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-          logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
-          deletePath(path)
-          FileVisitResult.CONTINUE
-        }
+      Future.successful(
+        JFiles.walkFileTree(
+          playTempFolder,
+          new SimpleFileVisitor[Path] {
+            override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
+              logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
+              deletePath(path)
+              FileVisitResult.CONTINUE
+            }
 
-        override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
-          deletePath(path)
-          FileVisitResult.CONTINUE
-        }
-      }))
+            override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
+              deletePath(path)
+              FileVisitResult.CONTINUE
+            }
+          }
+        )
+      )
     }
   }
 
@@ -339,15 +354,13 @@ object Files {
   }
 
   @Singleton
-  class DefaultTemporaryFileReaper @Inject() (
-      actorSystem: ActorSystem,
-      config: TemporaryFileReaperConfiguration)
-    extends TemporaryFileReaper {
+  class DefaultTemporaryFileReaper @Inject()(actorSystem: ActorSystem, config: TemporaryFileReaperConfiguration)
+      extends TemporaryFileReaper {
 
-    private val logger = play.api.Logger(this.getClass)
-    private val blockingDispatcherName = "play.akka.blockingIoDispatcher"
-    private val blockingExecutionContext = actorSystem.dispatchers.lookup(blockingDispatcherName)
-    private var playTempFolder: Option[Path] = None
+    private val logger                           = play.api.Logger(this.getClass)
+    private val blockingDispatcherName           = "play.akka.blockingIoDispatcher"
+    private val blockingExecutionContext         = actorSystem.dispatchers.lookup(blockingDispatcherName)
+    private var playTempFolder: Option[Path]     = None
     private var cancellable: Option[Cancellable] = None
 
     // Use an overridable clock here so we can swap it out for testing.
@@ -365,32 +378,37 @@ object Files {
     def reap(): Future[Seq[Path]] = {
       logger.debug(s"reap: reaping old files from $playTempFolder")
       Future {
-        playTempFolder.map { f =>
-          import scala.compat.java8.StreamConverters._
+        playTempFolder
+          .map { f =>
+            import scala.compat.java8.StreamConverters._
 
-          val directoryStream = JFiles.list(f)
+            val directoryStream = JFiles.list(f)
 
-          try {
-            val reaped = directoryStream.filter(new Predicate[Path]() {
-              override def test(p: Path): Boolean = {
-                val lastModifiedTime = JFiles.getLastModifiedTime(p).toInstant
-                lastModifiedTime.isBefore(secondsAgo)
-              }
-            }).toScala[List]
+            try {
+              val reaped = directoryStream
+                .filter(new Predicate[Path]() {
+                  override def test(p: Path): Boolean = {
+                    val lastModifiedTime = JFiles.getLastModifiedTime(p).toInstant
+                    lastModifiedTime.isBefore(secondsAgo)
+                  }
+                })
+                .toScala[List]
 
-            reaped.foreach(delete)
-            reaped
-          } finally {
-            directoryStream.close()
+              reaped.foreach(delete)
+              reaped
+            } finally {
+              directoryStream.close()
+            }
+
           }
-
-        }.getOrElse(Seq.empty)
+          .getOrElse(Seq.empty)
       }(blockingExecutionContext)
     }
 
     def delete(path: Path): Unit = {
       logger.debug(s"delete: deleting $path")
-      try JFiles.deleteIfExists(path) catch {
+      try JFiles.deleteIfExists(path)
+      catch {
         case e: Exception =>
           logger.error(s"Cannot delete $path", e)
       }
@@ -406,9 +424,11 @@ object Files {
         case Some(folder) =>
           logger.debug(s"Reaper enabled on $folder, starting in $initialDelay with $interval intervals")
         case None =>
-          logger.debug(s"Reaper enabled but no temp folder has been created yet, starting in $initialDelay with $interval intervals")
+          logger.debug(
+            s"Reaper enabled but no temp folder has been created yet, starting in $initialDelay with $interval intervals"
+          )
       }
-      cancellable = Some(actorSystem.scheduler.schedule(initialDelay, interval){
+      cancellable = Some(actorSystem.scheduler.schedule(initialDelay, interval) {
         reap()
       }(actorSystem.dispatcher))
     }
@@ -426,7 +446,8 @@ object Files {
       enabled: Boolean = false,
       olderThan: FiniteDuration = 5.minutes,
       initialDelay: FiniteDuration = 5.minutes,
-      interval: FiniteDuration = 5.minutes)
+      interval: FiniteDuration = 5.minutes
+  )
 
   object TemporaryFileReaperConfiguration {
     def fromConfiguration(config: Configuration): TemporaryFileReaperConfiguration = {
@@ -439,10 +460,10 @@ object Files {
         }
       }
 
-      val enabled = config.get[Boolean]("play.temporaryFile.reaper.enabled")
-      val olderThan = duration("play.temporaryFile.reaper.olderThan")
+      val enabled      = config.get[Boolean]("play.temporaryFile.reaper.enabled")
+      val olderThan    = duration("play.temporaryFile.reaper.olderThan")
       val initialDelay = duration("play.temporaryFile.reaper.initialDelay")
-      val interval = duration("play.temporaryFile.reaper.interval")
+      val interval     = duration("play.temporaryFile.reaper.interval")
 
       TemporaryFileReaperConfiguration(enabled, olderThan, initialDelay, interval)
     }
@@ -453,14 +474,19 @@ object Files {
     def createWithDefaults() = apply()
 
     @Singleton
-    @deprecated("On JDK8 and earlier, Class.getSimpleName on doubly nested Scala classes throws an exception. Use Files.TemporaryFileReaperConfigurationProvider instead. See https://github.com/scala/bug/issues/2034.", "2.6.14")
-    class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration) extends Provider[TemporaryFileReaperConfiguration] {
+    @deprecated(
+      "On JDK8 and earlier, Class.getSimpleName on doubly nested Scala classes throws an exception. Use Files.TemporaryFileReaperConfigurationProvider instead. See https://github.com/scala/bug/issues/2034.",
+      "2.6.14"
+    )
+    class TemporaryFileReaperConfigurationProvider @Inject()(configuration: Configuration)
+        extends Provider[TemporaryFileReaperConfiguration] {
       lazy val get = fromConfiguration(configuration)
     }
   }
 
   @Singleton
-  class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration) extends Provider[TemporaryFileReaperConfiguration] {
+  class TemporaryFileReaperConfigurationProvider @Inject()(configuration: Configuration)
+      extends Provider[TemporaryFileReaperConfiguration] {
     lazy val get = TemporaryFileReaperConfiguration.fromConfiguration(configuration)
   }
 
@@ -487,7 +513,8 @@ object Files {
 
     class SingletonTemporaryFile private[SingletonTemporaryFileCreator] (
         val path: Path,
-        val temporaryFileCreator: TemporaryFileCreator) extends TemporaryFile {
+        val temporaryFileCreator: TemporaryFileCreator
+    ) extends TemporaryFile {
       def file: File = path.toFile
     }
 

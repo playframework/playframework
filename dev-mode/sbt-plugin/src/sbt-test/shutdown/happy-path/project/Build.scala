@@ -29,17 +29,23 @@ object DevModeBuild {
   // the file watcher service. This is relevant when using the
   // default JDK watch service which does uses polling.
   val MaxAttempts = 30
-  val WaitTime = 500l
+  val WaitTime    = 500L
 
   val ConnectTimeout = 10000
-  val ReadTimeout = 10000
+  val ReadTimeout    = 10000
 
   @tailrec
-  def verifyResourceContains(path: String, status: Int, assertions: Seq[String], attempts: Int, headers: (String, String)*): Unit = {
+  def verifyResourceContains(
+      path: String,
+      status: Int,
+      assertions: Seq[String],
+      attempts: Int,
+      headers: (String, String)*
+  ): Unit = {
     println(s"Attempt $attempts at $path")
     val messages = ListBuffer.empty[String]
     try {
-      val url = new java.net.URL("http://localhost:9000" + path)
+      val url  = new java.net.URL("http://localhost:9000" + path)
       val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
       conn.setConnectTimeout(ConnectTimeout)
       conn.setReadTimeout(ReadTimeout)
@@ -89,42 +95,46 @@ object DevModeBuild {
     }
   }
 
+  val assertProcessIsStopped: Command = Command.args("assertProcessIsStopped", "") {
+    (state: State, args: Seq[String]) =>
+      val pidFile = Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID"
+      if (!pidFile.exists())
+        throw new RuntimeException(
+          "RUNNING_PID file not found. Can't assert the process is stopped without knowing the process ID."
+        )
 
-  val assertProcessIsStopped: Command = Command.args("assertProcessIsStopped", "") { (state: State, args: Seq[String]) =>
-    val pidFile = Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID"
-    if(!pidFile.exists())
-      throw new RuntimeException("RUNNING_PID file not found. Can't assert the process is stopped without knowing the process ID.")
+      val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
 
-    val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
-
-    def processIsRunning(pidString: String): Boolean ={
-      val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
-        .split("\n") // split per line
-        .filter{_.contains("ProdServerStart")}
-      foundProcesses // filter only the Play processes
+      def processIsRunning(pidString: String): Boolean = {
+        val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
+          .split("\n") // split per line
+          .filter { _.contains("ProdServerStart") }
+        foundProcesses // filter only the Play processes
         // This assertion is flaky since `11234` contains `123`. TODO: improve matcher
-        .exists(_.contains(pidString)) // see if one of them is PID
-    }
+          .exists(_.contains(pidString)) // see if one of them is PID
+      }
 
-    println("Preparing to stop Prod...")
-    Command2.process("stopProd --no-exit-sbt", state)
-    println("Prod is stopping.")
-    TimeUnit.SECONDS.sleep(1)
-    println(s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}")
+      println("Preparing to stop Prod...")
+      Command2.process("stopProd --no-exit-sbt", state)
+      println("Prod is stopping.")
+      TimeUnit.SECONDS.sleep(1)
+      println(
+        s"Is the PID file deleted already? ${!(Project.extract(state).get(Keys.target) / "universal" / "stage" / "RUNNING_PID").exists()}"
+      )
 
-    // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
-    // before the application has finished to shut down
-    val secs = 10
-    // NiceToHave: replace with System.nanoTime()
-    val end = System.currentTimeMillis() + secs * 1000
-    while ( processIsRunning(pidString) && System.currentTimeMillis() < end) {
-      TimeUnit.SECONDS.sleep(3)
-    }
-    if (processIsRunning(pidString)) {
-      throw new RuntimeException(s"Assertion failed: Process $pidString didn't stop in $secs sconds.")
-    }
+      // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
+      // before the application has finished to shut down
+      val secs = 10
+      // NiceToHave: replace with System.nanoTime()
+      val end = System.currentTimeMillis() + secs * 1000
+      while (processIsRunning(pidString) && System.currentTimeMillis() < end) {
+        TimeUnit.SECONDS.sleep(3)
+      }
+      if (processIsRunning(pidString)) {
+        throw new RuntimeException(s"Assertion failed: Process $pidString didn't stop in $secs sconds.")
+      }
 
-    state
+      state
   }
 
   // This is copy/pasted from https://github.com/sbt/sbt/commit/dfbb67e7d6699fd6c131d7259e1d5f72fdb097f6.
@@ -136,7 +146,7 @@ object DevModeBuild {
       Parser.parse(command, parser(state)) match {
         case Right(s) => s() // apply command.  command side effects happen here
         case Left(errMsg) =>
-          state.log error errMsg
+          state.log.error(errMsg)
           state.fail
       }
     }

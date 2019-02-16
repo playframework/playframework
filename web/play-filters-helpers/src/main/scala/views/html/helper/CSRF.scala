@@ -5,7 +5,8 @@
 package views.html.helper
 
 import play.api.mvc._
-import play.twirl.api.{ Html, HtmlFormat }
+import play.twirl.api.Html
+import play.twirl.api.HtmlFormat
 
 /**
  * CSRF helper for Play calls

@@ -14,18 +14,16 @@ package controllers {
   import scala.concurrent.ExecutionContext
 
   // Custom CSP action
-  class AssetAwareCSPActionBuilder @Inject() (bodyParsers: PlayBodyParsers,
-                                              cspConfig: CSPConfig,
-                                              assetCache: AssetCache)(
-    implicit
-    override protected val executionContext: ExecutionContext,
-    override protected val mat: Materializer)
-    extends CSPActionBuilder {
+  class AssetAwareCSPActionBuilder @Inject()(bodyParsers: PlayBodyParsers, cspConfig: CSPConfig, assetCache: AssetCache)(
+      implicit
+      protected override val executionContext: ExecutionContext,
+      protected override val mat: Materializer
+  ) extends CSPActionBuilder {
 
     override def parser: BodyParser[AnyContent] = bodyParsers.default
 
     // processor with dynamically generated config
-    override protected def cspResultProcessor: CSPResultProcessor = {
+    protected override def cspResultProcessor: CSPResultProcessor = {
       val modifiedDirectives: Seq[CSPDirective] = cspConfig.directives.map {
         case CSPDirective(name, value) if name == "script-src" =>
           CSPDirective(name, value + assetCache.cspDigests.mkString(" "))
@@ -47,9 +45,8 @@ package controllers {
     }
   }
 
-  class HomeController @Inject()(cc: ControllerComponents,
-                                 myCSPAction: AssetAwareCSPActionBuilder)
-    extends AbstractController(cc) {
+  class HomeController @Inject()(cc: ControllerComponents, myCSPAction: AssetAwareCSPActionBuilder)
+      extends AbstractController(cc) {
     def index() = myCSPAction {
       Ok("I have an asset aware header!")
     }

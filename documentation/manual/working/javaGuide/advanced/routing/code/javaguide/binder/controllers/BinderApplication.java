@@ -11,16 +11,15 @@ import play.mvc.Result;
 
 public class BinderApplication extends Controller {
 
-	//#path
-    public Result user(User user){
-    	return ok(user.name);
-    }    
-	//#path
-    
-	//#query
-    public Result age(AgeRange ageRange){
-    	return ok(String.valueOf(ageRange.from));
-    }    
-	//#query    
-}
+  // #path
+  public Result user(User user) {
+    return ok(user.name);
+  }
+  // #path
 
+  // #query
+  public Result age(AgeRange ageRange) {
+    return ok(String.valueOf(ageRange.from));
+  }
+  // #query
+}

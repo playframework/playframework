@@ -4,7 +4,8 @@
 
 package play.api.libs.ws
 
-import java.io.{ Closeable, IOException }
+import java.io.Closeable
+import java.io.IOException
 
 /**
  * A Play specific WS client that can use Play specific classes in the request and response building.
@@ -37,5 +38,6 @@ trait WSClient extends Closeable {
   def url(url: String): WSRequest
 
   /** Closes this client, and releases underlying resources. */
-  @throws[IOException] def close(): Unit
+  @throws[IOException]
+  def close(): Unit
 }

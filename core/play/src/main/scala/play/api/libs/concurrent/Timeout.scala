@@ -6,7 +6,8 @@ package play.api.libs.concurrent
 
 import akka.actor.ActorSystem
 
-import scala.concurrent.{ Future, TimeoutException }
+import scala.concurrent.Future
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration.FiniteDuration
 
 /**

@@ -4,19 +4,19 @@
 
 package javaguide.di;
 
-//#singleton
+// #singleton
 import javax.inject.*;
 
 @Singleton
 public class CurrentSharePrice {
-    private volatile int price;
+  private volatile int price;
 
-    public void set(int p) {
-        price = p;
-    }
+  public void set(int p) {
+    price = p;
+  }
 
-    public int get() {
-        return price;
-    }
+  public int get() {
+    return price;
+  }
 }
-//#singleton
+// #singleton

@@ -21,11 +21,12 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.core.server._
 
       val server = NettyServer.fromRouterWithComponents() { components =>
-        import components.{defaultActionBuilder => Action}
+        import components.{ defaultActionBuilder => Action }
         {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
       }
       //#simple
@@ -45,15 +46,18 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.api.routing.sird._
       import play.core.server._
 
-      val server = NettyServer.fromRouterWithComponents(ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      )) { components =>
-        import components.{defaultActionBuilder => Action}
+      val server = NettyServer.fromRouterWithComponents(
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      ) { components =>
+        import components.{ defaultActionBuilder => Action }
         {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
       }
       //#config
@@ -78,18 +82,19 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       val components = new DefaultNettyServerComponents {
 
         lazy val router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
 
-        override lazy val httpErrorHandler = new DefaultHttpErrorHandler(environment,
-          configuration, devContext.map(_.sourceMapper), Some(router)) {
+        override lazy val httpErrorHandler =
+          new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router)) {
 
-          override protected def onNotFound(request: RequestHeader, message: String) = {
-            Future.successful(Results.NotFound("Nothing was found!"))
+            protected override def onNotFound(request: RequestHeader, message: String) = {
+              Future.successful(Results.NotFound("Nothing was found!"))
+            }
           }
-        }
       }
       val server = components.server
       //#components
@@ -110,7 +115,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.core.server._
 
       val environment = Environment.simple(mode = Mode.Prod)
-      val context = ApplicationLoader.Context.create(environment)
+      val context     = ApplicationLoader.Context.create(environment)
 
       // Do the logging configuration
       LoggerConfigurator(context.environment.classLoader).foreach {
@@ -119,9 +124,10 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
 
       val components = new DefaultNettyServerComponents {
         override def router: Router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
       }
 

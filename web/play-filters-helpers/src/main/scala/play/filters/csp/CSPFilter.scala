@@ -18,7 +18,7 @@ import play.api.mvc._
  * @param cspResultProcessor the underlying CSP processing logic.
  */
 @Singleton
-class CSPFilter @Inject() (cspResultProcessor: CSPResultProcessor) extends EssentialFilter {
+class CSPFilter @Inject()(cspResultProcessor: CSPResultProcessor) extends EssentialFilter {
   override def apply(next: EssentialAction): EssentialAction = new EssentialAction {
     override def apply(request: RequestHeader): Accumulator[ByteString, Result] = {
       cspResultProcessor(next, request)
@@ -27,5 +27,6 @@ class CSPFilter @Inject() (cspResultProcessor: CSPResultProcessor) extends Essen
 }
 
 object CSPFilter {
-  def apply(cspResultProcessor: CSPResultProcessor)(implicit mat: Materializer): CSPFilter = new CSPFilter(cspResultProcessor)
+  def apply(cspResultProcessor: CSPResultProcessor)(implicit mat: Materializer): CSPFilter =
+    new CSPFilter(cspResultProcessor)
 }

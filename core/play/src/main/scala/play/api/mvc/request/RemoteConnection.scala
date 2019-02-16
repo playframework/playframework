@@ -15,6 +15,7 @@ import com.google.common.net.InetAddresses
  * to the request by an upstream proxy, e.g. `Forwarded` headers.
  */
 trait RemoteConnection {
+
   /**
    * The remote client's address.
    */
@@ -47,17 +48,22 @@ trait RemoteConnection {
 }
 
 object RemoteConnection {
+
   /**
    * Create a RemoteConnection object. The address string is parsed lazily.
    */
-  def apply(remoteAddressString: String, secure: Boolean, clientCertificateChain: Option[Seq[X509Certificate]]): RemoteConnection = {
-    val s = secure
+  def apply(
+      remoteAddressString: String,
+      secure: Boolean,
+      clientCertificateChain: Option[Seq[X509Certificate]]
+  ): RemoteConnection = {
+    val s   = secure
     val ras = remoteAddressString
     val ccc = clientCertificateChain
     new RemoteConnection {
-      override lazy val remoteAddress: InetAddress = InetAddresses.forString(ras)
-      override val remoteAddressString: String = ras
-      override val secure: Boolean = s
+      override lazy val remoteAddress: InetAddress                      = InetAddresses.forString(ras)
+      override val remoteAddressString: String                          = ras
+      override val secure: Boolean                                      = s
       override val clientCertificateChain: Option[Seq[X509Certificate]] = ccc
     }
   }
@@ -65,13 +71,17 @@ object RemoteConnection {
   /**
    * Create a RemoteConnection object.
    */
-  def apply(remoteAddress: InetAddress, secure: Boolean, clientCertificateChain: Option[Seq[X509Certificate]]): RemoteConnection = {
-    val s = secure
-    val ra = remoteAddress
+  def apply(
+      remoteAddress: InetAddress,
+      secure: Boolean,
+      clientCertificateChain: Option[Seq[X509Certificate]]
+  ): RemoteConnection = {
+    val s   = secure
+    val ra  = remoteAddress
     val ccc = clientCertificateChain
     new RemoteConnection {
-      override val remoteAddress: InetAddress = ra
-      override val secure: Boolean = s
+      override val remoteAddress: InetAddress                           = ra
+      override val secure: Boolean                                      = s
       override val clientCertificateChain: Option[Seq[X509Certificate]] = ccc
     }
   }

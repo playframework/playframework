@@ -18,7 +18,11 @@ object Common {
 
   // sbt 1.0 defines extraLogs as a SettingKey[ScopedKey[_] => Seq[Appender]]
   // while sbt 0.13 uses SettingKey[ScopedKey[_] => Seq[AbstractLogger]]
-  val bufferLogger = new AbstractAppender("FakeAppender", LevelRangeFilter.createFilter(Level.ERROR, Level.ERROR, Result.NEUTRAL, Result.DENY), PatternLayout.createDefaultLayout()) {
+  val bufferLogger = new AbstractAppender(
+    "FakeAppender",
+    LevelRangeFilter.createFilter(Level.ERROR, Level.ERROR, Result.NEUTRAL, Result.DENY),
+    PatternLayout.createDefaultLayout()
+  ) {
 
     @volatile var messages = List.empty[String]
 
@@ -35,7 +39,10 @@ object Common {
 
   def checkLogContains(msg: String): Task[Boolean] = task {
     if (!bufferLogger.messages.exists(_.contains(msg))) {
-      sys.error("Did not find log message:\n    '" + msg + "'\nin output:\n" + bufferLogger.messages.reverse.mkString("    ", "\n    ", ""))
+      sys.error(
+        "Did not find log message:\n    '" + msg + "'\nin output:\n" + bufferLogger.messages.reverse
+          .mkString("    ", "\n    ", "")
+      )
     }
     true
   }

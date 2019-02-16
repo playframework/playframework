@@ -8,11 +8,15 @@ import java.io.InputStream
 import java.io.File
 import java.net.URI
 import java.sql._
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import javax.inject.Singleton
 
-import play.api.db.{ DBApi, Database }
+import play.api.db.DBApi
+import play.api.db.Database
 import play.api.libs.Collections
-import play.api.{ Environment, Logger, PlayException }
+import play.api.Environment
+import play.api.Logger
+import play.api.PlayException
 import play.utils.PlayIO
 
 import scala.annotation.tailrec
@@ -85,17 +89,19 @@ trait EvolutionsApi {
  * Default implementation of the evolutions API.
  */
 @Singleton
-class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
+class DefaultEvolutionsApi @Inject()(dbApi: DBApi) extends EvolutionsApi {
 
   private def databaseEvolutions(name: String, schema: String) = new DatabaseEvolutions(dbApi.database(name), schema)
 
-  def scripts(db: String, evolutions: Seq[Evolution], schema: String) = databaseEvolutions(db, schema).scripts(evolutions)
+  def scripts(db: String, evolutions: Seq[Evolution], schema: String) =
+    databaseEvolutions(db, schema).scripts(evolutions)
 
   def scripts(db: String, reader: EvolutionsReader, schema: String) = databaseEvolutions(db, schema).scripts(reader)
 
   def resetScripts(db: String, schema: String) = databaseEvolutions(db, schema).resetScripts()
 
-  def evolve(db: String, scripts: Seq[Script], autocommit: Boolean, schema: String) = databaseEvolutions(db, schema).evolve(scripts, autocommit)
+  def evolve(db: String, scripts: Seq[Script], autocommit: Boolean, schema: String) =
+    databaseEvolutions(db, schema).evolve(scripts, autocommit)
 
   def resolve(db: String, revision: Int, schema: String) = databaseEvolutions(db, schema).resolve(revision)
 }
@@ -111,14 +117,14 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
   def scripts(evolutions: Seq[Evolution]): Seq[Script] = {
     if (evolutions.nonEmpty) {
       val application = evolutions.reverse
-      val database = databaseEvolutions()
+      val database    = databaseEvolutions()
 
       val (nonConflictingDowns, dRest) = database.span(e => !application.headOption.exists(e.revision <= _.revision))
-      val (nonConflictingUps, uRest) = application.span(e => !database.headOption.exists(_.revision >= e.revision))
+      val (nonConflictingUps, uRest)   = application.span(e => !database.headOption.exists(_.revision >= e.revision))
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(dRest, uRest)
 
-      val ups = (nonConflictingUps ++ conflictingUps).reverseMap(e => UpScript(e))
+      val ups   = (nonConflictingUps ++ conflictingUps).reverseMap(e => UpScript(e))
       val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e))
 
       downs ++ ups
@@ -140,18 +146,20 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       executeQuery(
         "select id, hash, apply_script, revert_script from ${schema}play_evolutions order by id"
       ) { rs =>
-          Collections.unfoldLeft(rs) { rs =>
-            rs.next match {
-              case false => None
-              case true => {
-                Some((rs, Evolution(
-                  rs.getInt(1),
-                  Option(rs.getString(3)) getOrElse "",
-                  Option(rs.getString(4)) getOrElse "")))
-              }
+        Collections.unfoldLeft(rs) { rs =>
+          rs.next match {
+            case false => None
+            case true => {
+              Some(
+                (
+                  rs,
+                  Evolution(rs.getInt(1), Option(rs.getString(3)).getOrElse(""), Option(rs.getString(4)).getOrElse(""))
+                )
+              )
             }
           }
         }
+      }
     } finally {
       connection.close()
     }
@@ -166,14 +174,14 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
               "(id, hash, applied_at, apply_script, revert_script, state, last_problem) " +
               "values(?, ?, ?, ?, ?, ?, ?)"
           ) { ps =>
-              ps.setInt(1, e.revision)
-              ps.setString(2, e.hash)
-              ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()))
-              ps.setString(4, e.sql_up)
-              ps.setString(5, e.sql_down)
-              ps.setString(6, "applying_up")
-              ps.setString(7, "")
-            }
+            ps.setInt(1, e.revision)
+            ps.setString(2, e.hash)
+            ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()))
+            ps.setString(4, e.sql_up)
+            ps.setString(5, e.sql_down)
+            ps.setString(6, "applying_up")
+            ps.setString(7, "")
+          }
         case DownScript(e) =>
           execute("update ${schema}play_evolutions set state = 'applying_down' where id = " + e.revision)
       }
@@ -200,7 +208,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     implicit val connection = database.getConnection(autocommit = autocommit)
     checkEvolutionsState()
 
-    var applying = -1
+    var applying           = -1
     var lastScript: Script = null
 
     try {
@@ -227,14 +235,21 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       case NonFatal(e) => {
         val message = e match {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
-          case ex => ex.getMessage
+          case ex               => ex.getMessage
         }
         if (!autocommit) {
           logger.error(message)
 
           connection.rollback()
 
-          val humanScript = "-- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down)
+          val humanScript = "-- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript])
+                                                                                 "Ups"
+                                                                               else
+                                                                                 "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript
+                                                                                                                                                .isInstanceOf[UpScript])
+                                                                                                                                            lastScript.evolution.sql_up
+                                                                                                                                          else
+                                                                                                                                            lastScript.evolution.sql_down)
 
           throw InconsistentDatabase(database.name, humanScript, message, lastScript.evolution.revision, autocommit)
         } else {
@@ -258,10 +273,10 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       try {
         val createScript = database.url match {
           case SqlServerJdbcUrl() => CreatePlayEvolutionsSqlServerSql
-          case OracleJdbcUrl() => CreatePlayEvolutionsOracleSql
-          case MysqlJdbcUrl(_) => CreatePlayEvolutionsMySql
-          case DerbyJdbcUrl() => CreatePlayEvolutionsDerby
-          case _ => CreatePlayEvolutionsSql
+          case OracleJdbcUrl()    => CreatePlayEvolutionsOracleSql
+          case MysqlJdbcUrl(_)    => CreatePlayEvolutionsMySql
+          case DerbyJdbcUrl()     => CreatePlayEvolutionsDerby
+          case _                  => CreatePlayEvolutionsSql
         }
 
         execute(createScript)
@@ -270,33 +285,33 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       }
     }
 
-    val autocommit = true
+    val autocommit          = true
     implicit val connection = database.getConnection(autocommit = autocommit)
 
     try {
       executeQuery(
         "select id, hash, apply_script, revert_script, state, last_problem from ${schema}play_evolutions where state like 'applying_%'"
       ) { problem =>
-          if (problem.next) {
-            val revision = problem.getInt("id")
-            val state = problem.getString("state")
-            val hash = problem.getString("hash").take(7)
-            val script = state match {
-              case "applying_up" => problem.getString("apply_script")
-              case _ => problem.getString("revert_script")
-            }
-            val error = problem.getString("last_problem")
-
-            logger.error(error)
-
-            val humanScript = "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
-
-            throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
+        if (problem.next) {
+          val revision = problem.getInt("id")
+          val state    = problem.getString("state")
+          val hash     = problem.getString("hash").take(7)
+          val script = state match {
+            case "applying_up" => problem.getString("apply_script")
+            case _             => problem.getString("revert_script")
           }
+          val error = problem.getString("last_problem")
+
+          logger.error(error)
+
+          val humanScript = "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
+
+          throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
         }
+      }
     } catch {
       case e: InconsistentDatabase => throw e
-      case NonFatal(_) => createPlayEvolutionsTable()
+      case NonFatal(_)             => createPlayEvolutionsTable()
     } finally {
       connection.close()
     }
@@ -429,6 +444,7 @@ private object DefaultEvolutionsApi {
  * Reader for evolutions
  */
 trait EvolutionsReader {
+
   /**
    * Read the evolutions for the given db
    */
@@ -449,47 +465,56 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 
   def evolutions(db: String): Seq[Evolution] = {
 
-    val upsMarker = """^(#|--).*!Ups.*$""".r
+    val upsMarker   = """^(#|--).*!Ups.*$""".r
     val downsMarker = """^(#|--).*!Downs.*$""".r
 
-    val UPS = "UPS"
-    val DOWNS = "DOWNS"
+    val UPS     = "UPS"
+    val DOWNS   = "DOWNS"
     val UNKNOWN = "UNKNOWN"
 
     val mapUpsAndDowns: PartialFunction[String, String] = {
-      case upsMarker(_) => UPS
+      case upsMarker(_)   => UPS
       case downsMarker(_) => DOWNS
-      case _ => UNKNOWN
+      case _              => UNKNOWN
     }
 
     val isMarker: PartialFunction[String, Boolean] = {
-      case upsMarker(_) => true
+      case upsMarker(_)   => true
       case downsMarker(_) => true
-      case _ => false
+      case _              => false
     }
 
-    Collections.unfoldLeft(1) { revision =>
-      loadResource(db, revision).map { stream =>
-        (revision + 1, (revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)))
+    Collections
+      .unfoldLeft(1) { revision =>
+        loadResource(db, revision).map { stream =>
+          (revision + 1, (revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)))
+        }
       }
-    }.sortBy(_._1).map {
-      case (revision, script) => {
+      .sortBy(_._1)
+      .map {
+        case (revision, script) => {
 
-        val parsed = Collections.unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
-          case (_, Nil) => None
-          case (context, lines) => {
-            val (some, next) = lines.span(l => !isMarker(l))
-            Some((next.headOption.map(c => (mapUpsAndDowns(c), next.tail)).getOrElse("" -> Nil),
-              context -> some.mkString("\n")))
-          }
-        }.reverse.drop(1).groupBy(i => i._1).mapValues { _.map(_._2).mkString("\n").trim }
+          val parsed = Collections
+            .unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
+              case (_, Nil) => None
+              case (context, lines) => {
+                val (some, next) = lines.span(l => !isMarker(l))
+                Some(
+                  (
+                    next.headOption.map(c => (mapUpsAndDowns(c), next.tail)).getOrElse("" -> Nil),
+                    context -> some.mkString("\n")
+                  )
+                )
+              }
+            }
+            .reverse
+            .drop(1)
+            .groupBy(i => i._1)
+            .mapValues { _.map(_._2).mkString("\n").trim }
 
-        Evolution(
-          revision,
-          parsed.getOrElse(UPS, ""),
-          parsed.getOrElse(DOWNS, ""))
+          Evolution(revision, parsed.getOrElse(UPS, ""), parsed.getOrElse(DOWNS, ""))
+        }
       }
-    }
 
   }
 }
@@ -498,7 +523,7 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
  * Read evolution files from the application environment.
  */
 @Singleton
-class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
+class EnvironmentEvolutionsReader @Inject()(environment: Environment) extends ResourceEvolutionsReader {
 
   import DefaultEvolutionsApi._
 
@@ -512,7 +537,7 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
           // First try a file on the filesystem
           val filename = Evolutions.fileName(db, paddedRevision)
           environment.getExistingFile(filename).map(_.toURI)
-        } orElse {
+        }.orElse {
           // If file was not found, try a resource on the classpath
           val resourceName = Evolutions.resourceName(db, paddedRevision)
           environment.resource(resourceName).map(url => url.toURI)
@@ -521,7 +546,11 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
         for {
           u <- uri
           e <- evolution
-        } yield logger.warn(s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString.substring(u.toString.lastIndexOf('/') + 1)} instead already")
+        } yield
+          logger.warn(
+            s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString
+              .substring(u.toString.lastIndexOf('/') + 1)} instead already"
+          )
         findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
       }
     }
@@ -538,7 +567,8 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
  */
 class ClassLoaderEvolutionsReader(
     classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
-    prefix: String = "") extends ResourceEvolutionsReader {
+    prefix: String = ""
+) extends ResourceEvolutionsReader {
   def loadResource(db: String, revision: Int) = {
     Option(classLoader.getResourceAsStream(prefix + Evolutions.resourceName(db, revision)))
   }
@@ -548,6 +578,7 @@ class ClassLoaderEvolutionsReader(
  * Evolutions reader that reads evolution files from a class loader.
  */
 object ClassLoaderEvolutionsReader {
+
   /**
    * Create a class loader evolutions reader for the given prefix.
    */
@@ -558,7 +589,8 @@ object ClassLoaderEvolutionsReader {
  * Evolutions reader that reads evolution files from its own classloader.  Only suitable for simple (flat) classloading
  * environments.
  */
-object ThisClassLoaderEvolutionsReader extends ClassLoaderEvolutionsReader(classOf[ClassLoaderEvolutionsReader].getClassLoader)
+object ThisClassLoaderEvolutionsReader
+    extends ClassLoaderEvolutionsReader(classOf[ClassLoaderEvolutionsReader].getClassLoader)
 
 /**
  * Simple map based implementation of the evolutions reader.
@@ -571,6 +603,7 @@ class SimpleEvolutionsReader(evolutionsMap: Map[String, Seq[Evolution]]) extends
  * Simple map based implementation of the evolutions reader.
  */
 object SimpleEvolutionsReader {
+
   /**
    * Create a simple evolutions reader from the given data.
    *
@@ -594,17 +627,22 @@ object SimpleEvolutionsReader {
  * @param error an inconsistent state error
  * @param rev the revision
  */
-case class InconsistentDatabase(db: String, script: String, error: String, rev: Int, autocommit: Boolean) extends PlayException.RichDescription(
-  "Database '" + db + "' is in an inconsistent state!",
-  "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit) " before marking it as resolved." else ".")) {
+case class InconsistentDatabase(db: String, script: String, error: String, rev: Int, autocommit: Boolean)
+    extends PlayException.RichDescription(
+      "Database '" + db + "' is in an inconsistent state!",
+      "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit)
+                                                                                                          " before marking it as resolved."
+                                                                                                        else ".")
+    ) {
 
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
-  def content = script
+  def content  = script
 
   private val resolvePathJavascript =
     if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(window.location)"
     else "'/@evolutions'"
-  private val redirectJavascript = s"""window.location = window.location.href.split(/[?#]/)[0].replace(/\\/@evolutions.*$$|\\/$$/, '') + $resolvePathJavascript"""
+  private val redirectJavascript =
+    s"""window.location = window.location.href.split(/[?#]/)[0].replace(/\\/@evolutions.*$$|\\/$$/, '') + $resolvePathJavascript"""
 
   private val sentenceEnd = if (autocommit) " before marking it as resolved." else "."
 
@@ -612,8 +650,8 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
 
   def htmlDescription: String = {
 
-    <span>An evolution has not been applied properly. Please check the problem and resolve it manually{ sentenceEnd } -</span>
-    <input name="evolution-button" type="button" value={ buttonLabel } onclick={ redirectJavascript }/>
+    <span>An evolution has not been applied properly. Please check the problem and resolve it manually{sentenceEnd} -</span>
+    <input name="evolution-button" type="button" value={buttonLabel} onclick={redirectJavascript}/>
 
   }.mkString
 

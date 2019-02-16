@@ -20,11 +20,12 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
       val server = AkkaHttpServer.fromRouterWithComponents() { components =>
         import Results._
-        import components.{defaultActionBuilder => Action}
+        import components.{ defaultActionBuilder => Action }
         {
-          case GET(p"/hello/$to") => Action {
-            Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Ok(s"Hello $to")
+            }
         }
       }
       //#simple-akka-http
@@ -42,18 +43,22 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       //#config-akka-http
       import play.api.mvc._
       import play.api.routing.sird._
-      import play.core.server.{AkkaHttpServer, _}
+      import play.core.server.AkkaHttpServer
+      import play.core.server._
 
-      val server = AkkaHttpServer.fromRouterWithComponents(ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      )) { components =>
+      val server = AkkaHttpServer.fromRouterWithComponents(
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      ) { components =>
         import Results._
-        import components.{defaultActionBuilder => Action}
+        import components.{ defaultActionBuilder => Action }
         {
-          case GET(p"/hello/$to") => Action {
-            Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Ok(s"Hello $to")
+            }
         }
       }
       //#config-akka-http
@@ -78,9 +83,10 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       val components = new DefaultAkkaHttpServerComponents {
 
         override lazy val router: Router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
 
         override lazy val httpErrorHandler = new DefaultHttpErrorHandler(
@@ -90,7 +96,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
           Some(router)
         ) {
 
-          override protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
+          protected override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
             Future.successful(Results.NotFound("Nothing was found!"))
           }
         }
@@ -109,23 +115,30 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       //#application-akka-http
       import play.api.mvc._
       import play.api.routing.sird._
-      import play.core.server.{AkkaHttpServer, ServerConfig}
+      import play.core.server.AkkaHttpServer
+      import play.core.server.ServerConfig
       import play.filters.HttpFiltersComponents
-      import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
+      import play.api.Environment
+      import play.api.ApplicationLoader
+      import play.api.BuiltInComponentsFromContext
 
       val context = ApplicationLoader.Context.create(Environment.simple())
       val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
         override def router: Router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
       }
 
-      val server = AkkaHttpServer.fromApplication(components.application, ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      ))
+      val server = AkkaHttpServer.fromApplication(
+        components.application,
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      )
       //#application-akka-http
 
       try {
@@ -140,8 +153,12 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
       import play.api.routing.sird._
       import play.filters.HttpFiltersComponents
-      import play.core.server.{AkkaHttpServer, ServerConfig}
-      import play.api.{ Environment, ApplicationLoader, LoggerConfigurator, BuiltInComponentsFromContext }
+      import play.core.server.AkkaHttpServer
+      import play.core.server.ServerConfig
+      import play.api.Environment
+      import play.api.ApplicationLoader
+      import play.api.LoggerConfigurator
+      import play.api.BuiltInComponentsFromContext
 
       val context = ApplicationLoader.Context.create(Environment.simple())
       // Do the logging configuration
@@ -151,16 +168,20 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
       val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
         override def router: Router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
       }
 
-      val server = AkkaHttpServer.fromApplication(components.application, ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      ))
+      val server = AkkaHttpServer.fromApplication(
+        components.application,
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      )
       //#logger-akka-http
 
       try {

@@ -6,12 +6,14 @@ package play.filters.csp
 
 import akka.stream.Materializer
 import akka.util.ByteString
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import javax.inject.Singleton
 import play.api.Configuration
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 /**
@@ -34,19 +36,16 @@ trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
 
   protected def mat: Materializer
 
-  override def invokeBlock[A](
-    request: Request[A],
-    block: Request[A] => Future[Result]): Future[Result] = {
+  override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
     // Inline with a type witness to avoid the silly erasure warning on r: Request[A]
-    @inline def action[R: ClassTag](
-      request: Request[A],
-      block: Request[A] => Future[Result])(implicit ev: R =:= Request[A]) = {
+    @inline def action[R: ClassTag](request: Request[A], block: Request[A] => Future[Result])(
+        implicit ev: R =:= Request[A]
+    ) = {
       new EssentialAction {
-        override def apply(
-          req: RequestHeader): Accumulator[ByteString, Result] = {
+        override def apply(req: RequestHeader): Accumulator[ByteString, Result] = {
           req match {
             case r: R => Accumulator.done(block(r))
-            case _ => Accumulator.done(block(req.withBody(request.body)))
+            case _    => Accumulator.done(block(req.withBody(request.body)))
           }
         }
       }
@@ -67,21 +66,21 @@ object CSPActionBuilder {
    * Creates a new CSPActionBuilder using a Configuration and bodyParsers instance.
    */
   def apply(config: Configuration, bodyParsers: PlayBodyParsers)(
-    implicit
-    materializer: Materializer,
-    ec: ExecutionContext): CSPActionBuilder = {
-    apply(
-      CSPResultProcessor(CSPProcessor(CSPConfig.fromConfiguration(config))),
-      bodyParsers)
+      implicit
+      materializer: Materializer,
+      ec: ExecutionContext
+  ): CSPActionBuilder = {
+    apply(CSPResultProcessor(CSPProcessor(CSPConfig.fromConfiguration(config))), bodyParsers)
   }
 
   /**
    * Creates a new CSPActionBuilder using a configured CSPProcessor and bodyParsers instance.
    */
   def apply(processor: CSPResultProcessor, bodyParsers: PlayBodyParsers)(
-    implicit
-    materializer: Materializer,
-    ec: ExecutionContext): CSPActionBuilder = {
+      implicit
+      materializer: Materializer,
+      ec: ExecutionContext
+  ): CSPActionBuilder = {
     new DefaultCSPActionBuilder(processor, bodyParsers)
   }
 }
@@ -97,12 +96,13 @@ object CSPActionBuilder {
  * @param mat injected materializer.
  */
 @Singleton
-class DefaultCSPActionBuilder @Inject() (
-    override protected val cspResultProcessor: CSPResultProcessor,
-    bodyParsers: PlayBodyParsers)(
+class DefaultCSPActionBuilder @Inject()(
+    protected override val cspResultProcessor: CSPResultProcessor,
+    bodyParsers: PlayBodyParsers
+)(
     implicit
-    override protected val executionContext: ExecutionContext,
-    override protected val mat: Materializer)
-  extends CSPActionBuilder {
+    protected override val executionContext: ExecutionContext,
+    protected override val mat: Materializer
+) extends CSPActionBuilder {
   override def parser: BodyParser[AnyContent] = bodyParsers.default
 }

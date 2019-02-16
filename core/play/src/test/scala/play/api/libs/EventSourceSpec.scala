@@ -45,8 +45,8 @@ class EventSourceSpec extends Specification {
 
     "be writeable as a response body using an Akka Source" in {
       val stringSource = Source(Vector("foo", "bar", "baz"))
-      val flow = stringSource via EventSource.flow
-      val result = Results.Ok.chunked(flow)
+      val flow         = stringSource.via(EventSource.flow)
+      val result       = Results.Ok.chunked(flow)
       result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
     }
 

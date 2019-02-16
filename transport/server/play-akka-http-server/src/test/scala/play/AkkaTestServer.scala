@@ -20,12 +20,16 @@ object AkkaTestServer extends App {
 
   val server = AkkaHttpServer.fromRouterWithComponents(serverConfig) { c =>
     {
-      case GET(p"/") => c.defaultActionBuilder{ implicit req =>
-        Results.Ok(s"Hello world")
-      }
-      case GET(p"/akkaHttpApi") => AkkaHttpHandler { request =>
-        Future.successful(HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")))
-      }
+      case GET(p"/") =>
+        c.defaultActionBuilder { implicit req =>
+          Results.Ok(s"Hello world")
+        }
+      case GET(p"/akkaHttpApi") =>
+        AkkaHttpHandler { request =>
+          Future.successful(
+            HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API"))
+          )
+        }
     }
   }
   println("Server (Akka HTTP) started: http://127.0.0.1:9000/ ")

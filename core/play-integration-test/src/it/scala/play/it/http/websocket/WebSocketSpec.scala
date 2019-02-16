@@ -7,10 +7,13 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{ Actor, Props, Status }
+import akka.actor.Actor
+import akka.actor.Props
+import akka.actor.Status
 import akka.stream.scaladsl._
 import akka.util.ByteString
-import org.specs2.execute.{ AsResult, EventuallyResults }
+import org.specs2.execute.AsResult
+import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
 import play.api.Application
@@ -18,32 +21,44 @@ import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
 import play.api.libs.ws.WSClient
-import play.api.mvc.{ Handler, Results, WebSocket }
+import play.api.mvc.Handler
+import play.api.mvc.Results
+import play.api.mvc.WebSocket
 import play.api.routing.HandlerDef
 import play.api.test._
 import play.it._
-import play.it.http.websocket.WebSocketClient.{ ContinuationMessage, ExtendedMessage, SimpleMessage }
+import play.it.http.websocket.WebSocketClient.ContinuationMessage
+import play.it.http.websocket.WebSocketClient.ExtendedMessage
+import play.it.http.websocket.WebSocketClient.SimpleMessage
 
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
-class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
+class NettyWebSocketSpec    extends WebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
-class NettyPingWebSocketOnlySpec extends PingWebSocketSpec with NettyIntegrationSpecification
+class NettyPingWebSocketOnlySpec    extends PingWebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with AkkaHttpIntegrationSpecification
 
-trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with WebSocketSpecMethods {
+trait PingWebSocketSpec
+    extends PlaySpecification
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with WebSocketSpecMethods {
 
   sequential
 
   "respond to pings" in {
-    withServer(app => WebSocket.accept[String, String] { req =>
-      Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-    }) { app =>
+    withServer(
+      app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+        }
+    ) { app =>
       import app.materializer
       val frames = runWebSocket { flow =>
         sendFrames(
@@ -51,17 +66,22 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerI
           CloseMessage(1000)
         ).via(flow).runWith(consumeFrames)
       }
-      frames must contain(exactly(
-        pongFrame(be_==("hello")),
-        closeFrame()
-      ))
+      frames must contain(
+        exactly(
+          pongFrame(be_==("hello")),
+          closeFrame()
+        )
+      )
     }
   }
 
   "not respond to pongs" in {
-    withServer(app => WebSocket.accept[String, String] { req =>
-      Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-    }) { app =>
+    withServer(
+      app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+        }
+    ) { app =>
       import app.materializer
       val frames = runWebSocket { flow =>
         sendFrames(
@@ -69,19 +89,22 @@ trait PingWebSocketSpec extends PlaySpecification with WsTestClient with ServerI
           CloseMessage(1000)
         ).via(flow).runWith(consumeFrames)
       }
-      frames must contain(exactly(
-        closeFrame()
-      ))
+      frames must contain(
+        exactly(
+          closeFrame()
+        )
+      )
     }
   }
 
 }
 
-trait WebSocketSpec extends PlaySpecification
-  with WsTestClient
-  with ServerIntegrationSpecification
-  with WebSocketSpecMethods
-  with PingWebSocketSpec {
+trait WebSocketSpec
+    extends PlaySpecification
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with WebSocketSpecMethods
+    with PingWebSocketSpec {
 
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
@@ -97,9 +120,7 @@ trait WebSocketSpec extends PlaySpecification
     "allow handling WebSockets using Akka streams" in {
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(
-            onFramesConsumed[String](consumed.success(_)),
-            Source.maybe[String])
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
         }
       }
 
@@ -129,11 +150,12 @@ trait WebSocketSpec extends PlaySpecification
 
       "aggregate text frames" in {
         val consumed = Promise[List[String]]()
-        withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(
-            onFramesConsumed[String](consumed.success(_)),
-            Source.maybe[String])
-        }) { app =>
+        withServer(
+          app =>
+            WebSocket.accept[String, String] { req =>
+              Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
+            }
+        ) { app =>
           import app.materializer
           val result = runWebSocket { flow =>
             sendFrames(
@@ -153,11 +175,12 @@ trait WebSocketSpec extends PlaySpecification
       "aggregate binary frames" in {
         val consumed = Promise[List[ByteString]]()
 
-        withServer(app => WebSocket.accept[ByteString, ByteString] { req =>
-          Flow.fromSinkAndSource(
-            onFramesConsumed[ByteString](consumed.success(_)),
-            Source.maybe[ByteString])
-        }) { app =>
+        withServer(
+          app =>
+            WebSocket.accept[ByteString, ByteString] { req =>
+              Flow.fromSinkAndSource(onFramesConsumed[ByteString](consumed.success(_)), Source.maybe[ByteString])
+            }
+        ) { app =>
           import app.materializer
           val result = runWebSocket { flow =>
             sendFrames(
@@ -175,9 +198,12 @@ trait WebSocketSpec extends PlaySpecification
       }
 
       "close the websocket when the buffer limit is exceeded" in {
-        withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }) { app =>
+        withServer(
+          app =>
+            WebSocket.accept[String, String] { req =>
+              Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+            }
+        ) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
             sendFrames(
@@ -185,33 +211,41 @@ trait WebSocketSpec extends PlaySpecification
               ContinuationMessage(ByteString(new String(Array.range(1, 65530).map(_ => 'a'))), true)
             ).via(flow).runWith(consumeFrames)
           }
-          frames must contain(exactly(
-            closeFrame(1009)
-          ))
+          frames must contain(
+            exactly(
+              closeFrame(1009)
+            )
+          )
         }
       }
 
       "select one of the subprotocols proposed by the client" in {
-        withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source(Nil))
-        }) { app =>
+        withServer(
+          app =>
+            WebSocket.accept[String, String] { req =>
+              Flow.fromSinkAndSource(Sink.ignore, Source(Nil))
+            }
+        ) { app =>
           import app.materializer
           val (_, headers) = runWebSocket({ flow =>
             sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
           }, Some("my_crazy_subprotocol"))
-          headers
+          (headers
             .map { case (key, value) => (key.toLowerCase, value) }
             .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
-            .head must be equalTo "my_crazy_subprotocol"
+            .head must be).equalTo("my_crazy_subprotocol")
         }
       }
 
       // we keep getting timeouts on this test
       // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
-        withServer(app => WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }) { app =>
+        withServer(
+          app =>
+            WebSocket.accept[String, String] { req =>
+              Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+            }
+        ) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
             sendFrames(
@@ -219,9 +253,11 @@ trait WebSocketSpec extends PlaySpecification
               TextMessage("foo")
             ).via(flow).runWith(consumeFrames)
           }
-          frames must contain(exactly(
-            closeFrame(1003)
-          ))
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
         }
       }
 
@@ -306,11 +342,11 @@ trait WebSocketSpec extends PlaySpecification
         }
       }
 
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app => statusCode =>
-
-        WebSocket.acceptOrResult[String, String] { req =>
-          Future.successful(Left(Results.Status(statusCode)))
-        }
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult {
+        implicit app => statusCode =>
+          WebSocket.acceptOrResult[String, String] { req =>
+            Future.successful(Left(Results.Status(statusCode)))
+          }
       }
 
     }
@@ -324,7 +360,9 @@ trait WebSocketSpec extends PlaySpecification
 
       import scala.collection.JavaConverters._
 
-      implicit def toHandler[J <: AnyRef](javaHandler: => J)(implicit factory: HandlerInvokerFactory[J], ct: ClassTag[J]): Handler = {
+      implicit def toHandler[J <: AnyRef](
+          javaHandler: => J
+      )(implicit factory: HandlerInvokerFactory[J], ct: ClassTag[J]): Handler = {
         val invoker = factory.createInvoker(
           javaHandler,
           HandlerDef(ct.runtimeClass.getClassLoader, "package", "controller", "method", Nil, "GET", "/stream")
@@ -358,13 +396,15 @@ trait WebSocketSpec extends PlaySpecification
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   // Extend the default spec timeout for Travis CI.
-  override implicit def defaultAwaitTimeout = 10.seconds
+  implicit override def defaultAwaitTimeout = 10.seconds
 
   def withServer[A](webSocket: Application => Handler)(block: Application => A): A = {
     val currentApp = new AtomicReference[Application]
-    val app = GuiceApplicationBuilder().routes {
-      case _ => webSocket(currentApp.get())
-    }.build()
+    val app = GuiceApplicationBuilder()
+      .routes {
+        case _ => webSocket(currentApp.get())
+      }
+      .build()
     currentApp.set(app)
     running(TestServer(testServerPort, app))(block(app))
   }
@@ -372,13 +412,17 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   def runWebSocket[A](handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A]): A =
     runWebSocket(handler, subprotocol = None) match { case (result, _) => result }
 
-  def runWebSocket[A](handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A], subprotocol: Option[String]): (A, immutable.Seq[(String, String)]) = {
+  def runWebSocket[A](
+      handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
+      subprotocol: Option[String]
+  ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
-      val innerResult = Promise[A]()
+      val innerResult     = Promise[A]()
       val responseHeaders = Promise[immutable.Seq[(String, String)]]()
-      await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) { (headers, flow) =>
-        innerResult.completeWith(handler(flow))
-        responseHeaders.success(headers)
+      await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) {
+        (headers, flow) =>
+          innerResult.completeWith(handler(flow))
+          responseHeaders.success(headers)
       })
       (await(innerResult.future), await(responseHeaders.future))
     }
@@ -437,11 +481,13 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       val frames = runWebSocket { (flow) =>
         Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
       }
-      frames must contain(exactly(
-        textFrame(be_==("a")),
-        textFrame(be_==("b")),
-        closeFrame()
-      ).inOrder)
+      frames must contain(
+        exactly(
+          textFrame(be_==("a")),
+          textFrame(be_==("b")),
+          closeFrame()
+        ).inOrder
+      )
     }
   }
 
@@ -462,31 +508,41 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       val frames = runWebSocket { flow =>
         Source.repeat[ExtendedMessage](TextMessage("a")).via(flow).runWith(consumeFrames)
       }
-      frames must contain(exactly(
-        closeFrame()
-      ))
+      frames must contain(
+        exactly(
+          closeFrame()
+        )
+      )
     }
   }
 
   def allowRejectingTheWebSocketWithAResult(webSocket: Application => Int => Handler) = {
     withServer(app => webSocket(app)(FORBIDDEN)) { implicit app =>
       val ws = app.injector.instanceOf[WSClient]
-      await(ws.url(s"http://localhost:$testServerPort/stream").addHttpHeaders(
-        "Upgrade" -> "websocket",
-        "Connection" -> "upgrade",
-        "Sec-WebSocket-Version" -> "13",
-        "Sec-WebSocket-Key" -> "x3JJHMbDL1EzLkh9GBhXDw==",
-        "Origin" -> "http://example.com"
-      ).get()).status must_== FORBIDDEN
+      await(
+        ws.url(s"http://localhost:$testServerPort/stream")
+          .addHttpHeaders(
+            "Upgrade"               -> "websocket",
+            "Connection"            -> "upgrade",
+            "Sec-WebSocket-Version" -> "13",
+            "Sec-WebSocket-Key"     -> "x3JJHMbDL1EzLkh9GBhXDw==",
+            "Origin"                -> "http://example.com"
+          )
+          .get()
+      ).status must_== FORBIDDEN
     }
   }
 
   def handleNonUpgradeRequestsGracefully(webSocket: Application => Handler) = {
     withServer(app => webSocket(app)) { implicit app =>
       val ws = app.injector.instanceOf[WSClient]
-      await(ws.url(s"http://localhost:$testServerPort/stream").addHttpHeaders(
-        "Origin" -> "http://example.com"
-      ).get()).status must_== UPGRADE_REQUIRED
+      await(
+        ws.url(s"http://localhost:$testServerPort/stream")
+          .addHttpHeaders(
+            "Origin" -> "http://example.com"
+          )
+          .get()
+      ).status must_== UPGRADE_REQUIRED
     }
   }
 }

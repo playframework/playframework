@@ -17,9 +17,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-/**
- * Helper functions to handle JsonNode values.
- */
+/** Helper functions to handle JsonNode values. */
 public class Json {
   private static final ObjectMapper defaultObjectMapper = newDefaultMapper();
   private static volatile ObjectMapper objectMapper = null;
@@ -35,7 +33,7 @@ public class Json {
   /**
    * Gets the ObjectMapper used to serialize and deserialize objects to and from JSON values.
    *
-   * This can be set to a custom implementation using Json.setObjectMapper.
+   * <p>This can be set to a custom implementation using Json.setObjectMapper.
    *
    * @return the ObjectMapper currently being used
    */
@@ -71,7 +69,7 @@ public class Json {
   public static JsonNode toJson(final Object data) {
     try {
       return mapper().valueToTree(data);
-    } catch(Exception e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -87,13 +85,14 @@ public class Json {
   public static <A> A fromJson(JsonNode json, Class<A> clazz) {
     try {
       return mapper().treeToValue(json, clazz);
-    } catch(Exception e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   /**
    * Creates a new empty ObjectNode.
+   *
    * @return new empty ObjectNode.
    */
   public static ObjectNode newObject() {
@@ -102,6 +101,7 @@ public class Json {
 
   /**
    * Creates a new empty ArrayNode.
+   *
    * @return a new empty ArrayNode.
    */
   public static ArrayNode newArray() {
@@ -110,7 +110,8 @@ public class Json {
 
   /**
    * Converts a JsonNode to its string representation.
-   * @param json    the JSON node to convert.
+   *
+   * @param json the JSON node to convert.
    * @return the string representation.
    */
   public static String stringify(JsonNode json) {
@@ -119,7 +120,8 @@ public class Json {
 
   /**
    * Converts a JsonNode to its string representation, escaping non-ascii characters.
-   * @param json    the JSON node to convert.
+   *
+   * @param json the JSON node to convert.
    * @return the string representation with escaped non-ascii characters.
    */
   public static String asciiStringify(JsonNode json) {
@@ -128,7 +130,8 @@ public class Json {
 
   /**
    * Converts a JsonNode to its string representation.
-   * @param json    the JSON node to convert.
+   *
+   * @param json the JSON node to convert.
    * @return the string representation, pretty printed.
    */
   public static String prettyPrint(JsonNode json) {
@@ -137,39 +140,42 @@ public class Json {
 
   /**
    * Parses a String representing a json, and return it as a JsonNode.
-   * @param src    the JSON string.
+   *
+   * @param src the JSON string.
    * @return the JSON node.
    */
   public static JsonNode parse(String src) {
     try {
       return mapper().readTree(src);
-    } catch(Throwable t) {
+    } catch (Throwable t) {
       throw new RuntimeException(t);
     }
   }
 
   /**
    * Parses a InputStream representing a json, and return it as a JsonNode.
-   * @param src    the JSON input stream.
+   *
+   * @param src the JSON input stream.
    * @return the JSON node.
    */
   public static JsonNode parse(java.io.InputStream src) {
     try {
       return mapper().readTree(src);
-    } catch(Throwable t) {
+    } catch (Throwable t) {
       throw new RuntimeException(t);
     }
   }
 
   /**
    * Parses a byte array representing a json, and return it as a JsonNode.
-   * @param src    the JSON input bytes.
+   *
+   * @param src the JSON input bytes.
    * @return the JSON node.
    */
   public static JsonNode parse(byte[] src) {
     try {
       return mapper().readTree(src);
-    } catch(Throwable t) {
+    } catch (Throwable t) {
       throw new RuntimeException(t);
     }
   }
@@ -177,12 +183,12 @@ public class Json {
   /**
    * Inject the object mapper to use.
    *
-   * This is intended to be used when Play starts up.  By default, Play will inject its own object mapper here,
-   * but this mapper can be overridden either by a custom module.
-   * @param mapper    the object mapper.
+   * <p>This is intended to be used when Play starts up. By default, Play will inject its own object
+   * mapper here, but this mapper can be overridden either by a custom module.
+   *
+   * @param mapper the object mapper.
    */
   public static void setObjectMapper(ObjectMapper mapper) {
     objectMapper = mapper;
   }
-
 }

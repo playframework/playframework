@@ -21,29 +21,28 @@ import static org.junit.Assert.assertThat;
 
 public class JavaFormsDirectFieldAccess extends WithApplication {
 
-    private FormFactory formFactory() {
-        return app.injector().instanceOf(FormFactory.class);
-    }
+  private FormFactory formFactory() {
+    return app.injector().instanceOf(FormFactory.class);
+  }
 
-    @Test
-    public void usingForm() {
-        FormFactory formFactory = formFactory();
+  @Test
+  public void usingForm() {
+    FormFactory formFactory = formFactory();
 
-        final // sneaky final
-        //#create
-        Form<User> userForm = formFactory.form(User.class).withDirectFieldAccess(true);
-        //#create
+    final // sneaky final
+    // #create
+    Form<User> userForm = formFactory.form(User.class).withDirectFieldAccess(true);
+    // #create
 
-        Lang lang = new Lang(Locale.getDefault());
-        TypedMap attrs = TypedMap.empty();
-        Map<String,String> anyData = new HashMap<>();
-        anyData.put("email", "bob@gmail.com");
-        anyData.put("password", "secret");
+    Lang lang = new Lang(Locale.getDefault());
+    TypedMap attrs = TypedMap.empty();
+    Map<String, String> anyData = new HashMap<>();
+    anyData.put("email", "bob@gmail.com");
+    anyData.put("password", "secret");
 
-        User user = userForm.bind(lang, attrs, anyData).get();
+    User user = userForm.bind(lang, attrs, anyData).get();
 
-        assertThat(user.email, equalTo("bob@gmail.com"));
-        assertThat(user.password, equalTo("secret"));
-    }
-
+    assertThat(user.email, equalTo("bob@gmail.com"));
+    assertThat(user.password, equalTo("secret"));
+  }
 }

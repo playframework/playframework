@@ -5,7 +5,8 @@
 package play.it.libs
 
 import play.api.test._
-import play.core.j.{ JavaContextComponents, JavaHelpers }
+import play.core.j.JavaContextComponents
+import play.core.j.JavaHelpers
 import play.data.validation.Constraints.Required
 
 import scala.annotation.meta.field
@@ -20,7 +21,7 @@ class JavaFormSpec extends PlaySpecification {
       val components = app.injector.instanceOf[JavaContextComponents]
       JavaHelpers.withContext(FakeRequest(), components) { _ =>
         val formFactory = app.injector.instanceOf[play.data.FormFactory]
-        val myForm = formFactory.form(classOf[FooForm]).bind(Map("id" -> "1234567891").asJava)
+        val myForm      = formFactory.form(classOf[FooForm]).bind(Map("id" -> "1234567891").asJava)
         myForm.hasErrors must beEqualTo(true)
         myForm.get must throwAn[IllegalStateException].like {
           case e => e.getMessage must contain("fooName")

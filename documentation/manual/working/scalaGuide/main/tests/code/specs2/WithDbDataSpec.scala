@@ -6,7 +6,8 @@ package scalaguide.tests.specs2
 
 import play.api.test._
 
-import org.specs2.execute.{Result, AsResult}
+import org.specs2.execute.Result
+import org.specs2.execute.AsResult
 
 class WithDbDataSpec extends PlaySpecification {
 

@@ -19,10 +19,10 @@ import com.typesafe.sslconfig.util.NoopLogger
 object FakeKeyStore {
   private final val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
 
-  val GeneratedKeyStore: String = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
-  val TrustedAlias: String = sslconfig.FakeKeyStore.SelfSigned.Alias.trustedCertEntry
-  val DistinguishedName: String = sslconfig.FakeKeyStore.SelfSigned.DistinguishedName
-  val SignatureAlgorithmName: String = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmName
+  val GeneratedKeyStore: String               = sslconfig.FakeKeyStore.KeystoreSettings.GeneratedKeyStore
+  val TrustedAlias: String                    = sslconfig.FakeKeyStore.SelfSigned.Alias.trustedCertEntry
+  val DistinguishedName: String               = sslconfig.FakeKeyStore.SelfSigned.DistinguishedName
+  val SignatureAlgorithmName: String          = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmName
   val SignatureAlgorithmOID: ObjectIdentifier = sslconfig.FakeKeyStore.KeystoreSettings.SignatureAlgorithmOID
 
   /**

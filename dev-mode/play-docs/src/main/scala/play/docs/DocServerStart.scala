@@ -21,28 +21,39 @@ import scala.concurrent.Future
  */
 class DocServerStart {
 
-  def start(projectPath: File, buildDocHandler: BuildDocHandler, translationReport: Callable[File],
-    forceTranslationReport: Callable[File], port: java.lang.Integer): ReloadableServer = {
+  def start(
+      projectPath: File,
+      buildDocHandler: BuildDocHandler,
+      translationReport: Callable[File],
+      forceTranslationReport: Callable[File],
+      port: java.lang.Integer
+  ): ReloadableServer = {
 
     val components = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)
-      val context = ApplicationLoader.Context.create(environment)
+      val context     = ApplicationLoader.Context.create(environment)
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
         lazy val router = Router.from {
-          case GET(p"/@documentation/$file*") => Action { request =>
-            buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].get
-          }
-          case GET(p"/@report") => Action { request =>
-            if (request.getQueryString("force").isDefined) {
-              forceTranslationReport.call()
-              Results.Redirect("/@report")
-            } else {
-              Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => "report.html")(executionContext, fileMimeTypes)
+          case GET(p"/@documentation/$file*") =>
+            Action { request =>
+              buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].get
             }
-          }
-          case _ => Action {
-            Results.Redirect("/@documentation/Home")
-          }
+          case GET(p"/@report") =>
+            Action { request =>
+              if (request.getQueryString("force").isDefined) {
+                forceTranslationReport.call()
+                Results.Redirect("/@report")
+              } else {
+                Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => "report.html")(
+                  executionContext,
+                  fileMimeTypes
+                )
+              }
+            }
+          case _ =>
+            Action {
+              Results.Redirect("/@documentation/Home")
+            }
         }
       }
     }

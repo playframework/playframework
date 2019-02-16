@@ -21,8 +21,13 @@ sealed trait Rule extends Positional
  * @param call The call to make
  * @param comments The comments above the route
  */
-case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall,
-    comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
+case class Route(
+    verb: HttpVerb,
+    path: PathPattern,
+    call: HandlerCall,
+    comments: Seq[Comment] = Seq.empty,
+    modifiers: Seq[Modifier] = Seq.empty
+) extends Rule
 
 /**
  * An include for another router
@@ -48,17 +53,26 @@ case class HttpVerb(value: String) {
  * @param method The method to invoke on the controller.
  * @param parameters The parameters to pass to the method.
  */
-case class HandlerCall(packageName: Option[String], controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
-  private val dynamic = if (instantiate) "@" else ""
+case class HandlerCall(
+    packageName: Option[String],
+    controller: String,
+    instantiate: Boolean,
+    method: String,
+    parameters: Option[Seq[Parameter]]
+) extends Positional {
+  private val dynamic                  = if (instantiate) "@" else ""
   lazy val routeParams: Seq[Parameter] = parameters.toIndexedSeq.flatten.filterNot(_.isJavaRequest)
-  lazy val passJavaRequest: Boolean = parameters.getOrElse(Nil).exists(_.isJavaRequest)
-  override def toString = dynamic + packageName.map(_ + ".").getOrElse("") + controller + dynamic + "." + method + parameters.map { params =>
-    "(" + params.mkString(", ") + ")"
-  }.getOrElse("")
+  lazy val passJavaRequest: Boolean    = parameters.getOrElse(Nil).exists(_.isJavaRequest)
+  override def toString =
+    dynamic + packageName.map(_ + ".").getOrElse("") + controller + dynamic + "." + method + parameters
+      .map { params =>
+        "(" + params.mkString(", ") + ")"
+      }
+      .getOrElse("")
 }
 
 object Parameter {
-  final val requestClass = "Request"
+  final val requestClass   = "Request"
   final val requestClassFQ = "play.mvc.Http." + requestClass
 }
 
@@ -70,13 +84,25 @@ object Parameter {
  * @param fixed The fixed value for the parameter, if defined.
  * @param default A default value for the parameter, if defined.
  */
-case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
+case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String])
+    extends Positional {
   import Parameter._
 
   def isJavaRequest = typeName == requestClass || typeName == requestClassFQ
-  def typeNameReal = if (isJavaRequest) { requestClassFQ } else { typeName }
-  def nameClean = if (isJavaRequest) { "req" } else { name }
-  override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
+  def typeNameReal =
+    if (isJavaRequest) {
+      requestClassFQ
+    } else {
+      typeName
+    }
+  def nameClean =
+    if (isJavaRequest) {
+      "req"
+    } else {
+      name
+    }
+  override def toString =
+    name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 
 /**
@@ -122,13 +148,14 @@ case class PathPattern(parts: Seq[PathPart]) {
    */
   def has(key: String): Boolean = parts.exists {
     case DynamicPart(name, _, _) if name == key => true
-    case _ => false
+    case _                                      => false
   }
 
-  override def toString = parts.map {
-    case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
-    case StaticPart(path) => path
-  }.mkString
+  override def toString =
+    parts.map {
+      case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
+      case StaticPart(path)                      => path
+    }.mkString
 
 }
 

@@ -48,9 +48,9 @@ class ApplicationSpec extends Specification {
         Environment.simple(),
         ConfigFactory.parseString("test.config = 10")
       ) { application =>
-          val javaApplication = application.asJava
-          javaApplication.config().getInt("test.config") must beEqualTo(10)
-        }
+        val javaApplication = application.asJava
+        javaApplication.config().getInt("test.config") must beEqualTo(10)
+      }
     }
   }
 }

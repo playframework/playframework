@@ -5,7 +5,9 @@
 package play.api.http
 
 import java.util.Locale
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 import scala.annotation.implicitNotFound
 
@@ -45,8 +47,11 @@ import scala.annotation.implicitNotFound
  * }
  * }}}
  */
-@implicitNotFound("You do not have an implicit FileMimeTypes in scope. If you want to bring a FileMimeTypes into context, please use dependency injection.")
+@implicitNotFound(
+  "You do not have an implicit FileMimeTypes in scope. If you want to bring a FileMimeTypes into context, please use dependency injection."
+)
 trait FileMimeTypes {
+
   /**
    * Retrieves the usual MIME type for a given file name
    *
@@ -62,14 +67,15 @@ trait FileMimeTypes {
 }
 
 @Singleton
-class DefaultFileMimeTypesProvider @Inject() (fileMimeTypesConfiguration: FileMimeTypesConfiguration) extends Provider[FileMimeTypes] {
+class DefaultFileMimeTypesProvider @Inject()(fileMimeTypesConfiguration: FileMimeTypesConfiguration)
+    extends Provider[FileMimeTypes] {
   lazy val get = new DefaultFileMimeTypes(fileMimeTypesConfiguration)
 }
 
 /**
  * Default implementation of FileMimeTypes.
  */
-class DefaultFileMimeTypes @Inject() (config: FileMimeTypesConfiguration) extends FileMimeTypes {
+class DefaultFileMimeTypes @Inject()(config: FileMimeTypesConfiguration) extends FileMimeTypes {
 
   /**
    * Retrieves the usual MIME type for a given file name

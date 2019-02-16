@@ -7,7 +7,9 @@ package play.api.test
 import java.util.concurrent.locks.Lock
 
 import akka.annotation.ApiMayChange
-import play.api.{ Application, Configuration, Mode }
+import play.api.Application
+import play.api.Configuration
+import play.api.Mode
 import play.core.server._
 
 import scala.util.control.NonFatal
@@ -60,11 +62,7 @@ import scala.util.control.NonFatal
   }
 
   protected def serverConfig(app: Application) = {
-    val sc = ServerConfig(
-      port = Some(0),
-      sslPort = Some(0),
-      mode = Mode.Test,
-      rootDir = app.path)
+    val sc = ServerConfig(port = Some(0), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
     sc.copy(configuration = sc.configuration ++ overrideServerConfiguration(app))
   }
 

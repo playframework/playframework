@@ -25,250 +25,275 @@ import static org.junit.Assert.assertThat;
 
 public class JPAApiTest {
 
-    @Rule
-    public TestDatabase db = new TestDatabase();
+  @Rule public TestDatabase db = new TestDatabase();
 
-    private Set<String> getConfiguredPersistenceUnitNames(String configString) {
-        Config overrides = ConfigFactory.parseString(configString);
-        Config config = overrides.withFallback(ConfigFactory.load());
-        return new JPAConfigProvider(config).get().persistenceUnits().stream()
-                .map(unit -> unit.unitName).collect(Collectors.toSet());
-    }
+  private Set<String> getConfiguredPersistenceUnitNames(String configString) {
+    Config overrides = ConfigFactory.parseString(configString);
+    Config config = overrides.withFallback(ConfigFactory.load());
+    return new JPAConfigProvider(config)
+        .get()
+        .persistenceUnits()
+        .stream()
+        .map(unit -> unit.unitName)
+        .collect(Collectors.toSet());
+  }
 
+  @Test
+  public void shouldWorkWithEmptyConfiguration() {
+    String configString = "";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertThat(unitNames, equalTo(Collections.emptySet()));
+  }
 
-    @Test
-    public void shouldWorkWithEmptyConfiguration() {
-        String configString = "";
-        Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-        assertThat(unitNames, equalTo(Collections.emptySet()));
-    }
+  @Test
+  public void shouldWorkWithSingleValue() {
+    String configString = "jpa.default = defaultPersistenceUnit";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit"))));
+  }
 
-    @Test
-    public void shouldWorkWithSingleValue() {
-        String configString = "jpa.default = defaultPersistenceUnit";
-        Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-        assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit"))));
-    }
+  @Test
+  public void shouldWorkWithMultipleValues() {
+    String configString = "jpa.default = defaultPersistenceUnit\n" + "jpa.number2 = number2Unit";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertThat(
+        unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+  }
 
-    @Test
-    public void shouldWorkWithMultipleValues() {
-        String configString =
-                "jpa.default = defaultPersistenceUnit\n" +
-                "jpa.number2 = number2Unit";
-        Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-        assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
-    }
+  @Test
+  public void shouldWorkWithEmptyConfigurationAtConfiguredLocation() {
+    String configString = "play.jpa.config = myconfig.jpa";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertThat(unitNames, equalTo(Collections.emptySet()));
+  }
 
-    @Test
-    public void shouldWorkWithEmptyConfigurationAtConfiguredLocation() {
-        String configString = "play.jpa.config = myconfig.jpa";
-        Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-        assertThat(unitNames, equalTo(Collections.emptySet()));
-    }
+  @Test
+  public void shouldWorkWithSingleValueAtConfiguredLocation() {
+    String configString =
+        "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit"))));
+  }
 
-    @Test
-    public void shouldWorkWithSingleValueAtConfiguredLocation() {
-        String configString =
-                "play.jpa.config = myconfig.jpa\n" +
-                "myconfig.jpa.default = defaultPersistenceUnit";
-        Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-        assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit"))));
-    }
+  @Test
+  public void shouldWorkWithMultipleValuesAtConfiguredLocation() {
+    String configString =
+        "play.jpa.config = myconfig.jpa\n"
+            + "myconfig.jpa.default = defaultPersistenceUnit\n"
+            + "myconfig.jpa.number2 = number2Unit";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertThat(
+        unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+  }
 
-    @Test
-    public void shouldWorkWithMultipleValuesAtConfiguredLocation() {
-        String configString =
-                "play.jpa.config = myconfig.jpa\n" +
-                "myconfig.jpa.default = defaultPersistenceUnit\n" +
-                "myconfig.jpa.number2 = number2Unit";
-        Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-        assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
-    }
+  @Test
+  public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
+    EntityManager em = db.jpa.em("default");
+    assertThat(em, notNullValue());
+  }
 
-    @Test
-    public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
-        EntityManager em = db.jpa.em("default");
-        assertThat(em, notNullValue());
-    }
-
-    @Test
-    public void shouldExecuteAFunctionBlockUsingAEntityManager() {
-        db.jpa.withTransaction(entityManager -> {
-            TestEntity entity = createTestEntity();
-            entityManager.persist(entity);
-            return entity;
+  @Test
+  public void shouldExecuteAFunctionBlockUsingAEntityManager() {
+    db.jpa.withTransaction(
+        entityManager -> {
+          TestEntity entity = createTestEntity();
+          entityManager.persist(entity);
+          return entity;
         });
 
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L, db.jpa.em());
-            assertThat(entity.name, equalTo("alice"));
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+          assertThat(entity.name, equalTo("alice"));
         });
-    }
+  }
 
-    @Test
-    public void shouldReuseEntityManagerWhenExecutingTransaction() {
-        JPAApi api = db.jpa;
-        boolean reused = api.withTransaction(entityManager -> {
-            EntityManager fromContext = api.em();
-            return fromContext == entityManager;
-        });
-
-        assertThat(reused, is(true));
-    }
-
-    @Test
-    public void shouldExecuteAFunctionBlockUsingASpecificNamedEntityManager() {
-        db.jpa.withTransaction("default", entityManager -> {
-            TestEntity entity = createTestEntity();
-            entityManager.persist(entity);
-            return entity;
-        });
-
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L, db.jpa.em());
-            assertThat(entity.name, equalTo("alice"));
-        });
-    }
-
-    @Test
-    public void shouldExecuteAFunctionBlockAsAReadOnlyTransaction() {
-        db.jpa.withTransaction("default", true, entityManager -> {
-            TestEntity entity = createTestEntity();
-            entityManager.persist(entity);
-            return entity;
-        });
-
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L, db.jpa.em());
-            assertThat(entity, nullValue());
-        });
-    }
-
-    private TestEntity createTestEntity() {
-        return createTestEntity(1L);
-    }
-
-    private TestEntity createTestEntity(Long id) {
-        TestEntity entity = new TestEntity();
-        entity.id = id;
-        entity.name = "alice";
-        return entity;
-    }
-
-    @Test
-    public void shouldExecuteASupplierBlockInsideATransaction() throws Exception {
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = createTestEntity();
-            entity.save(db.jpa.em());
-        });
-
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(1L, db.jpa.em());
-            assertThat(entity.name, equalTo("alice"));
-        });
-    }
-
-    @Test
-    public void shouldNestTransactions() {
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = new TestEntity();
-            entity.id = 2L;
-            entity.name = "test2";
-            entity.save(db.jpa.em());
-
-            db.jpa.withTransaction(() -> {
-                TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
-                assertThat(entity2, nullValue());
+  @Test
+  public void shouldReuseEntityManagerWhenExecutingTransaction() {
+    JPAApi api = db.jpa;
+    boolean reused =
+        api.withTransaction(
+            entityManager -> {
+              EntityManager fromContext = api.em();
+              return fromContext == entityManager;
             });
 
-            // Verify that we can still access the EntityManager
-            TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
-            assertThat(entity3, equalTo(entity));
+    assertThat(reused, is(true));
+  }
+
+  @Test
+  public void shouldExecuteAFunctionBlockUsingASpecificNamedEntityManager() {
+    db.jpa.withTransaction(
+        "default",
+        entityManager -> {
+          TestEntity entity = createTestEntity();
+          entityManager.persist(entity);
+          return entity;
         });
-    }
 
-    @Test
-    public void shouldRollbackInnerTransactionOnly() {
-        db.jpa.withTransaction(() -> {
-            // Parent transaction creates entity 2
-            TestEntity entity = createTestEntity(2L);
-            entity.save(db.jpa.em());
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+          assertThat(entity.name, equalTo("alice"));
+        });
+  }
 
-            db.jpa.withTransaction(() -> {
+  @Test
+  public void shouldExecuteAFunctionBlockAsAReadOnlyTransaction() {
+    db.jpa.withTransaction(
+        "default",
+        true,
+        entityManager -> {
+          TestEntity entity = createTestEntity();
+          entityManager.persist(entity);
+          return entity;
+        });
+
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+          assertThat(entity, nullValue());
+        });
+  }
+
+  private TestEntity createTestEntity() {
+    return createTestEntity(1L);
+  }
+
+  private TestEntity createTestEntity(Long id) {
+    TestEntity entity = new TestEntity();
+    entity.id = id;
+    entity.name = "alice";
+    return entity;
+  }
+
+  @Test
+  public void shouldExecuteASupplierBlockInsideATransaction() throws Exception {
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = createTestEntity();
+          entity.save(db.jpa.em());
+        });
+
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+          assertThat(entity.name, equalTo("alice"));
+        });
+  }
+
+  @Test
+  public void shouldNestTransactions() {
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = new TestEntity();
+          entity.id = 2L;
+          entity.name = "test2";
+          entity.save(db.jpa.em());
+
+          db.jpa.withTransaction(
+              () -> {
+                TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
+                assertThat(entity2, nullValue());
+              });
+
+          // Verify that we can still access the EntityManager
+          TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
+          assertThat(entity3, equalTo(entity));
+        });
+  }
+
+  @Test
+  public void shouldRollbackInnerTransactionOnly() {
+    db.jpa.withTransaction(
+        () -> {
+          // Parent transaction creates entity 2
+          TestEntity entity = createTestEntity(2L);
+          entity.save(db.jpa.em());
+
+          db.jpa.withTransaction(
+              () -> {
                 // Nested transaction creates entity 3, but rolls back
                 TestEntity entity2 = createTestEntity(3L);
                 entity2.save(db.jpa.em());
 
                 db.jpa.em().getTransaction().setRollbackOnly();
-            });
+              });
 
-            // Verify that we can still access the EntityManager
-            TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
-            assertThat(entity3, equalTo(entity));
+          // Verify that we can still access the EntityManager
+          TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
+          assertThat(entity3, equalTo(entity));
         });
 
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(3L, db.jpa.em());
-            assertThat(entity, nullValue());
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = TestEntity.find(3L, db.jpa.em());
+          assertThat(entity, nullValue());
 
-            TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
-            assertThat(entity2.name, equalTo("alice"));
+          TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
+          assertThat(entity2.name, equalTo("alice"));
         });
-    }
+  }
 
-    @Test
-    public void shouldRollbackOuterTransactionOnly() {
-        db.jpa.withTransaction(() -> {
-            // Parent transaction creates entity 2, but rolls back
-            TestEntity entity = createTestEntity(2L);
-            entity.save(db.jpa.em());
+  @Test
+  public void shouldRollbackOuterTransactionOnly() {
+    db.jpa.withTransaction(
+        () -> {
+          // Parent transaction creates entity 2, but rolls back
+          TestEntity entity = createTestEntity(2L);
+          entity.save(db.jpa.em());
 
-            db.jpa.withTransaction(() -> {
+          db.jpa.withTransaction(
+              () -> {
                 // Nested transaction creates entity 3
                 TestEntity entity2 = createTestEntity(3L);
                 entity2.save(db.jpa.em());
-            });
+              });
 
-            // Verify that we can still access the EntityManager
-            TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
-            assertThat(entity3, equalTo(entity));
+          // Verify that we can still access the EntityManager
+          TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
+          assertThat(entity3, equalTo(entity));
 
-            db.jpa.em().getTransaction().setRollbackOnly();
+          db.jpa.em().getTransaction().setRollbackOnly();
         });
 
-        db.jpa.withTransaction(() -> {
-            TestEntity entity = TestEntity.find(3L, db.jpa.em());
-            assertThat(entity.name, equalTo("alice"));
+    db.jpa.withTransaction(
+        () -> {
+          TestEntity entity = TestEntity.find(3L, db.jpa.em());
+          assertThat(entity.name, equalTo("alice"));
 
-            TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
-            assertThat(entity2, nullValue());
+          TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
+          assertThat(entity2, nullValue());
         });
+  }
+
+  public static class TestDatabase extends ExternalResource {
+    Database database;
+    JPAApi jpa;
+
+    static JPAEntityManagerContext entityManagerContext = new JPAEntityManagerContext();
+
+    public void execute(final String sql) {
+      database.withConnection(
+          connection -> {
+            connection.createStatement().execute(sql);
+          });
     }
 
-    public static class TestDatabase extends ExternalResource {
-        Database database;
-        JPAApi jpa;
-
-        static JPAEntityManagerContext entityManagerContext = new JPAEntityManagerContext();
-
-        public void execute(final String sql) {
-            database.withConnection(connection -> {
-                connection.createStatement().execute(sql);
-            });
-        }
-
-        @Override
-        public void before() {
-            database = Databases.inMemoryWith("jndiName", "DefaultDS");
-            execute("create table TestEntity (id bigint not null, name varchar(255));");
-            jpa = new DefaultJPAApi(DefaultJPAConfig.of("default", "defaultPersistenceUnit"), entityManagerContext).start();
-        }
-
-        @Override
-        public void after() {
-            jpa.shutdown();
-            database.shutdown();
-        }
+    @Override
+    public void before() {
+      database = Databases.inMemoryWith("jndiName", "DefaultDS");
+      execute("create table TestEntity (id bigint not null, name varchar(255));");
+      jpa =
+          new DefaultJPAApi(
+                  DefaultJPAConfig.of("default", "defaultPersistenceUnit"), entityManagerContext)
+              .start();
     }
 
+    @Override
+    public void after() {
+      jpa.shutdown();
+      database.shutdown();
+    }
+  }
 }
