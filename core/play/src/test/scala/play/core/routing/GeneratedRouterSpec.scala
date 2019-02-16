@@ -5,10 +5,13 @@
 package play.core.routing
 
 import org.specs2.mutable.Specification
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorHandler
 import play.api.mvc._
-import play.api.routing.{ HandlerDef, Router }
-import play.core.j.{ JavaAction, JavaHandler }
+import play.api.routing.HandlerDef
+import play.api.routing.Router
+import play.core.j.JavaAction
+import play.core.j.JavaHandler
 import play.core.test.FakeRequest
 
 object GeneratedRouterSpec extends Specification {
@@ -17,7 +20,9 @@ object GeneratedRouterSpec extends Specification {
       handlerThunk: => H,
       handlerDef: HandlerDef,
       override val errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
-      val prefix: String = "/")(implicit hif: HandlerInvokerFactory[H]) extends GeneratedRouter {
+      val prefix: String = "/"
+  )(implicit hif: HandlerInvokerFactory[H])
+      extends GeneratedRouter {
 
     override def withPrefix(prefix: String): Router =
       new TestRouter[H](handlerThunk, handlerDef, errorHandler, Router.concatPrefix(prefix, this.prefix))
@@ -41,9 +46,11 @@ object GeneratedRouterSpec extends Specification {
     def index = play.mvc.Results.ok("Hello world")
   }
 
-  def routeToHandler[H, A](handlerThunk: => H, handlerDef: HandlerDef, request: RequestHeader)(block: Handler => A)(implicit hif: HandlerInvokerFactory[H]): A = {
-    val router = new TestRouter(handlerThunk, handlerDef)
-    val request = FakeRequest()
+  def routeToHandler[H, A](handlerThunk: => H, handlerDef: HandlerDef, request: RequestHeader)(
+      block: Handler => A
+  )(implicit hif: HandlerInvokerFactory[H]): A = {
+    val router        = new TestRouter(handlerThunk, handlerDef)
+    val request       = FakeRequest()
     val routedHandler = router.routes(request)
     block(routedHandler)
   }
@@ -51,7 +58,7 @@ object GeneratedRouterSpec extends Specification {
   "A GeneratedRouter" should {
 
     "route requests to Scala controllers" in {
-      val Action = ActionBuilder.ignoringBody
+      val Action  = ActionBuilder.ignoringBody
       val handler = Action(Results.Ok("Hello world"))
       val handlerDef = HandlerDef(
         handler.getClass.getClassLoader,

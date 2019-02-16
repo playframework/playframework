@@ -16,24 +16,24 @@ import java.util.List;
 
 // #java-csp-components
 public class MyComponents extends BuiltInComponentsFromContext
-        implements HttpFiltersComponents, CSPComponents {
+    implements HttpFiltersComponents, CSPComponents {
 
-    public MyComponents(ApplicationLoader.Context context) {
-        super(context);
-    }
+  public MyComponents(ApplicationLoader.Context context) {
+    super(context);
+  }
 
-    @Override
-    public List<play.mvc.EssentialFilter> httpFilters() {
-        List<EssentialFilter> parentFilters = HttpFiltersComponents.super.httpFilters();
-        List<EssentialFilter> newFilters = new ArrayList<>();
-        newFilters.add(cspFilter().asJava());
-        newFilters.addAll(parentFilters);
-        return newFilters;
-    }
+  @Override
+  public List<play.mvc.EssentialFilter> httpFilters() {
+    List<EssentialFilter> parentFilters = HttpFiltersComponents.super.httpFilters();
+    List<EssentialFilter> newFilters = new ArrayList<>();
+    newFilters.add(cspFilter().asJava());
+    newFilters.addAll(parentFilters);
+    return newFilters;
+  }
 
-    @Override
-    public Router router() {
-        return Router.empty();
-    }
+  @Override
+  public Router router() {
+    return Router.empty();
+  }
 }
 // #java-csp-components

@@ -8,14 +8,13 @@ import java.math.BigDecimal;
 
 public class Money {
 
-    @Formats.Currency
-    private BigDecimal amount;
+  @Formats.Currency private BigDecimal amount;
 
-    public BigDecimal getAmount() {
-        return this.amount;
-    }
+  public BigDecimal getAmount() {
+    return this.amount;
+  }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
+  }
 }

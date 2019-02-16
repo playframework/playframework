@@ -3,22 +3,31 @@
  */
 
 import java.io._
-import java.net.{ JarURLConnection, URL, URLConnection }
+import java.net.JarURLConnection
+import java.net.URL
+import java.net.URLConnection
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.regex.Pattern
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import javax.inject.Singleton
 
 import play.api._
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
-import play.utils.{ InvalidUriEncodingException, Resources, UriEncoding }
+import play.utils.InvalidUriEncodingException
+import play.utils.Resources
+import play.utils.UriEncoding
 
 import scala.collection.concurrent.TrieMap
-import scala.concurrent.{ ExecutionContext, Future, Promise, blocking }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.blocking
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success }
+import scala.util.Failure
+import scala.util.Success
 
 package play.api.controllers {
   sealed trait TrampolineContextProvider {
@@ -35,7 +44,8 @@ package controllers {
   import akka.stream.scaladsl.StreamConverters
   import play.api.controllers.TrampolineContextProvider
   import play.api.http._
-  import play.api.inject.{ ApplicationLifecycle, Module }
+  import play.api.inject.ApplicationLifecycle
+  import play.api.inject.Module
 
   import scala.annotation.tailrec
   import scala.util.matching.Regex
@@ -51,7 +61,7 @@ package controllers {
     )
   }
 
-  class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
+  class AssetsFinderProvider @Inject()(assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
     def get = assetsMetadata.finder
   }
 
@@ -64,7 +74,7 @@ package controllers {
    * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
    */
   @Singleton
-  class AssetsMetadataProvider @Inject() (
+  class AssetsMetadataProvider @Inject()(
       env: Environment,
       config: AssetsConfiguration,
       fileMimeTypes: FileMimeTypes,
@@ -76,16 +86,19 @@ package controllers {
       StaticAssetsMetadata.synchronized {
         instance = Some(assetsMetadata)
       }
-      lifecycle.addStopHook(() => Future.successful {
-        StaticAssetsMetadata.synchronized {
-          // Set instance to None if this application was the last to set the instance.
-          // Otherwise it's the responsibility of whoever set it last to unset it.
-          // We don't want to break a running application that needs a static instance.
-          if (instance contains assetsMetadata) {
-            instance = None
+      lifecycle.addStopHook(
+        () =>
+          Future.successful {
+            StaticAssetsMetadata.synchronized {
+              // Set instance to None if this application was the last to set the instance.
+              // Otherwise it's the responsibility of whoever set it last to unset it.
+              // We don't want to break a running application that needs a static instance.
+              if (instance contains assetsMetadata) {
+                instance = None
+              }
+            }
           }
-        }
-      })
+      )
       assetsMetadata
     }
   }
@@ -131,7 +144,7 @@ package controllers {
    * Instead of a SelfPopulatingMap, a better strategy would be to furnish the assets controller with all of the asset
    * information on startup. This shouldn't be that difficult as sbt-web has that information available. Such an
    * approach would result in an immutable map being used which in theory should be faster.
- */
+   */
   private class SelfPopulatingMap[K, V] {
     private val store = TrieMap[K, Future[Option[V]]]()
 
@@ -143,7 +156,7 @@ package controllers {
           val f = Future(pf(k))(ec.prepare())
           f.onComplete {
             case Failure(_) | Success(None) => store.remove(k)
-            case _ => // Do nothing, the asset was successfully found and is now cached
+            case _                          => // Do nothing, the asset was successfully found and is now cached
           }
           p.completeWith(f)
           p.future
@@ -192,7 +205,7 @@ package controllers {
     // - /d
     private lazy val configuredCacheControlDirectivesOrdering = new Ordering[(String, Option[String])] {
       override def compare(first: (String, Option[String]), second: (String, Option[String])) = {
-        val firstKey = first._1
+        val firstKey  = first._1
         val secondKey = second._1
 
         if (firstKey.startsWith(secondKey)) -1
@@ -241,9 +254,9 @@ package controllers {
 
   object AssetEncoding {
     val Brotli = AssetEncoding(ContentEncoding.Brotli, "br")
-    val Gzip = AssetEncoding(ContentEncoding.Gzip, "gz")
-    val Bzip2 = AssetEncoding(ContentEncoding.Bzip2, "bz2")
-    val Xz = AssetEncoding(ContentEncoding.Xz, "xz")
+    val Gzip   = AssetEncoding(ContentEncoding.Gzip, "gz")
+    val Bzip2  = AssetEncoding(ContentEncoding.Bzip2, "bz2")
+    val Xz     = AssetEncoding(ContentEncoding.Xz, "xz")
   }
 
   object AssetsConfiguration {
@@ -260,7 +273,8 @@ package controllers {
         defaultCacheControl = c.getDeprecated[String]("play.assets.defaultCache", "assets.defaultCache"),
         aggressiveCacheControl = c.getDeprecated[String]("play.assets.aggressiveCache", "assets.aggressiveCache"),
         digestAlgorithm = c.getDeprecated[String]("play.assets.digest.algorithm", "assets.digest.algorithm"),
-        checkForMinified = c.getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
+        checkForMinified = c
+          .getDeprecated[Option[Boolean]]("play.assets.checkForMinified", "assets.checkForMinified")
           .getOrElse(mode != Mode.Dev),
         textContentTypes = c.get[Seq[String]]("play.assets.textContentTypes").toSet,
         encodings = getAssetEncodings(c)
@@ -277,7 +291,9 @@ package controllers {
       msg.append(s"\t defaultCacheControl = ${assetsConfiguration.defaultCacheControl}\n")
       msg.append(s"\t aggressiveCacheControl = ${assetsConfiguration.aggressiveCacheControl}\n")
       msg.append(s"\t configuredCacheControl:")
-      msg.append(assetsConfiguration.configuredCacheControl.map(c => s"\t\t ${c._1} = ${c._2}").mkString("\n", "\n", "\n"))
+      msg.append(
+        assetsConfiguration.configuredCacheControl.map(c => s"\t\t ${c._1} = ${c._2}").mkString("\n", "\n", "\n")
+      )
       logger.debug(msg.toString)
     }
 
@@ -287,7 +303,8 @@ package controllers {
     }
   }
 
-  case class AssetsConfigurationProvider @Inject() (env: Environment, conf: Configuration) extends Provider[AssetsConfiguration] {
+  case class AssetsConfigurationProvider @Inject()(env: Environment, conf: Configuration)
+      extends Provider[AssetsConfiguration] {
     def get = AssetsConfiguration.fromConfiguration(conf, env.mode)
   }
 
@@ -299,24 +316,24 @@ package controllers {
     @volatile private[controllers] var instance: Option[AssetsMetadata] = None
 
     private[this] lazy val defaultAssetsMetadata: AssetsMetadata = {
-      val environment = Environment.simple()
+      val environment   = Environment.simple()
       val configuration = Configuration.reference
-      val assetsConfig = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
-      val httpConfig = HttpConfiguration.fromConfiguration(configuration, environment)
+      val assetsConfig  = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
+      val httpConfig    = HttpConfiguration.fromConfiguration(configuration, environment)
       val fileMimeTypes = new DefaultFileMimeTypes(httpConfig.fileMimeTypes)
 
       new DefaultAssetsMetadata(environment, assetsConfig, fileMimeTypes)
     }
 
-    private[this] def delegate: AssetsMetadata = instance getOrElse defaultAssetsMetadata
+    private[this] def delegate: AssetsMetadata = instance.getOrElse(defaultAssetsMetadata)
 
     /**
      * The configured assets path
      */
     override def finder = delegate.finder
-    override private[controllers] def digest(path: String) =
+    private[controllers] override def digest(path: String) =
       delegate.digest(path)
-    override private[controllers] def assetInfoForRequest(request: RequestHeader, name: String) =
+    private[controllers] override def assetInfoForRequest(request: RequestHeader, name: String) =
       delegate.assetInfoForRequest(request, name)
   }
 
@@ -327,7 +344,9 @@ package controllers {
     def finder: AssetsFinder
     private[controllers] def digest(path: String): Option[String]
     private[controllers] def assetInfoForRequest(
-      request: RequestHeader, name: String): Future[Option[(AssetInfo, AcceptEncoding)]]
+        request: RequestHeader,
+        name: String
+    ): Future[Option[(AssetInfo, AcceptEncoding)]]
   }
 
   /**
@@ -380,8 +399,8 @@ package controllers {
      */
     def withUrlPrefix(newPrefix: String): AssetsFinder = new AssetsFinder {
       override def findAssetPath(base: String, path: String) = self.findAssetPath(base, path)
-      override def assetsUrlPrefix = newPrefix
-      override def assetsBasePath = self.assetsBasePath
+      override def assetsUrlPrefix                           = newPrefix
+      override def assetsBasePath                            = self.assetsBasePath
     }
 
     /**
@@ -389,8 +408,8 @@ package controllers {
      */
     def withAssetsPath(newPath: String): AssetsFinder = new AssetsFinder {
       override def findAssetPath(base: String, path: String) = self.findAssetPath(base, path)
-      override def assetsUrlPrefix = self.assetsUrlPrefix
-      override def assetsBasePath = newPath
+      override def assetsUrlPrefix                           = self.assetsUrlPrefix
+      override def assetsBasePath                            = newPath
     }
   }
 
@@ -408,18 +427,21 @@ package controllers {
   ) extends AssetsMetadata {
 
     @Inject
-    def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) = this(config, env.resource _, fileMimeTypes)
+    def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) =
+      this(config, env.resource _, fileMimeTypes)
 
     lazy val finder: AssetsFinder = new AssetsFinder {
-      val assetsBasePath = config.path
+      val assetsBasePath  = config.path
       val assetsUrlPrefix = config.urlPrefix
 
       def findAssetPath(base: String, path: String): String = blocking {
         val minPath = minifiedPath(path)
-        digest(minPath).fold(minPath) { dgst =>
-          val lastSep = minPath.lastIndexOf("/")
-          minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
-        }.drop(base.length + 1)
+        digest(minPath)
+          .fold(minPath) { dgst =>
+            val lastSep = minPath.lastIndexOf("/")
+            minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
+          }
+          .drop(base.length + 1)
       }
     }
 
@@ -433,33 +455,37 @@ package controllers {
     private lazy val digestCache = TrieMap[String, Option[String]]()
 
     private[controllers] def digest(path: String): Option[String] = {
-      digestCache.getOrElse(path, {
-        val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
-        val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
-        if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
-        maybeDigest
-      })
+      digestCache.getOrElse(
+        path, {
+          val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
+          val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
+          if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
+          maybeDigest
+        }
+      )
     }
 
     // Sames goes for the minified paths cache.
     private lazy val minifiedPathsCache = TrieMap[String, String]()
 
     private def minifiedPath(path: String): String = {
-      minifiedPathsCache.getOrElse(path, {
-        def minifiedPathFor(delim: Char): Option[String] = {
-          val ext = path.reverse.takeWhile(_ != '.').reverse
-          val noextPath = path.dropRight(ext.length + 1)
-          val minPath = noextPath + delim + "min." + ext
-          resource(minPath).map(_ => minPath)
+      minifiedPathsCache.getOrElse(
+        path, {
+          def minifiedPathFor(delim: Char): Option[String] = {
+            val ext       = path.reverse.takeWhile(_ != '.').reverse
+            val noextPath = path.dropRight(ext.length + 1)
+            val minPath   = noextPath + delim + "min." + ext
+            resource(minPath).map(_ => minPath)
+          }
+          val maybeMinifiedPath = if (config.checkForMinified) {
+            minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
+          } else {
+            path
+          }
+          if (config.enableCaching) minifiedPathsCache.put(path, maybeMinifiedPath)
+          maybeMinifiedPath
         }
-        val maybeMinifiedPath = if (config.checkForMinified) {
-          minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
-        } else {
-          path
-        }
-        if (config.enableCaching) minifiedPathsCache.put(path, maybeMinifiedPath)
-        maybeMinifiedPath
-      })
+      )
     }
 
     private lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
@@ -469,7 +495,9 @@ package controllers {
         url <- resource(name)
       } yield {
         val compressionUrls: Seq[(String, URL)] = config.encodings
-          .map { ae => (ae.acceptEncoding, resource(ae.forFilename(name))) }
+          .map { ae =>
+            (ae.acceptEncoding, resource(ae.forFilename(name)))
+          }
           .collect { case (key: String, Some(url: URL)) => (key, url) }
 
         new AssetInfo(name, url, compressionUrls, digest(name), config, fileMimeTypes)
@@ -485,14 +513,16 @@ package controllers {
     }
 
     private[controllers] def assetInfoForRequest(
-      request: RequestHeader, name: String): Future[Option[(AssetInfo, AcceptEncoding)]] = {
+        request: RequestHeader,
+        name: String
+    ): Future[Option[(AssetInfo, AcceptEncoding)]] = {
       assetInfo(name).map(_.map(_ -> AcceptEncoding.forRequest(request)))
     }
   }
 
   /*
- * Retain meta information regarding an asset.
- */
+   * Retain meta information regarding an asset.
+   */
   private class AssetInfo(
       val name: String,
       val url: URL,
@@ -505,7 +535,7 @@ package controllers {
     import ResponseHeader._
     import config._
 
-    private val encodingNames: Seq[String] = compressedUrls.map(_._1)
+    private val encodingNames: Seq[String]        = compressedUrls.map(_._1)
     private val encodingsByName: Map[String, URL] = compressedUrls.toMap
 
     // Determines whether we need to Vary: Accept-Encoding on the encoding because there are multiple available
@@ -520,9 +550,9 @@ package controllers {
      */
     private def isText(mimeType: String): Boolean = {
       mimeType.trim match {
-        case text if text.startsWith("text/") => true
+        case text if text.startsWith("text/")               => true
         case text if config.textContentTypes.contains(text) => true
-        case _ => false
+        case _                                              => false
       }
     }
 
@@ -543,35 +573,41 @@ package controllers {
 
     val lastModified: Option[String] = {
       def getLastModified[T <: URLConnection](f: (T) => Long): Option[String] = {
-        Option(url.openConnection).map {
-          case urlConnection: T @unchecked =>
-            try {
-              f(urlConnection)
-            } finally {
-              Resources.closeUrlConnection(urlConnection)
-            }
-        }.filterNot(_ == -1).map(millis => httpDateFormat.format(Instant.ofEpochMilli(millis)))
+        Option(url.openConnection)
+          .map {
+            case urlConnection: T @unchecked =>
+              try {
+                f(urlConnection)
+              } finally {
+                Resources.closeUrlConnection(urlConnection)
+              }
+          }
+          .filterNot(_ == -1)
+          .map(millis => httpDateFormat.format(Instant.ofEpochMilli(millis)))
       }
 
       url.getProtocol match {
-        case "file" => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
-        case "jar" => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
+        case "file"   => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
+        case "jar"    => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
         case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
-        case _ => None
+        case _        => None
       }
     }
 
     val etag: Option[String] =
-      digest orElse {
-        lastModified map (m => Codecs.sha1(m + " -> " + url.toExternalForm))
-      } map ("\"" + _ + "\"")
+      digest
+        .orElse {
+          lastModified.map(m => Codecs.sha1(m + " -> " + url.toExternalForm))
+        }
+        .map("\"" + _ + "\"")
 
     val mimeType: String = fileMimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
-    lazy val parsedLastModified = lastModified flatMap Assets.parseModifiedDate
+    lazy val parsedLastModified = lastModified.flatMap(Assets.parseModifiedDate)
 
     def bestEncoding(acceptEncoding: AcceptEncoding): Option[String] =
-      acceptEncoding.preferred(encodingNames)
+      acceptEncoding
+        .preferred(encodingNames)
         .filter(_ != ContentEncoding.Identity) // ignore identity encoding
 
     // NOTE: we are assuming all clients can accept the unencoded version. Technically the if the `identity` encoding
@@ -645,7 +681,8 @@ package controllers {
      */
     private val dateRecognizer = Pattern.compile(
       """^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
-        """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
+        """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)"""
+    )
 
     def parseModifiedDate(date: String): Option[Date] = {
       val matcher = dateRecognizer.matcher(date)
@@ -686,10 +723,14 @@ package controllers {
       implicit def string2Asset(name: String): Asset = new Asset(name)
 
       private def pathFromParams(rrc: ReverseRouteContext): String = {
-        rrc.fixedParams.getOrElse(
-          "path",
-          throw new RuntimeException("Asset path bindable must be used in combination with an action that accepts a path parameter")
-        ).toString
+        rrc.fixedParams
+          .getOrElse(
+            "path",
+            throw new RuntimeException(
+              "Asset path bindable must be used in combination with an action that accepts a path parameter"
+            )
+          )
+          .toString
       }
 
       // This uses StaticAssetsMetadata to obtain the full path to the asset.
@@ -706,7 +747,7 @@ package controllers {
   }
 
   @Singleton
-  class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
+  class Assets @Inject()(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
   class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
 
@@ -715,18 +756,24 @@ package controllers {
 
     protected val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
-    private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
+    private def maybeNotModified(
+        request: RequestHeader,
+        assetInfo: AssetInfo,
+        aggressiveCaching: Boolean
+    ): Option[Result] = {
       // First check etag. Important, if there is an If-None-Match header, we MUST not check the
       // If-Modified-Since header, regardless of whether If-None-Match matches or not. This is in
       // accordance with section 14.26 of RFC2616.
       request.headers.get(IF_NONE_MATCH) match {
         case Some(etags) =>
-          assetInfo.etag.filter(someEtag => etags.split(',').exists(_.trim == someEtag)).flatMap(_ => Some(cacheableResult(assetInfo, aggressiveCaching, NotModified)))
+          assetInfo.etag
+            .filter(someEtag => etags.split(',').exists(_.trim == someEtag))
+            .flatMap(_ => Some(cacheableResult(assetInfo, aggressiveCaching, NotModified)))
         case None =>
           for {
             ifModifiedSinceStr <- request.headers.get(IF_MODIFIED_SINCE)
-            ifModifiedSince <- parseModifiedDate(ifModifiedSinceStr)
-            lastModified <- assetInfo.parsedLastModified
+            ifModifiedSince    <- parseModifiedDate(ifModifiedSinceStr)
+            lastModified       <- assetInfo.parsedLastModified
             if !lastModified.after(ifModifiedSince)
           } yield {
             NotModified
@@ -747,11 +794,12 @@ package controllers {
     }
 
     private def asEncodedResult(
-      response: Result,
-      acceptEncoding: AcceptEncoding,
-      assetInfo: AssetInfo
+        response: Result,
+        acceptEncoding: AcceptEncoding,
+        assetInfo: AssetInfo
     ): Result = {
-      assetInfo.bestEncoding(acceptEncoding)
+      assetInfo
+        .bestEncoding(acceptEncoding)
         .map(enc => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> enc))
         .getOrElse {
           if (assetInfo.varyEncoding) {
@@ -781,11 +829,11 @@ package controllers {
       // otherwise we can't.
       val requestedDigest = f.getName.takeWhile(_ != '-')
       if (!requestedDigest.isEmpty) {
-        val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
+        val bareFile     = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
         val bareFullPath = path + "/" + bareFile
         blocking(digest(bareFullPath)) match {
           case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
-          case _ => assetAt(path, file.name, aggressiveCaching = false)
+          case _                       => assetAt(path, file.name, aggressiveCaching = false)
         }
       } else {
         assetAt(path, file.name, aggressiveCaching = false)
@@ -799,15 +847,20 @@ package controllers {
      * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
      * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
      */
-    def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async { implicit request =>
-      assetAt(path, file, aggressiveCaching)
+    def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async {
+      implicit request =>
+        assetAt(path, file, aggressiveCaching)
     }
 
-    private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(implicit request: RequestHeader): Future[Result] = {
+    private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(
+        implicit request: RequestHeader
+    ): Future[Result] = {
       val assetName: Option[String] = resourceNameAt(path, file)
-      val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName.map { name =>
-        assetInfoForRequest(request, name)
-      } getOrElse Future.successful(None)
+      val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName
+        .map { name =>
+          assetInfoForRequest(request, name)
+        }
+        .getOrElse(Future.successful(None))
 
       def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
@@ -823,7 +876,13 @@ package controllers {
             val source = StreamConverters.fromInputStream(() => stream)
             // FIXME stream.available does not necessarily return the length of the file. According to the docs "It is never
             // correct to use the return value of this method to allocate a buffer intended to hold all data in this stream."
-            val result = RangeResult.ofSource(stream.available(), source, request.headers.get(RANGE), None, Option(assetInfo.mimeType))
+            val result = RangeResult.ofSource(
+              stream.available(),
+              source,
+              request.headers.get(RANGE),
+              None,
+              Option(assetInfo.mimeType)
+            )
 
             Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
               cacheableResult(
@@ -841,7 +900,10 @@ package controllers {
           errorHandler.onClientError(request, BAD_REQUEST, s"Invalid URI encoding for $file at $path: " + e.getMessage)
         case NonFatal(e) =>
           // Add a bit more information to the exception for better error reporting later
-          errorHandler.onServerError(request, new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e))
+          errorHandler.onServerError(
+            request,
+            new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e)
+          )
       }
     }
 
@@ -852,7 +914,7 @@ package controllers {
      * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
      */
     private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
-      val decodedFile = UriEncoding.decodePath(file, "utf-8")
+      val decodedFile  = UriEncoding.decodePath(file, "utf-8")
       val resourceName = removeExtraSlashes(s"/$path/$decodedFile")
       if (!fileLikeCanonicalPath(resourceName).startsWith(fileLikeCanonicalPath(path))) {
         None
@@ -880,7 +942,7 @@ package controllers {
             normalizePathSegments(accumulated :+ segment, rest)
         }
       }
-      val splitPath: List[String] = path.split(filePathSeparators).toList
+      val splitPath: List[String]      = path.split(filePathSeparators).toList
       val splitNormalized: Seq[String] = normalizePathSegments(Vector.empty, splitPath)
       splitNormalized.mkString("/")
     }

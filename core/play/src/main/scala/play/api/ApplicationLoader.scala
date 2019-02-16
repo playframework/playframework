@@ -4,12 +4,17 @@
 
 package play.api
 
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 import play.api.ApplicationLoader.DevContext
 import play.api.inject.ApplicationLifecycle
-import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
-import play.core.{ BuildLink, SourceMapper, WebCommands }
+import play.api.mvc.ControllerComponents
+import play.api.mvc.DefaultControllerComponents
+import play.core.BuildLink
+import play.core.SourceMapper
+import play.core.WebCommands
 import play.utils.Reflect
 
 /**
@@ -44,9 +49,11 @@ object ApplicationLoader {
 
   // Method to call if we cannot find a configured ApplicationLoader
   private def loaderNotFound(): Nothing = {
-    sys.error("No application loader is configured. Please configure an application loader either using the " +
-      "play.application.loader configuration property, or by depending on a module that configures one. " +
-      "You can add the Guice support module by adding \"libraryDependencies += guice\" to your build.sbt.")
+    sys.error(
+      "No application loader is configured. Please configure an application loader either using the " +
+        "play.application.loader configuration property, or by depending on a module that configures one. " +
+        "You can add the Guice support module by adding \"libraryDependencies += guice\" to your build.sbt."
+    )
   }
 
   private[play] final class NoApplicationLoader extends ApplicationLoader {
@@ -71,9 +78,14 @@ object ApplicationLoader {
   ) {
     @deprecated("Use devContext.map(_.sourceMapper) instead", "2.7.0")
     def sourceMapper: Option[SourceMapper] = devContext.map(_.sourceMapper)
-    @deprecated("WebCommands are no longer a property of ApplicationLoader.Context; they are available via injection or from the BuiltinComponents trait", "2.7.0")
+    @deprecated(
+      "WebCommands are no longer a property of ApplicationLoader.Context; they are available via injection or from the BuiltinComponents trait",
+      "2.7.0"
+    )
     def webCommands: WebCommands =
-      throw new UnsupportedOperationException("WebCommands are no longer a property of ApplicationLoader.Context; they are available via injection or from the BuiltinComponents trait")
+      throw new UnsupportedOperationException(
+        "WebCommands are no longer a property of ApplicationLoader.Context; they are available via injection or from the BuiltinComponents trait"
+      )
   }
 
   /**
@@ -104,10 +116,11 @@ object ApplicationLoader {
      * @param devContext If an application is loaded in dev mode then this additional context can be provided.
      */
     def create(
-      environment: Environment,
-      initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
-      lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle(),
-      devContext: Option[DevContext] = None): Context = {
+        environment: Environment,
+        initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
+        lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle(),
+        devContext: Option[DevContext] = None
+    ): Context = {
       Context(
         environment = environment,
         devContext = devContext,
@@ -116,14 +129,21 @@ object ApplicationLoader {
       )
     }
 
-    @deprecated("Context properties have changed; use the default Context apply method or Context.create instead", "2.7.0")
+    @deprecated(
+      "Context properties have changed; use the default Context apply method or Context.create instead",
+      "2.7.0"
+    )
     def apply(
-      environment: Environment,
-      sourceMapper: Option[SourceMapper],
-      webCommands: WebCommands,
-      initialConfiguration: Configuration,
-      lifecycle: ApplicationLifecycle): Context = {
-      require(sourceMapper == None, "sourceMapper parameter is no longer supported by ApplicationLoader.Context; use devContext parameter instead")
+        environment: Environment,
+        sourceMapper: Option[SourceMapper],
+        webCommands: WebCommands,
+        initialConfiguration: Configuration,
+        lifecycle: ApplicationLifecycle
+    ): Context = {
+      require(
+        sourceMapper == None,
+        "sourceMapper parameter is no longer supported by ApplicationLoader.Context; use devContext parameter instead"
+      )
       require(webCommands == null, "webCommands parameter is no longer supported by ApplicationLoader.Context")
       Context(
         environment = environment,
@@ -144,25 +164,28 @@ object ApplicationLoader {
     }
 
     Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, NoApplicationLoader](
-      context.environment, context.initialConfiguration, LoaderKey, classOf[NoApplicationLoader].getName
+      context.environment,
+      context.initialConfiguration,
+      LoaderKey,
+      classOf[NoApplicationLoader].getName
     ) match {
-        case None =>
-          loaderNotFound()
-        case Some(Left(scalaClass)) =>
-          scalaClass.getDeclaredConstructor().newInstance()
-        case Some(Right(javaClass)) =>
-          val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
-          // Create an adapter from a Java to a Scala ApplicationLoader. This class is
-          // effectively anonymous, but let's give it a name to make debugging easier.
-          class JavaApplicationLoaderAdapter extends ApplicationLoader {
-            override def load(context: ApplicationLoader.Context): Application = {
-              val javaContext = new play.ApplicationLoader.Context(context)
-              val javaApplication = javaApplicationLoader.load(javaContext)
-              javaApplication.asScala()
-            }
+      case None =>
+        loaderNotFound()
+      case Some(Left(scalaClass)) =>
+        scalaClass.getDeclaredConstructor().newInstance()
+      case Some(Right(javaClass)) =>
+        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+        // Create an adapter from a Java to a Scala ApplicationLoader. This class is
+        // effectively anonymous, but let's give it a name to make debugging easier.
+        class JavaApplicationLoaderAdapter extends ApplicationLoader {
+          override def load(context: ApplicationLoader.Context): Application = {
+            val javaContext     = new play.ApplicationLoader.Context(context)
+            val javaApplication = javaApplicationLoader.load(javaContext)
+            javaApplication.asScala()
           }
-          new JavaApplicationLoaderAdapter
-      }
+        }
+        new JavaApplicationLoaderAdapter
+    }
   }
 
   /**
@@ -177,14 +200,21 @@ object ApplicationLoader {
    *                        into the application.
    * @param sourceMapper An optional source mapper.
    */
-  @deprecated("Context properties have changed; use the default Context apply method or Context.create instead", "2.7.0")
+  @deprecated(
+    "Context properties have changed; use the default Context apply method or Context.create instead",
+    "2.7.0"
+  )
   def createContext(
-    environment: Environment,
-    initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
-    sourceMapper: Option[SourceMapper] = None,
-    webCommands: WebCommands = null,
-    lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()): Context = {
-    require(sourceMapper == None, "sourceMapper parameter is no longer supported by createContext; use create method's devContext parameter instead")
+      environment: Environment,
+      initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
+      sourceMapper: Option[SourceMapper] = None,
+      webCommands: WebCommands = null,
+      lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
+  ): Context = {
+    require(
+      sourceMapper == None,
+      "sourceMapper parameter is no longer supported by createContext; use create method's devContext parameter instead"
+    )
     require(webCommands == null, "webCommands parameter is no longer supported by ApplicationLoader.Context")
     Context.create(
       environment = environment,
@@ -199,13 +229,18 @@ object ApplicationLoader {
  * Helper that provides all the built in components dependencies from the application loader context
  */
 abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
-  override def environment: Environment = context.environment
-  override def devContext: Option[DevContext] = context.devContext
+  override def environment: Environment                   = context.environment
+  override def devContext: Option[DevContext]             = context.devContext
   override def applicationLifecycle: ApplicationLifecycle = context.lifecycle
-  override def configuration: Configuration = context.initialConfiguration
+  override def configuration: Configuration               = context.initialConfiguration
 
   lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
-    defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
+    defaultActionBuilder,
+    playBodyParsers,
+    messagesApi,
+    langs,
+    fileMimeTypes,
+    executionContext
   )
 }
 
@@ -224,6 +259,7 @@ final class OptionalDevContext(val devContext: Option[DevContext])
 final class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
-final class OptionalSourceMapperProvider @Inject() (optDevContext: OptionalDevContext) extends Provider[OptionalSourceMapper] {
+final class OptionalSourceMapperProvider @Inject()(optDevContext: OptionalDevContext)
+    extends Provider[OptionalSourceMapper] {
   val get = new OptionalSourceMapper(optDevContext.devContext.map(_.sourceMapper))
 }

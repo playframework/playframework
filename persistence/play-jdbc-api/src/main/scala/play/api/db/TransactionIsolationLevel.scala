@@ -28,11 +28,14 @@ object TransactionIsolationLevel {
   case object Serializable extends TransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE)
 
   def apply(id: Int): TransactionIsolationLevel = id match {
-    case Connection.TRANSACTION_READ_COMMITTED => ReadCommited
+    case Connection.TRANSACTION_READ_COMMITTED   => ReadCommited
     case Connection.TRANSACTION_READ_UNCOMMITTED => ReadUncommitted
-    case Connection.TRANSACTION_REPEATABLE_READ => RepeatedRead
-    case Connection.TRANSACTION_SERIALIZABLE => Serializable
-    case _ => throw new IllegalArgumentException("Not a valid value for transaction isolation level. See java.sql.Connection for possible options.")
+    case Connection.TRANSACTION_REPEATABLE_READ  => RepeatedRead
+    case Connection.TRANSACTION_SERIALIZABLE     => Serializable
+    case _ =>
+      throw new IllegalArgumentException(
+        "Not a valid value for transaction isolation level. See java.sql.Connection for possible options."
+      )
   }
 
 }

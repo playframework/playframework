@@ -8,7 +8,7 @@ import java.util.UUID
 import org.specs2.mutable._
 
 case class Demo(value: Long) extends AnyVal
-case class Hase(x: String) extends AnyVal
+case class Hase(x: String)   extends AnyVal
 
 class BindersSpec extends Specification {
 
@@ -24,7 +24,9 @@ class BindersSpec extends Specification {
       subject.bind("key", uuid.toString) must be_==(Right(uuid))
     }
     "Fail on unparseable UUID" in {
-      subject.bind("key", "bad-uuid") must be_==(Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid"))
+      subject.bind("key", "bad-uuid") must be_==(
+        Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid")
+      )
     }
   }
 
@@ -38,13 +40,15 @@ class BindersSpec extends Specification {
       subject.bind("key", Map("key" -> Seq(uuid.toString))) must be_==(Some(Right(uuid)))
     }
     "Fail on unparseable UUID" in {
-      subject.bind("key", Map("key" -> Seq("bad-uuid"))) must be_==(Some(Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid")))
+      subject.bind("key", Map("key" -> Seq("bad-uuid"))) must be_==(
+        Some(Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid"))
+      )
     }
   }
 
   "URL Path string binder" should {
-    val subject = implicitly[PathBindable[String]]
-    val pathString = "/path/to/some%20file"
+    val subject          = implicitly[PathBindable[String]]
+    val pathString       = "/path/to/some%20file"
     val pathStringBinded = "/path/to/some file"
 
     "Unbind Path string as string" in {
@@ -65,8 +69,8 @@ class BindersSpec extends Specification {
 
   "QueryStringBindable.bindableSeq" should {
     val seqBinder = implicitly[QueryStringBindable[Seq[String]]]
-    val values = Seq("i", "once", "knew", "a", "man", "from", "nantucket")
-    val params = Map("q" -> values)
+    val values    = Seq("i", "once", "knew", "a", "man", "from", "nantucket")
+    val params    = Map("q" -> values)
 
     "propagate errors that occur during bind" in {
       implicit val brokenBinder: QueryStringBindable[String] = {
@@ -79,11 +83,11 @@ class BindersSpec extends Specification {
         )
       }
       val brokenSeqBinder = implicitly[QueryStringBindable[Seq[String]]]
-      val err = s"""failed to parse q: failed: once
-      |failed to parse q: failed: knew
-      |failed to parse q: failed: a
-      |failed to parse q: failed: man
-      |failed to parse q: failed: from""".stripMargin.replaceAll(System.lineSeparator, "\n") // Windows compatibility
+      val err             = s"""failed to parse q: failed: once
+                   |failed to parse q: failed: knew
+                   |failed to parse q: failed: a
+                   |failed to parse q: failed: man
+                   |failed to parse q: failed: from""".stripMargin.replaceAll(System.lineSeparator, "\n") // Windows compatibility
 
       brokenSeqBinder.bind("q", params) must equalTo(Some(Left(err)))
     }
@@ -99,8 +103,8 @@ class BindersSpec extends Specification {
 
   "URL QueryStringBindable Char" should {
     val subject = implicitly[QueryStringBindable[Char]]
-    val char = 'X'
-    val string = "X"
+    val char    = 'X'
+    val string  = "X"
 
     "Unbind query string char as string" in {
       subject.unbind("key", char) must equalTo("key=" + char.toString)
@@ -109,7 +113,9 @@ class BindersSpec extends Specification {
       subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(char)))
     }
     "Fail on length > 1" in {
-      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")))
+      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
+        Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+      )
     }
     "Be None on empty" in {
       subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
@@ -117,9 +123,9 @@ class BindersSpec extends Specification {
   }
 
   "URL QueryStringBindable Java Character" should {
-    val subject = implicitly[QueryStringBindable[Character]]
+    val subject         = implicitly[QueryStringBindable[Character]]
     val char: Character = 'X'
-    val string = "X"
+    val string          = "X"
 
     "Unbind query string char as string" in {
       subject.unbind("key", char) must equalTo("key=" + char.toString)
@@ -128,7 +134,9 @@ class BindersSpec extends Specification {
       subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(char)))
     }
     "Fail on length > 1" in {
-      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")))
+      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
+        Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+      )
     }
     "Be None on empty" in {
       subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
@@ -137,8 +145,8 @@ class BindersSpec extends Specification {
 
   "URL PathBindable Char" should {
     val subject = implicitly[PathBindable[Char]]
-    val char = 'X'
-    val string = "X"
+    val char    = 'X'
+    val string  = "X"
 
     "Unbind Path char as string" in {
       subject.unbind("key", char) must equalTo(char.toString)
@@ -147,17 +155,21 @@ class BindersSpec extends Specification {
       subject.bind("key", string) must equalTo(Right(char))
     }
     "Fail on length > 1" in {
-      subject.bind("key", "foo") must be_==(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+      subject.bind("key", "foo") must be_==(
+        Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")
+      )
     }
     "Fail on empty" in {
-      subject.bind("key", "") must be_==(Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length."))
+      subject.bind("key", "") must be_==(
+        Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length.")
+      )
     }
   }
 
   "URL PathBindable Java Character" should {
-    val subject = implicitly[PathBindable[Character]]
+    val subject         = implicitly[PathBindable[Character]]
     val char: Character = 'X'
-    val string = "X"
+    val string          = "X"
 
     "Unbind Path char as string" in {
       subject.unbind("key", char) must equalTo(char.toString)
@@ -166,10 +178,14 @@ class BindersSpec extends Specification {
       subject.bind("key", string) must equalTo(Right(char))
     }
     "Fail on length > 1" in {
-      subject.bind("key", "foo") must be_==(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+      subject.bind("key", "foo") must be_==(
+        Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")
+      )
     }
     "Fail on empty" in {
-      subject.bind("key", "") must be_==(Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length."))
+      subject.bind("key", "") must be_==(
+        Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length.")
+      )
     }
   }
 

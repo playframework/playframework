@@ -17,9 +17,7 @@ import scala.annotation._
  * @tparam A the content type
  * @param mimeType the default content type for `A`, if any
  */
-@implicitNotFound(
-  "Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]"
-)
+@implicitNotFound("Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]")
 case class ContentTypeOf[-A](mimeType: Option[String])
 
 /**
@@ -97,16 +95,19 @@ trait DefaultContentTypeOfs {
   /**
    * Default content type for byte array (application/application/octet-stream).
    */
-  implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] = ContentTypeOf[Array[Byte]](Some(ContentTypes.BINARY))
+  implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] =
+    ContentTypeOf[Array[Byte]](Some(ContentTypes.BINARY))
 
   /**
    * Default content type for byte array (application/application/octet-stream).
    */
-  implicit def contentTypeOf_ByteString: ContentTypeOf[ByteString] = ContentTypeOf[ByteString](Some(ContentTypes.BINARY))
+  implicit def contentTypeOf_ByteString: ContentTypeOf[ByteString] =
+    ContentTypeOf[ByteString](Some(ContentTypes.BINARY))
 
   /**
    * Default content type for empty responses (no content type).
    */
-  implicit def contentTypeOf_EmptyContent: ContentTypeOf[Results.EmptyContent] = ContentTypeOf[Results.EmptyContent](None)
+  implicit def contentTypeOf_EmptyContent: ContentTypeOf[Results.EmptyContent] =
+    ContentTypeOf[Results.EmptyContent](None)
 
 }

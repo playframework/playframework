@@ -8,7 +8,9 @@ import akka.util.ByteString
 import javax.inject.Inject
 import play.api.libs.streams.Accumulator
 import play.api.mvc.request.RequestAttrKey
-import play.api.mvc.{ EssentialAction, RequestHeader, Result }
+import play.api.mvc.EssentialAction
+import play.api.mvc.RequestHeader
+import play.api.mvc.Result
 
 /**
  * A result processor that applies a CSPResult to a play request pipeline -- either an ActionBuilder or a Filter.
@@ -33,8 +35,7 @@ object CSPResultProcessor {
  * `play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER`
  * is set as an additional header.
  */
-class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor)
-  extends CSPResultProcessor {
+class DefaultCSPResultProcessor @Inject()(cspProcessor: CSPProcessor) extends CSPResultProcessor {
 
   def apply(next: EssentialAction, request: RequestHeader): Accumulator[ByteString, Result] = {
     cspProcessor

@@ -6,26 +6,36 @@ package play.api
 
 import java.io._
 
-import akka.actor.{ ActorSystem, CoordinatedShutdown }
-import akka.stream.{ ActorMaterializer, Materializer }
-import javax.inject.{ Inject, Singleton }
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
+import akka.stream.ActorMaterializer
+import akka.stream.Materializer
+import javax.inject.Inject
+import javax.inject.Singleton
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
 import play.api.i18n.I18nComponents
-import play.api.inject.{ ApplicationLifecycle, _ }
+import play.api.inject.ApplicationLifecycle
+import play.api.inject._
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
-import play.api.libs.concurrent.{ ActorSystemProvider, CoordinatedShutdownProvider }
+import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.crypto._
 import play.api.mvc._
-import play.api.mvc.request.{ DefaultRequestFactory, RequestFactory }
+import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.request.RequestFactory
 import play.api.routing.Router
-import play.core.j.{ JavaContextComponents, JavaHelpers }
-import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
+import play.core.j.JavaContextComponents
+import play.core.j.JavaHelpers
+import play.core.DefaultWebCommands
+import play.core.SourceMapper
+import play.core.WebCommands
 import play.utils._
 
 import scala.annotation.implicitNotFound
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 /**
@@ -42,7 +52,9 @@ import scala.reflect.ClassTag
  * This will create an application using the current classloader.
  *
  */
-@implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, please use dependency injection.")
+@implicitNotFound(
+  msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, please use dependency injection."
+)
 trait Application {
 
   /**
@@ -65,7 +77,7 @@ trait Application {
    */
   def environment: Environment
 
-  private[play] def isDev = (mode == Mode.Dev)
+  private[play] def isDev  = (mode == Mode.Dev)
   private[play] def isTest = (mode == Mode.Test)
   private[play] def isProd = (mode == Mode.Prod)
 
@@ -209,6 +221,7 @@ trait Application {
 }
 
 object Application {
+
   /**
    * Creates a function that caches results of calls to
    * `app.injector.instanceOf[T]`. The cache speeds up calls
@@ -236,7 +249,7 @@ object Application {
 }
 
 @Singleton
-class DefaultApplication @Inject() (
+class DefaultApplication @Inject()(
     override val environment: Environment,
     applicationLifecycle: ApplicationLifecycle,
     override val injector: Injector,
@@ -246,18 +259,20 @@ class DefaultApplication @Inject() (
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
     override val materializer: Materializer,
-    override val coordinatedShutdown: CoordinatedShutdown) extends Application {
+    override val coordinatedShutdown: CoordinatedShutdown
+) extends Application {
 
   def this(
-    environment: Environment,
-    applicationLifecycle: ApplicationLifecycle,
-    injector: Injector,
-    configuration: Configuration,
-    requestFactory: RequestFactory,
-    requestHandler: HttpRequestHandler,
-    errorHandler: HttpErrorHandler,
-    actorSystem: ActorSystem,
-    materializer: Materializer) = this(
+      environment: Environment,
+      applicationLifecycle: ApplicationLifecycle,
+      injector: Injector,
+      configuration: Configuration,
+      requestFactory: RequestFactory,
+      requestHandler: HttpRequestHandler,
+      errorHandler: HttpErrorHandler,
+      actorSystem: ActorSystem,
+      materializer: Materializer
+  ) = this(
     environment,
     applicationLifecycle,
     injector,
@@ -283,23 +298,29 @@ private[play] final case object ApplicationStoppedReason extends CoordinatedShut
  * Helper to provide the Play built in components.
  */
 trait BuiltInComponents extends I18nComponents {
+
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
+
   /** Helper to locate the source code for the application. Only available in dev mode. */
   @deprecated("Use devContext.map(_.sourceMapper) instead", "2.7.0")
   def sourceMapper: Option[SourceMapper] = devContext.map(_.sourceMapper)
+
   /** Helper to interact with the Play build environment. Only available in dev mode. */
   def devContext: Option[DevContext] = None
 
   // Define a private val so that webCommands can remain a `def` instead of a `val`
   private val defaultWebCommands: WebCommands = new DefaultWebCommands
+
   /** Commands that intercept requests before the rest of the application handles them. Used by Evolutions. */
   def webCommands: WebCommands = defaultWebCommands
 
   /** The application's configuration. */
   def configuration: Configuration
+
   /** A registry to receive application lifecycle events, e.g. to close resources when the application stops. */
   def applicationLifecycle: ApplicationLifecycle
+
   /** The router that's used to pass requests to the correct handler. */
   def router: Router
 
@@ -309,23 +330,23 @@ trait BuiltInComponents extends I18nComponents {
    */
   lazy val injector: Injector = {
     val simple = new SimpleInjector(NewInstanceInjector) +
-      cookieSigner + // play.api.libs.Crypto (for cookies)
+      cookieSigner +      // play.api.libs.Crypto (for cookies)
       httpConfiguration + // play.api.mvc.BodyParsers trait
-      tempFileCreator + // play.api.libs.TemporaryFileCreator object
-      messagesApi + // play.api.i18n.Messages object
-      langs // play.api.i18n.Langs object
+      tempFileCreator +   // play.api.libs.TemporaryFileCreator object
+      messagesApi +       // play.api.i18n.Messages object
+      langs               // play.api.i18n.Langs object
     new ContextClassLoaderInjector(simple, environment.classLoader)
   }
 
   lazy val playBodyParsers: PlayBodyParsers =
     PlayBodyParsers(tempFileCreator, httpErrorHandler, httpConfiguration.parser)(materializer)
-  lazy val defaultBodyParser: BodyParser[AnyContent] = playBodyParsers.default
+  lazy val defaultBodyParser: BodyParser[AnyContent]  = playBodyParsers.default
   lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
-  lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
-  lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(
-    environment, configuration, devContext.map(_.sourceMapper), Some(router))
+  lazy val requestFactory: RequestFactory       = new DefaultRequestFactory(httpConfiguration)
+  lazy val httpErrorHandler: HttpErrorHandler =
+    new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
 
   /**
    * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
@@ -359,32 +380,40 @@ trait BuiltInComponents extends I18nComponents {
    */
   def httpFilters: Seq[EssentialFilter]
 
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(
-    webCommands,
-    devContext,
-    router,
+  lazy val httpRequestHandler: HttpRequestHandler =
+    new DefaultHttpRequestHandler(webCommands, devContext, router, httpErrorHandler, httpConfiguration, httpFilters)
+
+  lazy val application: Application = new DefaultApplication(
+    environment,
+    applicationLifecycle,
+    injector,
+    configuration,
+    requestFactory,
+    httpRequestHandler,
     httpErrorHandler,
-    httpConfiguration,
-    httpFilters)
+    actorSystem,
+    materializer,
+    coordinatedShutdown
+  )
 
-  lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, requestFactory, httpRequestHandler, httpErrorHandler, actorSystem, materializer, coordinatedShutdown)
-
-  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
+  lazy val actorSystem: ActorSystem            = new ActorSystemProvider(environment, configuration).get
   implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
-  lazy val coordinatedShutdown: CoordinatedShutdown = new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
+  lazy val coordinatedShutdown: CoordinatedShutdown =
+    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
   implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 
   lazy val cookieSigner: CookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
 
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
 
-  lazy val tempFileReaper: TemporaryFileReaper = new DefaultTemporaryFileReaper(actorSystem, TemporaryFileReaperConfiguration.fromConfiguration(configuration))
+  lazy val tempFileReaper: TemporaryFileReaper =
+    new DefaultTemporaryFileReaper(actorSystem, TemporaryFileReaperConfiguration.fromConfiguration(configuration))
   lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle, tempFileReaper)
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
-  lazy val javaContextComponents: JavaContextComponents = JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
+  lazy val javaContextComponents: JavaContextComponents =
+    JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 
   // NOTE: the following helpers are declared as protected since they are only meant to be used inside BuiltInComponents
   // This also makes them not conflict with other methods of the same type when used with Macwire.

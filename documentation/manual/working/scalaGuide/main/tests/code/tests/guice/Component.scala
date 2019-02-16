@@ -19,7 +19,8 @@ class MockComponent extends Component {
 // #component
 
 // #component-module
-import play.api.{ Environment, Configuration }
+import play.api.Environment
+import play.api.Configuration
 import play.api.inject.Module
 
 class ComponentModule extends Module {

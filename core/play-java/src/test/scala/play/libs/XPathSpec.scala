@@ -11,7 +11,8 @@ class XPathSpec extends Specification {
   //XPathFactory.newInstance() used internally by XPath is not thread safe so forcing sequential execution
   sequential
 
-  val xmlWithNamespace = XML.fromString("""<x:foo xmlns:x="http://foo.com/"><x:bar><x:baz>hey</x:baz></x:bar></x:foo>""")
+  val xmlWithNamespace =
+    XML.fromString("""<x:foo xmlns:x="http://foo.com/"><x:bar><x:baz>hey</x:baz></x:bar></x:foo>""")
   val xmlWithoutNamespace = XML.fromString("""<foo><bar><baz>hey</baz></bar><bizz></bizz><bizz></bizz></foo>""")
 
   "XPath" should {
@@ -21,7 +22,11 @@ class XPathSpec extends Specification {
     }
 
     "find text with namespace" in {
-      val text = XPath.selectText("//x:baz", xmlWithNamespace, Map("ns" -> "http://www.w3.org/XML/1998/namespace", "x" -> "http://foo.com/").asJava)
+      val text = XPath.selectText(
+        "//x:baz",
+        xmlWithNamespace,
+        Map("ns" -> "http://www.w3.org/XML/1998/namespace", "x" -> "http://foo.com/").asJava
+      )
       text must_== "hey"
     }
 
@@ -31,7 +36,11 @@ class XPathSpec extends Specification {
     }
 
     "find node with namespace" in {
-      val node = XPath.selectNode("//x:baz", xmlWithNamespace, Map("ns" -> "http://www.w3.org/XML/1998/namespace", "x" -> "http://foo.com/").asJava)
+      val node = XPath.selectNode(
+        "//x:baz",
+        xmlWithNamespace,
+        Map("ns" -> "http://www.w3.org/XML/1998/namespace", "x" -> "http://foo.com/").asJava
+      )
       node.getNodeName must_== "x:baz"
     }
 

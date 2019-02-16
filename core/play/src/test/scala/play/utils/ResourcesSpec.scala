@@ -4,9 +4,13 @@
 
 package play.utils
 
-import java.io.{ BufferedInputStream, File }
-import java.net.{ URL, URLConnection, URLStreamHandler }
-import java.util.zip.{ ZipEntry, ZipOutputStream }
+import java.io.BufferedInputStream
+import java.io.File
+import java.net.URL
+import java.net.URLConnection
+import java.net.URLStreamHandler
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import org.specs2.mutable.Specification
 
 import play.api.PlayCoreTestApplication
@@ -17,20 +21,20 @@ import play.api.PlayCoreTestApplication
 class ResourcesSpec extends Specification {
   import Resources._
 
-  lazy val app = PlayCoreTestApplication()
-  lazy val tmpDir = createTempDir("resources-", ".tmp")
-  lazy val jar = File.createTempFile("jar-", ".tmp", tmpDir)
-  lazy val fileRes = File.createTempFile("file-", ".tmp", tmpDir)
-  lazy val dirRes = createTempDir("dir-", ".tmp", tmpDir)
-  lazy val dirSpacesRes = createTempDir("dir spaces ", ".tmp", tmpDir)
-  lazy val spacesDir = createTempDir("spaces ", ".tmp", tmpDir)
-  lazy val spacesJar = File.createTempFile("jar-spaces", ".tmp", spacesDir)
-  lazy val resourcesDir = new File(app.classloader.getResource("").getPath)
+  lazy val app             = PlayCoreTestApplication()
+  lazy val tmpDir          = createTempDir("resources-", ".tmp")
+  lazy val jar             = File.createTempFile("jar-", ".tmp", tmpDir)
+  lazy val fileRes         = File.createTempFile("file-", ".tmp", tmpDir)
+  lazy val dirRes          = createTempDir("dir-", ".tmp", tmpDir)
+  lazy val dirSpacesRes    = createTempDir("dir spaces ", ".tmp", tmpDir)
+  lazy val spacesDir       = createTempDir("spaces ", ".tmp", tmpDir)
+  lazy val spacesJar       = File.createTempFile("jar-spaces", ".tmp", spacesDir)
+  lazy val resourcesDir    = new File(app.classloader.getResource("").getPath)
   lazy val tmpResourcesDir = createTempDir("test-bundle-", ".tmp", resourcesDir)
-  lazy val fileBundle = File.createTempFile("file-", ".tmp", tmpResourcesDir)
-  lazy val dirBundle = createTempDir("dir-", ".tmp", tmpResourcesDir)
+  lazy val fileBundle      = File.createTempFile("file-", ".tmp", tmpResourcesDir)
+  lazy val dirBundle       = createTempDir("dir-", ".tmp", tmpResourcesDir)
   lazy val spacesDirBundle = createTempDir("dir spaces ", ".tmp", tmpResourcesDir)
-  lazy val classloader = app.classloader
+  lazy val classloader     = app.classloader
   lazy val osgiClassloader = new OsgiClassLoaderSimulator(app.classloader, resourcesDir)
 
   /* In order to test Resources.isDirectory when the protocol is "bundle://", there are 2 options:
@@ -38,7 +42,7 @@ class ResourcesSpec extends Specification {
    * b) simulate the behavior of an OSGi class loader (cf. comment in play.utils.Resources). */
   class OsgiClassLoaderSimulator(classloader: ClassLoader, resourcesDir: File) extends ClassLoader {
     override def getResource(name: String): URL = {
-      val f = new File(resourcesDir, name)
+      val f    = new File(resourcesDir, name)
       val fURL = f.toURI.toURL
       if (!f.exists) null
       else {
@@ -99,22 +103,22 @@ class ResourcesSpec extends Specification {
 
     "return true for a directory resource URL with the 'bundle' protocol" in {
       val relativeIndex = dirBundle.getAbsolutePath.indexOf("test-bundle-")
-      val dir = dirBundle.getAbsolutePath.substring(relativeIndex)
-      val url = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
+      val dir           = dirBundle.getAbsolutePath.substring(relativeIndex)
+      val url           = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
       isDirectory(osgiClassloader, url) must beTrue
     }
 
     "return true for a directory resource URL that contains spaces with the 'bundle' protocol" in {
       val relativeIndex = spacesDirBundle.getAbsolutePath.indexOf("test-bundle-")
-      val dir = spacesDirBundle.getAbsolutePath.substring(relativeIndex)
-      val url = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
+      val dir           = spacesDirBundle.getAbsolutePath.substring(relativeIndex)
+      val url           = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
       isDirectory(osgiClassloader, url) must beTrue
     }
 
     "return false for a file resource URL with the 'bundle' protocol" in {
       val relativeIndex = fileBundle.getAbsolutePath.indexOf("test-bundle-")
-      val file = fileBundle.getAbsolutePath.substring(relativeIndex)
-      val url = new URL("bundle", "325.0", 25, file, new BundleStreamHandler)
+      val file          = fileBundle.getAbsolutePath.substring(relativeIndex)
+      val url           = new URL("bundle", "325.0", 25, file, new BundleStreamHandler)
       isDirectory(osgiClassloader, url) must beFalse
     }
 
@@ -189,7 +193,7 @@ class ResourcesSpec extends Specification {
 
     if (!file.isDirectory) {
       val in = new BufferedInputStream(java.nio.file.Files.newInputStream(file.toPath))
-      var b = in.read()
+      var b  = in.read()
       while (b > -1) {
         zip.write(b)
         b = in.read()

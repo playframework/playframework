@@ -5,15 +5,20 @@
 package play.api.cache.caffeine
 
 import java.util.concurrent.Executors
-import javax.inject.{ Inject, Provider }
+import javax.inject.Inject
+import javax.inject.Provider
 
-import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
+import play.api.cache.AsyncCacheApi
+import play.api.cache.SyncCacheApi
 import play.api.inject._
-import play.api.test.{ PlaySpecification, WithApplication }
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
 import play.cache.NamedCache
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class CaffeineCacheApiSpec extends PlaySpecification {
   sequential
@@ -36,19 +41,18 @@ class CaffeineCacheApiSpec extends PlaySpecification {
 
     "configure cache builder by name" in new WithApplication(
       _.configure(
-        "play.cache.caffeine.caches.custom.initial-capacity" -> 130,
-        "play.cache.caffeine.caches.custom.maximum-size" -> 50,
-        "play.cache.caffeine.caches.custom.weak-keys" -> true,
-        "play.cache.caffeine.caches.custom.weak-values" -> true,
-        "play.cache.caffeine.caches.custom.record-stats" -> true,
-
+        "play.cache.caffeine.caches.custom.initial-capacity"     -> 130,
+        "play.cache.caffeine.caches.custom.maximum-size"         -> 50,
+        "play.cache.caffeine.caches.custom.weak-keys"            -> true,
+        "play.cache.caffeine.caches.custom.weak-values"          -> true,
+        "play.cache.caffeine.caches.custom.record-stats"         -> true,
         "play.cache.caffeine.caches.custom-two.initial-capacity" -> 140,
-        "play.cache.caffeine.caches.custom-two.soft-values" -> true
+        "play.cache.caffeine.caches.custom-two.soft-values"      -> true
       )
     ) {
       val caffeineCacheManager: CaffeineCacheManager = app.injector.instanceOf[CaffeineCacheManager]
 
-      val cacheBuilderStrCustom: String = caffeineCacheManager.getCacheBuilder("custom").toString
+      val cacheBuilderStrCustom: String    = caffeineCacheManager.getCacheBuilder("custom").toString
       val cacheBuilderStrCustomTwo: String = caffeineCacheManager.getCacheBuilder("custom-two").toString
 
       cacheBuilderStrCustom.contains("initialCapacity=130") must be
@@ -61,7 +65,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
     }
 
     "get values from cache" in new WithApplication() {
-      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
@@ -79,7 +83,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
     }
 
     "remove values from cache" in new WithApplication() {
-      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
@@ -88,7 +92,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
     }
 
     "remove all values from cache" in new WithApplication() {
-      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
@@ -98,14 +102,15 @@ class CaffeineCacheApiSpec extends PlaySpecification {
   }
 }
 
-class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerProvider) extends Provider[CaffeineCacheManager] {
+class CustomCacheManagerProvider @Inject()(cacheManagerProvider: CacheManagerProvider)
+    extends Provider[CaffeineCacheManager] {
   lazy val get = {
     val mgr = cacheManagerProvider.get
     mgr
   }
 }
 
-class NamedCacheController @Inject() (
+class NamedCacheController @Inject()(
     @NamedCache("custom") val cache: SyncCacheApi,
     @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

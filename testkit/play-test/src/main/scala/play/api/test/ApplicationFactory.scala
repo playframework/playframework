@@ -15,6 +15,7 @@ import play.api.routing.Router
  * Creates an [[Application]]. Usually created by a helper in [[ApplicationFactories]].
  */
 @ApiMayChange trait ApplicationFactory {
+
   /** Creates an [[Application]]. */
   def create(): Application
 }
@@ -34,19 +35,23 @@ import play.api.routing.Router
   final def withRouter(createRouter: BuiltInComponents => Router): ApplicationFactory =
     withConfigAndRouter(Map.empty)(createRouter)
 
-  final def withConfigAndRouter(extraConfig: Map[String, Any])(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
+  final def withConfigAndRouter(
+      extraConfig: Map[String, Any]
+  )(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
     val context = ApplicationLoader.Context.create(
       environment = Environment.simple(),
-      initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig.asInstanceOf[Map[String, AnyRef]]
+      initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig
+        .asInstanceOf[Map[String, AnyRef]]
     )
     new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
       override lazy val router: Router = createRouter(this)
     }
   }
 
-  final def withAction(createAction: DefaultActionBuilder => Action[_]): ApplicationFactory = withRouter { components: BuiltInComponents =>
-    val action = createAction(components.defaultActionBuilder)
-    Router.from { case _ => action }
+  final def withAction(createAction: DefaultActionBuilder => Action[_]): ApplicationFactory = withRouter {
+    components: BuiltInComponents =>
+      val action = createAction(components.defaultActionBuilder)
+      Router.from { case _ => action }
   }
 
   final def withResult(result: Result): ApplicationFactory = withAction { Action: DefaultActionBuilder =>

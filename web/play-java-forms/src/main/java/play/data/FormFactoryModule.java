@@ -14,11 +14,8 @@ import java.util.List;
 
 public class FormFactoryModule extends Module {
 
-    @Override
-    public List<Binding<?>> bindings(final Environment environment, final Config config) {
-        return Collections.singletonList(
-            bindClass(FormFactory.class).toSelf()
-        );
-    }
-
+  @Override
+  public List<Binding<?>> bindings(final Environment environment, final Config config) {
+    return Collections.singletonList(bindClass(FormFactory.class).toSelf());
+  }
 }

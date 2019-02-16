@@ -13,10 +13,10 @@ package consoleapp {
     def createApplication() = {
       //#consoleapp
       import play.api._
-      val env = Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Dev)
+      val env     = Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Dev)
       val context = ApplicationLoader.Context.create(env)
-      val loader = ApplicationLoader(context)
-      val app = loader.load(context)
+      val loader  = ApplicationLoader(context)
+      val app     = loader.load(context)
       Play.start(app)
       //#consoleapp
       app

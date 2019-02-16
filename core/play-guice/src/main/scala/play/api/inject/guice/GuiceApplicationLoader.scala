@@ -5,7 +5,8 @@
 package play.api.inject.guice
 
 import play.api._
-import play.api.inject.{ ApplicationLifecycle, bind }
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.bind
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.
@@ -17,7 +18,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
   // empty constructor needed for instantiating via reflection
   def this() = this(new GuiceApplicationBuilder)
 
-  override final def load(context: ApplicationLoader.Context): Application = {
+  final override def load(context: ApplicationLoader.Context): Application = {
     builder(context).build
   }
 
@@ -44,6 +45,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
 }
 
 object GuiceApplicationLoader {
+
   /**
    * The default overrides provided by the Scala and Java GuiceApplicationLoaders.
    */

@@ -10,14 +10,22 @@ import okhttp3.RequestBody
 import okhttp3.internal.{ Util => OkUtil }
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
-import play.api.mvc.{ RequestHeader, Results }
+import play.api.mvc.RequestHeader
+import play.api.mvc.Results
 import play.api.routing.Router
-import play.api.test.{ ApplicationFactories, ApplicationFactory, PlaySpecification, ServerEndpointRecipe }
-import play.core.server.{ AkkaHttpServer, ServerProvider }
+import play.api.test.ApplicationFactories
+import play.api.test.ApplicationFactory
+import play.api.test.PlaySpecification
+import play.api.test.ServerEndpointRecipe
+import play.core.server.AkkaHttpServer
+import play.core.server.ServerProvider
 import play.it.test._
 
-class AkkaHttpCustomServerProviderSpec extends PlaySpecification
-  with EndpointIntegrationSpecification with OkHttpEndpointSupport with ApplicationFactories {
+class AkkaHttpCustomServerProviderSpec
+    extends PlaySpecification
+    with EndpointIntegrationSpecification
+    with OkHttpEndpointSupport
+    with ApplicationFactories {
 
   val appFactory: ApplicationFactory = withRouter { components =>
     import play.api.routing.sird.{ GET => SirdGet, _ }
@@ -31,9 +39,11 @@ class AkkaHttpCustomServerProviderSpec extends PlaySpecification
     }
   }
 
-  def requestWithMethod[A: AsResult](endpointRecipe: ServerEndpointRecipe, method: String, body: RequestBody)(f: Either[Int, String] => A): Fragment =
+  def requestWithMethod[A: AsResult](endpointRecipe: ServerEndpointRecipe, method: String, body: RequestBody)(
+      f: Either[Int, String] => A
+  ): Fragment =
     appFactory.withOkHttpEndpoints(Seq(endpointRecipe)) { okEndpoint: OkHttpEndpoint =>
-      val response = okEndpoint.configuredCall("/")(_.method(method, body))
+      val response                   = okEndpoint.configuredCall("/")(_.method(method, body))
       val param: Either[Int, String] = if (response.code == 200) Right(response.body.string) else Left(response.code)
       f(param)
     }
@@ -42,12 +52,19 @@ class AkkaHttpCustomServerProviderSpec extends PlaySpecification
 
   "an AkkaHttpServer with standard settings" should {
     "serve a routed GET request" in requestWithMethod(AkkaHttp11Plaintext, "GET", null)(_ must_== Right("get"))
-    "not find an unrouted POST request" in requestWithMethod(AkkaHttp11Plaintext, "POST", OkUtil.EMPTY_REQUEST)(_ must_== Left(404))
+    "not find an unrouted POST request" in requestWithMethod(AkkaHttp11Plaintext, "POST", OkUtil.EMPTY_REQUEST)(
+      _ must_== Left(404)
+    )
     "reject a routed FOO request" in requestWithMethod(AkkaHttp11Plaintext, "FOO", null)(_ must_== Left(501))
-    "reject an unrouted BAR request" in requestWithMethod (AkkaHttp11Plaintext, "BAR", OkUtil.EMPTY_REQUEST)(_ must_== Left(501))
-    "reject a long header value" in appFactory.withOkHttpEndpoints(Seq(AkkaHttp11Plaintext)) { okEndpoint: OkHttpEndpoint =>
-      val response = okEndpoint.configuredCall("/")(_.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc"))
-      response.code must_== 431
+    "reject an unrouted BAR request" in requestWithMethod(AkkaHttp11Plaintext, "BAR", OkUtil.EMPTY_REQUEST)(
+      _ must_== Left(501)
+    )
+    "reject a long header value" in appFactory.withOkHttpEndpoints(Seq(AkkaHttp11Plaintext)) {
+      okEndpoint: OkHttpEndpoint =>
+        val response = okEndpoint.configuredCall("/")(
+          _.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc")
+        )
+        response.code must_== 431
     }
   }
 
@@ -58,16 +75,20 @@ class AkkaHttpCustomServerProviderSpec extends PlaySpecification
       .withServerProvider(new ServerProvider {
         def createServer(context: ServerProvider.Context) =
           new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
-            override protected def createParserSettings(): ParserSettings = {
+            protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings.withCustomMethods(HttpMethod.custom("FOO"))
             }
           }
       })
 
     "serve a routed GET request" in requestWithMethod(customAkkaHttpEndpoint, "GET", null)(_ must_== Right("get"))
-    "not find an unrouted POST request" in requestWithMethod(customAkkaHttpEndpoint, "POST", OkUtil.EMPTY_REQUEST)(_ must_== Left(404))
+    "not find an unrouted POST request" in requestWithMethod(customAkkaHttpEndpoint, "POST", OkUtil.EMPTY_REQUEST)(
+      _ must_== Left(404)
+    )
     "serve a routed FOO request" in requestWithMethod(customAkkaHttpEndpoint, "FOO", null)(_ must_== Right("foo"))
-    "reject an unrouted BAR request" in requestWithMethod (customAkkaHttpEndpoint, "BAR", OkUtil.EMPTY_REQUEST)(_ must_== Left(501))
+    "reject an unrouted BAR request" in requestWithMethod(customAkkaHttpEndpoint, "BAR", OkUtil.EMPTY_REQUEST)(
+      _ must_== Left(501)
+    )
   }
 
   "an AkkaHttpServer with a config to support long headers" should {
@@ -77,15 +98,18 @@ class AkkaHttpCustomServerProviderSpec extends PlaySpecification
       .withServerProvider(new ServerProvider {
         def createServer(context: ServerProvider.Context) =
           new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
-            override protected def createParserSettings(): ParserSettings = {
+            protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings.withMaxHeaderNameLength(100)
             }
           }
       })
 
-    "accept a long header value" in appFactory.withOkHttpEndpoints(Seq(customAkkaHttpEndpoint)) { okEndpoint: OkHttpEndpoint =>
-      val response = okEndpoint.configuredCall("/")(_.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc"))
-      response.code must_== 200
+    "accept a long header value" in appFactory.withOkHttpEndpoints(Seq(customAkkaHttpEndpoint)) {
+      okEndpoint: OkHttpEndpoint =>
+        val response = okEndpoint.configuredCall("/")(
+          _.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc")
+        )
+        response.code must_== 200
     }
   }
 

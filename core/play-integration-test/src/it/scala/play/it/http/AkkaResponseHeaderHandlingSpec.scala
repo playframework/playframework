@@ -6,8 +6,10 @@ package play.it.http
 
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
-import play.api.test.{ PlaySpecification, Port }
-import play.it.{ AkkaHttpIntegrationSpecification, LogTester }
+import play.api.test.PlaySpecification
+import play.api.test.Port
+import play.it.AkkaHttpIntegrationSpecification
+import play.it.LogTester
 
 class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
 
@@ -15,19 +17,29 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
 
     def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().appRoutes { app =>
-        val Action = app.injector.instanceOf[DefaultActionBuilder]
-        val parse = app.injector.instanceOf[PlayBodyParsers]
-        ({ case _ => action(Action, parse) })
-      }.build())) {
+      running(
+        TestServer(
+          port,
+          GuiceApplicationBuilder()
+            .appRoutes { app =>
+              val Action = app.injector.instanceOf[DefaultActionBuilder]
+              val parse  = app.injector.instanceOf[PlayBodyParsers]
+              ({ case _ => action(Action, parse) })
+            }
+            .build()
+        )
+      ) {
         block(port)
       }
     }
 
-    "correct support invalid Authorization header" in withServer((Action, _) => Action { rh =>
-      // authorization is a invalid response header
-      Results.Ok.withHeaders("Authorization" -> "invalid")
-    }) { port =>
+    "correct support invalid Authorization header" in withServer(
+      (Action, _) =>
+        Action { rh =>
+          // authorization is a invalid response header
+          Results.Ok.withHeaders("Authorization" -> "invalid")
+        }
+    ) { port =>
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
         // Second request ensures that Play switches back to its normal handler
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
@@ -37,10 +49,13 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
       responses(0).headers.get("Authorization") must_== Some("invalid")
     }
 
-    "don't strip quotes from Link header" in withServer((Action, _) => Action { rh =>
-      // Test the header reported in https://github.com/playframework/playframework/issues/7733
-      Results.Ok.withHeaders("Link" -> """<http://example.com/some/url>; rel="next"""")
-    }) { port =>
+    "don't strip quotes from Link header" in withServer(
+      (Action, _) =>
+        Action { rh =>
+          // Test the header reported in https://github.com/playframework/playframework/issues/7733
+          Results.Ok.withHeaders("Link" -> """<http://example.com/some/url>; rel="next"""")
+        }
+    ) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )
@@ -49,10 +64,13 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
 
     "don't log a warning for Set-Cookie headers with negative ages" in {
       val problemHeaderValue = "PLAY_FLASH=; Max-Age=-86400; Expires=Tue, 30 Jan 2018 06:29:53 GMT; Path=/; HTTPOnly"
-      withServer((Action, _) => Action { rh =>
-        // Test the header reported in https://github.com/playframework/playframework/issues/8205
-        Results.Ok.withHeaders("Set-Cookie" -> problemHeaderValue)
-      }) { port =>
+      withServer(
+        (Action, _) =>
+          Action { rh =>
+            // Test the header reported in https://github.com/playframework/playframework/issues/8205
+            Results.Ok.withHeaders("Set-Cookie" -> problemHeaderValue)
+          }
+      ) { port =>
         val (Seq(response), logMessages) = LogTester.recordLogEvents {
           BasicHttpClient.makeRequests(port)(
             BasicRequest("GET", "/", "HTTP/1.1", Map(), "")

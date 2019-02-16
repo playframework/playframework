@@ -67,43 +67,53 @@ class MediaRangeSpec extends Specification {
       parseSingleMediaRange("*") must_== new MediaRange("*", "*", Nil, None, Nil)
     }
     "maintain the original order of media ranges in the accept header" in {
-      MediaRange.parse("foo1/bar1, foo3/bar3, foo2/bar2") must contain(exactly(
-        new MediaRange("foo1", "bar1", Nil, None, Nil),
-        new MediaRange("foo3", "bar3", Nil, None, Nil),
-        new MediaRange("foo2", "bar2", Nil, None, Nil)
-      ).inOrder)
+      MediaRange.parse("foo1/bar1, foo3/bar3, foo2/bar2") must contain(
+        exactly(
+          new MediaRange("foo1", "bar1", Nil, None, Nil),
+          new MediaRange("foo3", "bar3", Nil, None, Nil),
+          new MediaRange("foo2", "bar2", Nil, None, Nil)
+        ).inOrder
+      )
     }
     "order by q value" in {
-      MediaRange.parse("foo1/bar1;q=0.25, foo3/bar3, foo2/bar2;q=0.5") must contain(exactly(
-        new MediaRange("foo3", "bar3", Nil, None, Nil),
-        new MediaRange("foo2", "bar2", Nil, Some(0.5f), Nil),
-        new MediaRange("foo1", "bar1", Nil, Some(0.25f), Nil)
-      ).inOrder)
+      MediaRange.parse("foo1/bar1;q=0.25, foo3/bar3, foo2/bar2;q=0.5") must contain(
+        exactly(
+          new MediaRange("foo3", "bar3", Nil, None, Nil),
+          new MediaRange("foo2", "bar2", Nil, Some(0.5f), Nil),
+          new MediaRange("foo1", "bar1", Nil, Some(0.25f), Nil)
+        ).inOrder
+      )
     }
     "order by specificity" in {
-      MediaRange.parse("*/*, foo/*, foo/bar") must contain(exactly(
-        new MediaRange("foo", "bar", Nil, None, Nil),
-        new MediaRange("foo", "*", Nil, None, Nil),
-        new MediaRange("*", "*", Nil, None, Nil)
-      ).inOrder)
+      MediaRange.parse("*/*, foo/*, foo/bar") must contain(
+        exactly(
+          new MediaRange("foo", "bar", Nil, None, Nil),
+          new MediaRange("foo", "*", Nil, None, Nil),
+          new MediaRange("*", "*", Nil, None, Nil)
+        ).inOrder
+      )
     }
     "order by parameters" in {
-      MediaRange.parse("foo/bar, foo/bar;p1=v1;p2=v2, foo/bar;p1=v1") must contain(exactly(
-        new MediaRange("foo", "bar", Seq("p1" -> Some("v1"), "p2" -> Some("v2")), None, Nil),
-        new MediaRange("foo", "bar", Seq("p1" -> Some("v1")), None, Nil),
-        new MediaRange("foo", "bar", Nil, None, Nil)
-      ).inOrder)
+      MediaRange.parse("foo/bar, foo/bar;p1=v1;p2=v2, foo/bar;p1=v1") must contain(
+        exactly(
+          new MediaRange("foo", "bar", Seq("p1" -> Some("v1"), "p2" -> Some("v2")), None, Nil),
+          new MediaRange("foo", "bar", Seq("p1" -> Some("v1")), None, Nil),
+          new MediaRange("foo", "bar", Nil, None, Nil)
+        ).inOrder
+      )
     }
     "just order it all damn it" in {
-      MediaRange.parse("foo/bar1;q=0.25, */*;q=0.25, foo/*;q=0.25, foo/bar2, foo/bar3;q=0.5, foo/*, foo/bar4") must contain(exactly(
-        new MediaRange("foo", "bar2", Nil, None, Nil),
-        new MediaRange("foo", "bar4", Nil, None, Nil),
-        new MediaRange("foo", "*", Nil, None, Nil),
-        new MediaRange("foo", "bar3", Nil, Some(0.5f), Nil),
-        new MediaRange("foo", "bar1", Nil, Some(0.25f), Nil),
-        new MediaRange("foo", "*", Nil, Some(0.25f), Nil),
-        new MediaRange("*", "*", Nil, Some(0.25f), Nil)
-      ).inOrder)
+      MediaRange.parse("foo/bar1;q=0.25, */*;q=0.25, foo/*;q=0.25, foo/bar2, foo/bar3;q=0.5, foo/*, foo/bar4") must contain(
+        exactly(
+          new MediaRange("foo", "bar2", Nil, None, Nil),
+          new MediaRange("foo", "bar4", Nil, None, Nil),
+          new MediaRange("foo", "*", Nil, None, Nil),
+          new MediaRange("foo", "bar3", Nil, Some(0.5f), Nil),
+          new MediaRange("foo", "bar1", Nil, Some(0.25f), Nil),
+          new MediaRange("foo", "*", Nil, Some(0.25f), Nil),
+          new MediaRange("*", "*", Nil, Some(0.25f), Nil)
+        ).inOrder
+      )
     }
     "be able to be convert back to a string" in {
       new MediaType("foo", "bar", Nil).toString must_== "foo/bar"
@@ -131,10 +141,10 @@ class MediaRangeSpec extends Specification {
       } yield {
         // Use URL encoder so we can see which ctl character it's using
         def description = "Media type format: '" + format + "' Invalid character: " + c.toInt
-        val parsed = MediaRange.parse(format.format(c))
+        val parsed      = MediaRange.parse(format.format(c))
 
-        parsed aka description must haveSize(1)
-        parsed.head aka description must_==
+        parsed.aka(description) must haveSize(1)
+        parsed.head.aka(description) must_==
           new MediaRange("text", "plain", Seq("charset" -> Some("utf-8")), None, Nil)
       }
       success

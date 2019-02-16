@@ -7,7 +7,9 @@ package play.api.libs.crypto
 import java.nio.charset.StandardCharsets
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 import play.api.http.SecretConfiguration
 import play.api.libs.Codecs
@@ -52,14 +54,14 @@ trait CookieSigner {
 }
 
 @Singleton
-class CookieSignerProvider @Inject() (secretConfiguration: SecretConfiguration) extends Provider[CookieSigner] {
+class CookieSignerProvider @Inject()(secretConfiguration: SecretConfiguration) extends Provider[CookieSigner] {
   lazy val get: CookieSigner = new DefaultCookieSigner(secretConfiguration)
 }
 
 /**
  * Uses an HMAC-SHA1 for signing cookies.
  */
-class DefaultCookieSigner @Inject() (secretConfiguration: SecretConfiguration) extends CookieSigner {
+class DefaultCookieSigner @Inject()(secretConfiguration: SecretConfiguration) extends CookieSigner {
 
   private lazy val HmacSHA1 = "HmacSHA1"
 
@@ -93,4 +95,3 @@ class DefaultCookieSigner @Inject() (secretConfiguration: SecretConfiguration) e
   }
 
 }
-

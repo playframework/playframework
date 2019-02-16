@@ -13,7 +13,7 @@ import javax.naming.Context._
 object JNDI {
 
   private val IN_MEMORY_JNDI = "tyrex.naming.MemoryContextFactory"
-  private val IN_MEMORY_URL = "/"
+  private val IN_MEMORY_URL  = "/"
 
   /**
    * An in memory JNDI implementation.
@@ -25,15 +25,17 @@ object JNDI {
 
     val env = new java.util.Hashtable[String, String]
 
-    env.put(INITIAL_CONTEXT_FACTORY, {
-      val icf = System.getProperty(INITIAL_CONTEXT_FACTORY)
-      if (icf == null) {
-        System.setProperty(INITIAL_CONTEXT_FACTORY, IN_MEMORY_JNDI)
-        IN_MEMORY_JNDI
-      } else {
-        icf
+    env.put(
+      INITIAL_CONTEXT_FACTORY, {
+        val icf = System.getProperty(INITIAL_CONTEXT_FACTORY)
+        if (icf == null) {
+          System.setProperty(INITIAL_CONTEXT_FACTORY, IN_MEMORY_JNDI)
+          IN_MEMORY_JNDI
+        } else {
+          icf
+        }
       }
-    })
+    )
 
     env.put(PROVIDER_URL, {
       val url = System.getProperty(PROVIDER_URL)

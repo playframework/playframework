@@ -23,7 +23,8 @@ case class CSPConfig(
     shouldFilterRequest: RequestHeader => Boolean = _ => true,
     nonce: CSPNonceConfig = CSPNonceConfig(),
     hashes: Seq[CSPHashConfig] = Seq.empty,
-    directives: Seq[CSPDirective] = Seq.empty) {
+    directives: Seq[CSPDirective] = Seq.empty
+) {
 
   import java.{ util => ju }
 
@@ -93,7 +94,9 @@ object CSPConfig {
         !whitelistModifiers.exists(rh.hasRouteModifier)
       }
     }
-    val shouldFilterRequest: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) }
+    val shouldFilterRequest: RequestHeader => Boolean = { rh =>
+      checkRouteModifiers(rh)
+    }
 
     val nonce = config.get[Configuration]("nonce")
     val nonceConfig = CSPNonceConfig(
@@ -108,7 +111,8 @@ object CSPConfig {
       CSPHashConfig(
         algorithm = hashConfig.getAndValidate[String]("algorithm", Set("sha256", "sha384", "sha512")),
         hash = hashConfig.get[String]("hash"),
-        pattern = hashConfig.get[String]("pattern"))
+        pattern = hashConfig.get[String]("pattern")
+      )
     }
 
     val drctves = config.get[Configuration]("directives")
@@ -124,7 +128,8 @@ object CSPConfig {
       shouldFilterRequest = shouldFilterRequest,
       nonce = nonceConfig,
       hashes = hashConfigs.toSeq,
-      directives = directivesConfig)
+      directives = directivesConfig
+    )
   }
 }
 
@@ -140,7 +145,8 @@ case class CSPDirective(name: String, value: String)
 case class CSPNonceConfig(
     enabled: Boolean = true,
     pattern: String = CPSNonceConfig.DEFAULT_CSP_NONCE_PATTERN,
-    header: Boolean = true) {
+    header: Boolean = true
+) {
 
   /** Java constructor */
   def this() = this(true)

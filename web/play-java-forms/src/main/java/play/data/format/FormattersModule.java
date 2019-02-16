@@ -15,11 +15,8 @@ import java.util.List;
 
 public class FormattersModule extends Module {
 
-    @Override
-    public List<Binding<?>> bindings(final Environment environment, final Config config) {
-        return Collections.singletonList(
-            bindClass(Formatters.class).toSelf()
-        );
-    }
-
+  @Override
+  public List<Binding<?>> bindings(final Environment environment, final Config config) {
+    return Collections.singletonList(bindClass(Formatters.class).toSelf());
+  }
 }

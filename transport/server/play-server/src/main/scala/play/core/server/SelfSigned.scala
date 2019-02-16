@@ -7,7 +7,8 @@ package play.core.server
 import java.security.KeyStore
 import javax.net.ssl._
 
-import com.typesafe.sslconfig.ssl.{ FakeKeyStore, FakeSSLTools }
+import com.typesafe.sslconfig.ssl.FakeKeyStore
+import com.typesafe.sslconfig.ssl.FakeSSLTools
 
 import akka.annotation.ApiMayChange
 
@@ -17,6 +18,7 @@ import play.server.api.SSLEngineProvider
 /** Contains a statically initialized self-signed certificate. */
 // public only for testing purposes
 @ApiMayChange object SelfSigned {
+
   /** The SSLContext and TrustManager associated with the self-signed certificate. */
   lazy val (sslContext, trustManager): (SSLContext, X509TrustManager) = {
     val keyStore: KeyStore = FakeKeyStore.generateKeyStore

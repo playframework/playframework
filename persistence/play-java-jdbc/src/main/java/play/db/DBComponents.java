@@ -13,10 +13,10 @@ import scala.Option;
 import java.util.List;
 
 /**
- * Java DB components. You can mix in {@link HikariCPComponents}
- * to have a default implementation for accessing a connection pool.
+ * Java DB components. You can mix in {@link HikariCPComponents} to have a default implementation
+ * for accessing a connection pool.
  *
- * For example:
+ * <p>For example:
  *
  * <pre>
  * public class MyComponents extends BuiltInComponentsFromContext implements DBComponents, HikariCPComponents {
@@ -33,37 +33,36 @@ import java.util.List;
  */
 public interface DBComponents extends ConfigurationComponents, ConnectionPoolComponents {
 
-    Environment environment();
+  Environment environment();
 
-    ApplicationLifecycle applicationLifecycle();
+  ApplicationLifecycle applicationLifecycle();
 
-    /**
-     * @return all databases associated with the {@link #dbApi()}.
-     *
-     * @see DBApi#getDatabases()
-     */
-    default List<Database> databases() {
-        return dbApi().getDatabases();
-    }
+  /**
+   * @return all databases associated with the {@link #dbApi()}.
+   * @see DBApi#getDatabases()
+   */
+  default List<Database> databases() {
+    return dbApi().getDatabases();
+  }
 
-    /**
-     * @return the database with the given name, associated with the {@link #dbApi()}.
-     *
-     * @param name the database name
-     * @see DBApi#getDatabase(String)
-     */
-    default Database database(String name) {
-        return dbApi().getDatabase(name);
-    }
+  /**
+   * @return the database with the given name, associated with the {@link #dbApi()}.
+   * @param name the database name
+   * @see DBApi#getDatabase(String)
+   */
+  default Database database(String name) {
+    return dbApi().getDatabase(name);
+  }
 
-    default DBApi dbApi() {
-        play.api.db.DBApi scalaDbApi = new DBApiProvider(
-            environment().asScala(),
-            configuration(),
-            connectionPool().asScala(),
-            applicationLifecycle().asScala(),
-            Option.empty()
-        ).get();
-        return new DefaultDBApi(scalaDbApi);
-    }
+  default DBApi dbApi() {
+    play.api.db.DBApi scalaDbApi =
+        new DBApiProvider(
+                environment().asScala(),
+                configuration(),
+                connectionPool().asScala(),
+                applicationLifecycle().asScala(),
+                Option.empty())
+            .get();
+    return new DefaultDBApi(scalaDbApi);
+  }
 }

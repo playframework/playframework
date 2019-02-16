@@ -9,7 +9,8 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Application
 import play.api.test._
-import play.api.mvc.{ BodyParser, PlayBodyParsers }
+import play.api.mvc.BodyParser
+import play.api.mvc.PlayBodyParsers
 
 class TextBodyParserSpec extends PlaySpecification {
 
@@ -17,7 +18,10 @@ class TextBodyParserSpec extends PlaySpecification {
 
   "The text body parser" should {
 
-    def parse(text: String, contentType: Option[String], encoding: String)(implicit mat: Materializer, bodyParser: BodyParser[String]) = {
+    def parse(text: String, contentType: Option[String], encoding: String)(
+        implicit mat: Materializer,
+        bodyParser: BodyParser[String]
+    ) = {
       await(
         bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
           .run(Source.single(ByteString(text, encoding)))

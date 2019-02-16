@@ -4,22 +4,31 @@
 
 package play.it.http
 
-import java.util.concurrent.{ Callable, CompletableFuture, CompletionStage, TimeUnit }
-import javax.inject.{ Inject, Provider }
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Provider
 
 import akka.Done
-import com.github.benmanes.caffeine.cache.{ Cache, Caffeine }
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.primitives.Primitives
 import play.api.Application
 import play.api.cache.AsyncCacheApi
 import play.api.cache.caffeine.CaffeineCacheModule
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
-import play.cache.{ Cached, DefaultAsyncCacheApi }
+import play.api.test.PlaySpecification
+import play.api.test.TestServer
+import play.api.test.WsTestClient
+import play.cache.Cached
+import play.cache.DefaultAsyncCacheApi
 import play.inject.ApplicationLifecycle
 import play.mvc.Result
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
@@ -38,7 +47,8 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
       )
       .routes {
         case _ => JAction(app, controller)
-      }.build()
+      }
+      .build()
 
     running(TestServer(port, app)) {
       block(port)
@@ -55,7 +65,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         )
 
-        val first = responses.head
+        val first  = responses.head
         val cached = responses.last
 
         first.status must beEqualTo(cached.status)
@@ -63,16 +73,19 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
       }
 
       "expire result" in makeRequest(new CachedController()) { port =>
-
-        val first = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).head
+        val first = BasicHttpClient
+          .makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          )
+          .head
 
         Thread.sleep(5.seconds.toMillis) // enough time to ensure the cache was expired
 
-        val second = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).head
+        val second = BasicHttpClient
+          .makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          )
+          .head
 
         first.status must beEqualTo(second.status)
         first.body must not(beEqualTo(second.body))
@@ -82,7 +95,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
 
     "when action is annotated" in {
       "cache result" in makeRequest(new MockController {
-        @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1 /* second */ )
+        @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1)
         override def action: Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
       }) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
@@ -90,7 +103,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         )
 
-        val first = responses.head
+        val first  = responses.head
         val cached = responses.last
 
         first.status must beEqualTo(cached.status)
@@ -98,19 +111,22 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
       }
 
       "expire result" in makeRequest(new MockController {
-        @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1 /* second */ )
+        @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1)
         override def action: Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
       }) { port =>
-
-        val first = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).head
+        val first = BasicHttpClient
+          .makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          )
+          .head
 
         Thread.sleep(5.seconds.toMillis) // enough time to ensure the cache was expired
 
-        val second = BasicHttpClient.makeRequests(port)(
-          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-        ).head
+        val second = BasicHttpClient
+          .makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+          )
+          .head
 
         first.status must beEqualTo(second.status)
         first.body must not(beEqualTo(second.body))
@@ -119,7 +135,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
   }
 }
 
-@Cached(key = "play.it.http.CachedController.cache", duration = 1 /* second */ )
+@Cached(key = "play.it.http.CachedController.cache", duration = 1)
 class CachedController extends MockController {
   override def action: Result = {
     play.mvc.Results.ok("Cached result: " + System.currentTimeMillis())
@@ -145,15 +161,17 @@ class TestAsyncCacheApi(cache: Cache[String, Object])(implicit context: Executio
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
     get[A](key).flatMap {
       case Some(value) => Future.successful(value)
-      case None => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
+      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
     }
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Future[Option[T]] = {
-    val result = Option(cache.getIfPresent(key)).filter { v =>
-      Primitives.wrap(ct.runtimeClass).isInstance(v) ||
+    val result = Option(cache.getIfPresent(key))
+      .filter { v =>
+        Primitives.wrap(ct.runtimeClass).isInstance(v) ||
         ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
-    }.asInstanceOf[Option[T]]
+      }
+      .asInstanceOf[Option[T]]
     Future.successful(result)
   }
 
@@ -163,7 +181,8 @@ class TestAsyncCacheApi(cache: Cache[String, Object])(implicit context: Executio
   }
 }
 
-class TestAsyncCacheApiProvider @Inject() (lifeCycle: ApplicationLifecycle)(implicit context: ExecutionContext) extends Provider[TestAsyncCacheApi] {
+class TestAsyncCacheApiProvider @Inject()(lifeCycle: ApplicationLifecycle)(implicit context: ExecutionContext)
+    extends Provider[TestAsyncCacheApi] {
   override def get(): TestAsyncCacheApi = {
     val cache = Caffeine
       .newBuilder()

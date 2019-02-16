@@ -13,8 +13,9 @@ import play.filters.csp.CSPComponents
 
 // #scala-csp-components
 class MyComponents(context: Context)
-  extends BuiltInComponentsFromContext(context)
-    with HttpFiltersComponents with CSPComponents {
+    extends BuiltInComponentsFromContext(context)
+    with HttpFiltersComponents
+    with CSPComponents {
 
   override def httpFilters: Seq[EssentialFilter] = super.httpFilters :+ cspFilter
 

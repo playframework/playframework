@@ -11,7 +11,8 @@ import javax.validation.Validation
 import org.specs2.mutable.Specification
 import play.api.i18n._
 import play.data.format.Formatters
-import play.data.validation.Constraints.{ MaxLength, Required }
+import play.data.validation.Constraints.MaxLength
+import play.data.validation.Constraints.Required
 
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
@@ -21,11 +22,13 @@ class PartialValidationSpec extends Specification {
   val messagesApi = new DefaultMessagesApi()
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-  val formFactory = new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory(), ConfigFactory.load())
+  val formFactory =
+    new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory(), ConfigFactory.load())
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {
-      val form = formFactory.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop2" -> "Hello", "prop3" -> "abc").asJava)
+      val form =
+        formFactory.form(classOf[SomeForm], classOf[Partial]).bind(Map("prop2" -> "Hello", "prop3" -> "abc").asJava)
       form.errors().asScala must beEmpty
     }
 

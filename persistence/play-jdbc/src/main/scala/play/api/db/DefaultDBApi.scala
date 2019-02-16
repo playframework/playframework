@@ -5,8 +5,11 @@
 package play.api.db
 
 import com.typesafe.config.Config
-import play.api.inject.{ Injector, NewInstanceInjector }
-import play.api.{ Configuration, Environment, Logger }
+import play.api.inject.Injector
+import play.api.inject.NewInstanceInjector
+import play.api.Configuration
+import play.api.Environment
+import play.api.Logger
 
 import scala.util.control.NonFatal
 
@@ -17,7 +20,8 @@ class DefaultDBApi(
     configuration: Map[String, Config],
     defaultConnectionPool: ConnectionPool = new HikariCPConnectionPool(Environment.simple()),
     environment: Environment = Environment.simple(),
-    injector: Injector = NewInstanceInjector) extends DBApi {
+    injector: Injector = NewInstanceInjector
+) extends DBApi {
 
   import DefaultDBApi._
 
@@ -41,13 +45,14 @@ class DefaultDBApi(
    */
   @deprecated("Use initialize instead, which does not try to connect to the database", "2.7.0")
   def connect(logConnection: Boolean = false): Unit = {
-    databases foreach { db =>
+    databases.foreach { db =>
       try {
         db.getConnection().close()
         if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
       } catch {
         case NonFatal(e) =>
-          throw Configuration(configuration(db.name)).reportError("url", s"Cannot connect to database [${db.name}]", Some(e))
+          throw Configuration(configuration(db.name))
+            .reportError("url", s"Cannot connect to database [${db.name}]", Some(e))
       }
     }
   }
@@ -68,7 +73,8 @@ class DefaultDBApi(
         db.dataSource
       } catch {
         case NonFatal(e) =>
-          throw Configuration(configuration(db.name)).reportError("url", s"Cannot initialize to database [${db.name}]", Some(e))
+          throw Configuration(configuration(db.name))
+            .reportError("url", s"Cannot initialize to database [${db.name}]", Some(e))
       }
     }
   }

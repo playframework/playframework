@@ -9,7 +9,9 @@ import javax.inject.Inject
 import org.specs2.mutable.Specification
 import play.api.inject.Binding
 import play.api.inject.guice.GuiceInjectorBuilder
-import play.api.{ Configuration, Environment, PlayException }
+import play.api.Configuration
+import play.api.Environment
+import play.api.PlayException
 
 import scala.reflect.ClassTag
 
@@ -56,7 +58,11 @@ class ReflectSpec extends Specification {
 
   def bindings(configured: String, defaultClassName: String): Seq[Binding[_]] = {
     Reflect.bindingsFromConfiguration[Duck, JavaDuck, JavaDuckAdapter, JavaDuckDelegate, DefaultDuck](
-      Environment.simple(), Configuration.from(Map("duck" -> configured)), "duck", defaultClassName)
+      Environment.simple(),
+      Configuration.from(Map("duck" -> configured)),
+      "duck",
+      defaultClassName
+    )
   }
 
   def bindings[Default: ClassTag](configured: String): Seq[Binding[_]] = {
@@ -65,7 +71,7 @@ class ReflectSpec extends Specification {
 
   def doQuack(bindings: Seq[Binding[_]]): String = {
     val injector = new GuiceInjectorBuilder().bindings(bindings).injector
-    val duck = injector.instanceOf[Duck]
+    val duck     = injector.instanceOf[Duck]
     val javaDuck = injector.instanceOf[JavaDuck]
 
     // The Java duck and the Scala duck must agree
@@ -84,7 +90,7 @@ trait JavaDuck {
   def getQuack: String
 }
 
-class JavaDuckAdapter @Inject() (underlying: JavaDuck) extends Duck {
+class JavaDuckAdapter @Inject()(underlying: JavaDuck) extends Duck {
   def quack = underlying.getQuack
 }
 
@@ -100,7 +106,7 @@ class CustomJavaDuck extends JavaDuck {
   def getQuack = "java quack"
 }
 
-class JavaDuckDelegate @Inject() (delegate: Duck) extends JavaDuck {
+class JavaDuckDelegate @Inject()(delegate: Duck) extends JavaDuck {
   def getQuack = delegate.quack
 }
 

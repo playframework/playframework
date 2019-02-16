@@ -16,25 +16,23 @@ import play.filters.components.NoHttpFiltersComponents;
 import play.routing.Router;
 
 public class ValidateWithDBComponents extends BuiltInComponentsFromContext
-        implements FormFactoryComponents, DBComponents, HikariCPComponents, NoHttpFiltersComponents {
+    implements FormFactoryComponents, DBComponents, HikariCPComponents, NoHttpFiltersComponents {
 
-    public ValidateWithDBComponents(ApplicationLoader.Context context) {
-        super(context);
-    }
+  public ValidateWithDBComponents(ApplicationLoader.Context context) {
+    super(context);
+  }
 
-    @Override
-    public Router router() {
-        return Router.empty();
-    }
+  @Override
+  public Router router() {
+    return Router.empty();
+  }
 
-    @Override
-    public MappedConstraintValidatorFactory constraintValidatorFactory() {
-        return new MappedConstraintValidatorFactory()
-                .addConstraintValidator(
-                        ValidateWithDBValidator.class,
-                        new ValidateWithDBValidator(database("default"))
-                );
-    }
+  @Override
+  public MappedConstraintValidatorFactory constraintValidatorFactory() {
+    return new MappedConstraintValidatorFactory()
+        .addConstraintValidator(
+            ValidateWithDBValidator.class, new ValidateWithDBValidator(database("default")));
+  }
 }
 
 // #constraint-compile-timed-di

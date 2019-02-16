@@ -12,15 +12,21 @@ object DevModeBuild {
   // the file watcher service. This is relevant when using the
   // default JDK watch service which does uses polling.
   val MaxAttempts = 30
-  val WaitTime = 500l
+  val WaitTime    = 500L
 
   val ConnectTimeout = 10000
-  val ReadTimeout = 10000
+  val ReadTimeout    = 10000
 
   def applyEvolutions(path: String): Unit = callUrl(path)
 
   @tailrec
-  def verifyResourceContains(path: String, status: Int, assertions: Seq[String], attempts: Int, headers: (String, String)*): Unit = {
+  def verifyResourceContains(
+      path: String,
+      status: Int,
+      assertions: Seq[String],
+      attempts: Int,
+      headers: (String, String)*
+  ): Unit = {
     println(s"Attempt $attempts at $path")
     val messages = ListBuffer.empty[String]
     try {
@@ -56,7 +62,7 @@ object DevModeBuild {
   }
 
   private def callUrl(path: String, headers: (String, String)*): (Int, String) = {
-    val url = new java.net.URL("http://localhost:9000" + path)
+    val url  = new java.net.URL("http://localhost:9000" + path)
     val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
     conn.setConnectTimeout(ConnectTimeout)
     conn.setReadTimeout(ReadTimeout)

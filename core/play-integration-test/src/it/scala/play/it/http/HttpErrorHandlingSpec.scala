@@ -7,20 +7,33 @@ package play.it.http
 import java.io.File
 import java.util
 
-import play.api.http.{DefaultHttpErrorHandler, HttpErrorHandler}
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.test.{ApplicationFactories, ApplicationFactory, PlaySpecification}
+import play.api.test.ApplicationFactories
+import play.api.test.ApplicationFactory
+import play.api.test.PlaySpecification
 import play.api._
-import play.core.{BuildLink, HandleWebCommandSupport, SourceMapper}
-import play.it.test.{EndpointIntegrationSpecification, OkHttpEndpointSupport}
+import play.core.BuildLink
+import play.core.HandleWebCommandSupport
+import play.core.SourceMapper
+import play.it.test.EndpointIntegrationSpecification
+import play.it.test.OkHttpEndpointSupport
 
 import scala.concurrent.Future
 
-class HttpErrorHandlingSpec extends PlaySpecification
-  with EndpointIntegrationSpecification with ApplicationFactories with OkHttpEndpointSupport {
+class HttpErrorHandlingSpec
+    extends PlaySpecification
+    with EndpointIntegrationSpecification
+    with ApplicationFactories
+    with OkHttpEndpointSupport {
 
-  def createApplicationFactory(applicationContext: ApplicationLoader.Context, webCommandHandler: Option[HandleWebCommandSupport], filters: Seq[EssentialFilter]): ApplicationFactory = new ApplicationFactory {
+  def createApplicationFactory(
+      applicationContext: ApplicationLoader.Context,
+      webCommandHandler: Option[HandleWebCommandSupport],
+      filters: Seq[EssentialFilter]
+  ): ApplicationFactory = new ApplicationFactory {
     override def create(): Application = {
       val components = new BuiltInComponentsFromContext(applicationContext) {
 
@@ -32,12 +45,15 @@ class HttpErrorHandlingSpec extends PlaySpecification
         import play.api.routing.sird._
         override lazy val router: Router = Router.from {
           case sird.GET(p"/error") => throw new RuntimeException("action exception!")
-          case sird.GET(p"/") => Action { Ok("Done!") }
+          case sird.GET(p"/")      => Action { Ok("Done!") }
         }
 
         override def httpFilters: Seq[EssentialFilter] = filters
 
-        override lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(sourceMapper = applicationContext.devContext.map(_.sourceMapper), router = Some(router)) {
+        override lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(
+          sourceMapper = applicationContext.devContext.map(_.sourceMapper),
+          router = Some(router)
+        ) {
           override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
             Future.successful(InternalServerError(message))
           }
@@ -88,11 +104,11 @@ class HttpErrorHandlingSpec extends PlaySpecification
     "in DEV mode" in {
 
       val buildLink = new BuildLink {
-        override def reload(): AnyRef = null
+        override def reload(): AnyRef                                            = null
         override def findSource(className: String, line: Integer): Array[AnyRef] = null
-        override def projectPath(): File = new File("").getAbsoluteFile
-        override def forceReload(): Unit = { /* do nothing */ }
-        override def settings(): util.Map[String, String] = util.Collections.emptyMap()
+        override def projectPath(): File                                         = new File("").getAbsoluteFile
+        override def forceReload(): Unit                                         = { /* do nothing */ }
+        override def settings(): util.Map[String, String]                        = util.Collections.emptyMap()
       }
 
       val devSourceMapper = new SourceMapper {
@@ -114,22 +130,25 @@ class HttpErrorHandlingSpec extends PlaySpecification
         applicationContext = applicationContext,
         webCommandHandler = None,
         filters = Seq(
-        new EssentialFilter {
-          def apply(next: EssentialAction) = {
-            throw new RuntimeException("filter exception!")
+          new EssentialFilter {
+            def apply(next: EssentialAction) = {
+              throw new RuntimeException("filter exception!")
+            }
           }
-        }
-      ))
+        )
+      )
 
       val appWithWebCommandExceptions: ApplicationFactory = createApplicationFactory(
         applicationContext = applicationContext,
         webCommandHandler = Some(
-        new HandleWebCommandSupport {
-          override def handleWebCommand(request: RequestHeader, buildLink: BuildLink, path: File): Option[Result] = {
-            throw new RuntimeException("webcommand exception!")
+          new HandleWebCommandSupport {
+            override def handleWebCommand(request: RequestHeader, buildLink: BuildLink, path: File): Option[Result] = {
+              throw new RuntimeException("webcommand exception!")
+            }
           }
-        }
-      ), Seq.empty)
+        ),
+        Seq.empty
+      )
 
       "handle exceptions that happens in action" in appWithActionException.withAllOkHttpEndpoints { endpoint =>
         val request = new okhttp3.Request.Builder()
@@ -151,14 +170,15 @@ class HttpErrorHandlingSpec extends PlaySpecification
         response.body.string must_== "got exception: filter exception!"
       }
 
-      "handle exceptions that happens in web command" in appWithWebCommandExceptions.withAllOkHttpEndpoints { endpoint =>
-        val request = new okhttp3.Request.Builder()
-          .url(endpoint.endpoint.pathUrl("/"))
-          .get()
-          .build()
-        val response = endpoint.client.newCall(request).execute()
-        response.code must_== 500
-        response.body.string must_== "got exception: webcommand exception!"
+      "handle exceptions that happens in web command" in appWithWebCommandExceptions.withAllOkHttpEndpoints {
+        endpoint =>
+          val request = new okhttp3.Request.Builder()
+            .url(endpoint.endpoint.pathUrl("/"))
+            .get()
+            .build()
+          val response = endpoint.client.newCall(request).execute()
+          response.code must_== 500
+          response.body.string must_== "got exception: webcommand exception!"
       }
     }
   }

@@ -20,23 +20,26 @@ import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 @Singleton
 public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
 
-    private ValidatorFactory validatorFactory;
+  private ValidatorFactory validatorFactory;
 
-    @Inject
-    public ValidatorFactoryProvider(ConstraintValidatorFactory constraintValidatorFactory, final ApplicationLifecycle lifecycle) {
-        this.validatorFactory = Validation.byDefaultProvider().configure()
-                .constraintValidatorFactory(constraintValidatorFactory)
-                .messageInterpolator(new ParameterMessageInterpolator())
-                .buildValidatorFactory();
+  @Inject
+  public ValidatorFactoryProvider(
+      ConstraintValidatorFactory constraintValidatorFactory, final ApplicationLifecycle lifecycle) {
+    this.validatorFactory =
+        Validation.byDefaultProvider()
+            .configure()
+            .constraintValidatorFactory(constraintValidatorFactory)
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory();
 
-        lifecycle.addStopHook(() -> {
-            this.validatorFactory.close();
-            return CompletableFuture.completedFuture(null);
+    lifecycle.addStopHook(
+        () -> {
+          this.validatorFactory.close();
+          return CompletableFuture.completedFuture(null);
         });
-    }
+  }
 
-    public ValidatorFactory get() {
-        return this.validatorFactory;
-    }
-
+  public ValidatorFactory get() {
+    return this.validatorFactory;
+  }
 }

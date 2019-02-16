@@ -11,7 +11,8 @@ import javax.inject._
 import play.api.cache.ehcache.EhCacheApi
 import play.api.mvc._
 import play.api.test._
-import play.api.{ Application, http }
+import play.api.Application
+import play.api.http
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -31,7 +32,7 @@ class CachedSpec extends PlaySpecification {
     "cache values using injected CachedApi" in new WithApplication() {
 
       val controller = app.injector.instanceOf[CachedController]
-      val result1 = controller.action(FakeRequest()).run()
+      val result1    = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
       val result2 = controller.action(FakeRequest()).run()
@@ -47,7 +48,7 @@ class CachedSpec extends PlaySpecification {
       _.configure("play.cache.bindCaches" -> Seq("custom"))
     ) {
       val controller = app.injector.instanceOf[NamedCachedController]
-      val result1 = controller.action(FakeRequest()).run()
+      val result1    = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
       val result2 = controller.action(FakeRequest()).run()
@@ -76,15 +77,16 @@ class CachedSpec extends PlaySpecification {
           .timeToLiveSeconds(60)
           .timeToIdleSeconds(30)
           .diskExpiryThreadIntervalSeconds(0)
-          .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP)))
+          .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP))
+      )
       cacheManager.addCache(diskEhcache)
       val diskEhcache2 = cacheManager.getCache("disk")
       assert(diskEhcache2 != null)
-      val diskCache = new EhCacheApi(diskEhcache2)(app.materializer.executionContext)
+      val diskCache  = new EhCacheApi(diskEhcache2)(app.materializer.executionContext)
       val diskCached = new Cached(diskCache)
-      val invoked = new AtomicInteger()
-      val action = diskCached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
-      val result1 = action(FakeRequest()).run()
+      val invoked    = new AtomicInteger()
+      val action     = diskCached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val result1    = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
       val result2 = action(FakeRequest()).run()
@@ -118,7 +120,7 @@ class CachedSpec extends PlaySpecification {
 
     "use etags for values" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action  = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run()
       status(result1) must_== 200
       invoked.get() must_== 1
@@ -131,7 +133,7 @@ class CachedSpec extends PlaySpecification {
 
     "support wildcard etags" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action  = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run()
       status(result1) must_== 200
       invoked.get() must_== 1
@@ -142,7 +144,7 @@ class CachedSpec extends PlaySpecification {
 
     "use etags weak comparison" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action  = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run()
       status(result1) must_== 200
       invoked.get() must_== 1
@@ -154,7 +156,7 @@ class CachedSpec extends PlaySpecification {
     }
 
     "work with etag cache misses" in new WithApplication() {
-      val action = cached(app)(_.uri)(Action(Results.Ok))
+      val action  = cached(app)(_.uri)(Action(Results.Ok))
       val resultA = action(FakeRequest("GET", "/a")).run()
       status(resultA) must_== 200
       status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "\"foo\"")).run) must_== 200
@@ -174,11 +176,13 @@ class CachedSpec extends PlaySpecification {
 
   "Cached EssentialAction composition" should {
     "cache infinite ok results" in new WithApplication() {
-      val cacheOk = cached(app).empty { x =>
-        x.uri
-      }.includeStatus(200)
+      val cacheOk = cached(app)
+        .empty { x =>
+          x.uri
+        }
+        .includeStatus(200)
 
-      val actionOk = cacheOk.build(dummyAction)
+      val actionOk       = cacheOk.build(dummyAction)
       val actionNotFound = cacheOk.build(notFoundAction)
 
       val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
@@ -191,7 +195,7 @@ class CachedSpec extends PlaySpecification {
       val res2 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run())
       val res3 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run())
 
-      res2 must not equalTo (res3)
+      (res2 must not).equalTo(res3)
     }
 
     "cache everything for infinite" in new WithApplication() {
@@ -199,7 +203,7 @@ class CachedSpec extends PlaySpecification {
         x.uri
       }
 
-      val actionOk = cache.build(dummyAction)
+      val actionOk       = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
 
       val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
@@ -216,21 +220,19 @@ class CachedSpec extends PlaySpecification {
     "cache everything one hour" in new WithApplication() {
       val cache = cached(app).everything((x: RequestHeader) => x.uri, 3600)
 
-      val actionOk = cache.build(dummyAction)
+      val actionOk       = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
 
       val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run())
       val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
 
       def toDuration(header: String) = {
-        val now = Instant.now().toEpochMilli
+        val now    = Instant.now().toEpochMilli
         val target = Instant.from(http.dateFormat.parse(header)).toEpochMilli
         Duration(target - now, MILLISECONDS)
       }
 
-      val beInOneHour = beBetween(
-        (Duration(1, HOURS) - Duration(10, SECONDS)).toMillis,
-        Duration(1, HOURS).toMillis)
+      val beInOneHour = beBetween((Duration(1, HOURS) - Duration(10, SECONDS)).toMillis, Duration(1, HOURS).toMillis)
 
       res0.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
       res1.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
@@ -239,16 +241,16 @@ class CachedSpec extends PlaySpecification {
 
     "cache everything for a given duration" in new WithApplication {
       val duration = 15.minutes
-      val cache = cached.everything((x: RequestHeader) => x.uri, duration)
+      val cache    = cached.everything((x: RequestHeader) => x.uri, duration)
 
-      val actionOk = cache.build(dummyAction)
+      val actionOk       = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
 
       val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run())
       val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
 
       def toDuration(header: String) = {
-        val now = Instant.now().toEpochMilli
+        val now    = Instant.now().toEpochMilli
         val target = Instant.from(http.dateFormat.parse(header)).toEpochMilli
         Duration(target - now, MILLISECONDS)
       }
@@ -259,16 +261,16 @@ class CachedSpec extends PlaySpecification {
 
     "cache 200 OK results for a given duration" in new WithApplication {
       val duration = 15.minutes
-      val cache = cached.status((x: RequestHeader) => x.uri, OK, duration)
+      val cache    = cached.status((x: RequestHeader) => x.uri, OK, duration)
 
-      val actionOk = cache.build(dummyAction)
+      val actionOk       = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
 
       val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run())
       val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
 
       def toDuration(header: String) = {
-        val now = Instant.now().toEpochMilli
+        val now    = Instant.now().toEpochMilli
         val target = Instant.from(http.dateFormat.parse(header)).toEpochMilli
         Duration(target - now, MILLISECONDS)
       }
@@ -287,8 +289,8 @@ class CachedSpec extends PlaySpecification {
       defaultCache.set("int", 31)
       defaultCache.get[Int]("int") must beSome(31)
 
-      defaultCache.set("long", 31l)
-      defaultCache.get[Long]("long") must beSome(31l)
+      defaultCache.set("long", 31L)
+      defaultCache.get[Long]("long") must beSome(31L)
 
       defaultCache.set("double", 3.14)
       defaultCache.get[Double]("double") must beSome(3.14)
@@ -304,7 +306,7 @@ class CachedSpec extends PlaySpecification {
       val defaultCache = app.injector.instanceOf[AsyncCacheApi].sync
       defaultCache.set("foo", "bar")
       defaultCache.set("int", 31)
-      defaultCache.set("long", 31l)
+      defaultCache.set("long", 31L)
       defaultCache.set("double", 3.14)
       defaultCache.set("boolean", true)
       defaultCache.set("unit", ())
@@ -345,7 +347,7 @@ class CachedSpec extends PlaySpecification {
     "support binding multiple different caches" in new WithApplication(
       _.configure("play.cache.bindCaches" -> Seq("custom"))
     ) {
-      val component = app.injector.instanceOf[SomeComponent]
+      val component    = app.injector.instanceOf[SomeComponent]
       val defaultCache = app.injector.instanceOf[AsyncCacheApi]
       component.set("foo", "bar")
       defaultCache.sync.get("foo") must beNone
@@ -355,22 +357,22 @@ class CachedSpec extends PlaySpecification {
 
 }
 
-class SomeComponent @Inject() (@NamedCache("custom") cache: AsyncCacheApi) {
-  def get(key: String) = cache.sync.get[String](key)
+class SomeComponent @Inject()(@NamedCache("custom") cache: AsyncCacheApi) {
+  def get(key: String)                = cache.sync.get[String](key)
   def set(key: String, value: String) = cache.sync.set(key, value)
 }
 
-class CachedController @Inject() (cached: Cached, c: ControllerComponents) extends AbstractController(c) {
+class CachedController @Inject()(cached: Cached, c: ControllerComponents) extends AbstractController(c) {
   val invoked = new AtomicInteger()
-  val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+  val action  = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
 }
 
-class NamedCachedController @Inject() (
+class NamedCachedController @Inject()(
     @NamedCache("custom") val cache: AsyncCacheApi,
     @NamedCache("custom") val cached: Cached,
     components: ControllerComponents
 ) extends AbstractController(components) {
-  val invoked = new AtomicInteger()
-  val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+  val invoked                        = new AtomicInteger()
+  val action                         = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
   def isCached(key: String): Boolean = cache.sync.get[String](key).isDefined
 }

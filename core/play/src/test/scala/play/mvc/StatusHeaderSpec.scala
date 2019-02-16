@@ -8,7 +8,8 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
-import com.fasterxml.jackson.core.io.{ CharacterEscapes, SerializedString }
+import com.fasterxml.jackson.core.io.CharacterEscapes
+import com.fasterxml.jackson.core.io.SerializedString
 import com.fasterxml.jackson.core.JsonEncoding
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
@@ -37,7 +38,8 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
 
         override def getEscapeCodesForAscii: Array[Int] =
           CharacterEscapes.standardAsciiEscapesForJSON.zipWithIndex.map {
-            case (_, code) if !(Character.isAlphabetic(code) || Character.isDigit(code)) => CharacterEscapes.ESCAPE_CUSTOM
+            case (_, code) if !(Character.isAlphabetic(code) || Character.isDigit(code)) =>
+              CharacterEscapes.ESCAPE_CUSTOM
             case (escape, _) => escape
           }
       })
@@ -46,7 +48,7 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
       jsonNode.put("field", "value&")
 
       val statusHeader = new StatusHeader(Http.Status.OK)
-      val result = statusHeader.sendJson(jsonNode, JsonEncoding.UTF8)
+      val result       = statusHeader.sendJson(jsonNode, JsonEncoding.UTF8)
 
       val content = Await.result(for {
         byteString <- result.body.dataStream.runWith(Sink.head, materializer)

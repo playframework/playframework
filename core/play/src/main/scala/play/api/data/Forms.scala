@@ -257,7 +257,7 @@ object Forms {
    * Form("username" -> nonEmptyText)
    * }}}
    */
-  val nonEmptyText: Mapping[String] = text verifying Constraints.nonEmpty
+  val nonEmptyText: Mapping[String] = text.verifying(Constraints.nonEmpty)
 
   /**
    * Constructs a simple mapping for a text field.
@@ -271,9 +271,9 @@ object Forms {
    * @param maxLength maximum text length
    */
   def text(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = (minLength, maxLength) match {
-    case (min, Int.MaxValue) => text verifying Constraints.minLength(min)
-    case (0, max) => text verifying Constraints.maxLength(max)
-    case (min, max) => text verifying (Constraints.minLength(min), Constraints.maxLength(max))
+    case (min, Int.MaxValue) => text.verifying(Constraints.minLength(min))
+    case (0, max)            => text.verifying(Constraints.maxLength(max))
+    case (min, max)          => text.verifying(Constraints.minLength(min), Constraints.maxLength(max))
   }
 
   /**
@@ -287,7 +287,8 @@ object Forms {
    * @param minLength Text min length.
    * @param maxLength Text max length.
    */
-  def nonEmptyText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = text(minLength, maxLength) verifying Constraints.nonEmpty
+  def nonEmptyText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] =
+    text(minLength, maxLength).verifying(Constraints.nonEmpty)
 
   /**
    * Constructs a simple mapping for a numeric field.
@@ -390,16 +391,21 @@ object Forms {
     numberMapping[Byte](Byte.MinValue, Byte.MaxValue, min, max, strict)
 
   @inline private def numberMapping[N: Numeric: Formatter](
-    typeMin: N, typeMax: N, min: N, max: N, strict: Boolean): Mapping[N] = {
+      typeMin: N,
+      typeMax: N,
+      min: N,
+      max: N,
+      strict: Boolean
+  ): Mapping[N] = {
     val number = of[N]
     if (min == typeMin && max == typeMax) {
       number
     } else if (min == typeMin) {
-      number verifying Constraints.max(max, strict)
+      number.verifying(Constraints.max(max, strict))
     } else if (max == typeMax) {
-      number verifying Constraints.min(min, strict)
+      number.verifying(Constraints.min(min, strict))
     } else {
-      number verifying (Constraints.min(min, strict), Constraints.max(max, strict))
+      number.verifying(Constraints.min(min, strict), Constraints.max(max, strict))
     }
   }
 
@@ -423,7 +429,8 @@ object Forms {
    * @param precision The maximum total number of digits (including decimals)
    * @param scale The maximum number of decimals
    */
-  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some((precision, scale)))
+  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] =
+    of[BigDecimal].as(bigDecimalFormat(Some((precision, scale))))
 
   /**
    * Constructs a simple mapping for a date field.
@@ -478,7 +485,8 @@ object Forms {
    * @param mapping The mapping to make optional.
    * @param value The default value when mapping and the field is not present.
    */
-  def default[A](mapping: Mapping[A], value: A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
+  def default[A](mapping: Mapping[A], value: A): Mapping[A] =
+    OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
 
   /**
    * Defines a repeated mapping.
@@ -526,7 +534,8 @@ object Forms {
    *
    * @param mapping The mapping to make repeated.
    */
-  def indexedSeq[A](mapping: Mapping[A]): Mapping[IndexedSeq[A]] = RepeatedMapping(mapping).transform(_.toIndexedSeq, _.toList)
+  def indexedSeq[A](mapping: Mapping[A]): Mapping[IndexedSeq[A]] =
+    RepeatedMapping(mapping).transform(_.toIndexedSeq, _.toList)
 
   /**
    * Defines a repeated mapping with the Vector semantic.
@@ -551,7 +560,8 @@ object Forms {
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def date(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.util.Date] = of[java.util.Date] as dateFormat(pattern, timeZone)
+  def date(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.util.Date] =
+    of[java.util.Date].as(dateFormat(pattern, timeZone))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
@@ -580,7 +590,7 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
    */
-  def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern)
+  def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date].as(sqlDateFormat(pattern))
 
   /**
    * Constructs a simple mapping for a timestamp field (mapped as `java.sql.Timestamp type`).
@@ -603,7 +613,10 @@ object Forms {
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def sqlTimestamp(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.sql.Timestamp] = of[java.sql.Timestamp] as sqlTimestampFormat(pattern, timeZone)
+  def sqlTimestamp(
+      pattern: String,
+      timeZone: java.util.TimeZone = java.util.TimeZone.getDefault
+  ): Mapping[java.sql.Timestamp] = of[java.sql.Timestamp].as(sqlTimestampFormat(pattern, timeZone))
 
   /**
    * Constructs a simple mapping for an e-mail field.
@@ -615,7 +628,7 @@ object Forms {
    *   Form("email" -> email)
    * }}}
    */
-  val email: Mapping[String] = of[String] verifying Constraints.emailAddress
+  val email: Mapping[String] = of[String].verifying(Constraints.emailAddress)
 
   /**
    * Constructs a simple mapping for a Boolean field, such as a check-box.
@@ -647,7 +660,7 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
    */
-  def localDate(pattern: String): Mapping[java.time.LocalDate] = of[java.time.LocalDate] as localDateFormat(pattern)
+  def localDate(pattern: String): Mapping[java.time.LocalDate] = of[java.time.LocalDate].as(localDateFormat(pattern))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `java.time.LocalDateTime type`).
@@ -669,7 +682,8 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
    */
-  def localDateTime(pattern: String): Mapping[java.time.LocalDateTime] = of[java.time.LocalDateTime] as localDateTimeFormat(pattern)
+  def localDateTime(pattern: String): Mapping[java.time.LocalDateTime] =
+    of[java.time.LocalDateTime].as(localDateTimeFormat(pattern))
 
   /**
    * Constructs a simple mapping for a date field (mapped as `java.time.LocalTime type`).
@@ -691,8 +705,8 @@ object Forms {
    *
    * @param pattern the date pattern, as defined in `java.time.format.DateTimeFormatter`
    */
-  def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime] as localTimeFormat(pattern)
+  def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime].as(localTimeFormat(pattern))
 
-  def checked(msg: String): Mapping[Boolean] = boolean verifying (msg, _ == true)
+  def checked(msg: String): Mapping[Boolean] = boolean.verifying(msg, _ == true)
 
 }

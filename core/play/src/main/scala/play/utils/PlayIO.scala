@@ -8,7 +8,8 @@ import java.io._
 
 import scala.io.Codec
 import java.net.URL
-import java.nio.file.{ Files, Path }
+import java.nio.file.Files
+import java.nio.file.Path
 
 import play.api.Logger
 
@@ -29,8 +30,8 @@ private[play] object PlayIO {
   private def readStream(stream: InputStream): Array[Byte] = {
     try {
       val buffer = new Array[Byte](8192)
-      var len = stream.read(buffer)
-      val out = new ByteArrayOutputStream() // Doesn't need closing
+      var len    = stream.read(buffer)
+      val out    = new ByteArrayOutputStream() // Doesn't need closing
       while (len != -1) {
         out.write(buffer, 0, len)
         len = stream.read(buffer)

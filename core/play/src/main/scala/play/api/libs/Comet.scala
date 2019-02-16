@@ -5,10 +5,13 @@
 package play.api.libs
 
 import akka.NotUsed
-import akka.stream.scaladsl.{ Flow, Source }
-import akka.util.{ ByteString, ByteStringBuilder }
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import akka.util.ByteStringBuilder
 import play.twirl.api.utils.StringEscapeUtils
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 import play.twirl.api._
 
 /**
@@ -43,9 +46,9 @@ object Comet {
    * @return a flow of ByteString elements.
    */
   def string(callbackName: String): Flow[String, ByteString, NotUsed] = {
-    Flow[String].map(str =>
-      ByteString.fromString("'" + StringEscapeUtils.escapeEcmaScript(str) + "'")
-    ).via(flow(callbackName))
+    Flow[String]
+      .map(str => ByteString.fromString("'" + StringEscapeUtils.escapeEcmaScript(str) + "'"))
+      .via(flow(callbackName))
   }
 
   /**
@@ -56,9 +59,11 @@ object Comet {
    * @return a flow of ByteString elements.
    */
   def json(callbackName: String): Flow[JsValue, ByteString, NotUsed] = {
-    Flow[JsValue].map { msg =>
-      ByteString.fromString(Json.asciiStringify(msg))
-    }.via(flow(callbackName))
+    Flow[JsValue]
+      .map { msg =>
+        ByteString.fromString(Json.asciiStringify(msg))
+      }
+      .via(flow(callbackName))
   }
 
   /**
@@ -75,7 +80,10 @@ object Comet {
    *   Ok.chunked(htmlStream via Comet.flow("parent.clockChanged"))
    * }}}
    */
-  def flow(callbackName: String, initialChunk: ByteString = initialByteString): Flow[ByteString, ByteString, NotUsed] = {
+  def flow(
+      callbackName: String,
+      initialChunk: ByteString = initialByteString
+  ): Flow[ByteString, ByteString, NotUsed] = {
     val cb: ByteString = ByteString.fromString(callbackName)
     Flow.apply[ByteString].map(msg => formatted(cb, msg)).prepend(Source.single(initialChunk))
   }

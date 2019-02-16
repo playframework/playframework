@@ -7,8 +7,11 @@ package play.mvc
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedMap
-import play.api.mvc.{ Headers, RequestHeader }
-import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
+import play.api.mvc.Headers
+import play.api.mvc.RequestHeader
+import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 import play.mvc.Http.HeaderNames
 
 import scala.compat.java8.OptionConverters._

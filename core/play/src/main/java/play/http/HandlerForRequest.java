@@ -7,9 +7,7 @@ package play.http;
 import play.api.mvc.Handler;
 import play.mvc.Http.RequestHeader;
 
-/**
- * A request and a handler to handle it.
- */
+/** A request and a handler to handle it. */
 public class HandlerForRequest {
   private final RequestHeader request;
   private final Handler handler;

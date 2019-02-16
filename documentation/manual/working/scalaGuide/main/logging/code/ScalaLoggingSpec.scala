@@ -11,7 +11,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import org.slf4j._
 import play.api._
 import play.api.libs.Files.SingletonTemporaryFileCreator
@@ -33,8 +34,8 @@ class ScalaLoggingSpec extends Specification with Mockito {
       val logger = new play.api.LoggerLike {
         // Mock underlying logger implementation
         val logger = mock[org.slf4j.Logger].smart
-        logger.isDebugEnabled() returns true
-        logger.isErrorEnabled() returns true
+        logger.isDebugEnabled().returns(true)
+        logger.isErrorEnabled().returns(true)
       }
 
       //#logging-example
@@ -54,10 +55,10 @@ class ScalaLoggingSpec extends Specification with Mockito {
       }
       //#logging-example
 
-      there was atLeastOne(logger.logger).isDebugEnabled()
-      there was atLeastOne(logger.logger).debug(anyString)
-      there was atMostOne(logger.logger).isErrorEnabled()
-      there was atMostOne(logger.logger).error(anyString, any[Throwable])
+      there.was(atLeastOne(logger.logger).isDebugEnabled())
+      there.was(atLeastOne(logger.logger).debug(anyString))
+      there.was(atMostOne(logger.logger).isErrorEnabled())
+      there.was(atMostOne(logger.logger).error(anyString, any[Throwable]))
     }
 
   }
@@ -115,7 +116,8 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import play.api.mvc._
       import javax.inject.Inject
 
-      class AccessLoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
+      class AccessLoggingAction @Inject()(parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+          extends ActionBuilderImpl(parser) {
         val accessLogger = Logger("access")
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           accessLogger.info(s"method=${request.method} uri=${request.uri} remote-address=${request.remoteAddress}")
@@ -123,7 +125,8 @@ class ScalaLoggingSpec extends Specification with Mockito {
         }
       }
 
-      class Application @Inject() (val accessLoggingAction: AccessLoggingAction, cc: ControllerComponents) extends AbstractController(cc) {
+      class Application @Inject()(val accessLoggingAction: AccessLoggingAction, cc: ControllerComponents)
+          extends AbstractController(cc) {
 
         val logger = Logger(this.getClass())
 
@@ -145,10 +148,11 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import akka.stream.ActorMaterializer
       import play.api.http._
       import akka.stream.Materializer
-      implicit val system = ActorSystem()
-      implicit val mat = ActorMaterializer()
+      implicit val system               = ActorSystem()
+      implicit val mat                  = ActorMaterializer()
       implicit val ec: ExecutionContext = system.dispatcher
-      val controller = new Application(new AccessLoggingAction(new BodyParsers.Default()), Helpers.stubControllerComponents())
+      val controller =
+        new Application(new AccessLoggingAction(new BodyParsers.Default()), Helpers.stubControllerComponents())
 
       controller.accessLoggingAction.accessLogger.underlyingLogger.getName must equalTo("access")
       controller.logger.underlyingLogger.getName must contain("Application")
@@ -164,7 +168,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import play.api.mvc._
       import play.api._
 
-      class AccessLoggingFilter @Inject() (implicit val mat: Materializer) extends Filter {
+      class AccessLoggingFilter @Inject()(implicit val mat: Materializer) extends Filter {
 
         val accessLogger = Logger("access")
 
@@ -195,7 +199,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
 
       //#logging-underlying
       val underlyingLogger: org.slf4j.Logger = logger.underlyingLogger
-      val loggerName = underlyingLogger.getName()
+      val loggerName                         = underlyingLogger.getName()
       //#logging-underlying
 
       loggerName must equalTo("access")
@@ -214,7 +218,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
 
       //#logging-marker-context
       val marker: org.slf4j.Marker = MarkerFactory.getMarker("SOMEMARKER")
-      val mc: MarkerContext = MarkerContext(marker)
+      val mc: MarkerContext        = MarkerContext(marker)
       //#logging-marker-context
       mc.marker must beSome.which(_ must be_==(marker))
     }
@@ -228,7 +232,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       logger.info("log message with explicit marker context with case object")(SomeMarkerContext)
 
       // Use a specified marker.
-      val otherMarker: Marker = MarkerFactory.getMarker("OTHER")
+      val otherMarker: Marker               = MarkerFactory.getMarker("OTHER")
       val otherMarkerContext: MarkerContext = MarkerContext(otherMarker)
       logger.info("log message with explicit marker context")(otherMarkerContext)
       //#logging-log-info-with-explicit-markercontext
@@ -241,7 +245,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       val logger: Logger = Logger("access")
 
       //#logging-log-info-with-implicit-markercontext
-      val marker: Marker = MarkerFactory.getMarker("SOMEMARKER")
+      val marker: Marker             = MarkerFactory.getMarker("SOMEMARKER")
       implicit val mc: MarkerContext = MarkerContext(marker)
 
       // Use the implicit MarkerContext in logger.info...
@@ -294,7 +298,8 @@ trait RequestMarkerContext {
 //#logging-request-context-trait
 
 class ImplicitRequestController @Inject()(cc: ControllerComponents)(implicit otherExecutionContext: ExecutionContext)
-  extends AbstractController(cc) with RequestMarkerContext {
+    extends AbstractController(cc)
+    with RequestMarkerContext {
   private val logger = play.api.Logger(getClass)
 
   //#logging-log-info-with-request-context
@@ -328,8 +333,7 @@ object TracerMarker {
   private val tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER")
 }
 
-class TracerBulletController @Inject()(cc: ControllerComponents)
-  extends AbstractController(cc) with TracerMarker {
+class TracerBulletController @Inject()(cc: ControllerComponents) extends AbstractController(cc) with TracerMarker {
   private val logger = play.api.Logger("application")
 
   def index = Action { implicit request: Request[AnyContent] =>

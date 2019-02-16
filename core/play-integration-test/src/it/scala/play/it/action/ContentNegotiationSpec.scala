@@ -7,15 +7,16 @@ package play.it.action
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api.mvc._
-import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.test.FakeRequest
+import play.api.test.PlaySpecification
 
 import scala.concurrent.Future
 
 class ContentNegotiationSpec extends PlaySpecification with ControllerHelpers {
 
   implicit val system = ActorSystem()
-  implicit val mat = ActorMaterializer()
-  val Action = ActionBuilder.ignoringBody
+  implicit val mat    = ActorMaterializer()
+  val Action          = ActionBuilder.ignoringBody
 
   "rendering" should {
     "work with simple results" in {

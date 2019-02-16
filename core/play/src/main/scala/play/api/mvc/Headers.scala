@@ -11,7 +11,8 @@ import play.core.utils.CaseInsensitiveOrdered
 
 import scala.collection.JavaConverters._
 
-import scala.collection.immutable.{ TreeMap, TreeSet }
+import scala.collection.immutable.TreeMap
+import scala.collection.immutable.TreeSet
 
 /**
  * The HTTP headers set.
@@ -101,20 +102,24 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   /**
    * Transform the Headers to a Map by ignoring multiple values.
    */
-  lazy val toSimpleMap: Map[String, String] = TreeMap.newBuilder[String, String](CaseInsensitiveOrdered).++=(toMap.mapValues(_.headOption.getOrElse(""))).result()
+  lazy val toSimpleMap: Map[String, String] =
+    TreeMap.newBuilder[String, String](CaseInsensitiveOrdered).++=(toMap.mapValues(_.headOption.getOrElse(""))).result()
 
   lazy val asJava: play.mvc.Http.Headers = new play.mvc.Http.Headers(this.toMap.mapValues(_.asJava).toMap.asJava)
 
   /**
    * A headers map with all keys normalized to lowercase
    */
-  private lazy val lowercaseMap: Map[String, Set[String]] = toMap.map {
-    case (name, value) => name.toLowerCase(Locale.ENGLISH) -> value
-  }.mapValues(_.toSet).toMap
+  private lazy val lowercaseMap: Map[String, Set[String]] = toMap
+    .map {
+      case (name, value) => name.toLowerCase(Locale.ENGLISH) -> value
+    }
+    .mapValues(_.toSet)
+    .toMap
 
   override def equals(that: Any): Boolean = that match {
     case other: Headers => lowercaseMap == other.lowercaseMap
-    case _ => false
+    case _              => false
   }
 
   override def hashCode: Int = lowercaseMap.hashCode()

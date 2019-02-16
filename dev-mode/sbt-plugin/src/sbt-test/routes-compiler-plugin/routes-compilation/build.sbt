@@ -52,7 +52,8 @@ play.sbt.routes.RoutesKeys.routesImport := Seq()
 scalacOptions ++= {
   Seq(
     "-deprecation",
-    "-encoding", "UTF-8",
+    "-encoding",
+    "UTF-8",
     "-feature",
     "-language:existentials",
     "-language:higherKinds",
