@@ -185,7 +185,7 @@ public class Results {
    * @return the result
    */
   public static Result status(int status, File content, FileMimeTypes fileMimeTypes) {
-    return status(status, content, true, fileMimeTypes);
+    return status(status).sendFile(content, fileMimeTypes);
   }
 
   /**
