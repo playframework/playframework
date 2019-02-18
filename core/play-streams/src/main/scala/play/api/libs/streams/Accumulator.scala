@@ -7,10 +7,14 @@ import java.util.Optional
 import java.util.concurrent.CompletionStage
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
 
 import scala.compat.java8.FutureConverters
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.compat.java8.FutureConverters._
 import scala.util.Failure
 import scala.util.Success
@@ -43,7 +47,9 @@ sealed trait Accumulator[-E, +A] {
   /**
    * Recover from errors encountered by this accumulator.
    */
-  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B]
+  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(
+      implicit executor: ExecutionContext
+  ): Accumulator[E, B]
 
   /**
    * Return a new accumulator that first feeds the input through the given flow before it goes through this accumulator.
@@ -125,7 +131,9 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
   def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B] =
     new SinkAccumulator(sink.mapMaterializedValue(_.recover(pf)))
 
-  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B] =
+  def recoverWith[B >: A](
+      pf: PartialFunction[Throwable, Future[B]]
+  )(implicit executor: ExecutionContext): Accumulator[E, B] =
     new SinkAccumulator(sink.mapMaterializedValue(_.recoverWith(pf)))
 
   def through[F](flow: Flow[F, E, _]): Accumulator[F, A] =
@@ -152,7 +160,8 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
   }
 }
 
-private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toSink: Sink[E, Future[A]]) extends Accumulator[E, A] {
+private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toSink: Sink[E, Future[A]])
+    extends Accumulator[E, A] {
 
   private def mapMat[B](f: Future[A] => Future[B])(implicit executor: ExecutionContext): StrictAccumulator[E, B] = {
     new StrictAccumulator(handler.andThen(f), toSink.mapMaterializedValue(f))
@@ -162,7 +171,7 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
     mapMat { future =>
       future.value match {
         case Some(Success(a)) => Future.fromTry(Try(f(a))) // optimize already completed case
-        case _ => future.map(f)
+        case _                => future.map(f)
       }
     }
 
@@ -173,7 +182,7 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
         case Some(Success(a)) =>
           Try(f(a)) match {
             case Success(fut) => fut
-            case Failure(ex) => Future.failed(ex)
+            case Failure(ex)  => Future.failed(ex)
           }
         case _ => future.flatMap(f)
       }
@@ -183,15 +192,17 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
     mapMat { future =>
       future.value match {
         case Some(Success(a)) => future // optimize already completed case
-        case _ => future.recover(pf)
+        case _                => future.recover(pf)
       }
     }
 
-  def recoverWith[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit executor: ExecutionContext): Accumulator[E, B] =
+  def recoverWith[B >: A](
+      pf: PartialFunction[Throwable, Future[B]]
+  )(implicit executor: ExecutionContext): Accumulator[E, B] =
     mapMat { future =>
       future.value match {
         case Some(Success(a)) => future // optimize already completed case
-        case _ => future.recoverWith(pf)
+        case _                => future.recoverWith(pf)
       }
     }
 
@@ -222,28 +233,33 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
 }
 
 private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer)
-  extends SinkAccumulator[E, A](Accumulator.futureToSink(future)) {
+    extends SinkAccumulator[E, A](Accumulator.futureToSink(future)) {
 
   override def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
     future.flatMap(_.run(source))(materializer.executionContext)
   }
 
-  override def run()(implicit materializer: Materializer): Future[A] = future.flatMap(_.run())(materializer.executionContext)
+  override def run()(implicit materializer: Materializer): Future[A] =
+    future.flatMap(_.run())(materializer.executionContext)
 
 }
 
 object Accumulator {
 
-  private[streams] def futureToSink[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Sink[E, Future[A]] = {
+  private[streams] def futureToSink[E, A](
+      future: Future[Accumulator[E, A]]
+  )(implicit materializer: Materializer): Sink[E, Future[A]] = {
     import Execution.Implicits.trampoline
 
     Sink.asPublisher[E](fanout = false).mapMaterializedValue { publisher =>
-      future.recover {
-        case error =>
-          new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
-      }.flatMap { accumulator =>
-        Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run()
-      }
+      future
+        .recover {
+          case error =>
+            new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
+        }
+        .flatMap { accumulator =>
+          Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run()
+        }
     }
   }
 
@@ -292,7 +308,11 @@ object Accumulator {
   def source[E]: Accumulator[E, Source[E, _]] = {
     // If Akka streams ever provides Sink.source(), we should use that instead.
     // https://github.com/akka/akka/issues/18406
-    new SinkAccumulator(Sink.asPublisher[E](fanout = false).mapMaterializedValue(publisher => Future.successful(Source.fromPublisher(publisher))))
+    new SinkAccumulator(
+      Sink
+        .asPublisher[E](fanout = false)
+        .mapMaterializedValue(publisher => Future.successful(Source.fromPublisher(publisher)))
+    )
   }
 
   /**

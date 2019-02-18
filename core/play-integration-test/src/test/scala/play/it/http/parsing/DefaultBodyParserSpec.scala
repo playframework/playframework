@@ -16,9 +16,13 @@ class DefaultBodyParserSpec extends PlaySpecification {
 
     implicit def defaultBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].default
 
-    def parse(method: String, contentType: Option[String], body: ByteString)(implicit mat: Materializer, defaultBodyParser: BodyParser[AnyContent]) = {
+    def parse(method: String, contentType: Option[String], body: ByteString)(
+        implicit mat: Materializer,
+        defaultBodyParser: BodyParser[AnyContent]
+    ) = {
       val request = FakeRequest(method, "/x").withHeaders(
-        contentType.map(CONTENT_TYPE -> _).toSeq :+ (CONTENT_LENGTH -> body.length.toString): _*)
+        contentType.map(CONTENT_TYPE -> _).toSeq :+ (CONTENT_LENGTH -> body.length.toString): _*
+      )
       await(defaultBodyParser(request).run(Source.single(body)))
     }
 
@@ -58,9 +62,10 @@ class DefaultBodyParserSpec extends PlaySpecification {
 
     "parse unknown bodies as raw for PUT requests" in new WithApplication() {
       parse("PUT", None, ByteString("abc")) must beRight.like {
-        case AnyContentAsRaw(rawBuffer) => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes must_== ByteString("abc")
-        }
+        case AnyContentAsRaw(rawBuffer) =>
+          rawBuffer.asBytes() must beSome.like {
+            case outBytes => outBytes must_== ByteString("abc")
+          }
       }
     }
 

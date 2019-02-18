@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
-//###replace: package tasks;
+// ###replace: package tasks;
 package javaguide.scheduling;
 
 import play.ApplicationLoader;
@@ -9,23 +9,22 @@ import play.BuiltInComponentsFromContext;
 import play.filters.components.NoHttpFiltersComponents;
 import play.routing.Router;
 
-public class MyBuiltInComponentsFromContext
-        extends BuiltInComponentsFromContext
-        implements NoHttpFiltersComponents {
+public class MyBuiltInComponentsFromContext extends BuiltInComponentsFromContext
+    implements NoHttpFiltersComponents {
 
-    public MyBuiltInComponentsFromContext(ApplicationLoader.Context context) {
-        super(context);
+  public MyBuiltInComponentsFromContext(ApplicationLoader.Context context) {
+    super(context);
 
-        this.initialize();
-    }
+    this.initialize();
+  }
 
-    private void initialize() {
-        // Task is initialize here
-        new CodeBlockTask(actorSystem(), executionContext());
-    }
+  private void initialize() {
+    // Task is initialize here
+    new CodeBlockTask(actorSystem(), executionContext());
+  }
 
-    @Override
-    public Router router() {
-        return Router.empty();
-    }
+  @Override
+  public Router router() {
+    return Router.empty();
+  }
 }

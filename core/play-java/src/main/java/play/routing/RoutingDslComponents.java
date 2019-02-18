@@ -8,7 +8,8 @@ import play.components.BodyParserComponents;
 /**
  * Java Components for RoutingDsl.
  *
- * <p>Usage:</p>
+ * <p>Usage:
+ *
  * <pre>
  * public class MyComponentsWithRouter extends RoutingDslComponentsFromContext implements HttpFiltersComponents {
  *
@@ -31,8 +32,7 @@ import play.components.BodyParserComponents;
  */
 public interface RoutingDslComponents extends BodyParserComponents {
 
-    default RoutingDsl routingDsl() {
-        return new RoutingDsl(defaultBodyParser(), javaContextComponents());
-    }
-
+  default RoutingDsl routingDsl() {
+    return new RoutingDsl(defaultBodyParser(), javaContextComponents());
+  }
 }

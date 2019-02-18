@@ -11,38 +11,42 @@ import play.test.Helpers._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsObject
 import javaguide.testhelpers.MockJavaActionHelper
-import javaguide.ws.JavaWS.{Controller3, Controller4}
+import javaguide.ws.JavaWS.Controller3
+import javaguide.ws.JavaWS.Controller4
 
 import org.slf4j.Logger
 import org.specs2.mock.Mockito
 import play.api.http.Status
-import play.api.{Application => PlayApplication}
+import play.api.{ Application => PlayApplication }
 
 object JavaWSSpec extends Specification with Results with Status with Mockito {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
-  def fakeApplication: PlayApplication = GuiceApplicationBuilder().routes {
-    case ("GET", "/feed") =>
-      Action {
-        val obj: JsObject = Json.obj(
-          "title" -> "foo",
-          "commentsUrl" -> "http://localhost:3333/comments"
-        )
-        Ok(obj)
+  def fakeApplication: PlayApplication =
+    GuiceApplicationBuilder()
+      .routes {
+        case ("GET", "/feed") =>
+          Action {
+            val obj: JsObject = Json.obj(
+              "title"       -> "foo",
+              "commentsUrl" -> "http://localhost:3333/comments"
+            )
+            Ok(obj)
+          }
+        case ("GET", "/comments") =>
+          Action {
+            val obj: JsObject = Json.obj(
+              "count" -> "10"
+            )
+            Ok(obj)
+          }
+        case (_, _) =>
+          Action {
+            BadRequest("no binding found")
+          }
       }
-    case ("GET", "/comments") =>
-         Action {
-           val obj: JsObject = Json.obj(
-             "count" -> "10"
-           )
-           Ok(obj)
-         }
-    case (_, _) =>
-      Action {
-        BadRequest("no binding found")
-      }
-  }.build()
+      .build()
 
   "The Java WS class" should {
     "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {
@@ -60,13 +64,13 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
 
     "call WS with a filter" in new WithServer(app = fakeApplication, port = 3333) {
       val controller = app.injector.instanceOf[Controller3]
-      val logger = mock[Logger]
+      val logger     = mock[Logger]
       controller.setLogger(logger)
 
       val result = MockJavaActionHelper.call(controller, fakeRequest())
 
       result.status() must equalTo(OK)
-      there was one(logger).debug("url = http://localhost:3333/feed")
+      there.was(one(logger).debug("url = http://localhost:3333/feed"))
     }
 
     "call WS with a timeout" in new WithServer(app = fakeApplication) {

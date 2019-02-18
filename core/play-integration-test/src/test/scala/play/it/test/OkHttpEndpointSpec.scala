@@ -14,7 +14,7 @@ class OkHttpEndpointSpec extends PlaySpecification with EndpointIntegrationSpeci
 
   "OkHttpEndpoint" should {
     "make a request and get a response" in {
-      withResult(Results.Ok("Hello")) withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+      withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
         val response: Response = okEndpoint.call("/")
         response.body.string must_== "Hello"
       }

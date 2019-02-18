@@ -3,10 +3,13 @@
  */
 package play.api.mvc
 
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
-import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 
-import scala.annotation.{ implicitNotFound, tailrec }
+import scala.annotation.implicitNotFound
+import scala.annotation.tailrec
 
 /**
  * The complete HTTP request.
@@ -23,10 +26,10 @@ trait Request[+A] extends RequestHeader {
    */
   override def hasBody: Boolean = {
     @tailrec @inline def isEmptyBody(body: Any): Boolean = body match {
-      case rb: play.mvc.Http.RequestBody => isEmptyBody(rb.as(classOf[AnyRef]))
-      case AnyContentAsEmpty | null | Unit => true
+      case rb: play.mvc.Http.RequestBody                      => isEmptyBody(rb.as(classOf[AnyRef]))
+      case AnyContentAsEmpty | null | Unit                    => true
       case unit if unit.isInstanceOf[scala.runtime.BoxedUnit] => true
-      case _ => false
+      case _                                                  => false
     }
     !isEmptyBody(body) || super.hasBody
   }
@@ -59,6 +62,7 @@ trait Request[+A] extends RequestHeader {
 }
 
 object Request {
+
   /**
    * Create a new Request from a RequestHeader and a body. The RequestHeader's
    * methods aren't evaluated when this method is called.
@@ -79,4 +83,5 @@ private[play] class RequestImpl[+A](
     override val version: String,
     override val headers: Headers,
     override val attrs: TypedMap,
-    override val body: A) extends Request[A]
+    override val body: A
+) extends Request[A]

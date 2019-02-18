@@ -14,7 +14,7 @@ import play.core.formatters.Multipart
 trait WSBodyWritables extends DefaultBodyWritables with JsonBodyWritables with XMLBodyWritables {
 
   implicit val bodyWritableOf_Multipart: BodyWritable[Source[MultipartFormData.Part[Source[ByteString, _]], _]] = {
-    val boundary = Multipart.randomBoundary()
+    val boundary    = Multipart.randomBoundary()
     val contentType = s"multipart/form-data; boundary=$boundary"
     BodyWritable(b => SourceBody(Multipart.transform(b, boundary)), contentType)
   }

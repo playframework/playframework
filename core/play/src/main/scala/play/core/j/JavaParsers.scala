@@ -4,7 +4,8 @@
 package play.core.j
 
 import java.io.File
-import java.util.concurrent.{ CompletionStage, Executor }
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.Executor
 
 import play.api.libs.Files.TemporaryFile
 
@@ -30,7 +31,11 @@ object JavaParsers {
       lazy val getFiles = {
         multipart.files.map { file =>
           new play.mvc.Http.MultipartFormData.FilePart(
-            file.key, file.filename, file.contentType.orNull, file.ref.path.toFile)
+            file.key,
+            file.filename,
+            file.contentType.orNull,
+            file.ref.path.toFile
+          )
         }.asJava
       }
     }
@@ -38,11 +43,11 @@ object JavaParsers {
 
   def toJavaRaw(rawBuffer: RawBuffer): play.mvc.Http.RawBuffer = {
     new play.mvc.Http.RawBuffer {
-      def size = rawBuffer.size
+      def size                    = rawBuffer.size
       def asBytes(maxLength: Int) = rawBuffer.asBytes(maxLength).orNull
-      def asBytes = rawBuffer.asBytes().orNull
-      def asFile = rawBuffer.asFile
-      override def toString = rawBuffer.toString
+      def asBytes                 = rawBuffer.asBytes().orNull
+      def asFile                  = rawBuffer.asFile
+      override def toString       = rawBuffer.toString
     }
   }
 
@@ -55,7 +60,11 @@ object JavaParsers {
    * @param materializer The stream materializer
    * @return A body parser
    */
-  def flatten[A](underlying: CompletionStage[play.mvc.BodyParser[A]], materializer: Materializer): play.mvc.BodyParser[A] = new Flattened[A](underlying, materializer)
+  def flatten[A](
+      underlying: CompletionStage[play.mvc.BodyParser[A]],
+      materializer: Materializer
+  ): play.mvc.BodyParser[A] = new Flattened[A](underlying, materializer)
 
-  private class Flattened[A](underlying: CompletionStage[play.mvc.BodyParser[A]], materializer: Materializer) extends play.mvc.BodyParser.CompletableBodyParser[A](underlying, materializer) {}
+  private class Flattened[A](underlying: CompletionStage[play.mvc.BodyParser[A]], materializer: Materializer)
+      extends play.mvc.BodyParser.CompletableBodyParser[A](underlying, materializer) {}
 }

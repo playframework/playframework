@@ -7,7 +7,7 @@ import controllers.AssetsMetadata;
 import play.api.http.HttpErrorHandler;
 
 public class Assets extends controllers.Assets {
-    public Assets(HttpErrorHandler errorHandler, AssetsMetadata meta) {
-        super(errorHandler, meta);
-    }
+  public Assets(HttpErrorHandler errorHandler, AssetsMetadata meta) {
+    super(errorHandler, meta);
+  }
 }

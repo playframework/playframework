@@ -3,7 +3,9 @@
  */
 package play.it.test
 
-import okhttp3.{ OkHttpClient, Request, Response }
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.mvc.Call
@@ -20,6 +22,7 @@ trait OkHttpEndpointSupport {
 
   /** Describes an [[OkHttpClient] that is bound to a particular [[ServerEndpoint]]. */
   trait OkHttpEndpoint {
+
     /** The endpoint to connect to. */
     def endpoint: ServerEndpoint
 
@@ -41,9 +44,9 @@ trait OkHttpEndpointSupport {
 
     /** Make a request to the endpoint using the given path and configuration. */
     def configuredCall(path: String)(configure: Request.Builder => Request.Builder): Response = {
-      val withPath: Request.Builder = requestBuilder(path)
+      val withPath: Request.Builder   = requestBuilder(path)
       val configured: Request.Builder = configure(withPath)
-      val request: Request = configured.build()
+      val request: Request            = configured.build()
       client.newCall(request).execute()
     }
   }
@@ -75,6 +78,7 @@ trait OkHttpEndpointSupport {
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllOkHttpEndpoints()]] method.
    */
   implicit class OkHttpApplicationFactory(appFactory: ApplicationFactory) {
+
     /**
      * Helper that creates a specs2 fragment for the given server endpoints.
      * Each fragment creates an application, starts a server,
@@ -89,7 +93,9 @@ trait OkHttpEndpointSupport {
      * }}}
      */
     def withOkHttpEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: OkHttpEndpoint => A): Fragment =
-      appFactory.withEndpoints(endpoints) { endpoint: ServerEndpoint => withOkHttpEndpoint(endpoint)(block) }
+      appFactory.withEndpoints(endpoints) { endpoint: ServerEndpoint =>
+        withOkHttpEndpoint(endpoint)(block)
+      }
 
     /**
      * Helper that creates a specs2 fragment for the server endpoints given in
@@ -105,7 +111,9 @@ trait OkHttpEndpointSupport {
      * }}}
      */
     def withAllOkHttpEndpoints[A: AsResult](block: OkHttpEndpoint => A): Fragment =
-      appFactory.withAllEndpoints { endpoint: ServerEndpoint => withOkHttpEndpoint(endpoint)(block) }
+      appFactory.withAllEndpoints { endpoint: ServerEndpoint =>
+        withOkHttpEndpoint(endpoint)(block)
+      }
   }
 
 }

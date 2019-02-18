@@ -5,7 +5,9 @@ package play.core
 
 import java.util.concurrent.atomic.AtomicInteger
 import org.specs2.mutable.Specification
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -74,7 +76,7 @@ class ClosableLazySpec extends Specification {
 
     "throw an exception when accessed after being closed" in {
       val cl = new ClosableLazy[String, Int] {
-        protected def create() = ("oof", () => 1)
+        protected def create()       = ("oof", () => 1)
         protected def closeNotNeeded = -1
       }
       cl.get must_== "oof"

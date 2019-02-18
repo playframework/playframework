@@ -4,11 +4,16 @@
 package play.api.test
 
 import org.openqa.selenium.WebDriver
-import org.specs2.execute.{ AsResult, Result }
+import org.specs2.execute.AsResult
+import org.specs2.execute.Result
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
-import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
-import play.api.{ Application, ApplicationLoader, Environment, Mode }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.GuiceApplicationLoader
+import play.api.Application
+import play.api.ApplicationLoader
+import play.api.Environment
+import play.api.Mode
 import play.core.j.JavaContextComponents
 import play.core.server.ServerProvider
 
@@ -22,7 +27,13 @@ import play.core.server.ServerProvider
  * @param applicationLoader The application loader to use
  * @param context The context supplied to the application loader
  */
-abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new GuiceApplicationLoader(), context: ApplicationLoader.Context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))) extends Around with Scope {
+abstract class WithApplicationLoader(
+    applicationLoader: ApplicationLoader = new GuiceApplicationLoader(),
+    context: ApplicationLoader.Context = ApplicationLoader.createContext(
+      new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test)
+    )
+) extends Around
+    with Scope {
   implicit lazy val app = applicationLoader.load(context)
   def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
@@ -40,7 +51,7 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
     this(builder(GuiceApplicationBuilder()).build())
   }
 
-  implicit def implicitApp = app
+  implicit def implicitApp          = app
   implicit def implicitMaterializer = app.materializer
   override def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
@@ -58,16 +69,17 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
 abstract class WithServer(
     val app: Application = GuiceApplicationBuilder().build(),
     val port: Int = Helpers.testServerPort,
-    val serverProvider: Option[ServerProvider] = None) extends Around with Scope {
+    val serverProvider: Option[ServerProvider] = None
+) extends Around
+    with Scope {
   implicit def implicitMaterializer = app.materializer
-  implicit def implicitApp = app
-  implicit def implicitPort: Port = port
+  implicit def implicitApp          = app
+  implicit def implicitPort: Port   = port
 
   override def around[T: AsResult](t: => T): Result =
-    Helpers.running(TestServer(
-      port = port,
-      application = app,
-      serverProvider = serverProvider))(AsResult.effectively(t))
+    Helpers.running(TestServer(port = port, application = app, serverProvider = serverProvider))(
+      AsResult.effectively(t)
+    )
 }
 
 /**
@@ -80,15 +92,14 @@ abstract class WithServer(
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
     val app: Application = GuiceApplicationBuilder().build(),
-    val port: Int = Helpers.testServerPort) extends Around with Scope {
+    val port: Int = Helpers.testServerPort
+) extends Around
+    with Scope {
 
-  def this(
-    webDriver: Class[WEBDRIVER],
-    app: Application,
-    port: Int) = this(WebDriverFactory(webDriver), app, port)
+  def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
 
   implicit def implicitApp: Application = app
-  implicit def implicitPort: Port = port
+  implicit def implicitPort: Port       = port
 
   lazy val browser: TestBrowser = TestBrowser(webDriver, Some("http://localhost:" + port))
 
@@ -100,4 +111,3 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
     }
   }
 }
-

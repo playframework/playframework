@@ -5,7 +5,8 @@ package play.sbt.routes
 
 import play.routes.compiler.RoutesCompiler.GeneratedSource
 import sbt._
-import xsbti.{ Maybe, Position }
+import xsbti.Maybe
+import xsbti.Position
 
 import scala.language.implicitConversions
 
@@ -15,7 +16,7 @@ import scala.language.implicitConversions
 private[routes] trait RoutesCompilerCompat {
 
   val routesPositionMapper: Position => Option[Position] = position => {
-    position.sourceFile collect {
+    position.sourceFile.collect {
       case GeneratedSource(generatedSource) => {
         new xsbti.Position {
           override lazy val line: Maybe[Integer] = {
@@ -25,17 +26,19 @@ private[routes] trait RoutesCompilerCompat {
               .getOrElse(Maybe.nothing[java.lang.Integer])
           }
           override lazy val lineContent: String = {
-            line flatMap { lineNo =>
-              sourceFile.flatMap { file =>
-                IO.read(file).split('\n').lift(lineNo - 1)
+            line
+              .flatMap { lineNo =>
+                sourceFile.flatMap { file =>
+                  IO.read(file).split('\n').lift(lineNo - 1)
+                }
               }
-            } getOrElse ""
+              .getOrElse("")
           }
-          override val offset: Maybe[Integer] = Maybe.nothing[java.lang.Integer]
-          override val pointer: Maybe[Integer] = Maybe.nothing[java.lang.Integer]
+          override val offset: Maybe[Integer]      = Maybe.nothing[java.lang.Integer]
+          override val pointer: Maybe[Integer]     = Maybe.nothing[java.lang.Integer]
           override val pointerSpace: Maybe[String] = Maybe.nothing[String]
-          override val sourceFile: Maybe[File] = Maybe.just(generatedSource.source.get)
-          override val sourcePath: Maybe[String] = Maybe.just(sourceFile.get.getCanonicalPath)
+          override val sourceFile: Maybe[File]     = Maybe.just(generatedSource.source.get)
+          override val sourcePath: Maybe[String]   = Maybe.just(sourceFile.get.getCanonicalPath)
         }
       }
     }

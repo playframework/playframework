@@ -59,7 +59,8 @@ trait AkkaGuiceSupport {
    * @tparam T The class that implements the actor.
    */
   def bindActor[T <: Actor: ClassTag](name: String, props: Props => Props = identity): Unit = {
-    accessBinder.bind(classOf[ActorRef])
+    accessBinder
+      .bind(classOf[ActorRef])
       .annotatedWith(Names.named(name))
       .toProvider(Providers.guicify(Akka.providerOf[T](name, props)))
       .asEagerSingleton()
@@ -115,10 +116,11 @@ trait AkkaGuiceSupport {
    * @tparam FactoryClass The class of the actor factory
    */
   def bindActorFactory[ActorClass <: Actor: ClassTag, FactoryClass: ClassTag]: Unit = {
-    accessBinder.install(new FactoryModuleBuilder()
-      .implement(classOf[Actor], implicitly[ClassTag[ActorClass]].runtimeClass.asInstanceOf[Class[_ <: Actor]])
-      .build(implicitly[ClassTag[FactoryClass]].runtimeClass))
+    accessBinder.install(
+      new FactoryModuleBuilder()
+        .implement(classOf[Actor], implicitly[ClassTag[ActorClass]].runtimeClass.asInstanceOf[Class[_ <: Actor]])
+        .build(implicitly[ClassTag[FactoryClass]].runtimeClass)
+    )
   }
 
 }
-

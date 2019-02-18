@@ -5,11 +5,8 @@ package play.components;
 
 import play.libs.Files;
 
-/**
- * Components related to temporary file handle.
- */
+/** Components related to temporary file handle. */
 public interface TemporaryFileComponents {
 
-    Files.TemporaryFileCreator tempFileCreator();
-
+  Files.TemporaryFileCreator tempFileCreator();
 }

@@ -4,7 +4,9 @@
 package play.core.server
 
 import java.io._
-import java.nio.file.{ FileAlreadyExistsException, Files, StandardOpenOption }
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 import play.api._
 
@@ -46,15 +48,15 @@ object ProdServerStart {
         // Start the application
         val application: Application = {
           val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
-          val context = ApplicationLoader.createContext(environment)
-          val loader = ApplicationLoader(context)
+          val context     = ApplicationLoader.createContext(environment)
+          val loader      = ApplicationLoader(context)
           loader.load(context)
         }
         Play.start(application)
 
         // Start the server
         val serverProvider: ServerProvider = ServerProvider.fromConfiguration(process.classLoader, config.configuration)
-        val server = serverProvider.createServer(config, application)
+        val server                         = serverProvider.createServer(config, application)
         process.addShutdownHook {
           server.stop()
           pidFile.foreach(_.delete())
@@ -82,12 +84,13 @@ object ProdServerStart {
   def readServerConfigSettings(process: ServerProcess): ServerConfig = {
     val configuration: Configuration = {
       val rootDirArg: Option[File] = process.args.headOption.map(new File(_))
-      val rootDirConfig = rootDirArg.fold(Map.empty[String, String])(dir => ServerConfig.rootDirConfig(dir))
+      val rootDirConfig            = rootDirArg.fold(Map.empty[String, String])(dir => ServerConfig.rootDirConfig(dir))
       Configuration.load(process.classLoader, process.properties, rootDirConfig, true)
     }
 
     val rootDir: File = {
-      val path = configuration.getOptional[String]("play.server.dir")
+      val path = configuration
+        .getOptional[String]("play.server.dir")
         .getOrElse(throw ServerStartException("No root server path supplied"))
       val file = new File(path)
       if (!(file.exists && file.isDirectory)) {
@@ -100,16 +103,17 @@ object ProdServerStart {
       configuration.getOptional[String](s"play.server.${portType}.port").flatMap {
         case "disabled" => None
         case str =>
-          val i = try Integer.parseInt(str) catch {
+          val i = try Integer.parseInt(str)
+          catch {
             case _: NumberFormatException => throw ServerStartException(s"Invalid ${portType.toUpperCase} port: $str")
           }
           Some(i)
       }
     }
 
-    val httpPort = parsePort("http")
+    val httpPort  = parsePort("http")
     val httpsPort = parsePort("https")
-    if ((httpPort orElse httpsPort).isEmpty) throw ServerStartException("Must provide either an HTTP or HTTPS port")
+    if (httpPort.orElse(httpsPort).isEmpty) throw ServerStartException("Must provide either an HTTP or HTTPS port")
 
     val address = configuration.getOptional[String]("play.server.http.address").getOrElse("0.0.0.0")
 
@@ -128,16 +132,20 @@ object ProdServerStart {
    * Create a pid file for the current process.
    */
   def createPidFile(process: ServerProcess, configuration: Configuration): Option[File] = {
-    val pidFilePath = configuration.getOptional[String]("play.server.pidfile.path")
+    val pidFilePath = configuration
+      .getOptional[String]("play.server.pidfile.path")
       .getOrElse(throw ServerStartException("Pid file path not configured"))
-    if (pidFilePath == "/dev/null") None else {
+    if (pidFilePath == "/dev/null") None
+    else {
       val pidFile = new File(pidFilePath).getAbsoluteFile
-      val pid = process.pid getOrElse (throw ServerStartException("Couldn't determine current process's pid"))
-      val out = try Files.newOutputStream(pidFile.toPath, StandardOpenOption.CREATE_NEW) catch {
+      val pid     = process.pid.getOrElse(throw ServerStartException("Couldn't determine current process's pid"))
+      val out = try Files.newOutputStream(pidFile.toPath, StandardOpenOption.CREATE_NEW)
+      catch {
         case _: FileAlreadyExistsException =>
           throw ServerStartException(s"This application is already running (Or delete ${pidFile.getPath} file).")
       }
-      try out.write(pid.getBytes) finally out.close()
+      try out.write(pid.getBytes)
+      finally out.close()
 
       Some(pidFile)
     }

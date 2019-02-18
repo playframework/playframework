@@ -3,10 +3,13 @@
  */
 package play.api
 
-import play.core.{ DefaultWebCommands, SourceMapper, WebCommands }
+import play.core.DefaultWebCommands
+import play.core.SourceMapper
+import play.core.WebCommands
 import play.utils.Reflect
 import play.api.inject.ApplicationLifecycle
-import play.api.mvc.{ ControllerComponents, DefaultControllerComponents }
+import play.api.mvc.ControllerComponents
+import play.api.mvc.DefaultControllerComponents
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -40,9 +43,11 @@ object ApplicationLoader {
 
   // Method to call if we cannot find a configured ApplicationLoader
   private def loaderNotFound(): Nothing = {
-    sys.error("No application loader is configured. Please configure an application loader either using the " +
-      "play.application.loader configuration property, or by depending on a module that configures one. " +
-      "You can add the Guice support module by adding \"libraryDependencies += guice\" to your build.sbt.")
+    sys.error(
+      "No application loader is configured. Please configure an application loader either using the " +
+        "play.application.loader configuration property, or by depending on a module that configures one. " +
+        "You can add the Guice support module by adding \"libraryDependencies += guice\" to your build.sbt."
+    )
   }
 
   private[play] final class NoApplicationLoader extends ApplicationLoader {
@@ -59,7 +64,13 @@ object ApplicationLoader {
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
    */
-  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration, lifecycle: ApplicationLifecycle)
+  final case class Context(
+      environment: Environment,
+      sourceMapper: Option[SourceMapper],
+      webCommands: WebCommands,
+      initialConfiguration: Configuration,
+      lifecycle: ApplicationLifecycle
+  )
 
   /**
    * Locate and instantiate the ApplicationLoader.
@@ -71,25 +82,28 @@ object ApplicationLoader {
     }
 
     Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, NoApplicationLoader](
-      context.environment, context.initialConfiguration, LoaderKey, classOf[NoApplicationLoader].getName
+      context.environment,
+      context.initialConfiguration,
+      LoaderKey,
+      classOf[NoApplicationLoader].getName
     ) match {
-        case None =>
-          loaderNotFound()
-        case Some(Left(scalaClass)) =>
-          scalaClass.newInstance
-        case Some(Right(javaClass)) =>
-          val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
-          // Create an adapter from a Java to a Scala ApplicationLoader. This class is
-          // effectively anonymous, but let's give it a name to make debugging easier.
-          class JavaApplicationLoaderAdapter extends ApplicationLoader {
-            override def load(context: ApplicationLoader.Context): Application = {
-              val javaContext = new play.ApplicationLoader.Context(context)
-              val javaApplication = javaApplicationLoader.load(javaContext)
-              javaApplication.asScala()
-            }
+      case None =>
+        loaderNotFound()
+      case Some(Left(scalaClass)) =>
+        scalaClass.newInstance
+      case Some(Right(javaClass)) =>
+        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+        // Create an adapter from a Java to a Scala ApplicationLoader. This class is
+        // effectively anonymous, but let's give it a name to make debugging easier.
+        class JavaApplicationLoaderAdapter extends ApplicationLoader {
+          override def load(context: ApplicationLoader.Context): Application = {
+            val javaContext     = new play.ApplicationLoader.Context(context)
+            val javaApplication = javaApplicationLoader.load(javaContext)
+            javaApplication.asScala()
           }
-          new JavaApplicationLoaderAdapter
-      }
+        }
+        new JavaApplicationLoaderAdapter
+    }
   }
 
   /**
@@ -105,11 +119,12 @@ object ApplicationLoader {
    * @param sourceMapper An optional source mapper.
    */
   def createContext(
-    environment: Environment,
-    initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
-    sourceMapper: Option[SourceMapper] = None,
-    webCommands: WebCommands = new DefaultWebCommands,
-    lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()) = {
+      environment: Environment,
+      initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
+      sourceMapper: Option[SourceMapper] = None,
+      webCommands: WebCommands = new DefaultWebCommands,
+      lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
+  ) = {
     val configuration = Configuration.load(environment, initialSettings)
     Context(environment, sourceMapper, webCommands, configuration, lifecycle)
   }
@@ -120,14 +135,18 @@ object ApplicationLoader {
  * Helper that provides all the built in components dependencies from the application loader context
  */
 abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
-  lazy val environment = context.environment
-  lazy val sourceMapper = context.sourceMapper
-  lazy val webCommands = context.webCommands
+  lazy val environment                                = context.environment
+  lazy val sourceMapper                               = context.sourceMapper
+  lazy val webCommands                                = context.webCommands
   lazy val applicationLifecycle: ApplicationLifecycle = context.lifecycle
-  def configuration = context.initialConfiguration
+  def configuration                                   = context.initialConfiguration
 
   lazy val controllerComponents: ControllerComponents = DefaultControllerComponents(
-    defaultActionBuilder, playBodyParsers, messagesApi, langs, fileMimeTypes, executionContext
+    defaultActionBuilder,
+    playBodyParsers,
+    messagesApi,
+    langs,
+    fileMimeTypes,
+    executionContext
   )
 }
-

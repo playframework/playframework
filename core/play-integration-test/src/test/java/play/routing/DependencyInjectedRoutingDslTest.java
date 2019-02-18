@@ -11,26 +11,26 @@ import play.test.Helpers;
 
 public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
 
-    private static Application app;
+  private static Application app;
 
-    @BeforeClass
-    public static void startApp() {
-        app = new GuiceApplicationBuilder().build();
-        Helpers.start(app);
-    }
+  @BeforeClass
+  public static void startApp() {
+    app = new GuiceApplicationBuilder().build();
+    Helpers.start(app);
+  }
 
-    @Override
-    Application application() {
-        return app;
-    }
+  @Override
+  Application application() {
+    return app;
+  }
 
-    @Override
-    RoutingDsl routingDsl() {
-        return app.injector().instanceOf(RoutingDsl.class);
-    }
+  @Override
+  RoutingDsl routingDsl() {
+    return app.injector().instanceOf(RoutingDsl.class);
+  }
 
-    @AfterClass
-    public static void stopApp() {
-        Helpers.stop(app);
-    }
+  @AfterClass
+  public static void stopApp() {
+    Helpers.stop(app);
+  }
 }

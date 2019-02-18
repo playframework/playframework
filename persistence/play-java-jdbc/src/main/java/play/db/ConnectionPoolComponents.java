@@ -10,6 +10,5 @@ package play.db;
  */
 public interface ConnectionPoolComponents {
 
-    ConnectionPool connectionPool();
-
+  ConnectionPool connectionPool();
 }

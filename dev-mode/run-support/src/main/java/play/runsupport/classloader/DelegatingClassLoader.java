@@ -14,7 +14,11 @@ public class DelegatingClassLoader extends ClassLoader {
   private ClassLoader buildLoader;
   private ApplicationClassLoaderProvider applicationClassLoaderProvider;
 
-  public DelegatingClassLoader(ClassLoader commonLoader, List<String> sharedClasses, ClassLoader buildLoader, ApplicationClassLoaderProvider applicationClassLoaderProvider) {
+  public DelegatingClassLoader(
+      ClassLoader commonLoader,
+      List<String> sharedClasses,
+      ClassLoader buildLoader,
+      ApplicationClassLoaderProvider applicationClassLoaderProvider) {
     super(commonLoader);
     this.sharedClasses = sharedClasses;
     this.buildLoader = buildLoader;
@@ -54,7 +58,8 @@ public class DelegatingClassLoader extends ClassLoader {
     return combineResources(resources1, resources2);
   }
 
-  private Enumeration<URL> combineResources(Enumeration<URL> resources1, Enumeration<URL> resources2) {
+  private Enumeration<URL> combineResources(
+      Enumeration<URL> resources1, Enumeration<URL> resources2) {
     Set<URL> set = new HashSet<URL>();
     while (resources1.hasMoreElements()) {
       set.add(resources1.nextElement());
@@ -69,5 +74,4 @@ public class DelegatingClassLoader extends ClassLoader {
   public String toString() {
     return "DelegatingClassLoader, using parent: " + getParent();
   }
-
 }

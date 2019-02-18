@@ -12,7 +12,8 @@ import play.core.Execution.Implicits.trampoline
 
 import scala.concurrent.Future
 
-import akka.actor.{ Props, ActorRef }
+import akka.actor.Props
+import akka.actor.ActorRef
 
 import scala.util.control.NonFatal
 
@@ -61,7 +62,7 @@ object WebSocket {
       new MessageFlowTransformer[In, NewOut] {
         def transform(flow: Flow[In, NewOut, _]) = {
           self.transform(
-            flow map f
+            flow.map(f)
           )
         }
       }
@@ -74,7 +75,7 @@ object WebSocket {
       new MessageFlowTransformer[NewIn, Out] {
         def transform(flow: Flow[NewIn, Out, _]) = {
           self.transform(
-            Flow[In] map f via flow
+            Flow[In].map(f).via(flow)
           )
         }
       }
@@ -87,7 +88,7 @@ object WebSocket {
       new MessageFlowTransformer[NewIn, NewOut] {
         def transform(flow: Flow[NewIn, NewOut, _]) = {
           self.transform(
-            Flow[In] map f via flow map g
+            Flow[In].map(f).via(flow).map(g)
           )
         }
       }
@@ -108,13 +109,11 @@ object WebSocket {
     implicit val stringMessageFlowTransformer: MessageFlowTransformer[String, String] = {
       new MessageFlowTransformer[String, String] {
         def transform(flow: Flow[String, String, _]) = {
-          AkkaStreams.bypassWith[Message, String, Message](Flow[Message] collect {
+          AkkaStreams.bypassWith[Message, String, Message](Flow[Message].collect {
             case TextMessage(text) => Left(text)
             case BinaryMessage(_) =>
-              Right(CloseMessage(
-                Some(CloseCodes.Unacceptable),
-                "This WebSocket only supports text frames"))
-          })(flow map TextMessage.apply)
+              Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports text frames"))
+          })(flow.map(TextMessage.apply))
         }
       }
     }
@@ -125,13 +124,11 @@ object WebSocket {
     implicit val byteStringMessageFlowTransformer: MessageFlowTransformer[ByteString, ByteString] = {
       new MessageFlowTransformer[ByteString, ByteString] {
         def transform(flow: Flow[ByteString, ByteString, _]) = {
-          AkkaStreams.bypassWith[Message, ByteString, Message](Flow[Message] collect {
+          AkkaStreams.bypassWith[Message, ByteString, Message](Flow[Message].collect {
             case BinaryMessage(data) => Left(data)
             case TextMessage(_) =>
-              Right(CloseMessage(
-                Some(CloseCodes.Unacceptable),
-                "This WebSocket only supports binary frames"))
-          })(flow map BinaryMessage.apply)
+              Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports binary frames"))
+          })(flow.map(BinaryMessage.apply))
         }
       }
     }
@@ -147,20 +144,21 @@ object WebSocket {
      * Converts messages to/from JsValue
      */
     implicit val jsonMessageFlowTransformer: MessageFlowTransformer[JsValue, JsValue] = {
-      def closeOnException[T](block: => T) = try {
-        Left(block)
-      } catch {
-        case NonFatal(e) => Right(CloseMessage(
-          Some(CloseCodes.Unacceptable),
-          "Unable to parse json message"))
-      }
+      def closeOnException[T](block: => T) =
+        try {
+          Left(block)
+        } catch {
+          case NonFatal(e) => Right(CloseMessage(Some(CloseCodes.Unacceptable), "Unable to parse json message"))
+        }
 
       new MessageFlowTransformer[JsValue, JsValue] {
         def transform(flow: Flow[JsValue, JsValue, _]) = {
           AkkaStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
             case BinaryMessage(data) => closeOnException(Json.parse(data.iterator.asInputStream))
-            case TextMessage(text) => closeOnException(Json.parse(text))
-          })(flow map { json => TextMessage(Json.stringify(json)) })
+            case TextMessage(text)   => closeOnException(Json.parse(text))
+          })(flow.map { json =>
+            TextMessage(Json.stringify(json))
+          })
         }
       }
     }
@@ -172,16 +170,26 @@ object WebSocket {
      * serialised to JSON.
      */
     def jsonMessageFlowTransformer[In: Reads, Out: Writes]: MessageFlowTransformer[In, Out] = {
-      jsonMessageFlowTransformer.map(json => Json.fromJson[In](json).fold({ errors =>
-        throw WebSocketCloseException(CloseMessage(Some(CloseCodes.Unacceptable), Json.stringify(JsError.toJson(errors))))
-      }, identity), out => Json.toJson(out))
+      jsonMessageFlowTransformer.map(
+        json =>
+          Json
+            .fromJson[In](json)
+            .fold({ errors =>
+              throw WebSocketCloseException(
+                CloseMessage(Some(CloseCodes.Unacceptable), Json.stringify(JsError.toJson(errors)))
+              )
+            }, identity),
+        out => Json.toJson(out)
+      )
     }
   }
 
   /**
    * Accepts a WebSocket using the given flow.
    */
-  def accept[In, Out](f: RequestHeader => Flow[In, Out, _])(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
+  def accept[In, Out](
+      f: RequestHeader => Flow[In, Out, _]
+  )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
     acceptOrResult(f.andThen(flow => Future.successful(Right(flow))))
   }
 
@@ -189,7 +197,9 @@ object WebSocket {
    * Creates an action that will either accept the websocket, using the given flow to handle the in and out stream, or
    * return a result to reject the Websocket.
    */
-  def acceptOrResult[In, Out](f: RequestHeader => Future[Either[Result, Flow[In, Out, _]]])(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
+  def acceptOrResult[In, Out](
+      f: RequestHeader => Future[Either[Result, Flow[In, Out, _]]]
+  )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
     WebSocket { request =>
       f(request).map(_.right.map(transformer.transform))
     }

@@ -7,8 +7,10 @@ import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import org.specs2.matcher.BeEqualTypedValueCheck
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment }
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
+import play.api.Configuration
+import play.api.Environment
+import play.{ Configuration => JavaConfiguration }
+import play.{ Environment => JavaEnvironment }
 
 class ModulesSpec extends Specification {
 
@@ -16,9 +18,11 @@ class ModulesSpec extends Specification {
 
     "load simple Guice modules" in {
       val env = Environment.simple()
-      val conf = Configuration("play.modules.enabled" -> Seq(
-        classOf[PlainGuiceModule].getName
-      ))
+      val conf = Configuration(
+        "play.modules.enabled" -> Seq(
+          classOf[PlainGuiceModule].getName
+        )
+      )
 
       val located: Seq[AnyRef] = Modules.locate(env, conf)
       located.size must_== 1
@@ -29,9 +33,11 @@ class ModulesSpec extends Specification {
 
     "load Guice modules that take a Scala Environment and Configuration" in {
       val env = Environment.simple()
-      val conf = Configuration("play.modules.enabled" -> Seq(
-        classOf[ScalaGuiceModule].getName
-      ))
+      val conf = Configuration(
+        "play.modules.enabled" -> Seq(
+          classOf[ScalaGuiceModule].getName
+        )
+      )
       val located: Seq[Any] = Modules.locate(env, conf)
       located.size must_== 1
       located.head must beLike {
@@ -43,9 +49,11 @@ class ModulesSpec extends Specification {
 
     "load Guice modules that take a Java Environment and Configuration" in {
       val env = Environment.simple()
-      val conf = Configuration("play.modules.enabled" -> Seq(
-        classOf[JavaGuiceConfigurationModule].getName
-      ))
+      val conf = Configuration(
+        "play.modules.enabled" -> Seq(
+          classOf[JavaGuiceConfigurationModule].getName
+        )
+      )
       val located: Seq[Any] = Modules.locate(env, conf)
       located.size must_== 1
       located.head must beLike {
@@ -57,9 +65,11 @@ class ModulesSpec extends Specification {
 
     "load Guice modules that take a Java Environment and Config" in {
       val env = Environment.simple()
-      val conf = Configuration("play.modules.enabled" -> Seq(
-        classOf[JavaGuiceConfigModule].getName
-      ))
+      val conf = Configuration(
+        "play.modules.enabled" -> Seq(
+          classOf[JavaGuiceConfigModule].getName
+        )
+      )
       val located: Seq[Any] = Modules.locate(env, conf)
       located.size must_== 1
       located.head must beLike {
@@ -77,20 +87,15 @@ class PlainGuiceModule extends AbstractModule {
   def configure(): Unit = ()
 }
 
-class ScalaGuiceModule(
-    val environment: Environment,
-    val configuration: Configuration) extends AbstractModule {
+class ScalaGuiceModule(val environment: Environment, val configuration: Configuration) extends AbstractModule {
   def configure(): Unit = ()
 }
 
-class JavaGuiceConfigModule(
-    val environment: JavaEnvironment,
-    val config: Config) extends AbstractModule {
+class JavaGuiceConfigModule(val environment: JavaEnvironment, val config: Config) extends AbstractModule {
   def configure(): Unit = ()
 }
 
-class JavaGuiceConfigurationModule(
-    val environment: JavaEnvironment,
-    val configuration: JavaConfiguration) extends AbstractModule {
+class JavaGuiceConfigurationModule(val environment: JavaEnvironment, val configuration: JavaConfiguration)
+    extends AbstractModule {
   def configure(): Unit = ()
 }

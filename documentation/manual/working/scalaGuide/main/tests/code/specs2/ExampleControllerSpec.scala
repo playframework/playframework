@@ -16,10 +16,10 @@ class ExampleControllerSpec extends PlaySpecification with Results {
 
   "Example Page#index" should {
     "be valid" in {
-      val controller = new ExampleController(Helpers.stubControllerComponents())
+      val controller             = new ExampleController(Helpers.stubControllerComponents())
       val result: Future[Result] = controller.index().apply(FakeRequest())
-      val bodyText: String = contentAsString(result)
-      bodyText must be equalTo "ok"
+      val bodyText: String       = contentAsString(result)
+      (bodyText must be).equalTo("ok")
     }
   }
 
@@ -36,7 +36,7 @@ object FormData {
   val form = Form(
     mapping(
       "name" -> text,
-      "age" -> number(min = 0)
+      "age"  -> number(min = 0)
     )(UserData.apply)(UserData.unapply)
   )
 
@@ -53,8 +53,9 @@ class ExampleFormSpec extends PlaySpecification with Results {
   "Form" should {
     "be valid" in {
       val messagesApi = new DefaultMessagesApi(
-        Map("en" ->
-          Map("error.min" -> "minimum!")
+        Map(
+          "en" ->
+            Map("error.min" -> "minimum!")
         )
       )
       implicit val request = {
@@ -85,14 +86,13 @@ class ExampleTemplateSpec extends PlaySpecification {
 
   "Example Template with Form" should {
     "be valid" in {
-      val form: Form[UserData] = FormData.form
+      val form: Form[UserData]        = FormData.form
       implicit val messages: Messages = Helpers.stubMessages()
       contentAsString(views.html.formTemplate(form)) must contain("ok")
     }
   }
 }
 // #scalatest-exampletemplatespec
-
 
 // #scalatest-examplecsrftemplatespec
 class ExampleTemplateWithCSRFSpec extends PlaySpecification {
@@ -101,7 +101,7 @@ class ExampleTemplateWithCSRFSpec extends PlaySpecification {
 
   "Example Template with Form" should {
     "be valid" in {
-      val form: Form[UserData] = FormData.form
+      val form: Form[UserData]                                 = FormData.form
       implicit val messageRequestHeader: MessagesRequestHeader = Helpers.stubMessagesRequest()
       contentAsString(views.html.formTemplateWithCSRF(form)) must contain("ok")
     }
@@ -110,8 +110,7 @@ class ExampleTemplateWithCSRFSpec extends PlaySpecification {
 // #scalatest-examplecsrftemplatespec
 
 // #scalatest-examplecontroller
-class ExampleController @Inject()(cc: ControllerComponents)
-  extends AbstractController(cc) {
+class ExampleController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
   def index() = Action {
     Ok("ok")
   }

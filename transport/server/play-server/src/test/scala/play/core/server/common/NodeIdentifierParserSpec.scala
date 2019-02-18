@@ -4,7 +4,9 @@
 package play.core.server.common
 
 import org.specs2.mutable.Specification
-import ForwardedHeaderHandler.{ ForwardedHeaderVersion, Rfc7239, Xforwarded }
+import ForwardedHeaderHandler.ForwardedHeaderVersion
+import ForwardedHeaderHandler.Rfc7239
+import ForwardedHeaderHandler.Xforwarded
 import NodeIdentifierParser._
 import com.google.common.net.InetAddresses
 

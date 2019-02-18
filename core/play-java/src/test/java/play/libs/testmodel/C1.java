@@ -3,5 +3,4 @@
  */
 package play.libs.testmodel;
 
-public @AC1 class C1 {
-}
+public @AC1 class C1 {}

@@ -20,8 +20,13 @@ sealed trait Rule extends Positional
  * @param call The call to make
  * @param comments The comments above the route
  */
-case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall,
-    comments: Seq[Comment] = Seq.empty, modifiers: Seq[Modifier] = Seq.empty) extends Rule
+case class Route(
+    verb: HttpVerb,
+    path: PathPattern,
+    call: HandlerCall,
+    comments: Seq[Comment] = Seq.empty,
+    modifiers: Seq[Modifier] = Seq.empty
+) extends Rule
 
 /**
  * An include for another router
@@ -47,11 +52,20 @@ case class HttpVerb(value: String) {
  * @param method The method to invoke on the controller.
  * @param parameters The parameters to pass to the method.
  */
-case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
+case class HandlerCall(
+    packageName: String,
+    controller: String,
+    instantiate: Boolean,
+    method: String,
+    parameters: Option[Seq[Parameter]]
+) extends Positional {
   val dynamic = if (instantiate) "@" else ""
-  override def toString = dynamic + packageName + "." + controller + dynamic + "." + method + parameters.map { params =>
-    "(" + params.mkString(", ") + ")"
-  }.getOrElse("")
+  override def toString =
+    dynamic + packageName + "." + controller + dynamic + "." + method + parameters
+      .map { params =>
+        "(" + params.mkString(", ") + ")"
+      }
+      .getOrElse("")
 }
 
 /**
@@ -62,8 +76,10 @@ case class HandlerCall(packageName: String, controller: String, instantiate: Boo
  * @param fixed The fixed value for the parameter, if defined.
  * @param default A default value for the parameter, if defined.
  */
-case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
-  override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
+case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String])
+    extends Positional {
+  override def toString =
+    name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 
 /**
@@ -109,13 +125,14 @@ case class PathPattern(parts: Seq[PathPart]) {
    */
   def has(key: String): Boolean = parts.exists {
     case DynamicPart(name, _, _) if name == key => true
-    case _ => false
+    case _                                      => false
   }
 
-  override def toString = parts.map {
-    case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
-    case StaticPart(path) => path
-  }.mkString
+  override def toString =
+    parts.map {
+      case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
+      case StaticPart(path)                      => path
+    }.mkString
 
 }
 

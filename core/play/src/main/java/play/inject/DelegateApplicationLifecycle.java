@@ -10,20 +10,20 @@ import java.util.concurrent.CompletionStage;
 
 @Singleton
 public class DelegateApplicationLifecycle implements ApplicationLifecycle {
-    private final play.api.inject.ApplicationLifecycle delegate;
+  private final play.api.inject.ApplicationLifecycle delegate;
 
-    @Inject
-    public DelegateApplicationLifecycle(play.api.inject.ApplicationLifecycle delegate) {
-        this.delegate = delegate;
-    }
+  @Inject
+  public DelegateApplicationLifecycle(play.api.inject.ApplicationLifecycle delegate) {
+    this.delegate = delegate;
+  }
 
-    @Override
-    public void addStopHook(final Callable<? extends CompletionStage<?>> hook) {
-        delegate.addStopHook(hook);
-    }
+  @Override
+  public void addStopHook(final Callable<? extends CompletionStage<?>> hook) {
+    delegate.addStopHook(hook);
+  }
 
-    @Override
-    public play.api.inject.ApplicationLifecycle asScala() {
-        return delegate;
-    }
+  @Override
+  public play.api.inject.ApplicationLifecycle asScala() {
+    return delegate;
+  }
 }

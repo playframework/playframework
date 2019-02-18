@@ -3,16 +3,20 @@
  */
 package play.core.server.netty
 
-import org.reactivestreams.{ Processor, Publisher, Subscription, Subscriber }
+import org.reactivestreams.Processor
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscription
+import org.reactivestreams.Subscriber
 
 object SynchronousMappedStreams {
 
-  private class SynchronousContramappedSubscriber[A, B](subscriber: Subscriber[_ >: B], f: A => B) extends Subscriber[A] {
-    override def onError(t: Throwable): Unit = subscriber.onError(t)
+  private class SynchronousContramappedSubscriber[A, B](subscriber: Subscriber[_ >: B], f: A => B)
+      extends Subscriber[A] {
+    override def onError(t: Throwable): Unit        = subscriber.onError(t)
     override def onSubscribe(s: Subscription): Unit = subscriber.onSubscribe(s)
-    override def onComplete(): Unit = subscriber.onComplete()
-    override def onNext(a: A): Unit = subscriber.onNext(f(a))
-    override def toString = s"SynchronousContramappedSubscriber($subscriber)"
+    override def onComplete(): Unit                 = subscriber.onComplete()
+    override def onNext(a: A): Unit                 = subscriber.onNext(f(a))
+    override def toString                           = s"SynchronousContramappedSubscriber($subscriber)"
   }
 
   private class SynchronousMappedPublisher[A, B](publisher: Publisher[A], f: A => B) extends Publisher[B] {
@@ -22,12 +26,12 @@ object SynchronousMappedStreams {
   }
 
   private class JoinedProcessor[A, B](subscriber: Subscriber[A], publisher: Publisher[B]) extends Processor[A, B] {
-    override def onError(t: Throwable): Unit = subscriber.onError(t)
-    override def onSubscribe(s: Subscription): Unit = subscriber.onSubscribe(s)
-    override def onComplete(): Unit = subscriber.onComplete()
-    override def onNext(t: A): Unit = subscriber.onNext(t)
+    override def onError(t: Throwable): Unit            = subscriber.onError(t)
+    override def onSubscribe(s: Subscription): Unit     = subscriber.onSubscribe(s)
+    override def onComplete(): Unit                     = subscriber.onComplete()
+    override def onNext(t: A): Unit                     = subscriber.onNext(t)
     override def subscribe(s: Subscriber[_ >: B]): Unit = publisher.subscribe(s)
-    override def toString = s"JoinedProcessor($subscriber, $publisher)"
+    override def toString                               = s"JoinedProcessor($subscriber, $publisher)"
   }
 
   /**

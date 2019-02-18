@@ -6,15 +6,20 @@ package play.api.mvc
 import javax.inject.Inject
 
 import play.api.http.FileMimeTypes
-import play.api.i18n.{ Langs, Messages, MessagesApi, MessagesProvider }
+import play.api.i18n.Langs
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
+import play.api.i18n.MessagesProvider
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
  * This trait is a [[play.api.i18n.MessagesProvider]] that can be applied to a RequestHeader, and
  * uses messagesApi.preferred(requestHeader) to return the messages.
  */
 trait PreferredMessagesProvider extends MessagesProvider { self: RequestHeader =>
+
   /**
    * @return the messagesApi used to produce a Messages instance.
    */
@@ -42,8 +47,10 @@ trait MessagesRequestHeader extends RequestHeader with MessagesProvider
  * @param messagesApi the injected messagesApi
  * @tparam A the body type of the request
  */
-class MessagesRequest[+A](request: Request[A], val messagesApi: MessagesApi) extends WrappedRequest(request)
-  with PreferredMessagesProvider with MessagesRequestHeader
+class MessagesRequest[+A](request: Request[A], val messagesApi: MessagesApi)
+    extends WrappedRequest(request)
+    with PreferredMessagesProvider
+    with MessagesRequestHeader
 
 /**
  * This trait is an [[ActionBuilder]] that provides a [[MessagesRequest]] to the block:
@@ -63,16 +70,19 @@ class MessagesRequest[+A](request: Request[A], val messagesApi: MessagesApi) ext
  */
 trait MessagesActionBuilder extends ActionBuilder[MessagesRequest, AnyContent]
 
-class MessagesActionBuilderImpl[B](val parser: BodyParser[B], messagesApi: MessagesApi)(implicit val executionContext: ExecutionContext)
-  extends ActionBuilder[MessagesRequest, B] {
+class MessagesActionBuilderImpl[B](val parser: BodyParser[B], messagesApi: MessagesApi)(
+    implicit val executionContext: ExecutionContext
+) extends ActionBuilder[MessagesRequest, B] {
 
   def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
     block(new MessagesRequest[A](request, messagesApi))
   }
 }
 
-class DefaultMessagesActionBuilderImpl(parser: BodyParser[AnyContent], messagesApi: MessagesApi)(implicit ec: ExecutionContext)
-  extends MessagesActionBuilderImpl(parser, messagesApi) with MessagesActionBuilder {
+class DefaultMessagesActionBuilderImpl(parser: BodyParser[AnyContent], messagesApi: MessagesApi)(
+    implicit ec: ExecutionContext
+) extends MessagesActionBuilderImpl(parser, messagesApi)
+    with MessagesActionBuilder {
   @Inject
   def this(parser: BodyParsers.Default, messagesApi: MessagesApi)(implicit ec: ExecutionContext) = {
     this(parser: BodyParser[AnyContent], messagesApi)
@@ -86,7 +96,7 @@ trait MessagesControllerComponents extends ControllerComponents {
   def messagesActionBuilder: MessagesActionBuilder
 }
 
-case class DefaultMessagesControllerComponents @Inject() (
+case class DefaultMessagesControllerComponents @Inject()(
     messagesActionBuilder: MessagesActionBuilder,
     actionBuilder: DefaultActionBuilder,
     parsers: PlayBodyParsers,
@@ -124,6 +134,6 @@ trait MessagesBaseController extends BaseControllerHelpers {
  *   }
  * }}}
  */
-abstract class MessagesAbstractController @Inject() (
+abstract class MessagesAbstractController @Inject()(
     protected val controllerComponents: MessagesControllerComponents
 ) extends MessagesBaseController

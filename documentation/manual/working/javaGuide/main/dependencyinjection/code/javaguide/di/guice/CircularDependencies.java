@@ -8,44 +8,53 @@ import javax.inject.Provider;
 
 class CircularDependencies {
 
-class NoProvider {
-//#circular
-public class Foo {
-  @Inject public Foo(Bar bar) {
-    //...
-  }
-}
-public class Bar {
-  @Inject public Bar(Baz baz) {
-    // ...
-  }
-}
-public class Baz {
-  @Inject public Baz(Foo foo) {
-    // ...
-  }
-}
-//#circular
-}
+  class NoProvider {
+    // #circular
+    public class Foo {
+      @Inject
+      public Foo(Bar bar) {
+        // ...
+      }
+    }
 
-class WithProvider {
-//#circular-provider
-public class Foo {
-  @Inject public Foo(Bar bar) {
-    // ...
-  }
-}
-public class Bar {
-  @Inject public Bar(Baz baz) {
-    // ...
-  }
-}
-public class Baz {
-  @Inject public Baz(Provider<Foo> fooProvider) {
-    // ...
-  }
-}
-//#circular-provider
-}
+    public class Bar {
+      @Inject
+      public Bar(Baz baz) {
+        // ...
+      }
+    }
 
+    public class Baz {
+      @Inject
+      public Baz(Foo foo) {
+        // ...
+      }
+    }
+    // #circular
+  }
+
+  class WithProvider {
+    // #circular-provider
+    public class Foo {
+      @Inject
+      public Foo(Bar bar) {
+        // ...
+      }
+    }
+
+    public class Bar {
+      @Inject
+      public Bar(Baz baz) {
+        // ...
+      }
+    }
+
+    public class Baz {
+      @Inject
+      public Baz(Provider<Foo> fooProvider) {
+        // ...
+      }
+    }
+    // #circular-provider
+  }
 }

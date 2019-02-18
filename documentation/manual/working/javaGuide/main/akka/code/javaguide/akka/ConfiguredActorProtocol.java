@@ -5,5 +5,5 @@ package javaguide.akka;
 
 public class ConfiguredActorProtocol {
 
-    public static class GetConfig {}
+  public static class GetConfig {}
 }

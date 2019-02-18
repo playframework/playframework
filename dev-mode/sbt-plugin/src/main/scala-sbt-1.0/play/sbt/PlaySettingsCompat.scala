@@ -5,7 +5,8 @@ package play.sbt
 
 import sbt.Path._
 import sbt.io.syntax._
-import sbt.{ File, Task }
+import sbt.File
+import sbt.Task
 import scala.language.postfixOps
 
 import scala.concurrent.duration.Duration
@@ -26,7 +27,7 @@ private[sbt] trait PlaySettingsCompat {
   }
 
   def getPlayExternalizedResources(rdirs: Seq[File], unmanagedResourcesValue: Seq[File]): Seq[(File, String)] = {
-    (unmanagedResourcesValue --- rdirs) pair (relativeTo(rdirs) | flat)
+    (unmanagedResourcesValue --- rdirs).pair(relativeTo(rdirs) | flat)
   }
 
 }

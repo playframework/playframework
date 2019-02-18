@@ -8,19 +8,16 @@ import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import scala.concurrent.ExecutionContext;
 
-/**
- * Akka and Akka Streams components.
- */
+/** Akka and Akka Streams components. */
 public interface AkkaComponents {
 
-    ActorSystem actorSystem();
+  ActorSystem actorSystem();
 
-    default Materializer materializer() {
-        return ActorMaterializer.create(actorSystem());
-    }
+  default Materializer materializer() {
+    return ActorMaterializer.create(actorSystem());
+  }
 
-    default ExecutionContext executionContext() {
-        return actorSystem().dispatcher();
-    }
-
+  default ExecutionContext executionContext() {
+    return actorSystem().dispatcher();
+  }
 }

@@ -9,8 +9,11 @@ import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
-import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 
 class RequestHeaderSpec extends Specification {
 
@@ -57,7 +60,8 @@ class RequestHeaderSpec extends Specification {
       "overrides current attribute value" in {
         val x = TypedKey[Int]
         val y = TypedKey[String]
-        val requestHeader = dummyRequestHeader().withAttrs(TypedMap(y -> "hello"))
+        val requestHeader = dummyRequestHeader()
+          .withAttrs(TypedMap(y -> "hello"))
           .addAttr(x, 3)
           .addAttr(y, "white")
 
@@ -80,11 +84,19 @@ class RequestHeaderSpec extends Specification {
         rh.host must_== "example.com:8080"
       }
       "absolute uri with port and invalid characters" in {
-        val rh = dummyRequestHeader("GET", "https://example.com:8080/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader(
+          "GET",
+          "https://example.com:8080/classified-search/classifieds?version=GTI|V8",
+          Headers(HOST -> "playframework.com")
+        )
         rh.host must_== "example.com:8080"
       }
       "relative uri with invalid characters" in {
-        val rh = dummyRequestHeader("GET", "/classified-search/classifieds?version=GTI|V8", Headers(HOST -> "playframework.com"))
+        val rh = dummyRequestHeader(
+          "GET",
+          "/classified-search/classifieds?version=GTI|V8",
+          Headers(HOST -> "playframework.com")
+        )
         rh.host must_== "playframework.com"
       }
     }
@@ -121,20 +133,19 @@ class RequestHeaderSpec extends Specification {
 
     "deprecated copy method" in {
 
-      def checkRequestValues(
-        origReq: RequestHeader,
-        changeReq: RequestHeader => RequestHeader)(
-        id: Long = origReq.id,
-        tags: Map[String, String] = origReq.tags,
-        uri: String = origReq.uri,
-        path: String = origReq.path,
-        method: String = origReq.method,
-        version: String = origReq.version,
-        queryString: Map[String, Seq[String]] = origReq.queryString,
-        headers: Headers = origReq.headers,
-        remoteAddress: String = origReq.remoteAddress,
-        secure: Boolean = origReq.secure,
-        clientCertificateChain: Option[Seq[X509Certificate]] = origReq.clientCertificateChain) = {
+      def checkRequestValues(origReq: RequestHeader, changeReq: RequestHeader => RequestHeader)(
+          id: Long = origReq.id,
+          tags: Map[String, String] = origReq.tags,
+          uri: String = origReq.uri,
+          path: String = origReq.path,
+          method: String = origReq.method,
+          version: String = origReq.version,
+          queryString: Map[String, Seq[String]] = origReq.queryString,
+          headers: Headers = origReq.headers,
+          remoteAddress: String = origReq.remoteAddress,
+          secure: Boolean = origReq.secure,
+          clientCertificateChain: Option[Seq[X509Certificate]] = origReq.clientCertificateChain
+      ) = {
         val newReq: RequestHeader = changeReq(origReq)
         newReq.id must_== id
         newReq.tags must_== tags
@@ -168,10 +179,14 @@ class RequestHeaderSpec extends Specification {
         checkRequestValues(dummyRequestHeader(), _.copy(version = "HTTP/9.9"))(version = "HTTP/9.9")
       }
       "must change request queryString" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(queryString = Map("x" -> Seq("y", "z"))))(queryString = Map("x" -> Seq("y", "z")))
+        checkRequestValues(dummyRequestHeader(), _.copy(queryString = Map("x" -> Seq("y", "z"))))(
+          queryString = Map("x" -> Seq("y", "z"))
+        )
       }
       "must change request headers" in {
-        checkRequestValues(dummyRequestHeader(), _.copy(headers = new Headers(List(("x", "y")))))(headers = new Headers(List(("x", "y"))))
+        checkRequestValues(dummyRequestHeader(), _.copy(headers = new Headers(List(("x", "y")))))(
+          headers = new Headers(List(("x", "y")))
+        )
       }
       "must change request remoteAddress" in {
         checkRequestValues(dummyRequestHeader(), _.copy(remoteAddress = "x"))(remoteAddress = "x")
@@ -187,14 +202,16 @@ class RequestHeaderSpec extends Specification {
     }
   }
 
-  private def accept(value: String) = dummyRequestHeader(
-    headers = Headers("Accept-Language" -> value)
-  ).acceptLanguages
+  private def accept(value: String) =
+    dummyRequestHeader(
+      headers = Headers("Accept-Language" -> value)
+    ).acceptLanguages
 
   private def dummyRequestHeader(
-    requestMethod: String = "GET",
-    requestUri: String = "/",
-    headers: Headers = Headers()): RequestHeader = {
+      requestMethod: String = "GET",
+      requestUri: String = "/",
+      headers: Headers = Headers()
+  ): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
       connection = RemoteConnection("", false, None),
       method = requestMethod,

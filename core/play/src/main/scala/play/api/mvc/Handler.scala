@@ -17,6 +17,7 @@ import scala.annotation.tailrec
 trait Handler
 
 final object Handler {
+
   /**
    * Some handlers are built as a series of stages, with each stage returning
    * a new [[RequestHeader]] and another stage, until eventually a terminal
@@ -62,12 +63,15 @@ final object Handler {
   }
 
   object Stage {
+
     /**
      * Create a `Stage` that modifies the request before calling the next handler.
      */
-    def modifyRequest(modifyRequestFunc: RequestHeader => RequestHeader, wrappedHandler: Handler): Handler.Stage = new Stage {
-      override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = (modifyRequestFunc(requestHeader), wrappedHandler)
-    }
+    def modifyRequest(modifyRequestFunc: RequestHeader => RequestHeader, wrappedHandler: Handler): Handler.Stage =
+      new Stage {
+        override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) =
+          (modifyRequestFunc(requestHeader), wrappedHandler)
+      }
   }
 }
 

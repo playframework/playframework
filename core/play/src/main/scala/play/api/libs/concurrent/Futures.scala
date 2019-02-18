@@ -9,7 +9,8 @@ import akka.Done
 import akka.actor.ActorSystem
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ Future, TimeoutException }
+import scala.concurrent.Future
+import scala.concurrent.TimeoutException
 import scala.language.implicitConversions
 
 /**
@@ -92,7 +93,7 @@ trait Futures {
  *
  * @param actorSystem the actor system to use.
  */
-class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
+class DefaultFutures @Inject()(actorSystem: ActorSystem) extends Futures {
 
   override def timeout[A](timeoutDuration: FiniteDuration)(f: => Future[A]): Future[A] = {
     implicit val ec = actorSystem.dispatchers.defaultGlobalDispatcher

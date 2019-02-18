@@ -8,7 +8,9 @@ import javax.inject.Inject
 
 import akka.stream.Materializer
 import play.api._
-import play.api.http.HeaderNames.{ ETAG, EXPIRES, IF_NONE_MATCH }
+import play.api.http.HeaderNames.ETAG
+import play.api.http.HeaderNames.EXPIRES
+import play.api.http.HeaderNames.IF_NONE_MATCH
 import play.api.libs.Codecs
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Results.NotModified
@@ -20,7 +22,7 @@ import scala.concurrent.duration._
 /**
  * A helper to add caching to an Action.
  */
-class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materializer) {
+class Cached @Inject()(cache: AsyncCacheApi)(implicit materializer: Materializer) {
 
   /**
    * Cache an action.
@@ -28,9 +30,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param key Compute a key from the request header
    * @param caching Compute a cache duration from the resource header
    */
-  def apply(
-    key: RequestHeader => String,
-    caching: PartialFunction[ResponseHeader, Duration]): CachedBuilder = {
+  def apply(key: RequestHeader => String, caching: PartialFunction[ResponseHeader, Duration]): CachedBuilder = {
     new CachedBuilder(cache, key, caching)
   }
 
@@ -131,7 +131,8 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
 final class CachedBuilder(
     cache: AsyncCacheApi,
     key: RequestHeader => String,
-    caching: PartialFunction[ResponseHeader, Duration])(implicit materializer: Materializer) {
+    caching: PartialFunction[ResponseHeader, Duration]
+)(implicit materializer: Materializer) {
 
   /**
    * Compose the cache with an action
@@ -145,7 +146,7 @@ final class CachedBuilder(
     import play.core.Execution.Implicits.trampoline
 
     val resultKey = key(request)
-    val etagKey = s"$resultKey-etag"
+    val etagKey   = s"$resultKey-etag"
 
     def parseEtag(etag: String) = {
       val Etag = """(?:W/)?("[^"]*")""".r
@@ -153,33 +154,42 @@ final class CachedBuilder(
     }
 
     // Check if the client has a version as new as ours
-    Accumulator.flatten(Future.successful(request.headers.get(IF_NONE_MATCH)).flatMap {
-      case Some(requestEtag) =>
-        cache.get[String](etagKey).map {
-          case Some(etag) if requestEtag == "*" || parseEtag(requestEtag).contains(etag) => Some(Accumulator.done(NotModified))
-          case _ => None
+    Accumulator.flatten(
+      Future
+        .successful(request.headers.get(IF_NONE_MATCH))
+        .flatMap {
+          case Some(requestEtag) =>
+            cache.get[String](etagKey).map {
+              case Some(etag) if requestEtag == "*" || parseEtag(requestEtag).contains(etag) =>
+                Some(Accumulator.done(NotModified))
+              case _ => None
+            }
+          case None => Future.successful(None)
         }
-      case None => Future.successful(None)
-    }.flatMap {
-      case Some(result) =>
-        // The client has the most recent version
-        Future.successful(result)
-      case None =>
-        // Otherwise try to serve the resource from the cache, if it has not yet expired
-        cache.get[SerializableResult](resultKey).map { result =>
-          result collect {
-            case sr: SerializableResult => Accumulator.done(sr.result)
-          }
-        }.map {
-          case Some(cachedResource) => cachedResource
+        .flatMap {
+          case Some(result) =>
+            // The client has the most recent version
+            Future.successful(result)
           case None =>
-            // The resource was not in the cache, so we have to run the underlying action
-            val accumulatorResult = action(request)
+            // Otherwise try to serve the resource from the cache, if it has not yet expired
+            cache
+              .get[SerializableResult](resultKey)
+              .map { result =>
+                result.collect {
+                  case sr: SerializableResult => Accumulator.done(sr.result)
+                }
+              }
+              .map {
+                case Some(cachedResource) => cachedResource
+                case None                 =>
+                  // The resource was not in the cache, so we have to run the underlying action
+                  val accumulatorResult = action(request)
 
-            // Add cache information to the response, so clients can cache its content
-            accumulatorResult.mapFuture(handleResult(_, etagKey, resultKey))
+                  // Add cache information to the response, so clients can cache its content
+                  accumulatorResult.mapFuture(handleResult(_, etagKey, resultKey))
+              }
         }
-    })
+    )
   }
 
   /**
@@ -198,23 +208,26 @@ final class CachedBuilder(
   private def handleResult(result: Result, etagKey: String, resultKey: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
 
-    cachingWithEternity.andThen { duration =>
-      // Format expiration date according to http standard
-      val expirationDate = http.dateFormat.format(Instant.ofEpochMilli(System.currentTimeMillis() + duration.toMillis))
-      // Generate a fresh ETAG for it
-      // Use quoted sha1 hash of expiration date as ETAG
-      val etag = s""""${Codecs.sha1(expirationDate)}""""
+    cachingWithEternity
+      .andThen { duration =>
+        // Format expiration date according to http standard
+        val expirationDate =
+          http.dateFormat.format(Instant.ofEpochMilli(System.currentTimeMillis() + duration.toMillis))
+        // Generate a fresh ETAG for it
+        // Use quoted sha1 hash of expiration date as ETAG
+        val etag = s""""${Codecs.sha1(expirationDate)}""""
 
-      val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
+        val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
 
-      for {
-        // Cache the new ETAG of the resource
-        _ <- cache.set(etagKey, etag, duration)
-        // Cache the new Result of the resource
-        _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
-      } yield resultWithHeaders
+        for {
+          // Cache the new ETAG of the resource
+          _ <- cache.set(etagKey, etag, duration)
+          // Cache the new Result of the resource
+          _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
+        } yield resultWithHeaders
 
-    }.applyOrElse(result.header, (_: ResponseHeader) => Future.successful(result))
+      }
+      .applyOrElse(result.header, (_: ResponseHeader) => Future.successful(result))
   }
 
   /**

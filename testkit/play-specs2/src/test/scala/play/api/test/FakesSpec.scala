@@ -22,11 +22,15 @@ class FakesSpec extends PlaySpecification {
   private val Action = ActionBuilder.ignoringBody
 
   "FakeRequest" should {
-    def app = GuiceApplicationBuilder().routes {
-      case (PUT, "/process") => Action { req =>
-        Results.Ok(req.headers.get(CONTENT_TYPE) getOrElse "")
-      }
-    }.build()
+    def app =
+      GuiceApplicationBuilder()
+        .routes {
+          case (PUT, "/process") =>
+            Action { req =>
+              Results.Ok(req.headers.get(CONTENT_TYPE).getOrElse(""))
+            }
+        }
+        .build()
 
     "Define Content-Type header based on body" in new WithApplication(app) {
       val xml =
@@ -38,8 +42,8 @@ class FakesSpec extends PlaySpecification {
       val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
-      route(app, req) aka "response" must beSome.which { resp =>
-        contentAsString(resp) aka "content" must_== "application/octet-stream"
+      route(app, req).aka("response") must beSome.which { resp =>
+        contentAsString(resp).aka("content") must_== "application/octet-stream"
       }
     }
 
@@ -56,8 +60,8 @@ class FakesSpec extends PlaySpecification {
         .withHeaders(
           CONTENT_TYPE -> "text/xml;charset=utf-16le"
         )
-      route(app, req) aka "response" must beSome.which { resp =>
-        contentAsString(resp) aka "content" must_== "text/xml;charset=utf-16le"
+      route(app, req).aka("response") must beSome.which { resp =>
+        contentAsString(resp).aka("content") must_== "text/xml;charset=utf-16le"
       }
     }
 
@@ -78,8 +82,10 @@ class FakesSpec extends PlaySpecification {
 
   def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: Materializer): String = {
     var testContentType: Option[String] = None
-    val action = Action { request: Request[_] => testContentType = request.headers.get(CONTENT_TYPE); Ok }
-    val headers = new WrappedRequest(request)
+    val action = Action { request: Request[_] =>
+      testContentType = request.headers.get(CONTENT_TYPE); Ok
+    }
+    val headers   = new WrappedRequest(request)
     val execution = (new TestActionCaller).call(action, headers, request.body)
     Await.result(execution, Duration(3, TimeUnit.SECONDS))
     testContentType.getOrElse("No Content-Type found")
@@ -88,4 +94,3 @@ class FakesSpec extends PlaySpecification {
 }
 
 class TestActionCaller extends EssentialActionCaller with Writeables
-

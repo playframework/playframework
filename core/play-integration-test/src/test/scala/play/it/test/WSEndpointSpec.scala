@@ -14,13 +14,13 @@ class WSEndpointSpec extends PlaySpecification with EndpointIntegrationSpecifica
 
   "WSEndpoint" should {
     "make a request and get a response" in {
-      withResult(Results.Ok("Hello")) withAllWSEndpoints { endpointClient: WSEndpoint =>
+      withResult(Results.Ok("Hello")).withAllWSEndpoints { endpointClient: WSEndpoint =>
         val response: WSResponse = endpointClient.makeRequest("/")
         response.body must_== "Hello"
       }
     }
     "support a WSTestClient-style API" in {
-      withResult(Results.Ok("Hello")) withAllWSEndpoints { implicit endpointClient: WSEndpoint =>
+      withResult(Results.Ok("Hello")).withAllWSEndpoints { implicit endpointClient: WSEndpoint =>
         val response: WSResponse = await(wsUrl("/").get()) // Test for deprecated
         response.body must_== "Hello"
       }

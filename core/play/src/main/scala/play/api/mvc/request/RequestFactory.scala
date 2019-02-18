@@ -20,12 +20,13 @@ trait RequestFactory {
    * Create a `RequestHeader`.
    */
   def createRequestHeader(
-    connection: RemoteConnection,
-    method: String,
-    target: RequestTarget,
-    version: String,
-    headers: Headers,
-    attrs: TypedMap): RequestHeader
+      connection: RemoteConnection,
+      method: String,
+      target: RequestTarget,
+      version: String,
+      headers: Headers,
+      attrs: TypedMap
+  ): RequestHeader
 
   /**
    * Creates a `RequestHeader` based on the values of an
@@ -41,13 +42,14 @@ trait RequestFactory {
    * `createRequestHeader(...).withBody(body)`.
    */
   def createRequest[A](
-    connection: RemoteConnection,
-    method: String,
-    target: RequestTarget,
-    version: String,
-    headers: Headers,
-    attrs: TypedMap,
-    body: A): Request[A] =
+      connection: RemoteConnection,
+      method: String,
+      target: RequestTarget,
+      version: String,
+      headers: Headers,
+      attrs: TypedMap,
+      body: A
+  ): Request[A] =
     createRequestHeader(connection, method, target, version, headers, attrs).withBody(body)
 
   /**
@@ -68,12 +70,13 @@ object RequestFactory {
    */
   val plain = new RequestFactory {
     override def createRequestHeader(
-      connection: RemoteConnection,
-      method: String,
-      target: RequestTarget,
-      version: String,
-      headers: Headers,
-      attrs: TypedMap): RequestHeader =
+        connection: RemoteConnection,
+        method: String,
+        target: RequestTarget,
+        version: String,
+        headers: Headers,
+        attrs: TypedMap
+    ): RequestHeader =
       new RequestHeaderImpl(connection, method, target, version, headers, attrs)
   }
 }
@@ -86,10 +89,11 @@ object RequestFactory {
  * - session cookie
  * - flash cookie
  */
-class DefaultRequestFactory @Inject() (
+class DefaultRequestFactory @Inject()(
     val cookieHeaderEncoding: CookieHeaderEncoding,
     val sessionBaker: SessionCookieBaker,
-    val flashBaker: FlashCookieBaker) extends RequestFactory {
+    val flashBaker: FlashCookieBaker
+) extends RequestFactory {
 
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
@@ -98,31 +102,33 @@ class DefaultRequestFactory @Inject() (
   )
 
   override def createRequestHeader(
-    connection: RemoteConnection,
-    method: String,
-    target: RequestTarget,
-    version: String,
-    headers: Headers,
-    attrs: TypedMap): RequestHeader = {
+      connection: RemoteConnection,
+      method: String,
+      target: RequestTarget,
+      version: String,
+      headers: Headers,
+      attrs: TypedMap
+  ): RequestHeader = {
     val requestId: Long = RequestIdProvider.freshId()
     val cookieCell = new LazyCell[Cookies] {
-      override protected def emptyMarker: Cookies = null
-      override protected def create: Cookies =
+      protected override def emptyMarker: Cookies = null
+      protected override def create: Cookies =
         cookieHeaderEncoding.fromCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE))
     }
     val sessionCell = new LazyCell[Session] {
-      override protected def emptyMarker: Session = null
-      override protected def create: Session = sessionBaker.decodeFromCookie(cookieCell.value.get(sessionBaker.COOKIE_NAME))
+      protected override def emptyMarker: Session = null
+      protected override def create: Session =
+        sessionBaker.decodeFromCookie(cookieCell.value.get(sessionBaker.COOKIE_NAME))
     }
     val flashCell = new LazyCell[Flash] {
-      override protected def emptyMarker: Flash = null
-      override protected def create: Flash = flashBaker.decodeFromCookie(cookieCell.value.get(flashBaker.COOKIE_NAME))
+      protected override def emptyMarker: Flash = null
+      protected override def create: Flash      = flashBaker.decodeFromCookie(cookieCell.value.get(flashBaker.COOKIE_NAME))
     }
     val updatedAttrMap = attrs + (
-      RequestAttrKey.Id -> requestId,
+      RequestAttrKey.Id      -> requestId,
       RequestAttrKey.Cookies -> cookieCell,
       RequestAttrKey.Session -> sessionCell,
-      RequestAttrKey.Flash -> flashCell
+      RequestAttrKey.Flash   -> flashCell
     )
     new RequestHeaderImpl(connection, method, target, version, headers, updatedAttrMap)
   }

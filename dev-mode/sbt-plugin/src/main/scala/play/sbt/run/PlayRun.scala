@@ -8,7 +8,8 @@ import annotation.tailrec
 import sbt._
 import sbt.Keys._
 
-import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch, WatchState => PlayWatchState }
+import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
+import play.dev.filewatch.{ WatchState => PlayWatchState }
 
 import play.sbt._
 import play.sbt.PlayImport._
@@ -16,7 +17,8 @@ import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.Colors
 import play.core.BuildLink
-import play.runsupport.{ AssetsClassLoader, Reloader }
+import play.runsupport.AssetsClassLoader
+import play.runsupport.Reloader
 import play.runsupport.Reloader.GeneratedSourceMapping
 import play.twirl.compiler.MaybeGeneratedSource
 import play.twirl.sbt.SbtTwirl
@@ -44,10 +46,10 @@ object PlayRun extends PlayRunCompat {
 
   val twirlSourceHandler = new TwirlSourceMapping()
 
-  val generatedSourceHandlers = SbtTwirl.defaultFormats.map{ case (k, v) => ("scala." + k, twirlSourceHandler) }
+  val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, v) => ("scala." + k, twirlSourceHandler) }
 
-  val playDefaultRunTask = playRunTask(playRunHooks, playDependencyClasspath,
-    playReloaderClasspath, playAssetsClassLoader)
+  val playDefaultRunTask =
+    playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
 
   /**
    * This method is public API, used by sbt-echo, which is used by Activator:
@@ -58,23 +60,24 @@ object PlayRun extends PlayRunCompat {
    * release.
    */
   def playRunTask(
-    runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
-    dependencyClasspath: TaskKey[Classpath],
-    reloaderClasspath: TaskKey[Classpath],
-    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
+      runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
+      dependencyClasspath: TaskKey[Classpath],
+      reloaderClasspath: TaskKey[Classpath],
+      assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
   ): Def.Initialize[InputTask[Unit]] = Def.inputTask {
 
     val args = Def.spaceDelimited().parsed
 
-    val state = Keys.state.value
-    val scope = resolvedScoped.value.scope
+    val state       = Keys.state.value
+    val scope       = resolvedScoped.value.scope
     val interaction = playInteractionMode.value
 
-    val reloadCompile = () => PlayReload.compile(
-      () => Project.runTask(playReload in scope, state).map(_._2).get,
-      () => Project.runTask(reloaderClasspath in scope, state).map(_._2).get,
-      () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
-    )
+    val reloadCompile = () =>
+      PlayReload.compile(
+        () => Project.runTask(playReload in scope, state).map(_._2).get,
+        () => Project.runTask(reloaderClasspath in scope, state).map(_._2).get,
+        () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
+      )
 
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
@@ -110,7 +113,7 @@ object PlayRun extends PlayRunCompat {
         maybeContinuous match {
           case Some(watched) =>
             // ~ run mode
-            interaction doWithoutEcho {
+            interaction.doWithoutEcho {
               twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
             }
           case None =>
@@ -127,18 +130,25 @@ object PlayRun extends PlayRunCompat {
    * Monitor changes in ~run mode.
    */
   @tailrec
-  private def twiddleRunMonitor(watched: Watched, state: State, reloader: BuildLink, ws: Option[PlayWatchState] = None): Unit = {
-    val ContinuousState = AttributeKey[PlayWatchState]("watch state", "Internal: tracks state for continuous execution.")
+  private def twiddleRunMonitor(
+      watched: Watched,
+      state: State,
+      reloader: BuildLink,
+      ws: Option[PlayWatchState] = None
+  ): Unit = {
+    val ContinuousState =
+      AttributeKey[PlayWatchState]("watch state", "Internal: tracks state for continuous execution.")
     def isEOF(c: Int): Boolean = c == 4
 
     @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
 
     val sourcesFinder: PlaySourceModificationWatch.PathFinder = getSourcesFinder(watched, state)
-    val watchState = ws.getOrElse(state get ContinuousState getOrElse PlayWatchState.empty)
+    val watchState                                            = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
 
     val (triggered, newWatchState, newState) =
       try {
-        val (triggered: Boolean, newWatchState: PlayWatchState) = PlaySourceModificationWatch.watch(sourcesFinder, getPollInterval(watched), watchState)(shouldTerminate)
+        val (triggered: Boolean, newWatchState: PlayWatchState) =
+          PlaySourceModificationWatch.watch(sourcesFinder, getPollInterval(watched), watchState)(shouldTerminate)
         (triggered, newWatchState, state)
       } catch {
         case e: Exception =>
@@ -156,7 +166,7 @@ object PlayRun extends PlayRunCompat {
           val duration = System.currentTimeMillis - start
           val formatted = duration match {
             case ms if ms < 1000 => ms + "ms"
-            case seconds => (seconds / 1000) + "s"
+            case seconds         => (seconds / 1000) + "s"
           }
           println("[" + Colors.green("success") + "] Compiled in " + formatted)
         }
@@ -193,7 +203,9 @@ object PlayRun extends PlayRunCompat {
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
     state.log.warn("The start command is deprecated, and will be removed in a future version of Play.")
-    state.log.warn("To run Play in production mode, run 'stage' instead, and then execute the generated start script in target/universal/stage/bin.")
+    state.log.warn(
+      "To run Play in production mode, run 'stage' instead, and then execute the generated start script in target/universal/stage/bin."
+    )
     state.log.warn("To test your application using production mode, run 'runProd' instead.")
 
     testProd(state, args)
@@ -204,14 +216,15 @@ object PlayRun extends PlayRunCompat {
     val extracted = Project.extract(state)
 
     val interaction = extracted.get(playInteractionMode)
-    val noExitSbt = args.contains("--no-exit-sbt")
+    val noExitSbt   = args.contains("--no-exit-sbt")
 
-    val filter = Set("--no-exit-sbt")
-    val filtered = args.filterNot(filter)
+    val filter      = Set("--no-exit-sbt")
+    val filtered    = args.filterNot(filter)
     val devSettings = Seq.empty[(String, String)] // there are no dev settings in a prod website
 
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress), devSettings)
+    val (properties, httpPort, httpsPort, httpAddress) =
+      Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress), devSettings)
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
     Project.runTask(stage, state).get._2.toEither match {
@@ -221,11 +234,14 @@ object PlayRun extends PlayRunCompat {
         println()
         state.fail
       case Right(_) =>
-        val stagingBin = Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(executableScriptName)).map {
-          f =>
-            if (System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win")) f.getAbsolutePath + ".bat" else f.getAbsolutePath
-        }.get
-        val javaProductionOptions = Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
+        val stagingBin =
+          Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(executableScriptName)).map { f =>
+            if (System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win"))
+              f.getAbsolutePath + ".bat"
+            else f.getAbsolutePath
+          }.get
+        val javaProductionOptions =
+          Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
 
         // Note that I'm unable to pass system properties along with properties... if I do then I receive:
         //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
@@ -247,10 +263,9 @@ object PlayRun extends PlayRunCompat {
           }
         }.start()
 
-        println(Colors.green(
-          """|
-            |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
-            | """.stripMargin))
+        println(Colors.green("""|
+                                |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
+                                | """.stripMargin))
 
         interaction.waitForCancel()
 
@@ -266,7 +281,6 @@ object PlayRun extends PlayRunCompat {
   }
 
   val playStopProdCommand = Command.args("stopProd", "") { (state: State, args: Seq[String]) =>
-
     val extracted = Project.extract(state)
 
     val pidFile = extracted.get(stagingDirectory in Universal) / "RUNNING_PID"

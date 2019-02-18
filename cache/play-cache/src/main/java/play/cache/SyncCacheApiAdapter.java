@@ -10,9 +10,7 @@ import scala.concurrent.duration.Duration;
 
 import play.libs.Scala;
 
-/**
- * Adapts a Scala SyncCacheApi to a Java SyncCacheApi
- */
+/** Adapts a Scala SyncCacheApi to a Java SyncCacheApi */
 public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
 
   private final play.api.cache.SyncCacheApi scalaApi;
@@ -33,7 +31,8 @@ public class SyncCacheApiAdapter implements SyncCacheApi, CacheApi {
 
   @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
-    return scalaApi.getOrElseUpdate(key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
+    return scalaApi.getOrElseUpdate(
+        key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
   }
 
   @Override

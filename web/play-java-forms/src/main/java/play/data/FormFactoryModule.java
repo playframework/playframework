@@ -11,11 +11,8 @@ import scala.collection.Seq;
 
 public class FormFactoryModule extends Module {
 
-    @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-            bind(FormFactory.class).toSelf()
-        );
-    }
-
+  @Override
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    return seq(bind(FormFactory.class).toSelf());
+  }
 }

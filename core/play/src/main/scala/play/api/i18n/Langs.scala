@@ -4,9 +4,13 @@
 package play.api.i18n
 
 import java.util.Locale
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
-import play.api.{ Application, Configuration, Logger }
+import play.api.Application
+import play.api.Configuration
+import play.api.Logger
 
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -67,11 +71,15 @@ case class Lang(locale: Locale) {
  */
 object Lang {
   import play.api.libs.functional.ContravariantFunctor
-  import play.api.libs.json.{ OWrites, Reads, Writes }
+  import play.api.libs.json.OWrites
+  import play.api.libs.json.Reads
+  import play.api.libs.json.Writes
 
-  val jsonOWrites: OWrites[Lang] = implicitly[ContravariantFunctor[OWrites]].contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
+  val jsonOWrites: OWrites[Lang] =
+    implicitly[ContravariantFunctor[OWrites]].contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
 
-  implicit val jsonTagWrites: Writes[Lang] = implicitly[ContravariantFunctor[Writes]].contramap[Locale, Lang](Writes.localeWrites, _.locale)
+  implicit val jsonTagWrites: Writes[Lang] =
+    implicitly[ContravariantFunctor[Writes]].contramap[Locale, Lang](Writes.localeWrites, _.locale)
 
   val jsonOReads: Reads[Lang] = Reads.localeObjectReads.map(Lang(_))
 
@@ -99,12 +107,14 @@ object Lang {
    *  throw exception if language is unrecognized
    */
   def apply(language: String, country: String = "", script: String = "", variant: String = ""): Lang =
-    Lang(new Locale.Builder()
-      .setLanguage(language)
-      .setRegion(country)
-      .setScript(script)
-      .setVariant(variant)
-      .build())
+    Lang(
+      new Locale.Builder()
+        .setLanguage(language)
+        .setRegion(country)
+        .setScript(script)
+        .setVariant(variant)
+        .build()
+    )
 
   /**
    * Create a Lang value from a code (such as fr or en-US) or none
@@ -146,34 +156,40 @@ trait Langs {
 }
 
 @Singleton
-class DefaultLangs @Inject() (val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
+class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
 
   // Java API
   def this() = {
     this(Seq(Lang.defaultLang))
   }
 
-  def preferred(candidates: Seq[Lang]): Lang = candidates.collectFirst(Function.unlift { lang =>
-    availables.find(_.satisfies(lang))
-  }).getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
+  def preferred(candidates: Seq[Lang]): Lang =
+    candidates
+      .collectFirst(Function.unlift { lang =>
+        availables.find(_.satisfies(lang))
+      })
+      .getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
 }
 
 @Singleton
-class DefaultLangsProvider @Inject() (config: Configuration) extends Provider[Langs] {
+class DefaultLangsProvider @Inject()(config: Configuration) extends Provider[Langs] {
 
   def availables: Seq[Lang] = {
-    val langs = config.getOptional[String]("application.langs") map { langsStr =>
-      Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
-      langsStr.split(",").map(_.trim).toSeq
-    } getOrElse {
-      config.get[Seq[String]]("play.i18n.langs")
-    }
+    val langs = config
+      .getOptional[String]("application.langs")
+      .map { langsStr =>
+        Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
+        langsStr.split(",").map(_.trim).toSeq
+      }
+      .getOrElse {
+        config.get[Seq[String]]("play.i18n.langs")
+      }
 
     langs.map { lang =>
-      try { Lang(lang) } catch {
-        case NonFatal(e) => throw config.reportError(
-          "play.i18n.langs",
-          "Invalid language code [" + lang + "]", Some(e))
+      try {
+        Lang(lang)
+      } catch {
+        case NonFatal(e) => throw config.reportError("play.i18n.langs", "Invalid language code [" + lang + "]", Some(e))
       }
     }
   }

@@ -14,7 +14,7 @@ private[play] object HttpHeaderParameterEncoding {
 
   private def charSeqToBitSet(chars: Seq[Char]): JBitSet = {
     val ints: Seq[Int] = chars.map(_.toInt)
-    val max = ints.fold(0)(Math.max(_, _))
+    val max            = ints.fold(0)(Math.max(_, _))
     assert(max <= 256) // We should only be dealing with 7 or 8 bit chars
     val bitSet = new JBitSet(max)
     ints.foreach(bitSet.set(_))
@@ -40,7 +40,8 @@ private[play] object HttpHeaderParameterEncoding {
   //
   // Rich: We exclude <">, "\" since they can be used for quoting/escaping and HT since it is
   // rarely used and seems like it should be escaped.
-  private val Separators: Seq[Char] = Seq('(', ')', '<', '>', '@', ',', ';', ':', '/', '[', ']', '?', '=', '{', '}', ' ')
+  private val Separators: Seq[Char] =
+    Seq('(', ')', '<', '>', '@', ',', ';', ':', '/', '[', ']', '?', '=', '{', '}', ' ')
 
   /**
    * A subset of the 'qdtext' defined in https://tools.ietf.org/html/rfc2616#section-2.2. These are the
@@ -53,7 +54,8 @@ private[play] object HttpHeaderParameterEncoding {
   private val PartialQuotedText: JBitSet = charSeqToBitSet(
     AlphaNum ++ AttrCharPunctuation ++
       // we include 'separators' plus some chars excluded from 'attr-char'
-      Separators ++ Seq('*', '\''))
+      Separators ++ Seq('*', '\'')
+  )
 
   /**
    * The 'attr-char' values defined in https://tools.ietf.org/html/rfc5987#section-3.2.1. Should be a
@@ -105,22 +107,24 @@ private[play] object HttpHeaderParameterEncoding {
     // ASCII character or placeholder per logical character. If
     // we use the value's encoded bytes or chars then we might
     // end up with multiple placeholders per logical character.
-    value.codePoints().forEach(new IntConsumer {
-      override def accept(codePoint: Int): Unit = {
-        // We could support a wider range of characters here by using
-        // the 'token' or 'quoted printable' encoding, however it's
-        // simpler to use the subset of characters that is also valid
-        // for extended attributes.
-        if (codePoint >= 0 && codePoint <= 255 && PartialQuotedText.get(codePoint)) {
-          builder.append(codePoint.toChar)
-        } else {
-          // Set flag because we need to render an extended parameter.
-          hasExtendedChars = true
-          // Render a placeholder instead of the unsupported character.
-          builder.append(PlaceholderChar)
+    value
+      .codePoints()
+      .forEach(new IntConsumer {
+        override def accept(codePoint: Int): Unit = {
+          // We could support a wider range of characters here by using
+          // the 'token' or 'quoted printable' encoding, however it's
+          // simpler to use the subset of characters that is also valid
+          // for extended attributes.
+          if (codePoint >= 0 && codePoint <= 255 && PartialQuotedText.get(codePoint)) {
+            builder.append(codePoint.toChar)
+          } else {
+            // Set flag because we need to render an extended parameter.
+            hasExtendedChars = true
+            // Render a placeholder instead of the unsupported character.
+            builder.append(PlaceholderChar)
+          }
         }
-      }
-    })
+      })
 
     builder.append('"')
 

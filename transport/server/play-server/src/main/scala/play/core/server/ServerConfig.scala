@@ -5,7 +5,8 @@ package play.core.server
 
 import java.io.File
 import java.util.Properties
-import play.api.{ Configuration, Mode }
+import play.api.Configuration
+import play.api.Mode
 
 /**
  * Common configuration for servers such as NettyServer.
@@ -28,21 +29,24 @@ case class ServerConfig(
     address: String,
     mode: Mode,
     properties: Properties,
-    configuration: Configuration) {
+    configuration: Configuration
+) {
   // Some basic validation of config
-  if (port.isEmpty && sslPort.isEmpty) throw new IllegalArgumentException("Must provide either an HTTP port or an HTTPS port")
+  if (port.isEmpty && sslPort.isEmpty)
+    throw new IllegalArgumentException("Must provide either an HTTP port or an HTTPS port")
 }
 
 object ServerConfig {
 
   def apply(
-    classLoader: ClassLoader = this.getClass.getClassLoader,
-    rootDir: File = new File("."),
-    port: Option[Int] = Some(9000),
-    sslPort: Option[Int] = None,
-    address: String = "0.0.0.0",
-    mode: Mode = Mode.Prod,
-    properties: Properties = System.getProperties): ServerConfig = {
+      classLoader: ClassLoader = this.getClass.getClassLoader,
+      rootDir: File = new File("."),
+      port: Option[Int] = Some(9000),
+      sslPort: Option[Int] = None,
+      address: String = "0.0.0.0",
+      mode: Mode = Mode.Prod,
+      properties: Properties = System.getProperties
+  ): ServerConfig = {
     ServerConfig(
       rootDir = rootDir,
       port = port,

@@ -8,7 +8,7 @@ import javax.inject.Inject
 import scala.collection.JavaConverters._
 import models._
 
-class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
+class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }

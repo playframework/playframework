@@ -7,18 +7,25 @@ import java.util.function.{ Function => JFunction }
 
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler, Port }
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorHandler
+import play.api.http.Port
 import play.api.routing.Router
 import play.api._
 import play.api.mvc._
-import play.core.{ ApplicationProvider, DefaultWebCommands, SourceMapper, WebCommands }
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.core.ApplicationProvider
+import play.core.DefaultWebCommands
+import play.core.SourceMapper
+import play.core.WebCommands
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.DefaultApplicationLifecycle
 import play.routing.{ Router => JRouter }
 import play.{ ApplicationLoader => JApplicationLoader }
 import play.{ BuiltInComponents => JBuiltInComponents }
 import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
 
-import scala.util.{ Failure, Success }
+import scala.util.Failure
+import scala.util.Success
 import scala.concurrent.Future
 import scala.language.postfixOps
 
@@ -50,7 +57,7 @@ trait Server extends ReloadableServer {
   @deprecated("Use Server.getHandlerFor instead", "2.6.13")
   def getHandlerFor(request: RequestHeader): Either[Future[Result], (RequestHeader, Handler, Application)] = {
     val appProvider = applicationProvider
-    val result = Server.getHandlerFor(request, appProvider)
+    val result      = Server.getHandlerFor(request, appProvider)
     result.right.map { case (rh, h) => (rh, h, appProvider.get.get) }
   }
 
@@ -100,12 +107,12 @@ object Server {
    * - If an exception is thrown.
    */
   private[server] def getHandlerFor(
-    request: RequestHeader,
-    applicationProvider: ApplicationProvider
+      request: RequestHeader,
+      applicationProvider: ApplicationProvider
   ): Either[Future[Result], (RequestHeader, Handler)] = {
 
     def handleErrors(errorHandler: HttpErrorHandler): Throwable => Left[Future[Result], Nothing] = {
-      case e: ThreadDeath => throw e
+      case e: ThreadDeath         => throw e
       case e: VirtualMachineError => throw e
       case e: Throwable =>
         Left(errorHandler.onServerError(request, e))
@@ -126,7 +133,7 @@ object Server {
               // logic to handle that request.
               try {
                 val factoryMadeHeader: RequestHeader = application.requestFactory.copyRequestHeader(request)
-                val (handlerHeader, handler) = application.requestHandler.handlerForRequest(factoryMadeHeader)
+                val (handlerHeader, handler)         = application.requestHandler.handlerForRequest(factoryMadeHeader)
                 Right((handlerHeader, handler))
               } catch {
                 case e: Throwable => handleErrors(application.errorHandler)(e)
@@ -156,11 +163,14 @@ object Server {
    * @param provider The server provider.
    * @return The result of the block of code.
    */
-  def withApplication[T](application: Application, config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(block: Port => T)(implicit provider: ServerProvider): T = {
+  def withApplication[T](
+      application: Application,
+      config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test)
+  )(block: Port => T)(implicit provider: ServerProvider): T = {
     Play.start(application)
     val server = provider.createServer(config, application)
     try {
-      block(new Port((server.httpPort orElse server.httpsPort).get))
+      block(new Port(server.httpPort.orElse(server.httpsPort).get))
     } finally {
       server.stop()
     }
@@ -179,10 +189,14 @@ object Server {
    * @param provider The server provider.
    * @return The result of the block of code.
    */
-  def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
+  def withRouter[T](
+      config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test)
+  )(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
     val context = ApplicationLoader.Context(
       Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      None,
+      new DefaultWebCommands(),
+      Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
     )
     val application = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
@@ -204,12 +218,18 @@ object Server {
    * @param provider The server provider.
    * @return The result of the block of code.
    */
-  def withRouterFromComponents[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: BuiltInComponents => PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
-    val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
-      Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
-      new DefaultApplicationLifecycle
-    )) with NoHttpFiltersComponents { self: BuiltInComponents =>
+  def withRouterFromComponents[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(
+      routes: BuiltInComponents => PartialFunction[RequestHeader, Handler]
+  )(block: Port => T)(implicit provider: ServerProvider): T = {
+    val application = new BuiltInComponentsFromContext(
+      ApplicationLoader.Context(
+        Environment.simple(path = config.rootDir, mode = config.mode),
+        None,
+        new DefaultWebCommands(),
+        Configuration(ConfigFactory.load()),
+        new DefaultApplicationLifecycle
+      )
+    ) with NoHttpFiltersComponents { self: BuiltInComponents =>
       def router = Router.from(routes(self))
     }.application
     withApplication(application, config)(block)
@@ -241,10 +261,14 @@ object Server {
    * @param provider The server provider.
    * @return The result of the block of code.
    */
-  def withApplicationFromContext[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(appProducer: ApplicationLoader.Context => Application)(block: Port => T)(implicit provider: ServerProvider): T = {
+  def withApplicationFromContext[T](
+      config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test)
+  )(appProducer: ApplicationLoader.Context => Application)(block: Port => T)(implicit provider: ServerProvider): T = {
     val context: Context = ApplicationLoader.Context(
       Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration(ConfigFactory.load()),
+      None,
+      new DefaultWebCommands(),
+      Configuration(ConfigFactory.load()),
       new DefaultApplicationLifecycle
     )
     withApplication(appProducer(context), config)(block)
@@ -261,10 +285,10 @@ trait ServerComponents {
 
   lazy val serverConfig: ServerConfig = ServerConfig()
 
-  lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
-  lazy val sourceMapper: Option[SourceMapper] = None
-  lazy val webCommands: WebCommands = new DefaultWebCommands
-  lazy val configuration: Configuration = Configuration(ConfigFactory.load())
+  lazy val environment: Environment                   = Environment.simple(mode = serverConfig.mode)
+  lazy val sourceMapper: Option[SourceMapper]         = None
+  lazy val webCommands: WebCommands                   = new DefaultWebCommands
+  lazy val configuration: Configuration               = Configuration(ConfigFactory.load())
   lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
 
   def serverStopHook: () => Future[Unit] = () => Future.successful(())
@@ -275,7 +299,9 @@ trait ServerComponents {
  */
 private[server] trait ServerFromRouter {
 
-  protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(routes: ServerComponents with BuiltInComponents => Router): Server
+  protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(
+      routes: ServerComponents with BuiltInComponents => Router
+  ): Server
 
   /**
    * Creates a [[Server]] from the given router.
@@ -285,7 +311,9 @@ private[server] trait ServerFromRouter {
    * @return an AkkaHttpServer instance
    */
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
-    createServerFromRouter(config) { _ => Router.from(routes) }
+    createServerFromRouter(config) { _ =>
+      Router.from(routes)
+    }
   }
 
   /**
@@ -295,7 +323,9 @@ private[server] trait ServerFromRouter {
    * @param routes the routes definitions
    * @return an AkkaHttpServer instance
    */
-  def fromRouterWithComponents(config: ServerConfig = ServerConfig())(routes: BuiltInComponents => PartialFunction[RequestHeader, Handler]): Server = {
+  def fromRouterWithComponents(
+      config: ServerConfig = ServerConfig()
+  )(routes: BuiltInComponents => PartialFunction[RequestHeader, Handler]): Server = {
     createServerFromRouter(config)(components => Router.from(routes(components)))
   }
 }
@@ -307,10 +337,12 @@ private[play] object JavaServerHelper {
     })
   }
 
-  def forRouter(mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer])(block: JFunction[JBuiltInComponents, JRouter]): Server = {
+  def forRouter(mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer])(
+      block: JFunction[JBuiltInComponents, JRouter]
+  ): Server = {
     val context = JApplicationLoader.create(Environment.simple(mode = mode).asJava)
     val application = new JBuiltInComponentsFromContext(context) {
-      override def router: JRouter = block.apply(this)
+      override def router: JRouter                                         = block.apply(this)
       override def httpFilters(): java.util.List[play.mvc.EssentialFilter] = java.util.Collections.emptyList()
     }.application.asScala()
     Play.start(application)

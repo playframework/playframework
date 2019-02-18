@@ -12,25 +12,18 @@ import play.libs.Scala;
 
 import java.util.List;
 
-/**
- * Java Components for the CORS Filter.
- */
+/** Java Components for the CORS Filter. */
 public interface CORSComponents extends ConfigurationComponents, HttpErrorHandlerComponents {
 
-    default CORSConfig corsConfig() {
-        return CORSConfig$.MODULE$.fromConfiguration(configuration());
-    }
+  default CORSConfig corsConfig() {
+    return CORSConfig$.MODULE$.fromConfiguration(configuration());
+  }
 
-    default List<String> corsPathPrefixes() {
-        return config().getStringList("play.filters.cors.pathPrefixes");
-    }
+  default List<String> corsPathPrefixes() {
+    return config().getStringList("play.filters.cors.pathPrefixes");
+  }
 
-    default CORSFilter corsFilter() {
-        return new CORSFilter(
-            corsConfig(),
-            scalaHttpErrorHandler(),
-            Scala.asScala(corsPathPrefixes())
-        );
-    }
-
+  default CORSFilter corsFilter() {
+    return new CORSFilter(corsConfig(), scalaHttpErrorHandler(), Scala.asScala(corsPathPrefixes()));
+  }
 }

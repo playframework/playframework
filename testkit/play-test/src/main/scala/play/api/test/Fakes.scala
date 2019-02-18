@@ -7,8 +7,10 @@ import java.net.URI
 import java.security.cert.X509Certificate
 
 import akka.util.ByteString
-import play.api.http.{ HeaderNames, HttpConfiguration }
-import play.api.libs.Files.{ SingletonTemporaryFileCreator, TemporaryFile }
+import play.api.http.HeaderNames
+import play.api.http.HttpConfiguration
+import play.api.libs.Files.SingletonTemporaryFileCreator
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
@@ -33,12 +35,12 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  */
 class FakeRequest[+A](request: Request[A]) extends Request[A] {
   override def connection: RemoteConnection = request.connection
-  override def method: String = request.method
-  override def target: RequestTarget = request.target
-  override def version: String = request.version
-  override def headers: Headers = request.headers
-  override def body: A = request.body
-  override def attrs: TypedMap = request.attrs
+  override def method: String               = request.method
+  override def target: RequestTarget        = request.target
+  override def version: String              = request.version
+  override def headers: Headers             = request.headers
+  override def body: A                      = request.body
+  override def attrs: TypedMap              = request.attrs
 
   override def withConnection(newConnection: RemoteConnection): FakeRequest[A] =
     new FakeRequest(request.withConnection(newConnection))
@@ -57,21 +59,24 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
 
   @deprecated("Use with* methods instead.", "2.6.0")
   def copyFakeRequest[B](
-    id: java.lang.Long = null,
-    tags: Map[String, String] = null,
-    uri: String = null,
-    path: String = null,
-    method: String = null,
-    version: String = null,
-    headers: Headers = null,
-    remoteAddress: String = null,
-    secure: java.lang.Boolean = null,
-    clientCertificateChain: Option[Seq[X509Certificate]] = null,
-    body: B = body): FakeRequest[B] = {
+      id: java.lang.Long = null,
+      tags: Map[String, String] = null,
+      uri: String = null,
+      path: String = null,
+      method: String = null,
+      version: String = null,
+      headers: Headers = null,
+      remoteAddress: String = null,
+      secure: java.lang.Boolean = null,
+      clientCertificateChain: Option[Seq[X509Certificate]] = null,
+      body: B = body
+  ): FakeRequest[B] = {
 
     new FakeRequest[B](
-      request.copy(id, tags, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
-        .withBody(body))
+      request
+        .copy(id, tags, uri, path, method, version, null, headers, remoteAddress, secure, clientCertificateChain)
+        .withBody(body)
+    )
   }
 
   /**
@@ -172,18 +177,33 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
    * Constructs a new GET / fake request.
    */
   def apply(): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(method = "GET", uri = "/", headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
+    apply(
+      method = "GET",
+      uri = "/",
+      headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
+      body = AnyContentAsEmpty
+    )
   }
 
   /**
    * Constructs a new request.
    */
   def apply(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(method = method, uri = path, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
+    apply(
+      method = method,
+      uri = path,
+      headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
+      body = AnyContentAsEmpty
+    )
   }
 
   def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] = {
-    apply(method = call.method, uri = call.url, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")), body = AnyContentAsEmpty)
+    apply(
+      method = call.method,
+      uri = call.url,
+      headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
+      body = AnyContentAsEmpty
+    )
   }
 
   /**
@@ -195,26 +215,27 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
    * @param remoteAddress The client IP.
    */
   def apply[A](
-    method: String,
-    uri: String,
-    headers: Headers,
-    body: A,
-    remoteAddress: String = "127.0.0.1",
-    version: String = "HTTP/1.1",
-    id: Long = 666,
-    tags: Map[String, String] = Map.empty[String, String],
-    secure: Boolean = false,
-    clientCertificateChain: Option[Seq[X509Certificate]] = None,
-    attrs: TypedMap = TypedMap.empty): FakeRequest[A] = {
+      method: String,
+      uri: String,
+      headers: Headers,
+      body: A,
+      remoteAddress: String = "127.0.0.1",
+      version: String = "HTTP/1.1",
+      id: Long = 666,
+      tags: Map[String, String] = Map.empty[String, String],
+      secure: Boolean = false,
+      clientCertificateChain: Option[Seq[X509Certificate]] = None,
+      attrs: TypedMap = TypedMap.empty
+  ): FakeRequest[A] = {
 
     val _uri = uri
     val request: Request[A] = requestFactory.createRequest(
       RemoteConnection(remoteAddress, secure, clientCertificateChain),
       method,
       new RequestTarget {
-        override lazy val uri: URI = new URI(uriString)
-        override def uriString: String = _uri
-        override lazy val path: String = uriString.split('?').take(1).mkString
+        override lazy val uri: URI                           = new URI(uriString)
+        override def uriString: String                       = _uri
+        override lazy val path: String                       = uriString.split('?').take(1).mkString
         override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
       },
       version,

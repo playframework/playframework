@@ -6,7 +6,8 @@ package play.api.mvc
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
-import scala.concurrent.{ Promise, Future }
+import scala.concurrent.Promise
+import scala.concurrent.Future
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
@@ -71,18 +72,19 @@ trait Filter extends EssentialFilter {
 
         Accumulator.flatten(bodyAccumulator.future.map { it =>
           it.mapFuture { simpleResult =>
-            // When the iteratee is done, we can redeem the promised result that was returned to the filter
-            promisedResult.success(simpleResult)
-            result
-          }.recoverWith {
-            case t: Throwable =>
-              // If the iteratee finishes with an error, fail the promised result that was returned to the
-              // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
-              // promisedResult was already completed successfully in the mapM method above but b) calculating
-              // the result in that method caused an error, so we ended up in this recover block anyway.
-              promisedResult.tryFailure(t)
+              // When the iteratee is done, we can redeem the promised result that was returned to the filter
+              promisedResult.success(simpleResult)
               result
-          }
+            }
+            .recoverWith {
+              case t: Throwable =>
+                // If the iteratee finishes with an error, fail the promised result that was returned to the
+                // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
+                // promisedResult was already completed successfully in the mapM method above but b) calculating
+                // the result in that method caused an error, so we ended up in this recover block anyway.
+                promisedResult.tryFailure(t)
+                result
+            }
         })
       }
 
@@ -91,8 +93,10 @@ trait Filter extends EssentialFilter {
 }
 
 object Filter {
-  def apply(filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result])(implicit m: Materializer): Filter = new Filter {
-    implicit def mat = m
+  def apply(
+      filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result]
+  )(implicit m: Materializer): Filter = new Filter {
+    implicit def mat                                                                 = m
     def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = filter(f, rh)
   }
 }
@@ -107,13 +111,13 @@ object Filters {
 /**
  * Compose the action and the Filters to create a new Action
  */
-
 object FilterChain {
   def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = new EssentialAction {
     def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
-      val chain = filters.reverse.foldLeft(action) { (a, i) => i(a) }
+      val chain = filters.reverse.foldLeft(action) { (a, i) =>
+        i(a)
+      }
       chain(rh)
     }
   }
 }
-

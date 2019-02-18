@@ -16,13 +16,14 @@ class HikariCPConfigSpec extends Specification {
 
     "set dataSourceClassName when present" in new Configs {
       val config = from("hikaricp.dataSourceClassName" -> "org.postgresql.ds.PGPoolingDataSource")
-      new HikariCPConfig(DatabaseConfig(None, None, None, None, None), config)
-        .toHikariConfig.getDataSourceClassName must beEqualTo("org.postgresql.ds.PGPoolingDataSource")
+      new HikariCPConfig(DatabaseConfig(None, None, None, None, None), config).toHikariConfig.getDataSourceClassName must beEqualTo(
+        "org.postgresql.ds.PGPoolingDataSource"
+      )
     }
 
     "set dataSource sub properties" in new Configs {
       val config = from(
-        "hikaricp.dataSource.user" -> "user",
+        "hikaricp.dataSource.user"     -> "user",
         "hikaricp.dataSource.password" -> "password"
       )
       val hikariConfig: HikariConfig = new HikariCPConfig(dbConfig, config).toHikariConfig
@@ -126,7 +127,7 @@ class HikariCPConfigSpec extends Specification {
 
       "minimumIdle" in new Configs {
         val config = from(
-          "hikaricp.minimumIdle" -> "20",
+          "hikaricp.minimumIdle"     -> "20",
           "hikaricp.maximumPoolSize" -> "40"
         )
         new HikariCPConfig(dbConfig, config).toHikariConfig.getMinimumIdle must beEqualTo(20)
@@ -171,7 +172,7 @@ class HikariCPConfigSpec extends Specification {
 }
 
 trait Configs extends Scope {
-  val dbConfig = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
-  val reference = Configuration.reference.get[Configuration]("play.db.prototype")
+  val dbConfig                       = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
+  val reference                      = Configuration.reference.get[Configuration]("play.db.prototype")
   def from(props: (String, String)*) = reference ++ Configuration.from(props.toMap)
 }

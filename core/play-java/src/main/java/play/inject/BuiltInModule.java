@@ -15,16 +15,15 @@ import play.mvc.FileMimeTypes;
 import scala.collection.Seq;
 
 public class BuiltInModule extends play.api.inject.Module {
-    @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-            bind(ApplicationLifecycle.class).to(DelegateApplicationLifecycle.class),
-            bind(play.Environment.class).toSelf(),
-            bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
-            bind(CookieSigner.class).to(DefaultCookieSigner.class),
-            bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
-            bind(FileMimeTypes.class).toSelf(),
-            bind(Futures.class).to(DefaultFutures.class)
-        );
-    }
+  @Override
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    return seq(
+        bind(ApplicationLifecycle.class).to(DelegateApplicationLifecycle.class),
+        bind(play.Environment.class).toSelf(),
+        bind(play.Configuration.class).toProvider(ConfigurationProvider.class),
+        bind(CookieSigner.class).to(DefaultCookieSigner.class),
+        bind(Files.TemporaryFileCreator.class).to(Files.DelegateTemporaryFileCreator.class),
+        bind(FileMimeTypes.class).toSelf(),
+        bind(Futures.class).to(DefaultFutures.class));
+  }
 }

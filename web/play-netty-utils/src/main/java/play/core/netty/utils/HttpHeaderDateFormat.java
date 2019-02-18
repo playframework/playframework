@@ -22,74 +22,67 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * This DateFormat decodes 3 formats of {@link Date}, but only encodes the one,
- * the first:
+ * This DateFormat decodes 3 formats of {@link Date}, but only encodes the one, the first:
+ *
  * <ul>
- * <li>Sun, 06 Nov 1994 08:49:37 GMT: standard specification, the only one with
- * valid generation</li>
- * <li>Sun, 06 Nov 1994 08:49:37 GMT: obsolete specification</li>
- * <li>Sun Nov 6 08:49:37 1994: obsolete specification</li>
+ *   <li>Sun, 06 Nov 1994 08:49:37 GMT: standard specification, the only one with valid generation
+ *   <li>Sun, 06 Nov 1994 08:49:37 GMT: obsolete specification
+ *   <li>Sun Nov 6 08:49:37 1994: obsolete specification
  * </ul>
  */
 final class HttpHeaderDateFormat extends SimpleDateFormat {
-    private static final long serialVersionUID = -925286159755905325L;
+  private static final long serialVersionUID = -925286159755905325L;
 
-    private final SimpleDateFormat format1 = new HttpHeaderDateFormatObsolete1();
-    private final SimpleDateFormat format2 = new HttpHeaderDateFormatObsolete2();
+  private final SimpleDateFormat format1 = new HttpHeaderDateFormatObsolete1();
+  private final SimpleDateFormat format2 = new HttpHeaderDateFormatObsolete2();
 
-    private static final ThreadLocal<HttpHeaderDateFormat> FORMAT_THREAD_LOCAL =
-            new ThreadLocal<HttpHeaderDateFormat>() {
+  private static final ThreadLocal<HttpHeaderDateFormat> FORMAT_THREAD_LOCAL =
+      new ThreadLocal<HttpHeaderDateFormat>() {
         @Override
         protected HttpHeaderDateFormat initialValue() {
-            return new HttpHeaderDateFormat();
+          return new HttpHeaderDateFormat();
         }
-    };
+      };
 
-    public static HttpHeaderDateFormat get() {
-        return FORMAT_THREAD_LOCAL.get();
+  public static HttpHeaderDateFormat get() {
+    return FORMAT_THREAD_LOCAL.get();
+  }
+
+  /** Standard date format */
+  private HttpHeaderDateFormat() {
+    super("E, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+    setTimeZone(TimeZone.getTimeZone("GMT"));
+  }
+
+  @Override
+  public Date parse(String text, ParsePosition pos) {
+    Date date = super.parse(text, pos);
+    if (date == null) {
+      date = format1.parse(text, pos);
     }
-
-    /**
-     * Standard date format
-     */
-    private HttpHeaderDateFormat() {
-        super("E, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-        setTimeZone(TimeZone.getTimeZone("GMT"));
+    if (date == null) {
+      date = format2.parse(text, pos);
     }
+    return date;
+  }
 
-    @Override
-    public Date parse(String text, ParsePosition pos) {
-        Date date = super.parse(text, pos);
-        if (date == null) {
-            date = format1.parse(text, pos);
-        }
-        if (date == null) {
-            date = format2.parse(text, pos);
-        }
-        return date;
+  /** First obsolete format */
+  private static final class HttpHeaderDateFormatObsolete1 extends SimpleDateFormat {
+    private static final long serialVersionUID = -3178072504225114298L;
+
+    HttpHeaderDateFormatObsolete1() {
+      super("E, dd-MMM-yy HH:mm:ss z", Locale.ENGLISH);
+      setTimeZone(TimeZone.getTimeZone("GMT"));
     }
+  }
 
-    /**
-     * First obsolete format
-     */
-    private static final class HttpHeaderDateFormatObsolete1 extends SimpleDateFormat {
-        private static final long serialVersionUID = -3178072504225114298L;
+  /** Second obsolete format */
+  private static final class HttpHeaderDateFormatObsolete2 extends SimpleDateFormat {
+    private static final long serialVersionUID = 3010674519968303714L;
 
-        HttpHeaderDateFormatObsolete1() {
-            super("E, dd-MMM-yy HH:mm:ss z", Locale.ENGLISH);
-            setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
+    HttpHeaderDateFormatObsolete2() {
+      super("E MMM d HH:mm:ss yyyy", Locale.ENGLISH);
+      setTimeZone(TimeZone.getTimeZone("GMT"));
     }
-
-    /**
-     * Second obsolete format
-     */
-    private static final class HttpHeaderDateFormatObsolete2 extends SimpleDateFormat {
-        private static final long serialVersionUID = 3010674519968303714L;
-
-        HttpHeaderDateFormatObsolete2() {
-            super("E MMM d HH:mm:ss yyyy", Locale.ENGLISH);
-            setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
-    }
+  }
 }

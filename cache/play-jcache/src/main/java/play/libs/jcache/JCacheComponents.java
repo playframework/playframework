@@ -8,15 +8,12 @@ import play.Environment;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
 
-/**
- * JCache components
- */
+/** JCache components */
 public interface JCacheComponents {
 
-    Environment environment();
+  Environment environment();
 
-    default CacheManager cacheManager() {
-        return Caching.getCachingProvider(environment().classLoader()).getCacheManager();
-    }
-
+  default CacheManager cacheManager() {
+    return Caching.getCachingProvider(environment().classLoader()).getCacheManager();
+  }
 }

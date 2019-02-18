@@ -11,5 +11,5 @@ import sbt._
  */
 object MediatorWorkaroundPlugin extends MediatorWorkaroundPluginCompat {
   override def requires = plugins.JvmPlugin
-  override def trigger = noTrigger
+  override def trigger  = noTrigger
 }

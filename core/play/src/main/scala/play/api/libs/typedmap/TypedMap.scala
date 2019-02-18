@@ -19,6 +19,7 @@ import scala.collection.immutable
  * corresponding [[TypedKey]].
  */
 trait TypedMap {
+
   /**
    * Get a value from the map, throwing an exception if it is not present.
    *
@@ -71,6 +72,7 @@ trait TypedMap {
 }
 
 object TypedMap {
+
   /**
    * The empty [[TypedMap]] instance.
    */
@@ -87,11 +89,10 @@ object TypedMap {
 /**
  * An implementation of `TypedMap` that wraps a standard Scala [[Map]].
  */
-private[typedmap] final class DefaultTypedMap private[typedmap] (
-    m: immutable.Map[TypedKey[_], Any]) extends TypedMap {
-  override def apply[A](key: TypedKey[A]): A = m.apply(key).asInstanceOf[A]
-  override def get[A](key: TypedKey[A]): Option[A] = m.get(key).asInstanceOf[Option[A]]
-  override def contains(key: TypedKey[_]): Boolean = m.contains(key)
+private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Map[TypedKey[_], Any]) extends TypedMap {
+  override def apply[A](key: TypedKey[A]): A                    = m.apply(key).asInstanceOf[A]
+  override def get[A](key: TypedKey[A]): Option[A]              = m.get(key).asInstanceOf[Option[A]]
+  override def contains(key: TypedKey[_]): Boolean              = m.contains(key)
   override def updated[A](key: TypedKey[A], value: A): TypedMap = new DefaultTypedMap(m.updated(key, value))
   override def +(entries: TypedEntry[_]*): TypedMap = {
     val m2 = entries.foldLeft(m) {

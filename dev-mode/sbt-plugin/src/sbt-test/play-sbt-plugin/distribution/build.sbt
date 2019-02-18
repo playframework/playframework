@@ -16,7 +16,7 @@ lazy val root = (project in file("."))
 val checkStartScript = InputKey[Unit]("checkStartScript")
 
 checkStartScript := {
-  val args = Def.spaceDelimited().parsed
+  val args        = Def.spaceDelimited().parsed
   val startScript = target.value / "universal/stage/bin/dist-sample"
   def startScriptError(contents: String, msg: String) = {
     println("Error in start script, dumping contents:")
@@ -24,12 +24,13 @@ checkStartScript := {
     sys.error(msg)
   }
   val contents = IO.read(startScript)
-  val lines = IO.readLines(startScript)
-  if (!contents.contains( "app_mainclass=(play.core.server.ProdServerStart)")) {
+  val lines    = IO.readLines(startScript)
+  if (!contents.contains("app_mainclass=(play.core.server.ProdServerStart)")) {
     startScriptError(contents, "Cannot find the declaration of the main class in the script")
   }
-  val appClasspath = lines.find(_ startsWith "declare -r app_classpath")
-      .getOrElse( startScriptError(contents, "Start script doesn't declare app_classpath"))
+  val appClasspath = lines
+    .find(_.startsWith("declare -r app_classpath"))
+    .getOrElse(startScriptError(contents, "Start script doesn't declare app_classpath"))
   if (args.contains("no-conf")) {
     if (appClasspath.contains("../conf")) {
       startScriptError(contents, "Start script is adding conf directory to the classpath when it shouldn't be")

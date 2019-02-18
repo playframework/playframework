@@ -3,7 +3,8 @@
  */
 package play.it.http
 
-import java.net.{ Socket, SocketTimeoutException }
+import java.net.Socket
+import java.net.SocketTimeoutException
 import java.io._
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -12,7 +13,9 @@ import javax.net.ssl.X509TrustManager
 import org.apache.commons.io.IOUtils
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
-import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
+import play.api.mvc.DefaultCookieHeaderEncoding
+import play.api.mvc.DefaultFlashCookieBaker
+import play.api.mvc.DefaultSessionCookieBaker
 import play.api.test.Helpers._
 import play.core.server.common.ServerResultUtils
 import play.core.utils.CaseInsensitiveOrdered
@@ -33,7 +36,9 @@ object BasicHttpClient {
    * @param secure Whether to use HTTPS
    * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
    */
-  def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None, secure: Boolean = false)(requests: BasicRequest*): Seq[BasicResponse] = {
+  def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None, secure: Boolean = false)(
+      requests: BasicRequest*
+  ): Seq[BasicResponse] = {
     val client = new BasicHttpClient(port, secure)
     try {
       var requestNo = 0
@@ -81,7 +86,7 @@ object BasicHttpClient {
 class BasicHttpClient(port: Int, secure: Boolean) {
   val s = createSocket
   s.setSoTimeout(5000)
-  val out = new OutputStreamWriter(s.getOutputStream)
+  val out    = new OutputStreamWriter(s.getOutputStream)
   val reader = new BufferedReader(new InputStreamReader(s.getInputStream))
 
   protected def createSocket = {
@@ -118,8 +123,12 @@ class BasicHttpClient(port: Int, secure: Boolean) {
    * @return The responses (may be more than one if Expect: 100-continue header is present) if requested to wait for
    *         them
    */
-  def sendRequest(request: BasicRequest, requestDesc: String, waitForResponses: Boolean = true,
-    trickleFeed: Option[Long] = None): Seq[BasicResponse] = {
+  def sendRequest(
+      request: BasicRequest,
+      requestDesc: String,
+      waitForResponses: Boolean = true,
+      trickleFeed: Option[Long] = None
+  ): Seq[BasicResponse] = {
     out.write(s"${request.method} ${request.uri} ${request.version}\r\n")
     out.write("Host: localhost\r\n")
     request.headers.foreach { header =>
@@ -144,19 +153,23 @@ class BasicHttpClient(port: Int, secure: Boolean) {
     }
 
     if (waitForResponses) {
-      request.headers.get("Expect").filter(_ == "100-continue").map { _ =>
-        out.flush()
-        val response = readResponse(requestDesc + " continue")
-        if (response.status == 100) {
-          writeBody()
-          Seq(response, readResponse(requestDesc))
-        } else {
-          Seq(response)
+      request.headers
+        .get("Expect")
+        .filter(_ == "100-continue")
+        .map { _ =>
+          out.flush()
+          val response = readResponse(requestDesc + " continue")
+          if (response.status == 100) {
+            writeBody()
+            Seq(response, readResponse(requestDesc))
+          } else {
+            Seq(response)
+          }
         }
-      } getOrElse {
-        writeBody()
-        Seq(readResponse(requestDesc))
-      }
+        .getOrElse {
+          writeBody()
+          Seq(readResponse(requestDesc))
+        }
     } else {
       writeBody()
       Nil
@@ -180,8 +193,8 @@ class BasicHttpClient(port: Int, secure: Boolean) {
 
       val (version, status, reasonPhrase) = statusLine.split(" ", 3) match {
         case Array(v, s, r) => (v, s.toInt, r)
-        case Array(v, s) => (v, s.toInt, "")
-        case _ => throw new RuntimeException("Invalid status line for response " + responseDesc + ": " + statusLine)
+        case Array(v, s)    => (v, s.toInt, "")
+        case _              => throw new RuntimeException("Invalid status line for response " + responseDesc + ": " + statusLine)
       }
       // Read headers
       def readHeaders: List[(String, String)] = {
@@ -191,7 +204,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         } else {
           val parsed = header.split(":", 2) match {
             case Array(name, value) => (name.trim(), value.trim())
-            case Array(name) => (name, "")
+            case Array(name)        => (name, "")
           }
           parsed :: readHeaders
         }
@@ -213,36 +226,51 @@ class BasicHttpClient(port: Int, secure: Boolean) {
       }
 
       // Read body
-      val body = headers.get(TRANSFER_ENCODING).filter(_ == CHUNKED).map { _ =>
-        def readChunks: List[String] = {
-          val chunkLength = Integer.parseInt(reader.readLine())
-          if (chunkLength == 0) {
-            Nil
-          } else {
-            val chunk = readCompletely(chunkLength)
-            // Ignore newline after chunk
-            reader.readLine()
-            chunk :: readChunks
+      val body = headers
+        .get(TRANSFER_ENCODING)
+        .filter(_ == CHUNKED)
+        .map { _ =>
+          def readChunks: List[String] = {
+            val chunkLength = Integer.parseInt(reader.readLine())
+            if (chunkLength == 0) {
+              Nil
+            } else {
+              val chunk = readCompletely(chunkLength)
+              // Ignore newline after chunk
+              reader.readLine()
+              chunk :: readChunks
+            }
           }
+          (readChunks.toSeq, readHeaders.toMap)
         }
-        (readChunks.toSeq, readHeaders.toMap)
-      } toRight {
-        headers.get(CONTENT_LENGTH).map { length =>
-          readCompletely(length.toInt)
-        } getOrElse {
-          val httpConfig = HttpConfiguration()
-          val serverResultUtils = new ServerResultUtils(
-            new DefaultSessionCookieBaker(httpConfig.session, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
-            new DefaultFlashCookieBaker(httpConfig.flash, httpConfig.secret, new CookieSignerProvider(httpConfig.secret).get),
-            new DefaultCookieHeaderEncoding(httpConfig.cookies)
-          )
-          if (serverResultUtils.mayHaveEntity(status)) {
-            consumeRemaining(reader)
-          } else {
-            ""
-          }
+        .toRight {
+          headers
+            .get(CONTENT_LENGTH)
+            .map { length =>
+              readCompletely(length.toInt)
+            }
+            .getOrElse {
+              val httpConfig = HttpConfiguration()
+              val serverResultUtils = new ServerResultUtils(
+                new DefaultSessionCookieBaker(
+                  httpConfig.session,
+                  httpConfig.secret,
+                  new CookieSignerProvider(httpConfig.secret).get
+                ),
+                new DefaultFlashCookieBaker(
+                  httpConfig.flash,
+                  httpConfig.secret,
+                  new CookieSignerProvider(httpConfig.secret).get
+                ),
+                new DefaultCookieHeaderEncoding(httpConfig.cookies)
+              )
+              if (serverResultUtils.mayHaveEntity(status)) {
+                consumeRemaining(reader)
+              } else {
+                ""
+              }
+            }
         }
-      }
 
       BasicResponse(version, status, reasonPhrase, headers, body)
     } catch {
@@ -250,7 +278,9 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         throw io
       case e: Exception =>
         throw new RuntimeException(
-          s"Exception while reading response $responseDesc ${e.getClass.getName}: ${e.getMessage}", e)
+          s"Exception while reading response $responseDesc ${e.getClass.getName}: ${e.getMessage}",
+          e
+        )
     }
   }
 
@@ -279,8 +309,13 @@ class BasicHttpClient(port: Int, secure: Boolean) {
  * @param body The body, left is a plain body, right is for chunked bodies, which is a sequence of chunks and a map of
  *             trailers
  */
-case class BasicResponse(version: String, status: Int, reasonPhrase: String, headers: Map[String, String],
-    body: Either[String, (Seq[String], Map[String, String])])
+case class BasicResponse(
+    version: String,
+    status: Int,
+    reasonPhrase: String,
+    headers: Map[String, String],
+    body: Either[String, (Seq[String], Map[String, String])]
+)
 
 /**
  * A basic request

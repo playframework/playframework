@@ -14,41 +14,41 @@ import java.sql.SQLException;
 import static org.junit.Assert.*;
 
 public class EvolutionsTest {
-    private Database database;
-    private Connection connection;
+  private Database database;
+  private Connection connection;
 
-    @Test
-    public void testEvolutions() throws Exception {
-        Evolutions.applyEvolutions(database, Evolutions.fromClassLoader(this.getClass().getClassLoader(), "evolutionstest/"));
+  @Test
+  public void testEvolutions() throws Exception {
+    Evolutions.applyEvolutions(
+        database, Evolutions.fromClassLoader(this.getClass().getClassLoader(), "evolutionstest/"));
 
-        // Ensure evolutions were applied
-        ResultSet resultSet = executeStatement("select * from test");
-        assertTrue(resultSet.next());
+    // Ensure evolutions were applied
+    ResultSet resultSet = executeStatement("select * from test");
+    assertTrue(resultSet.next());
 
-        Evolutions.cleanupEvolutions(database);
-        try {
-            // Ensure tables don't exist
-            executeStatement("select * from test");
-            fail("SQL statement should have thrown an exception");
-        } catch (SQLException se) {
-           // pass
-        }
+    Evolutions.cleanupEvolutions(database);
+    try {
+      // Ensure tables don't exist
+      executeStatement("select * from test");
+      fail("SQL statement should have thrown an exception");
+    } catch (SQLException se) {
+      // pass
     }
+  }
 
-    private ResultSet executeStatement(String statement) throws Exception {
-        return connection.prepareStatement(statement).executeQuery();
-    }
+  private ResultSet executeStatement(String statement) throws Exception {
+    return connection.prepareStatement(statement).executeQuery();
+  }
 
-    @Before
-    public void createDatabase() {
-        database = Databases.inMemory();
-        connection = database.getConnection();
-    }
+  @Before
+  public void createDatabase() {
+    database = Databases.inMemory();
+    connection = database.getConnection();
+  }
 
-    @After
-    public void shutdown() {
-        database.shutdown();
-        database = null;
-    }
-
+  @After
+  public void shutdown() {
+    database.shutdown();
+    database = null;
+  }
 }

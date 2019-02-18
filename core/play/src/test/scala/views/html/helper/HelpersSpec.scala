@@ -4,7 +4,8 @@
 package views.html.helper
 
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
+import play.api.Environment
 import play.api.data.Forms._
 import play.api.data._
 import play.api.http.HttpConfiguration
@@ -14,10 +15,10 @@ import play.twirl.api.Html
 class HelpersSpec extends Specification {
   import FieldConstructor.defaultField
 
-  val conf = Configuration.reference
-  val langs = new DefaultLangsProvider(conf).get
-  val httpConfiguration = HttpConfiguration.fromConfiguration(conf, Environment.simple())
-  val messagesApi = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
+  val conf                        = Configuration.reference
+  val langs                       = new DefaultLangsProvider(conf).get
+  val httpConfiguration           = HttpConfiguration.fromConfiguration(conf, Environment.simple())
+  val messagesApi                 = new DefaultMessagesApiProvider(Environment.simple(), conf, langs, httpConfiguration).get
   implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {
@@ -110,12 +111,8 @@ class HelpersSpec extends Specification {
 
     "allow disabled options" in {
       val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
-      val body = select.apply(form("foo"), Seq(
-        "0" -> "test0",
-        "1" -> "test1",
-        "2" -> "test2"),
-        '_disabled -> Seq("0", "2")
-      ).body
+      val body =
+        select.apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), '_disabled -> Seq("0", "2")).body
 
       body must contain("""<option value="0" disabled>test0</option>""")
       body must contain("""<option value="1">test1</option>""")
@@ -125,21 +122,32 @@ class HelpersSpec extends Specification {
 
   "@repeat" should {
     val form = Form(single("foo" -> Forms.seq(Forms.text)))
-    def renderFoo(form: Form[_], min: Int = 1) = repeat.apply(form("foo"), min) { f =>
-      Html(f.name + ":" + f.value.getOrElse(""))
-    }.map(_.toString)
+    def renderFoo(form: Form[_], min: Int = 1) =
+      repeat
+        .apply(form("foo"), min) { f =>
+          Html(f.name + ":" + f.value.getOrElse(""))
+        }
+        .map(_.toString)
 
-    val complexForm = Form(single("foo" ->
-      Forms.seq(tuple(
-        "a" -> Forms.text,
-        "b" -> Forms.text
-      ))
-    ))
-    def renderComplex(form: Form[_], min: Int = 1) = repeat.apply(form("foo"), min) { f =>
-      val a = f("a")
-      val b = f("b")
-      Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
-    }.map(_.toString)
+    val complexForm = Form(
+      single(
+        "foo" ->
+          Forms.seq(
+            tuple(
+              "a" -> Forms.text,
+              "b" -> Forms.text
+            )
+          )
+      )
+    )
+    def renderComplex(form: Form[_], min: Int = 1) =
+      repeat
+        .apply(form("foo"), min) { f =>
+          val a = f("a")
+          val b = f("b")
+          Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
+        }
+        .map(_.toString)
 
     "render a sequence of fields" in {
       renderFoo(form.fill(Seq("a", "b", "c"))) must exactly("foo[0]:a", "foo[1]:b", "foo[2]:c").inOrder
@@ -154,7 +162,12 @@ class HelpersSpec extends Specification {
     }
 
     "fill the fields out if less than the min but the maximum is high" in {
-      renderFoo(form.bind(Map("foo[0]" -> "a", "foo[123]" -> "b")), 4) must exactly("foo[0]:a", "foo[123]:b", "foo[124]:", "foo[125]:").inOrder
+      renderFoo(form.bind(Map("foo[0]" -> "a", "foo[123]" -> "b")), 4) must exactly(
+        "foo[0]:a",
+        "foo[123]:b",
+        "foo[124]:",
+        "foo[125]:"
+      ).inOrder
     }
 
     "render the right number of fields if there's multiple sub fields at a given index when filled" in {
@@ -175,9 +188,11 @@ class HelpersSpec extends Specification {
       implicit val lang = Lang("en-US")
 
       val roleForm = Form(single("role" -> Forms.text)).fill("foo")
-      val body = repeat.apply(roleForm("bar"), min = 1) { roleField =>
-        select.apply(roleField, Seq("baz" -> "qux"), '_default -> "Role")
-      }.mkString("")
+      val body = repeat
+        .apply(roleForm("bar"), min = 1) { roleField =>
+          select.apply(roleField, Seq("baz" -> "qux"), '_default -> "Role")
+        }
+        .mkString("")
 
       body must contain("""label for="bar_0">bar.0""")
     }
@@ -192,7 +207,8 @@ class HelpersSpec extends Specification {
         Seq(("constraint.custom", Seq("constraint.customarg"))),
         Some("format.custom", Seq("format.customarg")),
         Seq(FormError("foo", "error.custom", Seq("error.customarg"))),
-        None)
+        None
+      )
 
       val body = inputText.apply(field).body
 
@@ -202,11 +218,15 @@ class HelpersSpec extends Specification {
     }
 
     "correctly lookup _label in messages" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> "myfieldlabel").body must contain("I am the label of the field")
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> "myfieldlabel").body must contain(
+        "I am the label of the field"
+      )
     }
 
     "correctly lookup _name in messages" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> "myfieldname").body must contain("I am the name of the field")
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> "myfieldname").body must contain(
+        "I am the name of the field"
+      )
     }
   }
 }

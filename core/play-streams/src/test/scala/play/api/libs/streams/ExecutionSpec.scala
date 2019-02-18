@@ -5,8 +5,11 @@ package play.api.libs.streams
 
 import org.specs2.mutable._
 
-import scala.concurrent.duration.{ Duration, SECONDS }
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.SECONDS
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.language.reflectiveCalls
 import scala.util.Try
 
@@ -67,16 +70,9 @@ class ExecutionSpec extends Specification {
         TestRunnable(
           0,
           TestRunnable(1),
-          TestRunnable(
-            2,
-            TestRunnable(
-              4,
-              TestRunnable(6),
-              TestRunnable(7)),
-            TestRunnable(
-              5,
-              TestRunnable(8))),
-          TestRunnable(3))
+          TestRunnable(2, TestRunnable(4, TestRunnable(6), TestRunnable(7)), TestRunnable(5, TestRunnable(8))),
+          TestRunnable(3)
+        )
       )
 
       runRecord must equalTo(0 to 8)

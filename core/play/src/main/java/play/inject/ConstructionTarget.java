@@ -6,26 +6,26 @@ package play.inject;
 /**
  * A binding target that is provided by a class.
  *
- * See the {@link Module} class for information on how to provide bindings.
+ * <p>See the {@link Module} class for information on how to provide bindings.
  */
 public final class ConstructionTarget<T> extends BindingTarget<T> {
-    private final play.api.inject.ConstructionTarget<T> underlying;
+  private final play.api.inject.ConstructionTarget<T> underlying;
 
-    public ConstructionTarget(final Class<? extends T> implementation) {
-        this(new play.api.inject.ConstructionTarget<>(implementation));
-    }
+  public ConstructionTarget(final Class<? extends T> implementation) {
+    this(new play.api.inject.ConstructionTarget<>(implementation));
+  }
 
-    public ConstructionTarget(final play.api.inject.ConstructionTarget<T> underlying) {
-        super();
-        this.underlying = underlying;
-    }
+  public ConstructionTarget(final play.api.inject.ConstructionTarget<T> underlying) {
+    super();
+    this.underlying = underlying;
+  }
 
-    public Class<? extends T> getImplementation() {
-        return underlying.implementation();
-    }
+  public Class<? extends T> getImplementation() {
+    return underlying.implementation();
+  }
 
-    @Override
-    public play.api.inject.ConstructionTarget<T> asScala() {
-        return underlying;
-    }
+  @Override
+  public play.api.inject.ConstructionTarget<T> asScala() {
+    return underlying;
+  }
 }

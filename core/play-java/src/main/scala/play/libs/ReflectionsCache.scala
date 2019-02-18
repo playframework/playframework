@@ -13,7 +13,9 @@ package play.libs
  */
 object ReflectionsCache {
   import ref.SoftReference
-  import org.reflections.{ scanners, util, Reflections }
+  import org.reflections.scanners
+  import org.reflections.util
+  import org.reflections.Reflections
   import scala.collection.concurrent._
 
   // A soft reference is used so that we don't force the classloader or reflections to be live after a test run,

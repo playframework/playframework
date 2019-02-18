@@ -6,14 +6,12 @@ package play.db;
 import play.Environment;
 import play.api.db.BoneConnectionPool;
 
-/**
- * BoneCP Java components (for compile-time injection).
- */
+/** BoneCP Java components (for compile-time injection). */
 public interface BoneCPComponents extends ConnectionPoolComponents {
 
-    Environment environment();
+  Environment environment();
 
-    default ConnectionPool connectionPool() {
-        return new DefaultConnectionPool(new BoneConnectionPool(environment().asScala()));
-    }
+  default ConnectionPool connectionPool() {
+    return new DefaultConnectionPool(new BoneConnectionPool(environment().asScala()));
+  }
 }

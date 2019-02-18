@@ -47,7 +47,9 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse a path with dynamic parts and it should be encodeable" in {
-      parseRoute("GET /s/:d/s p.c.m(d)").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("d", "[^/]+", true), StaticPart("/s")))
+      parseRoute("GET /s/:d/s p.c.m(d)").path must_== PathPattern(
+        Seq(StaticPart("s/"), DynamicPart("d", "[^/]+", true), StaticPart("/s"))
+      )
     }
 
     "parse a path with multiple dynamic parts and it should not be encodeable" in {
@@ -55,7 +57,9 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "path with regex should not be encodeable" in {
-      parseRoute("GET /s/$id<[0-9]+> p.c.m(id)").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("id", "[0-9]+", false)))
+      parseRoute("GET /s/$id<[0-9]+> p.c.m(id)").path must_== PathPattern(
+        Seq(StaticPart("s/"), DynamicPart("id", "[0-9]+", false))
+      )
 
     }
 
@@ -84,19 +88,44 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse method with arguments" in {
-      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must_== Some(Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None)))
+      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must_== Some(
+        Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None))
+      )
     }
 
     "parse method with more than 22 arguments" in {
-      parseRoute("GET /s p.c.m(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int, k: String, l: String, m: String, n: String, " +
-        "o: String, p: String, q: Option[Int], r: Option[Int], s: Option[Int], t: Option[Int], u: Option[String], v: Float, w: Float, x: Int)").call.parameters must_==
-        Some(Seq(Parameter("a", "Int", None, None), Parameter("b", "Int", None, None), Parameter("c", "Int", None, None), Parameter("d", "Int", None, None),
-          Parameter("e", "Int", None, None), Parameter("f", "Int", None, None), Parameter("g", "Int", None, None), Parameter("h", "Int", None, None),
-          Parameter("i", "Int", None, None), Parameter("j", "Int", None, None), Parameter("k", "String", None, None), Parameter("l", "String", None, None),
-          Parameter("m", "String", None, None), Parameter("n", "String", None, None), Parameter("o", "String", None, None), Parameter("p", "String", None, None),
-          Parameter("q", "Option[Int]", None, None), Parameter("r", "Option[Int]", None, None), Parameter("s", "Option[Int]", None, None),
-          Parameter("t", "Option[Int]", None, None), Parameter("u", "Option[String]", None, None), Parameter("v", "Float", None, None),
-          Parameter("w", "Float", None, None), Parameter("x", "Int", None, None)))
+      parseRoute(
+        "GET /s p.c.m(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int, k: String, l: String, m: String, n: String, " +
+          "o: String, p: String, q: Option[Int], r: Option[Int], s: Option[Int], t: Option[Int], u: Option[String], v: Float, w: Float, x: Int)"
+      ).call.parameters must_==
+        Some(
+          Seq(
+            Parameter("a", "Int", None, None),
+            Parameter("b", "Int", None, None),
+            Parameter("c", "Int", None, None),
+            Parameter("d", "Int", None, None),
+            Parameter("e", "Int", None, None),
+            Parameter("f", "Int", None, None),
+            Parameter("g", "Int", None, None),
+            Parameter("h", "Int", None, None),
+            Parameter("i", "Int", None, None),
+            Parameter("j", "Int", None, None),
+            Parameter("k", "String", None, None),
+            Parameter("l", "String", None, None),
+            Parameter("m", "String", None, None),
+            Parameter("n", "String", None, None),
+            Parameter("o", "String", None, None),
+            Parameter("p", "String", None, None),
+            Parameter("q", "Option[Int]", None, None),
+            Parameter("r", "Option[Int]", None, None),
+            Parameter("s", "Option[Int]", None, None),
+            Parameter("t", "Option[Int]", None, None),
+            Parameter("u", "Option[String]", None, None),
+            Parameter("v", "Float", None, None),
+            Parameter("w", "Float", None, None),
+            Parameter("x", "Int", None, None)
+          )
+        )
     }
 
     "parse argument type" in {
@@ -112,8 +141,9 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse argument with complex name" in {
-      parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must_== Some(Seq(
-        Parameter("`b[]`", "List[String]", None, Some("[]"))))
+      parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must_== Some(
+        Seq(Parameter("`b[]`", "List[String]", None, Some("[]")))
+      )
     }
 
     "parse a non instantiating route" in {
@@ -148,12 +178,14 @@ class RoutesFileParserSpec extends Specification {
 
     "parse multiple modifiers with a route" in {
       parseRoute("+ nocsrf foo=bar\nGET /s p.c.m").modifiers must containTheSameElementsAs(
-        Seq(Modifier("nocsrf"), Modifier("foo=bar")))
+        Seq(Modifier("nocsrf"), Modifier("foo=bar"))
+      )
     }
 
     "parse multiple modifiers where the only separator is whitespace" in {
       parseRoute("+ no+csrf foo=bar\nGET /s p.c.m").modifiers must containTheSameElementsAs(
-        Seq(Modifier("no+csrf"), Modifier("foo=bar")))
+        Seq(Modifier("no+csrf"), Modifier("foo=bar"))
+      )
     }
 
     "parse modifiers followed by comments" in {

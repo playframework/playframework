@@ -5,5 +5,5 @@ package play.data;
 
 @ValidateRed
 public class Red {
-    public String name;
+  public String name;
 }
