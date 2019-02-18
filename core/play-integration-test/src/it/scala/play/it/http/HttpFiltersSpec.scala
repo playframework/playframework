@@ -7,27 +7,35 @@ package play.it.http
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.test.{ ApplicationFactories, ApplicationFactory, PlaySpecification }
-import play.api.{ Application, ApplicationLoader, BuiltInComponentsFromContext, Environment }
-import play.it.test.{ EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.api.test.ApplicationFactories
+import play.api.test.ApplicationFactory
+import play.api.test.PlaySpecification
+import play.api.Application
+import play.api.ApplicationLoader
+import play.api.BuiltInComponentsFromContext
+import play.api.Environment
+import play.it.test.EndpointIntegrationSpecification
+import play.it.test.OkHttpEndpointSupport
 
 import scala.concurrent.Future
 
-class HttpFiltersSpec extends PlaySpecification
-  with EndpointIntegrationSpecification with ApplicationFactories with OkHttpEndpointSupport {
+class HttpFiltersSpec
+    extends PlaySpecification
+    with EndpointIntegrationSpecification
+    with ApplicationFactories
+    with OkHttpEndpointSupport {
 
   "Play http filters" should {
 
     val appFactory: ApplicationFactory = new ApplicationFactory {
       override def create(): Application = {
-        val components = new BuiltInComponentsFromContext(
-          ApplicationLoader.Context.create(Environment.simple())) {
+        val components = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) {
           import play.api.mvc.Results._
           import play.api.routing.sird
           import play.api.routing.sird._
           override lazy val router: Router = Router.from {
-            case sird.GET(p"/") => Action { Ok("Done!") }
-            case sird.GET(p"/error") => Action { Ok("Done!") }
+            case sird.GET(p"/")        => Action { Ok("Done!") }
+            case sird.GET(p"/error")   => Action { Ok("Done!") }
             case sird.GET(p"/invalid") => Action { Ok("Done!") }
           }
           override lazy val httpFilters: Seq[EssentialFilter] = Seq(

@@ -4,7 +4,8 @@
 
 package play.api.mvc.akkahttp
 
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
 import play.api.mvc.Handler
 import play.mvc.Http.RequestHeader
 

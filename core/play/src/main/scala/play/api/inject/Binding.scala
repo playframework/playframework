@@ -33,7 +33,13 @@ import play.inject.SourceProvider
  *
  * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
-final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean, source: Object) {
+final case class Binding[T](
+    key: BindingKey[T],
+    target: Option[BindingTarget[T]],
+    scope: Option[Class[_ <: Annotation]],
+    eager: Boolean,
+    source: Object
+) {
 
   /**
    * Configure the scope for this binding.
@@ -175,7 +181,13 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * This class will be instantiated and injected by the injection framework.
    */
   def to(implementation: Class[_ <: T]): Binding[T] = {
-    Binding(this, Some(ConstructionTarget(validateTargetNonAbstract(implementation))), None, false, SourceLocator.source)
+    Binding(
+      this,
+      Some(ConstructionTarget(validateTargetNonAbstract(implementation))),
+      None,
+      false,
+      SourceLocator.source
+    )
   }
 
   /**
@@ -213,7 +225,13 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * whenever an instance of the class is needed.
    */
   def toProvider[P <: Provider[_ <: T]](provider: Class[P]): Binding[T] =
-    Binding(this, Some(ProviderConstructionTarget[T](validateTargetNonAbstract(provider))), None, false, SourceLocator.source)
+    Binding(
+      this,
+      Some(ProviderConstructionTarget[T](validateTargetNonAbstract(provider))),
+      None,
+      false,
+      SourceLocator.source
+    )
 
   /**
    * Bind this binding key to the given provider class.
@@ -244,7 +262,9 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
     if (target.isInterface || Modifier.isAbstract(target.getModifiers)) {
       throw new PlayException(
         "Cannot bind abstract target",
-        s"""You have attempted to bind $target as a construction target for $this, however, $target is abstract. If you wish to bind this as an alias, bind it to a ${classOf[BindingKey[_]]} instead."""
+        s"""You have attempted to bind $target as a construction target for $this, however, $target is abstract. If you wish to bind this as an alias, bind it to a ${classOf[
+          BindingKey[_]
+        ]} instead."""
       )
     }
     target
@@ -327,7 +347,8 @@ final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends Qualif
 }
 
 private object SourceLocator {
-  val provider = SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
+  val provider =
+    SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
 
   def source = provider.get()
 }

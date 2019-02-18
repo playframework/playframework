@@ -6,6 +6,5 @@ package play.data;
 
 import javax.validation.GroupSequence;
 
-@GroupSequence({ LoginCheck.class, PasswordCheck.class })
-public interface OrderedChecks {
-}
+@GroupSequence({LoginCheck.class, PasswordCheck.class})
+public interface OrderedChecks {}

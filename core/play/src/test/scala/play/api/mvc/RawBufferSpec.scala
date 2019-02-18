@@ -48,7 +48,7 @@ class RawBufferSpec extends Specification {
     "extend the size by a small amount" in {
       val buffer = RawBuffer(1024 * 100, tempFileCreator)
       // RawBuffer starts with 8192 buffer size, write 8000 bytes, then another 400, make sure that works
-      val big = rand(8000)
+      val big   = rand(8000)
       val small = rand(400)
       buffer.push(big)
       buffer.push(small)

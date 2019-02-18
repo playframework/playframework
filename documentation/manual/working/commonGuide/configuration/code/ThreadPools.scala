@@ -12,7 +12,9 @@ import play.api._
 import com.typesafe.config.ConfigFactory
 import akka.actor.ActorSystem
 
-import scala.concurrent.{ExecutionContext, Future, TimeoutException}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.TimeoutException
 
 import org.specs2.execute.AsResult
 
@@ -26,7 +28,7 @@ class ThreadPoolsSpec extends PlaySpecification {
     }
 
     "have a global configuration" in {
-      val config = """#default-config
+      val config      = """#default-config
         akka {
           actor {
             default-dispatcher {
@@ -48,14 +50,14 @@ class ThreadPoolsSpec extends PlaySpecification {
           }
         }
       #default-config """
-      val parsed = ConfigFactory.parseString(config)
+      val parsed      = ConfigFactory.parseString(config)
       val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
       actorSystem.terminate()
       success
     }
 
     "use akka default thread pool configuration" in {
-      val config = """#akka-default-config
+      val config      = """#akka-default-config
         akka {
           actor {
             default-dispatcher {
@@ -80,7 +82,7 @@ class ThreadPoolsSpec extends PlaySpecification {
           }
         }
       #akka-default-config """
-      val parsed = ConfigFactory.parseString(config)
+      val parsed      = ConfigFactory.parseString(config)
       val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
       actorSystem.terminate()
       success
@@ -128,7 +130,8 @@ class ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow a synchronous thread pool" in {
-      val config = ConfigFactory.parseString("""#highly-synchronous
+      val config =
+        ConfigFactory.parseString("""#highly-synchronous
       akka {
         actor {
           default-dispatcher {
@@ -148,7 +151,7 @@ class ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow configuring many custom thread pools" in runningWithConfig(
-    """ #many-specific-config
+      """ #many-specific-config
       contexts {
         simple-db-lookups {
           executor = "thread-pool-executor"
@@ -183,9 +186,11 @@ class ThreadPoolsSpec extends PlaySpecification {
       //#many-specific-contexts
       object Contexts {
         implicit val simpleDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
-        implicit val expensiveDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.expensive-db-lookups")
+        implicit val expensiveDbLookups: ExecutionContext =
+          akkaSystem.dispatchers.lookup("contexts.expensive-db-lookups")
         implicit val dbWriteOperations: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.db-write-operations")
-        implicit val expensiveCpuOperations: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
+        implicit val expensiveCpuOperations: ExecutionContext =
+          akkaSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
       }
       //#many-specific-contexts
       def test(context: ExecutionContext, name: String) = {
@@ -199,22 +204,25 @@ class ThreadPoolsSpec extends PlaySpecification {
 
   }
 
-  def runningWithConfig[T: AsResult](config: String )(block: Application => T) = {
-    val parsed: java.util.Map[String,Object] = ConfigFactory.parseString(config).root.unwrapped
+  def runningWithConfig[T: AsResult](config: String)(block: Application => T) = {
+    val parsed: java.util.Map[String, Object] = ConfigFactory.parseString(config).root.unwrapped
     running(_.configure(Configuration(ConfigFactory.parseString(config))))(block)
   }
 }
 
 // since specs provides defaultContext, implicitly importing it doesn't work
 //#global-thread-pool
-class Samples @Inject()(components: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(components) {
+class Samples @Inject()(components: ControllerComponents)(implicit ec: ExecutionContext)
+    extends AbstractController(components) {
   def someAsyncAction = Action.async {
-    someCalculation().map { result =>
-      Ok(s"The answer is $result")
-    }.recover {
-      case e: TimeoutException =>
-        InternalServerError("Calculation timed out!")
-    }
+    someCalculation()
+      .map { result =>
+        Ok(s"The answer is $result")
+      }
+      .recover {
+        case e: TimeoutException =>
+          InternalServerError("Calculation timed out!")
+      }
   }
 
   def someCalculation(): Future[Int] = {

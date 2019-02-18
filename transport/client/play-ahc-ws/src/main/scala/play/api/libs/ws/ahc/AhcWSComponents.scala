@@ -27,8 +27,8 @@ trait AhcWSComponents {
   def executionContext: ExecutionContext
 
   lazy val wsClient: WSClient = {
-    implicit val mat = materializer
-    implicit val ec = executionContext
+    implicit val mat    = materializer
+    implicit val ec     = executionContext
     val asyncHttpClient = new AsyncHttpClientProvider(environment, configuration, applicationLifecycle).get
     new AhcWSClientProvider(asyncHttpClient).get
   }

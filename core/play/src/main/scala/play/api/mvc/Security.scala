@@ -11,7 +11,8 @@ import play.api.mvc.Results._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
-import scala.util.{ Failure, Success }
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * Helpers to create secure actions.
@@ -23,7 +24,8 @@ object Security {
   /**
    * The default error response for an unauthorized request; used multiple places here
    */
-  private val DefaultUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized())
+  private val DefaultUnauthorized: RequestHeader => Result = implicit request =>
+    Unauthorized(views.html.defaultpages.unauthorized())
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -52,22 +54,24 @@ object Security {
    * @param action the action to wrap
    */
   def Authenticated[A](
-    userinfo: RequestHeader => Option[A],
-    onUnauthorized: RequestHeader => Result
+      userinfo: RequestHeader => Option[A],
+      onUnauthorized: RequestHeader => Result
   )(action: A => EssentialAction): EssentialAction = {
 
     EssentialAction { request =>
-      userinfo(request).map { user =>
-        action(user)(request)
-      }.getOrElse {
-        Accumulator.done(onUnauthorized(request))
-      }
+      userinfo(request)
+        .map { user =>
+          action(user)(request)
+        }
+        .getOrElse {
+          Accumulator.done(onUnauthorized(request))
+        }
     }
 
   }
 
   def WithAuthentication[A](
-    userinfo: RequestHeader => Option[A]
+      userinfo: RequestHeader => Option[A]
   )(action: A => EssentialAction): EssentialAction = {
     Authenticated(userinfo, DefaultUnauthorized)(action)
   }
@@ -110,9 +114,8 @@ object Security {
    * @param action the action to wrap
    */
   @deprecated("Use Authenticated(RequestHeader => Option[String])(String => EssentialAction)", "2.6.0")
-  def Authenticated(action: String => EssentialAction): EssentialAction = Authenticated(
-    req => req.session.get(username),
-    DefaultUnauthorized)(action)
+  def Authenticated(action: String => EssentialAction): EssentialAction =
+    Authenticated(req => req.session.get(username), DefaultUnauthorized)(action)
 
   /**
    * An authenticated request
@@ -120,7 +123,8 @@ object Security {
    * @param user The user that made the request
    */
   class AuthenticatedRequest[+A, U](val user: U, request: Request[A]) extends WrappedRequest[A](request) {
-    override protected def newWrapper[B](newRequest: Request[B]): AuthenticatedRequest[B, U] = new AuthenticatedRequest[B, U](user, newRequest)
+    protected override def newWrapper[B](newRequest: Request[B]): AuthenticatedRequest[B, U] =
+      new AuthenticatedRequest[B, U](user, newRequest)
   }
 
   /**
@@ -177,7 +181,9 @@ object Security {
   class AuthenticatedBuilder[U](
       userinfo: RequestHeader => Option[U],
       defaultParser: BodyParser[AnyContent],
-      onUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized()))(implicit val executionContext: ExecutionContext) extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
+      onUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized())
+  )(implicit val executionContext: ExecutionContext)
+      extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
 
     lazy val parser = defaultParser
 
@@ -188,11 +194,13 @@ object Security {
      * Authenticate the given block.
      */
     def authenticate[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) = {
-      userinfo(request).map { user =>
-        block(new AuthenticatedRequest(user, request))
-      } getOrElse {
-        Future.successful(onUnauthorized(request))
-      }
+      userinfo(request)
+        .map { user =>
+          block(new AuthenticatedRequest(user, request))
+        }
+        .getOrElse {
+          Future.successful(onUnauthorized(request))
+        }
     }
   }
 
@@ -205,9 +213,9 @@ object Security {
      * @param onUnauthorized The function to get the result for when no authenticated user can be found.
      */
     def apply[U](
-      userinfo: RequestHeader => Option[U],
-      defaultParser: BodyParser[AnyContent],
-      onUnauthorized: RequestHeader => Result = DefaultUnauthorized
+        userinfo: RequestHeader => Option[U],
+        defaultParser: BodyParser[AnyContent],
+        onUnauthorized: RequestHeader => Result = DefaultUnauthorized
     )(implicit ec: ExecutionContext): AuthenticatedBuilder[U] = {
       new AuthenticatedBuilder(userinfo, defaultParser, onUnauthorized)
     }
@@ -217,10 +225,10 @@ object Security {
      */
     @deprecated(
       "Use AuthenticatedBuilder(RequestHeader => Option[String], BodyParser[AnyContent]); the first argument gets the username",
-      "2.6.0")
+      "2.6.0"
+    )
     def apply(defaultParser: BodyParser[AnyContent])(implicit ec: ExecutionContext): AuthenticatedBuilder[String] = {
       apply[String](req => req.session.get(username), defaultParser)
     }
   }
 }
-

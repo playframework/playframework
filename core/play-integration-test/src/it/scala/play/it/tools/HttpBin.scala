@@ -11,7 +11,8 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity
 import play.api.libs.Files
-import play.api.libs.json.{ JsObject, _ }
+import play.api.libs.json.JsObject
+import play.api.libs.json._
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -31,9 +32,9 @@ object HttpBinApplication {
 
   private val requestHeaderWriter = new Writes[RequestHeader] {
     def writes(r: RequestHeader): JsValue = Json.obj(
-      "origin" -> r.remoteAddress,
-      "url" -> "",
-      "args" -> r.queryString.mapValues(_.head).toMap[String, String],
+      "origin"  -> r.remoteAddress,
+      "url"     -> "",
+      "args"    -> r.queryString.mapValues(_.head).toMap[String, String],
       "headers" -> r.headers.toSimpleMap
     )
   }
@@ -49,21 +50,21 @@ object HttpBinApplication {
           "data" -> "",
           "form" -> JsObject(Nil)
         ) ++ (r.body match {
-            // Json Body
-            case e: JsValue =>
-              Json.obj("json" -> e)
-            // X-WWW-Form-Encoded
-            case f: Map[String, Seq[String]] @unchecked =>
-              Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
-            // Anything else
-            case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
-              Json.obj(
-                "form" -> JsObject(m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) }),
-                "file" -> JsString(m.mfd.file("upload").map(v => readFileToString(v.ref)).getOrElse(""))
-              )
-            case b =>
-              Json.obj("data" -> JsString(b.toString))
-          })
+        // Json Body
+        case e: JsValue =>
+          Json.obj("json" -> e)
+        // X-WWW-Form-Encoded
+        case f: Map[String, Seq[String]] @unchecked =>
+          Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
+        // Anything else
+        case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
+          Json.obj(
+            "form" -> JsObject(m.mfd.dataParts.map { case (k, v) => k -> JsString(v.mkString) }),
+            "file" -> JsString(m.mfd.file("upload").map(v => readFileToString(v.ref)).getOrElse(""))
+          )
+        case b =>
+          Json.obj("data" -> JsString(b.toString))
+      })
   }
 
   def getIp(implicit Action: DefaultActionBuilder): Routes = {
@@ -124,15 +125,18 @@ object HttpBinApplication {
 
   private def gzipFilter(mat: Materializer) = new GzipFilter()(mat)
 
-  def gzip(implicit mat: Materializer, Action: DefaultActionBuilder): Routes = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
-    val route: Routes = {
-      case r @ p"/gzip" if r.method == method =>
-        gzipFilter(mat)(Action { request =>
-          Ok(requestHeaderWriter.writes(request).as[JsObject] ++ Json.obj("gzipped" -> true, "method" -> method))
-        })
-    }
-    route
-  }.reduceLeft((a, b) => a.orElse(b))
+  def gzip(implicit mat: Materializer, Action: DefaultActionBuilder): Routes =
+    Seq("GET", "PATCH", "POST", "PUT", "DELETE")
+      .map { method =>
+        val route: Routes = {
+          case r @ p"/gzip" if r.method == method =>
+            gzipFilter(mat)(Action { request =>
+              Ok(requestHeaderWriter.writes(request).as[JsObject] ++ Json.obj("gzipped" -> true, "method" -> method))
+            })
+        }
+        route
+      }
+      .reduceLeft((a, b) => a.orElse(b))
 
   def status(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/status/$status<[0-9]+>") =>
@@ -163,11 +167,14 @@ object HttpBinApplication {
   def redirectTo(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/redirect-to") =>
       Action { request =>
-        request.queryString.get("url").map { u =>
-          Redirect(u.head)
-        }.getOrElse {
-          BadRequest("")
-        }
+        request.queryString
+          .get("url")
+          .map { u =>
+            Redirect(u.head)
+          }
+          .getOrElse {
+            BadRequest("")
+          }
       }
   }
 
@@ -197,16 +204,24 @@ object HttpBinApplication {
   def basicAuth(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/basic-auth/$username/$password") =>
       Action { request =>
-        request.headers.get("Authorization").flatMap { authorization =>
-          authorization.split(" ").drop(1).headOption.filter { encoded =>
-            new String(java.util.Base64.getDecoder.decode(encoded.getBytes)).split(":").toList match {
-              case u :: p :: Nil if u == username && password == p => true
-              case _ => false
-            }
-          }.map(_ => Ok(Json.obj("authenticated" -> true)))
-        }.getOrElse {
-          Unauthorized.withHeaders("WWW-Authenticate" -> """Basic realm="Secured"""")
-        }
+        request.headers
+          .get("Authorization")
+          .flatMap { authorization =>
+            authorization
+              .split(" ")
+              .drop(1)
+              .headOption
+              .filter { encoded =>
+                new String(java.util.Base64.getDecoder.decode(encoded.getBytes)).split(":").toList match {
+                  case u :: p :: Nil if u == username && password == p => true
+                  case _                                               => false
+                }
+              }
+              .map(_ => Ok(Json.obj("authenticated" -> true)))
+          }
+          .getOrElse {
+            Unauthorized.withHeaders("WWW-Authenticate" -> """Basic realm="Secured"""")
+          }
       }
   }
 
@@ -214,7 +229,7 @@ object HttpBinApplication {
     case GET(p"/stream/$param<[0-9]+>") =>
       Action {
         val contentLength = param.toInt
-        val content = (0 to contentLength).map(ByteString(_))
+        val content       = (0 to contentLength).map(ByteString(_))
         Ok.sendEntity(HttpEntity.Streamed(Source(content), Option(contentLength), Option("application/json")))
       }
   }
@@ -223,7 +238,9 @@ object HttpBinApplication {
     case GET(p"/delay/$duration<[0-9+]") =>
       Action.async { request =>
         import scala.concurrent.ExecutionContext.Implicits.global
-        import scala.concurrent.{ Await, Future, Promise }
+        import scala.concurrent.Await
+        import scala.concurrent.Future
+        import scala.concurrent.Promise
         import scala.concurrent.duration._
         import scala.util.Try
         val p = Promise[Result]()
@@ -326,8 +343,9 @@ object HttpBinApplication {
   }
 
   def app: Application = {
-    new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with AhcWSComponents with NoHttpFiltersComponents {
-      override implicit lazy val Action = defaultActionBuilder
+    new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with AhcWSComponents
+    with NoHttpFiltersComponents {
+      implicit override lazy val Action = defaultActionBuilder
       override def router = SimpleRouter(
         PartialFunction.empty
           .orElse(getIp)

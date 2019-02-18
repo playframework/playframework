@@ -22,7 +22,7 @@ object Default extends Default
  * GET   /xxx             controllers.Default.error
  * }}}
  */
-class Default @Inject() () extends ControllerHelpers {
+class Default @Inject()() extends ControllerHelpers {
 
   private val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
 

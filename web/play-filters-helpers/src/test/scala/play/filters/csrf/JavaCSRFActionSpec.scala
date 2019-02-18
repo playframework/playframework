@@ -8,11 +8,19 @@ import java.util.concurrent.CompletableFuture
 
 import play.api.Application
 import play.api.libs.ws._
-import play.api.mvc.{ DefaultSessionCookieBaker, SessionCookieBaker }
-import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
+import play.api.mvc.DefaultSessionCookieBaker
+import play.api.mvc.SessionCookieBaker
+import play.core.j.JavaAction
+import play.core.j.JavaActionAnnotations
+import play.core.j.JavaContextComponents
+import play.core.j.JavaHandlerComponents
 import play.core.routing.HandlerInvokerFactory
-import play.mvc.Http.{ Context, RequestHeader, Request => JRequest }
-import play.mvc.{ Controller, Result, Results }
+import play.mvc.Http.Context
+import play.mvc.Http.RequestHeader
+import play.mvc.Http.{ Request => JRequest }
+import play.mvc.Controller
+import play.mvc.Result
+import play.mvc.Results
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -24,21 +32,26 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
   def javaContextComponents(implicit app: Application) = inject[JavaContextComponents]
-  def myAction(implicit app: Application) = inject[JavaCSRFActionSpec.MyAction]
+  def myAction(implicit app: Application)              = inject[JavaCSRFActionSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application) = new JavaAction(javaHandlerComponents) {
-    val clazz = implicitly[ClassTag[T]].runtimeClass
-    def parser = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-    def invocation(req: JRequest) = CompletableFuture.completedFuture(inv)
-    val annotations = new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
-  }
+  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application) =
+    new JavaAction(javaHandlerComponents) {
+      val clazz                     = implicitly[ClassTag[T]].runtimeClass
+      def parser                    = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
+      def invocation(req: JRequest) = CompletableFuture.completedFuture(inv)
+      val annotations =
+        new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
+    }
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
       withActionServer(configuration) { implicit app =>
         {
           case _ if sendUnauthorizedResult =>
-            javaAction[JavaCSRFActionSpec.MyUnauthorizedAction]("check", new JavaCSRFActionSpec.MyUnauthorizedAction().check())
+            javaAction[JavaCSRFActionSpec.MyUnauthorizedAction](
+              "check",
+              new JavaCSRFActionSpec.MyUnauthorizedAction().check()
+            )
           case _ =>
             javaAction[JavaCSRFActionSpec.MyAction]("check", myAction.check())
         }
@@ -78,13 +91,15 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
         }
       }
     }
-    "allow accessing the token from the http context" in withActionServer(Seq(
-      "play.http.filters" -> "play.filters.csrf.CsrfFilters"
-    )) { implicit app =>
+    "allow accessing the token from the http context" in withActionServer(
+      Seq(
+        "play.http.filters" -> "play.filters.csrf.CsrfFilters"
+      )
+    ) { implicit app =>
       { case _ => javaAction[JavaCSRFActionSpec.MyAction]("getToken", myAction.getToken) }
     } { ws =>
       lazy val token = signedTokenProvider.generateToken
-      val returned = await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token).get()).body
+      val returned   = await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token).get()).body
       signedTokenProvider.compareTokens(token, returned) must beTrue
     }
   }
@@ -104,7 +119,7 @@ object JavaCSRFActionSpec {
     def getToken: Result = {
       Results.ok(Option(CSRF.getToken(Controller.request()).orElse(null)) match {
         case Some(CSRF.Token(_, value)) => value
-        case None => ""
+        case None                       => ""
       })
     }
     @RequireCSRFCheck

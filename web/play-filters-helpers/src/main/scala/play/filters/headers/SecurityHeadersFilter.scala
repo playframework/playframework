@@ -4,7 +4,9 @@
 
 package play.filters.headers
 
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 import play.api.Configuration
 import play.api.http.HeaderNames
 import play.api.inject._
@@ -34,12 +36,12 @@ import play.api.mvc._
  * @see <a href="https://www.w3.org/TR/referrer-policy/">Referrer Policy</a>
  */
 object SecurityHeadersFilter {
-  val X_FRAME_OPTIONS_HEADER: String = HeaderNames.X_FRAME_OPTIONS
-  val X_XSS_PROTECTION_HEADER: String = HeaderNames.X_XSS_PROTECTION
-  val X_CONTENT_TYPE_OPTIONS_HEADER: String = HeaderNames.X_CONTENT_TYPE_OPTIONS
+  val X_FRAME_OPTIONS_HEADER: String                   = HeaderNames.X_FRAME_OPTIONS
+  val X_XSS_PROTECTION_HEADER: String                  = HeaderNames.X_XSS_PROTECTION
+  val X_CONTENT_TYPE_OPTIONS_HEADER: String            = HeaderNames.X_CONTENT_TYPE_OPTIONS
   val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER: String = HeaderNames.X_PERMITTED_CROSS_DOMAIN_POLICIES
-  val CONTENT_SECURITY_POLICY_HEADER: String = HeaderNames.CONTENT_SECURITY_POLICY
-  val REFERRER_POLICY: String = HeaderNames.REFERRER_POLICY
+  val CONTENT_SECURITY_POLICY_HEADER: String           = HeaderNames.CONTENT_SECURITY_POLICY
+  val REFERRER_POLICY: String                          = HeaderNames.REFERRER_POLICY
 
   /**
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
@@ -80,7 +82,8 @@ case class SecurityHeadersConfig(
     permittedCrossDomainPolicies: Option[String] = Some("master-only"),
     @deprecated("Please use play.filters.csp.CSPFilter", "2.7.0") contentSecurityPolicy: Option[String] = None,
     referrerPolicy: Option[String] = Some("origin-when-cross-origin, strict-origin-when-cross-origin"),
-    allowActionSpecificHeaders: Boolean = false) {
+    allowActionSpecificHeaders: Boolean = false
+) {
   def this() {
     this(frameOptions = Some("DENY"))
   }
@@ -101,7 +104,8 @@ case class SecurityHeadersConfig(
   @deprecated("Please use play.filters.csp.CSPFilter", "2.7.0")
   def withContentSecurityPolicy(contentSecurityPolicy: ju.Optional[String]): SecurityHeadersConfig =
     copy(contentSecurityPolicy = contentSecurityPolicy.asScala)
-  def withReferrerPolicy(referrerPolicy: ju.Optional[String]): SecurityHeadersConfig = copy(referrerPolicy = referrerPolicy.asScala)
+  def withReferrerPolicy(referrerPolicy: ju.Optional[String]): SecurityHeadersConfig =
+    copy(referrerPolicy = referrerPolicy.asScala)
 }
 
 /**
@@ -115,7 +119,9 @@ object SecurityHeadersConfig {
 
     config.getOptional[String]("contentSecurityPolicy").foreach { _ =>
       val logger = play.api.Logger(getClass)
-      logger.warn("""play.filters.headers.contentSecurityPolicy is deprecated in 2.7.0.  Please use play.filters.csp.CSPFilter instead.""")
+      logger.warn(
+        """play.filters.headers.contentSecurityPolicy is deprecated in 2.7.0.  Please use play.filters.csp.CSPFilter instead."""
+      )
     }
 
     SecurityHeadersConfig(
@@ -125,7 +131,8 @@ object SecurityHeadersConfig {
       permittedCrossDomainPolicies = config.get[Option[String]]("permittedCrossDomainPolicies"),
       contentSecurityPolicy = config.get[Option[String]]("contentSecurityPolicy"),
       referrerPolicy = config.get[Option[String]]("referrerPolicy"),
-      allowActionSpecificHeaders = config.get[Option[Boolean]]("allowActionSpecificHeaders").getOrElse(false))
+      allowActionSpecificHeaders = config.get[Option[Boolean]]("allowActionSpecificHeaders").getOrElse(false)
+    )
   }
 }
 
@@ -134,7 +141,7 @@ object SecurityHeadersConfig {
  * method on the companion singleton for convenience.
  */
 @Singleton
-class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends EssentialFilter {
+class SecurityHeadersFilter @Inject()(config: SecurityHeadersConfig) extends EssentialFilter {
   import SecurityHeadersFilter._
 
   /**
@@ -146,12 +153,12 @@ class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends Es
    */
   protected def headers(request: RequestHeader, result: Result): Seq[(String, String)] = {
     val headers = Seq(
-      config.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
-      config.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
-      config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
+      config.frameOptions.map(X_FRAME_OPTIONS_HEADER                                   -> _),
+      config.xssProtection.map(X_XSS_PROTECTION_HEADER                                 -> _),
+      config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER                      -> _),
       config.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
-      config.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _),
-      config.referrerPolicy.map(REFERRER_POLICY -> _)
+      config.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER                  -> _),
+      config.referrerPolicy.map(REFERRER_POLICY                                        -> _)
     ).flatten
 
     if (config.allowActionSpecificHeaders) {
@@ -174,17 +181,18 @@ class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends Es
  * Provider for security headers configuration.
  */
 @Singleton
-class SecurityHeadersConfigProvider @Inject() (configuration: Configuration) extends Provider[SecurityHeadersConfig] {
+class SecurityHeadersConfigProvider @Inject()(configuration: Configuration) extends Provider[SecurityHeadersConfig] {
   lazy val get = SecurityHeadersConfig.fromConfiguration(configuration)
 }
 
 /**
  * The security headers module.
  */
-class SecurityHeadersModule extends SimpleModule(
-  bind[SecurityHeadersConfig].toProvider[SecurityHeadersConfigProvider],
-  bind[SecurityHeadersFilter].toSelf
-)
+class SecurityHeadersModule
+    extends SimpleModule(
+      bind[SecurityHeadersConfig].toProvider[SecurityHeadersConfigProvider],
+      bind[SecurityHeadersFilter].toSelf
+    )
 
 /**
  * The security headers components.

@@ -7,7 +7,8 @@ package play.core
 import play.api.inject._
 
 import javax.inject._
-import play.mvc.{ FileMimeTypes, StaticFileMimeTypes }
+import play.mvc.FileMimeTypes
+import play.mvc.StaticFileMimeTypes
 
 import scala.concurrent.Future
 
@@ -16,12 +17,14 @@ import scala.concurrent.Future
  *
  * This solves the issue of having the need to explicitly pass {@link FileMimeTypes} to Results.ok(...) and StatusHeader.sendResource(...)
  */
-class FileMimeTypesModule extends SimpleModule(
-  bind[FileMimeTypes].toProvider[FileMimeTypesProvider].eagerly()
-)
+class FileMimeTypesModule
+    extends SimpleModule(
+      bind[FileMimeTypes].toProvider[FileMimeTypesProvider].eagerly()
+    )
 
 @Singleton
-class FileMimeTypesProvider @Inject() (lifecycle: ApplicationLifecycle, scalaFileMimeTypes: play.api.http.FileMimeTypes) extends Provider[FileMimeTypes] {
+class FileMimeTypesProvider @Inject()(lifecycle: ApplicationLifecycle, scalaFileMimeTypes: play.api.http.FileMimeTypes)
+    extends Provider[FileMimeTypes] {
   lazy val get: FileMimeTypes = {
     val fileMimeTypes = new FileMimeTypes(scalaFileMimeTypes)
     StaticFileMimeTypes.setFileMimeTypes(fileMimeTypes)

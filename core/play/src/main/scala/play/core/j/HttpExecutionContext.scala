@@ -9,7 +9,8 @@ import java.util.concurrent.Executor
 import play.mvc.Http
 import scala.compat.java8.FutureConverters
 import scala.compat.java8.OptionConverters._
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
 
 object HttpExecutionContext {
 
@@ -17,7 +18,11 @@ object HttpExecutionContext {
    * Create an HttpExecutionContext with values from the current thread.
    */
   def fromThread(delegate: ExecutionContext): ExecutionContextExecutor =
-    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.safeCurrent().orElse(null), delegate)
+    new HttpExecutionContext(
+      Thread.currentThread().getContextClassLoader(),
+      Http.Context.safeCurrent().orElse(null),
+      delegate
+    )
 
   /**
    * Create an HttpExecutionContext with values from the current thread.
@@ -30,14 +35,19 @@ object HttpExecutionContext {
    * Create an HttpExecutionContext with values from the current thread.
    */
   def fromThread(delegate: Executor): ExecutionContextExecutor =
-    new HttpExecutionContext(Thread.currentThread().getContextClassLoader(), Http.Context.safeCurrent().orElse(null), FutureConverters.fromExecutor(delegate))
+    new HttpExecutionContext(
+      Thread.currentThread().getContextClassLoader(),
+      Http.Context.safeCurrent().orElse(null),
+      FutureConverters.fromExecutor(delegate)
+    )
 
   /**
    * Create an ExecutionContext that will, when prepared, be created with values from that thread.
    */
   def unprepared(delegate: ExecutionContext) = new ExecutionContext {
-    def execute(runnable: Runnable) = delegate.execute(runnable) // FIXME: Make calling this an error once SI-7383 is fixed
-    def reportFailure(t: Throwable) = delegate.reportFailure(t)
+    def execute(runnable: Runnable) =
+      delegate.execute(runnable) // FIXME: Make calling this an error once SI-7383 is fixed
+    def reportFailure(t: Throwable)          = delegate.reportFailure(t)
     override def prepare(): ExecutionContext = fromThread(delegate)
   }
 }
@@ -46,7 +56,8 @@ object HttpExecutionContext {
  * Manages execution to ensure that the given context ClassLoader and Http.Context are set correctly
  * in the current thread. Actual execution is performed by a delegate ExecutionContext.
  */
-class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext) extends ExecutionContextExecutor {
+class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext)
+    extends ExecutionContextExecutor {
 
   var httpContext: Http.Context = null
 
@@ -56,21 +67,22 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
     this.httpContext = httpContext
   }
 
-  override def execute(runnable: Runnable) = delegate.execute(new Runnable {
-    def run(): Unit = {
-      val thread = Thread.currentThread()
-      val oldContextClassLoader = thread.getContextClassLoader()
-      val oldHttpContext = Http.Context.safeCurrent().asScala
-      thread.setContextClassLoader(contextClassLoader)
-      Http.Context.setCurrent(httpContext)
-      try {
-        runnable.run()
-      } finally {
-        thread.setContextClassLoader(oldContextClassLoader)
-        oldHttpContext.foreach(Http.Context.setCurrent)
+  override def execute(runnable: Runnable) =
+    delegate.execute(new Runnable {
+      def run(): Unit = {
+        val thread                = Thread.currentThread()
+        val oldContextClassLoader = thread.getContextClassLoader()
+        val oldHttpContext        = Http.Context.safeCurrent().asScala
+        thread.setContextClassLoader(contextClassLoader)
+        Http.Context.setCurrent(httpContext)
+        try {
+          runnable.run()
+        } finally {
+          thread.setContextClassLoader(oldContextClassLoader)
+          oldHttpContext.foreach(Http.Context.setCurrent)
+        }
       }
-    }
-  })
+    })
 
   override def reportFailure(t: Throwable) = delegate.reportFailure(t)
 

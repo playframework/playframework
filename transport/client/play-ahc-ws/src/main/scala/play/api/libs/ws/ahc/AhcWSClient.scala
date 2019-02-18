@@ -6,7 +6,8 @@ package play.api.libs.ws.ahc
 
 import akka.stream.Materializer
 import play.api.libs.ws.ahc.cache.AhcHttpCache
-import play.api.libs.ws.{ WSClient, WSRequest }
+import play.api.libs.ws.WSClient
+import play.api.libs.ws.WSRequest
 
 /**
  * Async WS Client backed by AsyncHttpClient.
@@ -14,6 +15,7 @@ import play.api.libs.ws.{ WSClient, WSRequest }
  * See https://www.playframework.com/documentation/latest/ScalaWS for documentation.
  */
 class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
+
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
    *
@@ -63,9 +65,9 @@ object AhcWSClient {
    * @param config configuration settings, AhcWSClientConfig() by default
    * @param cache enables HTTP cache-control, None by default
    */
-  def apply(
-    config: AhcWSClientConfig = AhcWSClientConfig(),
-    cache: Option[AhcHttpCache] = None)(implicit materializer: Materializer): AhcWSClient = {
+  def apply(config: AhcWSClientConfig = AhcWSClientConfig(), cache: Option[AhcHttpCache] = None)(
+      implicit materializer: Materializer
+  ): AhcWSClient = {
     new AhcWSClient(StandaloneAhcWSClient(config, cache))
   }
 }

@@ -20,13 +20,15 @@ object PlayCommands {
   // ----- Play prompt
 
   val playPrompt = { state: State =>
-
     val extracted = Project.extract(state)
     import extracted._
 
-    (name in currentRef get structure.data).map { name =>
-      "[" + Colors.cyan(name) + "] $ "
-    }.getOrElse("> ")
+    (name in currentRef)
+      .get(structure.data)
+      .map { name =>
+        "[" + Colors.cyan(name) + "] $ "
+      }
+      .getOrElse("> ")
 
   }
 
@@ -36,7 +38,7 @@ object PlayCommands {
 
   val playCommonClassloaderTask = Def.task {
     val classpath = (dependencyClasspath in Compile).value
-    val log = streams.value.log
+    val log       = streams.value.log
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -72,12 +74,15 @@ object PlayCommands {
 
   val h2Command = Command.command("h2-browser") { state: State =>
     try {
-      val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
+      val commonLoader  = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
       val h2ServerClass = commonLoader.loadClass("org.h2.tools.Server")
       h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
-      case _: ClassNotFoundException => state.log.error(s"""|H2 Dependency not loaded, please add H2 to your Classpath!
-                                                             |Take a look at https://www.playframework.com/documentation/${play.core.PlayVersion.current}/Developing-with-the-H2-Database#H2-database on how to do it.""".stripMargin)
+      case _: ClassNotFoundException =>
+        state.log.error(
+          s"""|H2 Dependency not loaded, please add H2 to your Classpath!
+              |Take a look at https://www.playframework.com/documentation/${play.core.PlayVersion.current}/Developing-with-the-H2-Database#H2-database on how to do it.""".stripMargin
+        )
       case e: Exception => e.printStackTrace()
     }
     state
@@ -107,7 +112,7 @@ object PlayCommands {
         .foldLeft(List.empty[Path]) { (result, next) =>
           result.headOption match {
             case Some(previous) if next.startsWith(previous) => result
-            case _ => next :: result
+            case _                                           => next :: result
           }
         }
 

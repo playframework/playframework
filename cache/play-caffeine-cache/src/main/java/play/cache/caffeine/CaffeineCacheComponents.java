@@ -12,11 +12,10 @@ import play.cache.DefaultAsyncCacheApi;
 import play.components.AkkaComponents;
 import play.components.ConfigurationComponents;
 
-
 /**
  * Caffeine Cache Java Components for compile time injection.
  *
- * <p>Usage:</p>
+ * <p>Usage:
  *
  * <pre>
  * public class MyComponents extends BuiltInComponentsFromContext implements CaffeineCacheComponents {
@@ -43,17 +42,19 @@ import play.components.ConfigurationComponents;
  * </pre>
  */
 public interface CaffeineCacheComponents extends ConfigurationComponents, AkkaComponents {
-    default AsyncCacheApi cacheApi(String name) {
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager(config().getConfig("play.cache.defaultCache"));
+  default AsyncCacheApi cacheApi(String name) {
+    CaffeineCacheManager caffeineCacheManager =
+        new CaffeineCacheManager(config().getConfig("play.cache.defaultCache"));
 
-        play.api.cache.AsyncCacheApi scalaAsyncCacheApi = new CaffeineCacheApi(
-            NamedCaffeineCacheProvider$.MODULE$.getNamedCache(name, caffeineCacheManager, configuration()),
-            executionContext()
-        );
-        return new DefaultAsyncCacheApi(scalaAsyncCacheApi);
-    }
+    play.api.cache.AsyncCacheApi scalaAsyncCacheApi =
+        new CaffeineCacheApi(
+            NamedCaffeineCacheProvider$.MODULE$.getNamedCache(
+                name, caffeineCacheManager, configuration()),
+            executionContext());
+    return new DefaultAsyncCacheApi(scalaAsyncCacheApi);
+  }
 
-    default AsyncCacheApi defaultCacheApi() {
-        return cacheApi(config().getString("play.cache.defaultCache"));
-    }
+  default AsyncCacheApi defaultCacheApi() {
+    return cacheApi(config().getString("play.cache.defaultCache"));
+  }
 }

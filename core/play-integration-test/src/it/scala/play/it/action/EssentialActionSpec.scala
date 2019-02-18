@@ -10,8 +10,10 @@ import play.api.mvc.AnyContent
 import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.BodyParsers
 import play.api.mvc.Results._
-import play.api.mvc.{ DefaultActionBuilder, EssentialAction }
-import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.mvc.DefaultActionBuilder
+import play.api.mvc.EssentialAction
+import play.api.test.FakeRequest
+import play.api.test.PlaySpecification
 
 import scala.concurrent.Promise
 
@@ -31,9 +33,9 @@ class EssentialActionSpec extends PlaySpecification {
 
         def checkAction(actionCons: (ClassLoader => Unit) => EssentialAction): MatchResult[_] = {
           val actionClassLoader = Promise[ClassLoader]()
-          val action = actionCons(cl => actionClassLoader.success(cl))
+          val action            = actionCons(cl => actionClassLoader.success(cl))
           call(action, FakeRequest())
-          await(actionClassLoader.future) must be equalTo applicationClassLoader
+          (await(actionClassLoader.future) must be).equalTo(applicationClassLoader)
         }
 
         // make sure running thread has applicationClassLoader set

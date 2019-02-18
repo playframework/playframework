@@ -8,25 +8,36 @@ import java.net.URI
 import javax.cache.configuration.FactoryBuilder.SingletonFactory
 import javax.cache.configuration.MutableConfiguration
 import javax.cache.expiry.EternalExpiryPolicy
-import javax.cache.{ CacheManager, Caching, Cache => JCache }
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.cache.CacheManager
+import javax.cache.Caching
+import javax.cache.{ Cache => JCache }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 import akka.stream.Materializer
 import com.typesafe.sslconfig.ssl.SystemConfiguration
 import com.typesafe.sslconfig.ssl.debug.DebugConfiguration
-import play.api.inject.{ ApplicationLifecycle, SimpleModule, bind }
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.SimpleModule
+import play.api.inject.bind
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.cache._
-import play.api.{ Configuration, Environment, Logger }
-import play.shaded.ahc.org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClient }
-import scala.concurrent.{ ExecutionContext, Future }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Logger
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
+import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
  * A Play binding for the Scala WS API to the AsyncHTTPClient implementation.
  */
-class AhcWSModule extends SimpleModule(
-  bind[AsyncHttpClient].toProvider[AsyncHttpClientProvider],
-  bind[WSClient].toProvider[AhcWSClientProvider]
-)
+class AhcWSModule
+    extends SimpleModule(
+      bind[AsyncHttpClient].toProvider[AsyncHttpClientProvider],
+      bind[WSClient].toProvider[AhcWSClientProvider]
+    )
 
 /**
  * Provides an instance of AsyncHttpClient configured from the Configuration object.
@@ -36,16 +47,17 @@ class AhcWSModule extends SimpleModule(
  * @param applicationLifecycle app lifecycle, instance is closed automatically.
  */
 @Singleton
-class AsyncHttpClientProvider @Inject() (
+class AsyncHttpClientProvider @Inject()(
     environment: Environment,
     configuration: Configuration,
     applicationLifecycle: ApplicationLifecycle
-)(implicit executionContext: ExecutionContext) extends Provider[AsyncHttpClient] {
+)(implicit executionContext: ExecutionContext)
+    extends Provider[AsyncHttpClient] {
 
   lazy val get: AsyncHttpClient = {
     configure()
     val cacheProvider = new OptionalAhcHttpCacheProvider(environment, configuration, applicationLifecycle)
-    val client = new DefaultAsyncHttpClient(asyncHttpClientConfig)
+    val client        = new DefaultAsyncHttpClient(asyncHttpClientConfig)
     cacheProvider.get match {
       case Some(ahcHttpCache) =>
         new CachingAsyncHttpClient(client, ahcHttpCache)
@@ -74,9 +86,7 @@ class AsyncHttpClientProvider @Inject() (
   }
 
   // Always close the AsyncHttpClient afterwards.
-  applicationLifecycle.addStopHook(() =>
-    Future.successful(get.close())
-  )
+  applicationLifecycle.addStopHook(() => Future.successful(get.close()))
 }
 
 /**
@@ -86,11 +96,12 @@ class AsyncHttpClientProvider @Inject() (
  * it doesn't support type literals (and JSR 330 doesn't support optional).
  */
 @Singleton
-class OptionalAhcHttpCacheProvider @Inject() (
+class OptionalAhcHttpCacheProvider @Inject()(
     environment: Environment,
     configuration: Configuration,
     applicationLifecycle: ApplicationLifecycle
-)(implicit executionContext: ExecutionContext) extends Provider[Option[AhcHttpCache]] {
+)(implicit executionContext: ExecutionContext)
+    extends Provider[Option[AhcHttpCache]] {
 
   lazy val get: Option[AhcHttpCache] = {
     optionalCache.map { cache =>
@@ -99,7 +110,7 @@ class OptionalAhcHttpCacheProvider @Inject() (
   }
 
   private val cacheConfig: AhcHttpCacheConfiguration = AhcHttpCacheParser.fromConfiguration(configuration)
-  private val logger = play.api.Logger(getClass)
+  private val logger                                 = play.api.Logger(getClass)
 
   private def optionalCache = {
     if (cacheConfig.enabled) {
@@ -138,7 +149,9 @@ class OptionalAhcHttpCacheProvider @Inject() (
   private def getOrCreateCache(cacheManager: CacheManager): JCache[EffectiveURIKey, ResponseEntry] = {
     Option {
       val cache = cacheManager.getCache[EffectiveURIKey, ResponseEntry](cacheConfig.cacheName)
-      logger.trace(s"getOrCreateCache: getting ${cacheConfig.cacheName} from cacheManager $cacheManager: cache = $cache")
+      logger.trace(
+        s"getOrCreateCache: getting ${cacheConfig.cacheName} from cacheManager $cacheManager: cache = $cache"
+      )
       cache
     }.getOrElse(createCache(cacheManager))
   }
@@ -154,7 +167,8 @@ class OptionalAhcHttpCacheProvider @Inject() (
       .setStoreByValue(false)
       .setExpiryPolicyFactory(expiryPolicyFactory)
 
-    val cache: JCache[EffectiveURIKey, ResponseEntry] = cacheManager.createCache(cacheConfig.cacheName, cacheConfiguration)
+    val cache: JCache[EffectiveURIKey, ResponseEntry] =
+      cacheManager.createCache(cacheConfig.cacheName, cacheConfiguration)
     logger.trace(s"createCache: Creating new cache ${cacheConfig.cacheName} with $cacheConfiguration: cache = $cache")
     cache
   }
@@ -181,7 +195,8 @@ class OptionalAhcHttpCacheProvider @Inject() (
       cacheName: String,
       heuristicsEnabled: Boolean,
       cacheManagerURI: String,
-      cachingProviderName: String)
+      cachingProviderName: String
+  )
 
   object AhcHttpCacheParser {
     // For the sake of compatibility, parse both cacheManagerResource and cacheManagerURI, use cacheManagerURI first.
@@ -190,10 +205,13 @@ class OptionalAhcHttpCacheProvider @Inject() (
       val cacheManagerURI = configuration.get[Option[String]]("play.ws.cache.cacheManagerURI") match {
         case Some(uriString) =>
           Logger(AhcHttpCacheParser.getClass)
-            .warn("play.ws.cache.cacheManagerURI is deprecated, use play.ws.cache.cacheManagerResource with a path on the classpath instead.")
+            .warn(
+              "play.ws.cache.cacheManagerURI is deprecated, use play.ws.cache.cacheManagerResource with a path on the classpath instead."
+            )
           uriString
         case None =>
-          configuration.get[Option[String]]("play.ws.cache.cacheManagerResource")
+          configuration
+            .get[Option[String]]("play.ws.cache.cacheManagerResource")
             .filter(_.nonEmpty)
             .flatMap(environment.resource)
             .map(_.toURI.toString)
@@ -214,8 +232,8 @@ class OptionalAhcHttpCacheProvider @Inject() (
  * AHC provider for WSClient instance.
  */
 @Singleton
-class AhcWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
-  extends Provider[WSClient] {
+class AhcWSClientProvider @Inject()(asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
+    extends Provider[WSClient] {
 
   lazy val get: WSClient = {
     new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))

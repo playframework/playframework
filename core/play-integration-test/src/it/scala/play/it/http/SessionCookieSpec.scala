@@ -5,8 +5,11 @@
 package play.it.http
 
 import com.typesafe.config.ConfigFactory
-import play.api.{ BuiltInComponentsFromContext, Configuration, NoHttpFiltersComponents }
-import play.api.http.{ SecretConfiguration, SessionConfiguration }
+import play.api.BuiltInComponentsFromContext
+import play.api.Configuration
+import play.api.NoHttpFiltersComponents
+import play.api.http.SecretConfiguration
+import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.test._
 import play.api.mvc._
@@ -16,7 +19,7 @@ import play.api.routing.Router
 import play.core.server.Server
 import play.it._
 
-class NettySessionCookieSpec extends SessionCookieSpec with NettyIntegrationSpecification
+class NettySessionCookieSpec    extends SessionCookieSpec with NettyIntegrationSpecification
 class AkkaHttpSessionCookieSpec extends SessionCookieSpec with AkkaHttpIntegrationSpecification
 
 trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
@@ -30,12 +33,14 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
         import play.api.routing.sird.{ GET => SirdGet, _ }
         import scala.collection.JavaConverters._
 
-        override def configuration: Configuration = super.configuration ++ new Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava))
+        override def configuration: Configuration =
+          super.configuration ++ new Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava))
 
         override def router: Router = Router.from {
-          case SirdGet(p"/session") => defaultActionBuilder {
-            Ok.withSession("session-key" -> "session-value")
-          }
+          case SirdGet(p"/session") =>
+            defaultActionBuilder {
+              Ok.withSession("session-key" -> "session-value")
+            }
         }
       }.application
     } { implicit port =>

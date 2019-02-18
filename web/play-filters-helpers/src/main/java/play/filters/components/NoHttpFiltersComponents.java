@@ -11,9 +11,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Java component to mix in when no default filters should be mixed in to {@link play.BuiltInComponents}.
+ * Java component to mix in when no default filters should be mixed in to {@link
+ * play.BuiltInComponents}.
  *
- * <p>Usage:</p>
+ * <p>Usage:
  *
  * <pre>
  * public class MyComponents extends BuiltInComponentsFromContext implements NoHttpFiltersComponents {
@@ -31,8 +32,8 @@ import java.util.List;
  */
 public interface NoHttpFiltersComponents extends HttpComponents {
 
-    @Override
-    default List<EssentialFilter> httpFilters() {
-        return Collections.emptyList();
-    }
+  @Override
+  default List<EssentialFilter> httpFilters() {
+    return Collections.emptyList();
+  }
 }

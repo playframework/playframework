@@ -4,13 +4,18 @@
 
 package play.it.http
 
-import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 import play.api._
 import play.api.mvc.EssentialAction
-import play.core.j.{ JavaAction, JavaActionAnnotations, JavaContextComponents, JavaHandlerComponents }
+import play.core.j.JavaAction
+import play.core.j.JavaActionAnnotations
+import play.core.j.JavaContextComponents
+import play.core.j.JavaHandlerComponents
 import play.core.routing.HandlerInvokerFactory
-import play.mvc.{ Http, Result }
+import play.mvc.Http
+import play.mvc.Result
 
 /**
  * Use this to mock Java actions, eg:
@@ -32,8 +37,12 @@ object JAction {
   }
   def apply(app: Application, c: AbstractMockController, handlerComponents: JavaHandlerComponents): EssentialAction = {
     new JavaAction(handlerComponents) {
-      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"), handlerComponents.httpConfiguration.actionComposition)
-      val parser = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
+      val annotations = new JavaActionAnnotations(
+        c.getClass,
+        c.getClass.getMethod("action"),
+        handlerComponents.httpConfiguration.actionComposition
+      )
+      val parser                        = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
       def invocation(req: Http.Request) = c.invocation
     }
   }
@@ -42,11 +51,11 @@ object JAction {
 trait AbstractMockController {
   def invocation: CompletionStage[Result]
 
-  def ctx = Http.Context.current()
+  def ctx      = Http.Context.current()
   def response = ctx.response()
-  def request = ctx.request()
-  def session = ctx.session()
-  def flash = ctx.flash()
+  def request  = ctx.request()
+  def session  = ctx.session()
+  def flash    = ctx.flash()
 }
 
 abstract class MockController extends AbstractMockController {

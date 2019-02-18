@@ -14,9 +14,9 @@ object Main {
   import scala.concurrent.ExecutionContext.Implicits._
 
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem()
+    implicit val system       = ActorSystem()
     implicit val materializer = ActorMaterializer()
-    val wsClient = AhcWSClient()
+    val wsClient              = AhcWSClient()
 
     call(wsClient)
       .andThen { case _ => wsClient.close() }

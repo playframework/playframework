@@ -50,11 +50,11 @@ class RouterSpec extends Specification {
   }
 
   "PathPattern" should {
-    val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
-    val pathString = "/path/to/some%20file"
+    val pathPattern           = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
+    val pathString            = "/path/to/some%20file"
     val pathNonEncodedString1 = "/path/to/bar:baz"
     val pathNonEncodedString2 = "/path/to/bar:%20baz"
-    val pathStringInvalid = "/path/to/invalide%2"
+    val pathStringInvalid     = "/path/to/invalide%2"
 
     "Bind Path string as string" in {
       pathPattern(pathString).get("foo") must beEqualTo(Right("some file"))
@@ -72,7 +72,7 @@ class RouterSpec extends Specification {
 
     "multipart path is not decoded" in {
       val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", ".+", false)))
-      val pathString = "/path/to/this/is/some%20file/with/id"
+      val pathString  = "/path/to/this/is/some%20file/with/id"
       pathPattern(pathString).get("foo") must beEqualTo(Right("this/is/some%20file/with/id"))
 
     }
@@ -83,25 +83,25 @@ class RouterSpec extends Specification {
     import play.api.mvc.Handler
     import play.api.routing.sird._
     object Root extends Handler
-    object Foo extends Handler
+    object Foo  extends Handler
 
     val router = Router.from {
-      case GET(p"/") => Root
+      case GET(p"/")    => Root
       case GET(p"/foo") => Foo
     }
 
     "work" in {
       import play.api.http.HttpVerbs._
-      router.handlerFor(FakeRequest(GET, "/")) must be some (Root)
-      router.handlerFor(FakeRequest(GET, "/foo")) must be some (Foo)
+      (router.handlerFor(FakeRequest(GET, "/")) must be).some(Root)
+      (router.handlerFor(FakeRequest(GET, "/foo")) must be).some(Foo)
     }
 
     "add prefix" in {
       import play.api.http.HttpVerbs._
       val apiRouter = router.withPrefix("/api")
       apiRouter.handlerFor(FakeRequest(GET, "/")) must beNone
-      apiRouter.handlerFor(FakeRequest(GET, "/api/")) must be some (Root)
-      apiRouter.handlerFor(FakeRequest(GET, "/api/foo")) must be some (Foo)
+      (apiRouter.handlerFor(FakeRequest(GET, "/api/")) must be).some(Root)
+      (apiRouter.handlerFor(FakeRequest(GET, "/api/foo")) must be).some(Foo)
     }
 
     "add prefix multiple times" in {
@@ -109,8 +109,8 @@ class RouterSpec extends Specification {
       val apiV1Router = "/api" /: "v1" /: router
       apiV1Router.handlerFor(FakeRequest(GET, "/")) must beNone
       apiV1Router.handlerFor(FakeRequest(GET, "/api/")) must beNone
-      apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/")) must be some (Root)
-      apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/foo")) must be some (Foo)
+      (apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/")) must be).some(Root)
+      (apiV1Router.handlerFor(FakeRequest(GET, "/api/v1/foo")) must be).some(Foo)
     }
   }
 }

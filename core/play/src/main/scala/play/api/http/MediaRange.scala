@@ -19,15 +19,19 @@ import play.api.http.MediaRange.MediaRangeParser
  */
 case class MediaType(mediaType: String, mediaSubType: String, parameters: Seq[(String, Option[String])]) {
   override def toString = {
-    mediaType + "/" + mediaSubType + parameters.map { param =>
-      "; " + param._1 + param._2.map { value =>
-        if (MediaRangeParser.token(new CharSequenceReader(value)).next.atEnd) {
-          "=" + value
-        } else {
-          "=\"" + value.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"") + "\""
-        }
-      }.getOrElse("")
-    }.mkString("")
+    mediaType + "/" + mediaSubType + parameters
+      .map { param =>
+        "; " + param._1 + param._2
+          .map { value =>
+            if (MediaRangeParser.token(new CharSequenceReader(value)).next.atEnd) {
+              "=" + value
+            } else {
+              "=\"" + value.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"") + "\""
+            }
+          }
+          .getOrElse("")
+      }
+      .mkString("")
   }
 }
 
@@ -45,7 +49,8 @@ class MediaRange(
     mediaSubType: String,
     parameters: Seq[(String, Option[String])],
     val qValue: Option[BigDecimal],
-    val acceptExtensions: Seq[(String, Option[String])]) extends MediaType(mediaType, mediaSubType, parameters) {
+    val acceptExtensions: Seq[(String, Option[String])]
+) extends MediaType(mediaType, mediaSubType, parameters) {
 
   /**
    * @return true if `mimeType` matches this media type, otherwise false
@@ -56,8 +61,11 @@ class MediaRange(
       (mediaType == "*" && mediaSubType == "*")
 
   override def toString = {
-    new MediaType(mediaType, mediaSubType,
-      parameters ++ qValue.map(q => ("q", Some(q.toString()))).toSeq ++ acceptExtensions).toString
+    new MediaType(
+      mediaType,
+      mediaSubType,
+      parameters ++ qValue.map(q => ("q", Some(q.toString()))).toSeq ++ acceptExtensions
+    ).toString
   }
 }
 
@@ -102,7 +110,7 @@ object MediaRange {
   def preferred(acceptableRanges: Seq[MediaRange], availableMediaTypes: Seq[String]): Option[String] = {
     val acceptableTypes = for {
       mediaRange <- acceptableRanges.sorted.toStream
-      mt <- availableMediaTypes if mediaRange.accepts(mt)
+      mt         <- availableMediaTypes if mediaRange.accepts(mt)
     } yield mt
     acceptableTypes.headOption
   }
@@ -175,7 +183,7 @@ object MediaRange {
 
     private val logger = Logger(this.getClass())
 
-    val separatorChars = "()<>@,;:\\\"/[]?={} \t"
+    val separatorChars  = "()<>@,;:\\\"/[]?={} \t"
     val separatorBitSet = BitSet(separatorChars.toCharArray.map(_.toInt): _*)
 
     type Elem = Char
@@ -210,8 +218,8 @@ object MediaRange {
 
     // The spec is really vague about what a quotedPair means. We're going to assume that it's just to quote quotes,
     // which means all we have to do for the result of it is ignore the slash.
-    val quotedPair = '\\' ~> char
-    val qdtext = not('"') ~> text
+    val quotedPair   = '\\' ~> char
+    val qdtext       = not('"') ~> text
     val quotedString = '"' ~> rep(quotedPair | qdtext) <~ '"' ^^ charSeqToString
 
     /*
@@ -241,7 +249,7 @@ object MediaRange {
       val (params, rest) = mediaType.parameters.span(_._1 != "q")
       val (qValueStr, acceptParams) = rest match {
         case q :: ps => (q._2, ps)
-        case _ => (None, Nil)
+        case _       => (None, Nil)
       }
       val qValue = qValueStr.flatMap { q =>
         try {

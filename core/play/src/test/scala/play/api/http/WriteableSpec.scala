@@ -9,7 +9,8 @@ import java.io.File
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.{ Codec, MultipartFormData }
+import play.api.mvc.Codec
+import play.api.mvc.MultipartFormData
 import play.api.mvc.MultipartFormData.FilePart
 
 import play.api.libs.Files.SingletonTemporaryFileCreator._
@@ -21,23 +22,27 @@ class WriteableSpec extends Specification {
     "of multipart" should {
 
       "work for temporary files" in {
-        val multipartFormData = createMultipartFormData[TemporaryFile](create(new File("src/test/resources/multipart-form-data-file.txt").toPath))
+        val multipartFormData = createMultipartFormData[TemporaryFile](
+          create(new File("src/test/resources/multipart-form-data-file.txt").toPath)
+        )
         val contentType = Some("text/plain")
-        val codec = Codec.utf_8
+        val codec       = Codec.utf_8
 
-        val writeable = Writeable.writeableOf_MultipartFormData(codec, contentType)
+        val writeable               = Writeable.writeableOf_MultipartFormData(codec, contentType)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("Content-Disposition: form-data; name=name")
-        transformed.utf8String must contain("""Content-Disposition: form-data; name="thefile"; filename="something.text"""")
+        transformed.utf8String must contain(
+          """Content-Disposition: form-data; name="thefile"; filename="something.text""""
+        )
         transformed.utf8String must contain("Content-Type: text/plain")
         transformed.utf8String must contain("multipart-form-data-file")
       }
 
       "work composing with another writeable" in {
         val multipartFormData = createMultipartFormData[String]("file part value")
-        val contentType = Some("text/plain")
-        val codec = Codec.utf_8
+        val contentType       = Some("text/plain")
+        val codec             = Codec.utf_8
 
         val writeable = Writeable.writeableOf_MultipartFormData(
           codec,
@@ -46,14 +51,16 @@ class WriteableSpec extends Specification {
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("Content-Disposition: form-data; name=name")
-        transformed.utf8String must contain("""Content-Disposition: form-data; name="thefile"; filename="something.text"""")
+        transformed.utf8String must contain(
+          """Content-Disposition: form-data; name="thefile"; filename="something.text""""
+        )
         transformed.utf8String must contain("Content-Type: text/plain")
         transformed.utf8String must contain("file part value")
       }
 
       "use multipart/form-data content-type" in {
         val contentType = Some("text/plain")
-        val codec = Codec.utf_8
+        val codec       = Codec.utf_8
         val writeable = Writeable.writeableOf_MultipartFormData(
           codec,
           Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType)

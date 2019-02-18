@@ -36,9 +36,7 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     def addBindings(module: Module) = {
       val injector = new GuiceApplicationBuilder()
-        .bindings(
-          module,
-          bind[GuiceApplicationBuilderSpec.B].to[GuiceApplicationBuilderSpec.B1])
+        .bindings(module, bind[GuiceApplicationBuilderSpec.B].to[GuiceApplicationBuilderSpec.B1])
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
@@ -58,7 +56,8 @@ class GuiceApplicationBuilderSpec extends Specification {
         .bindings(module)
         .overrides(
           bind[Configuration] to new GuiceApplicationBuilderSpec.ExtendConfiguration("a" -> 1),
-          bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A2])
+          bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A2]
+        )
         .build()
 
       app.configuration.get[Int]("a") must_== 1
@@ -93,7 +92,15 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set module loader" in {
       val injector = new GuiceApplicationBuilder()
-        .load((env, conf) => Seq(new BuiltinModule, new I18nModule, new CookiesModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]))
+        .load(
+          (env, conf) =>
+            Seq(
+              new BuiltinModule,
+              new I18nModule,
+              new CookiesModule,
+              bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]
+            )
+        )
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
@@ -101,7 +108,12 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set loaded modules directly" in {
       val injector = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, new I18nModule, new CookiesModule, bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1])
+        .load(
+          new BuiltinModule,
+          new I18nModule,
+          new CookiesModule,
+          bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]
+        )
         .injector()
 
       injector.instanceOf[GuiceApplicationBuilderSpec.A] must beAnInstanceOf[GuiceApplicationBuilderSpec.A1]
@@ -109,7 +121,12 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "eagerly load singletons" in {
       new GuiceApplicationBuilder()
-        .load(new BuiltinModule, new I18nModule, new CookiesModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
+        .load(
+          new BuiltinModule,
+          new I18nModule,
+          new CookiesModule,
+          bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1]
+        )
         .eagerlyLoaded()
         .injector() must throwA[CreationException]
     }
@@ -124,7 +141,12 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set lazy load singletons" in {
       val builder = new GuiceApplicationBuilder()
-        .load(new BuiltinModule, new I18nModule, new CookiesModule, bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1])
+        .load(
+          new BuiltinModule,
+          new I18nModule,
+          new CookiesModule,
+          bind[GuiceApplicationBuilderSpec.C].to[GuiceApplicationBuilderSpec.C1]
+        )
 
       builder.injector() must throwAn[CreationException].not
       builder.injector().instanceOf[GuiceApplicationBuilderSpec.C] must throwAn[ProvisionException]
@@ -143,7 +165,7 @@ class GuiceApplicationBuilderSpec extends Specification {
     "display logger deprecation message" in {
       List("logger", "logger.resource", "logger.resource.test").forall { path =>
         List("DEBUG", "WARN", "INFO", "ERROR", "TRACE", "OFF").forall { value =>
-          val data = Map(path -> value)
+          val data    = Map(path -> value)
           val builder = new GuiceApplicationBuilder()
           builder.shouldDisplayLoggerDeprecationMessage(Configuration.from(data)) must_=== true
         }
@@ -152,7 +174,7 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "not display logger deprecation message" in {
       List("logger", "logger.resource", "logger.resource.test").forall { path =>
-        val data = Map(path -> "NOT_A_DEPRECATED_VALUE")
+        val data    = Map(path -> "NOT_A_DEPRECATED_VALUE")
         val builder = new GuiceApplicationBuilder()
         builder.shouldDisplayLoggerDeprecationMessage(Configuration.from(data)) must_=== false
       }
@@ -189,7 +211,8 @@ object GuiceApplicationBuilderSpec {
   }
 
   class JavaAModule extends JavaModule {
-    override def bindings(environment: JavaEnvironment, config: Config) = Collections.singletonList(JavaModule.bindClass(classOf[A]).to(classOf[A1]))
+    override def bindings(environment: JavaEnvironment, config: Config) =
+      Collections.singletonList(JavaModule.bindClass(classOf[A]).to(classOf[A1]))
   }
 
   class EagerlyLoadedException extends RuntimeException

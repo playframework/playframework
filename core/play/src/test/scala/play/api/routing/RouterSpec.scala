@@ -12,9 +12,9 @@ import play.core.test.FakeRequest
 
 class RouterSpec extends Specification {
   "Routers" should {
-    object First extends Handler
+    object First  extends Handler
     object Second extends Handler
-    object Third extends Handler
+    object Third  extends Handler
     object Fourth extends Handler
     val firstRouter = Router.from {
       case GET(p"/oneRoute") => First
@@ -31,37 +31,37 @@ class RouterSpec extends Specification {
 
     "be composable" in {
       "find handler from first router" in {
-        firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must be some First
+        (firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must be).some(First)
       }
       "find handler from second router" in {
-        firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/anotherRoute")) must be some Second
+        (firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/anotherRoute")) must be).some(Second)
       }
       "none when handler is not present in any of the routers" in {
         firstRouter.orElse(secondRouter).handlerFor(FakeRequest("GET", "/noSuchRoute")) must beNone
       }
       "prefer first router if both match" in {
-        firstRouter.orElse(thirdRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must be some First
+        (firstRouter.orElse(thirdRouter).handlerFor(FakeRequest("GET", "/oneRoute")) must be).some(First)
       }
       "withPrefix should be applied recursively" in {
         val r1 = firstRouter.withPrefix("/stan")
         val r2 = secondRouter.withPrefix("/kyle")
         val r3 = r1.orElse(r2).withPrefix("/cartman")
-        r3.handlerFor(FakeRequest("GET", "/cartman/stan/oneRoute")) must be some First
-        r3.handlerFor(FakeRequest("GET", "/cartman/kyle/anotherRoute")) must be some Second
+        (r3.handlerFor(FakeRequest("GET", "/cartman/stan/oneRoute")) must be).some(First)
+        (r3.handlerFor(FakeRequest("GET", "/cartman/kyle/anotherRoute")) must be).some(Second)
       }
       "withPrefix should work with or without trailing slash if the prefix has no trailing slash" in {
         val r4 = fourthRouter.withPrefix("/kenny")
-        r4.handlerFor(FakeRequest("GET", "/kenny")) must be some Fourth
-        r4.handlerFor(FakeRequest("GET", "/kenny/")) must be some Fourth
+        (r4.handlerFor(FakeRequest("GET", "/kenny")) must be).some(Fourth)
+        (r4.handlerFor(FakeRequest("GET", "/kenny/")) must be).some(Fourth)
       }
       "withPrefix should work only with a trailing slash if the prefix has a trailing slash" in {
         val r4 = fourthRouter.withPrefix("/kenny/")
         r4.handlerFor(FakeRequest("GET", "/kenny")) must be(None)
-        r4.handlerFor(FakeRequest("GET", "/kenny/")) must be some Fourth
+        (r4.handlerFor(FakeRequest("GET", "/kenny/")) must be).some(Fourth)
       }
       "documentation should be concatenated" in {
         case class DocRouter(documentation: Seq[(String, String, String)]) extends Router {
-          def routes: Routes = PartialFunction.empty
+          def routes: Routes                     = PartialFunction.empty
           def withPrefix(prefix: String): Router = this
         }
 

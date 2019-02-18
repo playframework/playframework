@@ -4,25 +4,44 @@
 
 package play.core.j
 
-import java.net.{ InetAddress, URI, URLDecoder }
+import java.net.InetAddress
+import java.net.URI
+import java.net.URLDecoder
 import java.security.cert.X509Certificate
 import java.util
-import java.util.{ Locale, Optional }
+import java.util.Locale
+import java.util.Optional
 import java.util.concurrent.CompletionStage
 
-import play.api.http.{ DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration, MediaRange }
-import play.api.i18n.{ Langs, MessagesApi, _ }
+import play.api.http.DefaultFileMimeTypesProvider
+import play.api.http.FileMimeTypes
+import play.api.http.HttpConfiguration
+import play.api.http.MediaRange
+import play.api.i18n.Langs
+import play.api.i18n.MessagesApi
+import play.api.i18n._
 import play.api.mvc._
-import play.api.{ Configuration, Environment }
-import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.api.Configuration
+import play.api.Environment
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 import play.core.Execution.Implicits.trampoline
 import play.i18n
-import play.libs.typedmap.{ TypedKey, TypedMap }
-import play.mvc.Http.{ RequestBody, Context => JContext, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl }
-import play.mvc.{ Http, Result => JResult }
+import play.libs.typedmap.TypedKey
+import play.libs.typedmap.TypedMap
+import play.mvc.Http.RequestBody
+import play.mvc.Http.{ Context => JContext }
+import play.mvc.Http.{ Cookie => JCookie }
+import play.mvc.Http.{ Cookies => JCookies }
+import play.mvc.Http.{ Request => JRequest }
+import play.mvc.Http.{ RequestHeader => JRequestHeader }
+import play.mvc.Http.{ RequestImpl => JRequestImpl }
+import play.mvc.Http
+import play.mvc.{ Result => JResult }
 
 import scala.collection.JavaConverters._
-import scala.compat.java8.{ FutureConverters, OptionConverters }
+import scala.compat.java8.FutureConverters
+import scala.compat.java8.OptionConverters
 import scala.concurrent.Future
 
 /**
@@ -58,7 +77,7 @@ trait JavaHelpers {
 
   def javaMapToImmutableScalaMap[A, B](m: java.util.Map[A, B]): Map[A, B] = {
     val mapBuilder = Map.newBuilder[A, B]
-    val itr = m.entrySet().iterator()
+    val itr        = m.entrySet().iterator()
     while (itr.hasNext) {
       val entry = itr.next()
       mapBuilder += (entry.getKey -> entry.getValue)
@@ -69,14 +88,14 @@ trait JavaHelpers {
   def javaMapOfListToScalaSeqOfPairs(m: java.util.Map[String, java.util.List[String]]): Seq[(String, String)] = {
     for {
       (k, arr) <- m.asScala.toVector
-      el <- arr.asScala
+      el       <- arr.asScala
     } yield (k, el)
   }
 
   def javaMapOfArraysToScalaSeqOfPairs(m: java.util.Map[String, Array[String]]): Seq[(String, String)] = {
     for {
       (k, arr) <- m.asScala.toVector
-      el <- arr
+      el       <- arr
     } yield (k, el)
   }
 
@@ -95,23 +114,23 @@ trait JavaHelpers {
     def updateSecure(r: Request[A], newSecure: Boolean): Request[A] = {
       val c = r.connection
       r.withConnection(new RemoteConnection {
-        override def remoteAddress: InetAddress = c.remoteAddress
-        override def remoteAddressString: String = c.remoteAddressString
-        override def secure: Boolean = newSecure
+        override def remoteAddress: InetAddress                           = c.remoteAddress
+        override def remoteAddressString: String                          = c.remoteAddressString
+        override def secure: Boolean                                      = newSecure
         override def clientCertificateChain: Option[Seq[X509Certificate]] = c.clientCertificateChain
       })
     }
     val reqWithConnection = parsedUri.getScheme match {
-      case "http" => updateSecure(req, newSecure = false)
+      case "http"  => updateSecure(req, newSecure = false)
       case "https" => updateSecure(req, newSecure = true)
-      case _ => req
+      case _       => req
     }
 
     // Next create a target based on the URI
     reqWithConnection.withTarget(new RequestTarget {
-      override val uri: URI = parsedUri
+      override val uri: URI          = parsedUri
       override val uriString: String = parsedUri.toString
-      override val path: String = parsedUri.getRawPath
+      override val path: String      = parsedUri.getRawPath
       override val queryMap: Map[String, Seq[String]] = {
         val query: String = uri.getRawQuery
         if (query == null || query.length == 0) {
@@ -119,11 +138,12 @@ trait JavaHelpers {
         } else {
           query.split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
             case (acc, pair) =>
-              val idx: Int = pair.indexOf("=")
+              val idx: Int    = pair.indexOf("=")
               val key: String = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8") else pair
-              val value: String = if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else null
+              val value: String =
+                if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else null
               acc.get(key) match {
-                case None => acc.updated(key, Seq(value))
+                case None         => acc.updated(key, Seq(value))
                 case Some(values) => acc.updated(key, values :+ value)
               }
           }
@@ -141,15 +161,19 @@ trait JavaHelpers {
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
     require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
     val scalaResult = javaResult.asScala
-    val wResult = scalaResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
+    val wResult = scalaResult
+      .withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
+      wResult
+        .withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
         .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
     } else {
       if (javaContext.session.isDirty) {
-        wResult.withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
+        wResult.withSession(
+          Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data)
+        )
       } else {
         if (javaContext.flash.isDirty) {
           wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
@@ -206,7 +230,7 @@ trait JavaHelpers {
    */
   def createContextComponents(): JavaContextComponents = {
     val reference: Configuration = play.api.Configuration.reference
-    val environment = play.api.Environment.simple()
+    val environment              = play.api.Environment.simple()
     createContextComponents(reference, environment)
   }
 
@@ -217,10 +241,10 @@ trait JavaHelpers {
    * @return an instance of JavaContextComponents with default messagesApi and langs.
    */
   def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
-    val langs = new DefaultLangsProvider(configuration).get
+    val langs             = new DefaultLangsProvider(configuration).get
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
-    val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
-    val fileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
+    val messagesApi       = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
+    val fileMimeTypes     = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
     createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
   }
 
@@ -233,12 +257,13 @@ trait JavaHelpers {
    * @return an instance of JavaContextComponents with given input components.
    */
   def createContextComponents(
-    messagesApi: MessagesApi,
-    langs: Langs,
-    fileMimeTypes: FileMimeTypes,
-    httpConfiguration: HttpConfiguration): JavaContextComponents = {
-    val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-    val jLangs = new play.i18n.Langs(langs)
+      messagesApi: MessagesApi,
+      langs: Langs,
+      fileMimeTypes: FileMimeTypes,
+      httpConfiguration: HttpConfiguration
+  ): JavaContextComponents = {
+    val jMessagesApi   = new play.i18n.MessagesApi(messagesApi)
+    val jLangs         = new play.i18n.Langs(langs)
     val jFileMimeTypes = new play.mvc.FileMimeTypes(fileMimeTypes)
     new DefaultJavaContextComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
   }
@@ -256,7 +281,11 @@ trait JavaHelpers {
    * @return The result
    */
   @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def invokeWithContext(request: RequestHeader, components: JavaContextComponents, f: JRequest => CompletionStage[JResult]): Future[Result] = {
+  def invokeWithContext(
+      request: RequestHeader,
+      components: JavaContextComponents,
+      f: JRequest => CompletionStage[JResult]
+  ): Future[Result] = {
     withContext(request, components) { javaContext =>
       FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
     }
@@ -295,10 +324,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def secure: Boolean = header.secure
 
-  override def attrs: TypedMap = new TypedMap(header.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequestHeader = header.withAttrs(newAttrs.underlying()).asJava
+  override def attrs: TypedMap                                        = new TypedMap(header.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.underlying()).asJava
   override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
-  override def removeAttr(key: TypedKey[_]): JRequestHeader = withAttrs(attrs.remove(key))
+  override def removeAttr(key: TypedKey[_]): JRequestHeader           = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -357,8 +386,8 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def removeAttr(key: TypedKey[_]): JRequest =
     withAttrs(attrs.remove(key))
 
-  override def body: RequestBody = request.body
-  override def hasBody: Boolean = request.hasBody
+  override def body: RequestBody                     = request.body
+  override def hasBody: Boolean                      = request.hasBody
   override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
 
   override def withTransientLang(lang: play.i18n.Lang): JRequest =

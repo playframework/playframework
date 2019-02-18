@@ -5,15 +5,21 @@
 package play.api.http
 
 import com.typesafe.config.ConfigMemorySize
-import javax.inject.{ Inject, Provider, Singleton }
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.libs.Codecs
 import play.api.mvc.Cookie.SameSite
-import play.core.cookie.encoding.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
+import play.core.cookie.encoding.ClientCookieDecoder
+import play.core.cookie.encoding.ClientCookieEncoder
+import play.core.cookie.encoding.ServerCookieDecoder
+import play.core.cookie.encoding.ServerCookieEncoder
 
 import scala.concurrent.duration._
-import scala.util.{ Failure, Success }
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * HTTP related configuration of a Play application
@@ -32,7 +38,8 @@ case class HttpConfiguration(
     session: SessionConfiguration = SessionConfiguration(),
     flash: FlashConfiguration = FlashConfiguration(),
     fileMimeTypes: FileMimeTypesConfiguration = FileMimeTypesConfiguration(),
-    secret: SecretConfiguration = SecretConfiguration())
+    secret: SecretConfiguration = SecretConfiguration()
+)
 
 /**
  * The application secret. Must be set. A value of "changeme" will cause the application to fail to start in
@@ -153,9 +160,7 @@ case class FlashConfiguration(
  * @param maxMemoryBuffer The maximum size that a request body that should be buffered in memory.
  * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
  */
-case class ParserConfiguration(
-    maxMemoryBuffer: Long = 102400,
-    maxDiskBuffer: Long = 10485760)
+case class ParserConfiguration(maxMemoryBuffer: Long = 102400, maxDiskBuffer: Long = 10485760)
 
 /**
  * Configuration for action composition.
@@ -166,7 +171,8 @@ case class ParserConfiguration(
  */
 case class ActionCompositionConfiguration(
     controllerAnnotationsFirst: Boolean = false,
-    executeActionCreatorActionFirst: Boolean = false)
+    executeActionCreatorActionFirst: Boolean = false
+)
 
 /**
  * Configuration for file MIME types, mapping from extension to content type.
@@ -177,7 +183,7 @@ case class FileMimeTypesConfiguration(mimeTypes: Map[String, String] = Map.empty
 
 object HttpConfiguration {
 
-  private val logger = LoggerFactory.getLogger(classOf[HttpConfiguration])
+  private val logger                 = LoggerFactory.getLogger(classOf[HttpConfiguration])
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
 
   def parseSameSite(config: Configuration, key: String): Option[SameSite] = {
@@ -192,27 +198,33 @@ object HttpConfiguration {
     }
   }
 
-  def parseFileMimeTypes(config: Configuration): Map[String, String] = config.get[String]("play.http.fileMimeTypes").split('\n').iterator.flatMap { l =>
-    val line = l.trim
+  def parseFileMimeTypes(config: Configuration): Map[String, String] =
+    config
+      .get[String]("play.http.fileMimeTypes")
+      .split('\n')
+      .iterator
+      .flatMap { l =>
+        val line = l.trim
 
-    line.splitAt(1) match {
-      case ("", "") => Option.empty[(String, String)] // blank
-      case ("#", _) => Option.empty[(String, String)] // comment
+        line.splitAt(1) match {
+          case ("", "") => Option.empty[(String, String)] // blank
+          case ("#", _) => Option.empty[(String, String)] // comment
 
-      case _ => // "foo=bar".span(_ != '=') -> (foo,=bar)
-        line.span(_ != '=') match {
-          case (key, v) => Some(key -> v.drop(1)) // '=' prefix
-          case _ => Option.empty[(String, String)] // skip invalid
+          case _ => // "foo=bar".span(_ != '=') -> (foo,=bar)
+            line.span(_ != '=') match {
+              case (key, v) => Some(key -> v.drop(1)) // '=' prefix
+              case _        => Option.empty[(String, String)] // skip invalid
+            }
         }
-    }
-  }.toMap
+      }
+      .toMap
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
 
     def getPath(key: String, deprecatedKey: Option[String] = None): String = {
       val path = deprecatedKey match {
         case Some(depKey) => config.getDeprecated[String](key, depKey)
-        case None => config.get[String](key)
+        case None         => config.get[String](key)
       }
       if (!path.startsWith("/")) {
         throw config.globalError(s"$key must start with a /")
@@ -220,9 +232,9 @@ object HttpConfiguration {
       path
     }
 
-    val context = getPath("play.http.context", Some("application.context"))
+    val context     = getPath("play.http.context", Some("application.context"))
     val sessionPath = getPath("play.http.session.path")
-    val flashPath = getPath("play.http.flash.path")
+    val flashPath   = getPath("play.http.flash.path")
 
     if (config.has("mimetype")) {
       throw config.globalError("mimetype replaced by play.http.fileMimeTypes map")
@@ -231,12 +243,14 @@ object HttpConfiguration {
     HttpConfiguration(
       context = context,
       parser = ParserConfiguration(
-        maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
+        maxMemoryBuffer =
+          config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
         maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
       ),
       actionComposition = ActionCompositionConfiguration(
         controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
-        executeActionCreatorActionFirst = config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
+        executeActionCreatorActionFirst =
+          config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
       ),
       cookies = CookiesConfiguration(
         strict = config.get[Boolean]("play.http.cookies.strict")
@@ -270,66 +284,71 @@ object HttpConfiguration {
   private def getSecretConfiguration(config: Configuration, environment: Environment): SecretConfiguration = {
     val Blank = """\s*""".r
 
-    val secret = config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
-      case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
-        val message =
-          """
-            |The application secret has not been set, and we are in prod mode. Your application is not secure.
-            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+    val secret =
+      config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
+        case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
+          val message =
+            """
+              |The application secret has not been set, and we are in prod mode. Your application is not secure.
+              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
-        throw config.reportError("play.http.secret", message)
+          throw config.reportError("play.http.secret", message)
 
-      case Some(s) if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && environment.mode == Mode.Prod =>
-        val message =
-          """
-            |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure.
-            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+        case Some(s) if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && environment.mode == Mode.Prod =>
+          val message =
+            """
+              |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure.
+              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
-        throw config.reportError("play.http.secret", message)
+          throw config.reportError("play.http.secret", message)
 
-      case Some(s) if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && environment.mode == Mode.Prod =>
-        val message =
-          """
-            |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
-            |The application secret should ideally be 32 bytes of completely random input, encoded in base64.
-            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+        case Some(s) if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && environment.mode == Mode.Prod =>
+          val message =
+            """
+              |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
+              |The application secret should ideally be 32 bytes of completely random input, encoded in base64.
+              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
-        logger.warn(message)
-        s
+          logger.warn(message)
+          s
 
-      case Some(s) if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
-        val message =
-          """
-            |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure
-            |and it will fail to start in production mode.
-            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+        case Some(s)
+            if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
+          val message =
+            """
+              |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure
+              |and it will fail to start in production mode.
+              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
-        logger.warn(message)
-        s
+          logger.warn(message)
+          s
 
-      case Some(s) if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
-        val message =
-          """
-            |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
-            |The application secret should ideally be 32 bytes of completely random input, encoded in base64. While the application
-            |will be able to start in production mode, you will also see a warning when it is starting.
-            |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
+        case Some(s)
+            if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
+          val message =
+            """
+              |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
+              |The application secret should ideally be 32 bytes of completely random input, encoded in base64. While the application
+              |will be able to start in production mode, you will also see a warning when it is starting.
+              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
-        logger.warn(message)
-        s
+          logger.warn(message)
+          s
 
-      case Some("changeme") | Some(Blank()) | None =>
-        val appConfLocation = environment.resource("application.conf")
-        // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
-        val secret = appConfLocation.fold(
-          // No application.conf?  Oh well, just use something hard coded.
-          "she sells sea shells on the sea shore"
-        )(_.toString)
-        val md5Secret = Codecs.md5(secret)
-        logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
-        md5Secret
-      case Some(s) => s
-    }
+        case Some("changeme") | Some(Blank()) | None =>
+          val appConfLocation = environment.resource("application.conf")
+          // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
+          val secret = appConfLocation.fold(
+            // No application.conf?  Oh well, just use something hard coded.
+            "she sells sea shells on the sea shore"
+          )(_.toString)
+          val md5Secret = Codecs.md5(secret)
+          logger.debug(
+            s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}"
+          )
+          md5Secret
+        case Some(s) => s
+      }
 
     val provider = config.getDeprecated[Option[String]]("play.http.secret.provider", "play.crypto.provider")
 
@@ -341,7 +360,7 @@ object HttpConfiguration {
    */
   private[play] def current: HttpConfiguration = Play.privateMaybeApplication match {
     case Success(app) => httpConfigurationCache(app)
-    case Failure(_) => HttpConfiguration()
+    case Failure(_)   => HttpConfiguration()
   }
 
   /**
@@ -350,42 +369,45 @@ object HttpConfiguration {
   def createWithDefaults() = apply()
 
   @Singleton
-  class HttpConfigurationProvider @Inject() (configuration: Configuration, environment: Environment) extends Provider[HttpConfiguration] {
+  class HttpConfigurationProvider @Inject()(configuration: Configuration, environment: Environment)
+      extends Provider[HttpConfiguration] {
     lazy val get = fromConfiguration(configuration, environment)
   }
 
   @Singleton
-  class ParserConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[ParserConfiguration] {
+  class ParserConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[ParserConfiguration] {
     lazy val get = conf.parser
   }
 
   @Singleton
-  class CookiesConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[CookiesConfiguration] {
+  class CookiesConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[CookiesConfiguration] {
     lazy val get = conf.cookies
   }
 
   @Singleton
-  class SessionConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SessionConfiguration] {
+  class SessionConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[SessionConfiguration] {
     lazy val get = conf.session
   }
 
   @Singleton
-  class FlashConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[FlashConfiguration] {
+  class FlashConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[FlashConfiguration] {
     lazy val get = conf.flash
   }
 
   @Singleton
-  class ActionCompositionConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[ActionCompositionConfiguration] {
+  class ActionCompositionConfigurationProvider @Inject()(conf: HttpConfiguration)
+      extends Provider[ActionCompositionConfiguration] {
     lazy val get = conf.actionComposition
   }
 
   @Singleton
-  class FileMimeTypesConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[FileMimeTypesConfiguration] {
+  class FileMimeTypesConfigurationProvider @Inject()(conf: HttpConfiguration)
+      extends Provider[FileMimeTypesConfiguration] {
     lazy val get = conf.fileMimeTypes
   }
 
   @Singleton
-  class SecretConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SecretConfiguration] {
+  class SecretConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[SecretConfiguration] {
     lazy val get: SecretConfiguration = conf.secret
   }
 }

@@ -18,9 +18,10 @@ private[run] trait PlayRunCompat {
 
   def getPollInterval(watched: Watched): Int = watched.pollInterval
 
-  def getSourcesFinder(watched: Watched, state: State): PlaySourceModificationWatch.PathFinder = {
-    () =>
-      watched.watchPaths(state).collect {
+  def getSourcesFinder(watched: Watched, state: State): PlaySourceModificationWatch.PathFinder = { () =>
+    watched
+      .watchPaths(state)
+      .collect {
         case f if f.exists() => better.files.File(f.toURI)
       }(scala.collection.breakOut)
   }
@@ -37,7 +38,7 @@ private[run] trait PlayRunCompat {
     // attributes and if Watched.ContinuousState.count is 1 then we assume
     // we're in ~ run mode
     val maybeContinuous = for {
-      watched <- state.get(Watched.Configuration)
+      watched    <- state.get(Watched.Configuration)
       watchState <- state.get(Watched.ContinuousState)
       if watchState.count == 1
     } yield watched

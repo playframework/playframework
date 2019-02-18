@@ -14,9 +14,9 @@ class ScalaCsrfController @Inject()(val controllerComponents: ControllerComponen
   // #some-csrf-action
   // this actions needs to access CSRF token
   def someMethod = Action { implicit request =>
-      // access the token as you need
-      Ok
-    }
+    // access the token as you need
+    Ok
+  }
   // #some-csrf-action
 
   // #some-csrf-action-with-more-methods

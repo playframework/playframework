@@ -11,7 +11,10 @@ class JavaScriptReverseRouterSpec extends Specification {
     "Create a JavaScript router with the right script" in {
       val foo = "function(foo) { return null; }"
       val bar = "function(bar) { return null; }"
-      val router = JavaScriptReverseRouter(name = "lightbendRoutes", ajaxMethod = Some("doAjaxRequest"), host = "lightbend.com",
+      val router = JavaScriptReverseRouter(
+        name = "lightbendRoutes",
+        ajaxMethod = Some("doAjaxRequest"),
+        host = "lightbend.com",
         JavaScriptReverseRoute("controllers.FooController.foo", foo),
         JavaScriptReverseRoute("controllers.BarController.bar", bar)
       )

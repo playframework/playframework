@@ -10,10 +10,10 @@ import play.core.server.netty.NettyHelpers
 
 object MvcHelpers {
   def requestHeaderFromHeaders(headerList: List[(String, String)]): RequestHeader = {
-    val channel = NettyHelpers.nettyChannel(remoteAddress = NettyHelpers.localhost, ssl = false)
-    val nettyRequest = NettyHelpers.nettyRequest(headers = headerList)
+    val channel          = NettyHelpers.nettyChannel(remoteAddress = NettyHelpers.localhost, ssl = false)
+    val nettyRequest     = NettyHelpers.nettyRequest(headers = headerList)
     val convertedRequest = NettyHelpers.conversion.convertRequest(channel, nettyRequest).get
-    val defaultRequest = new DefaultRequestFactory(HttpConfiguration()).copyRequestHeader(convertedRequest)
+    val defaultRequest   = new DefaultRequestFactory(HttpConfiguration()).copyRequestHeader(convertedRequest)
     defaultRequest
   }
 }

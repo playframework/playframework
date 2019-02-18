@@ -4,7 +4,8 @@
 
 package play.api.routing.sird
 
-import java.net.{ URL, URI }
+import java.net.URL
+import java.net.URI
 
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
@@ -22,7 +23,7 @@ class UrlContextSpec extends Specification {
       "no match" in {
         "/foo/notbar" must beLike {
           case p"/foo/bar" => ko
-          case _ => ok
+          case _           => ok
         }
       }
     }
@@ -36,7 +37,7 @@ class UrlContextSpec extends Specification {
       "no match" in {
         "/foo/testing/notbar" must beLike {
           case p"/foo/$id/bar" => ko
-          case _ => ok
+          case _               => ok
         }
       }
       "decoded" in {
@@ -55,7 +56,7 @@ class UrlContextSpec extends Specification {
       "no match" in {
         "/foo/123n4/bar" must beLike {
           case p"/foo/$id<[0-9]+>/bar" => ko
-          case _ => ok
+          case _                       => ok
         }
       }
       "raw" in {
@@ -74,7 +75,7 @@ class UrlContextSpec extends Specification {
       "no match" in {
         "/foo/path/to/something" must beLike {
           case p"/foob/$path*" => ko
-          case _ => ok
+          case _               => ok
         }
       }
       "raw" in {
@@ -87,13 +88,13 @@ class UrlContextSpec extends Specification {
     "match a path with a nested extractor" in {
       "match" in {
         "/foo/1234/bar" must beLike {
-          case p"/foo/${ int(id) }/bar" => id must_== 1234l
+          case p"/foo/${int(id) }/bar" => id must_== 1234L
         }
       }
       "no match" in {
         "/foo/testing/bar" must beLike {
-          case p"/foo/${ int(id) }/bar" => ko
-          case _ => ok
+          case p"/foo/${int(id) }/bar" => ko
+          case _                       => ok
         }
       }
     }
@@ -131,7 +132,7 @@ class UrlContextSpec extends Specification {
       "no match" in {
         qs("foo" -> "bar") must beLike {
           case q"notfoo=$foo" => ko
-          case _ => ok
+          case _              => ok
         }
       }
     }

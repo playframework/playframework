@@ -8,21 +8,29 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.ws.WSResponse
-import play.api.mvc.{ ActionBuilder, Handler, Results }
-import play.api.test.{ PlaySpecification, WsTestClient }
-import play.core.j.{ JavaHandler, JavaHandlerComponents }
-import play.it.{ AkkaHttpIntegrationSpecification, NettyIntegrationSpecification, ServerIntegrationSpecification }
+import play.api.mvc.ActionBuilder
+import play.api.mvc.Handler
+import play.api.mvc.Results
+import play.api.test.PlaySpecification
+import play.api.test.WsTestClient
+import play.core.j.JavaHandler
+import play.core.j.JavaHandlerComponents
+import play.it.AkkaHttpIntegrationSpecification
+import play.it.NettyIntegrationSpecification
+import play.it.ServerIntegrationSpecification
 
 class NettyJavaHttpHandlerSpec extends JavaHttpHandlerSpec with NettyIntegrationSpecification
-class AkkaJavaHttpHandlerSpec extends JavaHttpHandlerSpec with AkkaHttpIntegrationSpecification
+class AkkaJavaHttpHandlerSpec  extends JavaHttpHandlerSpec with AkkaHttpIntegrationSpecification
 
 trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   def handlerResponse[T](handler: Handler)(block: WSResponse => T): T = {
     implicit val port = testServerPort
-    val app: Application = GuiceApplicationBuilder().routes {
-      case _ => handler
-    }.build()
+    val app: Application = GuiceApplicationBuilder()
+      .routes {
+        case _ => handler
+      }
+      .build()
     running(TestServer(port, app)) {
       val response = await(wsUrl("/").get())
       block(response)
@@ -32,7 +40,9 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
   val TestAttr = TypedKey[String]("testAttr")
   val javaHandler: JavaHandler = new JavaHandler {
     override def withComponents(components: JavaHandlerComponents): Handler = {
-      ActionBuilder.ignoringBody { req => Results.Ok(req.attrs.get(TestAttr).toString) }
+      ActionBuilder.ignoringBody { req =>
+        Results.Ok(req.attrs.get(TestAttr).toString)
+      }
     }
   }
 
@@ -43,7 +53,7 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
     "route a modified request to a JavaHandler's Action" in handlerResponse(
       Handler.Stage.modifyRequest(req => req.addAttr(TestAttr, "Hello!"), javaHandler)
     ) { response =>
-        response.body must beEqualTo("Some(Hello!)")
-      }
+      response.body must beEqualTo("Some(Hello!)")
+    }
   }
 }

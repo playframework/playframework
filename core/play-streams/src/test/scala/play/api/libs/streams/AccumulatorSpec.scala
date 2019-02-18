@@ -7,13 +7,19 @@ package play.api.libs.streams
 import java.util.concurrent.CompletionStage
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.{ Flow, Sink, Source }
-import akka.stream.{ ActorMaterializer, Materializer }
-import org.reactivestreams.{ Publisher, Subscriber, Subscription }
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
+import akka.stream.ActorMaterializer
+import akka.stream.Materializer
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import org.specs2.mutable.Specification
 
 import scala.compat.java8.FutureConverters
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -29,17 +35,18 @@ class AccumulatorSpec extends Specification {
     }
   }
 
-  def source = Source(1 to 3)
+  def source                 = Source(1 to 3)
   def await[T](f: Future[T]) = Await.result(f, 10.seconds)
-  def error[T](any: Any): T = throw sys.error("error")
-  def errorSource[T] = Source.fromPublisher(new Publisher[T] {
-    def subscribe(s: Subscriber[_ >: T]) = {
-      s.onSubscribe(new Subscription {
-        def cancel() = s.onComplete()
-        def request(n: Long) = s.onError(new RuntimeException("error"))
-      })
-    }
-  })
+  def error[T](any: Any): T  = throw sys.error("error")
+  def errorSource[T] =
+    Source.fromPublisher(new Publisher[T] {
+      def subscribe(s: Subscriber[_ >: T]) = {
+        s.onSubscribe(new Subscription {
+          def cancel()         = s.onComplete()
+          def request(n: Long) = s.onError(new RuntimeException("error"))
+        })
+      }
+    })
 
   "a sink accumulator" should {
     def sum: Accumulator[Int, Int] = Accumulator(Sink.fold[Int, Int](0)(_ + _))
@@ -55,30 +62,48 @@ class AccumulatorSpec extends Specification {
     "be recoverable" in {
 
       "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
-        await(sum.map(error[Int]).recover {
-          case e => 20
-        }.run(source)) must_== 20
+        await(
+          sum
+            .map(error[Int])
+            .recover {
+              case e => 20
+            }
+            .run(source)
+        ) must_== 20
       }
 
       "when the exception comes fom the stream" in withMaterializer { implicit m =>
-        await(sum.recover {
-          case e => 20
-        }.run(errorSource)) must_== 20
+        await(
+          sum
+            .recover {
+              case e => 20
+            }
+            .run(errorSource)
+        ) must_== 20
       }
     }
 
     "be recoverable with a future" in {
 
       "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
-        await(sum.map(error[Int]).recoverWith {
-          case e => Future(20)
-        }.run(source)) must_== 20
+        await(
+          sum
+            .map(error[Int])
+            .recoverWith {
+              case e => Future(20)
+            }
+            .run(source)
+        ) must_== 20
       }
 
       "when the exception comes from the stream" in withMaterializer { implicit m =>
-        await(sum.recoverWith {
-          case e => Future(20)
-        }.run(errorSource)) must_== 20
+        await(
+          sum
+            .recoverWith {
+              case e => Future(20)
+            }
+            .run(errorSource)
+        ) must_== 20
       }
     }
 
@@ -108,7 +133,12 @@ class AccumulatorSpec extends Specification {
 
     "be compatible with Java accumulator" in {
       "Java asScala" in withMaterializer { implicit m =>
-        await(play.libs.streams.Accumulator.fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]]).asScala().run(source)) must_== 6
+        await(
+          play.libs.streams.Accumulator
+            .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+            .asScala()
+            .run(source)
+        ) must_== 6
       }
 
       "Scala asJava" in withMaterializer { implicit m =>
@@ -118,7 +148,8 @@ class AccumulatorSpec extends Specification {
   }
 
   "a strict accumulator" should {
-    def sum: Accumulator[Int, Int] = Accumulator.strict[Int, Int](e => Future.successful(e.getOrElse(0)), Sink.fold[Int, Int](0)(_ + _))
+    def sum: Accumulator[Int, Int] =
+      Accumulator.strict[Int, Int](e => Future.successful(e.getOrElse(0)), Sink.fold[Int, Int](0)(_ + _))
 
     "run with a stream" in {
 
@@ -133,30 +164,48 @@ class AccumulatorSpec extends Specification {
       "be recoverable" in {
 
         "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
-          await(sum.map(error[Int]).recover {
-            case e => 20
-          }.run(source)) must_== 20
+          await(
+            sum
+              .map(error[Int])
+              .recover {
+                case e => 20
+              }
+              .run(source)
+          ) must_== 20
         }
 
         "when the exception comes fom the stream" in withMaterializer { implicit m =>
-          await(sum.recover {
-            case e => 20
-          }.run(errorSource)) must_== 20
+          await(
+            sum
+              .recover {
+                case e => 20
+              }
+              .run(errorSource)
+          ) must_== 20
         }
       }
 
       "be recoverable with a future" in {
 
         "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
-          await(sum.map(error[Int]).recoverWith {
-            case e => Future(20)
-          }.run(source)) must_== 20
+          await(
+            sum
+              .map(error[Int])
+              .recoverWith {
+                case e => Future(20)
+              }
+              .run(source)
+          ) must_== 20
         }
 
         "when the exception comes from the stream" in withMaterializer { implicit m =>
-          await(sum.recoverWith {
-            case e => Future(20)
-          }.run(errorSource)) must_== 20
+          await(
+            sum
+              .recoverWith {
+                case e => Future(20)
+              }
+              .run(errorSource)
+          ) must_== 20
         }
       }
 
@@ -186,7 +235,12 @@ class AccumulatorSpec extends Specification {
 
       "be compatible with Java accumulator" in {
         "Java asScala" in withMaterializer { implicit m =>
-          await(play.libs.streams.Accumulator.fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]]).asScala().run(source)) must_== 6
+          await(
+            play.libs.streams.Accumulator
+              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+              .asScala()
+              .run(source)
+          ) must_== 6
         }
 
         "Scala asJava" in withMaterializer { implicit m =>
@@ -207,17 +261,27 @@ class AccumulatorSpec extends Specification {
 
       "be recoverable" in {
         "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
-          await(sum.map(error[Int]).recover {
-            case e => 20
-          }.run(6)) must_== 20
+          await(
+            sum
+              .map(error[Int])
+              .recover {
+                case e => 20
+              }
+              .run(6)
+          ) must_== 20
         }
       }
 
       "be recoverable with a future" in {
         "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
-          await(sum.map(error[Int]).recoverWith {
-            case e => Future(20)
-          }.run(6)) must_== 20
+          await(
+            sum
+              .map(error[Int])
+              .recoverWith {
+                case e => Future(20)
+              }
+              .run(6)
+          ) must_== 20
         }
       }
 
@@ -234,7 +298,12 @@ class AccumulatorSpec extends Specification {
 
       "be compatible with Java accumulator" in {
         "Java asScala" in withMaterializer { implicit m =>
-          await(play.libs.streams.Accumulator.fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]]).asScala().run(6)) must_== 6
+          await(
+            play.libs.streams.Accumulator
+              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+              .asScala()
+              .run(6)
+          ) must_== 6
         }
 
         "Scala asJava" in withMaterializer { implicit m =>

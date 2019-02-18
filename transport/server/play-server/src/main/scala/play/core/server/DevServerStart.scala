@@ -7,7 +7,8 @@ package play.core.server
 import java.io._
 
 import akka.Done
-import akka.actor.{ ActorSystem, CoordinatedShutdown }
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
 import akka.stream.ActorMaterializer
 import play.api._
 import play.api.inject.DefaultApplicationLifecycle
@@ -16,9 +17,12 @@ import play.utils.Threads
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * Used to start servers in 'dev' mode, a mode where the application
@@ -32,10 +36,7 @@ object DevServerStart {
    * <p>This method uses simple Java types so that it can be used with reflection by code
    * compiled with different versions of Scala.
    */
-  def mainDevOnlyHttpsMode(
-    buildLink: BuildLink,
-    httpsPort: Int,
-    httpAddress: String): ReloadableServer = {
+  def mainDevOnlyHttpsMode(buildLink: BuildLink, httpsPort: Int, httpAddress: String): ReloadableServer = {
     mainDev(buildLink, None, Some(httpsPort), httpAddress)
   }
 
@@ -45,25 +46,24 @@ object DevServerStart {
    * <p>This method uses simple Java types so that it can be used with reflection by code
    * compiled with different versions of Scala.
    */
-  def mainDevHttpMode(
-    buildLink: BuildLink,
-    httpPort: Int,
-    httpAddress: String): ReloadableServer = {
+  def mainDevHttpMode(buildLink: BuildLink, httpPort: Int, httpAddress: String): ReloadableServer = {
     mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt), httpAddress)
   }
 
   private def mainDev(
-    buildLink: BuildLink,
-    httpPort: Option[Int],
-    httpsPort: Option[Int],
-    httpAddress: String): ReloadableServer = {
+      buildLink: BuildLink,
+      httpPort: Option[Int],
+      httpsPort: Option[Int],
+      httpAddress: String
+  ): ReloadableServer = {
     val classLoader = getClass.getClassLoader
     Threads.withContextClassLoader(classLoader) {
       try {
-        val process = new RealServerProcess(args = Seq.empty)
+        val process    = new RealServerProcess(args = Seq.empty)
         val path: File = buildLink.projectPath
 
-        val dirAndDevSettings: Map[String, String] = ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
+        val dirAndDevSettings
+            : Map[String, String] = ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
 
         // Use plain Java call here in case of scala classloader mess
         {
@@ -90,7 +90,9 @@ object DevServerStart {
           case Some(loggerConfigurator) =>
             loggerConfigurator.init(path, Mode.Dev)
           case None =>
-            System.out.println("No play.logger.configurator found: logging must be configured entirely by the application.")
+            System.out.println(
+              "No play.logger.configurator found: logging must be configured entirely by the application."
+            )
         }
 
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
@@ -104,9 +106,9 @@ object DevServerStart {
           // configuration, but there's no point in making it slower than it has to be...
           val sl = new java.util.concurrent.locks.StampedLock
 
-          var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
+          var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
-          var currentWebCommands: Option[WebCommands] = None
+          var currentWebCommands: Option[WebCommands]            = None
 
           override def current: Option[Application] = lastState.toOption
 
@@ -125,9 +127,9 @@ object DevServerStart {
             synchronized {
               buildLink.reload match {
                 case cl: ClassLoader => reload(cl) // New application classes
-                case null => lastState // No change in the application classes
-                case NonFatal(t) => Failure(t) // An error we can display
-                case t: Throwable => throw t // An error that we can't handle
+                case null            => lastState  // No change in the application classes
+                case NonFatal(t)     => Failure(t) // An error we can display
+                case t: Throwable    => throw t    // An error that we can't handle
               }
             }
 
@@ -155,9 +157,9 @@ object DevServerStart {
               val sourceMapper = new SourceMapper {
                 def sourceOf(className: String, line: Option[Int]) = {
                   Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
-                    case Array(file: java.io.File, null) => Some((file, None))
+                    case Array(file: java.io.File, null)                    => Some((file, None))
                     case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
-                    case _ => None
+                    case _                                                  => None
                   }
                 }
               }
@@ -176,13 +178,14 @@ object DevServerStart {
                 loader.load(context)
               }
 
-              newApplication.coordinatedShutdown.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload") { () =>
-                // We'll only force a reload if the reason for shutdown is not an Application.stop
-                if (!newApplication.coordinatedShutdown.shutdownReason().contains(ApplicationStoppedReason)) {
-                  buildLink.forceReload()
+              newApplication.coordinatedShutdown
+                .addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "force-reload") { () =>
+                  // We'll only force a reload if the reason for shutdown is not an Application.stop
+                  if (!newApplication.coordinatedShutdown.shutdownReason().contains(ApplicationStoppedReason)) {
+                    buildLink.forceReload()
+                  }
+                  Future.successful(Done)
                 }
-                Future.successful(Done)
-              }
 
               Play.start(newApplication)
               lastState = Success(newApplication)
@@ -212,7 +215,8 @@ object DevServerStart {
           address = httpAddress,
           mode = Mode.Dev,
           properties = process.properties,
-          configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
+          configuration =
+            Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
 
         // We *must* use a different Akka configuration in dev mode, since loading two actor systems from the same
@@ -220,31 +224,33 @@ object DevServerStart {
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.
         val devModeAkkaConfig = {
-          serverConfig
-            .configuration
-            .underlying
-            // "play.akka.dev-mode" has the priority, so if there is a conflict
-            // between the actor system for dev mode and the application actor system
-            // users can resolve it by add a specific configuration for dev mode.
+          serverConfig.configuration.underlying
+          // "play.akka.dev-mode" has the priority, so if there is a conflict
+          // between the actor system for dev mode and the application actor system
+          // users can resolve it by add a specific configuration for dev mode.
             .getConfig("play.akka.dev-mode")
             // We then fallback to the app configuration to avoid losing configurations
             // made using devSettings, system properties and application.conf itself.
             .withFallback(serverConfig.configuration.underlying)
         }
         val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
-        val serverCs = CoordinatedShutdown(actorSystem)
+        val serverCs    = CoordinatedShutdown(actorSystem)
 
         // Registering a task that invokes `Play.stop` is necessary for the scenarios where
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
-        serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") {
-          () =>
-            implicit val ctx = actorSystem.dispatcher
-            val stoppedApp = appProvider.get.map(Play.stop)
-            Future.fromTry(stoppedApp).map(_ => Done)
+        serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
+          implicit val ctx = actorSystem.dispatcher
+          val stoppedApp   = appProvider.get.map(Play.stop)
+          Future.fromTry(stoppedApp).map(_ => Done)
         }
 
-        val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem,
-          ActorMaterializer()(actorSystem), () => Future.successful(()))
+        val serverContext = ServerProvider.Context(
+          serverConfig,
+          appProvider,
+          actorSystem,
+          ActorMaterializer()(actorSystem),
+          () => Future.successful(())
+        )
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
         serverProvider.createServer(serverContext)
       } catch {

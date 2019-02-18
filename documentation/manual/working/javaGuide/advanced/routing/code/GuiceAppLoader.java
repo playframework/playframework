@@ -12,19 +12,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-//#load-guice1
+// #load-guice1
 public class GuiceAppLoader extends GuiceApplicationLoader {
 
-    @Override
-    protected GuiceableModule[] overrides(ApplicationLoader.Context context) {
-        GuiceableModule[] modules = super.overrides(context);
-        GuiceableModule module = GuiceableModule$.MODULE$.fromPlayBinding(new BindingKey<>(play.api.routing.Router.class).toProvider(GuiceRouterProvider.class).eagerly());
+  @Override
+  protected GuiceableModule[] overrides(ApplicationLoader.Context context) {
+    GuiceableModule[] modules = super.overrides(context);
+    GuiceableModule module =
+        GuiceableModule$.MODULE$.fromPlayBinding(
+            new BindingKey<>(play.api.routing.Router.class)
+                .toProvider(GuiceRouterProvider.class)
+                .eagerly());
 
-        List<GuiceableModule> copyModules = new ArrayList<>(Arrays.asList(modules));
-        copyModules.add(module);
+    List<GuiceableModule> copyModules = new ArrayList<>(Arrays.asList(modules));
+    copyModules.add(module);
 
-        return copyModules.toArray(new GuiceableModule[copyModules.size()]);
-    }
-
+    return copyModules.toArray(new GuiceableModule[copyModules.size()]);
+  }
 }
-//#load-guice1
+// #load-guice1

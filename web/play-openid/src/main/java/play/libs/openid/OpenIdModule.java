@@ -14,10 +14,8 @@ import java.util.List;
 
 public class OpenIdModule extends Module {
 
-    @Override
-    public List<Binding<?>> bindings(final Environment environment, final Config config) {
-        return Collections.singletonList(
-                bindClass(OpenIdClient.class).to(DefaultOpenIdClient.class)
-        );
-    }
+  @Override
+  public List<Binding<?>> bindings(final Environment environment, final Config config) {
+    return Collections.singletonList(bindClass(OpenIdClient.class).to(DefaultOpenIdClient.class));
+  }
 }

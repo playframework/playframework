@@ -9,24 +9,22 @@ import play.i18n.MessagesApi;
 
 import static org.junit.Assert.assertNotNull;
 
-/**
- * Tests WithApplication functionality.
- */
+/** Tests WithApplication functionality. */
 public class WithApplicationTest extends WithApplication {
 
-    @Test
-    public void shouldHaveAnAppInstantiated() {
-        assertNotNull(app);
-    }
+  @Test
+  public void shouldHaveAnAppInstantiated() {
+    assertNotNull(app);
+  }
 
-    @Test
-    public void shouldHaveAMaterializerInstantiated() {
-        assertNotNull(mat);
-    }
+  @Test
+  public void shouldHaveAMaterializerInstantiated() {
+    assertNotNull(mat);
+  }
 
-    @Test
-    public void withInstanceOf() {
-        MessagesApi messagesApi = instanceOf(MessagesApi.class);
-        assertNotNull(messagesApi);
-    }
+  @Test
+  public void withInstanceOf() {
+    MessagesApi messagesApi = instanceOf(MessagesApi.class);
+    assertNotNull(messagesApi);
+  }
 }

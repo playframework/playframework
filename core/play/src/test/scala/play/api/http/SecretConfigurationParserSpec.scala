@@ -5,7 +5,10 @@
 package play.api.http
 
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment, Mode, PlayException }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
+import play.api.PlayException
 
 class ActualKeySecretConfigurationParserSpec extends SecretConfigurationParserSpec {
   override def secretKey: String = "play.http.secret.key"
@@ -15,14 +18,17 @@ class DeprecatedKeySecretConfigurationParserSpec extends SecretConfigurationPars
   override def secretKey: String = "play.crypto.secret"
 
   override def parseSecret(mode: Mode, secret: Option[String] = None) = {
-    HttpConfiguration.fromConfiguration(
-      Configuration.reference ++ Configuration.from(
-        secret.map(secretKey -> _).toMap ++ Map(
-          "play.http.secret.key" -> null
-        )
-      ),
-      Environment.simple(mode = mode)
-    ).secret.secret
+    HttpConfiguration
+      .fromConfiguration(
+        Configuration.reference ++ Configuration.from(
+          secret.map(secretKey -> _).toMap ++ Map(
+            "play.http.secret.key" -> null
+          )
+        ),
+        Environment.simple(mode = mode)
+      )
+      .secret
+      .secret
   }
 
 }
@@ -34,12 +40,15 @@ trait SecretConfigurationParserSpec extends Specification {
   val Secret = "abcdefghijklmnopqrs"
 
   def parseSecret(mode: Mode, secret: Option[String] = None): String = {
-    HttpConfiguration.fromConfiguration(
-      Configuration.reference ++ Configuration.from(
-        secret.map(secretKey -> _).toMap
-      ),
-      Environment.simple(mode = mode)
-    ).secret.secret
+    HttpConfiguration
+      .fromConfiguration(
+        Configuration.reference ++ Configuration.from(
+          secret.map(secretKey -> _).toMap
+        ),
+        Environment.simple(mode = mode)
+      )
+      .secret
+      .secret
   }
 
   "Secret config parser" should {
@@ -84,4 +93,3 @@ trait SecretConfigurationParserSpec extends Specification {
     }
   }
 }
-

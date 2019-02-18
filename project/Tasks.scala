@@ -12,22 +12,19 @@ object Generators {
       scalaVersion: String,
       sbtVersion: String,
       jettyAlpnAgentVersion: String,
-      dir: File): Seq[File] = {
+      dir: File
+  ): Seq[File] = {
     val file = dir / "PlayVersion.scala"
     val scalaSource =
-        """|package play.core
-           |
-           |object PlayVersion {
-           |  val current = "%s"
-           |  val scalaVersion = "%s"
-           |  val sbtVersion = "%s"
-           |  private[play] val jettyAlpnAgentVersion = "%s"
-           |}
-           |""".stripMargin.format(
-              version,
-              scalaVersion,
-              sbtVersion,
-              jettyAlpnAgentVersion)
+      """|package play.core
+         |
+         |object PlayVersion {
+         |  val current = "%s"
+         |  val scalaVersion = "%s"
+         |  val sbtVersion = "%s"
+         |  private[play] val jettyAlpnAgentVersion = "%s"
+         |}
+         |""".stripMargin.format(version, scalaVersion, sbtVersion, jettyAlpnAgentVersion)
 
     if (!file.exists() || IO.read(file) != scalaSource) {
       IO.write(file, scalaSource)
@@ -38,7 +35,10 @@ object Generators {
 }
 
 object Commands {
-  val quickPublish = Command.command("quickPublish", Help.more("quickPublish", "Toggles quick publish mode, disabling/enabling build of documentation/source jars")) { state =>
+  val quickPublish = Command.command(
+    "quickPublish",
+    Help.more("quickPublish", "Toggles quick publish mode, disabling/enabling build of documentation/source jars")
+  ) { state =>
     val x = Project.extract(state)
     import x._
 
@@ -48,9 +48,8 @@ object Commands {
 
     val filtered = session.mergeSettings.filter { setting =>
       setting.key match {
-         case Def.ScopedKey(Scope(_, Global, Global, Global), key)
-           if key == publishArtifact.key => false
-         case other => true
+        case Def.ScopedKey(Scope(_, Global, Global, Global), key) if key == publishArtifact.key => false
+        case other                                                                              => true
       }
     }
 
@@ -60,11 +59,14 @@ object Commands {
       state.log.info("Turning on quick publish")
     }
 
-    val newStructure = Load.reapply(filtered ++ Seq(
-      publishArtifact in GlobalScope in packageDoc := toggle,
-      publishArtifact in GlobalScope in packageSrc := toggle,
-      publishArtifact in GlobalScope := true
-    ), structure)
+    val newStructure = Load.reapply(
+      filtered ++ Seq(
+        publishArtifact in GlobalScope in packageDoc := toggle,
+        publishArtifact in GlobalScope in packageSrc := toggle,
+        publishArtifact in GlobalScope := true
+      ),
+      structure
+    )
     Project.setProject(session, newStructure, state.put(quickPublishToggle, toggle))
   }
 }

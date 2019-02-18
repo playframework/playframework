@@ -5,12 +5,14 @@
 package play.api.test
 
 import java.nio.file.Path
-import java.util.concurrent.locks.{ Lock, ReentrantLock }
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 import akka.actor.Cancellable
 import akka.stream.scaladsl.Source
 import akka.stream._
-import akka.util.{ ByteString, Timeout }
+import akka.util.ByteString
+import akka.util.Timeout
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
@@ -19,14 +21,18 @@ import play.api.http._
 import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.Files
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
 import play.mvc.Http.RequestBody
 import play.twirl.api.Content
 
-import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.reflectiveCalls
 import scala.reflect.ClassTag
@@ -38,7 +44,7 @@ import scala.util.Try
 trait PlayRunners extends HttpVerbs {
 
   val HTMLUNIT = classOf[HtmlUnitDriver]
-  val FIREFOX = classOf[FirefoxDriver]
+  val FIREFOX  = classOf[FirefoxDriver]
 
   /**
    * Tests using servers share a test server port so we default to true.
@@ -47,11 +53,15 @@ trait PlayRunners extends HttpVerbs {
 
   private[play] def runSynchronized[T](app: Application)(block: => T): T = {
     val needsLock = shouldRunSequentially(app)
-    if (needsLock) { PlayRunners.mutex.lock() }
+    if (needsLock) {
+      PlayRunners.mutex.lock()
+    }
     try {
       block
     } finally {
-      if (needsLock) { PlayRunners.mutex.unlock() }
+      if (needsLock) {
+        PlayRunners.mutex.unlock()
+      }
     }
   }
 
@@ -101,7 +111,9 @@ trait PlayRunners extends HttpVerbs {
   /**
    * Executes a block of code in a running server, with a test browser.
    */
-  def running[T, WEBDRIVER <: WebDriver](testServer: TestServer, webDriver: Class[WEBDRIVER])(block: TestBrowser => T): T = {
+  def running[T, WEBDRIVER <: WebDriver](testServer: TestServer, webDriver: Class[WEBDRIVER])(
+      block: TestBrowser => T
+  ): T = {
     running(testServer, WebDriverFactory(webDriver))(block)
   }
 
@@ -133,18 +145,22 @@ trait PlayRunners extends HttpVerbs {
   /**
    * Constructs a in-memory (h2) database configuration to add to an Application.
    */
-  def inMemoryDatabase(name: String = "default", options: Map[String, String] = Map.empty[String, String]): Map[String, String] = {
+  def inMemoryDatabase(
+      name: String = "default",
+      options: Map[String, String] = Map.empty[String, String]
+  ): Map[String, String] = {
     val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
 
     Map(
       ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
+      ("db." + name + ".url")    -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
     )
   }
 
 }
 
 object PlayRunners {
+
   /**
    * This mutex is used to ensure that no two tests that set the global application can run at the same time.
    */
@@ -176,7 +192,9 @@ trait Writeables {
   implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
     Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
 
-  implicit def writeableOf_AnyContentAsMultipartForm(contentType: Option[String])(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+  implicit def writeableOf_AnyContentAsMultipartForm(
+      contentType: Option[String]
+  )(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
     Writeable.writeableOf_MultipartFormData(codec, contentType).map(_.mfd)
 }
 
@@ -241,13 +259,16 @@ trait EssentialActionCaller {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
-  def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T], mat: Materializer): Future[Result] = {
+  def call[T](action: EssentialAction, rh: RequestHeader, body: T)(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Future[Result] = {
     import play.api.http.HeaderNames._
     val bytes = w.transform(body)
 
-    val contentType = rh.headers.get(CONTENT_TYPE).orElse(w.contentType).map(CONTENT_TYPE -> _)
+    val contentType   = rh.headers.get(CONTENT_TYPE).orElse(w.contentType).map(CONTENT_TYPE -> _)
     val contentLength = rh.headers.get(CONTENT_LENGTH).orElse(Some(bytes.length.toString)).map(CONTENT_LENGTH -> _)
-    val newHeaders = rh.headers.replace(contentLength.toSeq ++ contentType.toSeq: _*)
+    val newHeaders    = rh.headers.replace(contentLength.toSeq ++ contentType.toSeq: _*)
 
     action(rh.withHeaders(newHeaders)).run(Source.single(bytes))
   }
@@ -281,7 +302,8 @@ trait RouteInvokers extends EssentialActionCaller {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
    */
-  def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(app, req, req.body)
+  def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] =
+    route(app, req, req.body)
 
 }
 
@@ -328,7 +350,7 @@ trait ResultExtractors {
   def charset(of: Future[Result])(implicit timeout: Timeout): Option[String] = {
     Await.result(of, timeout.duration).body.contentType match {
       case Some(s) if s.contains("charset=") => Some(s.split("; *charset=").drop(1).mkString.trim)
-      case _ => None
+      case _                                 => None
     }
   }
 
@@ -348,7 +370,8 @@ trait ResultExtractors {
   /**
    * Extracts the content as String.
    */
-  def contentAsString(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): String = contentAsString(of.run())
+  def contentAsString(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): String =
+    contentAsString(of.run())
 
   /**
    * Extracts the content as bytes.
@@ -361,17 +384,20 @@ trait ResultExtractors {
   /**
    * Extracts the content as bytes.
    */
-  def contentAsBytes(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): ByteString = contentAsBytes(of.run())
+  def contentAsBytes(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): ByteString =
+    contentAsBytes(of.run())
 
   /**
    * Extracts the content as Json.
    */
-  def contentAsJson(of: Future[Result])(implicit timeout: Timeout, mat: Materializer = NoMaterializer): JsValue = Json.parse(contentAsString(of))
+  def contentAsJson(of: Future[Result])(implicit timeout: Timeout, mat: Materializer = NoMaterializer): JsValue =
+    Json.parse(contentAsString(of))
 
   /**
    * Extracts the content as Json.
    */
-  def contentAsJson(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): JsValue = contentAsJson(of.run())
+  def contentAsJson(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): JsValue =
+    contentAsJson(of.run())
 
   /**
    * Extracts the Status code of this Result value.
@@ -389,22 +415,26 @@ trait ResultExtractors {
    * different because the Play server automatically adds those cookies and merges the headers.
    */
   def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = {
-    Await.result(of.map { result =>
-      val cookies = result.newCookies
-      new Cookies {
-        lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).mapValues(_.head).toMap
-        override def get(name: String): Option[Cookie] = cookiesByName.get(name)
-        override def foreach[U](f: Cookie => U): Unit = cookies.foreach(f)
+    Await.result(
+      of.map { result =>
+        val cookies = result.newCookies
+        new Cookies {
+          lazy val cookiesByName: Map[String, Cookie]    = cookies.groupBy(_.name).mapValues(_.head).toMap
+          override def get(name: String): Option[Cookie] = cookiesByName.get(name)
+          override def foreach[U](f: Cookie => U): Unit  = cookies.foreach(f)
 
-        def iterator: Iterator[Cookie] = cookiesByName.valuesIterator
-      }
-    }(play.core.Execution.trampoline), timeout.duration)
+          def iterator: Iterator[Cookie] = cookiesByName.valuesIterator
+        }
+      }(play.core.Execution.trampoline),
+      timeout.duration
+    )
   }
 
   /**
    * Extracts the Cookies set by this Result value.
    */
-  def cookies(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Cookies = cookies(of.run())
+  def cookies(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Cookies =
+    cookies(of.run())
 
   /**
    * Extracts the Flash values set by this Result value.
@@ -428,23 +458,27 @@ trait ResultExtractors {
   /**
    * Extracts the Session set by this Result value.
    */
-  def session(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Session = session(of.run())
+  def session(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Session =
+    session(of.run())
 
   /**
    * Extracts the Location header of this Result value if this Result is a Redirect.
    */
-  def redirectLocation(of: Future[Result])(implicit timeout: Timeout): Option[String] = Await.result(of, timeout.duration).header match {
-    case ResponseHeader(FOUND, headers, _) => headers.get(LOCATION)
-    case ResponseHeader(SEE_OTHER, headers, _) => headers.get(LOCATION)
-    case ResponseHeader(TEMPORARY_REDIRECT, headers, _) => headers.get(LOCATION)
-    case ResponseHeader(MOVED_PERMANENTLY, headers, _) => headers.get(LOCATION)
-    case ResponseHeader(_, _, _) => None
-  }
+  def redirectLocation(of: Future[Result])(implicit timeout: Timeout): Option[String] =
+    Await.result(of, timeout.duration).header match {
+      case ResponseHeader(FOUND, headers, _)              => headers.get(LOCATION)
+      case ResponseHeader(SEE_OTHER, headers, _)          => headers.get(LOCATION)
+      case ResponseHeader(TEMPORARY_REDIRECT, headers, _) => headers.get(LOCATION)
+      case ResponseHeader(MOVED_PERMANENTLY, headers, _)  => headers.get(LOCATION)
+      case ResponseHeader(_, _, _)                        => None
+    }
 
   /**
    * Extracts the Location header of this Result value if this Result is a Redirect.
    */
-  def redirectLocation(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Option[String] =
+  def redirectLocation(
+      of: Accumulator[ByteString, Result]
+  )(implicit timeout: Timeout, mat: Materializer): Option[String] =
     redirectLocation(of.run())
 
   /**
@@ -455,13 +489,17 @@ trait ResultExtractors {
   /**
    * Extracts an Header value of this Result value.
    */
-  def header(header: String, of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Option[String] =
+  def header(
+      header: String,
+      of: Accumulator[ByteString, Result]
+  )(implicit timeout: Timeout, mat: Materializer): Option[String] =
     this.header(header, of.run())
 
   /**
    * Extracts all Headers of this Result value.
    */
-  def headers(of: Future[Result])(implicit timeout: Timeout): Map[String, String] = Await.result(of, timeout.duration).header.headers
+  def headers(of: Future[Result])(implicit timeout: Timeout): Map[String, String] =
+    Await.result(of, timeout.duration).header.headers
 
   /**
    * Extracts all Headers of this Result value.
@@ -509,14 +547,23 @@ trait StubMessagesFactory {
    * @return the messagesApi with minimal configuration.
    */
   def stubMessagesApi(
-    messages: Map[String, Map[String, String]] = Map.empty,
-    langs: Langs = stubLangs(),
-    langCookieName: String = "PLAY_LANG",
-    langCookieSecure: Boolean = false,
-    langCookieHttpOnly: Boolean = false,
-    langCookieSameSite: Option[SameSite] = None,
-    httpConfiguration: HttpConfiguration = HttpConfiguration()): MessagesApi = {
-    new DefaultMessagesApi(messages, langs, langCookieName, langCookieSecure, langCookieHttpOnly, langCookieSameSite, httpConfiguration)
+      messages: Map[String, Map[String, String]] = Map.empty,
+      langs: Langs = stubLangs(),
+      langCookieName: String = "PLAY_LANG",
+      langCookieSecure: Boolean = false,
+      langCookieHttpOnly: Boolean = false,
+      langCookieSameSite: Option[SameSite] = None,
+      httpConfiguration: HttpConfiguration = HttpConfiguration()
+  ): MessagesApi = {
+    new DefaultMessagesApi(
+      messages,
+      langs,
+      langCookieName,
+      langCookieSecure,
+      langCookieHttpOnly,
+      langCookieSameSite,
+      httpConfiguration
+    )
   }
 
   /**
@@ -527,8 +574,9 @@ trait StubMessagesFactory {
    * @return the Messages instance
    */
   def stubMessages(
-    messagesApi: MessagesApi = stubMessagesApi(),
-    requestHeader: RequestHeader = FakeRequest()): Messages = {
+      messagesApi: MessagesApi = stubMessagesApi(),
+      requestHeader: RequestHeader = FakeRequest()
+  ): Messages = {
     messagesApi.preferred(requestHeader)
   }
 
@@ -540,14 +588,16 @@ trait StubMessagesFactory {
    * @return the Messages instance
    */
   def stubMessagesRequest(
-    messagesApi: MessagesApi = stubMessagesApi(),
-    request: Request[AnyContentAsEmpty.type] = FakeRequest()): MessagesRequest[AnyContentAsEmpty.type] = {
+      messagesApi: MessagesApi = stubMessagesApi(),
+      request: Request[AnyContentAsEmpty.type] = FakeRequest()
+  ): MessagesRequest[AnyContentAsEmpty.type] = {
     new MessagesRequest[AnyContentAsEmpty.type](request, messagesApi)
   }
 
 }
 
 trait StubBodyParserFactory {
+
   /**
    * Stub method that returns the content immediately.  Useful for unit testing.
    *
@@ -563,7 +613,10 @@ trait StubBodyParserFactory {
   }
 }
 
-trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with StubBodyParserFactory with StubMessagesFactory {
+trait StubControllerComponentsFactory
+    extends StubPlayBodyParsersFactory
+    with StubBodyParserFactory
+    with StubMessagesFactory {
 
   /**
    * Create a minimal controller components, useful for unit testing.
@@ -589,43 +642,50 @@ trait StubControllerComponentsFactory extends StubPlayBodyParsersFactory with St
    * @return a fully configured ControllerComponents instance.
    */
   def stubControllerComponents(
-    bodyParser: BodyParser[AnyContent] = stubBodyParser(AnyContentAsEmpty),
-    playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(NoMaterializer),
-    messagesApi: MessagesApi = stubMessagesApi(),
-    langs: Langs = stubLangs(),
-    fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
-    executionContext: ExecutionContext = ExecutionContext.global): ControllerComponents = {
+      bodyParser: BodyParser[AnyContent] = stubBodyParser(AnyContentAsEmpty),
+      playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(NoMaterializer),
+      messagesApi: MessagesApi = stubMessagesApi(),
+      langs: Langs = stubLangs(),
+      fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
+      executionContext: ExecutionContext = ExecutionContext.global
+  ): ControllerComponents = {
     DefaultControllerComponents(
       DefaultActionBuilder(bodyParser)(executionContext),
       playBodyParsers,
       messagesApi,
       langs,
       fileMimeTypes,
-      executionContext)
+      executionContext
+    )
   }
 
   def stubMessagesControllerComponents(): MessagesControllerComponents = {
     val stub = stubControllerComponents()
     new DefaultMessagesControllerComponents(
       new DefaultMessagesActionBuilderImpl(stubBodyParser(AnyContentAsEmpty), stub.messagesApi)(stub.executionContext),
-      DefaultActionBuilder(stub.actionBuilder.parser)(stub.executionContext), stub.parsers,
-      stub.messagesApi, stub.langs, stub.fileMimeTypes, stub.executionContext
+      DefaultActionBuilder(stub.actionBuilder.parser)(stub.executionContext),
+      stub.parsers,
+      stub.messagesApi,
+      stub.langs,
+      stub.fileMimeTypes,
+      stub.executionContext
     )
   }
 }
 
-object Helpers extends PlayRunners
-  with HeaderNames
-  with Status
-  with MimeTypes
-  with HttpProtocol
-  with DefaultAwaitTimeout
-  with ResultExtractors
-  with Writeables
-  with EssentialActionCaller
-  with RouteInvokers
-  with FutureAwaits
-  with StubControllerComponentsFactory
+object Helpers
+    extends PlayRunners
+    with HeaderNames
+    with Status
+    with MimeTypes
+    with HttpProtocol
+    with DefaultAwaitTimeout
+    with ResultExtractors
+    with Writeables
+    with EssentialActionCaller
+    with RouteInvokers
+    with FutureAwaits
+    with StubControllerComponentsFactory
 
 /**
  * A trait declared on a class that contains an `def app: Application`, and can provide

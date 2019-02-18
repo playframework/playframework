@@ -18,9 +18,10 @@ class SirdAppLoader extends ApplicationLoader {
 
 class SirdComponents(context: Context) extends BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
   lazy val router = Router.from {
-    case GET(p"/hello/$to") => Action {
-      Ok(s"Hello $to")
-    }
+    case GET(p"/hello/$to") =>
+      Action {
+        Ok(s"Hello $to")
+      }
   }
 }
 //#load

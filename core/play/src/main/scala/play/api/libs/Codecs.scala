@@ -14,9 +14,9 @@ import com.google.common.io.BaseEncoding
  */
 object Codecs {
 
-  private def hexEncoder = BaseEncoding.base16.lowerCase
+  private def hexEncoder        = BaseEncoding.base16.lowerCase
   private def sha1MessageDigest = MessageDigest.getInstance("SHA-1")
-  private def md5MessageDigest = MessageDigest.getInstance("MD5")
+  private def md5MessageDigest  = MessageDigest.getInstance("MD5")
 
   /**
    * Computes the SHA-1 digest for a byte array.
@@ -33,6 +33,7 @@ object Codecs {
    * @return the MD5 digest, encoded as a hex string
    */
   def md5(bytes: Array[Byte]): String = toHexString(md5MessageDigest.digest(bytes))
+
   /**
    * Computes the MD5 digest for a String.
    *
@@ -40,6 +41,7 @@ object Codecs {
    * @return the MD5 digest, encoded as a hex string
    */
   def md5(text: String): String = toHexString(md5MessageDigest.digest(text.getBytes(StandardCharsets.UTF_8)))
+
   /**
    * Compute the SHA-1 digest for a `String`.
    *

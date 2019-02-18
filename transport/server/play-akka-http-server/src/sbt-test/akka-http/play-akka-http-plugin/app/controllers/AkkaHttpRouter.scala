@@ -5,16 +5,19 @@ package controllers
 
 import javax.inject.Inject
 
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.HttpEntity
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.StatusCodes
 import akka.stream.Materializer
 
 import play.api.routing.Router
 import play.api.mvc.akkahttp.AkkaHttpHandler
 
-class AkkaHttpRouter @Inject() ()(implicit mat: Materializer) extends Router {
+class AkkaHttpRouter @Inject()()(implicit mat: Materializer) extends Router {
 
   val handler = AkkaHttpHandler { request =>
-      Future.successful(HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")))
+    Future.successful(HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API")))
   }
 
   override def routes: Routes = { case _ => handler }

@@ -6,7 +6,8 @@ package play.docs
 
 import java.io.InputStream
 
-import play.doc.{ FileHandle, FileRepository }
+import play.doc.FileHandle
+import play.doc.FileRepository
 
 /**
  * A file repository that aggregates multiple file repositories

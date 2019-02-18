@@ -17,4 +17,3 @@ private[play] object CaseInsensitiveOrdered extends Ordering[String] {
     if (xl < yl) -1 else if (xl > yl) 1 else x.compareToIgnoreCase(y)
   }
 }
-

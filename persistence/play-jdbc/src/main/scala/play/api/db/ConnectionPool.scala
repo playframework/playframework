@@ -8,7 +8,8 @@ import javax.sql.DataSource
 
 import com.typesafe.config.Config
 import org.jdbcdslog.LogSqlDataSource
-import play.api.{ Environment, Mode }
+import play.api.Environment
+import play.api.Mode
 import play.api.inject.Injector
 import play.utils.Reflect
 
@@ -40,11 +41,16 @@ object ConnectionPool {
   /**
    * Load a connection pool from a configured connection pool
    */
-  def fromConfig(config: String, injector: Injector, environment: Environment, default: ConnectionPool): ConnectionPool = {
+  def fromConfig(
+      config: String,
+      injector: Injector,
+      environment: Environment,
+      default: ConnectionPool
+  ): ConnectionPool = {
     config match {
-      case "default" => default
+      case "default"  => default
       case "hikaricp" => new HikariCPConnectionPool(environment)
-      case fqcn => injector.instanceOf(Reflect.getClass[ConnectionPool](fqcn, environment.classLoader))
+      case fqcn       => injector.instanceOf(Reflect.getClass[ConnectionPool](fqcn, environment.classLoader))
     }
   }
 
@@ -55,14 +61,14 @@ object ConnectionPool {
   def fromConfig(config: String, environment: Environment, default: ConnectionPool): ConnectionPool = {
     config match {
       case "hikaricp" => new HikariCPConnectionPool(environment)
-      case _ => default
+      case _          => default
     }
   }
 
-  private val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
-  private val MysqlFullUrl = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
+  private val PostgresFullUrl       = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
+  private val MysqlFullUrl          = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
   private val MysqlCustomProperties = ".*\\?(.*)".r
-  private val H2DefaultUrl = "^jdbc:h2:mem:.+".r
+  private val H2DefaultUrl          = "^jdbc:h2:mem:.+".r
 
   /**
    * Extract the given URL.
@@ -77,7 +83,8 @@ object ConnectionPool {
 
       case Some(url @ MysqlFullUrl(username, password, host, dbname)) =>
         val defaultProperties = "?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci"
-        val addDefaultPropertiesIfNeeded = MysqlCustomProperties.findFirstMatchIn(url).map(_ => "").getOrElse(defaultProperties)
+        val addDefaultPropertiesIfNeeded =
+          MysqlCustomProperties.findFirstMatchIn(url).map(_ => "").getOrElse(defaultProperties)
         Some(s"jdbc:mysql://$host/${dbname + addDefaultPropertiesIfNeeded}") -> Some(username -> password)
 
       case Some(url @ H2DefaultUrl()) if !url.contains("DB_CLOSE_DELAY") && mode == Mode.Dev =>
@@ -110,7 +117,7 @@ object ConnectionPool {
   private[db] def unwrap(dataSource: DataSource): DataSource = {
     dataSource match {
       case ds: LogSqlDataSource => ds.getTargetDatasource
-      case _ => dataSource
+      case _                    => dataSource
     }
   }
 }

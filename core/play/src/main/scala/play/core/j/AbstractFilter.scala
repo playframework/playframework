@@ -6,7 +6,8 @@ package play.core.j
 
 import akka.stream.Materializer
 import play.api.mvc.{ Filter => SFilter }
-import play.mvc.{ EssentialFilter, Filter }
+import play.mvc.EssentialFilter
+import play.mvc.Filter
 
 /**
  * This class is a Wrapper Class to get around the different trait Encodings
@@ -17,7 +18,7 @@ import play.mvc.{ EssentialFilter, Filter }
  */
 private[play] abstract class AbstractFilter(materializer: Materializer, underlying: Filter) extends SFilter {
 
-  override implicit def mat: Materializer = materializer
+  implicit override def mat: Materializer = materializer
 
   override def asJava: EssentialFilter = underlying
 

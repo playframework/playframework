@@ -32,8 +32,8 @@ def common: Seq[Setting[_]] = Seq(
 
 TaskKey[Unit]("checkPlayMonitoredFiles") := {
   val files: Seq[File] = PlayKeys.playMonitoredFiles.value
-  val sorted = files.map(_.toPath).sorted.map(_.toFile)
-  val base = baseDirectory.value
+  val sorted           = files.map(_.toPath).sorted.map(_.toFile)
+  val base             = baseDirectory.value
   // Expect all source, resource, assets, public directories that exist
   val expected = Seq(
     base / "app",

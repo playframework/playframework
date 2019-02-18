@@ -5,8 +5,10 @@
 package play.it.i18n
 
 import controllers.Execution
-import play.api.test.{ PlaySpecification, WithApplication }
-import play.api.mvc.{ ActionBuilder, ControllerHelpers }
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
+import play.api.mvc.ActionBuilder
+import play.api.mvc.ControllerHelpers
 import play.api.i18n._
 
 class MessagesSpec extends PlaySpecification with ControllerHelpers {
@@ -19,10 +21,10 @@ class MessagesSpec extends PlaySpecification with ControllerHelpers {
 
   "Messages" should {
     "provide default messages" in new WithApplication(_.requireExplicitBindings()) {
-      val messagesApi = app.injector.instanceOf[MessagesApi]
+      val messagesApi     = app.injector.instanceOf[MessagesApi]
       val javaMessagesApi = app.injector.instanceOf[play.i18n.MessagesApi]
 
-      val msg = messagesApi("constraint.email")
+      val msg     = messagesApi("constraint.email")
       val javaMsg = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
 
       msg must ===("Email")
@@ -30,7 +32,7 @@ class MessagesSpec extends PlaySpecification with ControllerHelpers {
     }
     "permit default override" in new WithApplication(_.requireExplicitBindings()) {
       val messagesApi = app.injector.instanceOf[MessagesApi]
-      val msg = messagesApi("constraint.required")
+      val msg         = messagesApi("constraint.required")
 
       msg must ===("Required!")
     }
@@ -42,13 +44,13 @@ class MessagesSpec extends PlaySpecification with ControllerHelpers {
     val enUS: Lang = new play.i18n.Lang(play.api.i18n.Lang("en-US"))
     "allow translation without parameters" in new WithApplication() {
       val messagesApi = app.injector.instanceOf[MessagesApi]
-      val msg = messagesApi.get(enUS, "constraint.email")
+      val msg         = messagesApi.get(enUS, "constraint.email")
 
       msg must ===("Email")
     }
     "allow translation with any non-list parameter" in new WithApplication() {
       val messagesApi = app.injector.instanceOf[MessagesApi]
-      val msg = messagesApi.get(enUS, "constraint.min", "Croissant")
+      val msg         = messagesApi.get(enUS, "constraint.min", "Croissant")
 
       msg must ===("Minimum value: Croissant")
     }
@@ -65,4 +67,3 @@ class MessagesSpec extends PlaySpecification with ControllerHelpers {
     }
   }
 }
-

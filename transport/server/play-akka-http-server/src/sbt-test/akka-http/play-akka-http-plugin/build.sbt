@@ -22,9 +22,9 @@ libraryDependencies ++= Seq(
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
 InputKey[Unit]("verifyResourceContains") := {
-  val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
-  val path = args.head
-  val status = args.tail.head.toInt
+  val args       = Def.spaceDelimited("<path> <status> <words> ...").parsed
+  val path       = args.head
+  val status     = args.tail.head.toInt
   val assertions = args.tail.tail
   DevModeBuild.verifyResourceContains(path, status, assertions, 0)
 }

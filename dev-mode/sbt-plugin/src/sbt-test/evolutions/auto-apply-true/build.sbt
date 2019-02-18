@@ -12,24 +12,20 @@ lazy val root = (project in file("."))
   .settings(
     scalaVersion := "2.12.8",
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-
     libraryDependencies ++= Seq(
       guice,
       javaJdbc,
       evolutions,
       "com.h2database" % "h2" % "1.4.197"
     ),
-
     InputKey[Unit]("applyEvolutions") := {
-      val args = Def.spaceDelimited("<path>").parsed
+      val args        = Def.spaceDelimited("<path>").parsed
       val path :: Nil = args
       DevModeBuild.applyEvolutions(path)
     },
-
     InputKey[Unit]("verifyResourceContains") := {
-      val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
+      val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
       DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
     }
   )
-

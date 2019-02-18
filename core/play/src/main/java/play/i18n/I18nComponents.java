@@ -12,13 +12,9 @@ package play.i18n;
  */
 public interface I18nComponents {
 
-    /**
-     * @return an instance of MessagesApi.
-     */
-    MessagesApi messagesApi();
+  /** @return an instance of MessagesApi. */
+  MessagesApi messagesApi();
 
-    /**
-     * @return an instance of Langs.
-     */
-    Langs langs();
+  /** @return an instance of Langs. */
+  Langs langs();
 }

@@ -7,7 +7,9 @@ package play.api
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.slf4j.{ Logger => Slf4jLogger, LoggerFactory, Marker }
+import org.slf4j.{ Logger => Slf4jLogger }
+import org.slf4j.LoggerFactory
+import org.slf4j.Marker
 
 import scala.collection.mutable
 import scala.language.implicitConversions
@@ -33,52 +35,57 @@ trait LoggerLike {
   /**
    * `true` if the logger instance is enabled for the `TRACE` level.
    */
-  def isTraceEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
-    case None =>
-      logger.isTraceEnabled
-    case Some(marker) =>
-      logger.isTraceEnabled(marker)
-  })
+  def isTraceEnabled(implicit mc: MarkerContext): Boolean =
+    enabled && (mc.marker match {
+      case None =>
+        logger.isTraceEnabled
+      case Some(marker) =>
+        logger.isTraceEnabled(marker)
+    })
 
   /**
    * `true` if the logger instance is enabled for the `DEBUG` level.
    */
-  def isDebugEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
-    case None =>
-      logger.isDebugEnabled
-    case Some(marker) =>
-      logger.isDebugEnabled(marker)
-  })
+  def isDebugEnabled(implicit mc: MarkerContext): Boolean =
+    enabled && (mc.marker match {
+      case None =>
+        logger.isDebugEnabled
+      case Some(marker) =>
+        logger.isDebugEnabled(marker)
+    })
 
   /**
    * `true` if the logger instance is enabled for the `INFO` level.
    */
-  def isInfoEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
-    case None =>
-      logger.isInfoEnabled
-    case Some(marker) =>
-      logger.isInfoEnabled(marker)
-  })
+  def isInfoEnabled(implicit mc: MarkerContext): Boolean =
+    enabled && (mc.marker match {
+      case None =>
+        logger.isInfoEnabled
+      case Some(marker) =>
+        logger.isInfoEnabled(marker)
+    })
 
   /**
    * `true` if the logger instance is enabled for the `WARN` level.
    */
-  def isWarnEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
-    case None =>
-      logger.isWarnEnabled()
-    case Some(marker) =>
-      logger.isWarnEnabled(marker)
-  })
+  def isWarnEnabled(implicit mc: MarkerContext): Boolean =
+    enabled && (mc.marker match {
+      case None =>
+        logger.isWarnEnabled()
+      case Some(marker) =>
+        logger.isWarnEnabled(marker)
+    })
 
   /**
    * `true` if the logger instance is enabled for the `ERROR` level.
    */
-  def isErrorEnabled(implicit mc: MarkerContext): Boolean = enabled && (mc.marker match {
-    case None =>
-      logger.isErrorEnabled()
-    case Some(marker) =>
-      logger.isErrorEnabled(marker)
-  })
+  def isErrorEnabled(implicit mc: MarkerContext): Boolean =
+    enabled && (mc.marker match {
+      case None =>
+        logger.isErrorEnabled()
+      case Some(marker) =>
+        logger.isErrorEnabled(marker)
+    })
 
   /**
    * Logs a message with the `TRACE` level.
@@ -89,7 +96,7 @@ trait LoggerLike {
   def trace(message: => String)(implicit mc: MarkerContext): Unit = {
     if (isTraceEnabled) {
       mc.marker match {
-        case None => logger.trace(message)
+        case None         => logger.trace(message)
         case Some(marker) => logger.trace(marker, message)
       }
     }
@@ -105,7 +112,7 @@ trait LoggerLike {
   def trace(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
     if (isTraceEnabled) {
       mc.marker match {
-        case None => logger.trace(message, error)
+        case None         => logger.trace(message, error)
         case Some(marker) => logger.trace(marker, message, error)
       }
     }
@@ -120,7 +127,7 @@ trait LoggerLike {
   def debug(message: => String)(implicit mc: MarkerContext): Unit = {
     if (isDebugEnabled) {
       mc.marker match {
-        case None => logger.debug(message)
+        case None         => logger.debug(message)
         case Some(marker) => logger.debug(marker, message)
       }
     }
@@ -136,7 +143,7 @@ trait LoggerLike {
   def debug(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
     if (isDebugEnabled) {
       mc.marker match {
-        case None => logger.debug(message, error)
+        case None         => logger.debug(message, error)
         case Some(marker) => logger.debug(marker, message, error)
       }
     }
@@ -151,7 +158,7 @@ trait LoggerLike {
   def info(message: => String)(implicit mc: MarkerContext): Unit = {
     if (isInfoEnabled) {
       mc.marker match {
-        case None => logger.info(message)
+        case None         => logger.info(message)
         case Some(marker) => logger.info(marker, message)
       }
     }
@@ -167,7 +174,7 @@ trait LoggerLike {
   def info(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
     if (isInfoEnabled) {
       mc.marker match {
-        case None => logger.info(message, error)
+        case None         => logger.info(message, error)
         case Some(marker) => logger.info(marker, message, error)
       }
     }
@@ -182,7 +189,7 @@ trait LoggerLike {
   def warn(message: => String)(implicit mc: MarkerContext): Unit = {
     if (isWarnEnabled) {
       mc.marker match {
-        case None => logger.warn(message)
+        case None         => logger.warn(message)
         case Some(marker) => logger.warn(marker, message)
       }
     }
@@ -198,7 +205,7 @@ trait LoggerLike {
   def warn(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
     if (isWarnEnabled) {
       mc.marker match {
-        case None => logger.warn(message, error)
+        case None         => logger.warn(message, error)
         case Some(marker) => logger.warn(marker, message, error)
       }
     }
@@ -213,7 +220,7 @@ trait LoggerLike {
   def error(message: => String)(implicit mc: MarkerContext): Unit = {
     if (isErrorEnabled) {
       mc.marker match {
-        case None => logger.error(message)
+        case None         => logger.error(message)
         case Some(marker) => logger.error(marker, message)
       }
     }
@@ -229,7 +236,7 @@ trait LoggerLike {
   def error(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = {
     if (isErrorEnabled) {
       mc.marker match {
-        case None => logger.error(message, error)
+        case None         => logger.error(message, error)
         case Some(marker) => logger.error(marker, message, error)
       }
     }
@@ -285,7 +292,7 @@ object Logger extends Logger(LoggerFactory.getLogger("application")) { // TODO: 
 
   private[this] val log: Slf4jLogger = LoggerFactory.getLogger(getClass)
 
-  private[this] var _mode: Option[Mode] = None
+  private[this] var _mode: Option[Mode]         = None
   private[this] val _appsRunning: AtomicInteger = new AtomicInteger(0)
 
   /**
@@ -298,7 +305,7 @@ object Logger extends Logger(LoggerFactory.getLogger("application")) { // TODO: 
    */
   def setApplicationMode(mode: Mode): Unit = {
     val appsRunning = _appsRunning.incrementAndGet()
-    applicationMode foreach { currentMode =>
+    applicationMode.foreach { currentMode =>
       if (currentMode != mode) {
         log.warn(s"Setting logging mode to $mode when it was previously set to $currentMode")
         log.warn(s"There are currently $appsRunning applications running.")
@@ -366,31 +373,36 @@ object Logger extends Logger(LoggerFactory.getLogger("application")) { // TODO: 
   override def trace(message: => String)(implicit mc: MarkerContext): Unit = super.trace(message)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def trace(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = super.trace(message, error)
+  override def trace(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
+    super.trace(message, error)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
   override def debug(message: => String)(implicit mc: MarkerContext): Unit = super.debug(message)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def debug(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = super.debug(message, error)
+  override def debug(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
+    super.debug(message, error)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
   override def info(message: => String)(implicit mc: MarkerContext): Unit = super.info(message)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def info(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = super.info(message, error)
+  override def info(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
+    super.info(message, error)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
   override def warn(message: => String)(implicit mc: MarkerContext): Unit = super.warn(message)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def warn(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = super.warn(message, error)
+  override def warn(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
+    super.warn(message, error)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
   override def error(message: => String)(implicit mc: MarkerContext): Unit = super.error(message)
 
   @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def error(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit = super.error(message, error)
+  override def error(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
+    super.error(message, error)
 }
 
 /**
@@ -404,6 +416,7 @@ object Logger extends Logger(LoggerFactory.getLogger("application")) { // TODO: 
  *
  */
 trait MarkerContext {
+
   /**
    * @return an SLF4J marker, if one has been defined.
    */

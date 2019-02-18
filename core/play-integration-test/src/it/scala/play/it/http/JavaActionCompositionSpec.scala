@@ -8,11 +8,19 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
-import play.api.test.{ PlaySpecification, TestServer, WsTestClient }
+import play.api.test.PlaySpecification
+import play.api.test.TestServer
+import play.api.test.WsTestClient
 import play.core.j.MappedJavaHandlerComponents
-import play.http.{ ActionCreator, DefaultActionCreator }
-import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation, WithUsername }
-import play.mvc.{ EssentialFilter, Result, Results, Security }
+import play.http.ActionCreator
+import play.http.DefaultActionCreator
+import play.it.http.ActionCompositionOrderTest.ActionAnnotation
+import play.it.http.ActionCompositionOrderTest.ControllerAnnotation
+import play.it.http.ActionCompositionOrderTest.WithUsername
+import play.mvc.EssentialFilter
+import play.mvc.Result
+import play.mvc.Results
+import play.mvc.Security
 import play.mvc.Http._
 import play.routing.{ Router => JRouter }
 
@@ -20,16 +28,23 @@ class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
 
   sequential
 
-  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty, allowHttpContext: Boolean = true)(block: WSResponse => T): T = {
+  override def makeRequest[T](
+      controller: MockController,
+      configuration: Map[String, AnyRef] = Map.empty,
+      allowHttpContext: Boolean = true
+  )(block: WSResponse => T): T = {
     val oldThreadLocal = Context.current
     try {
       if (!allowHttpContext) {
         Context.current = null
       }
       implicit val port = testServerPort
-      lazy val app: Application = GuiceApplicationBuilder().configure(configuration).routes {
-        case _ => JAction(app, controller)
-      }.build()
+      lazy val app: Application = GuiceApplicationBuilder()
+        .configure(configuration)
+        .routes {
+          case _ => JAction(app, controller)
+        }
+        .build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").get())
@@ -52,7 +67,11 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
     play.ApplicationLoader.create(play.Environment.simple(), initialSettings.asJava)
   }
 
-  override def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef], allowHttpContext: Boolean = true)(block: (WSResponse) => T): T = {
+  override def makeRequest[T](
+      controller: MockController,
+      configuration: Map[String, AnyRef],
+      allowHttpContext: Boolean = true
+  )(block: (WSResponse) => T): T = {
     val oldThreadLocal = Context.current
     try {
       if (!allowHttpContext) {
@@ -63,34 +82,71 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
 
         override def javaHandlerComponents(): MappedJavaHandlerComponents = {
           import java.util.function.{ Supplier => JSupplier }
-          super.javaHandlerComponents()
-            .addAction(classOf[ActionCompositionOrderTest.ActionComposition], new JSupplier[ActionCompositionOrderTest.ActionComposition] {
-              override def get(): ActionCompositionOrderTest.ActionComposition = new ActionCompositionOrderTest.ActionComposition()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.ControllerComposition], new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
-              override def get(): ActionCompositionOrderTest.ControllerComposition = new ActionCompositionOrderTest.ControllerComposition()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.WithUsernameAction], new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
-              override def get(): ActionCompositionOrderTest.WithUsernameAction = new ActionCompositionOrderTest.WithUsernameAction()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.FirstAction], new JSupplier[ActionCompositionOrderTest.FirstAction] {
-              override def get(): ActionCompositionOrderTest.FirstAction = new ActionCompositionOrderTest.FirstAction()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.SecondAction], new JSupplier[ActionCompositionOrderTest.SecondAction] {
-              override def get(): ActionCompositionOrderTest.SecondAction = new ActionCompositionOrderTest.SecondAction()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.SomeActionAnnotationAction], new JSupplier[ActionCompositionOrderTest.SomeActionAnnotationAction] {
-              override def get(): ActionCompositionOrderTest.SomeActionAnnotationAction = new ActionCompositionOrderTest.SomeActionAnnotationAction()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.ContextArgsSetAction], new JSupplier[ActionCompositionOrderTest.ContextArgsSetAction] {
-              override def get(): ActionCompositionOrderTest.ContextArgsSetAction = new ActionCompositionOrderTest.ContextArgsSetAction()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.ContextArgsGetAction], new JSupplier[ActionCompositionOrderTest.ContextArgsGetAction] {
-              override def get(): ActionCompositionOrderTest.ContextArgsGetAction = new ActionCompositionOrderTest.ContextArgsGetAction()
-            })
-            .addAction(classOf[ActionCompositionOrderTest.NoopUsingRequestAction], new JSupplier[ActionCompositionOrderTest.NoopUsingRequestAction] {
-              override def get(): ActionCompositionOrderTest.NoopUsingRequestAction = new ActionCompositionOrderTest.NoopUsingRequestAction()
-            })
+          super
+            .javaHandlerComponents()
+            .addAction(
+              classOf[ActionCompositionOrderTest.ActionComposition],
+              new JSupplier[ActionCompositionOrderTest.ActionComposition] {
+                override def get(): ActionCompositionOrderTest.ActionComposition =
+                  new ActionCompositionOrderTest.ActionComposition()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.ControllerComposition],
+              new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
+                override def get(): ActionCompositionOrderTest.ControllerComposition =
+                  new ActionCompositionOrderTest.ControllerComposition()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.WithUsernameAction],
+              new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
+                override def get(): ActionCompositionOrderTest.WithUsernameAction =
+                  new ActionCompositionOrderTest.WithUsernameAction()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.FirstAction],
+              new JSupplier[ActionCompositionOrderTest.FirstAction] {
+                override def get(): ActionCompositionOrderTest.FirstAction =
+                  new ActionCompositionOrderTest.FirstAction()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.SecondAction],
+              new JSupplier[ActionCompositionOrderTest.SecondAction] {
+                override def get(): ActionCompositionOrderTest.SecondAction =
+                  new ActionCompositionOrderTest.SecondAction()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.SomeActionAnnotationAction],
+              new JSupplier[ActionCompositionOrderTest.SomeActionAnnotationAction] {
+                override def get(): ActionCompositionOrderTest.SomeActionAnnotationAction =
+                  new ActionCompositionOrderTest.SomeActionAnnotationAction()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.ContextArgsSetAction],
+              new JSupplier[ActionCompositionOrderTest.ContextArgsSetAction] {
+                override def get(): ActionCompositionOrderTest.ContextArgsSetAction =
+                  new ActionCompositionOrderTest.ContextArgsSetAction()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.ContextArgsGetAction],
+              new JSupplier[ActionCompositionOrderTest.ContextArgsGetAction] {
+                override def get(): ActionCompositionOrderTest.ContextArgsGetAction =
+                  new ActionCompositionOrderTest.ContextArgsGetAction()
+              }
+            )
+            .addAction(
+              classOf[ActionCompositionOrderTest.NoopUsingRequestAction],
+              new JSupplier[ActionCompositionOrderTest.NoopUsingRequestAction] {
+                override def get(): ActionCompositionOrderTest.NoopUsingRequestAction =
+                  new ActionCompositionOrderTest.NoopUsingRequestAction()
+              }
+            )
         }
 
         override def router(): JRouter = {
@@ -102,7 +158,8 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
         override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
 
         override def actionCreator(): ActionCreator = {
-          configuration.get[Option[String]]("play.http.actionCreator")
+          configuration
+            .get[Option[String]]("play.http.actionCreator")
             .map(Class.forName)
             .map(c => c.getDeclaredConstructor().newInstance().asInstanceOf[ActionCreator])
             .getOrElse(new DefaultActionCreator)
@@ -123,7 +180,11 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
 
 trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
-  def makeRequest[T](controller: MockController, configuration: Map[String, AnyRef] = Map.empty, allowHttpContext: Boolean = true)(block: WSResponse => T): T
+  def makeRequest[T](
+      controller: MockController,
+      configuration: Map[String, AnyRef] = Map.empty,
+      allowHttpContext: Boolean = true
+  )(block: WSResponse => T): T
 
   "When action composition is configured to invoke controller first" should {
     "execute controller composition before action composition" in makeRequest(new ComposedController {
@@ -204,49 +265,67 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       response.body must_== "foo"
     }
 
-    "run a single @Repeatable annotation on a controller type" in makeRequest(new SingleRepeatableOnTypeController()) { response =>
-      response.body must beEqualTo("""java.lang.Classaction1
+    "run a single @Repeatable annotation on a controller type" in makeRequest(new SingleRepeatableOnTypeController()) {
+      response =>
+        response.body must beEqualTo("""java.lang.Classaction1
+                                       |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+    }
+
+    "run a single @Repeatable annotation on a controller action" in makeRequest(
+      new SingleRepeatableOnActionController()
+    ) { response =>
+      response.body must beEqualTo(
+        """java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2""".stripMargin
+          .replaceAll(System.lineSeparator, "")
+      )
+    }
+
+    "run multiple @Repeatable annotations on a controller type" in makeRequest(new MultipleRepeatableOnTypeController()) {
+      response =>
+        response.body must beEqualTo("""java.lang.Classaction1
+                                       |java.lang.Classaction2
+                                       |java.lang.Classaction1
+                                       |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+    }
+
+    "run multiple @Repeatable annotations on a controller action" in makeRequest(
+      new MultipleRepeatableOnActionController()
+    ) { response =>
+      response.body must beEqualTo(
+        """java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2
+          |java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2""".stripMargin
+          .replaceAll(System.lineSeparator, "")
+      )
+    }
+
+    "run single @Repeatable annotation on a controller type and a controller action" in makeRequest(
+      new SingleRepeatableOnTypeAndActionController()
+    ) { response =>
+      response.body must beEqualTo("""java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.Classaction1
                                      |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
-    "run a single @Repeatable annotation on a controller action" in makeRequest(new SingleRepeatableOnActionController()) { response =>
+    "run multiple @Repeatable annotations on a controller type and a controller action" in makeRequest(
+      new MultipleRepeatableOnTypeAndActionController()
+    ) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
-    }
-
-    "run multiple @Repeatable annotations on a controller type" in makeRequest(new MultipleRepeatableOnTypeController()) { response =>
-      response.body must beEqualTo("""java.lang.Classaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.reflect.Methodaction1
+                                     |java.lang.reflect.Methodaction2
+                                     |java.lang.Classaction1
                                      |java.lang.Classaction2
                                      |java.lang.Classaction1
                                      |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
-    "run multiple @Repeatable annotations on a controller action" in makeRequest(new MultipleRepeatableOnActionController()) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
-    }
-
-    "run single @Repeatable annotation on a controller type and a controller action" in makeRequest(new SingleRepeatableOnTypeAndActionController()) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
-    }
-
-    "run multiple @Repeatable annotations on a controller type and a controller action" in makeRequest(new MultipleRepeatableOnTypeAndActionController()) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
-    }
-
-    "run @Repeatable action composition annotations backward compatible" in makeRequest(new RepeatableBackwardCompatibilityController()) { response =>
+    "run @Repeatable action composition annotations backward compatible" in makeRequest(
+      new RepeatableBackwardCompatibilityController()
+    ) { response =>
       response.body must beEqualTo("do_NOT_treat_me_as_container_annotation")
     }
 
@@ -256,134 +335,191 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     }
 
     "run @With annotation on a controller action" in makeRequest(new WithOnActionController()) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+      response.body must beEqualTo(
+        """java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2""".stripMargin
+          .replaceAll(System.lineSeparator, "")
+      )
     }
 
-    "run @With annotations on a controller type and a controller action" in makeRequest(new WithOnTypeAndActionController()) { response =>
+    "run @With annotations on a controller type and a controller action" in makeRequest(
+      new WithOnTypeAndActionController()
+    ) { response =>
       response.body must beEqualTo("""java.lang.reflect.Methodaction1
                                      |java.lang.reflect.Methodaction2
                                      |java.lang.Classaction1
                                      |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
     }
 
-    "make sure ctx.args are preserved when thread-local is disabled and a call(req) was executed in between two call(ctx)" in makeRequest(new PreserveContextArgsController(), Map(
-      "play.allowHttpContext" -> "false"
-    ), allowHttpContext = false) { response =>
+    "make sure ctx.args are preserved when thread-local is disabled and a call(req) was executed in between two call(ctx)" in makeRequest(
+      new PreserveContextArgsController(),
+      Map(
+        "play.allowHttpContext" -> "false"
+      ),
+      allowHttpContext = false
+    ) { response =>
       response.body must beEqualTo("ctx.args were set")
     }
   }
 
   "When action composition is configured to invoke request handler action first" should {
-    "execute request handler action first and action composition before controller composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.controllerAnnotationsFirst" -> "false",
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action first and action composition before controller composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.controllerAnnotationsFirst"      -> "false",
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("actioncreatorjava.lang.reflect.Methodactionjava.lang.Classcontroller")
     }
 
-    "execute request handler action first and controller composition before action composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action first and controller composition before action composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.controllerAnnotationsFirst"      -> "true",
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("actioncreatorjava.lang.Classcontrollerjava.lang.reflect.Methodaction")
     }
 
-    "execute request handler action first with only controller composition" in makeRequest(new ComposedController {
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action first with only controller composition" in makeRequest(
+      new ComposedController {
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("actioncreatorjava.lang.Classcontroller")
     }
 
-    "execute request handler action first with only action composition" in makeRequest(new MockController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action first with only action composition" in makeRequest(
+      new MockController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("actioncreatorjava.lang.reflect.Methodaction")
     }
   }
 
   "When action composition is configured to invoke request handler action last" should {
-    "execute request handler action last and action composition before controller composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.controllerAnnotationsFirst" -> "false",
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last and action composition before controller composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.controllerAnnotationsFirst"      -> "false",
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontrolleractioncreator")
     }
 
-    "execute request handler action last and controller composition before action composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last and controller composition before action composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.controllerAnnotationsFirst"      -> "true",
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodactionactioncreator")
     }
 
-    "execute request handler action last with only controller composition" in makeRequest(new ComposedController {
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last with only controller composition" in makeRequest(
+      new ComposedController {
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("java.lang.Classcontrolleractioncreator")
     }
 
-    "execute request handler action last with only action composition" in makeRequest(new MockController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last with only action composition" in makeRequest(
+      new MockController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("java.lang.reflect.Methodactionactioncreator")
     }
 
-    "execute request handler action last is the default and controller composition before action composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last is the default and controller composition before action composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
+        "play.http.actionCreator"                                -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodactionactioncreator")
     }
 
-    "execute request handler action last is the default and action composition before controller composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.controllerAnnotationsFirst" -> "false",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last is the default and action composition before controller composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.controllerAnnotationsFirst" -> "false",
+        "play.http.actionCreator"                                -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontrolleractioncreator")
     }
   }
 
   "When request handler is configured without action composition" should {
-    "execute request handler action last without action composition" in makeRequest(new MockController {
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action last without action composition" in makeRequest(
+      new MockController {
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("actioncreator")
     }
 
-    "execute request handler action first without action composition" in makeRequest(new MockController {
-      override def action: Result = Results.ok()
-    }, Map(
-      "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
-      "play.http.actionCreator" -> "play.it.http.ActionCompositionActionCreator")) { response =>
+    "execute request handler action first without action composition" in makeRequest(
+      new MockController {
+        override def action: Result = Results.ok()
+      },
+      Map(
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+        "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
+      )
+    ) { response =>
       response.body must beEqualTo("actioncreator")
     }
   }

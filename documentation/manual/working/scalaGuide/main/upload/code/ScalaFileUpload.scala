@@ -15,7 +15,9 @@ package scalaguide.upload.fileupload {
   import java.io.File
   import java.nio.file.attribute.PosixFilePermission._
   import java.nio.file.attribute.PosixFilePermissions
-  import java.nio.file.{Files => JFiles, Path, Paths}
+  import java.nio.file.{ Files => JFiles }
+  import java.nio.file.Path
+  import java.nio.file.Paths
 
   import akka.stream.IOResult
   import akka.stream.scaladsl._
@@ -40,29 +42,31 @@ package scalaguide.upload.fileupload {
         val uploaded = new File("/tmp/picture/formuploaded")
         uploaded.delete()
 
-        val parse = app.injector.instanceOf[PlayBodyParsers]
+        val parse  = app.injector.instanceOf[PlayBodyParsers]
         val Action = app.injector.instanceOf[DefaultActionBuilder]
 
         //#upload-file-action
         def upload = Action(parse.multipartFormData) { request =>
-          request.body.file("picture").map { picture =>
+          request.body
+            .file("picture")
+            .map { picture =>
+              // only get the last part of the filename
+              // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
+              val filename    = Paths.get(picture.filename).getFileName
+              val fileSize    = picture.fileSize
+              val contentType = picture.contentType
 
-            // only get the last part of the filename
-            // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
-            val filename = Paths.get(picture.filename).getFileName
-            val fileSize = picture.fileSize
-            val contentType = picture.contentType
-
-            picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
-            Ok("File uploaded")
-          }.getOrElse {
-            Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
-          }
+              picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
+              Ok("File uploaded")
+            }
+            .getOrElse {
+              Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
+            }
         }
 
         //#upload-file-action
         val temporaryFileCreator = SingletonTemporaryFileCreator
-        val tf = temporaryFileCreator.create(tmpFile)
+        val tf                   = temporaryFileCreator.create(tmpFile)
         val request = FakeRequest().withBody(
           MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, tf, JFiles.size(tf.path))), Nil)
         )
@@ -81,7 +85,7 @@ package scalaguide.upload.fileupload {
         uploaded.delete()
 
         val temporaryFileCreator = SingletonTemporaryFileCreator
-        val tf = temporaryFileCreator.create(tmpFile)
+        val tf                   = temporaryFileCreator.create(tmpFile)
 
         val request = FakeRequest().withBody(tf)
 
@@ -93,7 +97,9 @@ package scalaguide.upload.fileupload {
       }
     }
 
-    private def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(implicit app: Application) = {
+    private def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(
+        implicit app: Application
+    ) = {
       val result = action(request)
       status(result) must_== expectedResponse
     }
@@ -109,14 +115,15 @@ package scalaguide.upload.fileupload {
   }
   package controllers {
 
-    class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(controllerComponents) {
+    class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext)
+        extends AbstractController(controllerComponents) {
 
       //#upload-file-directly-action
-        def upload = Action(parse.temporaryFile) { request =>
-          request.body.moveFileTo(Paths.get("/tmp/picture/uploaded"), replace = true)
-          Ok("File uploaded")
-        }
-        //#upload-file-directly-action
+      def upload = Action(parse.temporaryFile) { request =>
+        request.body.moveFileTo(Paths.get("/tmp/picture/uploaded"), replace = true)
+        Ok("File uploaded")
+      }
+      //#upload-file-directly-action
 
       def index = Action { request =>
         Ok("Upload failed")
@@ -127,14 +134,15 @@ package scalaguide.upload.fileupload {
 
       def handleFilePartAsFile: FilePartHandler[File] = {
         case FileInfo(partName, filename, contentType, dispositionType) =>
-          val perms = java.util.EnumSet.of(OWNER_READ, OWNER_WRITE)
-          val attr = PosixFilePermissions.asFileAttribute(perms)
-          val path = JFiles.createTempFile("multipartBody", "tempFile", attr)
-          val file = path.toFile
-          val fileSink = FileIO.toPath(path)
+          val perms       = java.util.EnumSet.of(OWNER_READ, OWNER_WRITE)
+          val attr        = PosixFilePermissions.asFileAttribute(perms)
+          val path        = JFiles.createTempFile("multipartBody", "tempFile", attr)
+          val file        = path.toFile
+          val fileSink    = FileIO.toPath(path)
           val accumulator = Accumulator(fileSink)
-          accumulator.map { case IOResult(count, status) =>
-            FilePart(partName, filename, contentType, file, count, dispositionType)
+          accumulator.map {
+            case IOResult(count, status) =>
+              FilePart(partName, filename, contentType, file, count, dispositionType)
           }(ec)
       }
 
@@ -151,4 +159,3 @@ package scalaguide.upload.fileupload {
     }
   }
 }
-

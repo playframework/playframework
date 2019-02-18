@@ -8,30 +8,42 @@ import java.util.concurrent.CompletableFuture
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._
-import play.api.inject.{ ApplicationLifecycle, BindingKey, DefaultApplicationLifecycle }
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.BindingKey
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.json._
-import play.api.mvc.{ RequestHeader, Result, Results }
+import play.api.mvc.RequestHeader
+import play.api.mvc.Result
+import play.api.mvc.Results
 import play.api.routing._
-import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
-import play.core.j.{ JavaContextComponents, DefaultJavaContextComponents }
-import play.core.test.{ FakeRequest, Fakes }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
+import play.api.OptionalSourceMapper
+import play.core.j.JavaContextComponents
+import play.core.j.DefaultJavaContextComponents
+import play.core.test.FakeRequest
+import play.core.test.Fakes
 import play.http
-import play.i18n.{ Langs, MessagesApi }
+import play.i18n.Langs
+import play.i18n.MessagesApi
 import play.mvc.{ FileMimeTypes => JFileMimeTypes }
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.collection.JavaConverters._
 
 class HttpErrorHandlerSpec extends Specification {
 
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
-  implicit val system: ActorSystem = ActorSystem()
+  implicit val system: ActorSystem             = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   "HttpErrorHandler" should {
@@ -59,7 +71,10 @@ class HttpErrorHandlerSpec extends Specification {
       }
     }
 
-    def jsonResponsesSpecs(_eh: => HttpErrorHandler, isProdMode: Boolean)(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+    def jsonResponsesSpecs(
+        _eh: => HttpErrorHandler,
+        isProdMode: Boolean
+    )(implicit system: ActorSystem, materializer: ActorMaterializer) = {
       lazy val errorHandler = _eh
 
       def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)
@@ -89,12 +104,12 @@ class HttpErrorHandlerSpec extends Specification {
         responseBody(errorHandler.onClientError(FakeRequest(), 399)) must throwAn[IllegalArgumentException]
       }
       "answer a JSON error message on a server error" in {
-        val json = responseBody(errorHandler.onServerError(FakeRequest(), new RuntimeException()))
-        val id = json \ "error" \ "id"
-        val requestId = json \ "error" \ "requestId"
-        val exceptionTitle = json \ "error" \ "exception" \ "title"
+        val json                 = responseBody(errorHandler.onServerError(FakeRequest(), new RuntimeException()))
+        val id                   = json \ "error" \ "id"
+        val requestId            = json \ "error" \ "requestId"
+        val exceptionTitle       = json \ "error" \ "exception" \ "title"
         val exceptionDescription = json \ "error" \ "exception" \ "description"
-        val exceptionCause = json \ "error" \ "exception" \ "stacktrace"
+        val exceptionCause       = json \ "error" \ "exception" \ "stacktrace"
 
         if (isProdMode) {
           id.get must beAnInstanceOf[JsString]
@@ -203,31 +218,35 @@ class HttpErrorHandlerSpec extends Specification {
   def handler(handlerClass: String, mode: Mode): HttpErrorHandler = {
     val properties = Map(
       "play.http.errorHandler" -> handlerClass,
-      "play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"
+      "play.http.secret.key"   -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"
     )
-    val config = ConfigFactory.parseMap(properties.asJava).withFallback(ConfigFactory.defaultReference())
-    val configuration = Configuration(config)
-    val env = Environment.simple(mode = mode)
+    val config            = ConfigFactory.parseMap(properties.asJava).withFallback(ConfigFactory.defaultReference())
+    val configuration     = Configuration(config)
+    val env               = Environment.simple(mode = mode)
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
-    val langs = new play.api.i18n.DefaultLangsProvider(configuration).get
-    val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
-    val jLangs = new play.i18n.Langs(langs)
-    val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-    Fakes.injectorFromBindings(HttpErrorHandler.bindingsFromConfiguration(env, configuration)
-      ++ Seq(
-        BindingKey(classOf[ApplicationLifecycle]).to(new DefaultApplicationLifecycle()),
-        BindingKey(classOf[Router]).to(Router.empty),
-        BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
-        BindingKey(classOf[Configuration]).to(configuration),
-        BindingKey(classOf[Config]).to(configuration.underlying),
-        BindingKey(classOf[MessagesApi]).to(jMessagesApi),
-        BindingKey(classOf[Langs]).to(jLangs),
-        BindingKey(classOf[Environment]).to(env),
-        BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
-        BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
-        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
-        BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
-      )).instanceOf[HttpErrorHandler]
+    val langs             = new play.api.i18n.DefaultLangsProvider(configuration).get
+    val messagesApi       = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
+    val jLangs            = new play.i18n.Langs(langs)
+    val jMessagesApi      = new play.i18n.MessagesApi(messagesApi)
+    Fakes
+      .injectorFromBindings(
+        HttpErrorHandler.bindingsFromConfiguration(env, configuration)
+          ++ Seq(
+            BindingKey(classOf[ApplicationLifecycle]).to(new DefaultApplicationLifecycle()),
+            BindingKey(classOf[Router]).to(Router.empty),
+            BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
+            BindingKey(classOf[Configuration]).to(configuration),
+            BindingKey(classOf[Config]).to(configuration.underlying),
+            BindingKey(classOf[MessagesApi]).to(jMessagesApi),
+            BindingKey(classOf[Langs]).to(jLangs),
+            BindingKey(classOf[Environment]).to(env),
+            BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
+            BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
+            BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
+            BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
+          )
+      )
+      .instanceOf[HttpErrorHandler]
   }
 
 }
@@ -245,4 +264,3 @@ class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
   def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
     CompletableFuture.completedFuture(play.mvc.Results.ok())
 }
-
