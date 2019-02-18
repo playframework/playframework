@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# SBT Cookbook
+# sbt Cookbook
 
 ## Hooking into Play's dev mode
 

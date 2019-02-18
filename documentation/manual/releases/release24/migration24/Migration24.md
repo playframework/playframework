@@ -71,13 +71,13 @@ Eclipse support can be setup with as little as one extra line to import the plug
 
 IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt-idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
 
-### Play SBT plugin API
+### Play sbt plugin API
 
-All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build. You will need to import identifiers from `play.sbt.PlayImport` to use play provided configuration elements.
+All classes in the sbt plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build. You will need to import identifiers from `play.sbt.PlayImport` to use play provided configuration elements.
 
 #### `playWatchService` renamed
 
-The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
+The sbt setting key `playWatchService` has been renamed to `fileWatchService`.
 
 Also the corresponding class has changed. To set the FileWatchService to poll every two seconds, use it like this:
 ```scala

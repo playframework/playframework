@@ -47,7 +47,7 @@ libraryDependencies += openId
 
 ### Play JSON moved to separate project
 
-Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
+Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your sbt build. Instead, you'll have to specify the library manually:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
@@ -866,7 +866,7 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 
 Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now [`play.api.http.EnabledFilters`](api/scala/play/api/http/EnabledFilters.html), which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
-In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in SBT as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
+In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in sbt as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
 
 * [`play.filters.csrf.CSRFFilter`](api/scala/play/filters/csrf/CSRFFilter.html)
 * [`play.filters.headers.SecurityHeadersFilter`](api/scala/play/filters/headers/SecurityHeadersFilter.html)

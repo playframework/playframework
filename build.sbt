@@ -33,7 +33,7 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
-lazy val SbtRoutesCompilerProject = PlaySbtProject("SBT-Routes-Compiler", "dev-mode/routes-compiler")
+lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-mode/routes-compiler")
   .enablePlugins(SbtTwirl)
   .settings(
     target := target.value / "sbt-routes-compiler",
@@ -196,7 +196,7 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice
     PlayProject % "compile;test->test"
   )
 
-lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "dev-mode/sbt-plugin")
+lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plugin")
   .settings(
     libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
     sourceGenerators in Compile += Def
@@ -368,7 +368,7 @@ lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "cache/play-jc
     PlaySpecs2Project  % "test"
   )
 
-lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "dev-mode/play-docs-sbt-plugin")
+lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-mode/play-docs-sbt-plugin")
   .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= playDocsSbtPluginDependencies

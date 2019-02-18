@@ -41,7 +41,7 @@ object PlaySettings extends PlaySettingsCompat {
     TwirlKeys.templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
   )
 
-  /** Ask SBT to manage the classpath for the given configuration. */
+  /** Ask sbt to manage the classpath for the given configuration. */
   def manageClasspath(config: Configuration) = managedClasspath in config := {
     Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
   }

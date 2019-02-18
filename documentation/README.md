@@ -78,7 +78,7 @@ sbt
 
 ## Packaging
 
-There is no distinct packaging of HTML files in the project.  Instead, the main project has a `/project/Docs` SBT file that will package the documentation with the rest of the application.
+There is no distinct packaging of HTML files in the project.  Instead, the main project has a `/project/Docs` sbt file that will package the documentation with the rest of the application.
 
 ```
 cd $PLAY_HOME

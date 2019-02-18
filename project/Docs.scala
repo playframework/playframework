@@ -229,7 +229,7 @@ object Docs {
     raw"""https://oss.sonatype.org/service/local/repositories/public/archive/$slashedOrg/$name/$apiVersion/$jarBaseFile-javadoc.jar/!/index.html"""
   }
 
-  // Converts an SBT module into a Javadoc URL.
+  // Converts an sbt module into a Javadoc URL.
   def moduleIDToJavadoc(id: ModuleID): String = {
     artifactToJavadoc(id.organization, id.name, id.revision, s"${id.name}-${id.revision}")
   }

@@ -59,6 +59,6 @@ sbt can search your local Maven repository if you add it as a repository:
 
 sbt has extensive documentation about how to manage conflict between your dependencies:
 
-[SBT: Dependencies Conflict Management](https://www.scala-sbt.org/0.13/docs/Library-Management.html#Conflict+Management)
+[sbt: Dependencies Conflict Management](https://www.scala-sbt.org/0.13/docs/Library-Management.html#Conflict+Management)
 
-You can also use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to have a better visualization of your dependency tree. See also our page about [[debugging sbt|SBTDebugging]] common problems.
+You can also use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to have a better visualization of your dependency tree. See also our page about [[debugging sbt|sbtDebugging]] common problems.

@@ -28,7 +28,7 @@ import com.typesafe.sbt.packager.Keys.executableScriptName
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 
 /**
- * Provides mechanisms for running a Play application in SBT
+ * Provides mechanisms for running a Play application in sbt
  */
 object PlayRun extends PlayRunCompat {
 
