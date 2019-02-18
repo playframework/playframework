@@ -241,6 +241,35 @@ public class Results {
   }
 
   /**
+   * Generates a result.
+   *
+   * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+   * @param content the file to send
+   * @param inline <code>true</code> to have it sent with inline Content-Disposition.
+   * @param fileName the name that the client should receive this file as
+   * @return the result
+   */
+  public static Result status(
+          int status, File content, boolean inline, String fileName) {
+    return status(status).sendFile(content, inline, fileName);
+  }
+
+  /**
+   * Generates a result.
+   *
+   * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+   * @param content the file to send
+   * @param inline <code>true</code> to have it sent with inline Content-Disposition.
+   * @param fileName the name that the client should receive this file as
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result status(
+          int status, File content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
+    return status(status).sendFile(content, inline, fileName, fileMimeTypes);
+  }
+
+  /**
    * Generates a 204 No Content result.
    *
    * @return the result
