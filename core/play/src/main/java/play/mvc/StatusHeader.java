@@ -116,12 +116,66 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
+   * @param fileName The file name of the resource.
+   * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+   */
+  public Result sendResource(
+          String resourceName, ClassLoader classLoader, String fileName) {
+    return sendResource(resourceName, classLoader, fileName, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Send the given resource from the given classloader.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param classLoader The classloader to load it from.
+   * @param fileName The file name of the resource.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+   */
+  public Result sendResource(
+          String resourceName, ClassLoader classLoader, String fileName, FileMimeTypes fileMimeTypes) {
+    return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileName, fileMimeTypes);
+  }
+
+  /**
+   * Send the given resource from the given classloader.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param classLoader The classloader to load it from.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
       String resourceName, ClassLoader classLoader, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileMimeTypes);
+  }
+
+  /**
+   * Send the given resource.
+   *
+   * <p>The resource will be loaded from the same classloader that this class comes from.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param fileName The file name of the resource.
+   * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+   */
+  public Result sendResource(String resourceName, String fileName) {
+    return sendResource(resourceName, fileName, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Send the given resource.
+   *
+   * <p>The resource will be loaded from the same classloader that this class comes from.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param fileName The file name of the resource.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the resource in the body with in-line content disposition.
+   */
+  public Result sendResource(String resourceName, String fileName, FileMimeTypes fileMimeTypes) {
+    return sendResource(resourceName, DEFAULT_INLINE_MODE, fileName, fileMimeTypes);
   }
 
   /**
