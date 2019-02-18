@@ -87,7 +87,7 @@ return promise(() -> longComputation())
 
 ## Maven/sbt standard layout
 
-Play will now let you use either its default layout or the directory layout that is the default for Maven and SBT projects. See the [[Anatomy of a Play application|Anatomy]] page for more details.
+Play will now let you use either its default layout or the directory layout that is the default for Maven and sbt projects. See the [[Anatomy of a Play application|Anatomy]] page for more details.
 
 ## Anorm
 

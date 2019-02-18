@@ -19,7 +19,7 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.0")
 
 In addition, if you have any other dependencies on Play artifacts, and you are not using the helpers to depend on them, you may have to update the organization and version numbers there.
 
-### Update SBT version
+### Update sbt version
 
 `project/build.properties` is required to be updated to use sbt 0.13.0.
 

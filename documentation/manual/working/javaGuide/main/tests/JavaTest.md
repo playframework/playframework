@@ -7,7 +7,7 @@ Writing tests for your application can be an involved process. Play supports [JU
 
 The location for tests is in the "test" folder. There are two sample test files created in the test folder which can be used as templates.
 
-You can run tests from the SBT console.
+You can run tests from the sbt console.
 
 * To run all tests, run `test`.
 * To run only one test class, run `testOnly` followed by the name of the class i.e. `testOnly my.namespace.MyTest`.
