@@ -456,6 +456,31 @@ public class Results {
   }
 
   /**
+   * Generates a 200 OK result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result ok(File content, boolean inline, String filename) {
+    return status(OK, content, inline, filename);
+  }
+
+  /**
+   * Generates a 200 OK result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result ok(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(OK, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 201 Created result.
    *
    * @return the result
@@ -624,6 +649,31 @@ public class Results {
    */
   public static Result created(File content, String filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, filename, fileMimeTypes);
+  }
+
+  /**
+   * Generates a 201 Created result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result created(File content, boolean inline, String filename) {
+    return status(CREATED, content, inline, filename);
+  }
+
+  /**
+   * Generates a 201 Created result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result created(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(CREATED, content, inline, filename, fileMimeTypes);
   }
 
   /**
@@ -798,6 +848,32 @@ public class Results {
   }
 
   /**
+   * Generates a 400 Bad Request result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result badRequest(File content, boolean inline, String filename) {
+    return status(BAD_REQUEST, content, inline, filename);
+  }
+
+  /**
+   * Generates a 400 Bad Request result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result badRequest(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(BAD_REQUEST, content, inline, filename, fileMimeTypes);
+  }
+
+
+  /**
    * Generates a 401 Unauthorized result.
    *
    * @return the result
@@ -966,6 +1042,31 @@ public class Results {
    */
   public static Result unauthorized(File content, String filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, filename, fileMimeTypes);
+  }
+
+  /**
+   * Generates a 401 Unauthorized result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result unauthorized(File content, boolean inline, String filename) {
+    return status(UNAUTHORIZED, content, inline, filename);
+  }
+
+  /**
+   * Generates a 401 Unauthorized result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result unauthorized(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(UNAUTHORIZED, content, inline, filename, fileMimeTypes);
   }
 
   /**
@@ -1140,6 +1241,31 @@ public class Results {
   }
 
   /**
+   * Generates a 402 Payment Required result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result paymentRequired(File content, boolean inline, String filename) {
+    return status(PAYMENT_REQUIRED, content, inline, filename);
+  }
+
+  /**
+   * Generates a 402 Payment Required result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result paymentRequired(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(PAYMENT_REQUIRED, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 403 Forbidden result.
    *
    * @return the result
@@ -1308,6 +1434,31 @@ public class Results {
    */
   public static Result forbidden(File content, String filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, filename, fileMimeTypes);
+  }
+
+  /**
+   * Generates a 403 Forbidden result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result forbidden(File content, boolean inline, String filename) {
+    return status(FORBIDDEN, content, inline, filename);
+  }
+
+  /**
+   * Generates a 403 Forbidden result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result forbidden(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(FORBIDDEN, content, inline, filename, fileMimeTypes);
   }
 
   /**
@@ -1482,6 +1633,31 @@ public class Results {
   }
 
   /**
+   * Generates a 404 Not Found result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result notFound(File content, boolean inline, String filename) {
+    return status(NOT_FOUND, content, inline, filename);
+  }
+
+  /**
+   * Generates a 404 Not Found result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result notFound(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(NOT_FOUND, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 406 Not Acceptable result.
    *
    * @return the result
@@ -1650,6 +1826,31 @@ public class Results {
    */
   public static Result notAcceptable(File content, String filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, filename, fileMimeTypes);
+  }
+
+  /**
+   * Generates a 406 Not Acceptable result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result notAcceptable(File content, boolean inline, String filename) {
+    return status(NOT_ACCEPTABLE, content, inline, filename);
+  }
+
+  /**
+   * Generates a 406 Not Acceptable result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result notAcceptable(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(NOT_ACCEPTABLE, content, inline, filename, fileMimeTypes);
   }
 
   /**
@@ -1826,6 +2027,33 @@ public class Results {
   }
 
   /**
+   * Generates a 415 Unsupported Media Type result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result unsupportedMediaType(
+      File content, boolean inline, String filename) {
+    return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename);
+  }
+
+  /**
+   * Generates a 415 Unsupported Media Type result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result unsupportedMediaType(
+      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 428 Precondition Required result.
    *
    * @return the result
@@ -1999,6 +2227,31 @@ public class Results {
   }
 
   /**
+   * Generates a 428 Precondition Required result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result preconditionRequired(File content, boolean inline, String filename) {
+    return status(PRECONDITION_REQUIRED, content, inline, filename);
+  }
+
+  /**
+   * Generates a 428 Precondition Required result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result preconditionRequired(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(PRECONDITION_REQUIRED, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 429 Too Many Requests result.
    *
    * @return the result
@@ -2167,6 +2420,31 @@ public class Results {
    */
   public static Result tooManyRequests(File content, String filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, filename, fileMimeTypes);
+  }
+
+  /**
+   * Generates a 429 Too Many Requests result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result tooManyRequests(File content, boolean inline, String filename) {
+    return status(TOO_MANY_REQUESTS, content, inline, filename);
+  }
+
+  /**
+   * Generates a 429 Too Many Requests result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result tooManyRequests(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(TOO_MANY_REQUESTS, content, inline, filename, fileMimeTypes);
   }
 
   /**
@@ -2343,6 +2621,31 @@ public class Results {
   }
 
   /**
+   * Generates a 431 Request Header Fields Too Large result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result requestHeaderFieldsTooLarge(File content, boolean inline, String filename) {
+    return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename);
+  }
+
+  /**
+   * Generates a 431 Request Header Fields Too Large result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result requestHeaderFieldsTooLarge(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 500 Internal Server Error result.
    *
    * @return the result
@@ -2516,6 +2819,31 @@ public class Results {
   }
 
   /**
+   * Generates a 500 Internal Server Error result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result internalServerError(File content, boolean inline, String filename) {
+    return status(INTERNAL_SERVER_ERROR, content, inline, filename);
+  }
+
+  /**
+   * Generates a 500 Internal Server Error result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result internalServerError(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(INTERNAL_SERVER_ERROR, content, inline, filename, fileMimeTypes);
+  }
+
+  /**
    * Generates a 511 Network Authentication Required result.
    *
    * @return the result
@@ -2686,6 +3014,33 @@ public class Results {
   public static Result networkAuthenticationRequired(
       File content, String filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, filename, fileMimeTypes);
+  }
+
+  /**
+   * Generates a 511 Network Authentication Required result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result networkAuthenticationRequired(
+      File content, boolean inline, String filename) {
+    return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename);
+  }
+
+  /**
+   * Generates a 511 Network Authentication Required result.
+   *
+   * @param content The file to send.
+   * @param inline Whether the file should be sent inline, or as an attachment.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result networkAuthenticationRequired(
+      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
   /**
