@@ -8,33 +8,44 @@ import javax.inject.Inject
 import play.api.Application
 import play.api.http.HttpFilters
 import play.api.inject.bind
-import play.api.mvc.{ DefaultActionBuilder, Results }
+import play.api.mvc.DefaultActionBuilder
+import play.api.mvc.Results
 import play.api.routing.sird._
-import play.api.routing.{ Router, SimpleRouterImpl }
+import play.api.routing.Router
+import play.api.routing.SimpleRouterImpl
 import play.filters.cors.CORSFilterSpec._
 import play.mvc.Http.HeaderNames._
 
 object CORSFilterSpec {
 
-  class Filters @Inject() (corsFilter: CORSFilter) extends HttpFilters {
+  class Filters @Inject()(corsFilter: CORSFilter) extends HttpFilters {
     def filters = Seq(corsFilter)
   }
 
-  class CorsApplicationRouter @Inject() (action: DefaultActionBuilder) extends SimpleRouterImpl({
-    case p"/error" => action { req => throw sys.error("error") }
-    case p"/vary" => action { req => Results.Ok("Hello").withHeaders(VARY -> ACCEPT_ENCODING) }
-    case _ => action(Results.Ok)
-  })
+  class CorsApplicationRouter @Inject()(action: DefaultActionBuilder)
+      extends SimpleRouterImpl({
+        case p"/error" =>
+          action { req =>
+            throw sys.error("error")
+          }
+        case p"/vary" =>
+          action { req =>
+            Results.Ok("Hello").withHeaders(VARY -> ACCEPT_ENCODING)
+          }
+        case _ => action(Results.Ok)
+      })
 
 }
 
 class CORSFilterSpec extends CORSCommonSpec {
 
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
-    running(_.configure(conf).overrides(
-      bind[Router].to[CorsApplicationRouter],
-      bind[HttpFilters].to[Filters]
-    ))(block)
+    running(
+      _.configure(conf).overrides(
+        bind[Router].to[CorsApplicationRouter],
+        bind[HttpFilters].to[Filters]
+      )
+    )(block)
   }
 
   "The CORSFilter" should {

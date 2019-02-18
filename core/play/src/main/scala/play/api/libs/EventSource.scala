@@ -4,9 +4,12 @@
 package play.api.libs
 
 import akka.stream.scaladsl.Flow
-import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
+import play.api.http.ContentTypeOf
+import play.api.http.ContentTypes
+import play.api.http.Writeable
 import play.api.mvc._
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.Json
+import play.api.libs.json.JsValue
 
 /**
  * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Akka Source.
@@ -60,6 +63,7 @@ object EventSource {
    * An event encoded with the SSE protocol..
    */
   case class Event(data: String, id: Option[String], name: Option[String]) {
+
     /**
      * This event, formatted according to the EventSource protocol.
      */
@@ -85,10 +89,12 @@ object EventSource {
      * and the nameExtractor and idExtractor will implicitly resolve to `None`.
      *
      */
-    def apply[A](a: A)(implicit
-      dataExtractor: EventDataExtractor[A],
-      nameExtractor: EventNameExtractor[A],
-      idExtractor: EventIdExtractor[A]): Event = {
+    def apply[A](a: A)(
+        implicit
+        dataExtractor: EventDataExtractor[A],
+        nameExtractor: EventNameExtractor[A],
+        idExtractor: EventIdExtractor[A]
+    ): Event = {
       Event(dataExtractor.eventData(a), idExtractor.eventId(a), nameExtractor.eventName(a))
     }
 

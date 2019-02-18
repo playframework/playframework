@@ -5,7 +5,9 @@ package scalaguide.tests.guice
 
 import java.io.File
 import java.net.URLClassLoader
-import play.api.{ Configuration, Environment, Mode }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
 import play.api.test._
 
 // #builder-imports
@@ -29,7 +31,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       // #set-environment
       val application = new GuiceApplicationBuilder()
         .load(new play.api.inject.BuiltinModule, new play.api.i18n.I18nModule, new play.api.mvc.CookiesModule) // ###skip
-        .loadConfig(Configuration.reference) // ###skip
+        .loadConfig(Configuration.reference)                                                                   // ###skip
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(Environment(new File("path/to/app"), classLoader, Mode.Test))
         .build()
@@ -45,7 +47,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       // #set-environment-values
       val application = new GuiceApplicationBuilder()
         .load(new play.api.inject.BuiltinModule, new play.api.i18n.I18nModule, new play.api.mvc.CookiesModule) // ###skip
-        .loadConfig(Configuration.reference) // ###skip
+        .loadConfig(Configuration.reference)                                                                   // ###skip
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(new File("path/to/app"))
         .in(Mode.Test)
@@ -121,7 +123,8 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
           new play.api.i18n.I18nModule,
           new play.api.mvc.CookiesModule,
           bind[Component].to[DefaultComponent]
-        ).injector()
+        )
+        .injector()
       // #load-modules
 
       injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]

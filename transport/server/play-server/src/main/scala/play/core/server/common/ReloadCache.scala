@@ -8,12 +8,16 @@ import java.util.concurrent.atomic.AtomicInteger
 import play.api.Application
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
-import play.api.mvc.{ DefaultCookieHeaderEncoding, DefaultFlashCookieBaker, DefaultSessionCookieBaker }
+import play.api.mvc.DefaultCookieHeaderEncoding
+import play.api.mvc.DefaultFlashCookieBaker
+import play.api.mvc.DefaultSessionCookieBaker
 import play.api.mvc.request.DefaultRequestFactory
 import play.core.server.ServerProvider
 import play.utils.InlineCache
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * Helps a `Server` to cache objects that change when an `Application` is reloaded.
@@ -54,16 +58,21 @@ private[play] abstract class ReloadCache[+T] {
    * @param tryApp The application being loaded.
    * @param serverProvider The server which embeds the application.
    */
-  protected final def reloadDebugInfo(tryApp: Try[Application], serverProvider: ServerProvider): Option[ServerDebugInfo] = {
+  protected final def reloadDebugInfo(
+      tryApp: Try[Application],
+      serverProvider: ServerProvider
+  ): Option[ServerDebugInfo] = {
     val enabled: Boolean = tryApp match {
       case Success(app) => app.configuration.get[Boolean]("play.server.debug.addDebugInfoToRequests")
-      case Failure(_) => true // Always enable debug info when the app fails to load
+      case Failure(_)   => true // Always enable debug info when the app fails to load
     }
     if (enabled) {
-      Some(ServerDebugInfo(
-        serverProvider = serverProvider,
-        serverConfigCacheReloads = reloadCount
-      ))
+      Some(
+        ServerDebugInfo(
+          serverProvider = serverProvider,
+          serverConfigCacheReloads = reloadCount
+        )
+      )
     } else None
   }
 
@@ -75,7 +84,7 @@ private[play] abstract class ReloadCache[+T] {
       case Success(app) =>
         val requestFactory: DefaultRequestFactory = app.requestFactory match {
           case drf: DefaultRequestFactory => drf
-          case _ => new DefaultRequestFactory(app.httpConfiguration)
+          case _                          => new DefaultRequestFactory(app.httpConfiguration)
         }
 
         (
@@ -84,7 +93,7 @@ private[play] abstract class ReloadCache[+T] {
           requestFactory.cookieHeaderEncoding
         )
       case Failure(_) =>
-        val httpConfig = HttpConfiguration()
+        val httpConfig   = HttpConfiguration()
         val cookieSigner = new CookieSignerProvider(httpConfig.secret).get
 
         (

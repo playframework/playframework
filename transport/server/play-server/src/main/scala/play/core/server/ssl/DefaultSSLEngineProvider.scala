@@ -6,7 +6,11 @@ package play.core.server.ssl
 import play.core.server.ServerConfig
 import play.server.api.SSLEngineProvider
 import play.core.ApplicationProvider
-import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext, X509TrustManager }
+import javax.net.ssl.TrustManager
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.io.File
@@ -28,14 +32,16 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
   }
 
   def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
-    val httpsConfig = serverConfig.configuration.underlying.getConfig("play.server.https")
+    val httpsConfig    = serverConfig.configuration.underlying.getConfig("play.server.https")
     val keyStoreConfig = httpsConfig.getConfig("keyStore")
     val keyManagerFactory: KeyManagerFactory = if (keyStoreConfig.hasPath("path")) {
       val path = keyStoreConfig.getString("path")
       // Load the configured key store
       val keyStore = KeyStore.getInstance(keyStoreConfig.getString("type"))
       val password = keyStoreConfig.getString("password").toCharArray
-      val algorithm = if (keyStoreConfig.hasPath("algorithm")) keyStoreConfig.getString("algorithm") else KeyManagerFactory.getDefaultAlgorithm
+      val algorithm =
+        if (keyStoreConfig.hasPath("algorithm")) keyStoreConfig.getString("algorithm")
+        else KeyManagerFactory.getDefaultAlgorithm
       val file = new File(path)
       if (file.isFile) {
         val in = java.nio.file.Files.newInputStream(file.toPath)
@@ -64,8 +70,10 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
     // Load the configured trust manager
     val trustStoreConfig = httpsConfig.getConfig("trustStore")
     val tm = if (trustStoreConfig.getBoolean("noCaVerification")) {
-      logger.warn("HTTPS configured with no client " +
-        "side CA verification. Requires http://webid.info/ for client certificate verification.")
+      logger.warn(
+        "HTTPS configured with no client " +
+          "side CA verification. Requires http://webid.info/ for client certificate verification."
+      )
       Array[TrustManager](noCATrustManager)
     } else {
       logger.debug("Using default trust store for client side CA verification")
@@ -84,8 +92,8 @@ object DefaultSSLEngineProvider {
 }
 
 object noCATrustManager extends X509TrustManager {
-  val nullArray = Array[X509Certificate]()
+  val nullArray                                                                     = Array[X509Certificate]()
   def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
   def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
-  def getAcceptedIssuers() = nullArray
+  def getAcceptedIssuers()                                                          = nullArray
 }

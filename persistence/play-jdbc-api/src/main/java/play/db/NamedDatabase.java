@@ -10,5 +10,5 @@ import java.lang.annotation.RetentionPolicy;
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NamedDatabase {
-    String value();
+  String value();
 }

@@ -5,21 +5,30 @@ package play.api.db.evolutions
 
 import java.io.File
 import org.specs2.mutable.Specification
-import play.api.{ Environment, Mode }
+import play.api.Environment
+import play.api.Mode
 
 class EvolutionsReaderSpec extends Specification {
 
   "EnvironmentEvolutionsReader" should {
 
     "read evolution files from classpath" in withLogbackCapturingAppender {
-      val appender = LogbackCapturingAppender[DefaultEvolutionsApi]
+      val appender    = LogbackCapturingAppender[DefaultEvolutionsApi]
       val environment = Environment(new File("."), getClass.getClassLoader, Mode.Test)
-      val reader = new EnvironmentEvolutionsReader(environment)
+      val reader      = new EnvironmentEvolutionsReader(environment)
 
       reader.evolutions("test") must_== Seq(
         Evolution(1, "create table test (id bigint not null, name varchar(255));", "drop table if exists test;"),
-        Evolution(2, "insert into test (id, name) values (1, 'alice');\ninsert into test (id, name) values (2, 'bob');", "delete from test;"),
-        Evolution(3, "insert into test (id, name) values (3, 'charlie');\ninsert into test (id, name) values (4, 'dave');", ""),
+        Evolution(
+          2,
+          "insert into test (id, name) values (1, 'alice');\ninsert into test (id, name) values (2, 'bob');",
+          "delete from test;"
+        ),
+        Evolution(
+          3,
+          "insert into test (id, name) values (3, 'charlie');\ninsert into test (id, name) values (4, 'dave');",
+          ""
+        ),
         Evolution(4, "insert into test (id, name) values (5, 'Emma');", "delete from test where name = 'Emma';"),
         Evolution(5, "insert into test (id, name) values (6, 'Noah');", "delete from test where name = 'Noah';"),
         Evolution(6, "insert into test (id, name) values (7, 'Olivia');", "delete from test where name = 'Olivia';"),
@@ -27,7 +36,7 @@ class EvolutionsReaderSpec extends Specification {
         Evolution(8, "insert into test (id, name) values (9, 'William');", "delete from test where name = 'William';"),
         Evolution(9, "insert into test (id, name) values (10, 'Sophia');", "delete from test where name = 'Sophia';"),
         Evolution(10, "insert into test (id, name) values (11, 'Mason');", "delete from test where name = 'Mason';")
-      // revision file 100 will not even run because revision 11 - 99 do not exist
+        // revision file 100 will not even run because revision 11 - 99 do not exist
       )
       appender.events.map(_.getMessage) must_== Seq(
         "Ignoring evolution script 01.sql, using 1.sql instead already",

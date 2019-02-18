@@ -4,16 +4,21 @@
 package play.api.cache.ehcache
 
 import java.util.concurrent.Executors
-import javax.inject.{ Inject, Provider }
+import javax.inject.Inject
+import javax.inject.Provider
 
 import net.sf.ehcache.CacheManager
-import play.api.cache.{ AsyncCacheApi, SyncCacheApi }
+import play.api.cache.AsyncCacheApi
+import play.api.cache.SyncCacheApi
 import play.api.inject._
-import play.api.test.{ PlaySpecification, WithApplication }
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
 import play.cache.NamedCache
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class EhCacheApiSpec extends PlaySpecification {
   sequential
@@ -37,14 +42,14 @@ class EhCacheApiSpec extends PlaySpecification {
       _.overrides(
         bind[CacheManager].toProvider[CustomCacheManagerProvider]
       ).configure(
-          "play.cache.createBoundCaches" -> false,
-          "play.cache.bindCaches" -> Seq("custom")
-        )
+        "play.cache.createBoundCaches" -> false,
+        "play.cache.bindCaches"        -> Seq("custom")
+      )
     ) {
       app.injector.instanceOf[NamedCacheController]
     }
     "get values from cache" in new WithApplication() {
-      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
@@ -62,7 +67,7 @@ class EhCacheApiSpec extends PlaySpecification {
     }
 
     "remove values from cache" in new WithApplication() {
-      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
@@ -71,7 +76,7 @@ class EhCacheApiSpec extends PlaySpecification {
     }
 
     "remove all values from cache" in new WithApplication() {
-      val cacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
@@ -81,7 +86,7 @@ class EhCacheApiSpec extends PlaySpecification {
   }
 }
 
-class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerProvider) extends Provider[CacheManager] {
+class CustomCacheManagerProvider @Inject()(cacheManagerProvider: CacheManagerProvider) extends Provider[CacheManager] {
   lazy val get = {
     val mgr = cacheManagerProvider.get
     mgr.removeAllCaches()
@@ -90,7 +95,7 @@ class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerPr
   }
 }
 
-class NamedCacheController @Inject() (
+class NamedCacheController @Inject()(
     @NamedCache("custom") val cache: SyncCacheApi,
     @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

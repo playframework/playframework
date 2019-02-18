@@ -56,39 +56,40 @@ trait RequestTarget {
    * Return a copy of this object with a new URI.
    */
   def withUri(newUri: URI): RequestTarget = new RequestTarget {
-    override def uri: URI = newUri
-    override def uriString: String = newUri.toString
+    override def uri: URI                           = newUri
+    override def uriString: String                  = newUri.toString
     override def queryMap: Map[String, Seq[String]] = top.queryMap
-    override def path: String = top.path
+    override def path: String                       = top.path
   }
+
   /**
    * Return a copy of this object with a new URI.
    */
   def withUriString(newUriString: String): RequestTarget = new RequestTarget {
-    override lazy val uri: URI = new URI(newUriString)
-    override def uriString: String = newUriString
+    override lazy val uri: URI                      = new URI(newUriString)
+    override def uriString: String                  = newUriString
     override def queryMap: Map[String, Seq[String]] = top.queryMap
-    override def path: String = top.path
+    override def path: String                       = top.path
   }
 
   /**
    * Return a copy of this object with a new path.
    */
   def withPath(newPath: String): RequestTarget = new RequestTarget {
-    override def uri: URI = top.uri
-    override def uriString: String = top.uriString
+    override def uri: URI                           = top.uri
+    override def uriString: String                  = top.uriString
     override def queryMap: Map[String, Seq[String]] = top.queryMap
-    override def path: String = newPath
+    override def path: String                       = newPath
   }
 
   /**
    * Return a copy of this object with a new query string.
    */
   def withQueryString(newQueryString: Map[String, Seq[String]]): RequestTarget = new RequestTarget {
-    override def uri: URI = top.uri
-    override def uriString: String = top.uriString
+    override def uri: URI                           = top.uri
+    override def uriString: String                  = top.uriString
     override def queryMap: Map[String, Seq[String]] = newQueryString
-    override def path: String = top.path
+    override def path: String                       = top.path
   }
 }
 
@@ -99,12 +100,12 @@ object RequestTarget {
    */
   def apply(uriString: String, path: String, queryString: Map[String, Seq[String]]): RequestTarget = {
     val us = uriString
-    val p = path
+    val p  = path
     val qs = queryString
     new RequestTarget {
-      override lazy val uri: URI = new URI(us)
-      override val uriString: String = us
-      override val path: String = p
+      override lazy val uri: URI                      = new URI(us)
+      override val uriString: String                  = us
+      override val path: String                       = p
       override val queryMap: Map[String, Seq[String]] = qs
     }
   }

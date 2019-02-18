@@ -68,7 +68,11 @@ object LoggerConfigurator {
   /**
    * Generates the map of properties used by the logging framework.
    */
-  def generateProperties(env: Environment, config: Configuration, optionalProperties: Map[String, String]): Map[String, String] = {
+  def generateProperties(
+      env: Environment,
+      config: Configuration,
+      optionalProperties: Map[String, String]
+  ): Map[String, String] = {
     import scala.collection.JavaConverters._
     val mutableMap = new scala.collection.mutable.HashMap[String, String]()
     mutableMap.put("application.home", env.rootPath.getAbsolutePath)

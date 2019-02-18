@@ -34,7 +34,7 @@ object LogTester {
 
     // Get the Logback root logger and attach a RecordingAppender
     val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
-    val appender = new RecordingAppender()
+    val appender   = new RecordingAppender()
     appender.setContext(rootLogger.getLoggerContext)
     appender.start()
     rootLogger.addAppender(appender)

@@ -6,10 +6,11 @@ package scalaguide.scheduling
 
 import play.api.ApplicationLoader.Context
 import play.api.routing.Router
-import play.api.{BuiltInComponentsFromContext, NoHttpFiltersComponents}
+import play.api.BuiltInComponentsFromContext
+import play.api.NoHttpFiltersComponents
 
 class MyBuiltInComponentsFromContext(context: Context)
-  extends BuiltInComponentsFromContext(context)
+    extends BuiltInComponentsFromContext(context)
     with NoHttpFiltersComponents {
 
   override def router: Router = Router.empty

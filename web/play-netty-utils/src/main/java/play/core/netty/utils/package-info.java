@@ -14,7 +14,5 @@
  * under the License.
  */
 
-/**
- * This package contains Cookie related classes.
- */
+/** This package contains Cookie related classes. */
 package play.core.netty.utils;

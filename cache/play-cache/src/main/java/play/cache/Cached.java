@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package play.cache;
+
 import play.mvc.With;
 
 import java.lang.annotation.*;
@@ -15,17 +16,17 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cached {
-    /**
-     * The cache key to store the result in
-     *
-     * @return the cache key
-     */
-    String key();
+  /**
+   * The cache key to store the result in
+   *
+   * @return the cache key
+   */
+  String key();
 
-    /**
-     * The duration the action should be cached for.  Defaults to 0.
-     *
-     * @return the duration
-     */
-    int duration() default 0;
+  /**
+   * The duration the action should be cached for. Defaults to 0.
+   *
+   * @return the duration
+   */
+  int duration() default 0;
 }

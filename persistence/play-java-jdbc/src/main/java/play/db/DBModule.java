@@ -16,55 +16,50 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.Set;
 
-/**
- * Injection module with default DB components.
- */
+/** Injection module with default DB components. */
 public final class DBModule extends Module {
 
-    @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        String dbKey = configuration.underlying().getString("play.db.config");
-        String defaultDb = configuration.underlying().getString("play.db.default");
+  @Override
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    String dbKey = configuration.underlying().getString("play.db.config");
+    String defaultDb = configuration.underlying().getString("play.db.default");
 
-        ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
+    ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
 
-        list.add(bind(ConnectionPool.class).to(DefaultConnectionPool.class));
-        list.add(bind(DBApi.class).to(DefaultDBApi.class));
+    list.add(bind(ConnectionPool.class).to(DefaultConnectionPool.class));
+    list.add(bind(DBApi.class).to(DefaultDBApi.class));
 
-        try {
-            Set<String> dbs = configuration.underlying().getConfig(dbKey).root().keySet();
-            for (String db : dbs) {
-                list.add(bind(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
-            }
+    try {
+      Set<String> dbs = configuration.underlying().getConfig(dbKey).root().keySet();
+      for (String db : dbs) {
+        list.add(bind(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
+      }
 
-            if (dbs.contains(defaultDb)) {
-                list.add(bind(Database.class).to(bind(Database.class).qualifiedWith(named(defaultDb))));
-            }
-        } catch (com.typesafe.config.ConfigException.Missing ex) {
-            Logger.warn("Configuration not found for database: {}", ex.getMessage());
-        }
-
-        return Scala.toSeq(list.build());
+      if (dbs.contains(defaultDb)) {
+        list.add(bind(Database.class).to(bind(Database.class).qualifiedWith(named(defaultDb))));
+      }
+    } catch (com.typesafe.config.ConfigException.Missing ex) {
+      Logger.warn("Configuration not found for database: {}", ex.getMessage());
     }
 
-    private NamedDatabase named(String name) {
-        return new NamedDatabaseImpl(name);
+    return Scala.toSeq(list.build());
+  }
+
+  private NamedDatabase named(String name) {
+    return new NamedDatabaseImpl(name);
+  }
+
+  /** Inject provider for named databases. */
+  public static class NamedDatabaseProvider implements Provider<Database> {
+    @Inject private DBApi dbApi = null;
+    private final String name;
+
+    public NamedDatabaseProvider(String name) {
+      this.name = name;
     }
 
-    /**
-     * Inject provider for named databases.
-     */
-    public static class NamedDatabaseProvider implements Provider<Database> {
-        @Inject private DBApi dbApi = null;
-        private final String name;
-
-        public NamedDatabaseProvider(String name) {
-            this.name = name;
-        }
-
-        public Database get() {
-            return dbApi.getDatabase(name);
-        }
+    public Database get() {
+      return dbApi.getDatabase(name);
     }
-
+  }
 }

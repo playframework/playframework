@@ -7,7 +7,9 @@ import javax.inject.Inject
 
 import play.api.Logger
 import play.api.http._
-import play.api.i18n.{ Lang, Langs, MessagesApi }
+import play.api.i18n.Lang
+import play.api.i18n.Langs
+import play.api.i18n.MessagesApi
 import play.twirl.api.Html
 
 import scala.concurrent.ExecutionContext
@@ -26,7 +28,15 @@ import scala.concurrent.ExecutionContext
  *   }
  * }}}
  */
-trait ControllerHelpers extends Results with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering with RequestImplicits {
+trait ControllerHelpers
+    extends Results
+    with HttpProtocol
+    with Status
+    with HeaderNames
+    with ContentTypes
+    with RequestExtractors
+    with Rendering
+    with RequestImplicits {
 
   /**
    * Used to mark an action that is still not implemented, e.g.:
@@ -176,7 +186,7 @@ trait InjectedController extends BaseController {
 
   private[this] var _components: ControllerComponents = _
 
-  override protected def controllerComponents: ControllerComponents = {
+  protected override def controllerComponents: ControllerComponents = {
     if (_components == null) fallbackControllerComponents else _components
   }
 
@@ -193,7 +203,8 @@ trait InjectedController extends BaseController {
    */
   protected def fallbackControllerComponents: ControllerComponents = {
     throw new NoSuchElementException(
-      "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.")
+      "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection."
+    )
   }
 }
 
@@ -209,23 +220,22 @@ trait ControllerComponents {
   def executionContext: scala.concurrent.ExecutionContext
 }
 
-case class DefaultControllerComponents @Inject() (
+case class DefaultControllerComponents @Inject()(
     actionBuilder: DefaultActionBuilder,
     parsers: PlayBodyParsers,
     messagesApi: MessagesApi,
     langs: Langs,
     fileMimeTypes: FileMimeTypes,
-    executionContext: scala.concurrent.ExecutionContext)
-  extends ControllerComponents
+    executionContext: scala.concurrent.ExecutionContext
+) extends ControllerComponents
 
 /**
  * Implements deprecated controller functionality. We recommend moving away from this and using one of the classes or
  * traits extending [[BaseController]] instead.
  */
-@deprecated(
-  "Your controller should extend AbstractController, BaseController, or InjectedController instead.",
-  "2.6.0")
+@deprecated("Your controller should extend AbstractController, BaseController, or InjectedController instead.", "2.6.0")
 trait Controller extends ControllerHelpers with BodyParsers {
+
   /**
    * Retrieve the language implicitly from the request.
    *
@@ -242,7 +252,8 @@ trait Controller extends ControllerHelpers with BodyParsers {
    */
   @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
   implicit def request2lang(implicit request: RequestHeader): Lang = {
-    play.api.Play.privateMaybeApplication.map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
+    play.api.Play.privateMaybeApplication
+      .map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
       .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
   }
 }

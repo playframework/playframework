@@ -4,8 +4,12 @@
 package play.api.libs.streams
 
 import akka.actor._
-import akka.stream.{ Materializer, OverflowStrategy }
-import akka.stream.scaladsl.{ Sink, Keep, Source, Flow }
+import akka.stream.Materializer
+import akka.stream.OverflowStrategy
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.Flow
 
 /**
  * Provides a flow that is handled by an actor.
@@ -29,25 +33,34 @@ object ActorFlow {
    * @param bufferSize The maximum number of elements to buffer.
    * @param overflowStrategy The strategy for how to handle a buffer overflow.
    */
-  def actorRef[In, Out](props: ActorRef => Props, bufferSize: Int = 16, overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew)(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, _] = {
+  def actorRef[In, Out](
+      props: ActorRef => Props,
+      bufferSize: Int = 16,
+      overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew
+  )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, _] = {
 
-    val (outActor, publisher) = Source.actorRef[Out](bufferSize, overflowStrategy)
-      .toMat(Sink.asPublisher(false))(Keep.both).run()
+    val (outActor, publisher) = Source
+      .actorRef[Out](bufferSize, overflowStrategy)
+      .toMat(Sink.asPublisher(false))(Keep.both)
+      .run()
 
     Flow.fromSinkAndSource(
-      Sink.actorRef(factory.actorOf(Props(new Actor {
-        val flowActor = context.watch(context.actorOf(props(outActor), "flowActor"))
+      Sink.actorRef(
+        factory.actorOf(Props(new Actor {
+          val flowActor = context.watch(context.actorOf(props(outActor), "flowActor"))
 
-        def receive = {
-          case Status.Success(_) | Status.Failure(_) => flowActor ! PoisonPill
-          case Terminated(_) => context.stop(self)
-          case other => flowActor ! other
-        }
+          def receive = {
+            case Status.Success(_) | Status.Failure(_) => flowActor ! PoisonPill
+            case Terminated(_)                         => context.stop(self)
+            case other                                 => flowActor ! other
+          }
 
-        override def supervisorStrategy = OneForOneStrategy() {
-          case _ => SupervisorStrategy.Stop
-        }
-      })), Status.Success(())),
+          override def supervisorStrategy = OneForOneStrategy() {
+            case _ => SupervisorStrategy.Stop
+          }
+        })),
+        Status.Success(())
+      ),
       Source.fromPublisher(publisher)
     )
   }

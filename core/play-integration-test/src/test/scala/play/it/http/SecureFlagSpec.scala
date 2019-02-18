@@ -3,10 +3,13 @@
  */
 package play.it.http
 
-import java.io.{ File, InputStream }
+import java.io.File
+import java.io.InputStream
 import java.net.URL
 import java.security.cert.X509Certificate
-import javax.net.ssl.{ HttpsURLConnection, SSLContext, X509TrustManager }
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
@@ -15,7 +18,7 @@ import play.it._
 
 import scala.io.Source
 
-class NettySecureFlagSpec extends SecureFlagSpec with NettyIntegrationSpecification
+class NettySecureFlagSpec    extends SecureFlagSpec with NettyIntegrationSpecification
 class AkkaHttpSecureFlagSpec extends SecureFlagSpec with AkkaHttpIntegrationSpecification
 
 /**
@@ -35,10 +38,15 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
 
   def withServer[T](action: EssentialAction, sslPort: Option[Int] = None)(block: Port => T) = {
     val port = testServerPort
-    running(TestServer(port, sslPort = sslPort, application = GuiceApplicationBuilder()
-      .routes { case _ => action }
-      .build()
-    )) {
+    running(
+      TestServer(
+        port,
+        sslPort = sslPort,
+        application = GuiceApplicationBuilder()
+          .routes { case _ => action }
+          .build()
+      )
+    ) {
       block(port)
     }
   }
@@ -51,24 +59,27 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
       Source.fromInputStream(connection.getContent.asInstanceOf[InputStream]).mkString must_== expect.toString
     }
 
-    "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      test(createConn(sslPort), true)
+    "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) {
+      _ =>
+        test(createConn(sslPort), true)
     }
     "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction, Some(sslPort)) { _ =>
       test(createConn(sslPort, Some("https")), true)
     }
-    "not show that requests are not secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction, Some(sslPort)) { _ =>
-      test(createConn(sslPort, Some("http")), false)
+    "not show that requests are not secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction, Some(sslPort)) {
+      _ =>
+        test(createConn(sslPort, Some("http")), false)
     }
   }
 
   "Play http server" should {
-    "not show that requests are not secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction) { port =>
-      val responses = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/", "HTTP/1.1", Map(), "foo")
-      )
-      responses.length must_== 1
-      responses(0).body must_== Left("false")
+    "not show that requests are not secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction) {
+      port =>
+        val responses = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "foo")
+        )
+        responses.length must_== 1
+        responses(0).body must_== Left("false")
     }
     "show that requests are secure if X_FORWARDED_PROTO is https" in withServer(secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(

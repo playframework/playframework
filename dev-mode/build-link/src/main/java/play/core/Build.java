@@ -10,6 +10,7 @@ import java.util.List;
 public class Build {
 
   public static final List<String> sharedClasses;
+
   static {
     List<String> list = new ArrayList<String>();
     list.add(play.core.BuildLink.class.getName());
@@ -23,5 +24,4 @@ public class Build {
     list.add(play.api.PlayException.ExceptionAttachment.class.getName());
     sharedClasses = Collections.unmodifiableList(list);
   }
-
 }

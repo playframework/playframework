@@ -11,27 +11,26 @@ import static java.util.stream.Collectors.toList;
 @Entity
 public class TestEntity {
 
-    @Id
-    public Long id;
+  @Id public Long id;
 
-    public String name;
+  public String name;
 
-    public void save() {
-        JPA.em().persist(this);
-    }
+  public void save() {
+    JPA.em().persist(this);
+  }
 
-    public void delete() {
-        JPA.em().remove(this);
-    }
+  public void delete() {
+    JPA.em().remove(this);
+  }
 
-    public static TestEntity find(Long id) {
-        return JPA.em().find(TestEntity.class, id);
-    }
+  public static TestEntity find(Long id) {
+    return JPA.em().find(TestEntity.class, id);
+  }
 
-    public static List<String> allNames() {
-        @SuppressWarnings("unchecked")
-        List<TestEntity> results = JPA.em().createQuery("from TestEntity order by name").getResultList();
-        return results.stream().map(entity -> entity.name).collect(toList());
-    }
-
+  public static List<String> allNames() {
+    @SuppressWarnings("unchecked")
+    List<TestEntity> results =
+        JPA.em().createQuery("from TestEntity order by name").getResultList();
+    return results.stream().map(entity -> entity.name).collect(toList());
+  }
 }

@@ -12,20 +12,20 @@ class ThreadsSpec extends Specification {
     "restore the correct class loader" in {
       "if the block returns successfully" in {
         val currentCl = Thread.currentThread.getContextClassLoader
-        Threads.withContextClassLoader(testClassLoader) {
-          Thread.currentThread.getContextClassLoader must be equalTo testClassLoader
+        (Threads.withContextClassLoader(testClassLoader) {
+          (Thread.currentThread.getContextClassLoader must be).equalTo(testClassLoader)
           "a string"
-        } must be equalTo "a string"
-        Thread.currentThread.getContextClassLoader must be equalTo currentCl
+        } must be).equalTo("a string")
+        (Thread.currentThread.getContextClassLoader must be).equalTo(currentCl)
       }
 
       "if the block throws an exception" in {
         val currentCl = Thread.currentThread.getContextClassLoader
-        (catching(classOf[RuntimeException]) opt Threads.withContextClassLoader(testClassLoader) {
-          Thread.currentThread.getContextClassLoader must be equalTo testClassLoader
+        (catching(classOf[RuntimeException]).opt(Threads.withContextClassLoader(testClassLoader) {
+          (Thread.currentThread.getContextClassLoader must be).equalTo(testClassLoader)
           throw new RuntimeException("Uh oh")
-        }) must beNone
-        Thread.currentThread.getContextClassLoader must be equalTo currentCl
+        })) must beNone
+        (Thread.currentThread.getContextClassLoader must be).equalTo(currentCl)
       }
     }
   }

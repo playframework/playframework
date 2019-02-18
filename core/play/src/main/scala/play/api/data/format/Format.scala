@@ -54,7 +54,7 @@ object Formats {
    */
   def ignoredFormat[A](value: A): Formatter[A] = new Formatter[A] {
     def bind(key: String, data: Map[String, String]) = Right(value)
-    def unbind(key: String, value: A) = Map.empty
+    def unbind(key: String, value: A)                = Map.empty
   }
 
   /**
@@ -62,7 +62,7 @@ object Formats {
    */
   implicit def stringFormat: Formatter[String] = new Formatter[String] {
     def bind(key: String, data: Map[String, String]) = data.get(key).toRight(Seq(FormError(key, "error.required", Nil)))
-    def unbind(key: String, value: String) = Map(key -> value)
+    def unbind(key: String, value: String)           = Map(key -> value)
   }
 
   /**
@@ -70,9 +70,13 @@ object Formats {
    */
   implicit def charFormat: Formatter[Char] = new Formatter[Char] {
     def bind(key: String, data: Map[String, String]) =
-      data.get(key).filter(s => s.length == 1 && s != " ").map(s => Right(s.charAt(0))).getOrElse(
-        Left(Seq(FormError(key, "error.required", Nil)))
-      )
+      data
+        .get(key)
+        .filter(s => s.length == 1 && s != " ")
+        .map(s => Right(s.charAt(0)))
+        .getOrElse(
+          Left(Seq(FormError(key, "error.required", Nil)))
+        )
     def unbind(key: String, value: Char) = Map(key -> value.toString)
   }
 
@@ -83,11 +87,16 @@ object Formats {
    * @param key Key name of the field to parse
    * @param data Field data
    */
-  def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(key: String, data: Map[String, String]): Either[Seq[FormError], T] = {
+  def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(
+      key: String,
+      data: Map[String, String]
+  ): Either[Seq[FormError], T] = {
     stringFormat.bind(key, data).right.flatMap { s =>
-      scala.util.control.Exception.allCatch[T]
+      scala.util.control.Exception
+        .allCatch[T]
         .either(parse(s))
-        .left.map(e => Seq(FormError(key, errMsg, errArgs)))
+        .left
+        .map(e => Seq(FormError(key, errMsg, errArgs)))
     }
   }
 
@@ -120,6 +129,7 @@ object Formats {
    * Default formatter for the `Byte` type.
    */
   implicit def byteFormat: Formatter[Byte] = numberFormatter(_.toByte)
+
   /**
    * Default formatter for the `Float` type.
    */
@@ -139,29 +149,41 @@ object Formats {
 
     def bind(key: String, data: Map[String, String]) = {
       Formats.stringFormat.bind(key, data).right.flatMap { s =>
-        scala.util.control.Exception.allCatch[BigDecimal]
+        scala.util.control.Exception
+          .allCatch[BigDecimal]
           .either {
             val bd = BigDecimal(s)
-            precision.map({
-              case (p, s) =>
-                if (bd.precision - bd.scale > p - s) {
-                  throw new java.lang.ArithmeticException("Invalid precision")
-                }
-                bd.setScale(s)
-            }).getOrElse(bd)
+            precision
+              .map({
+                case (p, s) =>
+                  if (bd.precision - bd.scale > p - s) {
+                    throw new java.lang.ArithmeticException("Invalid precision")
+                  }
+                  bd.setScale(s)
+              })
+              .getOrElse(bd)
           }
-          .left.map { e =>
+          .left
+          .map { e =>
             Seq(
               precision match {
                 case Some((p, s)) => FormError(key, "error.real.precision", Seq(p, s))
-                case None => FormError(key, "error.real", Nil)
+                case None         => FormError(key, "error.real", Nil)
               }
             )
           }
       }
     }
 
-    def unbind(key: String, value: BigDecimal) = Map(key -> precision.map({ p => value.setScale(p._2) }).getOrElse(value).toString)
+    def unbind(key: String, value: BigDecimal) =
+      Map(
+        key -> precision
+          .map({ p =>
+            value.setScale(p._2)
+          })
+          .getOrElse(value)
+          .toString
+      )
   }
 
   /**
@@ -178,16 +200,17 @@ object Formats {
 
     def bind(key: String, data: Map[String, String]) = {
       Right(data.getOrElse(key, "false")).right.flatMap {
-        case "true" => Right(true)
+        case "true"  => Right(true)
         case "false" => Right(false)
-        case _ => Left(Seq(FormError(key, "error.boolean", Nil)))
+        case _       => Left(Seq(FormError(key, "error.boolean", Nil)))
       }
     }
 
     def unbind(key: String, value: Boolean) = Map(key -> value.toString)
   }
 
-  import java.util.{ Date, TimeZone }
+  import java.util.Date
+  import java.util.TimeZone
 
   /**
    * Formatter for the `java.util.Date` type.
@@ -197,7 +220,7 @@ object Formats {
    */
   def dateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[Date] = new Formatter[Date] {
     val javaTimeZone = timeZone.toZoneId
-    val formatter = DateTimeFormatter.ofPattern(pattern)
+    val formatter    = DateTimeFormatter.ofPattern(pattern)
 
     def dateParse(data: String) = {
       val instant = PlayDate.parse(data, formatter).toZonedDateTime(ZoneOffset.UTC)
@@ -252,19 +275,21 @@ object Formats {
    * @param pattern a date pattern as specified in `java.time.DateTimeFormatter`.
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def sqlTimestampFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Timestamp] = new Formatter[java.sql.Timestamp] {
+  def sqlTimestampFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Timestamp] =
+    new Formatter[java.sql.Timestamp] {
 
-    import java.time.LocalDateTime
+      import java.time.LocalDateTime
 
-    private val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(timeZone.toZoneId)
-    private def timestampParse(data: String) = java.sql.Timestamp.valueOf(LocalDateTime.parse(data, formatter))
+      private val formatter                    = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(timeZone.toZoneId)
+      private def timestampParse(data: String) = java.sql.Timestamp.valueOf(LocalDateTime.parse(data, formatter))
 
-    override val format = Some(("format.timestamp", Seq(pattern)))
+      override val format = Some(("format.timestamp", Seq(pattern)))
 
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Timestamp] = parsing(timestampParse, "error.timestamp", Nil)(key, data)
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Timestamp] =
+        parsing(timestampParse, "error.timestamp", Nil)(key, data)
 
-    override def unbind(key: String, value: java.sql.Timestamp) = Map(key -> value.toLocalDateTime.format(formatter))
-  }
+      override def unbind(key: String, value: java.sql.Timestamp) = Map(key -> value.toLocalDateTime.format(formatter))
+    }
 
   /**
    * Default formatter for `java.sql.Timestamp` type with pattern `yyyy-MM-dd HH:mm:ss`.
@@ -280,7 +305,7 @@ object Formats {
 
     import java.time.LocalDate
 
-    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern)
+    val formatter                    = java.time.format.DateTimeFormatter.ofPattern(pattern)
     def localDateParse(data: String) = LocalDate.parse(data, formatter)
 
     override val format = Some(("format.date", Seq(pattern)))
@@ -301,16 +326,20 @@ object Formats {
    * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
    * @param zoneId the `java.time.ZoneId` to use for parsing and formatting
    */
-  def localDateTimeFormat(pattern: String, zoneId: java.time.ZoneId = java.time.ZoneId.systemDefault()): Formatter[java.time.LocalDateTime] = new Formatter[java.time.LocalDateTime] {
+  def localDateTimeFormat(
+      pattern: String,
+      zoneId: java.time.ZoneId = java.time.ZoneId.systemDefault()
+  ): Formatter[java.time.LocalDateTime] = new Formatter[java.time.LocalDateTime] {
 
     import java.time.LocalDateTime
 
-    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(zoneId)
+    val formatter                        = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(zoneId)
     def localDateTimeParse(data: String) = LocalDateTime.parse(data, formatter)
 
     override val format = Some(("format.localDateTime", Seq(pattern)))
 
-    def bind(key: String, data: Map[String, String]) = parsing(localDateTimeParse, "error.localDateTime", Nil)(key, data)
+    def bind(key: String, data: Map[String, String]) =
+      parsing(localDateTimeParse, "error.localDateTime", Nil)(key, data)
 
     def unbind(key: String, value: LocalDateTime) = Map(key -> value.format(formatter))
   }
@@ -329,7 +358,7 @@ object Formats {
 
     import java.time.LocalTime
 
-    val formatter = java.time.format.DateTimeFormatter.ofPattern(pattern)
+    val formatter                    = java.time.format.DateTimeFormatter.ofPattern(pattern)
     def localTimeParse(data: String) = LocalTime.parse(data, formatter)
 
     override val format = Some(("format.localTime", Seq(pattern)))

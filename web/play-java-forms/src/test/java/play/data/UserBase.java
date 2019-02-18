@@ -12,20 +12,19 @@ import play.data.validation.Constraints.ValidateWith;
 
 public class UserBase {
 
-    @MinLength(255)
-    @ValidateWith(value = play.data.validation.Constraints.RequiredValidator.class)
-    @Required
-    @MaxLength(255)
-    @Pattern("[0-9]")
-    @Email
-    private String password;
+  @MinLength(255)
+  @ValidateWith(value = play.data.validation.Constraints.RequiredValidator.class)
+  @Required
+  @MaxLength(255)
+  @Pattern("[0-9]")
+  @Email
+  private String password;
 
-    public String getPassword() {
-        return this.password;
-    }
+  public String getPassword() {
+    return this.password;
+  }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
+  public void setPassword(String password) {
+    this.password = password;
+  }
 }

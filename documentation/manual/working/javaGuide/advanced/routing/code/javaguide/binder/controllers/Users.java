@@ -8,11 +8,11 @@ import play.mvc.Result;
 
 public class Users extends Controller {
 
-    public Result list() {
-        return ok("List Users");
-    }
+  public Result list() {
+    return ok("List Users");
+  }
 
-    public Result get(Long id) {
-        return ok("Get user by id");
-    }
+  public Result get(Long id) {
+    return ok("Get user by id");
+  }
 }

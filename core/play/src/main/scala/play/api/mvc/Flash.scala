@@ -5,8 +5,11 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.{ FlashConfiguration, HttpConfiguration, SecretConfiguration }
-import play.api.libs.crypto.{ CookieSigner, CookieSignerProvider }
+import play.api.http.FlashConfiguration
+import play.api.http.HttpConfiguration
+import play.api.http.SecretConfiguration
+import play.api.libs.crypto.CookieSigner
+import play.api.libs.crypto.CookieSignerProvider
 import play.mvc.Http
 
 import scala.collection.JavaConverters._
@@ -76,10 +79,10 @@ trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
 
   lazy val emptyCookie = new Flash
 
-  override def path: String = config.path
-  override def secure: Boolean = config.secure
-  override def httpOnly: Boolean = config.httpOnly
-  override def domain: Option[String] = config.domain
+  override def path: String                      = config.path
+  override def secure: Boolean                   = config.secure
+  override def httpOnly: Boolean                 = config.httpOnly
+  override def domain: Option[String]            = config.domain
   override def sameSite: Option[Cookie.SameSite] = config.sameSite
 
   def deserialize(data: Map[String, String]): Flash = new Flash(data)
@@ -88,23 +91,25 @@ trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
 
 }
 
-class DefaultFlashCookieBaker @Inject() (
+class DefaultFlashCookieBaker @Inject()(
     val config: FlashConfiguration,
     val secretConfiguration: SecretConfiguration,
-    val cookieSigner: CookieSigner)
-  extends FlashCookieBaker with FallbackCookieDataCodec {
+    val cookieSigner: CookieSigner
+) extends FlashCookieBaker
+    with FallbackCookieDataCodec {
 
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 
-  override val jwtCodec: JWTCookieDataCodec = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
+  override val jwtCodec: JWTCookieDataCodec           = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
   override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 }
 
-class LegacyFlashCookieBaker @Inject() (
+class LegacyFlashCookieBaker @Inject()(
     val config: FlashConfiguration,
     val secretConfiguration: SecretConfiguration,
-    val cookieSigner: CookieSigner)
-  extends FlashCookieBaker with UrlEncodedCookieDataCodec {
+    val cookieSigner: CookieSigner
+) extends FlashCookieBaker
+    with UrlEncodedCookieDataCodec {
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 

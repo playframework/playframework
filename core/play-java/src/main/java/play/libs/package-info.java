@@ -1,7 +1,5 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
-/**
- * Provides various APIs that are useful for developing web applications.
- */
+/** Provides various APIs that are useful for developing web applications. */
 package play.libs;

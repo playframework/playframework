@@ -14,11 +14,11 @@ import play.filters.headers.SecurityHeadersFilter;
  */
 public interface SecurityHeadersComponents extends ConfigurationComponents {
 
-    default SecurityHeadersConfig securityHeadersConfig() {
-        return SecurityHeadersConfig.fromConfiguration(configuration());
-    }
+  default SecurityHeadersConfig securityHeadersConfig() {
+    return SecurityHeadersConfig.fromConfiguration(configuration());
+  }
 
-    default SecurityHeadersFilter securityHeadersFilter() {
-        return new SecurityHeadersFilter(securityHeadersConfig());
-    }
+  default SecurityHeadersFilter securityHeadersFilter() {
+    return new SecurityHeadersFilter(securityHeadersConfig());
+  }
 }

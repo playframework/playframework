@@ -4,7 +4,8 @@
 package play.core.routing
 
 import java.util.Optional
-import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 import akka.stream.scaladsl.Flow
 import org.apache.commons.lang3.reflect.MethodUtils
@@ -12,9 +13,11 @@ import play.api.http.ActionCompositionConfiguration
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
-import play.mvc.Http.{ Context, RequestBody }
+import play.mvc.Http.Context
+import play.mvc.Http.RequestBody
 
-import scala.compat.java8.{ FutureConverters, OptionConverters }
+import scala.compat.java8.FutureConverters
+import scala.compat.java8.OptionConverters
 import scala.util.control.NonFatal
 
 /**
@@ -22,6 +25,7 @@ import scala.util.control.NonFatal
  * that thunk. Constructed by a `HandlerInvokerFactory`.
  */
 trait HandlerInvoker[-T] {
+
   /**
    * Create a `Handler` that wraps the given thunk. The thunk won't be called
    * until the `Handler` is applied. The returned Handler will be used by
@@ -37,6 +41,7 @@ trait HandlerInvoker[-T] {
  */
 @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as a Handler for requests")
 trait HandlerInvokerFactory[-T] {
+
   /**
    * Create an invoker for the given thunk that is never called.
    * @param fakeCall A simulated call to the controller method. Needed to
@@ -48,7 +53,8 @@ trait HandlerInvokerFactory[-T] {
 
 object HandlerInvokerFactory {
 
-  import play.mvc.{ Result => JResult, WebSocket => JWebSocket }
+  import play.mvc.{ Result => JResult }
+  import play.mvc.{ WebSocket => JWebSocket }
 
   /**
    * Create a `HandlerInvokerFactory` for a call that already produces a
@@ -91,7 +97,8 @@ object HandlerInvokerFactory {
       def cachedAnnotations(config: ActionCompositionConfiguration) = {
         if (_annotations == null) {
           val controller = loadJavaControllerClass(handlerDef)
-          val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+          val method =
+            MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
           _annotations = new JavaActionAnnotations(controller, method, config)
         }
         _annotations
@@ -117,25 +124,27 @@ object HandlerInvokerFactory {
     def resultCall(call: => A): CompletionStage[JResult]
   }
 
-  private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser { request =>
-    import scala.language.existentials
-    val accumulator = parser.apply(request.asJava).asScala()
-    import play.core.Execution.Implicits.trampoline
-    accumulator.map { javaEither =>
-      if (javaEither.left.isPresent) {
-        Left(javaEither.left.get().asScala())
-      } else {
-        Right(new RequestBody(javaEither.right.get()))
+  private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser {
+    request =>
+      import scala.language.existentials
+      val accumulator = parser.apply(request.asJava).asScala()
+      import play.core.Execution.Implicits.trampoline
+      accumulator.map { javaEither =>
+        if (javaEither.left.isPresent) {
+          Left(javaEither.left.get().asScala())
+        } else {
+          Right(new RequestBody(javaEither.right.get()))
+        }
       }
-    }
   }
 
   implicit def wrapJava: HandlerInvokerFactory[JResult] = new JavaActionInvokerFactory[JResult] {
     def resultCall(call: => JResult) = CompletableFuture.completedFuture(call)
   }
-  implicit def wrapJavaPromise: HandlerInvokerFactory[CompletionStage[JResult]] = new JavaActionInvokerFactory[CompletionStage[JResult]] {
-    def resultCall(call: => CompletionStage[JResult]) = call
-  }
+  implicit def wrapJavaPromise: HandlerInvokerFactory[CompletionStage[JResult]] =
+    new JavaActionInvokerFactory[CompletionStage[JResult]] {
+      def resultCall(call: => CompletionStage[JResult]) = call
+    }
 
   /**
    * Create a `HandlerInvokerFactory` for a Java WebSocket.
@@ -171,19 +180,26 @@ object HandlerInvokerFactory {
               if (resultOrFlow.left.isPresent) {
                 Left(resultOrFlow.left.get.asScala())
               } else {
-                Right(Flow[Message].map {
-                  case TextMessage(text) => new JMessage.Text(text)
-                  case BinaryMessage(data) => new JMessage.Binary(data)
-                  case PingMessage(data) => new JMessage.Ping(data)
-                  case PongMessage(data) => new JMessage.Pong(data)
-                  case CloseMessage(code, reason) => new JMessage.Close(OptionConverters.toJava(code).asInstanceOf[Optional[Integer]], reason)
-                }.via(resultOrFlow.right.get.asScala).map {
-                  case text: JMessage.Text => TextMessage(text.data)
-                  case binary: JMessage.Binary => BinaryMessage(binary.data)
-                  case ping: JMessage.Ping => PingMessage(ping.data)
-                  case pong: JMessage.Pong => PongMessage(pong.data)
-                  case close: JMessage.Close => CloseMessage(OptionConverters.toScala(close.code).asInstanceOf[Option[Int]], close.reason)
-                })
+                Right(
+                  Flow[Message]
+                    .map {
+                      case TextMessage(text)   => new JMessage.Text(text)
+                      case BinaryMessage(data) => new JMessage.Binary(data)
+                      case PingMessage(data)   => new JMessage.Ping(data)
+                      case PongMessage(data)   => new JMessage.Pong(data)
+                      case CloseMessage(code, reason) =>
+                        new JMessage.Close(OptionConverters.toJava(code).asInstanceOf[Optional[Integer]], reason)
+                    }
+                    .via(resultOrFlow.right.get.asScala)
+                    .map {
+                      case text: JMessage.Text     => TextMessage(text.data)
+                      case binary: JMessage.Binary => BinaryMessage(binary.data)
+                      case ping: JMessage.Ping     => PingMessage(ping.data)
+                      case pong: JMessage.Pong     => PongMessage(pong.data)
+                      case close: JMessage.Close =>
+                        CloseMessage(OptionConverters.toScala(close.code).asInstanceOf[Option[Int]], close.reason)
+                    }
+                )
               }
             }
           }

@@ -10,8 +10,10 @@ import org.specs2.specification.BeforeAll
 import play.{ BuiltInComponents => JBuiltInComponents }
 import play.api.Mode
 import play.api.routing.Router
-import play.it.http.{ BasicHttpClient, BasicRequest }
-import play.mvc.{ Result, Results }
+import play.it.http.BasicHttpClient
+import play.it.http.BasicRequest
+import play.mvc.Result
+import play.mvc.Results
 import play.routing.RoutingDsl
 import play.server.Server
 import play.{ Mode => JavaMode }
@@ -50,51 +52,57 @@ trait ServerSpec extends Specification with BeforeAll {
         withServer(
           Server.forRouter(asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
-            server.httpPort() must beGreaterThan(0)
-            server.underlying().mode must beEqualTo(Mode.Test)
-          }
+          server.httpPort() must beGreaterThan(0)
+          server.underlying().mode must beEqualTo(Mode.Test)
+        }
       }
       "with given port and default mode" in {
         withServer(
           Server.forRouter(9999, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
-            server.httpPort() must beEqualTo(9999)
-            server.underlying().mode must beEqualTo(Mode.Test)
-          }
+          server.httpPort() must beEqualTo(9999)
+          server.underlying().mode must beEqualTo(Mode.Test)
+        }
       }
       "with the given mode and free port" in {
         withServer(
           Server.forRouter(JavaMode.DEV, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
-            server.httpPort() must beGreaterThan(0)
-            server.underlying().mode must beEqualTo(Mode.Dev)
-          }
+          server.httpPort() must beGreaterThan(0)
+          server.underlying().mode must beEqualTo(Mode.Dev)
+        }
       }
       "with the given mode and port" in {
         withServer(
           Server.forRouter(JavaMode.DEV, 9999, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
-            server.httpPort() must beEqualTo(9999)
-            server.underlying().mode must beEqualTo(Mode.Dev)
-          }
+          server.httpPort() must beEqualTo(9999)
+          server.underlying().mode must beEqualTo(Mode.Dev)
+        }
       }
       "with the given router" in {
         withServer(
-          Server.forRouter(JavaMode.DEV, asJavaFunction { components: JBuiltInComponents =>
-            RoutingDsl.fromComponents(components)
-              .GET("/something").routeTo(
-                new Supplier[Result] {
-                  override def get() = Results.ok("You got something")
-                }
-              ).build()
-          })
+          Server.forRouter(
+            JavaMode.DEV,
+            asJavaFunction { components: JBuiltInComponents =>
+              RoutingDsl
+                .fromComponents(components)
+                .GET("/something")
+                .routeTo(
+                  new Supplier[Result] {
+                    override def get() = Results.ok("You got something")
+                  }
+                )
+                .build()
+            }
+          )
         ) { server =>
-            server.underlying().mode must beEqualTo(Mode.Dev)
+          server.underlying().mode must beEqualTo(Mode.Dev)
 
-            val request = BasicRequest("GET", "/something", "HTTP/1.1", Map(), "")
-            val responses = BasicHttpClient.makeRequests(port = server.httpPort())(request)
-            responses.head.body must beLeft("You got something")
-          }
+          val request   = BasicRequest("GET", "/something", "HTTP/1.1", Map(), "")
+          val responses = BasicHttpClient.makeRequests(port = server.httpPort())(request)
+          responses.head.body must beLeft("You got something")
+        }
       }
     }
 
@@ -102,8 +110,8 @@ trait ServerSpec extends Specification with BeforeAll {
       withServer(
         Server.forRouter(9999, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
       ) { server =>
-          server.mainAddress().getPort must beEqualTo(9999)
-        }
+        server.mainAddress().getPort must beEqualTo(9999)
+      }
     }
   }
 

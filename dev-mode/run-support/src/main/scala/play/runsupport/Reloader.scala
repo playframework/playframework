@@ -3,18 +3,24 @@
  */
 package play.runsupport
 
-import java.io.{ Closeable, File }
-import java.net.{ URL, URLClassLoader }
-import java.security.{ AccessController, PrivilegedAction }
+import java.io.Closeable
+import java.io.File
+import java.net.URL
+import java.net.URLClassLoader
+import java.security.AccessController
+import java.security.PrivilegedAction
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
-import java.util.{ Timer, TimerTask }
+import java.util.Timer
+import java.util.TimerTask
 
 import better.files.{ File => _, _ }
 import play.api.PlayException
-import play.core.{ Build, BuildLink }
+import play.core.Build
+import play.core.BuildLink
 import play.dev.filewatch.FileWatchService
-import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
+import play.runsupport.classloader.ApplicationClassLoaderProvider
+import play.runsupport.classloader.DelegatingClassLoader
 
 import scala.collection.JavaConverters._
 
@@ -22,7 +28,7 @@ object Reloader {
 
   sealed trait CompileResult
   case class CompileSuccess(sources: Map[String, Source], classpath: Seq[File]) extends CompileResult
-  case class CompileFailure(exception: PlayException) extends CompileResult
+  case class CompileFailure(exception: PlayException)                           extends CompileResult
 
   trait GeneratedSourceMapping {
     def getOriginalLine(generatedSource: File, line: Integer): Integer
@@ -40,19 +46,22 @@ object Reloader {
    * Execute f with context ClassLoader of Reloader
    */
   private def withReloaderContextClassLoader[T](f: => T): T = {
-    val thread = Thread.currentThread
+    val thread    = Thread.currentThread
     val oldLoader = thread.getContextClassLoader
     // we use accessControlContext & AccessController to avoid a ClassLoader leak (ProtectionDomain class)
-    AccessController.doPrivileged(new PrivilegedAction[T]() {
-      def run: T = {
-        try {
-          thread.setContextClassLoader(classOf[Reloader].getClassLoader)
-          f
-        } finally {
-          thread.setContextClassLoader(oldLoader)
+    AccessController.doPrivileged(
+      new PrivilegedAction[T]() {
+        def run: T = {
+          try {
+            thread.setContextClassLoader(classOf[Reloader].getClassLoader)
+            f
+          } finally {
+            thread.setContextClassLoader(oldLoader)
+          }
         }
-      }
-    }, accessControlContext)
+      },
+      accessControlContext
+    )
   }
 
   /**
@@ -71,51 +80,58 @@ object Reloader {
   }
 
   def filterArgs(
-    args: Seq[String],
-    defaultHttpPort: Int,
-    defaultHttpAddress: String,
-    devSettings: Seq[(String, String)]): (Seq[(String, String)], Option[Int], Option[Int], String) = {
+      args: Seq[String],
+      defaultHttpPort: Int,
+      defaultHttpAddress: String,
+      devSettings: Seq[(String, String)]
+  ): (Seq[(String, String)], Option[Int], Option[Int], String) = {
     val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
     val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
 
-    val props = properties.toMap
-    def prop(key: String): Option[String] = props.get(key) orElse sys.props.get(key)
+    val props                             = properties.toMap
+    def prop(key: String): Option[String] = props.get(key).orElse(sys.props.get(key))
 
     def parsePortValue(portValue: Option[String], defaultValue: Option[Int] = None): Option[Int] = {
       portValue match {
-        case None => defaultValue
+        case None             => defaultValue
         case Some("disabled") => None
-        case Some(s) => Some(parsePort(s))
+        case Some(s)          => Some(parsePort(s))
       }
     }
 
     // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
     // Or it can be defined in devSettings as "play.server.http.port"
-    val httpPortString: Option[String] = otherArgs.headOption orElse prop("http.port") orElse devSettings.toMap.get("play.server.http.port")
+    val httpPortString: Option[String] =
+      otherArgs.headOption.orElse(prop("http.port")).orElse(devSettings.toMap.get("play.server.http.port"))
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
     // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPortString: Option[String] = prop("https.port") orElse devSettings.toMap.get("play.server.https.port")
-    val httpsPort = parsePortValue(httpsPortString)
+    val httpsPortString: Option[String] = prop("https.port").orElse(devSettings.toMap.get("play.server.https.port"))
+    val httpsPort                       = parsePortValue(httpsPortString)
 
     // http address can be defined as a -Dhttp.address argument or system property
-    val httpAddress = prop("http.address") orElse devSettings.toMap.get("play.server.http.address") getOrElse defaultHttpAddress
+    val httpAddress =
+      prop("http.address").orElse(devSettings.toMap.get("play.server.http.address")).getOrElse(defaultHttpAddress)
 
     (properties, httpPort, httpsPort, httpAddress)
   }
 
   def urls(cp: Seq[File]): Array[URL] = cp.map(_.toURI.toURL).toArray
 
-  def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader = new AssetsClassLoader(parent, allAssets)
+  def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader =
+    new AssetsClassLoader(parent, allAssets)
 
   def commonClassLoader(classpath: Seq[File]) = {
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
 
-    new java.net.URLClassLoader(classpath.collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
+    new java.net.URLClassLoader(
+      classpath.collect(commonJars).toArray,
+      null /* important here, don't depend of the sbt classLoader! */
+    ) {
       override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
     }
   }
@@ -142,17 +158,26 @@ object Reloader {
    * @return A closeable that can be closed to stop the server
    */
   def startDevMode(
-    runHooks: Seq[RunHook], javaOptions: Seq[String],
-    commonClassLoader: ClassLoader, dependencyClasspath: Seq[File],
-    reloadCompile: () => CompileResult, assetsClassLoader: ClassLoader => ClassLoader,
-    monitoredFiles: Seq[File], fileWatchService: FileWatchService,
-    generatedSourceHandlers: Map[String, GeneratedSourceMapping],
-    defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
-    devSettings: Seq[(String, String)], args: Seq[String],
-    mainClassName: String, reloadLock: AnyRef
+      runHooks: Seq[RunHook],
+      javaOptions: Seq[String],
+      commonClassLoader: ClassLoader,
+      dependencyClasspath: Seq[File],
+      reloadCompile: () => CompileResult,
+      assetsClassLoader: ClassLoader => ClassLoader,
+      monitoredFiles: Seq[File],
+      fileWatchService: FileWatchService,
+      generatedSourceHandlers: Map[String, GeneratedSourceMapping],
+      defaultHttpPort: Int,
+      defaultHttpAddress: String,
+      projectPath: File,
+      devSettings: Seq[(String, String)],
+      args: Seq[String],
+      mainClassName: String,
+      reloadLock: AnyRef
   ): DevServer = {
 
-    val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
+    val (properties, httpPort, httpsPort, httpAddress) =
+      filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val systemProperties = extractSystemProperties(javaOptions)
 
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -209,14 +234,29 @@ object Reloader {
      * buildLoader. Also accesses the reloader resources to make these available
      * to the applicationLoader, creating a full circle for resource loading.
      */
-    lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonClassLoader, Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
-      def get: URLClassLoader = { reloader.getClassLoader.orNull }
-    })
+    lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
+      commonClassLoader,
+      Build.sharedClasses,
+      buildLoader,
+      new ApplicationClassLoaderProvider {
+        def get: URLClassLoader = { reloader.getClassLoader.orNull }
+      }
+    )
 
-    lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
+    lazy val applicationLoader =
+      new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, generatedSourceHandlers, reloadLock)
+    lazy val reloader = new Reloader(
+      reloadCompile,
+      assetsLoader,
+      projectPath,
+      devSettings,
+      monitoredFiles,
+      fileWatchService,
+      generatedSourceHandlers,
+      reloadLock
+    )
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -226,10 +266,14 @@ object Reloader {
         val mainClass = applicationLoader.loadClass(mainClassName)
         if (httpPort.isDefined) {
           val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int], classOf[String])
-          mainDev.invoke(null, reloader, httpPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ReloadableServer]
+          mainDev
+            .invoke(null, reloader, httpPort.get: java.lang.Integer, httpAddress)
+            .asInstanceOf[play.core.server.ReloadableServer]
         } else {
           val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[BuildLink], classOf[Int], classOf[String])
-          mainDev.invoke(null, reloader, httpsPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ReloadableServer]
+          mainDev
+            .invoke(null, reloader, httpsPort.get: java.lang.Integer, httpAddress)
+            .asInstanceOf[play.core.server.ReloadableServer]
         }
       }
 
@@ -237,9 +281,9 @@ object Reloader {
       runHooks.run(_.afterStarted(server.mainAddress))
 
       new DevServer {
-        val buildLink = reloader
+        val buildLink                              = reloader
         def addChangeListener(f: () => Unit): Unit = reloader.addChangeListener(f)
-        def reload(): Unit = server.reload()
+        def reload(): Unit                         = server.reload()
         def close(): Unit = {
           server.stop()
           reloader.close()
@@ -276,18 +320,27 @@ object Reloader {
   /**
    * Start the server without hot reloading
    */
-  def startNoReload(parentClassLoader: ClassLoader, dependencyClasspath: Seq[File], buildProjectPath: File,
-    devSettings: Seq[(String, String)], httpPort: Int, mainClassName: String): DevServer = {
+  def startNoReload(
+      parentClassLoader: ClassLoader,
+      dependencyClasspath: Seq[File],
+      buildProjectPath: File,
+      devSettings: Seq[(String, String)],
+      httpPort: Int,
+      mainClassName: String
+  ): DevServer = {
     val buildLoader = this.getClass.getClassLoader
 
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(
       parentClassLoader,
-      Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
+      Build.sharedClasses,
+      buildLoader,
+      new ApplicationClassLoaderProvider {
         def get: URLClassLoader = { applicationLoader }
-      })
+      }
+    )
 
-    lazy val applicationLoader = new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath),
-      delegatingLoader)
+    lazy val applicationLoader =
+      new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
 
     val _buildLink = new BuildLink {
       private val initialized = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -295,15 +348,16 @@ object Reloader {
         if (initialized.compareAndSet(false, true)) applicationLoader
         else null // this means nothing to reload
       }
-      override def projectPath(): File = buildProjectPath
-      override def settings(): java.util.Map[String, String] = devSettings.toMap.asJava
-      override def forceReload(): Unit = ()
+      override def projectPath(): File                                         = buildProjectPath
+      override def settings(): java.util.Map[String, String]                   = devSettings.toMap.asJava
+      override def forceReload(): Unit                                         = ()
       override def findSource(className: String, line: Integer): Array[AnyRef] = null
     }
 
     val mainClass = applicationLoader.loadClass(mainClassName)
-    val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int])
-    val server = mainDev.invoke(null, _buildLink, httpPort: java.lang.Integer).asInstanceOf[play.core.server.ReloadableServer]
+    val mainDev   = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int])
+    val server =
+      mainDev.invoke(null, _buildLink, httpPort: java.lang.Integer).asInstanceOf[play.core.server.ReloadableServer]
 
     server.reload() // it's important to initialize the server
 
@@ -335,7 +389,8 @@ class Reloader(
     monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
     generatedSourceHandlers: Map[String, GeneratedSourceMapping],
-    reloadLock: AnyRef) extends BuildLink {
+    reloadLock: AnyRef
+) extends BuildLink {
 
   // The current classloader for the application
   @volatile private var currentApplicationClassLoader: Option[URLClassLoader] = None
@@ -416,23 +471,25 @@ class Reloader(
               exception
 
             case CompileSuccess(sourceMap, classpath) =>
-
               currentSourceMap = Some(sourceMap)
 
               // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
               // they won't trigger a reload.
-              val classpathFiles = classpath.iterator.filter(_.exists()).flatMap(_.toScala.listRecursively).map(_.toJava)
+              val classpathFiles =
+                classpath.iterator.filter(_.exists()).flatMap(_.toScala.listRecursively).map(_.toJava)
               val newLastModified =
-                classpathFiles.foldLeft(0L) { (acc, file) => math.max(acc, file.lastModified) }
+                classpathFiles.foldLeft(0L) { (acc, file) =>
+                  math.max(acc, file.lastModified)
+                }
               val triggered = newLastModified > lastModified
               lastModified = newLastModified
 
               if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
                 // Create a new classloader
                 val version = classLoaderVersion.incrementAndGet
-                val name = "ReloadableClassLoader(v" + version + ")"
-                val urls = Reloader.urls(classpath)
-                val loader = new DelegatedResourcesClassLoader(name, urls, baseLoader)
+                val name    = "ReloadableClassLoader(v" + version + ")"
+                val urls    = Reloader.urls(classpath)
+                val loader  = new DelegatedResourcesClassLoader(name, urls, baseLoader)
                 currentApplicationClassLoader = Some(loader)
                 loader
               } else {

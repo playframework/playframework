@@ -5,7 +5,8 @@ package play.core
 
 import java.io.File
 import javax.inject.Singleton
-import play.api.mvc.{ Result, RequestHeader }
+import play.api.mvc.Result
+import play.api.mvc.RequestHeader
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -37,6 +38,6 @@ class DefaultWebCommands extends WebCommands {
   }
 
   def handleWebCommand(request: RequestHeader, buildLink: BuildLink, path: File): Option[Result] = synchronized {
-    (handlers.toStream flatMap { _.handleWebCommand(request, buildLink, path).toSeq }).headOption
+    handlers.toStream.flatMap { _.handleWebCommand(request, buildLink, path).toSeq }.headOption
   }
 }

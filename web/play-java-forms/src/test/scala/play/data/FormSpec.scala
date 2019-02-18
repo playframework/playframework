@@ -5,21 +5,28 @@ package play.data
 
 import java.util
 import java.util.Optional
-import java.time.{ LocalDate, ZoneId }
-import javax.validation.{ Validation, Validator, Configuration => vConfiguration }
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.validation.Validation
+import javax.validation.Validator
+import javax.validation.{ Configuration => vConfiguration }
 import javax.validation.groups.Default
 
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.specs2.mutable.Specification
-import play.{ ApplicationLoader, BuiltInComponentsFromContext }
+import play.ApplicationLoader
+import play.BuiltInComponentsFromContext
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
 import play.core.j.JavaContextComponents
 import play.data.validation.ValidationError
 import play.mvc.EssentialFilter
-import play.mvc.Http.{ Context, Request, RequestBuilder }
+import play.mvc.Http.Context
+import play.mvc.Http.Request
+import play.mvc.Http.RequestBuilder
 import play.routing.Router
 import play.twirl.api.Html
 
@@ -30,7 +37,8 @@ import scala.compat.java8.OptionConverters._
 class RuntimeDependencyInjectionFormSpec extends FormSpec {
   private var app: Option[Application] = None
 
-  override def defaultContextComponents: JavaContextComponents = app.getOrElse(application()).injector.instanceOf[JavaContextComponents]
+  override def defaultContextComponents: JavaContextComponents =
+    app.getOrElse(application()).injector.instanceOf[JavaContextComponents]
 
   override def formFactory: FormFactory = app.getOrElse(application()).injector.instanceOf[FormFactory]
 
@@ -43,8 +51,9 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
 
-  class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty) extends BuiltInComponentsFromContext(context)
-    with FormFactoryComponents {
+  class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty)
+      extends BuiltInComponentsFromContext(context)
+      with FormFactoryComponents {
     override def router(): Router = Router.empty()
 
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
@@ -52,18 +61,21 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
     override def config(): Config = {
       val javaExtraConfig = extraConfig.mapValues {
         case v: Seq[Any] => v.asJava
-        case v => v
+        case v           => v
       }.asJava
       ConfigFactory.parseMap(javaExtraConfig).withFallback(super.config())
     }
   }
 
   private var components: Option[MyComponents] = None
-  private lazy val context = ApplicationLoader.create(play.Environment.simple())
+  private lazy val context                     = ApplicationLoader.create(play.Environment.simple())
 
-  override def formFactory: FormFactory = components.getOrElse{
-    new MyComponents(context)
-  }.formFactory()
+  override def formFactory: FormFactory =
+    components
+      .getOrElse {
+        new MyComponents(context)
+      }
+      .formFactory()
 
   override def application(extraConfig: (String, Any)*): Application = {
     val myComponents = new MyComponents(context, extraConfig.toMap)
@@ -71,7 +83,8 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
     myComponents.application().asScala()
   }
 
-  override def defaultContextComponents: JavaContextComponents = components.getOrElse(new MyComponents(ApplicationLoader.create(play.Environment.simple()))).javaContextComponents()
+  override def defaultContextComponents: JavaContextComponents =
+    components.getOrElse(new MyComponents(ApplicationLoader.create(play.Environment.simple()))).javaContextComponents()
 }
 
 trait FormSpec extends Specification {
@@ -86,121 +99,210 @@ trait FormSpec extends Specification {
 
     "with a root name" should {
       "be valid with all fields" in {
-        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891"), "task.name" -> Array("peter"), "task.dueDate" -> Array("15/12/2009"), "task.endDate" -> Array("2008-11-21")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+        val req = FormSpec.dummyRequest(
+          Map(
+            "task.id"      -> Array("1234567891"),
+            "task.name"    -> Array("peter"),
+            "task.dueDate" -> Array("15/12/2009"),
+            "task.endDate" -> Array("2008-11-21")
+          )
+        )
+        Context.current.set(
+          new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+        )
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
-        myForm hasErrors () must beEqualTo(false)
+        myForm.hasErrors() must beEqualTo(false)
       }
-      "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(application()) {
-        val req = FormSpec.dummyRequest(Map("task.id" -> Array("notAnInt"), "task.name" -> Array("peter"), "task.done" -> Array("true"), "task.dueDate" -> Array("15/12/2009")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(
+        application()
+      ) {
+        val req = FormSpec.dummyRequest(
+          Map(
+            "task.id"      -> Array("notAnInt"),
+            "task.name"    -> Array("peter"),
+            "task.done"    -> Array("true"),
+            "task.dueDate" -> Array("15/12/2009")
+          )
+        )
+        Context.current.set(
+          new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+        )
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
 
-        myForm hasErrors () must beEqualTo(true)
+        myForm.hasErrors() must beEqualTo(true)
         myForm.field("task.name").getValue.asScala must beSome("peter")
       }
       "have an error due to missing required value" in new WithApplication(application()) {
         val contextComponents = defaultContextComponents
 
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
-        Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents))
+        Context.current.set(
+          new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents)
+        )
 
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
-        myForm hasErrors () must beEqualTo(true)
+        myForm.hasErrors() must beEqualTo(true)
         myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
       }
     }
     "be valid with all fields" in {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11-21")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map(
+          "id"      -> Array("1234567891"),
+          "name"    -> Array("peter"),
+          "dueDate" -> Array("15/12/2009"),
+          "endDate" -> Array("2008-11-21")
+        )
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
+      myForm.hasErrors() must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"))
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
+      myForm.hasErrors() must beEqualTo(false)
     }
     "query params ignored when using POST" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "POST", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "POST",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
+      myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getName() must beEqualTo("peter")
       myForm.value().get().getId() must beEqualTo(null)
     }
     "query params ignored when using PUT" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PUT", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "PUT",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
+      myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getName() must beEqualTo("peter")
       myForm.value().get().getId() must beEqualTo(null)
     }
     "query params ignored when using PATCH" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "PATCH", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "PATCH",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
+      myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getName() must beEqualTo("peter")
       myForm.value().get().getId() must beEqualTo(null)
     }
 
     "query params NOT ignored when using GET" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "GET", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "GET",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
-      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for GET requests
+      myForm.hasErrors() must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
+        LocalDate.of(2009, 12, 15)
+      )                                                        // we also parse the body for GET requests
       myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using GET
       myForm.value().get().getId() must beEqualTo(55555)
     }
     "query params NOT ignored when using DELETE" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "DELETE", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "DELETE",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
-      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for DELETE requests
+      myForm.hasErrors() must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
+        LocalDate.of(2009, 12, 15)
+      )                                                        // we also parse the body for DELETE requests
       myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using DELETE
       myForm.value().get().getId() must beEqualTo(55555)
     }
     "query params NOT ignored when using HEAD" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "HEAD", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "HEAD",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
-      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for HEAD requests
+      myForm.hasErrors() must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
+        LocalDate.of(2009, 12, 15)
+      )                                                        // we also parse the body for HEAD requests
       myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using HEAD
       myForm.value().get().getId() must beEqualTo(55555)
     }
     "query params NOT ignored when using OPTIONS" in {
-      val req = FormSpec.dummyRequest(Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")), "OPTIONS", "?name=michael&id=55555")
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("peter"), "dueDate" -> Array("15/12/2009")),
+        "OPTIONS",
+        "?name=michael&id=55555"
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(false)
-      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(LocalDate.of(2009, 12, 15)) // we also parse the body for OPTIONS requests
+      myForm.hasErrors() must beEqualTo(false)
+      myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
+        LocalDate.of(2009, 12, 15)
+      )                                                        // we also parse the body for OPTIONS requests
       myForm.value().get().getName() must beEqualTo("michael") // but query param overwrites body when using OPTIONS
       myForm.value().get().getId() must beEqualTo(55555)
     }
 
     "have an error due to badly formatted date" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(true)
+      myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(2)
       myForm.errors("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date")
       myForm.errors("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid")
@@ -211,93 +313,177 @@ trait FormSpec extends Specification {
       myForm.value().get().getName() must beEqualTo("peter")
     }
     "throws an exception when trying to access value of invalid form via get()" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm.get must throwAn[IllegalStateException]
     }
-    "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication(application()) {
+    "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication(
+      application()
+    ) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
       myForm.value().get().getId() must_== null
       myForm.value().get().getName() must_== null
     }
-    "have an error due to badly formatted date after using setTransientLang" in new WithApplication(application("play.i18n.langs" -> Seq("en", "en-US", "fr"))) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+    "have an error due to badly formatted date after using setTransientLang" in new WithApplication(
+      application("play.i18n.langs" -> Seq("en", "en-US", "fr"))
+    ) {
+      val req = FormSpec.dummyRequest(
+        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       Context.current.get().setTransientLang("fr")
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(true)
+      myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
-      myForm.errors("dueDate").get(0).messages().get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
-      myForm.errors("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
-      myForm.errors("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
-      myForm.errors("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .messages()
+        .get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .messages()
+        .get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .messages()
+        .get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
     }
-    "have an error due to badly formatted date after using changeLang" in new WithApplication(application("play.i18n.langs" -> Seq("en", "en-US", "fr"))) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+    "have an error due to badly formatted date after using changeLang" in new WithApplication(
+      application("play.i18n.langs" -> Seq("en", "en-US", "fr"))
+    ) {
+      val req = FormSpec.dummyRequest(
+        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       Context.current.get().changeLang("fr")
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(true)
+      myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
-      myForm.errors("dueDate").get(0).messages().get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
-      myForm.errors("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
-      myForm.errors("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
-      myForm.errors("dueDate").get(0).message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .messages()
+        .get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .messages()
+        .get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .messages()
+        .get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
+      myForm
+        .errors("dueDate")
+        .get(0)
+        .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
     }
     "have an error due to missing required value" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(true)
+      myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
     }
     "have an error due to bad value in Id field" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009"))
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(true)
+      myForm.hasErrors() must beEqualTo(true)
       myForm.errors("id").get(0).messages().asScala must contain("error.invalid")
     }
 
     "have an error due to badly formatted date for default date binder" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"), "endDate" -> Array("2008-11e-21")))
-      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents))
+      val req = FormSpec.dummyRequest(
+        Map(
+          "id"      -> Array("1234567891"),
+          "name"    -> Array("peter"),
+          "dueDate" -> Array("15/12/2009"),
+          "endDate" -> Array("2008-11e-21")
+        )
+      )
+      Context.current.set(
+        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
+      )
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
-      myForm hasErrors () must beEqualTo(true)
+      myForm.hasErrors() must beEqualTo(true)
       myForm.errors("endDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
     }
 
     "support repeated values for Java binding" in {
 
-      val user1 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki")))).get
+      val user1 =
+        formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki")))).get
       user1.getName must beEqualTo("Kiki")
       user1.getEmails.size must beEqualTo(0)
 
-      val user2 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")))).get
+      val user2 = formFactory
+        .form(classOf[AnotherUser])
+        .bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"))))
+        .get
       user2.getName must beEqualTo("Kiki")
       user2.getEmails.size must beEqualTo(1)
 
-      val user3 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")))).get
+      val user3 = formFactory
+        .form(classOf[AnotherUser])
+        .bindFromRequest(
+          FormSpec.dummyRequest(
+            Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))
+          )
+        )
+        .get
       user3.getName must beEqualTo("Kiki")
       user3.getEmails.size must beEqualTo(2)
 
-      val user4 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")))).get
+      val user4 = formFactory
+        .form(classOf[AnotherUser])
+        .bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com"))))
+        .get
       user4.getName must beEqualTo("Kiki")
       user4.getEmails.size must beEqualTo(1)
 
-      val user5 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")))).get
+      val user5 = formFactory
+        .form(classOf[AnotherUser])
+        .bindFromRequest(
+          FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")))
+        )
+        .get
       user5.getName must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
 
@@ -308,27 +494,31 @@ trait FormSpec extends Specification {
       data.put("name", "Kiki")
 
       val userForm1: Form[AnotherUser] = formFactory.form(classOf[AnotherUser])
-      val user1 = userForm1.bind(new java.util.HashMap[String, String]()).get()
+      val user1                        = userForm1.bind(new java.util.HashMap[String, String]()).get()
       user1.getCompany.isPresent must beFalse
 
       data.put("company", "Acme")
 
       val userForm2: Form[AnotherUser] = formFactory.form(classOf[AnotherUser])
-      val user2 = userForm2.bind(data).get()
+      val user2                        = userForm2.bind(data).get()
       user2.getCompany.isPresent must beTrue
     }
 
     "support optional deserialization of a request" in {
-      val user1 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki")))).get
+      val user1 =
+        formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki")))).get
       user1.getCompany.isPresent must beEqualTo(false)
 
-      val user2 = formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "company" -> Array("Acme")))).get
+      val user2 = formFactory
+        .form(classOf[AnotherUser])
+        .bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "company" -> Array("Acme"))))
+        .get
       user2.getCompany.get must beEqualTo("Acme")
     }
 
     "bind when valid" in {
       val userForm: Form[MyUser] = formFactory.form(classOf[MyUser])
-      val user = userForm.bind(new java.util.HashMap[String, String]()).get()
+      val user                   = userForm.bind(new java.util.HashMap[String, String]()).get()
       userForm.hasErrors() must equalTo(false)
       (user == null) must equalTo(false)
     }
@@ -342,7 +532,7 @@ trait FormSpec extends Specification {
 
     "support custom validators" in {
       "that fails when validator's condition is not met" in {
-        val form = formFactory.form(classOf[Red])
+        val form  = formFactory.form(classOf[Red])
         val bound = form.bind(Map("name" -> "blue").asJava)
         bound.hasErrors must_== true
         bound.hasGlobalErrors must_== true
@@ -350,8 +540,9 @@ trait FormSpec extends Specification {
       }
 
       "that returns customized message when validator fails" in {
-        val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava)
+        val form = formFactory
+          .form(classOf[MyBlueUser])
+          .bind(Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava)
         form.hasErrors must beEqualTo(true)
         form.errors("hairColor").asScala must beEmpty
         val validationErrors = form.errors("skinColor")
@@ -360,8 +551,9 @@ trait FormSpec extends Specification {
       }
 
       "that returns customized message in annotation when validator fails" in {
-        val form = formFactory.form(classOf[MyBlueUser]).bind(
-          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava)
+        val form = formFactory
+          .form(classOf[MyBlueUser])
+          .bind(Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava)
         form.errors("skinColor").asScala must beEmpty
         form.hasErrors must beEqualTo(true)
         val validationErrors = form.errors("hairColor")
@@ -372,7 +564,11 @@ trait FormSpec extends Specification {
     }
 
     "support type arguments constraints" in {
-      val listForm = formFactory.form(classOf[ListForm]).bindFromRequest(FormSpec.dummyRequest(Map("values[0]" -> Array("4"), "values[1]" -> Array("-3"), "values[2]" -> Array("6"))))
+      val listForm = formFactory
+        .form(classOf[ListForm])
+        .bindFromRequest(
+          FormSpec.dummyRequest(Map("values[0]" -> Array("4"), "values[1]" -> Array("-3"), "values[2]" -> Array("6")))
+        )
 
       listForm.hasErrors must beEqualTo(true)
       listForm.allErrors().size() must beEqualTo(1)
@@ -385,11 +581,14 @@ trait FormSpec extends Specification {
 
       import play.core.j.PlayFormsMagicForJava._
 
-      def render(form: Form[_], min: Int = 1) = views.html.helper.repeat.apply(form("foo"), min) { f =>
-        val a = f("a")
-        val b = f("b")
-        Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
-      }.map(_.toString)
+      def render(form: Form[_], min: Int = 1) =
+        views.html.helper.repeat
+          .apply(form("foo"), min) { f =>
+            val a = f("a")
+            val b = f("b")
+            Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
+          }
+          .map(_.toString)
 
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {
         render(
@@ -405,17 +604,33 @@ trait FormSpec extends Specification {
 
       "get the order of the fields correct when filled from a value" in {
         render(
-          form.fill(new JavaForm(List(new JavaSubForm("a", "b"), new JavaSubForm("c", "d"),
-            new JavaSubForm("e", "f"), new JavaSubForm("g", "h")).asJava))
-        ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
-            "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+          form.fill(
+            new JavaForm(
+              List(
+                new JavaSubForm("a", "b"),
+                new JavaSubForm("c", "d"),
+                new JavaSubForm("e", "f"),
+                new JavaSubForm("g", "h")
+              ).asJava
+            )
+          )
+        ) must exactly(
+          "foo[0].a=a,foo[0].b=b",
+          "foo[1].a=c,foo[1].b=d",
+          "foo[2].a=e,foo[2].b=f",
+          "foo[3].a=g,foo[3].b=h"
+        ).inOrder
       }
 
       "get the order of the fields correct when filled from a form" in {
         render(
           fillNoBind("a" -> "b", "c" -> "d", "e" -> "f", "g" -> "h")
-        ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
-            "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+        ) must exactly(
+          "foo[0].a=a,foo[0].b=b",
+          "foo[1].a=c,foo[1].b=d",
+          "foo[2].a=e,foo[2].b=f",
+          "foo[3].a=g,foo[3].b=h"
+        ).inOrder
       }
     }
 
@@ -424,11 +639,14 @@ trait FormSpec extends Specification {
 
       import play.core.j.PlayFormsMagicForJava._
 
-      def render(form: Form[_], min: Int = 1) = views.html.helper.repeatWithIndex.apply(form("foo"), min) { (f, i) =>
-        val a = f("a")
-        val b = f("b")
-        Html(s"${a.name}=${a.value.getOrElse("")}${i},${b.name}=${b.value.getOrElse("")}${i}")
-      }.map(_.toString)
+      def render(form: Form[_], min: Int = 1) =
+        views.html.helper.repeatWithIndex
+          .apply(form("foo"), min) { (f, i) =>
+            val a = f("a")
+            val b = f("b")
+            Html(s"${a.name}=${a.value.getOrElse("")}${i},${b.name}=${b.value.getOrElse("")}${i}")
+          }
+          .map(_.toString)
 
       "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {
         render(
@@ -444,17 +662,33 @@ trait FormSpec extends Specification {
 
       "get the order of the fields correct when filled from a value" in {
         render(
-          form.fill(new JavaForm(List(new JavaSubForm("a", "b"), new JavaSubForm("c", "d"),
-            new JavaSubForm("e", "f"), new JavaSubForm("g", "h")).asJava))
-        ) must exactly("foo[0].a=a0,foo[0].b=b0", "foo[1].a=c1,foo[1].b=d1",
-            "foo[2].a=e2,foo[2].b=f2", "foo[3].a=g3,foo[3].b=h3").inOrder
+          form.fill(
+            new JavaForm(
+              List(
+                new JavaSubForm("a", "b"),
+                new JavaSubForm("c", "d"),
+                new JavaSubForm("e", "f"),
+                new JavaSubForm("g", "h")
+              ).asJava
+            )
+          )
+        ) must exactly(
+          "foo[0].a=a0,foo[0].b=b0",
+          "foo[1].a=c1,foo[1].b=d1",
+          "foo[2].a=e2,foo[2].b=f2",
+          "foo[3].a=g3,foo[3].b=h3"
+        ).inOrder
       }
 
       "get the order of the fields correct when filled from a form" in {
         render(
           fillNoBind("a" -> "b", "c" -> "d", "e" -> "f", "g" -> "h")
-        ) must exactly("foo[0].a=a0,foo[0].b=b0", "foo[1].a=c1,foo[1].b=d1",
-            "foo[2].a=e2,foo[2].b=f2", "foo[3].a=g3,foo[3].b=h3").inOrder
+        ) must exactly(
+          "foo[0].a=a0,foo[0].b=b0",
+          "foo[1].a=c1,foo[1].b=d1",
+          "foo[2].a=e2,foo[2].b=f2",
+          "foo[3].a=g3,foo[3].b=h3"
+        ).inOrder
       }
     }
 
@@ -464,8 +698,16 @@ trait FormSpec extends Specification {
       }.toMap
       // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
       // used come from the form, not the input data
-      new Form[JavaForm](null, classOf[JavaForm], map.asJava,
-        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]], Optional.empty[JavaForm], null, null, FormSpec.validator())
+      new Form[JavaForm](
+        null,
+        classOf[JavaForm],
+        map.asJava,
+        List.empty.asJava.asInstanceOf[java.util.List[ValidationError]],
+        Optional.empty[JavaForm],
+        null,
+        null,
+        FormSpec.validator()
+      )
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {
@@ -577,7 +819,9 @@ trait FormSpec extends Specification {
 
     "respect the order of validation groups defined via group sequences" in {
       "first group gets validated and already fails and therefore second group wont even get validated anymore" in {
-        val myForm = formFactory.form(classOf[SomeUser], classOf[OrderedChecks]).bind(Map("email" -> "invalid_email", "password" -> "", "repeatPassword" -> "").asJava)
+        val myForm = formFactory
+          .form(classOf[SomeUser], classOf[OrderedChecks])
+          .bind(Map("email" -> "invalid_email", "password" -> "", "repeatPassword" -> "").asJava)
         // first group
         myForm.errors("email").size() must beEqualTo(1)
         myForm.errors("email").get(0).message() must beEqualTo("error.email")
@@ -587,7 +831,9 @@ trait FormSpec extends Specification {
         myForm.errors("repeatPassword").size() must beEqualTo(0)
       }
       "first group gets validated and already succeeds but then second group fails" in {
-        val myForm = formFactory.form(classOf[SomeUser], classOf[OrderedChecks]).bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "").asJava)
+        val myForm = formFactory
+          .form(classOf[SomeUser], classOf[OrderedChecks])
+          .bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "").asJava)
         // first group
         myForm.errors("email").size() must beEqualTo(0)
         myForm.errors("password").size() must beEqualTo(0)
@@ -596,7 +842,9 @@ trait FormSpec extends Specification {
         myForm.errors("repeatPassword").get(0).message() must beEqualTo("error.required")
       }
       "all group gets validated and succeed" in {
-        val myForm = formFactory.form(classOf[SomeUser], classOf[OrderedChecks]).bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
+        val myForm = formFactory
+          .form(classOf[SomeUser], classOf[OrderedChecks])
+          .bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
         // first group
         myForm.errors("email").size() must beEqualTo(0)
         myForm.errors("password").size() must beEqualTo(0)
@@ -609,17 +857,21 @@ trait FormSpec extends Specification {
 
     "honor its validate method" in {
       "when it returns an error object" in {
-        val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.error("password").message() must beEqualTo ("Passwords do not match")
+        val myForm =
+          formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
+        myForm.error("password").message() must beEqualTo("Passwords do not match")
       }
       "when it returns an null (error) object" in {
-        val myForm = formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
+        val myForm =
+          formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
         myForm.globalErrors().size() must beEqualTo(0)
         myForm.errors("password").size() must beEqualTo(0)
       }
       "when it returns an error object but is skipped because its not in validation group" in {
-        val myForm = formFactory.form(classOf[SomeUser], classOf[LoginCheck]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
-        myForm.error("password") must beEqualTo (null)
+        val myForm = formFactory
+          .form(classOf[SomeUser], classOf[LoginCheck])
+          .bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
+        myForm.error("password") must beEqualTo(null)
       }
       "when it returns a string" in {
         val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "fail@google.com").asJava)
@@ -700,7 +952,8 @@ object FormSpec {
   }
 
   def validator(): Validator = {
-    val validationConfig: vConfiguration[_] = Validation.byDefaultProvider().configure().messageInterpolator(new ParameterMessageInterpolator())
+    val validationConfig: vConfiguration[_] =
+      Validation.byDefaultProvider().configure().messageInterpolator(new ParameterMessageInterpolator())
     validationConfig.buildValidatorFactory().getValidator()
   }
 

@@ -14,9 +14,13 @@ import scala.concurrent.ExecutionContext;
 
 /**
  * AsyncHttpClient WS implementation components.
+ *
  * <p>
- * <p>Usage:</p>
+ *
+ * <p>Usage:
+ *
  * <p>
+ *
  * <pre>
  * public class MyComponents extends BuiltInComponentsFromContext implements AhcWSComponents {
  *
@@ -37,20 +41,22 @@ import scala.concurrent.ExecutionContext;
  * @see play.BuiltInComponents
  * @see WSClient
  */
-public interface AhcWSComponents extends WSClientComponents, ConfigurationComponents, AkkaComponents {
+public interface AhcWSComponents
+    extends WSClientComponents, ConfigurationComponents, AkkaComponents {
 
-    Environment environment();
+  Environment environment();
 
-    ApplicationLifecycle applicationLifecycle();
+  ApplicationLifecycle applicationLifecycle();
 
-    default WSClient wsClient() {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClientProvider(
+  default WSClient wsClient() {
+    AsyncHttpClient asyncHttpClient =
+        new AsyncHttpClientProvider(
                 environment().asScala(),
                 configuration(),
                 applicationLifecycle().asScala(),
-                executionContext()
-        ).get();
+                executionContext())
+            .get();
 
-        return new AhcWSClient(asyncHttpClient, materializer());
-    }
+    return new AhcWSClient(asyncHttpClient, materializer());
+  }
 }

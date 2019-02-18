@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration
  * A WS Request backed by AsyncHTTPClient.
  */
 case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest with WSBodyWritables {
-  override type Self = WSRequest
+  override type Self     = WSRequest
   override type Response = WSResponse
 
   /**
@@ -60,6 +60,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
    * A calculator of the signature for this request
    */
   override def calc: Option[WSSignatureCalculator] = underlying.calc
+
   /**
    * The authentication this request should use
    */

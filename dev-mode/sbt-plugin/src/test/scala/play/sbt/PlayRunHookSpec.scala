@@ -12,12 +12,12 @@ class PlayRunHookSpec extends Specification {
   "PlayRunHook runner" should {
 
     "provide implicit `run` which passes every hook to a provided function" in {
-      val hooks = Seq.fill(3)(new PlayRunHook {})
+      val hooks                                                    = Seq.fill(3)(new PlayRunHook {})
       val executedHooks: HashMap[play.runsupport.RunHook, Boolean] = HashMap.empty
 
       hooks.run(hook => executedHooks += ((hook, true)))
 
-      executedHooks.size must be equalTo (3)
+      (executedHooks.size must be).equalTo(3)
     }
 
     "re-throw an exception on single hook failure" in {
@@ -32,12 +32,12 @@ class PlayRunHookSpec extends Specification {
 
       hooks.run(_.beforeStarted()) must throwA[HookMockException]
 
-      executedHooks.size must be equalTo (3)
+      (executedHooks.size must be).equalTo(3)
     }
 
     "combine several thrown exceptions into a RunHookCompositeThrowable" in {
       val executedHooks: HashMap[play.runsupport.RunHook, Boolean] = HashMap.empty
-      class HookFirstMockException extends Throwable
+      class HookFirstMockException  extends Throwable
       class HookSecondMockException extends Throwable
 
       def createDummyHooks = new PlayRunHook {
@@ -63,7 +63,7 @@ class PlayRunHookSpec extends Specification {
           e.getMessage must not contain ("HookThirdMockException")
       }
 
-      executedHooks.size must be equalTo (3)
+      (executedHooks.size must be).equalTo(3)
     }
   }
 

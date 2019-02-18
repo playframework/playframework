@@ -5,10 +5,16 @@ package play.microbenchmark.it
 
 import java.util.concurrent.TimeUnit
 
-import okhttp3.{ OkHttpClient, Protocol, Request, Response }
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
-import play.it.test.{ ApplicationFactory, HttpsEndpoint, ServerEndpoint, ServerEndpointRecipe }
+import play.it.test.ApplicationFactory
+import play.it.test.HttpsEndpoint
+import play.it.test.ServerEndpoint
+import play.it.test.ServerEndpointRecipe
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
 import scala.util.Random
@@ -33,6 +39,7 @@ class HelloWorldBenchmark {
 
   /** The backend and connection to use. */
   var serverEndpoint: ServerEndpoint = null
+
   /** A handle to close the server. */
   var endpointCloseable: AutoCloseable = null
 
@@ -75,19 +82,25 @@ object HelloWorldBenchmark {
    */
   @State(Scope.Thread)
   class ThreadState {
+
     /** Used to make requests. */
     private var client: OkHttpClient = null
+
     /** A pre-built request; reused since they're identical. */
     private var request: Request = null
+
     /** How many requests to make before closing a connection. */
     private var reqsPerConn: Int = 0
+
     /** Which request we're currently on. Starts with a random value. */
     private var reqsPerConnCount: Int = 0
 
     /** The protocol we expect to find when we connect to the server. */
     private var expectedProtocol: Protocol = null
+
     /** The protocol we got with the last response from the server. */
     private var responseProtocol: Protocol = null
+
     /** The body we got with the last response from the server. */
     private var responseBody: String = null
 

@@ -37,24 +37,27 @@ case class PathPattern(parts: Seq[PathPart]) {
 
   import java.util.regex._
 
-  private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] = matcher =>
-    Exception.allCatch[String].either {
-      if (decode) {
-        val group = matcher.group(groupCount)
-        // If param is not correctly encoded, get path will return null, so we prepend a / to it
-        new URI("/" + group).getPath.drop(1)
-      } else
-        matcher.group(groupCount)
-    }
+  private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] =
+    matcher =>
+      Exception.allCatch[String].either {
+        if (decode) {
+          val group = matcher.group(groupCount)
+          // If param is not correctly encoded, get path will return null, so we prepend a / to it
+          new URI("/" + group).getPath.drop(1)
+        } else
+          matcher.group(groupCount)
+      }
 
   private lazy val (regex, groups) = {
     Some(parts.foldLeft("", Map.empty[String, Matcher => Either[Throwable, String]], 0) { (s, e) =>
       e match {
         case StaticPart(p) => ((s._1 + Pattern.quote(p)), s._2, s._3)
         case DynamicPart(k, r, encodeable) => {
-          ((s._1 + "(" + r + ")"),
+          (
+            (s._1 + "(" + r + ")"),
             (s._2 + (k -> decodeIfEncoded(encodeable, s._3 + 1))),
-            s._3 + 1 + Pattern.compile(r).matcher("").groupCount)
+            s._3 + 1 + Pattern.compile(r).matcher("").groupCount
+          )
         }
       }
     }).map {
@@ -79,9 +82,10 @@ case class PathPattern(parts: Seq[PathPart]) {
     }
   }
 
-  override def toString = parts.map {
-    case DynamicPart(name, constraint, _) => "$" + name + "<" + constraint + ">"
-    case StaticPart(path) => path
-  }.mkString
+  override def toString =
+    parts.map {
+      case DynamicPart(name, constraint, _) => "$" + name + "<" + constraint + ">"
+      case StaticPart(path)                 => path
+    }.mkString
 
 }

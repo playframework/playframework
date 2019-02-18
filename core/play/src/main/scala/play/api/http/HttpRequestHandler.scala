@@ -6,12 +6,16 @@ package play.api.http
 import javax.inject.Inject
 
 import play.api.http.Status._
-import play.api.inject.{ Binding, BindingKey }
+import play.api.inject.Binding
+import play.api.inject.BindingKey
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.{ Configuration, Environment }
-import play.core.j.{ JavaHandler, JavaHandlerComponents, JavaHttpRequestHandlerDelegate }
+import play.api.Configuration
+import play.api.Environment
+import play.core.j.JavaHandler
+import play.core.j.JavaHandlerComponents
+import play.core.j.JavaHttpRequestHandlerDelegate
 import play.utils.Reflect
 
 /**
@@ -45,22 +49,32 @@ object HttpRequestHandler {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
 
-    Reflect.bindingsFromConfiguration[HttpRequestHandler, play.http.HttpRequestHandler, play.core.j.JavaHttpRequestHandlerAdapter, play.http.DefaultHttpRequestHandler, JavaCompatibleHttpRequestHandler](
-      environment,
-      configuration, "play.http.requestHandler", "RequestHandler")
+    Reflect.bindingsFromConfiguration[
+      HttpRequestHandler,
+      play.http.HttpRequestHandler,
+      play.core.j.JavaHttpRequestHandlerAdapter,
+      play.http.DefaultHttpRequestHandler,
+      JavaCompatibleHttpRequestHandler
+    ](environment, configuration, "play.http.requestHandler", "RequestHandler")
   }
 }
 
 object ActionCreator {
-  import play.http.{ ActionCreator, DefaultActionCreator }
+  import play.http.ActionCreator
+  import play.http.DefaultActionCreator
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.configuredClass[ActionCreator, ActionCreator, DefaultActionCreator](
-      environment,
-      configuration, "play.http.actionCreator", "ActionCreator").fold(Seq[Binding[_]]()) { either =>
-      val impl = either.fold(identity, identity)
-      Seq(BindingKey(classOf[ActionCreator]).to(impl))
-    }
+    Reflect
+      .configuredClass[ActionCreator, ActionCreator, DefaultActionCreator](
+        environment,
+        configuration,
+        "play.http.actionCreator",
+        "ActionCreator"
+      )
+      .fold(Seq[Binding[_]]()) { either =>
+        val impl = either.fold(identity, identity)
+        Seq(BindingKey(classOf[ActionCreator]).to(impl))
+      }
   }
 }
 
@@ -68,7 +82,8 @@ object ActionCreator {
  * Implementation of a [HttpRequestHandler] that always returns NotImplemented results
  */
 object NotImplementedHttpRequestHandler extends HttpRequestHandler {
-  def handlerForRequest(request: RequestHeader) = request -> EssentialAction(_ => Accumulator.done(Results.NotImplemented))
+  def handlerForRequest(request: RequestHeader) =
+    request -> EssentialAction(_ => Accumulator.done(Results.NotImplemented))
 }
 
 /**
@@ -79,7 +94,12 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
  * Technically, this is not the default request handler that Play uses, rather, the [[JavaCompatibleHttpRequestHandler]]
  * is the default one, in order to provide support for Java actions.
  */
-class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: EssentialFilter*) extends HttpRequestHandler {
+class DefaultHttpRequestHandler(
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: EssentialFilter*
+) extends HttpRequestHandler {
 
   @Inject
   def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) = {
@@ -100,14 +120,13 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
     // * path.startsWith(context) && path.charAt(context.length) == '/')
     //   - Path starts with context followed by a '/' character.
     context.isEmpty ||
-      (path.startsWith(context) && (path.length == context.length || path.charAt(context.length) == '/'))
+    (path.startsWith(context) && (path.length == context.length || path.charAt(context.length) == '/'))
   }
 
   override def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) = {
 
-    def handleWithStatus(status: Int) = ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req =>
-      errorHandler.onClientError(req, status)
-    )
+    def handleWithStatus(status: Int) =
+      ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req => errorHandler.onClientError(req, status))
 
     /**
      * Call the router to get the handler, but with a couple of types of fallback.
@@ -130,10 +149,11 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
           //    https://tools.ietf.org/html/rfc6455#section-1.3
           case HttpVerbs.HEAD => {
             routeRequest(request.withMethod(HttpVerbs.GET)) match {
-              case Some(handler: Handler) => handler match {
-                case ws: WebSocket => handleWithStatus(BAD_REQUEST)
-                case _ => handler
-              }
+              case Some(handler: Handler) =>
+                handler match {
+                  case ws: WebSocket => handleWithStatus(BAD_REQUEST)
+                  case _             => handler
+                }
               case None => handleWithStatus(NOT_FOUND)
             }
           }
@@ -148,10 +168,11 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
     // 2. Resolve handlers that preprocess the request
     // 3. Modify the handler to do filtering, if necessary
     // 4. Again resolve any handlers that do preprocessing
-    val routedHandler = routeWithFallback(request)
+    val routedHandler                              = routeWithFallback(request)
     val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
-    val filteredHandler = filterHandler(preprocessedRequest, preprocessedHandler)
-    val (preprocessedPreprocessedRequest, preprocessedFilteredHandler) = Handler.applyStages(preprocessedRequest, filteredHandler)
+    val filteredHandler                            = filterHandler(preprocessedRequest, preprocessedHandler)
+    val (preprocessedPreprocessedRequest, preprocessedFilteredHandler) =
+      Handler.applyStages(preprocessedRequest, filteredHandler)
     (preprocessedPreprocessedRequest, preprocessedFilteredHandler)
   }
 
@@ -163,7 +184,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
     (request: RequestHeader) =>
       next(request) match {
         case action: EssentialAction if inContext(request.path) => filterAction(action)
-        case handler => handler
+        case handler                                            => handler
       }
   }
 
@@ -175,7 +196,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   protected def filterHandler(request: RequestHeader, handler: Handler): Handler = {
     handler match {
       case action: EssentialAction if inContext(request.path) => filterAction(action)
-      case handler => handler
+      case handler                                            => handler
     }
   }
 
@@ -183,7 +204,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
    * Apply filters to the given action.
    */
   protected def filterAction(next: EssentialAction): EssentialAction = {
-    filters.foldRight(next)(_ apply _)
+    filters.foldRight(next)(_.apply(_))
   }
 
   /**
@@ -213,9 +234,13 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
-class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
-    configuration: HttpConfiguration, filters: HttpFilters, handlerComponents: JavaHandlerComponents)
-  extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
+class JavaCompatibleHttpRequestHandler @Inject()(
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: HttpFilters,
+    handlerComponents: JavaHandlerComponents
+) extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters.filters: _*) {
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
   // another handler.
@@ -227,7 +252,7 @@ class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: 
       // Next, if the underlying handler is a JavaHandler, get its real handler
       val mappedHandler: Handler = preprocessedHandler match {
         case javaHandler: JavaHandler => javaHandler.withComponents(handlerComponents)
-        case other => other
+        case other                    => other
       }
 
       (preprocessedRequest, mappedHandler)

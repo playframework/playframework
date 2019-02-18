@@ -21,9 +21,10 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
 
       val server = NettyServer.fromRouter() {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
-        }
+        case GET(p"/hello/$to") =>
+          Action {
+            Results.Ok(s"Hello $to")
+          }
       }
       //#simple
 
@@ -42,13 +43,16 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import play.api.routing.sird._
       import play.api.mvc._
 
-      val server = NettyServer.fromRouter(ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      )) {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
-        }
+      val server = NettyServer.fromRouter(
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      ) {
+        case GET(p"/hello/$to") =>
+          Action {
+            Results.Ok(s"Hello $to")
+          }
       }
       //#config
 
@@ -72,18 +76,19 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       val components = new NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents {
 
         lazy val router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
 
-        override lazy val httpErrorHandler = new DefaultHttpErrorHandler(environment,
-          configuration, sourceMapper, Some(router)) {
+        override lazy val httpErrorHandler =
+          new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router)) {
 
-          override protected def onNotFound(request: RequestHeader, message: String) = {
-            Future.successful(Results.NotFound("Nothing was found!"))
+            protected override def onNotFound(request: RequestHeader, message: String) = {
+              Future.successful(Results.NotFound("Nothing was found!"))
+            }
           }
-        }
       }
       val server = components.server
       //#components

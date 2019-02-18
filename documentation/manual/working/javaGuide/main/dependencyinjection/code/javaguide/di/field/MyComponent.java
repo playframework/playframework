@@ -3,13 +3,13 @@
  */
 package javaguide.di.field;
 
-//#field
+// #field
 import javax.inject.*;
 import play.libs.ws.*;
 
 public class MyComponent {
-    @Inject WSClient ws;
+  @Inject WSClient ws;
 
-    // ...
+  // ...
 }
-//#field
+// #field

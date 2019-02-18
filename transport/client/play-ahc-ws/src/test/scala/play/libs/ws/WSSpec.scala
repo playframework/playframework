@@ -22,24 +22,24 @@ class WSSpec extends PlaySpecification with WsTestClient {
       var mat: Materializer = NoMaterializer
 
       Server.withRouterFromComponents() { components =>
-
         mat = components.materializer
 
         import components.{ defaultActionBuilder => Action }
         import play.api.routing.sird.{ POST => SirdPost, _ }
         {
-          case SirdPost(p"/") => Action { req: Request[AnyContent] =>
-            req.body.asRaw.fold[Result](BadRequest) { raw =>
-              val size = raw.size
-              Ok(s"size=$size")
+          case SirdPost(p"/") =>
+            Action { req: Request[AnyContent] =>
+              req.body.asRaw.fold[Result](BadRequest) { raw =>
+                val size = raw.size
+                Ok(s"size=$size")
+              }
             }
-          }
         }
       } { implicit port =>
         withClient { ws =>
           val javaWs = new AhcWSClient(ws.underlying[AsyncHttpClient], mat)
-          val input = this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
-          val rep = javaWs.url(s"http://localhost:$port/").post(input).toCompletableFuture.get()
+          val input  = this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
+          val rep    = javaWs.url(s"http://localhost:$port/").post(input).toCompletableFuture.get()
 
           rep.getStatus must ===(200)
           rep.getBody must ===("size=20039")

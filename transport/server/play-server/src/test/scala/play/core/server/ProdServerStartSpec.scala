@@ -13,16 +13,22 @@ import com.google.common.io.{ Files => GFiles }
 import org.specs2.mutable.Specification
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
-case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1) extends Exception(s"Exit with $message, $returnCode", cause.orNull)
+case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1)
+    extends Exception(s"Exit with $message, $returnCode", cause.orNull)
 
 /** A mocked ServerProcess */
 class FakeServerProcess(
     val args: Seq[String] = Seq(),
     propertyMap: Map[String, String] = Map(),
-    val pid: Option[String] = None) extends ServerProcess {
+    val pid: Option[String] = None
+) extends ServerProcess {
 
   val classLoader: ClassLoader = getClass.getClassLoader
 
@@ -45,16 +51,16 @@ class FakeServerProcess(
 // A family of fake servers for us to test
 
 class FakeServer(context: ServerProvider.Context) extends Server with ReloadableServer {
-  def config = context.config
-  def applicationProvider = context.appProvider
-  def mode = config.mode
-  def mainAddress = ???
+  def config                  = context.config
+  def applicationProvider     = context.appProvider
+  def mode                    = config.mode
+  def mainAddress             = ???
   @volatile var stopCallCount = 0
   override def stop() = {
     stopCallCount += 1
     super.stop()
   }
-  def httpPort = config.port
+  def httpPort  = config.port
   def httpsPort = config.sslPort
 }
 
@@ -83,51 +89,54 @@ class ProdServerStartSpec extends Specification {
     }
   }
 
-  def exitResult[A](f: => A): Either[(String, Option[String]), A] = try Right(f) catch {
-    case ExitException(message, cause, _) =>
-      val causeMessage: Option[String] = cause.flatMap(c => Option(c.getMessage))
-      Left((message, causeMessage))
-  }
+  def exitResult[A](f: => A): Either[(String, Option[String]), A] =
+    try Right(f)
+    catch {
+      case ExitException(message, cause, _) =>
+        val causeMessage: Option[String] = cause.flatMap(c => Option(c.getMessage))
+        Left((message, causeMessage))
+    }
 
   "ProdServerStartSpec.start" should {
 
-    "read settings, create custom ServerProvider, create a pid file, start the server and register shutdown hooks" in withTempDir { tempDir =>
-      val process = new FakeServerProcess(
-        args = Seq(tempDir.getAbsolutePath),
-        propertyMap = Map("play.server.provider" -> classOf[FakeServerProvider].getName),
-        pid = Some("999")
-      )
-      val pidFile = new File(tempDir, "RUNNING_PID")
-      pidFile.exists must beFalse
-      val server = ProdServerStart.start(process)
-      def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
-      try {
-        server.getClass must_== classOf[FakeServer]
-        pidFile.exists must beTrue
-        fakeServer.stopCallCount must_== 0
-        fakeServer.httpPort must_== Some(9000)
-        fakeServer.httpsPort must_== None
-      } finally {
-        process.shutdown()
-      }
-      pidFile.exists must beFalse
-      fakeServer.stopCallCount must_== 1
+    "read settings, create custom ServerProvider, create a pid file, start the server and register shutdown hooks" in withTempDir {
+      tempDir =>
+        val process = new FakeServerProcess(
+          args = Seq(tempDir.getAbsolutePath),
+          propertyMap = Map("play.server.provider" -> classOf[FakeServerProvider].getName),
+          pid = Some("999")
+        )
+        val pidFile = new File(tempDir, "RUNNING_PID")
+        pidFile.exists must beFalse
+        val server                 = ProdServerStart.start(process)
+        def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
+        try {
+          server.getClass must_== classOf[FakeServer]
+          pidFile.exists must beTrue
+          fakeServer.stopCallCount must_== 0
+          fakeServer.httpPort must_== Some(9000)
+          fakeServer.httpsPort must_== None
+        } finally {
+          process.shutdown()
+        }
+        pidFile.exists must beFalse
+        fakeServer.stopCallCount must_== 1
     }
 
     "read configuration for ports" in withTempDir { tempDir =>
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map(
-          "play.server.provider" -> classOf[FakeServerProvider].getName,
-          "play.server.http.port" -> "disabled",
-          "play.server.https.port" -> "443",
+          "play.server.provider"     -> classOf[FakeServerProvider].getName,
+          "play.server.http.port"    -> "disabled",
+          "play.server.https.port"   -> "443",
           "play.server.http.address" -> "localhost"
         ),
         pid = Some("123")
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process)
+      val server                 = ProdServerStart.start(process)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -147,16 +156,16 @@ class ProdServerStartSpec extends Specification {
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map(
-          "play.server.provider" -> classOf[FakeServerProvider].getName,
-          "play.server.http.port" -> "80",
-          "play.server.https.port" -> "disabled",
+          "play.server.provider"     -> classOf[FakeServerProvider].getName,
+          "play.server.http.port"    -> "80",
+          "play.server.https.port"   -> "disabled",
           "play.server.http.address" -> "localhost"
         ),
         pid = Some("123")
       )
       val pidFile = new File(tempDir, "RUNNING_PID")
       pidFile.exists must beFalse
-      val server = ProdServerStart.start(process)
+      val server                 = ProdServerStart.start(process)
       def fakeServer: FakeServer = server.asInstanceOf[FakeServer]
       try {
         server.getClass must_== classOf[FakeServer]
@@ -195,7 +204,6 @@ class ProdServerStartSpec extends Specification {
     }
 
     "not have a race condition when creating a pid file" in withTempDir { tempDir =>
-
       // This test creates several fake server processes and starts them concurrently,
       // checking whether or not PID file creation behaves properly. The test is
       // not deterministic; it might pass even if there is a bug in the code. In practice,
@@ -262,9 +270,7 @@ class ProdServerStartSpec extends Specification {
         // Await the result
         val results: Seq[Boolean] = {
           import ExecutionContext.Implicits.global // implicit for Future.sequence
-          Await.result(
-            Future.sequence(futureResults),
-            Duration(30, TimeUnit.SECONDS))
+          Await.result(Future.sequence(futureResults), Duration(30, TimeUnit.SECONDS))
         }
 
         // Check that at most 1 PID file was created

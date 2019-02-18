@@ -3,7 +3,8 @@
  */
 package play.api
 
-import org.slf4j.{ Marker, MarkerFactory }
+import org.slf4j.Marker
+import org.slf4j.MarkerFactory
 import org.specs2.mutable.Specification
 
 class LoggerSpec extends Specification {
@@ -12,7 +13,7 @@ class LoggerSpec extends Specification {
 
     "return some marker" in {
       val marker = MarkerFactory.getMarker("SOMEMARKER")
-      val mc = MarkerContext(marker)
+      val mc     = MarkerContext(marker)
       mc.marker must beSome.which(_ must be_==(marker))
     }
 
@@ -24,7 +25,7 @@ class LoggerSpec extends Specification {
 
   "MarkerContext" should {
     "implicitly convert a Marker to a MarkerContext" in {
-      val marker: Marker = MarkerFactory.getMarker("SOMEMARKER")
+      val marker: Marker             = MarkerFactory.getMarker("SOMEMARKER")
       implicit val mc: MarkerContext = marker
 
       mc.marker must beSome.which(_ must be_==(marker))

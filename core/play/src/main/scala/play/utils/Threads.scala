@@ -14,7 +14,7 @@ object Threads {
    * @param b function to be executed
    */
   def withContextClassLoader[T](classloader: ClassLoader)(b: => T): T = {
-    val thread = Thread.currentThread
+    val thread    = Thread.currentThread
     val oldLoader = thread.getContextClassLoader
     try {
       thread.setContextClassLoader(classloader)

@@ -14,9 +14,9 @@ import play.api.Configuration;
  */
 public interface ConfigurationComponents {
 
-    Config config();
+  Config config();
 
-    default Configuration configuration() {
-        return new Configuration(config());
-    }
+  default Configuration configuration() {
+    return new Configuration(config());
+  }
 }

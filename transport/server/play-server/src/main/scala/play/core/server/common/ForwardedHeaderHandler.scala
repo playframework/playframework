@@ -6,7 +6,8 @@ package play.core.server.common
 import java.net.InetAddress
 import java.security.cert.X509Certificate
 
-import play.api.{ Configuration, Logger }
+import play.api.Configuration
+import play.api.Logger
 import play.api.mvc.Headers
 import play.core.server.common.NodeIdentifierParser.Ip
 
@@ -65,8 +66,8 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
   def forwardedConnection(rawConnection: RemoteConnection, headers: Headers): RemoteConnection = new RemoteConnection {
 
     // All public methods delegate to the lazily calculated connection info
-    override def remoteAddress: InetAddress = parsed.remoteAddress
-    override def secure: Boolean = parsed.secure
+    override def remoteAddress: InetAddress                           = parsed.remoteAddress
+    override def secure: Boolean                                      = parsed.secure
     override def clientCertificateChain: Option[Seq[X509Certificate]] = parsed.clientCertificateChain
 
     /**
@@ -96,7 +97,13 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
                 )
                 prev
               case Right(parsedEntry) =>
-                scan(RemoteConnection(parsedEntry.address, parsedEntry.secure, None /* No cert chain for forward headers */ ))
+                scan(
+                  RemoteConnection(
+                    parsedEntry.address,
+                    parsedEntry.secure,
+                    None /* No cert chain for forward headers */
+                  )
+                )
             }
           } else {
             // 'prev' is not a trusted proxy, so we don't scan ahead in the list of
@@ -125,7 +132,7 @@ private[server] object ForwardedHeaderHandler {
    * The version of headers that this Play application understands.
    */
   sealed trait ForwardedHeaderVersion
-  case object Rfc7239 extends ForwardedHeaderVersion
+  case object Rfc7239    extends ForwardedHeaderVersion
   case object Xforwarded extends ForwardedHeaderVersion
 
   type HeaderParser = Headers => Seq[ForwardedEntry]
@@ -164,22 +171,29 @@ private[server] object ForwardedHeaderHandler {
       case Rfc7239 =>
         (for {
           fhs <- headers.getAll("Forwarded")
-          fh <- fhs.split(",\\s*")
-        } yield fh).map(_.split(";").flatMap(s => {
-          val splitted = s.split("=", 2)
-          if (splitted.length < 2) Seq.empty else {
-            // Remove surrounding quotes
-            val name = splitted(0).toLowerCase(java.util.Locale.ENGLISH)
-            val value = unquote(splitted(1))
-            Seq(name -> value)
+          fh  <- fhs.split(",\\s*")
+        } yield fh)
+          .map(
+            _.split(";")
+              .flatMap(s => {
+                val splitted = s.split("=", 2)
+                if (splitted.length < 2) Seq.empty
+                else {
+                  // Remove surrounding quotes
+                  val name  = splitted(0).toLowerCase(java.util.Locale.ENGLISH)
+                  val value = unquote(splitted(1))
+                  Seq(name -> value)
+                }
+              })
+              .toMap
+          )
+          .map { paramMap: Map[String, String] =>
+            ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))
           }
-        }).toMap).map { paramMap: Map[String, String] =>
-          ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))
-        }
       case Xforwarded =>
         def h(h: Headers, key: String) = h.getAll(key).flatMap(s => s.split(",\\s*")).map(unquote)
-        val forHeaders = h(headers, "X-Forwarded-For")
-        val protoHeaders = h(headers, "X-Forwarded-Proto")
+        val forHeaders                 = h(headers, "X-Forwarded-For")
+        val protoHeaders               = h(headers, "X-Forwarded-Proto")
         if (forHeaders.length == protoHeaders.length) {
           forHeaders.zip(protoHeaders).map {
             case (f, p) => ForwardedEntry(Some(f), Some(p))
@@ -209,7 +223,7 @@ private[server] object ForwardedHeaderHandler {
           nodeIdentifierParser.parseNode(addressString) match {
             case Right((Ip(address), _)) =>
               // Parsing was successful, use this connection and scan for another connection.
-              val secure = entry.protoString.fold(false)(_ == "https") // Assume insecure by default
+              val secure     = entry.protoString.fold(false)(_ == "https") // Assume insecure by default
               val connection = ParsedForwardedEntry(address, secure)
               Right(connection)
             case errorOrNonIp =>
@@ -234,8 +248,8 @@ private[server] object ForwardedHeaderHandler {
 
       val version = config.get[String]("version") match {
         case "x-forwarded" => Xforwarded
-        case "rfc7239" => Rfc7239
-        case _ => throw config.reportError("version", "Forwarded header version must be either x-forwarded or rfc7239")
+        case "rfc7239"     => Rfc7239
+        case _             => throw config.reportError("version", "Forwarded header version must be either x-forwarded or rfc7239")
       }
 
       ForwardedHeaderHandlerConfig(version, config.get[Seq[String]]("trustedProxies").map(Subnet.apply).toList)

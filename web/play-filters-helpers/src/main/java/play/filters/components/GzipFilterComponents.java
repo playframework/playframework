@@ -9,16 +9,14 @@ import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.filters.gzip.GzipFilterConfig$;
 
-/**
- * The GZIP filter Java components.
- */
+/** The GZIP filter Java components. */
 public interface GzipFilterComponents extends ConfigurationComponents, AkkaComponents {
 
-    default GzipFilterConfig gzipFilterConfig() {
-        return GzipFilterConfig$.MODULE$.fromConfiguration(configuration());
-    }
+  default GzipFilterConfig gzipFilterConfig() {
+    return GzipFilterConfig$.MODULE$.fromConfiguration(configuration());
+  }
 
-    default GzipFilter gzipFilter() {
-        return new GzipFilter(gzipFilterConfig(), materializer());
-    }
+  default GzipFilter gzipFilter() {
+    return new GzipFilter(gzipFilterConfig(), materializer());
+  }
 }

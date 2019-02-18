@@ -4,7 +4,10 @@
 package play.core.server.ssl
 
 import play.api.Logger
-import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.security.KeyPairGenerator
+import java.security.KeyPair
 import sun.security.x509._
 import java.util.Date
 import java.math.BigInteger
@@ -18,10 +21,10 @@ import java.security.interfaces.RSAPublicKey
  * A fake key store
  */
 object FakeKeyStore {
-  private val logger = Logger(FakeKeyStore.getClass)
-  val GeneratedKeyStore = "conf/generated.keystore"
-  val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
-  val SignatureAlgorithmOID = AlgorithmId.sha256WithRSAEncryption_oid
+  private val logger         = Logger(FakeKeyStore.getClass)
+  val GeneratedKeyStore      = "conf/generated.keystore"
+  val DnName                 = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+  val SignatureAlgorithmOID  = AlgorithmId.sha256WithRSAEncryption_oid
   val SignatureAlgorithmName = "SHA256withRSA"
 
   def shouldGenerate(keyStoreFile: File): Boolean = {
@@ -33,7 +36,7 @@ object FakeKeyStore {
 
     // Should regenerate if we find an unacceptably weak key in there.
     val store = KeyStore.getInstance("JKS")
-    val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
+    val in    = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
     try {
       store.load(in, "".toCharArray)
     } finally {
@@ -52,10 +55,12 @@ object FakeKeyStore {
   def keyManagerFactory(appPath: File): KeyManagerFactory = {
     val keyStoreFile = new File(appPath, GeneratedKeyStore)
     val keyStore: KeyStore = if (shouldGenerate(keyStoreFile)) {
-      logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+      logger.info(
+        "Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy."
+      )
 
       val freshKeyStore: KeyStore = generateKeyStore
-      val out = java.nio.file.Files.newOutputStream(keyStoreFile.toPath)
+      val out                     = java.nio.file.Files.newOutputStream(keyStoreFile.toPath)
       try {
         freshKeyStore.store(out, "".toCharArray)
       } finally {
@@ -65,7 +70,7 @@ object FakeKeyStore {
     } else {
       // Load a KeyStore from a file
       val loadedKeystore: KeyStore = KeyStore.getInstance("JKS")
-      val in = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
+      val in                       = java.nio.file.Files.newInputStream(keyStoreFile.toPath)
       try {
         loadedKeystore.load(in, "".toCharArray)
       } finally {
@@ -115,8 +120,8 @@ object FakeKeyStore {
 
     // Validity
     val validFrom = new Date()
-    val validTo = new Date(validFrom.getTime + 50l * 365l * 24l * 60l * 60l * 1000l)
-    val validity = new CertificateValidity(validFrom, validTo)
+    val validTo   = new Date(validFrom.getTime + 50L * 365L * 24L * 60L * 60L * 1000L)
+    val validity  = new CertificateValidity(validFrom, validTo)
     certInfo.set(X509CertInfo.VALIDITY, validity)
 
     // Subject and issuer

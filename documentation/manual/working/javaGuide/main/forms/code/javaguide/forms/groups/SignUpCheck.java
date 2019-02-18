@@ -3,6 +3,6 @@
  */
 package javaguide.forms.groups;
 
-//#check
-public interface SignUpCheck { }
-//#check
+// #check
+public interface SignUpCheck {}
+// #check

@@ -11,17 +11,21 @@ import play.core.Execution.Implicits.trampoline
 
 import scala.concurrent.Future
 
-import play.api.mvc.{ BodyParser, Results, Result }
-import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.mvc.BodyParser
+import play.api.mvc.Results
+import play.api.mvc.Result
+import play.api.test.FakeRequest
+import play.api.test.PlaySpecification
 
 import org.specs2.ScalaCheck
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 
 class BodyParserSpec extends PlaySpecification with ScalaCheck {
 
   def run[A](bodyParser: BodyParser[A]) = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val system = ActorSystem()
+    val system       = ActorSystem()
     implicit val mat = ActorMaterializer()(system)
     try {
       await {
@@ -50,7 +54,8 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
     Arbitrary {
       Gen.oneOf(
         Results.Ok,
-        Results.BadRequest, Results.NotFound,
+        Results.BadRequest,
+        Results.NotFound,
         Results.InternalServerError
       )
     }
@@ -80,10 +85,11 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
       val inc = (i: Int) => i + 1
       val dbl = (i: Int) => i * 2
       run {
-        constant(x).map(inc)
+        constant(x)
+          .map(inc)
           .map(dbl)
       } must_== run {
-        constant(x).map(inc andThen dbl)
+        constant(x).map(inc.andThen(dbl))
       }
     }
 
@@ -106,7 +112,8 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
       val inc = (i: Int) => Future.successful(i + 1)
       val dbl = (i: Int) => Future.successful(i * 2)
       run {
-        constant(x).mapM(inc)
+        constant(x)
+          .mapM(inc)
           .mapM(dbl)
       } must_== run {
         constant(x).mapM { y =>
@@ -135,7 +142,8 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
       val inc = (i: Int) => Right(i + 1)
       val dbl = (i: Int) => Right(i * 2)
       run {
-        constant(x).validate(inc)
+        constant(x)
+          .validate(inc)
           .validate(dbl)
       } must_== run {
         constant(x).validate { y =>
@@ -152,13 +160,17 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
 
     "pass through simple result (case 2)" in prop { (s1: Result, s2: Result) =>
       run {
-        simpleResult(s1).validate { _ => Left(s2) }
+        simpleResult(s1).validate { _ =>
+          Left(s2)
+        }
       } must beLeft(s1)
     }
 
     "fail with simple result" in prop { (s: Result) =>
       run {
-        constant(0).validate { _ => Left(s) }
+        constant(0).validate { _ =>
+          Left(s)
+        }
       } must beLeft(s)
     }
   }
@@ -186,19 +198,25 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
 
     "pass through simple result (case 1)" in prop { (s: Result) =>
       run {
-        simpleResult(s).validateM { x => Future.successful(Right(x)) }
+        simpleResult(s).validateM { x =>
+          Future.successful(Right(x))
+        }
       } must beLeft(s)
     }
 
     "pass through simple result (case 2)" in prop { (s1: Result, s2: Result) =>
       run {
-        simpleResult(s1).validateM { _ => Future.successful(Left(s2)) }
+        simpleResult(s1).validateM { _ =>
+          Future.successful(Left(s2))
+        }
       } must beLeft(s1)
     }
 
     "fail with simple result" in prop { (s: Result) =>
       run {
-        constant(0).validateM { _ => Future.successful(Left(s)) }
+        constant(0).validateM { _ =>
+          Future.successful(Left(s))
+        }
       } must beLeft(s)
     }
   }

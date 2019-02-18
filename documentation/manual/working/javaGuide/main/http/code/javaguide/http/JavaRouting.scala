@@ -7,7 +7,8 @@ import java.util.concurrent.CompletableFuture
 
 import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
-import play.api.mvc.{EssentialAction, RequestHeader}
+import play.api.mvc.EssentialAction
+import play.api.mvc.RequestHeader
 import play.api.routing.Router
 import javaguide.http.routing._
 
@@ -62,9 +63,16 @@ class JavaRouting extends Specification {
     "support reverse routing" in {
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
-        header("Location", call(new MockJavaAction(app.injector.instanceOf[JavaHandlerComponents]) {
-          override def invocation = CompletableFuture.completedFuture(new javaguide.http.routing.controllers.Application().index())
-        }, FakeRequest())) must beSome("/hello/Bob")
+        header(
+          "Location",
+          call(
+            new MockJavaAction(app.injector.instanceOf[JavaHandlerComponents]) {
+              override def invocation =
+                CompletableFuture.completedFuture(new javaguide.http.routing.controllers.Application().index())
+            },
+            FakeRequest()
+          )
+        ) must beSome("/hello/Bob")
       }
     }
 
@@ -79,7 +87,6 @@ class JavaRouting extends Specification {
     }
   }
 
-
   def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running(_.configure("play.http.router" -> router.getName)) { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
@@ -91,9 +98,10 @@ class JavaRouting extends Specification {
 }
 
 package routing.query.controllers {
-  import play.api.mvc.{ AbstractController, ControllerComponents }
+  import play.api.mvc.AbstractController
+  import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
+  class Application @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -101,9 +109,10 @@ package routing.query.controllers {
 }
 
 package routing.fixed.controllers {
-  import play.api.mvc.{ AbstractController, ControllerComponents }
+  import play.api.mvc.AbstractController
+  import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
+  class Application @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -111,9 +120,10 @@ package routing.fixed.controllers {
 }
 
 package routing.defaultvalue.controllers {
-  import play.api.mvc.{ AbstractController, ControllerComponents }
+  import play.api.mvc.AbstractController
+  import play.api.mvc.ControllerComponents
 
-  class Clients @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
+  class Clients @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
     def list(page: Int) = Action {
       Ok("clients page " + page)
     }

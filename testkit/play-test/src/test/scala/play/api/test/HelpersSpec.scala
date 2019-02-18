@@ -39,7 +39,8 @@ class HelpersSpec extends Specification {
     }
 
     "add options" in {
-      val inMemoryDatabaseConfiguration = inMemoryDatabase("test", Map("MODE" -> "PostgreSQL", "DB_CLOSE_DELAY" -> "-1"))
+      val inMemoryDatabaseConfiguration =
+        inMemoryDatabase("test", Map("MODE" -> "PostgreSQL", "DB_CLOSE_DELAY" -> "-1"))
       inMemoryDatabaseConfiguration.get("db.test.driver") must beSome("org.h2.Driver")
       inMemoryDatabaseConfiguration.get("db.test.url") must beSome.which { url =>
         """^jdbc:h2:mem:play-test([0-9-]+);MODE=PostgreSQL;DB_CLOSE_DELAY=-1$""".r.findFirstIn(url).isDefined
@@ -68,7 +69,7 @@ class HelpersSpec extends Specification {
 
     "extract the content from Content as String" in {
       val content = new Content {
-        val body: String = "abc"
+        val body: String        = "abc"
         val contentType: String = "text/plain"
       }
       contentAsString(content) must_== "abc"
@@ -103,7 +104,7 @@ class HelpersSpec extends Specification {
 
     "extract the content from Content as Bytes" in {
       val content = new Content {
-        val body: String = "abc"
+        val body: String        = "abc"
         val contentType: String = "text/plain"
       }
       contentAsBytes(content) must_== Array(97, 98, 99)
@@ -120,7 +121,7 @@ class HelpersSpec extends Specification {
 
     "extract the content from Content as Json" in {
       val jsonContent = new Content {
-        val body: String = """{"play":["java","scala"]}"""
+        val body: String        = """{"play":["java","scala"]}"""
         val contentType: String = "application/json"
       }
       (contentAsJson(jsonContent) \ "play").as[List[String]] must_== List("java", "scala")

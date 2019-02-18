@@ -5,7 +5,8 @@ package play.core
 
 import java.util.concurrent.ForkJoinPool
 import play.api.Play
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
 
 /**
  * Provides access to Play's internal ExecutionContext.
@@ -19,7 +20,7 @@ private[play] object Execution {
   @deprecated("Use an injected execution context", "2.6.0")
   def internalContext: ExecutionContextExecutor = {
     Play.privateMaybeApplication match {
-      case None => common
+      case None      => common
       case Some(app) => app.actorSystem.dispatcher
     }
   }

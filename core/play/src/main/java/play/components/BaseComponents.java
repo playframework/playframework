@@ -13,15 +13,16 @@ import java.util.Optional;
 
 public interface BaseComponents extends ConfigurationComponents {
 
-    /**
-     * The application environment.
-     * @return an instance of the application environment
-     */
-    Environment environment();
+  /**
+   * The application environment.
+   *
+   * @return an instance of the application environment
+   */
+  Environment environment();
 
-    Optional<SourceMapper> sourceMapper();
+  Optional<SourceMapper> sourceMapper();
 
-    ApplicationLifecycle applicationLifecycle();
+  ApplicationLifecycle applicationLifecycle();
 
-    Router router();
+  Router router();
 }

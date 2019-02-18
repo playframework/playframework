@@ -4,8 +4,10 @@
 package play.api.routing
 
 import play.api.libs.typedmap.TypedKey
-import play.api.{ Configuration, Environment }
-import play.api.mvc.{ Handler, RequestHeader }
+import play.api.Configuration
+import play.api.Environment
+import play.api.mvc.Handler
+import play.api.mvc.RequestHeader
 import play.core.j.JavaRouterAdapter
 import play.utils.Reflect
 
@@ -77,6 +79,7 @@ object Router {
     import play.api.mvc.RequestHeader
 
     implicit class WithHandlerDef(val request: RequestHeader) extends AnyVal {
+
       /**
        * The [[HandlerDef]] representing the routes file entry (if any) on this request.
        */
@@ -96,6 +99,7 @@ object Router {
    * Request attributes used by the router.
    */
   object Attrs {
+
     /**
      * Key for the [[HandlerDef]] used to handle the request.
      */
@@ -105,18 +109,23 @@ object Router {
   /** Tags that are added to requests by the router. */
   @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
   object Tags {
+
     /** The verb that the router matched */
     @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
     val RouteVerb = "ROUTE_VERB"
+
     /** The pattern that the router used to match the path */
     @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
     val RoutePattern = "ROUTE_PATTERN"
+
     /** The controller that was routed to */
     @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
     val RouteController = "ROUTE_CONTROLLER"
+
     /** The method on the controller that was invoked */
     @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
     val RouteActionMethod = "ROUTE_ACTION_METHOD"
+
     /** The comments in the routes file that were above the route */
     @deprecated("Use Router.Attrs.HandlerDef instead", "2.6.0")
     val RouteComments = "ROUTE_COMMENTS"
@@ -136,9 +145,9 @@ object Router {
    * Never returns an handler from the routes function.
    */
   val empty: Router = new Router {
-    def documentation = Nil
+    def documentation              = Nil
     def withPrefix(prefix: String) = this
-    def routes = PartialFunction.empty
+    def routes                     = PartialFunction.empty
   }
 }
 
@@ -162,7 +171,7 @@ trait SimpleRouter extends Router { self =>
           Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
         }
         def withPrefix(prefix: String) = self.withPrefix(prefix)
-        def documentation = self.documentation
+        def documentation              = self.documentation
       }
     }
   }
@@ -173,6 +182,7 @@ class SimpleRouterImpl(routesProvider: => Router.Routes) extends SimpleRouter {
 }
 
 object SimpleRouter {
+
   /**
    * Create a new simple router from the given routes
    */

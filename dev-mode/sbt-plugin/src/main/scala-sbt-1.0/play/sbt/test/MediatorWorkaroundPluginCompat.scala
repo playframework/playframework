@@ -3,12 +3,13 @@
  */
 package play.sbt.test
 
-import sbt.Keys.{ scalaModuleInfo, sbtPlugin }
+import sbt.Keys.scalaModuleInfo
+import sbt.Keys.sbtPlugin
 import sbt.AutoPlugin
 
 private[test] trait MediatorWorkaroundPluginCompat extends AutoPlugin {
 
   override def projectSettings = Seq(
-    scalaModuleInfo := { scalaModuleInfo.value map { _.withOverrideScalaVersion(sbtPlugin.value) } }
+    scalaModuleInfo := { scalaModuleInfo.value.map { _.withOverrideScalaVersion(sbtPlugin.value) } }
   )
 }

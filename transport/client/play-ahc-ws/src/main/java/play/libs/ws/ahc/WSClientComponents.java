@@ -5,9 +5,7 @@ package play.libs.ws.ahc;
 
 import play.libs.ws.WSClient;
 
-/**
- * Java WSClient components.
- */
+/** Java WSClient components. */
 public interface WSClientComponents {
-    WSClient wsClient();
+  WSClient wsClient();
 }

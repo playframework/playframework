@@ -3,7 +3,8 @@
  */
 package play.it.i18n
 
-import play.api.i18n.{ Lang, Langs }
+import play.api.i18n.Lang
+import play.api.i18n.Langs
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 
@@ -11,12 +12,13 @@ class LangSpec extends PlaySpecification {
   "lang spec" should {
     "allow selecting preferred language" in {
       val esEs = Lang("es-ES")
-      val es = Lang("es")
+      val es   = Lang("es")
       val deDe = Lang("de-DE")
-      val de = Lang("de")
+      val de   = Lang("de")
       val enUs = Lang("en-US")
 
-      implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(enUs, esEs, de).map(_.code)).build()
+      implicit val app =
+        GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(enUs, esEs, de).map(_.code)).build()
       val langs = app.injector.instanceOf[Langs]
 
       "with exact match" in {
@@ -81,13 +83,14 @@ class LangSpec extends PlaySpecification {
 
       "preferred language" in {
         val crhUA = Lang("crh-UA")
-        val crh = Lang("crh")
-        val ber = Lang("ber")
+        val crh   = Lang("crh")
+        val ber   = Lang("ber")
         val berDZ = Lang("ber-DZ")
         val astES = Lang("ast-ES")
-        val ast = Lang("ast")
+        val ast   = Lang("ast")
 
-        implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(crhUA, ber, astES).map(_.code)).build()
+        implicit val app =
+          GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(crhUA, ber, astES).map(_.code)).build()
         val langs = app.injector.instanceOf[Langs]
 
         "with exact match" in {
@@ -124,15 +127,16 @@ class LangSpec extends PlaySpecification {
       }
 
       "preferred language" in {
-        val enUS = Lang("en-US")
-        val az = Lang("az")
+        val enUS   = Lang("en-US")
+        val az     = Lang("az")
         val azCyrl = Lang("az-Cyrl")
         val azLatn = Lang("az-Latn")
-        val zh = Lang("zh")
+        val zh     = Lang("zh")
         val zhHans = Lang("zh-Hans")
         val zhHant = Lang("zh-Hant")
 
-        implicit val app = GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code)).build()
+        implicit val app =
+          GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code)).build()
         val langs = app.injector.instanceOf[Langs]
 
         "with exact match" in {
@@ -166,4 +170,3 @@ object trLocaleContext extends org.specs2.mutable.Around {
     result
   }
 }
-

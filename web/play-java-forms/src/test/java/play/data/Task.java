@@ -13,80 +13,78 @@ import play.data.validation.TestConstraints.AnotherI18NConstraint;
 
 public class Task {
 
-    @Constraints.Min(10)
-    private Long id;
+  @Constraints.Min(10)
+  private Long id;
 
-    @Constraints.Required
-    private String name;
+  @Constraints.Required private String name;
 
-    private Boolean done = true;
+  private Boolean done = true;
 
-    @Constraints.Required
-    @DateTime(pattern = "dd/MM/yyyy")
-    private Date dueDate;
+  @Constraints.Required
+  @DateTime(pattern = "dd/MM/yyyy")
+  private Date dueDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    @I18Constraint(value = "patterns.zip")
-    private String zip;
+  @I18Constraint(value = "patterns.zip")
+  private String zip;
 
-    @AnotherI18NConstraint(value = "patterns.zip")
-    private String anotherZip;
+  @AnotherI18NConstraint(value = "patterns.zip")
+  private String anotherZip;
 
-    public Long getId() {
-        return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public Boolean getDone() {
-        return done;
-    }
+  public Boolean getDone() {
+    return done;
+  }
 
-    public void setDone(Boolean done) {
-        this.done = done;
-    }
+  public void setDone(Boolean done) {
+    this.done = done;
+  }
 
-    public Date getDueDate() {
-        return dueDate;
-    }
+  public Date getDueDate() {
+    return dueDate;
+  }
 
-    public void setDueDate(Date dueDate) {
-        this.dueDate = dueDate;
-    }
+  public void setDueDate(Date dueDate) {
+    this.dueDate = dueDate;
+  }
 
-    public Date getEndDate() {
-        return endDate;
-    }
+  public Date getEndDate() {
+    return endDate;
+  }
 
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
-    }
+  public void setEndDate(Date endDate) {
+    this.endDate = endDate;
+  }
 
-    public String getZip() {
-        return zip;
-    }
+  public String getZip() {
+    return zip;
+  }
 
-    public void setZip(String zip) {
-        this.zip = zip;
-    }
+  public void setZip(String zip) {
+    this.zip = zip;
+  }
 
-    public String getAnotherZip() {
-        return anotherZip;
-    }
+  public String getAnotherZip() {
+    return anotherZip;
+  }
 
-    public void setAnotherZip(String anotherZip) {
-        this.anotherZip = anotherZip;
-    }
-
+  public void setAnotherZip(String anotherZip) {
+    this.anotherZip = anotherZip;
+  }
 }

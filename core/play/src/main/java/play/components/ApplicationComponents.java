@@ -5,9 +5,7 @@ package play.components;
 
 import play.Application;
 
-/**
- * The application component.
- */
+/** The application component. */
 public interface ApplicationComponents {
-    Application application();
+  Application application();
 }

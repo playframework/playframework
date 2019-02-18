@@ -11,14 +11,13 @@ import javax.validation.Valid;
 
 public class ListForm {
 
-    @Valid
-    private List<@Constraints.Min(0) Integer> values;
+  @Valid private List<@Constraints.Min(0) Integer> values;
 
-    public List<Integer> getValues() {
-        return values;
-    }
+  public List<Integer> getValues() {
+    return values;
+  }
 
-    public void setValues(final List<Integer> values) {
-        this.values = values;
-    }
+  public void setValues(final List<Integer> values) {
+    this.values = values;
+  }
 }

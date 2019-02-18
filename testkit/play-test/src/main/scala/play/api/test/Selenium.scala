@@ -7,7 +7,8 @@ import java.util.concurrent.TimeUnit
 
 import com.google.common.base.Function
 import org.fluentlenium.adapter.FluentAdapter
-import org.fluentlenium.core.domain.{ FluentList, FluentWebElement }
+import org.fluentlenium.core.domain.FluentList
+import org.fluentlenium.core.domain.FluentWebElement
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
@@ -106,11 +107,13 @@ object TestBrowser {
    *
    * @param baseUrl The default base URL that will be used for relative URLs
    */
-  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) = TestBrowser(WebDriverFactory(webDriver), baseUrl)
+  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) =
+    TestBrowser(WebDriverFactory(webDriver), baseUrl)
 
 }
 
 object WebDriverFactory {
+
   /**
    * Creates a Selenium Web Driver and configures it
    * @param clazz Type of driver to create
@@ -121,7 +124,7 @@ object WebDriverFactory {
     // Driver-specific configuration
     driver match {
       case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
-      case _ =>
+      case _                        =>
     }
     driver
   }

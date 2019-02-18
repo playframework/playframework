@@ -6,22 +6,28 @@ package play.api.libs.concurrent
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.Done
-import akka.actor.{ ActorSystem, CoordinatedShutdown }
-import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
+import play.api.Environment
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.util.Success
 
 class ActorSystemProviderSpec extends Specification {
 
   val akkaMaxDelayInSec = 2147483
-  val fiveSec = Duration(5, "seconds")
-  val oneSec = Duration(100, "milliseconds")
-  val mustRunPhase = CoordinatedShutdown.PhaseServiceStop
-  val mustNotRunPhase = CoordinatedShutdown.PhaseBeforeServiceUnbind
+  val fiveSec           = Duration(5, "seconds")
+  val oneSec            = Duration(100, "milliseconds")
+  val mustRunPhase      = CoordinatedShutdown.PhaseServiceStop
+  val mustNotRunPhase   = CoordinatedShutdown.PhaseBeforeServiceUnbind
 
   val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
   val playTimeoutKey = "play.akka.shutdown-timeout"
@@ -66,28 +72,24 @@ class ActorSystemProviderSpec extends Specification {
       val config = Configuration
         .load(Environment.simple())
         .underlying
-        .withValue(
-          "play.akka.run-cs-from-phase",
-          ConfigValueFactory.fromAnyRef(mustRunPhase))
+        .withValue("play.akka.run-cs-from-phase", ConfigValueFactory.fromAnyRef(mustRunPhase))
 
       val (actorSystem, stopHook) = ActorSystemProvider.start(
         this.getClass.getClassLoader,
         Configuration(config)
       )
 
-      val promise = Promise[Done]()
+      val promise    = Promise[Done]()
       val terminated = promise.future
-      val isRun = new AtomicBoolean(false)
+      val isRun      = new AtomicBoolean(false)
 
-      CoordinatedShutdown(actorSystem).addTask(mustRunPhase, "termination-promise") {
-        () =>
-          promise.complete(Success(Done))
-          Future.successful(Done)
+      CoordinatedShutdown(actorSystem).addTask(mustRunPhase, "termination-promise") { () =>
+        promise.complete(Success(Done))
+        Future.successful(Done)
       }
-      CoordinatedShutdown(actorSystem).addTask(mustNotRunPhase, "is-ignored-promise") {
-        () =>
-          isRun.set(true)
-          Future.successful(Done)
+      CoordinatedShutdown(actorSystem).addTask(mustNotRunPhase, "is-ignored-promise") { () =>
+        isRun.set(true)
+        Future.successful(Done)
       }
 
       try {
@@ -107,10 +109,11 @@ class ActorSystemProviderSpec extends Specification {
   }
 
   private def withOverridenTimeout[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
-    val config: Config = reconfigure(Configuration
-      .load(Environment.simple())
-      .underlying
-      .withoutPath(playTimeoutKey)
+    val config: Config = reconfigure(
+      Configuration
+        .load(Environment.simple())
+        .underlying
+        .withoutPath(playTimeoutKey)
     )
     val (actorSystem, stopHook) = ActorSystemProvider.start(
       this.getClass.getClassLoader,

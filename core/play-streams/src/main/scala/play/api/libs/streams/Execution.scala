@@ -6,7 +6,8 @@ package play.api.libs.streams
 import java.util.ArrayDeque
 
 import scala.annotation.tailrec
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
 
 /**
  * Contains the default ExecutionContext used by Play.

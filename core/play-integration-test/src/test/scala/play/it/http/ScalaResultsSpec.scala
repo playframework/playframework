@@ -12,9 +12,10 @@ class ScalaResultsSpec extends PlaySpecification {
 
   sequential
 
-  def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding = app.injector.instanceOf[CookieHeaderEncoding]
+  def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding =
+    app.injector.instanceOf[CookieHeaderEncoding]
   def sessionBaker(implicit app: Application): SessionCookieBaker = app.injector.instanceOf[SessionCookieBaker]
-  def flashBaker(implicit app: Application): FlashCookieBaker = app.injector.instanceOf[FlashCookieBaker]
+  def flashBaker(implicit app: Application): FlashCookieBaker     = app.injector.instanceOf[FlashCookieBaker]
 
   def bake(result: Result)(implicit app: Application): Result = {
     result.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker)
@@ -25,16 +26,16 @@ class ScalaResultsSpec extends PlaySpecification {
   }
 
   "support session helper" in withApplication() { implicit app =>
-
     sessionBaker.decode("  ").isEmpty must be_==(true)
 
-    val data = Map("user" -> "kiki", "langs" -> "fr:en:de")
+    val data           = Map("user" -> "kiki", "langs" -> "fr:en:de")
     val encodedSession = sessionBaker.encode(data)
     val decodedSession = sessionBaker.decode(encodedSession)
 
     decodedSession must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
     val Result(ResponseHeader(_, headers, _), _, _, _, _) = bake {
-      Ok("hello").as("text/html")
+      Ok("hello")
+        .as("text/html")
         .withSession("user" -> "kiki", "langs" -> "fr:en:de")
         .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
         .discardingCookies(DiscardingCookie("logged"))
@@ -53,8 +54,9 @@ class ScalaResultsSpec extends PlaySpecification {
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
   }
 
-  "bake cookies should not depends on global state" in withApplication("play.allowGlobalApplication" -> false) { implicit app =>
-    Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must not(beNull) // we are interested just that it executes without global state
+  "bake cookies should not depends on global state" in withApplication("play.allowGlobalApplication" -> false) {
+    implicit app =>
+      Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must not(beNull) // we are interested just that it executes without global state
   }
 
   "support a custom application context" in {
@@ -97,7 +99,7 @@ class ScalaResultsSpec extends PlaySpecification {
     "legacy session baker should work normally" in withLegacyCookiesModule { implicit app =>
       sessionBaker must beAnInstanceOf[LegacySessionCookieBaker]
 
-      val data = Map("user" -> "kiki", "langs" -> "fr:en:de")
+      val data           = Map("user" -> "kiki", "langs" -> "fr:en:de")
       val encodedSession = sessionBaker.encode(data)
       val decodedSession = sessionBaker.decode(encodedSession)
       decodedSession must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
@@ -106,16 +108,17 @@ class ScalaResultsSpec extends PlaySpecification {
     "legacy flash baker should work normally" in withLegacyCookiesModule { implicit app =>
       flashBaker must beAnInstanceOf[LegacyFlashCookieBaker]
 
-      val data = Map("message" -> "success")
+      val data           = Map("message" -> "success")
       val encodedSession = flashBaker.encode(data)
       val decodedSession = flashBaker.decode(encodedSession)
       decodedSession must_== Map("message" -> "success")
     }
   }
 
-  def withApplication[T](config: (String, Any)*)(block: Application => T): T = running(
-    _.configure(Map(config: _*) + ("play.http.secret.key" -> "foo"))
-  )(block)
+  def withApplication[T](config: (String, Any)*)(block: Application => T): T =
+    running(
+      _.configure(Map(config: _*) + ("play.http.secret.key" -> "foo"))
+    )(block)
 
   def withFooDomain[T](block: Application => T) = withApplication("play.http.session.domain" -> ".foo.com")(block)
 
@@ -124,14 +127,19 @@ class ScalaResultsSpec extends PlaySpecification {
   def withFooPath[T](block: Application => T) = {
     val path = "/foo"
     withApplication(
-      "play.http.context" -> path,
+      "play.http.context"      -> path,
       "play.http.session.path" -> path,
-      "play.http.flash.path" -> path
+      "play.http.flash.path"   -> path
     )(block)
   }
 
-  def withLegacyCookiesModule[T](block: Application => T) = withApplication(
-    "play.modules.disabled" -> Seq("play.api.mvc.CookiesModule"),
-    "play.modules.enabled" -> Seq("play.api.i18n.I18nModule", "play.api.inject.BuiltinModule", "play.api.mvc.LegacyCookiesModule")
-  )(block)
+  def withLegacyCookiesModule[T](block: Application => T) =
+    withApplication(
+      "play.modules.disabled" -> Seq("play.api.mvc.CookiesModule"),
+      "play.modules.enabled" -> Seq(
+        "play.api.i18n.I18nModule",
+        "play.api.inject.BuiltinModule",
+        "play.api.mvc.LegacyCookiesModule"
+      )
+    )(block)
 }

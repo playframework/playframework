@@ -15,13 +15,10 @@ import scala.util.control.NonFatal
  * @param application The Application to load in this server.
  * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
  */
-case class TestServer(
-    config: ServerConfig,
-    application: Application,
-    serverProvider: Option[ServerProvider]) {
+case class TestServer(config: ServerConfig, application: Application, serverProvider: Option[ServerProvider]) {
 
   private var testServerProcess: TestServerProcess = _
-  private var testServer: Server = _
+  private var testServer: Server                   = _
 
   private def getTestServerIfRunning: Server = {
     val s = testServer
@@ -97,12 +94,14 @@ object TestServer {
    * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
    */
   def apply(
-    port: Int,
-    application: Application = GuiceApplicationBuilder().build(),
-    sslPort: Option[Int] = None,
-    serverProvider: Option[ServerProvider] = None) = new TestServer(
-    ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test,
-      rootDir = application.path), application, serverProvider
+      port: Int,
+      application: Application = GuiceApplicationBuilder().build(),
+      sslPort: Option[Int] = None,
+      serverProvider: Option[ServerProvider] = None
+  ) = new TestServer(
+    ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test, rootDir = application.path),
+    application,
+    serverProvider
   )
 
 }
@@ -126,9 +125,9 @@ private[play] class TestServerProcess extends ServerProcess {
   }
 
   override def classLoader = getClass.getClassLoader
-  override def args = Seq()
-  override def properties = System.getProperties
-  override def pid = None
+  override def args        = Seq()
+  override def properties  = System.getProperties
+  override def pid         = None
 
   override def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
     throw new TestServerExitException(message, cause, returnCode)
@@ -136,7 +135,5 @@ private[play] class TestServerProcess extends ServerProcess {
 
 }
 
-private[play] case class TestServerExitException(
-    message: String,
-    cause: Option[Throwable] = None,
-    returnCode: Int = -1) extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)
+private[play] case class TestServerExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1)
+    extends Exception(s"Exit with $message, $cause, $returnCode", cause.orNull)

@@ -3,7 +3,8 @@
  */
 package play.core.server.common
 
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
 import play.api.mvc.RequestHeader
 import play.core.server.ServerProvider
 
@@ -14,6 +15,7 @@ private[play] final case class ServerDebugInfo(
 )
 
 private[play] object ServerDebugInfo {
+
   /** The attribute used to attach debug info to requests. */
   val Attr = TypedKey[ServerDebugInfo]("serverDebugInfo")
 
@@ -22,7 +24,7 @@ private[play] object ServerDebugInfo {
    */
   def attachToRequestHeader(rh: RequestHeader, serverDebugInfo: Option[ServerDebugInfo]): RequestHeader = {
     serverDebugInfo match {
-      case None => rh
+      case None       => rh
       case Some(info) => rh.addAttr(Attr, info)
     }
   }

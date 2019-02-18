@@ -17,36 +17,37 @@ import java.util.concurrent.CompletionStage;
 import static net.logstash.logback.marker.Markers.append;
 
 public class JavaMarkerController extends Controller {
-    private final HttpExecutionContext httpExecutionContext;
+  private final HttpExecutionContext httpExecutionContext;
 
-    @Inject
-    public JavaMarkerController(HttpExecutionContext httpExecutionContext) {
-        this.httpExecutionContext = httpExecutionContext;
-    }
+  @Inject
+  public JavaMarkerController(HttpExecutionContext httpExecutionContext) {
+    this.httpExecutionContext = httpExecutionContext;
+  }
 
-    private final Logger.ALogger logger = Logger.of(this.getClass());
+  private final Logger.ALogger logger = Logger.of(this.getClass());
 
-    // #logging-log-info-with-request-context
-    // ###insert: import static net.logstash.logback.marker.Markers.append;
+  // #logging-log-info-with-request-context
+  // ###insert: import static net.logstash.logback.marker.Markers.append;
 
-    private Marker requestMarker() {
-        Http.Request request = Http.Context.current().request();
-        return append("host", request.host())
-                .and(append("path", request.path()));
-    }
+  private Marker requestMarker() {
+    Http.Request request = Http.Context.current().request();
+    return append("host", request.host()).and(append("path", request.path()));
+  }
 
-    public Result index() {
-        logger.info(requestMarker(), "Rendering index()");
-        return ok("foo");
-    }
-    // #logging-log-info-with-request-context
+  public Result index() {
+    logger.info(requestMarker(), "Rendering index()");
+    return ok("foo");
+  }
+  // #logging-log-info-with-request-context
 
-    // #logging-log-info-with-async-request-context
-    public CompletionStage<Result> asyncIndex() {
-        return CompletableFuture.supplyAsync(() -> {
-            logger.info(requestMarker(), "Rendering asyncIndex()");
-            return ok("foo");
-        }, httpExecutionContext.current());
-    }
-    // #logging-log-info-with-async-request-context
+  // #logging-log-info-with-async-request-context
+  public CompletionStage<Result> asyncIndex() {
+    return CompletableFuture.supplyAsync(
+        () -> {
+          logger.info(requestMarker(), "Rendering asyncIndex()");
+          return ok("foo");
+        },
+        httpExecutionContext.current());
+  }
+  // #logging-log-info-with-async-request-context
 }

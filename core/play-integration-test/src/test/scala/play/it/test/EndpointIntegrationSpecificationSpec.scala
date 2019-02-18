@@ -3,7 +3,8 @@
  */
 package play.it.test
 
-import okhttp3.{ Protocol, Response }
+import okhttp3.Protocol
+import okhttp3.Response
 import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
 import play.api.test.PlaySpecification
@@ -11,13 +12,16 @@ import play.api.test.PlaySpecification
 /**
  * Tests that the [[EndpointIntegrationSpecification]] works properly.
  */
-class EndpointIntegrationSpecificationSpec extends PlaySpecification with EndpointIntegrationSpecification with OkHttpEndpointSupport {
+class EndpointIntegrationSpecificationSpec
+    extends PlaySpecification
+    with EndpointIntegrationSpecification
+    with OkHttpEndpointSupport {
 
   "Endpoints" should {
     "respond with the highest supported HTTP protocol" in {
-      withResult(Results.Ok("Hello")) withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+      withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
         val response: Response = okEndpoint.call("/")
-        val protocol = response.protocol
+        val protocol           = response.protocol
         if (okEndpoint.endpoint.expectedHttpVersions.contains("2")) {
           protocol must_== Protocol.HTTP_2
         } else if (okEndpoint.endpoint.expectedHttpVersions.contains("1.1")) {

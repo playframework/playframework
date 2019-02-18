@@ -6,7 +6,8 @@ package play.api.inject
 import org.specs2.mutable.Specification
 
 import scala.collection.mutable
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class DefaultApplicationLifecycleSpec extends Specification {
@@ -19,7 +20,7 @@ class DefaultApplicationLifecycleSpec extends Specification {
     // 2. Stop Hooks won't datarace, they will never run in parallel
     "stop all the hooks in the correct order" in {
       val lifecycle = new DefaultApplicationLifecycle()
-      val buffer = mutable.ListBuffer[Int]()
+      val buffer    = mutable.ListBuffer[Int]()
       lifecycle.addStopHook(() => Future(buffer.append(1)))
       lifecycle.addStopHook(() => Future(buffer.append(2)))
       lifecycle.addStopHook(() => Future(buffer.append(3)))
@@ -30,7 +31,7 @@ class DefaultApplicationLifecycleSpec extends Specification {
 
     "continue when a hook returns a failed future" in {
       val lifecycle = new DefaultApplicationLifecycle()
-      val buffer = mutable.ListBuffer[Int]()
+      val buffer    = mutable.ListBuffer[Int]()
       lifecycle.addStopHook(() => Future(buffer.append(1)))
       lifecycle.addStopHook(() => Future.failed(new RuntimeException("Failed stop hook")))
       lifecycle.addStopHook(() => Future(buffer.append(3)))
@@ -41,7 +42,7 @@ class DefaultApplicationLifecycleSpec extends Specification {
 
     "continue when a hook throws an exception" in {
       val lifecycle = new DefaultApplicationLifecycle()
-      val buffer = mutable.ListBuffer[Int]()
+      val buffer    = mutable.ListBuffer[Int]()
       lifecycle.addStopHook(() => Future(buffer.append(1)))
       lifecycle.addStopHook(() => throw new RuntimeException("Failed stop hook"))
       lifecycle.addStopHook(() => Future(buffer.append(3)))

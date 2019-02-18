@@ -18,25 +18,44 @@ import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.http.HttpEntity
 import play.it._
-import play.libs.{ Comet, EventSource, Json }
-import play.mvc.Http.{ Cookie, Flash, Session }
-import play.mvc.{ Http, ResponseHeader, Result, Results, StatusHeader }
+import play.libs.Comet
+import play.libs.EventSource
+import play.libs.Json
+import play.mvc.Http.Cookie
+import play.mvc.Http.Flash
+import play.mvc.Http.Session
+import play.mvc.Http
+import play.mvc.ResponseHeader
+import play.mvc.Result
+import play.mvc.Results
+import play.mvc.StatusHeader
 
 import scala.collection.JavaConverters._
 
-class NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
+class NettyJavaResultsHandlingSpec    extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
 
-trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification with ContentTypes {
+trait JavaResultsHandlingSpec
+    extends PlaySpecification
+    with WsTestClient
+    with ServerIntegrationSpecification
+    with ContentTypes {
 
   sequential
 
   "Java results handling" should {
-    def makeRequest[T](controller: MockController, additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(block: WSResponse => T) = {
+    def makeRequest[T](
+        controller: MockController,
+        additionalConfig: Map[String, String] = Map.empty,
+        followRedirects: Boolean = true
+    )(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
-        case _ => JAction(app, controller)
-      }.build()
+      lazy val app: Application = GuiceApplicationBuilder()
+        .configure(additionalConfig)
+        .routes {
+          case _ => JAction(app, controller)
+        }
+        .build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
@@ -44,11 +63,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       }
     }
 
-    def makeRequestWithApp[T](additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(controller: Application => MockController)(block: WSResponse => T) = {
+    def makeRequestWithApp[T](additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(
+        controller: Application => MockController
+    )(block: WSResponse => T) = {
       implicit val port = testServerPort
-      lazy val app: Application = GuiceApplicationBuilder().configure(additionalConfig).routes {
-        case _ => JAction(app, controller(app))
-      }.build()
+      lazy val app: Application = GuiceApplicationBuilder()
+        .configure(additionalConfig)
+        .routes {
+          case _ => JAction(app, controller(app))
+        }
+        .build()
 
       running(TestServer(port, app)) {
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
@@ -135,8 +159,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
         // the Netty and Akka HTTP backends actually return.
-        beSome("application/json; charset=UTF-8") or
-        beSome("application/json")
+        beSome("application/json; charset=UTF-8").or(beSome("application/json"))
       )
     }
 
@@ -148,7 +171,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
         // the Netty and Akka HTTP backends actually return.
-        beSome("application/xml; charset=windows-1252") or beSome("application/xml;charset=Windows-1252")
+        beSome("application/xml; charset=windows-1252").or(beSome("application/xml;charset=Windows-1252"))
       )
     }
 
@@ -205,7 +228,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies in Result" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world")
+        Results
+          .ok("Hello world")
           .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
           .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
       }
@@ -217,7 +241,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "add cookies with SameSite policy in Result" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world")
+        Results
+          .ok("Hello world")
           .withCookies(Http.Cookie.builder("bar", "KitKat").withSameSite(Http.Cookie.SameSite.LAX).build())
           .withCookies(Http.Cookie.builder("framework", "Play").withSameSite(Http.Cookie.SameSite.STRICT).build())
       }
@@ -231,46 +256,53 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }
 
     "honor configuration for play.http.session.sameSite" in {
-      "when configured to lax" in makeRequest(new MockController {
-        def action = {
-          val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
-          val body = HttpEntity.fromString("Hello World", "utf-8")
-          val session = new Session(Map.empty[String, String].asJava)
-          val flash = new Flash(Map.empty[String, String].asJava)
-          val cookies = List.empty[Cookie].asJava
+      "when configured to lax" in makeRequest(
+        new MockController {
+          def action = {
+            val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
+            val body           = HttpEntity.fromString("Hello World", "utf-8")
+            val session        = new Session(Map.empty[String, String].asJava)
+            val flash          = new Flash(Map.empty[String, String].asJava)
+            val cookies        = List.empty[Cookie].asJava
 
-          val result = new Result(responseHeader, body, session, flash, cookies)
-          result.session().put("bar", "KitKat")
-          result
-        }
-      }, Map("play.http.session.sameSite" -> "lax")) { response =>
+            val result = new Result(responseHeader, body, session, flash, cookies)
+            result.session().put("bar", "KitKat")
+            result
+          }
+        },
+        Map("play.http.session.sameSite" -> "lax")
+      ) { response =>
         response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Lax"))
       }
 
-      "when configured to strict" in makeRequest(new MockController {
-        def action = {
-          val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
-          val body = HttpEntity.fromString("Hello World", "utf-8")
-          val session = new Session(Map.empty[String, String].asJava)
-          val flash = new Flash(Map.empty[String, String].asJava)
-          val cookies = List.empty[Cookie].asJava
+      "when configured to strict" in makeRequest(
+        new MockController {
+          def action = {
+            val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
+            val body           = HttpEntity.fromString("Hello World", "utf-8")
+            val session        = new Session(Map.empty[String, String].asJava)
+            val flash          = new Flash(Map.empty[String, String].asJava)
+            val cookies        = List.empty[Cookie].asJava
 
-          val result = new Result(responseHeader, body, session, flash, cookies)
-          result.session().put("bar", "KitKat")
-          result
-        }
-      }, Map("play.http.session.sameSite" -> "strict")) { response =>
+            val result = new Result(responseHeader, body, session, flash, cookies)
+            result.session().put("bar", "KitKat")
+            result
+          }
+        },
+        Map("play.http.session.sameSite" -> "strict")
+      ) { response =>
         response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Strict"))
       }
     }
 
     "handle duplicate withCookies in Result" in {
-      val result = Results.ok("Hello world")
+      val result = Results
+        .ok("Hello world")
         .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
         .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
 
       import scala.collection.JavaConverters._
-      val cookies = result.cookies().iterator().asScala.toList
+      val cookies      = result.cookies().iterator().asScala.toList
       val cookieValues = cookies.map(_.value)
       cookieValues must not contain ("KitKat")
       cookieValues must contain("Mars")
@@ -278,7 +310,8 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
     "handle duplicate cookies" in makeRequest(new MockController {
       def action = {
-        Results.ok("Hello world")
+        Results
+          .ok("Hello world")
           .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
           .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
       }
@@ -320,9 +353,11 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     "add cookies in both Response and Result" in makeRequest(new MockController {
       def action = {
         response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
-        Results.ok("Hello world").withCookies(
-          new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
-        )
+        Results
+          .ok("Hello world")
+          .withCookies(
+            new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
+          )
       }
     }) { response =>
       response.headers.get("Set-Cookie").get(0) must contain("bar=KitKat")
@@ -340,14 +375,16 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     "chunk comet results from string" in makeRequest(new MockController {
       def action = {
         import scala.collection.JavaConverters._
-        val dataSource = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
+        val dataSource  = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
         val cometSource = dataSource.via(Comet.string("callback"))
         Results.ok().chunked(cometSource)
       }
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script type=\"text/javascript\">callback('a');</script><script type=\"text/javascript\">callback('b');</script><script type=\"text/javascript\">callback('c');</script>")
+      response.body must contain(
+        "<html><body><script type=\"text/javascript\">callback('a');</script><script type=\"text/javascript\">callback('b');</script><script type=\"text/javascript\">callback('c');</script>"
+      )
     }
 
     "chunk comet results from json" in makeRequest(new MockController {
@@ -355,7 +392,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
         val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(Arrays.asList(objectNode))
-        val cometSource = dataSource.via(Comet.json("callback"))
+        val cometSource                           = dataSource.via(Comet.json("callback"))
         Results.ok().chunked(cometSource)
       }
     }) { response =>
@@ -416,7 +453,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "correct change it for chunked entities" in makeRequest(new MockController {
         def action = {
-          val chunks = List(ByteString("a"), ByteString("b"))
+          val chunks     = List(ByteString("a"), ByteString("b"))
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(HTML)
         }
@@ -450,7 +487,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
 
       "have no content type if set to null in chunked entities" in makeRequest(new MockController {
         def action = {
-          val chunks = List(ByteString("a"), ByteString("b"))
+          val chunks     = List(ByteString("a"), ByteString("b"))
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(null)
         }

@@ -13,12 +13,12 @@ class UriEncodingSpec extends Specification {
 
   sealed trait EncodingResult
   // Good behaviour
-  case object NotEncoded extends EncodingResult
+  case object NotEncoded                     extends EncodingResult
   case class PercentEncoded(encoded: String) extends EncodingResult
   // Bad behaviour
-  case class NotEncodedButDecodeDifferent(decodedEncoded: String) extends EncodingResult
+  case class NotEncodedButDecodeDifferent(decodedEncoded: String)                      extends EncodingResult
   case class PercentEncodedButDecodeDifferent(encoded: String, decodedEncoded: String) extends EncodingResult
-  case class PercentEncodedButDecodedInvalid(encoded: String) extends EncodingResult
+  case class PercentEncodedButDecodedInvalid(encoded: String)                          extends EncodingResult
 
   def encodingFor(in: String, inCharset: String): EncodingResult = {
     val encoded = encodePathSegment(in, inCharset)
@@ -66,7 +66,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
                     ; non-zero-length segment without any colon ":"
 
       pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-*/
+     */
     "percent-encode reserved characters that aren't allowed in a path segment" in {
       // Not allowed (gen-delims, except ":" / "@")
       encodingFor("/", "utf-8") must_== PercentEncoded("%2F")
@@ -102,7 +102,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    underscore (%5F), or tilde (%7E) should not be created by URI
    producers and, when found in a URI, should be decoded to their
    corresponding unreserved characters by URI normalizers.
-*/
+     */
     "not percent-encode unreserved characters" in {
       encodingFor("a", "utf-8") must_== NotEncoded
       encodingFor("z", "utf-8") must_== NotEncoded
@@ -122,7 +122,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    A percent-encoding mechanism is used to represent a data octet in a
    component when that octet's corresponding character is outside the
    allowed set...
-*/
+     */
     "percent-encode any characters that aren't specifically allowed in a path segment" in {
       encodingFor("\u0000", "US-ASCII") must_== PercentEncoded("%00")
       encodingFor("\u001F", "US-ASCII") must_== PercentEncoded("%1F")
@@ -163,7 +163,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    octets, they are equivalent.  For consistency, URI producers and
    normalizers should use uppercase hexadecimal digits for all percent-
    encodings.
-*/
+     */
     "percent-encode to triplets with upper-case hex" in {
       encodingFor("\u0000", "ISO-8859-1") must_== PercentEncoded("%00")
       encodingFor("\u0099", "ISO-8859-1") must_== PercentEncoded("%99")
@@ -190,8 +190,8 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
     // "application/x-www-form-urlencoded". One difference is the encoding
     // of the "+" and space characters.
     "percent-encode spaces, but not + characters" in {
-      encodingFor(" ", "US-ASCII") must_== PercentEncoded("%20") // vs "+" for query strings
-      encodingFor("+", "US-ASCII") must_== NotEncoded // vs "%2B" for query strings
+      encodingFor(" ", "US-ASCII") must_== PercentEncoded("%20")   // vs "+" for query strings
+      encodingFor("+", "US-ASCII") must_== NotEncoded              // vs "%2B" for query strings
       encodingFor(" +", "US-ASCII") must_== PercentEncoded("%20+") // vs "+%2B" for query strings
       encodingFor("1+2=3", "US-ASCII") must_== NotEncoded
       encodingFor("1 + 2 = 3", "US-ASCII") must_== PercentEncoded("1%20+%202%20=%203")

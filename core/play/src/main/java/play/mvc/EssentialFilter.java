@@ -4,19 +4,19 @@
 package play.mvc;
 
 public abstract class EssentialFilter implements play.api.mvc.EssentialFilter {
-    public abstract EssentialAction apply(play.mvc.EssentialAction next);
+  public abstract EssentialAction apply(play.mvc.EssentialAction next);
 
-    @Override
-    public play.mvc.EssentialAction apply(play.api.mvc.EssentialAction next) {
-        return apply(next.asJava());
-    }
+  @Override
+  public play.mvc.EssentialAction apply(play.api.mvc.EssentialAction next) {
+    return apply(next.asJava());
+  }
 
-    @Override
-    public EssentialFilter asJava() {
-        return this;
-    }
+  @Override
+  public EssentialFilter asJava() {
+    return this;
+  }
 
-    public play.api.mvc.EssentialFilter asScala() {
-        return this;
-    }
+  public play.api.mvc.EssentialFilter asScala() {
+    return this;
+  }
 }

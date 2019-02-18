@@ -3,5 +3,4 @@
  */
 package play.data;
 
-public interface PasswordCheck {
-}
+public interface PasswordCheck {}

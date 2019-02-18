@@ -10,7 +10,8 @@ import play.api._
 import play.api.http.FileMimeTypes
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
  * Controller that serves static resources from an external folder.
@@ -29,8 +30,8 @@ import scala.concurrent.{ ExecutionContext, Future }
  * }}}
  *
  */
-class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
-  extends ControllerHelpers {
+class ExternalAssets @Inject()(environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
+    extends ControllerHelpers {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
@@ -45,20 +46,21 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
   def at(rootPath: String, file: String): Action[AnyContent] = Action.async { request =>
     environment.mode match {
       case Mode.Prod => Future.successful(NotFound)
-      case _ => Future {
+      case _ =>
+        Future {
 
-        val fileToServe = rootPath match {
-          case AbsolutePath(_) => new File(rootPath, file)
-          case _ => new File(environment.getFile(rootPath), file)
+          val fileToServe = rootPath match {
+            case AbsolutePath(_) => new File(rootPath, file)
+            case _               => new File(environment.getFile(rootPath), file)
+          }
+
+          if (fileToServe.exists) {
+            Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
+          } else {
+            NotFound
+          }
+
         }
-
-        if (fileToServe.exists) {
-          Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
-        } else {
-          NotFound
-        }
-
-      }
     }
   }
 

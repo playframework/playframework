@@ -4,7 +4,8 @@
 package play.api.i18n
 
 import play.api.http.HttpConfiguration
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
+import play.api.Environment
 import play.api.inject.Module
 
 class I18nModule extends Module {
@@ -28,6 +29,7 @@ trait I18nComponents {
   def httpConfiguration: HttpConfiguration
 
   lazy val langs: Langs = new DefaultLangsProvider(configuration).get
-  lazy val messagesApi: MessagesApi = new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
+  lazy val messagesApi: MessagesApi =
+    new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
 
 }

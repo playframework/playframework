@@ -4,7 +4,8 @@
 package play.api.mvc
 
 import play.api.libs.typedmap.TypedMap
-import play.api.mvc.request.{ RemoteConnection, RequestTarget }
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 
 /**
  * Wrap an existing request. Useful to extend a request.
@@ -15,12 +16,12 @@ import play.api.mvc.request.{ RemoteConnection, RequestTarget }
  */
 class WrappedRequest[+A](request: Request[A]) extends Request[A] {
   override def connection: RemoteConnection = request.connection
-  override def method: String = request.method
-  override def target: RequestTarget = request.target
-  override def version: String = request.version
-  override def headers: Headers = request.headers
-  override def body: A = request.body
-  override def attrs: TypedMap = request.attrs
+  override def method: String               = request.method
+  override def target: RequestTarget        = request.target
+  override def version: String              = request.version
+  override def headers: Headers             = request.headers
+  override def body: A                      = request.body
+  override def attrs: TypedMap              = request.attrs
 
   /**
    * Create a copy of this wrapper, but wrapping a new request.

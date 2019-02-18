@@ -9,10 +9,12 @@ import java.nio.charset.StandardCharsets._
 import java.util.concurrent.ThreadLocalRandom
 
 import akka.NotUsed
-import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Source
 import akka.stream.stage._
 import akka.stream._
-import akka.util.{ ByteString, ByteStringBuilder }
+import akka.util.ByteString
+import akka.util.ByteStringBuilder
 import play.api.mvc.MultipartFormData
 
 import scala.annotation.tailrec
@@ -25,15 +27,23 @@ object Multipart {
   /**
    * Transforms a `Source[MultipartFormData.Part]` to a `Source[ByteString]`
    */
-  def transform(body: Source[MultipartFormData.Part[Source[ByteString, _]], _], boundary: String): Source[ByteString, _] = {
+  def transform(
+      body: Source[MultipartFormData.Part[Source[ByteString, _]], _],
+      boundary: String
+  ): Source[ByteString, _] = {
     body.via(format(boundary, Charset.defaultCharset(), 4096))
   }
 
   /**
    * Provides a Formatting Flow which could be used to format a MultipartFormData.Part source to a multipart/form data body
    */
-  def format(boundary: String, nioCharset: Charset, chunkSize: Int): Flow[MultipartFormData.Part[Source[ByteString, _]], ByteString, NotUsed] = {
-    Flow[MultipartFormData.Part[Source[ByteString, _]]].via(streamed(boundary, nioCharset, chunkSize))
+  def format(
+      boundary: String,
+      nioCharset: Charset,
+      chunkSize: Int
+  ): Flow[MultipartFormData.Part[Source[ByteString, _]], ByteString, NotUsed] = {
+    Flow[MultipartFormData.Part[Source[ByteString, _]]]
+      .via(streamed(boundary, nioCharset, chunkSize))
       .flatMapConcat(identity)
   }
 
@@ -67,7 +77,7 @@ object Multipart {
 
   private class CustomCharsetByteStringFormatter(nioCharset: Charset, sizeHint: Int) extends Formatter {
     private[this] val charBuffer = CharBuffer.allocate(64)
-    private[this] val builder = new ByteStringBuilder
+    private[this] val builder    = new ByteStringBuilder
     builder.sizeHint(sizeHint)
 
     def get: ByteString = {
@@ -93,7 +103,7 @@ object Multipart {
       charBuffer.flip()
       if (charBuffer.hasRemaining) {
         val byteBuffer = nioCharset.encode(charBuffer)
-        val bytes = new Array[Byte](byteBuffer.remaining())
+        val bytes      = new Array[Byte](byteBuffer.remaining())
         byteBuffer.get(bytes)
         builder.putBytes(bytes)
       }
@@ -116,12 +126,13 @@ object Multipart {
   }
 
   private def streamed(
-    boundary: String,
-    nioCharset: Charset, chunkSize: Int): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
-
+      boundary: String,
+      nioCharset: Charset,
+      chunkSize: Int
+  ): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
     new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
 
-      val in = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("CustomCharsetByteStringFormatter.in")
+      val in  = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("CustomCharsetByteStringFormatter.in")
       val out = Outlet[Source[ByteString, Any]]("CustomCharsetByteStringFormatter.out")
 
       override def shape = FlowShape.of(in, out)
@@ -141,9 +152,9 @@ object Multipart {
             }
 
             def completePartFormatting(): Source[ByteString, Any] = bodyPart match {
-              case MultipartFormData.DataPart(_, data) => Source.single((f ~~ ByteString(data)).get)
+              case MultipartFormData.DataPart(_, data)      => Source.single((f ~~ ByteString(data)).get)
               case MultipartFormData.FilePart(_, _, _, ref) => bodyPartChunks(ref)
-              case _ => throw new UnsupportedOperationException()
+              case _                                        => throw new UnsupportedOperationException()
             }
 
             renderBoundary(f, boundary, suppressInitialCrLf = !firstBoundaryRendered)
@@ -151,11 +162,14 @@ object Multipart {
 
             val (key, filename, contentType) = bodyPart match {
               case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"))
-              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _) => (innerKey, Option(innerFilename), innerContentType)
+              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _) =>
+                (innerKey, Option(innerFilename), innerContentType)
               case _ => throw new UnsupportedOperationException()
             }
             renderDisposition(f, key, filename)
-            contentType.foreach { ct => renderContentType(f, ct) }
+            contentType.foreach { ct =>
+              renderContentType(f, ct)
+            }
             renderBuffer(f)
             push(out, completePartFormatting())
           }
@@ -192,7 +206,9 @@ object Multipart {
 
   private def renderDisposition(f: Formatter, contentDisposition: String, filename: Option[String]): Unit = {
     f ~~ "Content-Disposition: form-data; name=" ~~ '"' ~~ contentDisposition ~~ '"'
-    filename.foreach { name => f ~~ "; filename=" ~~ '"' ~~ name ~~ '"' }
+    filename.foreach { name =>
+      f ~~ "; filename=" ~~ '"' ~~ name ~~ '"'
+    }
     f ~~ CrLf
   }
 

@@ -3,7 +3,8 @@
  */
 package play.it.http
 
-import play.api.mvc.{ Cookie, DefaultCookieHeaderEncoding }
+import play.api.mvc.Cookie
+import play.api.mvc.DefaultCookieHeaderEncoding
 import play.core.test._
 
 class HttpHeaderSpec extends HttpHeadersCommonSpec {
@@ -18,11 +19,11 @@ class HttpHeaderSpec extends HttpHeadersCommonSpec {
     lazy val cookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 
     "merge two cookies" in withApplication {
-      val cookies = Seq(
-        Cookie("foo", "bar"),
-        Cookie("bar", "qux"))
+      val cookies = Seq(Cookie("foo", "bar"), Cookie("bar", "qux"))
 
-      cookieHeaderEncoding.mergeSetCookieHeader("", cookies) must ===("foo=bar; Path=/; HTTPOnly;;bar=qux; Path=/; HTTPOnly")
+      cookieHeaderEncoding.mergeSetCookieHeader("", cookies) must ===(
+        "foo=bar; Path=/; HTTPOnly;;bar=qux; Path=/; HTTPOnly"
+      )
     }
     "merge and remove duplicates" in withApplication {
       val cookies = Seq(
@@ -33,12 +34,13 @@ class HttpHeaderSpec extends HttpHeadersCommonSpec {
         Cookie("foo", "baz", secure = true),
         Cookie("foo", "baz", httpOnly = false),
         Cookie("foo", "bar", path = "/blah"),
-        Cookie("foo", "baz", path = "/blah"))
+        Cookie("foo", "baz", path = "/blah")
+      )
 
       cookieHeaderEncoding.mergeSetCookieHeader("", cookies) must ===(
         "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))
-          "foo=baz; Path=/" + ";;" + // Cookie("foo", "baz", httpOnly=false)
-          "foo=baz; Path=/blah; HTTPOnly" // Cookie("foo", "baz", path="/blah")
+          "foo=baz; Path=/" + ";;" +                     // Cookie("foo", "baz", httpOnly=false)
+          "foo=baz; Path=/blah; HTTPOnly"                // Cookie("foo", "baz", path="/blah")
       )
     }
   }

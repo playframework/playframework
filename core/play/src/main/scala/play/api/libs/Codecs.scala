@@ -26,6 +26,7 @@ object Codecs {
    * @return the MD5 digest, encoded as a hex string
    */
   def md5(bytes: Array[Byte]): String = DigestUtils.md5Hex(bytes)
+
   /**
    * Compute the SHA-1 digest for a `String`.
    *

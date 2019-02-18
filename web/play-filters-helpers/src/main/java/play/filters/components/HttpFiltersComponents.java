@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * A compile time default filters components.
  *
- * <p>Usage:</p>
+ * <p>Usage:
  *
  * <pre>
  * public class MyComponents extends BuiltInComponentsFromContext
@@ -29,8 +29,8 @@ import java.util.List;
  *
  * @see NoHttpFiltersComponents
  */
-public interface HttpFiltersComponents extends
-        AllowedHostsComponents,
+public interface HttpFiltersComponents
+    extends AllowedHostsComponents,
         CORSComponents,
         CSRFComponents,
         GzipFilterComponents,
@@ -38,12 +38,9 @@ public interface HttpFiltersComponents extends
         SecurityHeadersComponents,
         HttpComponents {
 
-    @Override
-    default List<EssentialFilter> httpFilters() {
-        return Arrays.asList(
-            csrfFilter().asJava(),
-            securityHeadersFilter().asJava(),
-            allowedHostsFilter().asJava()
-        );
-    }
+  @Override
+  default List<EssentialFilter> httpFilters() {
+    return Arrays.asList(
+        csrfFilter().asJava(), securityHeadersFilter().asJava(), allowedHostsFilter().asJava());
+  }
 }

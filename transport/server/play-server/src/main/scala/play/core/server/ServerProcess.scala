@@ -13,18 +13,25 @@ import java.util.Properties
  * `System.getProperties()`, `System.exit()`, etc.
  */
 trait ServerProcess {
+
   /** The ClassLoader that should be used */
   def classLoader: ClassLoader
+
   /** The command line arguments the process as invoked with */
   def args: Seq[String]
+
   /** The process's system properties */
   def properties: Properties
+
   /** Helper for getting properties */
   final def prop(name: String): Option[String] = Option(properties.getProperty(name))
+
   /** The process's id */
   def pid: Option[String]
+
   /** Add a hook to run when the process shuts down */
   def addShutdownHook(hook: => Unit): Unit
+
   /** Exit the process with a message and optional cause and return code */
   def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing
 }
@@ -35,7 +42,7 @@ trait ServerProcess {
  */
 class RealServerProcess(val args: Seq[String]) extends ServerProcess {
   def classLoader: ClassLoader = Thread.currentThread.getContextClassLoader
-  def properties: Properties = System.getProperties
+  def properties: Properties   = System.getProperties
   def pid: Option[String] = {
     ManagementFactory.getRuntimeMXBean.getName.split('@').headOption
   }
