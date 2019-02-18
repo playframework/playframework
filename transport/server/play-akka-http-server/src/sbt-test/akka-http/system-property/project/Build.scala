@@ -9,7 +9,7 @@ import scala.util.Properties
 
 /**
  * The source code for this object has been purloined from one of the
- * SBT Plugin's dev mode tests.
+ * sbt Plugin's dev mode tests.
  */
 object DevModeBuild {
 

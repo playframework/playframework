@@ -236,7 +236,7 @@ object BuildSettings {
   )
 
   /**
-   * A project that is shared between the SBT runtime and the Play runtime
+   * A project that is shared between the sbt runtime and the Play runtime
    */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
@@ -314,7 +314,7 @@ object BuildSettings {
   )
 
   /**
-   * A project that runs in the SBT runtime
+   * A project that runs in the sbt runtime
    */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
@@ -323,7 +323,7 @@ object BuildSettings {
   }
 
   /**
-   * A project that *is* an SBT plugin
+   * A project that *is* an sbt plugin
    */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
