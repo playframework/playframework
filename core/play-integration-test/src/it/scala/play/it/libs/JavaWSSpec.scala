@@ -151,10 +151,9 @@ trait JavaWSSpec
     }
 
     "sending a simple multipart form body" in withServer { ws =>
-      val source = Source
+      val source: Source[_ >: Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], _] = Source
         .single(new Http.MultipartFormData.DataPart("hello", "world"))
-        .asJava[Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], NotUsed]
-      val res  = ws.url("/post").post(source)
+      val res  = ws.url("/post").post(source.asJava)
       val body = res.toCompletableFuture.get().asJson()
 
       body.path("form").path("hello").textValue() must_== "world"

@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.20")
+  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.21")
   val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.7")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
@@ -105,7 +105,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.0.14.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.0.15.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")

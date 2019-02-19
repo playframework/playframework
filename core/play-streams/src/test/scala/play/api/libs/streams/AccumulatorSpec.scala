@@ -135,7 +135,7 @@ class AccumulatorSpec extends Specification {
       "Java asScala" in withMaterializer { implicit m =>
         await(
           play.libs.streams.Accumulator
-            .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+            .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
             .asScala()
             .run(source)
         ) must_== 6
@@ -237,7 +237,7 @@ class AccumulatorSpec extends Specification {
         "Java asScala" in withMaterializer { implicit m =>
           await(
             play.libs.streams.Accumulator
-              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
               .asScala()
               .run(source)
           ) must_== 6
@@ -300,7 +300,7 @@ class AccumulatorSpec extends Specification {
         "Java asScala" in withMaterializer { implicit m =>
           await(
             play.libs.streams.Accumulator
-              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
               .asScala()
               .run(6)
           ) must_== 6
