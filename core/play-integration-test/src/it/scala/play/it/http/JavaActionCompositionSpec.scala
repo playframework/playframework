@@ -367,7 +367,9 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       override def action: Result = Results.ok()
     }) { response =>
       response.status must_== 500
-      response.body must contain("RuntimeException: Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class play.it.http.ActionCompositionOrderTest$SingletonActionAnnotationAction")
+      response.body must contain(
+        "RuntimeException: Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class play.it.http.ActionCompositionOrderTest$SingletonActionAnnotationAction"
+      )
     }
   }
 
