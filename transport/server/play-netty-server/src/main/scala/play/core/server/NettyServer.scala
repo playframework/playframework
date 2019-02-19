@@ -18,11 +18,13 @@ import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
+import io.netty.channel.epoll.EpollChannelOption
 import io.netty.channel.epoll.EpollEventLoopGroup
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
@@ -58,6 +60,7 @@ class NettyServer(
 )(implicit val materializer: Materializer)
     extends Server {
 
+  initializeChannelOptionsStaticMembers()
   registerShutdownTasks()
 
   private val serverConfig         = config.configuration.get[Configuration]("play.server")
@@ -285,6 +288,26 @@ class NettyServer(
       }
     }
 
+  }
+
+  private def initializeChannelOptionsStaticMembers(): Unit = {
+    // Workaround to make sure that various *ChannelOption classes (and therefore their static members) get initialized.
+    // The static members of these *ChannelOption classes get initialized by calling ChannelOption.valueOf(...).
+    // ChannelOption.valueOf(...) saves the name of the channel option into a pool/map.
+    // ChannelOption.exists(...) just checks that pool/map, meaning if a class wasn't initialized before,
+    // that method is not able to find a channel option (even though that option "exists" and should be found).
+    // We bumped into this problem when setting a native socket transport option into the config path
+    // play.server.netty.option { ... }
+    // (But not when setting it into the "child" sub-path!)
+
+    // How to force a class to get initialized:
+    // https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html#jls-12.4.1
+    // > "A static field declared by T is assigned."
+
+    // It doesn't matter which static member you assign here, just choose one that exists ;)
+    val fake1 = ChannelOption.SO_REUSEADDR
+    val fake2 = UnixChannelOption.SO_REUSEPORT
+    val fake3 = EpollChannelOption.EPOLL_MODE
   }
 
   override lazy val mainAddress: InetSocketAddress = {
