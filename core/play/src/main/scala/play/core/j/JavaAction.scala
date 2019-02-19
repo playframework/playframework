@@ -79,7 +79,8 @@ class JavaActionAnnotations(
             .filter(_.annotationType.isAnnotationPresent(classOf[play.mvc.With]))
             .flatMap(ia => ia.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (ia, c, ae)))
       }
-      .flatten.map(v => {
+      .flatten
+      .map(v => {
         if (v._2.isAnnotationPresent(classOf[javax.inject.Singleton])) {
           // If action singletons would be allowed, it would be very, very likely that concurrent requests interfere with each other
           // when setting the delegate property on that one-and-only singleton instance (see code further below where delegate gets set).
@@ -87,7 +88,9 @@ class JavaActionAnnotations(
           // and points to the next (=delegate) action of that other request (instead of it's own delegate action)
           // As a result (at least) the path/query params of the request would be leaked to the others' request delegate (which eventually will be the action method in the controller).
           // See https://github.com/playframework/playframework/issues/8985#issuecomment-457009162
-          throw new RuntimeException(s"Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class ${v._2.getName}")
+          throw new RuntimeException(
+            s"Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class ${v._2.getName}"
+          )
         }
         v
       })
