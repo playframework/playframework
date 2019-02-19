@@ -16,6 +16,7 @@ import play.http.ActionCreator
 import play.http.DefaultActionCreator
 import play.it.http.ActionCompositionOrderTest.ActionAnnotation
 import play.it.http.ActionCompositionOrderTest.ControllerAnnotation
+import play.it.http.ActionCompositionOrderTest.SingletonActionAnnotation
 import play.it.http.ActionCompositionOrderTest.WithUsername
 import play.mvc.EssentialFilter
 import play.mvc.Result
@@ -359,6 +360,16 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       allowHttpContext = false
     ) { response =>
       response.body must beEqualTo("ctx.args were set")
+    }
+
+    "abort the request when action class is annotated with @javax.inject.Singleton" in makeRequest(new MockController {
+      @SingletonActionAnnotation
+      override def action: Result = Results.ok()
+    }) { response =>
+      response.status must_== 500
+      response.body must contain(
+        "RuntimeException: Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class play.it.http.ActionCompositionOrderTest$SingletonActionAnnotationAction"
+      )
     }
   }
 
