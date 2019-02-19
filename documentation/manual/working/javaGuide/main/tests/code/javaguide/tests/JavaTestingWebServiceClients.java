@@ -20,49 +20,53 @@ import static play.mvc.Controller.*;
 
 public class JavaTestingWebServiceClients {
 
-    @Test
-    public void mockService() {
-        //#mock-service
-        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
-                .GET("/repositories").routingTo(request -> {
-                    ArrayNode repos = Json.newArray();
-                    ObjectNode repo = Json.newObject();
-                    repo.put("full_name", "octocat/Hello-World");
-                    repos.add(repo);
-                    return ok(repos);
-                })
-                .build());
-        //#mock-service
+  @Test
+  public void mockService() {
+    // #mock-service
+    Server server =
+        Server.forRouter(
+            (components) ->
+                RoutingDsl.fromComponents(components)
+                    .GET("/repositories")
+                    .routingTo(
+                        request -> {
+                          ArrayNode repos = Json.newArray();
+                          ObjectNode repo = Json.newObject();
+                          repo.put("full_name", "octocat/Hello-World");
+                          repos.add(repo);
+                          return ok(repos);
+                        })
+                    .build());
+    // #mock-service
 
+    server.stop();
+  }
+
+  @Test
+  public void sendResource() throws Exception {
+    // #send-resource
+    Server server =
+        Server.forRouter(
+            (components) ->
+                RoutingDsl.fromComponents(components)
+                    .GET("/repositories")
+                    .routingTo(request -> ok().sendResource("github/repositories.json"))
+                    .build());
+    // #send-resource
+
+    WSClient ws = play.test.WSTestClient.newClient(server.httpPort());
+    GitHubClient client = new GitHubClient(ws);
+    client.baseUrl = "";
+
+    try {
+      List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
+      assertThat(repos, hasItem("octocat/Hello-World"));
+    } finally {
+      try {
+        ws.close();
+      } finally {
         server.stop();
+      }
     }
-
-    @Test
-    public void sendResource() throws Exception {
-        //#send-resource
-        Server server = Server.forRouter((components) -> RoutingDsl.fromComponents(components)
-                .GET("/repositories").routingTo(request ->
-                        ok().sendResource("github/repositories.json")
-                )
-                .build()
-        );
-        //#send-resource
-
-        WSClient ws = play.test.WSTestClient.newClient(server.httpPort());
-        GitHubClient client = new GitHubClient(ws);
-        client.baseUrl = "";
-
-        try {
-            List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
-            assertThat(repos, hasItem("octocat/Hello-World"));
-        } finally {
-            try {
-                ws.close();
-            }
-            finally {
-                server.stop();
-            }
-        }
-    }
-
+  }
 }

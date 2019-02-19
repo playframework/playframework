@@ -4,7 +4,8 @@
 
 package specs2
 
-import play.api.mvc.{ControllerHelpers, RequestHeader}
+import play.api.mvc.ControllerHelpers
+import play.api.mvc.RequestHeader
 import play.api.test.PlaySpecification
 
 import scala.concurrent.Future
@@ -16,7 +17,7 @@ class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
   import play.api.data.Form
   import play.api.i18n._
 
-  case class UserData(name: String, age:Int)
+  case class UserData(name: String, age: Int)
 
   "Messages test" should {
     "test messages validation in forms" in {
@@ -36,13 +37,13 @@ class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
 
       // Define an age with 0 as the minimum
       val form = Form(
-        mapping("name" -> text, "age" -> number(min = 0))
-        (UserData.apply)(UserData.unapply)
+        mapping("name" -> text, "age" -> number(min = 0))(UserData.apply)(UserData.unapply)
       )
 
       // Submit a request with age = -1
       implicit val request = {
-        play.api.test.FakeRequest("POST", "/")
+        play.api.test
+          .FakeRequest("POST", "/")
           .withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")
       }
 

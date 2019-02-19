@@ -8,8 +8,8 @@ package javaguide.tests.guice;
 import com.google.inject.AbstractModule;
 
 public class ComponentModule extends AbstractModule {
-    protected void configure() {
-        bind(Component.class).to(DefaultComponent.class);
-    }
+  protected void configure() {
+    bind(Component.class).to(DefaultComponent.class);
+  }
 }
 // #component-module

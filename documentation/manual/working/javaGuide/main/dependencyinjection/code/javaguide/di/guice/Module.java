@@ -6,20 +6,16 @@ package javaguide.di.guice;
 
 import javaguide.di.*;
 
-//#guice-module
+// #guice-module
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
 public class Module extends AbstractModule {
-    protected void configure() {
+  protected void configure() {
 
-        bind(Hello.class)
-                .annotatedWith(Names.named("en"))
-                .to(EnglishHello.class);
+    bind(Hello.class).annotatedWith(Names.named("en")).to(EnglishHello.class);
 
-        bind(Hello.class)
-                .annotatedWith(Names.named("de"))
-                .to(GermanHello.class);
-    }
+    bind(Hello.class).annotatedWith(Names.named("de")).to(GermanHello.class);
+  }
 }
-//#guice-module
+// #guice-module

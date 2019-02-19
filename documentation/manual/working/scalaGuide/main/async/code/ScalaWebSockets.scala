@@ -4,14 +4,17 @@
 
 package scalaguide.async.websockets
 
-import play.api.http.websocket.{ TextMessage, Message }
+import play.api.http.websocket.TextMessage
+import play.api.http.websocket.Message
 import play.api.test._
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.Future
+import scala.concurrent.Promise
 
 class ScalaWebSockets extends PlaySpecification {
 
   import java.io.Closeable
-  import play.api.mvc.{Result, WebSocket}
+  import play.api.mvc.Result
+  import play.api.mvc.WebSocket
   import play.api.libs.json.Json
   import play.api.libs.streams.ActorFlow
   import akka.stream.scaladsl._
@@ -19,21 +22,24 @@ class ScalaWebSockets extends PlaySpecification {
 
   "Scala WebSockets" should {
 
-    def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(implicit mat: Materializer): Either[Result, List[Message]] = {
+    def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(
+        implicit mat: Materializer
+    ): Either[Result, List[Message]] = {
       await(webSocket(FakeRequest())).right.map { flow =>
-
         // When running in the real world, if the flow cancels upstream, Play's WebSocket protocol implementation will
         // handle this and close the WebSocket, but here, that won't happen, so we redeem the future when we receive
         // enough.
         val promise = Promise[List[Message]]()
         if (expectOut == 0) promise.success(Nil)
-        val flowResult = in via flow runWith Sink.fold[(List[Message], Int), Message]((Nil, expectOut)) { (state, out) =>
-          val (result, remaining) = state
-          if (remaining == 1) {
-            promise.success(result :+ out)
-          }
-          (result :+ out, remaining - 1)
-        }
+        val flowResult = in
+          .via(flow)
+          .runWith(Sink.fold[(List[Message], Int), Message]((Nil, expectOut)) { (state, out) =>
+            val (result, remaining) = state
+            if (remaining == 1) {
+              promise.success(result :+ out)
+            }
+            (result :+ out, remaining - 1)
+          })
         import mat.executionContext
         await(Future.firstCompletedOf(Seq(promise.future, flowResult.map(_._1))))
       }
@@ -68,7 +74,9 @@ class ScalaWebSockets extends PlaySpecification {
         implicit def actorSystem = app.injector.instanceOf[ActorSystem]
 
         runWebSocket(
-          WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))), Source.empty, 0
+          WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
+          Source.empty,
+          0
         ) must beRight[List[Message]]
         await(closed.future) must_== true
       }
@@ -87,7 +95,9 @@ class ScalaWebSockets extends PlaySpecification {
         implicit def actorSystem = app.injector.instanceOf[ActorSystem]
 
         runWebSocket(
-          WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))), Source.maybe, 0
+          WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
+          Source.maybe,
+          0
         ) must beRight[List[Message]]
       }
 
@@ -99,7 +109,7 @@ class ScalaWebSockets extends PlaySpecification {
       }
 
       "allow creating a json actor" in new WithApplication() {
-        val json = Json.obj("foo" -> "bar")
+        val json       = Json.obj("foo" -> "bar")
         val controller = app.injector.instanceOf[Samples.Controller4.Application]
         runWebSocket(controller.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which { out =>
           out must_== List(TextMessage(Json.stringify(json)))
@@ -149,12 +159,12 @@ class ScalaWebSockets extends PlaySpecification {
    * The default await timeout.  Override this to change it.
    */
   import scala.concurrent.duration._
-  override implicit def defaultAwaitTimeout = 2.seconds
+  implicit override def defaultAwaitTimeout = 2.seconds
 }
 
 object Samples {
 
-  object Controller1  {
+  object Controller1 {
     import Actor1.MyWebSocketActor
 
     //#actor-accept
@@ -164,7 +174,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc:ControllerComponents) (implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
+    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+        extends AbstractController(cc) {
 
       def socket = WebSocket.accept[String, String] { request =>
         ActorFlow.actorRef { out =>
@@ -174,7 +185,6 @@ object Samples {
     }
     //#actor-accept
   }
-
 
   object Actor1 {
 
@@ -194,7 +204,7 @@ object Samples {
     //#example-actor
   }
 
-  object Controller2  {
+  object Controller2 {
     import Actor1.MyWebSocketActor
 
     //#actor-try-accept
@@ -204,14 +214,16 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject() (cc:ControllerComponents)(implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
+    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+        extends AbstractController(cc) {
 
       def socket = WebSocket.acceptOrResult[String, String] { request =>
         Future.successful(request.session.get("user") match {
           case None => Left(Forbidden)
-          case Some(_) => Right(ActorFlow.actorRef { out =>
-            MyWebSocketActor.props(out)
-          })
+          case Some(_) =>
+            Right(ActorFlow.actorRef { out =>
+              MyWebSocketActor.props(out)
+            })
         })
       }
     }
@@ -241,9 +253,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc:ControllerComponents)
-                               (implicit system: ActorSystem, mat: Materializer)
-      extends AbstractController(cc) {
+    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+        extends AbstractController(cc) {
 
       def socket = WebSocket.accept[JsValue, JsValue] { request =>
         ActorFlow.actorRef { out =>
@@ -254,7 +265,6 @@ object Samples {
     //#actor-json
   }
 
-
   object Controller5 {
     case class InEvent(foo: String)
     case class OutEvent(bar: String)
@@ -262,7 +272,7 @@ object Samples {
     //#actor-json-formats
     import play.api.libs.json._
 
-    implicit val inEventFormat = Json.format[InEvent]
+    implicit val inEventFormat  = Json.format[InEvent]
     implicit val outEventFormat = Json.format[OutEvent]
     //#actor-json-formats
 
@@ -293,9 +303,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc:ControllerComponents)
-                               (implicit system: ActorSystem, mat: Materializer)
-      extends AbstractController(cc) {
+    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+        extends AbstractController(cc) {
 
       def socket = WebSocket.accept[InEvent, OutEvent] { request =>
         ActorFlow.actorRef { out =>
@@ -314,7 +323,6 @@ object Samples {
     import akka.stream.scaladsl._
 
     def socket = WebSocket.accept[String, String] { request =>
-
       // Log events to the console
       val in = Sink.foreach[String](println)
 
@@ -334,7 +342,6 @@ object Samples {
     import akka.stream.scaladsl._
 
     def socket = WebSocket.accept[String, String] { request =>
-
       // Just ignore the input
       val in = Sink.ignore
 
@@ -353,8 +360,7 @@ object Samples {
     import play.api.mvc._
     import akka.stream.scaladsl._
 
-    def socket =  WebSocket.accept[String, String] { request =>
-
+    def socket = WebSocket.accept[String, String] { request =>
       // log the message to stdout and send response back to client
       Flow[String].map { msg =>
         println(msg)
@@ -363,6 +369,5 @@ object Samples {
     }
     //#streams3
   }
-
 
 }

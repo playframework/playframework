@@ -700,8 +700,8 @@ So, if you have a view that use some of the tags above, for example if you have 
 
     <body>
         @helper.form(action = routes.UsersController.save) {
-            @helper.inputText(addressData("name"))
-            @helper.inputText(addressData("email"))
+            @helper.inputText(userForm("name"))
+            @helper.inputText(userForm("email"))
             ...
         })
     </body>

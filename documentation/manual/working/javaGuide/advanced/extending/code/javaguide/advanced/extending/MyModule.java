@@ -12,10 +12,8 @@ import play.inject.Binding;
 
 // #module-class-definition
 public class MyModule extends play.inject.Module {
-    public List<Binding<?>> bindings(Environment environment, Config config) {
-        return Collections.singletonList(
-            bindClass(MyApi.class).toSelf()
-        );
-    }
+  public List<Binding<?>> bindings(Environment environment, Config config) {
+    return Collections.singletonList(bindClass(MyApi.class).toSelf());
+  }
 }
 // #module-class-definition

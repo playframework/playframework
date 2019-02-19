@@ -214,7 +214,7 @@ Using `CSPNonce.attrMap` is appropriate in cases where existing helpers take a m
 
 For ease of use, there are [`style`](api/scala/views/html/helper/style$.html), and [`script`](api/scala/views/html/helper/script$.html) helpers that will wrap existing inline blocks.  These are useful for adding simple bits of inline Javascript and CSS.
 
-Because these helpers are generated from Twirl templates, Scaladoc does not provide the correct source reference for these helpers. The source code for these helpers can be seen on [Github](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/views/helper/) for a more complete view.
+Because these helpers are generated from Twirl templates, Scaladoc does not provide the correct source reference for these helpers. The source code for these helpers can be seen on [Github](https://github.com/playframework/playframework/blob/master/core/play/src/main/scala/views/helper/) for a more complete view.
 
 ##### Style Helper
 

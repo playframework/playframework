@@ -6,6 +6,6 @@ package javaguide.tests.guice;
 
 // #component
 public interface Component {
-    String hello();
+  String hello();
 }
 // #component
