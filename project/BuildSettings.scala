@@ -217,7 +217,6 @@ object BuildSettings {
         ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
         ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
         ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
-
         // Add fileName param (with default value) to Scala's sendResource(...) method
         ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
       ),

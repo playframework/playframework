@@ -547,7 +547,7 @@ trait Results {
         inline: Boolean = true,
         fileName: String => String = _.split('/').last
     )(implicit fileMimeTypes: FileMimeTypes): Result = {
-      val stream   = classLoader.getResourceAsStream(resource)
+      val stream = classLoader.getResourceAsStream(resource)
       streamFile(StreamConverters.fromInputStream(() => stream), fileName(resource), stream.available(), inline)
     }
 
