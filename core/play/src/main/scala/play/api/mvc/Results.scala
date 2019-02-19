@@ -539,15 +539,16 @@ trait Results {
      * @param resource The path of the resource to load.
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
+     * @param fileName Function to retrieve the file name. By default the name of the resource is used.
      */
     def sendResource(
         resource: String,
         classLoader: ClassLoader = Results.getClass.getClassLoader,
-        inline: Boolean = true
+        inline: Boolean = true,
+        fileName: String => String = _.split('/').last
     )(implicit fileMimeTypes: FileMimeTypes): Result = {
       val stream   = classLoader.getResourceAsStream(resource)
-      val fileName = resource.split('/').last
-      streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)
+      streamFile(StreamConverters.fromInputStream(() => stream), fileName(resource), stream.available(), inline)
     }
 
     /**
