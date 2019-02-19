@@ -113,17 +113,20 @@ class NettyServer(
       case other          => other
     }
     config.entrySet().asScala.filterNot(_.getKey.startsWith("child.")).foreach { option =>
-      if (ChannelOption.exists(option.getKey)) {
-        setOption(ChannelOption.valueOf(option.getKey), unwrap(option.getValue))
+      val cleanKey = option.getKey.stripPrefix("\"").stripSuffix("\"")
+      if (ChannelOption.exists(cleanKey)) {
+        setOption(ChannelOption.valueOf(cleanKey), unwrap(option.getValue))
       } else {
-        logger.warn("Ignoring unknown Netty channel option: " + option.getKey)
+        logger.warn("Ignoring unknown Netty channel option: " + cleanKey)
         transport match {
           case Native =>
             logger.warn(
-              "Valid values can be found at http://netty.io/4.0/api/io/netty/channel/ChannelOption.html and http://netty.io/4.0/api/io/netty/channel/epoll/EpollChannelOption.html"
+              "Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html, " +
+                "https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html and " +
+                "http://netty.io/4.1/api/io/netty/channel/epoll/EpollChannelOption.html"
             )
           case Jdk =>
-            logger.warn("Valid values can be found at http://netty.io/4.0/api/io/netty/channel/ChannelOption.html")
+            logger.warn("Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html")
         }
       }
     }
