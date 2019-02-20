@@ -1,0 +1,7 @@
+> playUpdateSecret
+> runProd --no-exit-sbt
+$ sleep 5000
+> callIndex
+$ sleep 2000
+$ must-mirror target/universal/stage/logs/application.log expected-application-log.txt
+> stopProd --no-exit-sbt
