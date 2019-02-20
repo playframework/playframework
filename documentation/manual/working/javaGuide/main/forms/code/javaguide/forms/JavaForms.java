@@ -173,6 +173,7 @@ public class JavaForms extends WithApplication {
   // ###insert: import play.data.validation.Constraints.Validatable;
   // ###insert: import play.data.validation.ValidationError;
   // ###insert: import java.util.List;
+  // ###insert: import java.util.ArrayList;
 
   @Validate
   public static class SignUpForm implements Validatable<List<ValidationError>> {
