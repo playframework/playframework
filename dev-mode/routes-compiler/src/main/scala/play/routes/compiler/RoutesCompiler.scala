@@ -6,6 +6,7 @@ package play.routes.compiler
 
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.charset.MalformedInputException
 import java.nio.file.Files
 
 import scala.collection.JavaConverters._
@@ -40,7 +41,13 @@ object RoutesCompiler {
     def unapply(file: File): Option[GeneratedSource] = {
 
       val lines: Array[String] = if (file.exists) {
-        Files.readAllLines(file.toPath, Charset.forName(implicitly[Codec].name)).asScala.toArray[String]
+        val lines = try {
+          Files.readAllLines(file.toPath, Charset.forName(implicitly[Codec].name))
+        } catch {
+          // If the default system charset does not work, try UTF-8 to read the file (as fallback)
+          case _: MalformedInputException => Files.readAllLines(file.toPath, Charset.forName("UTF-8"))
+        }
+        lines.asScala.toArray[String]
       } else {
         Array.empty[String]
       }
