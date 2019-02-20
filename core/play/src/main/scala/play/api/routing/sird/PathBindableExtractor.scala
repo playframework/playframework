@@ -23,9 +23,9 @@ class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
    */
   def unapply(s: Option[String]): Option[Option[T]] = {
     s match {
-      case None => Some(None)
+      case None              => Some(None)
       case Some(self(value)) => Some(Some(value))
-      case _ => None
+      case _                 => None
     }
   }
 
@@ -48,6 +48,7 @@ class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
  * Extractors that bind types from paths using [[play.api.mvc.PathBindable]].
  */
 trait PathBindableExtractors {
+
   /**
    * An int extractor.
    */

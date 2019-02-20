@@ -7,9 +7,12 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.Application
-import play.api.libs.json.{ JsError, JsValue, Json }
+import play.api.libs.json.JsError
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
-import play.api.mvc.{ BodyParser, PlayBodyParsers }
+import play.api.mvc.BodyParser
+import play.api.mvc.PlayBodyParsers
 import play.api.test._
 
 class JsonBodyParserSpec extends PlaySpecification {
@@ -23,7 +26,10 @@ class JsonBodyParserSpec extends PlaySpecification {
 
   "The JSON body parser" should {
 
-    def parse[A](json: String, contentType: Option[String], encoding: String)(implicit mat: Materializer, bodyParser: BodyParser[A]) = {
+    def parse[A](json: String, contentType: Option[String], encoding: String)(
+        implicit mat: Materializer,
+        bodyParser: BodyParser[A]
+    ) = {
       await(
         bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
           .run(Source.single(ByteString(json.getBytes(encoding))))

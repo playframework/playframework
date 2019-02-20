@@ -5,42 +5,47 @@ package play.api.libs
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl._
-import akka.stream.{ ActorMaterializer, Materializer }
-import akka.util.{ ByteString, Timeout }
+import akka.stream.ActorMaterializer
+import akka.stream.Materializer
+import akka.util.ByteString
+import akka.util.Timeout
 import org.specs2.mutable._
 import play.api.PlayCoreTestApplication
 import play.api.http.ContentTypes
-import play.api.libs.json.{ JsString, JsValue }
+import play.api.libs.json.JsString
+import play.api.libs.json.JsValue
 import play.api.mvc._
 import play.core.test.FakeRequest
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 
 class CometSpec extends Specification {
 
-  class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent]) extends ControllerHelpers {
+  class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent])
+      extends ControllerHelpers {
 
     val Action = action
 
     //#comet-string
     def cometString = action {
-      implicit val m = materializer
+      implicit val m                      = materializer
       def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
-      Ok.chunked(stringSource via Comet.string("parent.cometMessage")).as(ContentTypes.HTML)
+      Ok.chunked(stringSource.via(Comet.string("parent.cometMessage"))).as(ContentTypes.HTML)
     }
     //#comet-string
 
     //#comet-json
     def cometJson = action {
-      implicit val m = materializer
+      implicit val m                       = materializer
       def stringSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
-      Ok.chunked(stringSource via Comet.json("parent.cometMessage")).as(ContentTypes.HTML)
+      Ok.chunked(stringSource.via(Comet.json("parent.cometMessage"))).as(ContentTypes.HTML)
     }
     //#comet-json
   }
 
   def newTestApplication(): play.api.Application = new PlayCoreTestApplication() {
-    override lazy val actorSystem = ActorSystem()
+    override lazy val actorSystem  = ActorSystem()
     override lazy val materializer = ActorMaterializer()(actorSystem)
   }
 
@@ -51,8 +56,10 @@ class CometSpec extends Specification {
       try {
         implicit val m = app.materializer
         val controller = new MockController(m, ActionBuilder.ignoringBody)
-        val result = controller.cometString.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage('kiki');</script><script type=\"text/javascript\">parent.cometMessage('foo');</script><script type=\"text/javascript\">parent.cometMessage('bar');</script>")
+        val result     = controller.cometString.apply(FakeRequest())
+        contentAsString(result) must contain(
+          "<html><body><script type=\"text/javascript\">parent.cometMessage('kiki');</script><script type=\"text/javascript\">parent.cometMessage('foo');</script><script type=\"text/javascript\">parent.cometMessage('bar');</script>"
+        )
       } finally {
         app.stop()
       }
@@ -63,8 +70,10 @@ class CometSpec extends Specification {
       try {
         implicit val m = app.materializer
         val controller = new MockController(m, ActionBuilder.ignoringBody)
-        val result = controller.cometJson.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script type=\"text/javascript\">parent.cometMessage(\"jsonString\");</script>")
+        val result     = controller.cometJson.apply(FakeRequest())
+        contentAsString(result) must contain(
+          "<html><body><script type=\"text/javascript\">parent.cometMessage(\"jsonString\");</script>"
+        )
       } finally {
         app.stop()
       }
@@ -83,7 +92,7 @@ class CometSpec extends Specification {
   def charset(of: Future[Result]): Option[String] = {
     Await.result(of, timeout.duration).body.contentType match {
       case Some(s) if s.contains("charset=") => Some(s.split("; *charset=").drop(1).mkString.trim)
-      case _ => None
+      case _                                 => None
     }
   }
 

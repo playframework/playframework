@@ -11,18 +11,18 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
   "Flash cookies" should {
     "bake in a header and value" in {
       val es = flash.encode(Map("a" -> "b"))
-      val m = flash.decode(es)
+      val m  = flash.decode(es)
 
-      m must haveSize(1) and {
+      (m must haveSize(1)).and {
         m.get("a") must beSome("b")
       }
     }
 
     "bake in multiple headers and values" in {
       val es = flash.encode(Map("a" -> "b", "c" -> "d"))
-      val m = flash.decode(es)
+      val m  = flash.decode(es)
 
-      m must haveSize(2) and {
+      (m must haveSize(2)).and {
         m.get("a") must beSome("b")
         m.get("c") must beSome("d")
       }
@@ -30,7 +30,7 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
 
     "bake in a header an empty value" in {
       val es = flash.encode(Map("a" -> ""))
-      val m = flash.decode(es)
+      val m  = flash.decode(es)
 
       m must haveSize(1)
       m.get("a") must beSome("")
@@ -38,7 +38,7 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
 
     "bake in a header a Unicode value" in {
       val es = flash.encode(Map("a" -> "\u0000"))
-      val m = flash.decode(es)
+      val m  = flash.decode(es)
 
       m must haveSize(1)
       m.get("a") must beSome("\u0000")
@@ -46,14 +46,14 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
 
     "bake in an empty map" in {
       val es = flash.encode(Map.empty)
-      val m = flash.decode(es)
+      val m  = flash.decode(es)
 
       m must beEmpty
     }
 
     "encode values such that no extra keys can be created" in {
       val es = flash.encode(Map("a" -> "b&c=d"))
-      val m = flash.decode(es)
+      val m  = flash.decode(es)
 
       m must haveSize(1)
       m.get("a") must beSome("b&c=d")
@@ -61,7 +61,7 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
 
     "specifically exclude control chars" in {
       for (i <- 0 until 32) {
-        val s = Character.toChars(i).toString
+        val s  = Character.toChars(i).toString
         val es = flash.encode(Map("a" -> s))
         es must not contain s
 

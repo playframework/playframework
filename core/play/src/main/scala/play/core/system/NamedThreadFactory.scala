@@ -3,7 +3,8 @@
  */
 package play.core
 
-import java.util.concurrent.{ Executors, ThreadFactory }
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -14,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * where threadNo is an integer starting from one.
  */
 case class NamedThreadFactory(name: String) extends ThreadFactory {
-  val threadNo = new AtomicInteger()
+  val threadNo             = new AtomicInteger()
   val backingThreadFactory = Executors.defaultThreadFactory()
 
   def newThread(r: Runnable) = {

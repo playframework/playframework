@@ -20,13 +20,13 @@ class InjectingSpec extends Specification with Mockito {
 
     "provide an instance when asked for a class" in {
       val injector = mock[Injector]
-      val app = mock[Application]
-      app.injector returns injector
+      val app      = mock[Application]
+      app.injector.returns(injector)
       val expected = new Foo
-      injector.instanceOf[Foo] returns expected
+      injector.instanceOf[Foo].returns(expected)
 
       val appContainer = new AppContainer(app) with Injecting
-      val actual: Foo = appContainer.inject[Foo]
+      val actual: Foo  = appContainer.inject[Foo]
       actual must_== expected
     }
   }

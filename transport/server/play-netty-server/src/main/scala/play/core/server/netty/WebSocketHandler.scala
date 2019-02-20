@@ -6,7 +6,8 @@ package play.core.server.netty
 import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
-import io.netty.buffer.{ Unpooled, ByteBuf }
+import io.netty.buffer.Unpooled
+import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.http.websocketx._
 import io.netty.util.ReferenceCountUtil
 import org.reactivestreams.Processor
@@ -14,7 +15,8 @@ import play.api.http.websocket.Message
 import play.core.server.common.WebSocketFlowHandler
 
 import play.api.http.websocket._
-import play.core.server.common.WebSocketFlowHandler.{ MessageType, RawMessage }
+import play.core.server.common.WebSocketFlowHandler.MessageType
+import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 private[server] object WebSocketHandler {
 
@@ -24,13 +26,17 @@ private[server] object WebSocketHandler {
    * This implements the WebSocket control logic, including handling ping frames and closing the connection in a spec
    * compliant manner.
    */
-  def messageFlowToFrameProcessor(flow: Flow[Message, Message, _], bufferLimit: Int)(implicit mat: Materializer): Processor[WebSocketFrame, WebSocketFrame] = {
+  def messageFlowToFrameProcessor(flow: Flow[Message, Message, _], bufferLimit: Int)(
+      implicit mat: Materializer
+  ): Processor[WebSocketFrame, WebSocketFrame] = {
 
     // The reason we use a processor is that we *must* release the buffers synchronously, since Akka streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     SynchronousMappedStreams.transform(
       WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow).toProcessor.run(),
-      frameToMessage, messageToFrame)
+      frameToMessage,
+      messageToFrame
+    )
   }
 
   /**
@@ -43,11 +49,11 @@ private[server] object WebSocketHandler {
     ReferenceCountUtil.release(frame)
 
     val messageType = frame match {
-      case _: TextWebSocketFrame => MessageType.Text
-      case _: BinaryWebSocketFrame => MessageType.Binary
-      case close: CloseWebSocketFrame => MessageType.Close
-      case _: PingWebSocketFrame => MessageType.Ping
-      case _: PongWebSocketFrame => MessageType.Pong
+      case _: TextWebSocketFrame         => MessageType.Text
+      case _: BinaryWebSocketFrame       => MessageType.Binary
+      case close: CloseWebSocketFrame    => MessageType.Close
+      case _: PingWebSocketFrame         => MessageType.Ping
+      case _: PongWebSocketFrame         => MessageType.Pong
       case _: ContinuationWebSocketFrame => MessageType.Continuation
     }
 
@@ -67,12 +73,12 @@ private[server] object WebSocketHandler {
     }
 
     message match {
-      case TextMessage(data) => new TextWebSocketFrame(data)
-      case BinaryMessage(data) => new BinaryWebSocketFrame(byteStringToByteBuf(data))
-      case PingMessage(data) => new PingWebSocketFrame(byteStringToByteBuf(data))
-      case PongMessage(data) => new PongWebSocketFrame(byteStringToByteBuf(data))
+      case TextMessage(data)                      => new TextWebSocketFrame(data)
+      case BinaryMessage(data)                    => new BinaryWebSocketFrame(byteStringToByteBuf(data))
+      case PingMessage(data)                      => new PingWebSocketFrame(byteStringToByteBuf(data))
+      case PongMessage(data)                      => new PongWebSocketFrame(byteStringToByteBuf(data))
       case CloseMessage(Some(statusCode), reason) => new CloseWebSocketFrame(statusCode, reason)
-      case CloseMessage(None, _) => new CloseWebSocketFrame()
+      case CloseMessage(None, _)                  => new CloseWebSocketFrame()
     }
   }
 }

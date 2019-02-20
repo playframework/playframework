@@ -3,7 +3,8 @@
  */
 package play.api.routing.sird
 
-import java.net.{ URI, URL }
+import java.net.URI
+import java.net.URL
 
 import play.api.mvc.RequestHeader
 
@@ -23,22 +24,24 @@ trait QueryStringParameterExtractor[T] {
   import QueryStringParameterExtractor._
   def unapply(qs: QueryString): Option[T]
   def unapply(req: RequestHeader): Option[T] = unapply(req.queryString)
-  def unapply(uri: URI): Option[T] = unapply(parse(uri.getRawQuery))
-  def unapply(uri: URL): Option[T] = unapply(parse(uri.getQuery))
+  def unapply(uri: URI): Option[T]           = unapply(parse(uri.getRawQuery))
+  def unapply(uri: URL): Option[T]           = unapply(parse(uri.getQuery))
 }
 
 object QueryStringParameterExtractor {
   private def parse(query: String): QueryString =
     Option(query).fold(Map.empty[String, Seq[String]]) {
-      _.split("&").map {
-        _.span(_ != '=') match {
-          case (key, v) => key -> v.drop(1) // '=' prefix
+      _.split("&")
+        .map {
+          _.span(_ != '=') match {
+            case (key, v) => key -> v.drop(1) // '=' prefix
+          }
         }
-      }.groupBy(_._1).mapValues(_.toSeq.map(_._2))
+        .groupBy(_._1)
+        .mapValues(_.toSeq.map(_._2))
     }
 
   def required(name: String) = new RequiredQueryStringParameter(name)
   def optional(name: String) = new OptionalQueryStringParameter(name)
-  def seq(name: String) = new SeqQueryStringParameter(name)
+  def seq(name: String)      = new SeqQueryStringParameter(name)
 }
-

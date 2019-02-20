@@ -28,7 +28,9 @@ trait WsTestClient {
    * }
    * }}}
    */
-  def wsCall(call: Call)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
+  def wsCall(
+      call: Call
+  )(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
     wsUrl(call.url)
   }
 
@@ -36,7 +38,9 @@ trait WsTestClient {
    * Constructs a WS request holder for the given relative URL.  Optionally takes a scheme, a port, or a client producing function.  Note that the WS client used
    * by default requires a running Play application (use WithApplication for tests).
    */
-  def wsUrl(url: String)(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
+  def wsUrl(
+      url: String
+  )(implicit port: Port, client: (Port, String) => WSClient = clientProducer, scheme: String = "http"): WSRequest = {
     client(port, scheme).url(s"$scheme://localhost:" + port + url)
   }
 
@@ -62,7 +66,9 @@ trait WsTestClient {
    * @param port The port
    * @return The result of the block of code
    */
-  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http"): T = {
+  def withClient[T](
+      block: WSClient => T
+  )(implicit port: play.api.http.Port = new play.api.http.Port(-1), scheme: String = "http"): T = {
     val client = clientProducer(port.value, scheme)
     try {
       block(client)
@@ -113,9 +119,12 @@ object WsTestClient extends WsTestClient {
     import java.util.concurrent._
     import java.util.concurrent.atomic._
 
-    import akka.actor.{ ActorSystem, Cancellable, Terminated }
+    import akka.actor.ActorSystem
+    import akka.actor.Cancellable
+    import akka.actor.Terminated
     import akka.stream.ActorMaterializer
-    import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfig }
+    import play.api.libs.ws.ahc.AhcWSClient
+    import play.api.libs.ws.ahc.AhcWSClientConfig
 
     import scala.annotation.tailrec
     import scala.concurrent.Future
@@ -165,10 +174,10 @@ object WsTestClient extends WsTestClient {
     private def createNewClient(): (WSClient, ActorSystem) = {
       val name = "ws-test-client-" + count.getAndIncrement()
       logger.info(s"createNewClient: name = $name")
-      val system = ActorSystem(name)
+      val system       = ActorSystem(name)
       val materializer = ActorMaterializer(namePrefix = Some(name))(system)
-      val config = AhcWSClientConfig(maxRequestRetry = 0) // Don't retry for tests
-      val client = AhcWSClient(config)(materializer)
+      val config       = AhcWSClientConfig(maxRequestRetry = 0) // Don't retry for tests
+      val client       = AhcWSClient(config)(materializer)
       (client, system)
     }
 

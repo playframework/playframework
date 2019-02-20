@@ -3,5 +3,4 @@
  */
 package play.libs.testmodel;
 
-public @interface AC1 {
-}
+public @interface AC1 {}

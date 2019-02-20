@@ -5,8 +5,10 @@ package play.api.test
 
 import com.google.inject.AbstractModule
 import org.specs2.mutable._
-import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
-import play.api.{ Play, Application }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.GuiceApplicationLoader
+import play.api.Play
+import play.api.Application
 
 class SpecsSpec extends Specification {
 
@@ -16,7 +18,9 @@ class SpecsSpec extends Specification {
     "provide an app" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
       app.configuration.getOptional[String]("foo") must beSome("bar")
     }
-    "make the app available implicitly" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
+    "make the app available implicitly" in new WithApplication(
+      _.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")
+    ) {
       getConfig("foo") must beSome("bar")
     }
   }

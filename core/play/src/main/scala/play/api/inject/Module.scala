@@ -4,7 +4,8 @@
 package play.api.inject
 
 import java.lang.reflect.Constructor
-import play.{ Configuration => JavaConfiguration, Environment => JavaEnvironment }
+import play.{ Configuration => JavaConfiguration }
+import play.{ Environment => JavaEnvironment }
 
 import org.apache.commons.lang3.reflect.ConstructorUtils
 import play.api._
@@ -84,7 +85,8 @@ abstract class Module {
 class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[_]]) extends Module {
   def this(bindings: Binding[_]*) = this((_, _) => bindings)
 
-  override final def bindings(environment: Environment, configuration: Configuration) = bindingsFunc(environment, configuration)
+  final override def bindings(environment: Environment, configuration: Configuration) =
+    bindingsFunc(environment, configuration)
 }
 
 /**
@@ -115,20 +117,32 @@ object Modules {
 
     // Construct the default module if it exists
     // Allow users to add "Module" to the excludes to exclude even attempting to look it up
-    val defaultModule = if (excludes.contains(DefaultModuleName)) None else try {
-      val defaultModuleClass = environment.classLoader.loadClass(DefaultModuleName).asInstanceOf[Class[Any]]
-      Some(constructModule(environment, configuration, DefaultModuleName, () => defaultModuleClass))
-    } catch {
-      case e: ClassNotFoundException => None
-    }
+    val defaultModule =
+      if (excludes.contains(DefaultModuleName)) None
+      else
+        try {
+          val defaultModuleClass = environment.classLoader.loadClass(DefaultModuleName).asInstanceOf[Class[Any]]
+          Some(constructModule(environment, configuration, DefaultModuleName, () => defaultModuleClass))
+        } catch {
+          case e: ClassNotFoundException => None
+        }
 
     moduleClassNames.map { className =>
-      constructModule(environment, configuration, className,
-        () => environment.classLoader.loadClass(className).asInstanceOf[Class[Any]])
+      constructModule(
+        environment,
+        configuration,
+        className,
+        () => environment.classLoader.loadClass(className).asInstanceOf[Class[Any]]
+      )
     }.toSeq ++ defaultModule
   }
 
-  private def constructModule[T](environment: Environment, configuration: Configuration, className: String, loadModuleClass: () => Class[T]): T = {
+  private def constructModule[T](
+      environment: Environment,
+      configuration: Configuration,
+      className: String,
+      loadModuleClass: () => Class[T]
+  ): T = {
     try {
       val moduleClass = loadModuleClass()
 
@@ -138,30 +152,31 @@ object Modules {
           Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
         } catch {
           case _: NoSuchMethodException => None
-          case _: SecurityException => None
+          case _: SecurityException     => None
         }
         constructor.map(_.newInstance(args: _*))
       }
 
       {
         tryConstruct(environment, configuration)
-      } orElse {
-        tryConstruct(new JavaEnvironment(environment), configuration.underlying)
-      } orElse {
-        tryConstruct(new JavaEnvironment(environment), new JavaConfiguration(configuration))
-      } orElse {
-        tryConstruct()
-      } getOrElse {
-        throw new PlayException("No valid constructors", "Module [" + className + "] cannot be instantiated.")
-      }
+      }.orElse {
+          tryConstruct(new JavaEnvironment(environment), configuration.underlying)
+        }
+        .orElse {
+          tryConstruct(new JavaEnvironment(environment), new JavaConfiguration(configuration))
+        }
+        .orElse {
+          tryConstruct()
+        }
+        .getOrElse {
+          throw new PlayException("No valid constructors", "Module [" + className + "] cannot be instantiated.")
+        }
     } catch {
-      case e: PlayException => throw e
+      case e: PlayException       => throw e
       case e: VirtualMachineError => throw e
-      case e: ThreadDeath => throw e
-      case e: Throwable => throw new PlayException(
-        "Cannot load module",
-        "Module [" + className + "] cannot be instantiated.",
-        e)
+      case e: ThreadDeath         => throw e
+      case e: Throwable =>
+        throw new PlayException("Cannot load module", "Module [" + className + "] cannot be instantiated.", e)
     }
   }
 }

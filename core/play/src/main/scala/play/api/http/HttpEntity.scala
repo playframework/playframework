@@ -75,12 +75,12 @@ object HttpEntity {
    * @param contentType The content type, if known.
    */
   final case class Strict(data: ByteString, contentType: Option[String]) extends HttpEntity {
-    def isKnownEmpty = data.isEmpty
-    def contentLength = Some(data.size)
-    def dataStream = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
+    def isKnownEmpty                                     = data.isEmpty
+    def contentLength                                    = Some(data.size)
+    def dataStream                                       = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
     override def consumeData(implicit mat: Materializer) = Future.successful(data)
-    def asJava = new JHttpEntity.Strict(data, OptionConverters.toJava(contentType))
-    def as(contentType: String) = copy(contentType = Option(contentType))
+    def asJava                                           = new JHttpEntity.Strict(data, OptionConverters.toJava(contentType))
+    def as(contentType: String)                          = copy(contentType = Option(contentType))
   }
 
   /**
@@ -91,13 +91,16 @@ object HttpEntity {
    *                      delimited.
    * @param contentType The content type, if known.
    */
-  final case class Streamed(data: Source[ByteString, _], contentLength: Option[Long], contentType: Option[String]) extends HttpEntity {
+  final case class Streamed(data: Source[ByteString, _], contentLength: Option[Long], contentType: Option[String])
+      extends HttpEntity {
     def isKnownEmpty = false
-    def dataStream = data
-    def asJava = new JHttpEntity.Streamed(
-      data.asJava,
-      OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
-      OptionConverters.toJava(contentType))
+    def dataStream   = data
+    def asJava =
+      new JHttpEntity.Streamed(
+        data.asJava,
+        OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
+        OptionConverters.toJava(contentType)
+      )
     def as(contentType: String) = copy(contentType = Option(contentType))
   }
 
@@ -111,12 +114,12 @@ object HttpEntity {
    * @param contentType The content type, if known.
    */
   final case class Chunked(chunks: Source[HttpChunk, _], contentType: Option[String]) extends HttpEntity {
-    def isKnownEmpty = false
+    def isKnownEmpty  = false
     def contentLength = None
     def dataStream = chunks.collect {
       case HttpChunk.Chunk(data) => data
     }
-    def asJava = new JHttpEntity.Chunked(chunks.asJava, OptionConverters.toJava(contentType))
+    def asJava                  = new JHttpEntity.Chunked(chunks.asJava, OptionConverters.toJava(contentType))
     def as(contentType: String) = copy(contentType = Option(contentType))
   }
 }
@@ -127,9 +130,7 @@ object HttpEntity {
  * May either be a [[HttpChunk.Chunk]] containing data, or a [[HttpChunk.LastChunk]], signifying the last chunk in
  * a stream, optionally with trailing headers.
  */
-sealed trait HttpChunk {
-
-}
+sealed trait HttpChunk {}
 
 object HttpChunk {
 

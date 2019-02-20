@@ -7,9 +7,15 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
-import play.api.{ Configuration, Environment, Mode, PlayException }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
+import play.api.PlayException
 import play.api.mvc.Cookie.SameSite
-import play.core.netty.utils.{ ClientCookieDecoder, ClientCookieEncoder, ServerCookieDecoder, ServerCookieEncoder }
+import play.core.netty.utils.ClientCookieDecoder
+import play.core.netty.utils.ClientCookieEncoder
+import play.core.netty.utils.ServerCookieDecoder
+import play.core.netty.utils.ServerCookieEncoder
 
 class HttpConfigurationSpec extends Specification {
 
@@ -19,36 +25,36 @@ class HttpConfigurationSpec extends Specification {
 
     def properties = {
       Map(
-        "play.http.context" -> "/",
-        "play.http.parser.maxMemoryBuffer" -> "10k",
-        "play.http.parser.maxDiskBuffer" -> "20k",
-        "play.http.actionComposition.controllerAnnotationsFirst" -> "true",
+        "play.http.context"                                           -> "/",
+        "play.http.parser.maxMemoryBuffer"                            -> "10k",
+        "play.http.parser.maxDiskBuffer"                              -> "20k",
+        "play.http.actionComposition.controllerAnnotationsFirst"      -> "true",
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
-        "play.http.cookies.strict" -> "true",
-        "play.http.session.cookieName" -> "PLAY_SESSION",
-        "play.http.session.secure" -> "true",
-        "play.http.session.maxAge" -> "10s",
-        "play.http.session.httpOnly" -> "true",
-        "play.http.session.domain" -> "playframework.com",
-        "play.http.session.path" -> "/session",
-        "play.http.session.sameSite" -> "lax",
-        "play.http.session.jwt.signatureAlgorithm" -> "HS256",
-        "play.http.session.jwt.expiresAfter" -> null,
-        "play.http.session.jwt.clockSkew" -> "30s",
-        "play.http.session.jwt.dataClaim" -> "data",
-        "play.http.flash.cookieName" -> "PLAY_FLASH",
-        "play.http.flash.secure" -> "true",
-        "play.http.flash.httpOnly" -> "true",
-        "play.http.flash.domain" -> "playframework.com",
-        "play.http.flash.path" -> "/flash",
-        "play.http.flash.sameSite" -> "lax",
-        "play.http.flash.jwt.signatureAlgorithm" -> "HS256",
-        "play.http.flash.jwt.expiresAfter" -> null,
-        "play.http.flash.jwt.clockSkew" -> "30s",
-        "play.http.flash.jwt.dataClaim" -> "data",
-        "play.http.fileMimeTypes" -> "foo=text/foo",
-        "play.http.secret.key" -> "mysecret",
-        "play.http.secret.provider" -> "HmacSHA1"
+        "play.http.cookies.strict"                                    -> "true",
+        "play.http.session.cookieName"                                -> "PLAY_SESSION",
+        "play.http.session.secure"                                    -> "true",
+        "play.http.session.maxAge"                                    -> "10s",
+        "play.http.session.httpOnly"                                  -> "true",
+        "play.http.session.domain"                                    -> "playframework.com",
+        "play.http.session.path"                                      -> "/session",
+        "play.http.session.sameSite"                                  -> "lax",
+        "play.http.session.jwt.signatureAlgorithm"                    -> "HS256",
+        "play.http.session.jwt.expiresAfter"                          -> null,
+        "play.http.session.jwt.clockSkew"                             -> "30s",
+        "play.http.session.jwt.dataClaim"                             -> "data",
+        "play.http.flash.cookieName"                                  -> "PLAY_FLASH",
+        "play.http.flash.secure"                                      -> "true",
+        "play.http.flash.httpOnly"                                    -> "true",
+        "play.http.flash.domain"                                      -> "playframework.com",
+        "play.http.flash.path"                                        -> "/flash",
+        "play.http.flash.sameSite"                                    -> "lax",
+        "play.http.flash.jwt.signatureAlgorithm"                      -> "HS256",
+        "play.http.flash.jwt.expiresAfter"                            -> null,
+        "play.http.flash.jwt.clockSkew"                               -> "30s",
+        "play.http.flash.jwt.dataClaim"                               -> "data",
+        "play.http.fileMimeTypes"                                     -> "foo=text/foo",
+        "play.http.secret.key"                                        -> "mysecret",
+        "play.http.secret.provider"                                   -> "HmacSHA1"
       )
     }
 
@@ -62,7 +68,7 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "throw an error when context does not starts with /" in {
-      val config = properties + ("play.http.context" -> "something")
+      val config             = properties + ("play.http.context" -> "something")
       val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
       new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration, environment).get must throwA[PlayException]
     }
@@ -73,7 +79,7 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "throw an error when session path does not starts with /" in {
-      val config = properties + ("play.http.session.path" -> "something")
+      val config             = properties + ("play.http.session.path" -> "something")
       val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
       new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration, environment).get must throwA[PlayException]
     }
@@ -84,13 +90,13 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "throw an error when flash path does not starts with /" in {
-      val config = properties + ("play.http.flash.path" -> "something")
+      val config             = properties + ("play.http.flash.path" -> "something")
       val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
       new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration, environment).get must throwA[PlayException]
     }
 
     "throw an error when context includes a mimetype config setting" in {
-      val config = properties + ("mimetype" -> "something")
+      val config             = properties + ("mimetype" -> "something")
       val wrongConfiguration = Configuration(ConfigFactory.parseMap(config.asJava))
       new HttpConfiguration.HttpConfigurationProvider(wrongConfiguration, environment).get must throwA[PlayException]
     }

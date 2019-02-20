@@ -3,7 +3,8 @@
  */
 package play.api
 
-import java.io.{ InputStream, File }
+import java.io.InputStream
+import java.io.File
 
 /**
  * The environment for the application.
@@ -14,10 +15,7 @@ import java.io.{ InputStream, File }
  * @param classLoader The classloader that all application classes and resources can be loaded from.
  * @param mode The mode of the application.
  */
-case class Environment(
-    rootPath: File,
-    classLoader: ClassLoader,
-    mode: Mode) {
+case class Environment(rootPath: File, classLoader: ClassLoader, mode: Mode) {
 
   /**
    * Retrieves a file relative to the application root path.
@@ -98,11 +96,13 @@ case class Environment(
 }
 
 object Environment {
+
   /**
    * A simple environment.
    *
    * Uses the same classloader that the environment classloader is defined in, and the current working directory as the
    * path.
    */
-  def simple(path: File = new File("."), mode: Mode = Mode.Test) = Environment(path, Environment.getClass.getClassLoader, mode)
+  def simple(path: File = new File("."), mode: Mode = Mode.Test) =
+    Environment(path, Environment.getClass.getClassLoader, mode)
 }

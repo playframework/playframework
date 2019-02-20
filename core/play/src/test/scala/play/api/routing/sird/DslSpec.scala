@@ -120,13 +120,13 @@ class DslSpec extends Specification {
     "extract ints from query strings" in {
       "match" in {
         FakeRequest("GET", "/foo?a=1") must beLike {
-          case GET(p"/foo" ? q"a=${ int(a) }") => a must_== 1
+          case GET(p"/foo" ? q"a=${int(a) }") => a must_== 1
         }
       }
       "no match" in {
         FakeRequest("GET", "/foo?a=a") must beLike {
-          case GET(p"/foo" ? q"a=${ int(a) }") => ko
-          case _ => ok
+          case GET(p"/foo" ? q"a=${int(a) }") => ko
+          case _                              => ok
         }
       }
     }
@@ -134,18 +134,18 @@ class DslSpec extends Specification {
     "extract optional ints from query strings" in {
       "match" in {
         FakeRequest("GET", "/foo?a=1") must beLike {
-          case GET(p"/foo" ? q_o"a=${ int(a) }") => a must beSome(1)
+          case GET(p"/foo" ? q_o"a=${int(a) }") => a must beSome(1)
         }
       }
       "no match" in {
         FakeRequest("GET", "/foo?a=a") must beLike {
-          case GET(p"/foo" ? q_o"a=${ int(a) }") => ko
-          case _ => ok
+          case GET(p"/foo" ? q_o"a=${int(a) }") => ko
+          case _                                => ok
         }
       }
       "none" in {
         FakeRequest("GET", "/foo") must beLike {
-          case GET(p"/foo" ? q_o"a=${ int(a) }") => a must beNone
+          case GET(p"/foo" ? q_o"a=${int(a) }") => a must beNone
         }
       }
     }
@@ -153,18 +153,18 @@ class DslSpec extends Specification {
     "extract many ints from query strings" in {
       "match" in {
         FakeRequest("GET", "/foo?a=1&a=2") must beLike {
-          case GET(p"/foo" ? q_s"a=${ int(a) }") => a must_== Seq(1, 2)
+          case GET(p"/foo" ? q_s"a=${int(a) }") => a must_== Seq(1, 2)
         }
       }
       "no match" in {
         FakeRequest("GET", "/foo?a=a&a=2") must beLike {
-          case GET(p"/foo" ? q_s"a=${ int(a) }") => ko
-          case _ => ok
+          case GET(p"/foo" ? q_s"a=${int(a) }") => ko
+          case _                                => ok
         }
       }
       "none" in {
         FakeRequest("GET", "/foo") must beLike {
-          case GET(p"/foo" ? q_s"a=${ int(a) }") => a must beEmpty
+          case GET(p"/foo" ? q_s"a=${int(a) }") => a must beEmpty
         }
       }
     }

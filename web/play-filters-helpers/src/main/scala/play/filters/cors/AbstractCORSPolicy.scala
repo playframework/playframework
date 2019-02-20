@@ -7,12 +7,15 @@ import java.util.Locale
 
 import scala.collection.immutable
 import scala.concurrent.Future
-import java.net.{ URI, URISyntaxException }
+import java.net.URI
+import java.net.URISyntaxException
 
 import akka.util.ByteString
 import play.api.LoggerLike
 import play.api.MarkerContexts.SecurityMarkerContext
-import play.api.http.{ HeaderNames, HttpErrorHandler, HttpVerbs }
+import play.api.http.HeaderNames
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpVerbs
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
@@ -146,7 +149,7 @@ private[cors] trait AbstractCORSPolicy {
        * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
        */
       headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-      headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+      headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN      -> origin
     } else {
       /* Otherwise, add a single Access-Control-Allow-Origin header,
        * with either the value of the Origin header or the string "*" as value.
@@ -199,7 +202,7 @@ private[cors] trait AbstractCORSPolicy {
           handleInvalidCORSRequest(request)
         case Some(requestMethod) =>
           val accessControlRequestMethod = requestMethod.trim
-          val methodPredicate = corsConfig.isHttpMethodAllowed // call def to get function val
+          val methodPredicate            = corsConfig.isHttpMethodAllowed // call def to get function val
           /* http://www.w3.org/TR/cors/#resource-preflight-requests
            * § 6.2.5
            * If method is not a case-sensitive match for any of the
@@ -207,7 +210,7 @@ private[cors] trait AbstractCORSPolicy {
            * headers and terminate this set of steps.
            */
           if (!SupportedHttpMethods.contains(accessControlRequestMethod) ||
-            !methodPredicate(accessControlRequestMethod)) {
+              !methodPredicate(accessControlRequestMethod)) {
             handleInvalidCORSRequest(request)
           } else {
             /* http://www.w3.org/TR/cors/#resource-preflight-requests
@@ -246,7 +249,7 @@ private[cors] trait AbstractCORSPolicy {
                  * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
                  */
                 headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-                headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+                headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN      -> origin
               } else {
                 /* Otherwise, add a single Access-Control-Allow-Origin header,
                  * with either the value of the Origin header or the string "*" as value.
@@ -302,7 +305,9 @@ private[cors] trait AbstractCORSPolicy {
   }
 
   private def handleInvalidCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
-    logger.warn(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
+    logger.warn(s"""Invalid CORS request;Origin=${request.headers
+      .get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers
+      .get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
     Accumulator.done(Future.successful(Results.Forbidden))
   }
 
@@ -321,7 +326,7 @@ private[cors] trait AbstractCORSPolicy {
   }
 
   private def isSameOrigin(origin: String, request: RequestHeader): Boolean = {
-    val hostUri = new URI(origin.toLowerCase(Locale.ENGLISH))
+    val hostUri   = new URI(origin.toLowerCase(Locale.ENGLISH))
     val originUri = new URI((if (request.secure) "https://" else "http://") + request.host.toLowerCase(Locale.ENGLISH))
     (hostUri.getScheme, hostUri.getHost, hostUri.getPort) == (originUri.getScheme, originUri.getHost, originUri.getPort)
   }

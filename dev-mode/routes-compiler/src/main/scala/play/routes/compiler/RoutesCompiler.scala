@@ -67,7 +67,13 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
    */
-  case class RoutesCompilerTask(file: File, additionalImports: Seq[String], forwardsRouter: Boolean, reverseRouter: Boolean, namespaceReverseRouter: Boolean)
+  case class RoutesCompilerTask(
+      file: File,
+      additionalImports: Seq[String],
+      forwardsRouter: Boolean,
+      reverseRouter: Boolean,
+      namespaceReverseRouter: Boolean
+  )
 
   /**
    * Compile the given routes file
@@ -77,9 +83,15 @@ object RoutesCompiler {
    * @param generatedDir The directory to place the generated source code in
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
-  def compile(task: RoutesCompilerTask, generator: RoutesGenerator, generatedDir: File): Either[Seq[RoutesCompilationError], Seq[File]] = {
+  def compile(
+      task: RoutesCompilerTask,
+      generator: RoutesGenerator,
+      generatedDir: File
+  ): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
-    val namespace = Option(task.file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
+    val namespace = Option(task.file.getName)
+      .filter(_.endsWith(".routes"))
+      .map(_.dropRight(".routes".size))
       .orElse(Some("router"))
 
     val routeFile = task.file.getAbsoluteFile
@@ -95,4 +107,3 @@ object RoutesCompiler {
     }
   }
 }
-

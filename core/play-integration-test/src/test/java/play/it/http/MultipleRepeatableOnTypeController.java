@@ -12,8 +12,7 @@ import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 @SomeRepeatable // once more, so makes it four
 public class MultipleRepeatableOnTypeController extends MockController {
 
-    public Result action() {
-        return Results.ok();
-    }
-
+  public Result action() {
+    return Results.ok();
+  }
 }

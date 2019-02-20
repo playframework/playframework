@@ -19,7 +19,6 @@ lazy val root = (project in file("."))
     InputKey[Boolean]("checkLogContains") := {
       InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains)).evaluated
     },
-
     TaskKey[Unit]("compileIgnoreErrors") := state.map { state =>
       Project.runTask(compile in Compile, state)
     }.value

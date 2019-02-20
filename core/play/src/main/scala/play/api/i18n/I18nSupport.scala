@@ -50,6 +50,7 @@ trait I18NSupportLowPriorityImplicits {
    * Adds convenient methods to handle the messages.
    */
   implicit class RequestWithMessagesApi(request: RequestHeader) {
+
     /**
      * Adds a `messages` method that can be used on a request,
      * returning the Messages object in the preferred language
@@ -85,6 +86,7 @@ trait I18NSupportLowPriorityImplicits {
    * Adds convenient methods to handle the client-side language
    */
   implicit class ResultWithMessagesApi(result: Result) {
+
     /**
      * Sets the user's language permanently for future requests by storing it in a cookie.
      *

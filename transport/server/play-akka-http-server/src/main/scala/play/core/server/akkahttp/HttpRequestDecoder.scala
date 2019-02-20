@@ -5,8 +5,10 @@ package play.core.server.akkahttp
 
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.model.headers.{ HttpEncodings, `Content-Encoding` }
-import akka.stream.scaladsl.{ Compression, Flow }
+import akka.http.scaladsl.model.headers.HttpEncodings
+import akka.http.scaladsl.model.headers.`Content-Encoding`
+import akka.stream.scaladsl.Compression
+import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 
 /**
@@ -19,8 +21,12 @@ private[server] object HttpRequestDecoder {
    * Decode the request with a decoder. Remove the `Content-Encoding` header
    * since the body will no longer be encoded.
    */
-  private def decodeRequestWith(decoderFlow: Flow[ByteString, ByteString, NotUsed], request: HttpRequest): HttpRequest = {
-    request.withEntity(request.entity.transformDataBytes(decoderFlow))
+  private def decodeRequestWith(
+      decoderFlow: Flow[ByteString, ByteString, NotUsed],
+      request: HttpRequest
+  ): HttpRequest = {
+    request
+      .withEntity(request.entity.transformDataBytes(decoderFlow))
       .withHeaders(request.headers.filterNot(_.isInstanceOf[`Content-Encoding`]))
   }
 
@@ -29,7 +35,7 @@ private[server] object HttpRequestDecoder {
    */
   def decodeRequest(request: HttpRequest): HttpRequest = {
     request.encoding match {
-      case HttpEncodings.gzip => decodeRequestWith(Compression.gunzip(), request)
+      case HttpEncodings.gzip    => decodeRequestWith(Compression.gunzip(), request)
       case HttpEncodings.deflate => decodeRequestWith(Compression.inflate(), request)
       // Handle every undefined decoding as is
       case _ => request

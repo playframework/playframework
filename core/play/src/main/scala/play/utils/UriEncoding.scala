@@ -6,7 +6,8 @@ package play.utils
 import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
 
-import play.core.utils.{ AsciiBitSet, AsciiSet }
+import play.core.utils.AsciiBitSet
+import play.core.utils.AsciiSet
 
 /**
  * Provides support for correctly encoding pieces of URIs.
@@ -46,7 +47,7 @@ object UriEncoding {
    * @return An encoded string in the US-ASCII character set.
    */
   def encodePathSegment(s: String, inputCharset: String): String = {
-    val in = s.getBytes(inputCharset)
+    val in  = s.getBytes(inputCharset)
     val out = new ByteArrayOutputStream()
     for (b <- in) {
       val allowed = segmentChars.get(b & 0xff)
@@ -101,8 +102,8 @@ object UriEncoding {
    * @return A decoded string in the `outputCharset` character set.
    */
   def decodePathSegment(s: String, outputCharset: String): String = {
-    val in = s.getBytes("US-ASCII")
-    val out = new ByteArrayOutputStream()
+    val in    = s.getBytes("US-ASCII")
+    val out   = new ByteArrayOutputStream()
     var inPos = 0
     def next(): Int = {
       val b = in(inPos) & 0xFF
@@ -115,11 +116,14 @@ object UriEncoding {
         // Read high digit
         if (inPos >= in.length) throw new InvalidUriEncodingException(s"Cannot decode $s: % at end of string")
         val high = fromHex(next())
-        if (high == -1) throw new InvalidUriEncodingException(s"Cannot decode $s: expected hex digit at position $inPos.")
+        if (high == -1)
+          throw new InvalidUriEncodingException(s"Cannot decode $s: expected hex digit at position $inPos.")
         // Read low digit
-        if (inPos >= in.length) throw new InvalidUriEncodingException(s"Cannot decode $s: incomplete percent encoding at end of string")
+        if (inPos >= in.length)
+          throw new InvalidUriEncodingException(s"Cannot decode $s: incomplete percent encoding at end of string")
         val low = fromHex(next())
-        if (low == -1) throw new InvalidUriEncodingException(s"Cannot decode $s: expected hex digit at position $inPos.")
+        if (low == -1)
+          throw new InvalidUriEncodingException(s"Cannot decode $s: expected hex digit at position $inPos.")
         // Write decoded byte
         out.write((high << 4) + low)
       } else if (segmentChars.get(b)) {
@@ -244,17 +248,18 @@ object UriEncoding {
     val result = scala.collection.mutable.ListBuffer.empty[String]
     import scala.annotation.tailrec
     @tailrec
-    def splitLoop(start: Int): Unit = if (start < s.length) {
-      var end = s.indexOf(c, start)
-      if (end == -1) {
-        result += s.substring(start)
-      } else {
-        result += s.substring(start, end)
-        splitLoop(end + 1)
+    def splitLoop(start: Int): Unit =
+      if (start < s.length) {
+        var end = s.indexOf(c, start)
+        if (end == -1) {
+          result += s.substring(start)
+        } else {
+          result += s.substring(start, end)
+          splitLoop(end + 1)
+        }
+      } else if (start == s.length) {
+        result += ""
       }
-    } else if (start == s.length) {
-      result += ""
-    }
     splitLoop(0)
     result
   }

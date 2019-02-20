@@ -19,33 +19,34 @@ import static play.core.netty.utils.CookieUtil.firstInvalidCookieNameOctet;
 import static play.core.netty.utils.CookieUtil.firstInvalidCookieValueOctet;
 import static play.core.netty.utils.CookieUtil.unwrapValue;
 
-/**
- * Parent of Client and Server side cookie encoders
- */
+/** Parent of Client and Server side cookie encoders */
 abstract class CookieEncoder {
 
-    private final boolean strict;
+  private final boolean strict;
 
-    protected CookieEncoder(boolean strict) {
-        this.strict = strict;
+  protected CookieEncoder(boolean strict) {
+    this.strict = strict;
+  }
+
+  protected void validateCookie(String name, String value) {
+    if (strict) {
+      int pos;
+
+      if ((pos = firstInvalidCookieNameOctet(name)) >= 0) {
+        throw new IllegalArgumentException(
+            "Cookie name contains an invalid char: " + name.charAt(pos));
+      }
+
+      CharSequence unwrappedValue = unwrapValue(value);
+      if (unwrappedValue == null) {
+        throw new IllegalArgumentException(
+            "Cookie value wrapping quotes are not balanced: " + value);
+      }
+
+      if ((pos = firstInvalidCookieValueOctet(unwrappedValue)) >= 0) {
+        throw new IllegalArgumentException(
+            "Cookie value contains an invalid char: " + value.charAt(pos));
+      }
     }
-
-    protected void validateCookie(String name, String value) {
-        if (strict) {
-            int pos;
-
-            if ((pos = firstInvalidCookieNameOctet(name)) >= 0) {
-                throw new IllegalArgumentException("Cookie name contains an invalid char: " + name.charAt(pos));
-            }
-
-            CharSequence unwrappedValue = unwrapValue(value);
-            if (unwrappedValue == null) {
-                throw new IllegalArgumentException("Cookie value wrapping quotes are not balanced: " + value);
-            }
-
-            if ((pos = firstInvalidCookieValueOctet(unwrappedValue)) >= 0) {
-                throw new IllegalArgumentException("Cookie value contains an invalid char: " + value.charAt(pos));
-            }
-        }
-    }
+  }
 }

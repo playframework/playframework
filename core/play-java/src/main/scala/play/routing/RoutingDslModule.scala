@@ -3,10 +3,12 @@
  */
 package play.routing
 
-import javax.inject.{ Inject, Provider }
+import javax.inject.Inject
+import javax.inject.Provider
 
 import play.api.inject._
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
+import play.api.Environment
 import play.api.mvc.PlayBodyParsers
 import play.core.j.JavaContextComponents
 import play.mvc.BodyParser.Default
@@ -24,10 +26,14 @@ class RoutingDslModule extends Module {
 }
 
 @deprecated(since = "2.6.8", message = "Use JavaRoutingDslProvider instead")
-class RoutingDslProvider @Inject() (bodyParsers: PlayBodyParsers, contextComponents: JavaContextComponents) extends Provider[RoutingDsl] {
+class RoutingDslProvider @Inject()(bodyParsers: PlayBodyParsers, contextComponents: JavaContextComponents)
+    extends Provider[RoutingDsl] {
   override def get(): RoutingDsl = new RoutingDsl(bodyParsers.default, contextComponents)
 }
 
-class JavaRoutingDslProvider @Inject() (bodyParser: play.mvc.BodyParser.Default, contextComponents: JavaContextComponents) extends Provider[RoutingDsl] {
+class JavaRoutingDslProvider @Inject()(
+    bodyParser: play.mvc.BodyParser.Default,
+    contextComponents: JavaContextComponents
+) extends Provider[RoutingDsl] {
   override def get(): RoutingDsl = new RoutingDsl(bodyParser, contextComponents)
 }

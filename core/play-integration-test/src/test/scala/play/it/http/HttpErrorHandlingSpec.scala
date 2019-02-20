@@ -7,26 +7,34 @@ import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test.PlaySpecification
-import play.api.{ Application, ApplicationLoader, BuiltInComponentsFromContext, Environment }
-import play.it.test.{ ApplicationFactories, ApplicationFactory, EndpointIntegrationSpecification, OkHttpEndpointSupport }
+import play.api.Application
+import play.api.ApplicationLoader
+import play.api.BuiltInComponentsFromContext
+import play.api.Environment
+import play.it.test.ApplicationFactories
+import play.it.test.ApplicationFactory
+import play.it.test.EndpointIntegrationSpecification
+import play.it.test.OkHttpEndpointSupport
 
 import scala.concurrent.Future
 
-class HttpErrorHandlingSpec extends PlaySpecification
-  with EndpointIntegrationSpecification with ApplicationFactories with OkHttpEndpointSupport {
+class HttpErrorHandlingSpec
+    extends PlaySpecification
+    with EndpointIntegrationSpecification
+    with ApplicationFactories
+    with OkHttpEndpointSupport {
 
   "The configured HttpErrorHandler" should {
 
     val appFactory: ApplicationFactory = new ApplicationFactory {
       override def create(): Application = {
-        val components = new BuiltInComponentsFromContext(
-          ApplicationLoader.createContext(Environment.simple())) {
+        val components = new BuiltInComponentsFromContext(ApplicationLoader.createContext(Environment.simple())) {
           import play.api.mvc.Results._
           import play.api.routing.sird
           import play.api.routing.sird._
           override lazy val router: Router = Router.from {
             case sird.GET(p"/error") => throw new RuntimeException("error!")
-            case sird.GET(p"/") => Action { Ok("Done!") }
+            case sird.GET(p"/")      => Action { Ok("Done!") }
           }
           override lazy val httpFilters: Seq[EssentialFilter] = Seq(
             new EssentialFilter {

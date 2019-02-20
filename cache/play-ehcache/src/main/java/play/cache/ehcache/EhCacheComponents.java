@@ -17,7 +17,7 @@ import play.inject.ApplicationLifecycle;
 /**
  * EhCache Java Components for compile time injection.
  *
- * <p>Usage:</p>
+ * <p>Usage:
  *
  * <pre>
  * public class MyComponents extends BuiltInComponentsFromContext implements EhCacheComponents {
@@ -45,28 +45,26 @@ import play.inject.ApplicationLifecycle;
  */
 public interface EhCacheComponents extends ConfigurationComponents, AkkaComponents {
 
-    Environment environment();
+  Environment environment();
 
-    ApplicationLifecycle applicationLifecycle();
+  ApplicationLifecycle applicationLifecycle();
 
-    default CacheManager ehCacheManager() {
-        return new CacheManagerProvider(
-            environment().asScala(),
-            configuration(),
-            applicationLifecycle().asScala()
-        ).get();
-    }
+  default CacheManager ehCacheManager() {
+    return new CacheManagerProvider(
+            environment().asScala(), configuration(), applicationLifecycle().asScala())
+        .get();
+  }
 
-    default AsyncCacheApi cacheApi(String name) {
-        boolean createNamedCaches = config().getBoolean("play.cache.createBoundCaches");
-        play.api.cache.AsyncCacheApi scalaAsyncCacheApi = new EhCacheApi(
+  default AsyncCacheApi cacheApi(String name) {
+    boolean createNamedCaches = config().getBoolean("play.cache.createBoundCaches");
+    play.api.cache.AsyncCacheApi scalaAsyncCacheApi =
+        new EhCacheApi(
             NamedEhCacheProvider$.MODULE$.getNamedCache(name, ehCacheManager(), createNamedCaches),
-            executionContext()
-        );
-        return new DefaultAsyncCacheApi(scalaAsyncCacheApi);
-    }
+            executionContext());
+    return new DefaultAsyncCacheApi(scalaAsyncCacheApi);
+  }
 
-    default AsyncCacheApi defaultCacheApi() {
-        return cacheApi("play");
-    }
+  default AsyncCacheApi defaultCacheApi() {
+    return cacheApi("play");
+  }
 }

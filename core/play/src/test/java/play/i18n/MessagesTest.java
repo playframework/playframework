@@ -11,17 +11,17 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class MessagesTest {
 
-    @Test
-    public void testMessageCall() {
-        MessagesApi messagesApi = mock(MessagesApi.class);
-        Lang lang = Lang.forCode("en-US");
-        MessagesImpl messages = new MessagesImpl(lang, messagesApi);
+  @Test
+  public void testMessageCall() {
+    MessagesApi messagesApi = mock(MessagesApi.class);
+    Lang lang = Lang.forCode("en-US");
+    MessagesImpl messages = new MessagesImpl(lang, messagesApi);
 
-        when(messagesApi.get(lang, "hello.world")).thenReturn("hello world!");
+    when(messagesApi.get(lang, "hello.world")).thenReturn("hello world!");
 
-        String actual = messages.at("hello.world");
-        String expected = "hello world!";
-        assertThat(actual).isEqualTo(expected);
-        verify(messagesApi).get(any(Lang.class), anyString());
-    }
+    String actual = messages.at("hello.world");
+    String expected = "hello world!";
+    assertThat(actual).isEqualTo(expected);
+    verify(messagesApi).get(any(Lang.class), anyString());
+  }
 }

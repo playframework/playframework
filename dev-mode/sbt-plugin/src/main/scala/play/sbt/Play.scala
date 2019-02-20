@@ -116,7 +116,7 @@ object PlayNettyServer extends AutoPlugin {
  */
 object PlayAkkaHttpServer extends AutoPlugin {
   override def requires = Play
-  override def trigger = allRequirements
+  override def trigger  = allRequirements
 
   override def projectSettings = Seq(
     libraryDependencies += PlayImport.akkaHttpServer
@@ -132,6 +132,6 @@ object PlayAkkaHttp2Support extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % play.core.PlayVersion.current,
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % play.core.PlayVersion.jettyAlpnAgentVersion % "compile;test"
+    javaAgents += "org.mortbay.jetty.alpn"     % "jetty-alpn-agent"         % play.core.PlayVersion.jettyAlpnAgentVersion % "compile;test"
   )
 }

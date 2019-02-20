@@ -3,8 +3,10 @@
  */
 package play.api.db
 
-import java.sql.{ Connection, Statement }
-import javax.inject.{ Inject, Singleton }
+import java.sql.Connection
+import java.sql.Statement
+import javax.inject.Inject
+import javax.inject.Singleton
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
@@ -35,7 +37,7 @@ trait BoneCPComponents {
  * BoneCP implementation of connection pool interface.
  */
 @Singleton
-class BoneConnectionPool @Inject() (environment: Environment) extends ConnectionPool {
+class BoneConnectionPool @Inject()(environment: Environment) extends ConnectionPool {
 
   import BoneConnectionPool._
 
@@ -50,16 +52,14 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
 
     val autocommit = config.getDeprecated[Boolean]("bonecp.autoCommit", "autocommit")
     val isolation = config.getDeprecated[Option[String]]("bonecp.isolation", "isolation").map {
-      case "NONE" => Connection.TRANSACTION_NONE
-      case "READ_COMMITTED" => Connection.TRANSACTION_READ_COMMITTED
+      case "NONE"             => Connection.TRANSACTION_NONE
+      case "READ_COMMITTED"   => Connection.TRANSACTION_READ_COMMITTED
       case "READ_UNCOMMITTED" => Connection.TRANSACTION_READ_UNCOMMITTED
-      case "REPEATABLE_READ" => Connection.TRANSACTION_REPEATABLE_READ
-      case "SERIALIZABLE" => Connection.TRANSACTION_SERIALIZABLE
-      case unknown => throw config.reportError(
-        "bonecp.isolation",
-        s"Unknown isolation level [$unknown]")
+      case "REPEATABLE_READ"  => Connection.TRANSACTION_REPEATABLE_READ
+      case "SERIALIZABLE"     => Connection.TRANSACTION_SERIALIZABLE
+      case unknown            => throw config.reportError("bonecp.isolation", s"Unknown isolation level [$unknown]")
     }
-    val catalog = config.getDeprecated[Option[String]]("bonecp.defaultCatalog", "defaultCatalog")
+    val catalog  = config.getDeprecated[Option[String]]("bonecp.defaultCatalog", "defaultCatalog")
     val readOnly = config.getDeprecated[Boolean]("bonecp.readOnly", "readOnly")
 
     datasource.setClassLoader(environment.classLoader)
@@ -83,9 +83,15 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
         }
       }
 
-      override def onQueryExecuteTimeLimitExceeded(handle: ConnectionHandle, statement: Statement, sql: String, logParams: java.util.Map[AnyRef, AnyRef], timeElapsedInNs: Long) {
+      override def onQueryExecuteTimeLimitExceeded(
+          handle: ConnectionHandle,
+          statement: Statement,
+          sql: String,
+          logParams: java.util.Map[AnyRef, AnyRef],
+          timeElapsedInNs: Long
+      ) {
         val timeMs = timeElapsedInNs / 1000
-        val query = PoolUtil.fillLogParams(sql, logParams)
+        val query  = PoolUtil.fillLogParams(sql, logParams)
         logger.warn(s"Query execute time limit exceeded (${timeMs}ms) - query: $query")
       }
 
@@ -96,32 +102,56 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     dbConfig.password.foreach(datasource.setPassword)
 
     // Pool configuration
-    datasource.setCloseOpenStatements(config.getDeprecated[Boolean]("bonecp.closeOpenStatements", "closeOpenStatements"))
+    datasource.setCloseOpenStatements(
+      config.getDeprecated[Boolean]("bonecp.closeOpenStatements", "closeOpenStatements")
+    )
     datasource.setPartitionCount(config.getDeprecated[Int]("bonecp.partitionCount", "partitionCount"))
-    datasource.setMaxConnectionsPerPartition(config.getDeprecated[Int]("bonecp.maxConnectionsPerPartition", "maxConnectionsPerPartition"))
-    datasource.setMinConnectionsPerPartition(config.getDeprecated[Int]("bonecp.minConnectionsPerPartition", "minConnectionsPerPartition"))
+    datasource.setMaxConnectionsPerPartition(
+      config.getDeprecated[Int]("bonecp.maxConnectionsPerPartition", "maxConnectionsPerPartition")
+    )
+    datasource.setMinConnectionsPerPartition(
+      config.getDeprecated[Int]("bonecp.minConnectionsPerPartition", "minConnectionsPerPartition")
+    )
     datasource.setAcquireIncrement(config.getDeprecated[Int]("bonecp.acquireIncrement", "acquireIncrement"))
     datasource.setAcquireRetryAttempts(config.getDeprecated[Int]("bonecp.acquireRetryAttempts", "acquireRetryAttempts"))
-    datasource.setAcquireRetryDelayInMs(config.getDeprecated[FiniteDuration]("bonecp.acquireRetryDelay", "acquireRetryDelay").toMillis)
-    datasource.setConnectionTimeoutInMs(config.getDeprecated[FiniteDuration]("bonecp.connectionTimeout", "connectionTimeout").toMillis)
+    datasource.setAcquireRetryDelayInMs(
+      config.getDeprecated[FiniteDuration]("bonecp.acquireRetryDelay", "acquireRetryDelay").toMillis
+    )
+    datasource.setConnectionTimeoutInMs(
+      config.getDeprecated[FiniteDuration]("bonecp.connectionTimeout", "connectionTimeout").toMillis
+    )
     datasource.setIdleMaxAgeInSeconds(config.getDeprecated[FiniteDuration]("bonecp.idleMaxAge", "idleMaxAge").toSeconds)
-    datasource.setMaxConnectionAgeInSeconds(config.getDeprecated[FiniteDuration]("bonecp.maxConnectionAge", "maxConnectionAge").toSeconds)
+    datasource.setMaxConnectionAgeInSeconds(
+      config.getDeprecated[FiniteDuration]("bonecp.maxConnectionAge", "maxConnectionAge").toSeconds
+    )
     datasource.setDisableJMX(config.getDeprecated[Boolean]("bonecp.disableJMX", "disableJMX"))
     datasource.setStatisticsEnabled(config.getDeprecated[Boolean]("bonecp.statisticsEnabled", "statisticsEnabled"))
-    datasource.setIdleConnectionTestPeriodInSeconds(config.getDeprecated[FiniteDuration]("bonecp.idleConnectionTestPeriod", "idleConnectionTestPeriod").toSeconds)
-    datasource.setDisableConnectionTracking(config.getDeprecated[Boolean]("bonecp.disableConnectionTracking", "disableConnectionTracking"))
-    datasource.setQueryExecuteTimeLimitInMs(config.getDeprecated[FiniteDuration]("bonecp.queryExecuteTimeLimit", "queryExecuteTimeLimit").toMillis)
-    datasource.setResetConnectionOnClose(config.getDeprecated[Boolean]("bonecp.resetConnectionOnClose", "resetConnectionOnClose"))
-    datasource.setDetectUnresolvedTransactions(config.getDeprecated[Boolean]("bonecp.detectUnresolvedTransactions", "detectUnresolvedTransactions"))
+    datasource.setIdleConnectionTestPeriodInSeconds(
+      config.getDeprecated[FiniteDuration]("bonecp.idleConnectionTestPeriod", "idleConnectionTestPeriod").toSeconds
+    )
+    datasource.setDisableConnectionTracking(
+      config.getDeprecated[Boolean]("bonecp.disableConnectionTracking", "disableConnectionTracking")
+    )
+    datasource.setQueryExecuteTimeLimitInMs(
+      config.getDeprecated[FiniteDuration]("bonecp.queryExecuteTimeLimit", "queryExecuteTimeLimit").toMillis
+    )
+    datasource.setResetConnectionOnClose(
+      config.getDeprecated[Boolean]("bonecp.resetConnectionOnClose", "resetConnectionOnClose")
+    )
+    datasource.setDetectUnresolvedTransactions(
+      config.getDeprecated[Boolean]("bonecp.detectUnresolvedTransactions", "detectUnresolvedTransactions")
+    )
     datasource.setLogStatementsEnabled(config.getDeprecated[Boolean]("bonecp.logStatements", "logStatements"))
 
     config.getDeprecated[Option[String]]("bonecp.initSQL", "initSQL").foreach(datasource.setInitSQL)
-    config.getDeprecated[Option[String]]("bonecp.connectionTestStatement", "connectionTestStatement").foreach(datasource.setConnectionTestStatement)
+    config
+      .getDeprecated[Option[String]]("bonecp.connectionTestStatement", "connectionTestStatement")
+      .foreach(datasource.setConnectionTestStatement)
 
     val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, conf)
 
     // Bind in JNDI
-    dbConfig.jndiName foreach { jndiName =>
+    dbConfig.jndiName.foreach { jndiName =>
       JNDI.initialContext.rebind(jndiName, wrappedDataSource)
       logger.info(s"""datasource [$name] bound to JNDI as $jndiName""")
     }
@@ -135,7 +165,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
   def close(ds: DataSource): Unit = {
     ConnectionPool.unwrap(ds) match {
       case bcp: BoneCPDataSource => bcp.close()
-      case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
+      case _                     => sys.error("Unable to close data source: not a BoneCPDataSource")
     }
   }
 

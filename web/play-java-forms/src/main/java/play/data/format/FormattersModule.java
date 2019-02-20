@@ -12,11 +12,8 @@ import scala.collection.Seq;
 
 public class FormattersModule extends Module {
 
-    @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-            bind(Formatters.class).toSelf()
-        );
-    }
-
+  @Override
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    return seq(bind(Formatters.class).toSelf());
+  }
 }

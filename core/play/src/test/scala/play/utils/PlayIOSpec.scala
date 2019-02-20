@@ -4,7 +4,8 @@
 package play.utils
 
 import java.nio.charset.Charset
-import java.nio.file.{ Path, Files => JFiles }
+import java.nio.file.Path
+import java.nio.file.{ Files => JFiles }
 
 import org.specs2.mutable.Specification
 

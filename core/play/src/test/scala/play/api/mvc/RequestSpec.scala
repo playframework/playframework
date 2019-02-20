@@ -5,8 +5,11 @@ package play.api.mvc
 
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration
-import play.api.libs.typedmap.{ TypedKey, TypedMap }
-import play.api.mvc.request.{ DefaultRequestFactory, RemoteConnection, RequestTarget }
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestTarget
 import play.mvc.Http.RequestBody
 
 class RequestSpec extends Specification {
@@ -25,7 +28,8 @@ class RequestSpec extends Specification {
       "overrides current attribute value" in {
         val x = TypedKey[Int]
         val y = TypedKey[String]
-        val request = dummyRequest().withAttrs(TypedMap(y -> "hello"))
+        val request = dummyRequest()
+          .withAttrs(TypedMap(y -> "hello"))
           .addAttr(x, 3)
           .addAttr(y, "white")
 
@@ -35,10 +39,7 @@ class RequestSpec extends Specification {
     }
   }
 
-  private def dummyRequest(
-    requestMethod: String = "GET",
-    requestUri: String = "/",
-    headers: Headers = Headers()) = {
+  private def dummyRequest(requestMethod: String = "GET", requestUri: String = "/", headers: Headers = Headers()) = {
     new DefaultRequestFactory(HttpConfiguration()).createRequest(
       connection = RemoteConnection("", false, None),
       method = "GET",

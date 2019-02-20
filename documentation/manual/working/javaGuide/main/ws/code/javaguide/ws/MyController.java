@@ -17,9 +17,9 @@ import scala.compat.java8.FutureConverters;
 
 public class MyController extends Controller {
 
-    @Inject WSClient ws;
-    @Inject Materializer materializer;
+  @Inject WSClient ws;
+  @Inject Materializer materializer;
 
-    // ...
+  // ...
 }
 // #ws-streams-controller

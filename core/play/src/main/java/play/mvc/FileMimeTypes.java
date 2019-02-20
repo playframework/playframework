@@ -12,18 +12,18 @@ import java.util.Optional;
 @Singleton
 public class FileMimeTypes {
 
-    private final play.api.http.FileMimeTypes fileMimeTypes;
+  private final play.api.http.FileMimeTypes fileMimeTypes;
 
-    @Inject
-    public FileMimeTypes(play.api.http.FileMimeTypes fileMimeTypes) {
-        this.fileMimeTypes = fileMimeTypes;
-    }
+  @Inject
+  public FileMimeTypes(play.api.http.FileMimeTypes fileMimeTypes) {
+    this.fileMimeTypes = fileMimeTypes;
+  }
 
-    public Optional<String> forFileName(String name) {
-        return OptionConverters.toJava(fileMimeTypes.forFileName(name));
-    }
+  public Optional<String> forFileName(String name) {
+    return OptionConverters.toJava(fileMimeTypes.forFileName(name));
+  }
 
-    public play.api.http.FileMimeTypes asScala() {
-        return fileMimeTypes;
-    }
+  public play.api.http.FileMimeTypes asScala() {
+    return fileMimeTypes;
+  }
 }

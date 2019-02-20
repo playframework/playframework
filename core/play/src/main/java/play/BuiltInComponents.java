@@ -13,11 +13,9 @@ import play.http.DefaultActionCreator;
 import play.i18n.I18nComponents;
 import play.i18n.MessagesApi;
 
-/**
- * Helper to provide the Play built in components.
- */
-public interface BuiltInComponents extends
-        AkkaComponents,
+/** Helper to provide the Play built in components. */
+public interface BuiltInComponents
+    extends AkkaComponents,
         ApplicationComponents,
         BaseComponents,
         BodyParserComponents,
@@ -29,33 +27,27 @@ public interface BuiltInComponents extends
         I18nComponents,
         TemporaryFileComponents {
 
-    @Override
-    default JavaContextComponents javaContextComponents() {
-        return JavaHelpers$.MODULE$.createContextComponents(
-                messagesApi().asScala(),
-                langs().asScala(),
-                fileMimeTypes().asScala(),
-                httpConfiguration()
-        );
-    }
+  @Override
+  default JavaContextComponents javaContextComponents() {
+    return JavaHelpers$.MODULE$.createContextComponents(
+        messagesApi().asScala(), langs().asScala(), fileMimeTypes().asScala(), httpConfiguration());
+  }
 
-    @Override
-    default MessagesApi messagesApi() {
-        return new DefaultMessagesApiProvider(
-                environment().asScala(),
-                configuration(),
-                langs().asScala(),
-                httpConfiguration()
-        ).get().asJava();
-    }
+  @Override
+  default MessagesApi messagesApi() {
+    return new DefaultMessagesApiProvider(
+            environment().asScala(), configuration(), langs().asScala(), httpConfiguration())
+        .get()
+        .asJava();
+  }
 
-    @Override
-    default ActionCreator actionCreator() {
-        return new DefaultActionCreator();
-    }
+  @Override
+  default ActionCreator actionCreator() {
+    return new DefaultActionCreator();
+  }
 
-    @Override
-    default HttpConfiguration httpConfiguration() {
-        return HttpConfiguration.fromConfiguration(configuration(), environment().asScala());
-    }
+  @Override
+  default HttpConfiguration httpConfiguration() {
+    return HttpConfiguration.fromConfiguration(configuration(), environment().asScala());
+  }
 }

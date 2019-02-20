@@ -43,9 +43,11 @@ import play.api.libs.concurrent.CustomExecutionContext
 trait MyExecutionContext extends ExecutionContext
 
 class MyExecutionContextImpl @Inject()(system: ActorSystem)
-  extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
+    extends CustomExecutionContext(system, "my.executor")
+    with MyExecutionContext
 
-class HomeController @Inject()(myExecutionContext: MyExecutionContext, val controllerComponents: ControllerComponents) extends BaseController {
+class HomeController @Inject()(myExecutionContext: MyExecutionContext, val controllerComponents: ControllerComponents)
+    extends BaseController {
   def index = Action.async {
     Future {
       // Call some blocking API
@@ -55,8 +57,10 @@ class HomeController @Inject()(myExecutionContext: MyExecutionContext, val contr
 }
 //#my-execution-context
 
-class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponents)(implicit actorSystem: ActorSystem, ec: ExecutionContext)
-  extends BaseController {
+class ScalaAsyncSamples @Inject()(val controllerComponents: ControllerComponents)(
+    implicit actorSystem: ActorSystem,
+    ec: ExecutionContext
+) extends BaseController {
 
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
@@ -106,12 +110,15 @@ class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponent
     def index = Action.async {
       // You will need an implicit Futures for withTimeout() -- you usually get
       // that by injecting it into your controller's constructor
-      intensiveComputation().withTimeout(1.seconds).map { i =>
-        Ok("Got result: " + i)
-      }.recover {
-        case e: scala.concurrent.TimeoutException =>
-          InternalServerError("timeout")
-      }
+      intensiveComputation()
+        .withTimeout(1.seconds)
+        .map { i =>
+          Ok("Got result: " + i)
+        }
+        .recover {
+          case e: scala.concurrent.TimeoutException =>
+            InternalServerError("timeout")
+        }
     }
     //#timeout
     index

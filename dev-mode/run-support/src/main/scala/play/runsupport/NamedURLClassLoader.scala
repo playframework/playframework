@@ -3,7 +3,8 @@
  */
 package play.runsupport
 
-import java.net.{ URL, URLClassLoader }
+import java.net.URL
+import java.net.URLClassLoader
 
 /**
  * A ClassLoader with a toString() that prints name/urls.

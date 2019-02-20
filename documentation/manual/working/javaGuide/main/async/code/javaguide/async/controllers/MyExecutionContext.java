@@ -8,14 +8,13 @@ import play.libs.concurrent.CustomExecutionContext;
 
 import javax.inject.Inject;
 
-//#custom-execution-context
+// #custom-execution-context
 public class MyExecutionContext extends CustomExecutionContext {
 
-    @Inject
-    public MyExecutionContext(ActorSystem actorSystem) {
-        // uses a custom thread pool defined in application.conf
-        super(actorSystem, "my.dispatcher");
-    }
-
+  @Inject
+  public MyExecutionContext(ActorSystem actorSystem) {
+    // uses a custom thread pool defined in application.conf
+    super(actorSystem, "my.dispatcher");
+  }
 }
-//#custom-execution-context
+// #custom-execution-context

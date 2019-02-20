@@ -7,7 +7,8 @@ import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.Optional
 
-import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -73,7 +74,7 @@ class JavaJsonSpec extends Specification {
       val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
       javaPOJO.getBar must_== "baz"
       javaPOJO.getFoo must_== "bar"
-      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861l)
+      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861L)
       javaPOJO.getOptNumber must_== Optional.of(55555)
     }
   }

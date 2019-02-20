@@ -3,7 +3,8 @@
  */
 package views.js
 
-import play.api.libs.json.{ Writes, Json }
+import play.api.libs.json.Writes
+import play.api.libs.json.Json
 import play.twirl.api.JavaScript
 
 /**

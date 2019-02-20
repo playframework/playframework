@@ -9,7 +9,8 @@ import java.util.Properties
 import akka.stream.scaladsl.Sink
 import play.api.Mode
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.{ EssentialAction, Results }
+import play.api.mvc.EssentialAction
+import play.api.mvc.Results
 import play.api.test._
 import play.it.AkkaHttpIntegrationSpecification
 import play.api.libs.streams.Accumulator
@@ -25,21 +26,27 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
   "play.server.akka.requestTimeout configuration" should {
     def withServer[T](httpTimeout: Duration)(action: EssentialAction)(block: Port => T) = {
       def getTimeout(d: Duration) = d match {
-        case Duration.Inf => "null"
+        case Duration.Inf   => "null"
         case Duration(t, u) => s"${u.toMillis(t)}ms"
       }
       val props = new Properties(System.getProperties)
-      props.putAll(Map(
-        "play.server.akka.requestTimeout" -> getTimeout(httpTimeout)
-      ).asJava)
+      props.putAll(
+        Map(
+          "play.server.akka.requestTimeout" -> getTimeout(httpTimeout)
+        ).asJava
+      )
       val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)
-      running(play.api.test.TestServer(
-        config = serverConfig,
-        application = new GuiceApplicationBuilder()
-          .routes({
-            case _ => action
-          }).build(),
-        serverProvider = Some(integrationServerProvider))) {
+      running(
+        play.api.test.TestServer(
+          config = serverConfig,
+          application = new GuiceApplicationBuilder()
+            .routes({
+              case _ => action
+            })
+            .build(),
+          serverProvider = Some(integrationServerProvider)
+        )
+      ) {
         block(testServerPort)
       }
     }

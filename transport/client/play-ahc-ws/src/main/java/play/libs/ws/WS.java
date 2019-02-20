@@ -23,68 +23,65 @@ import java.io.IOException;
 @Deprecated
 public class WS {
 
-    /**
-     * Create a new WSClient.  Use play.test.WSTestClient rather than this method.
-     * <p>
-     * This client holds on to resources such as connections and threads, and so must be closed after use.
-     * <p>
-     * If the URL passed into the url method of this client is a host relative absolute path (that is, if it starts
-     * with /), then this client will make the request on localhost using the supplied port.
-     *
-     * @param port The port to use on localhost when relative URLs are requested.
-     * @return A running WS client.
-     * @deprecated as of 2.6, not to be used.
-     * This method is not appropriate outside of testing context, because it makes many
-     * assumptions about the url, starts up a new client and actorsystem on every
-     * call, and hardcodes the config to something other than the app config.
-     */
-    @Deprecated
-    public static WSClient newClient(final int port) {
-        AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
-                .setMaxRequestRetry(0).setShutdownQuietPeriod(0).setShutdownTimeout(0).build();
+  /**
+   * Create a new WSClient. Use play.test.WSTestClient rather than this method.
+   *
+   * <p>This client holds on to resources such as connections and threads, and so must be closed
+   * after use.
+   *
+   * <p>If the URL passed into the url method of this client is a host relative absolute path (that
+   * is, if it starts with /), then this client will make the request on localhost using the
+   * supplied port.
+   *
+   * @param port The port to use on localhost when relative URLs are requested.
+   * @return A running WS client.
+   * @deprecated as of 2.6, not to be used. This method is not appropriate outside of testing
+   *     context, because it makes many assumptions about the url, starts up a new client and
+   *     actorsystem on every call, and hardcodes the config to something other than the app config.
+   */
+  @Deprecated
+  public static WSClient newClient(final int port) {
+    AsyncHttpClientConfig config =
+        new DefaultAsyncHttpClientConfig.Builder()
+            .setMaxRequestRetry(0)
+            .setShutdownQuietPeriod(0)
+            .setShutdownTimeout(0)
+            .build();
 
-        String name = "ws-java-newClient";
-        final ActorSystem system = ActorSystem.create(name);
-        ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
-        ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+    String name = "ws-java-newClient";
+    final ActorSystem system = ActorSystem.create(name);
+    ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
+    ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        final AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(config);
-        final WSClient client = new AhcWSClient(asyncHttpClient, materializer);
+    final AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(config);
+    final WSClient client = new AhcWSClient(asyncHttpClient, materializer);
 
-        return new WSClient() {
-            public Object getUnderlying() {
-                return client.getUnderlying();
-            }
+    return new WSClient() {
+      public Object getUnderlying() {
+        return client.getUnderlying();
+      }
 
-            public WSRequest url(String url) {
-                if (url.startsWith("/") && port != -1) {
-                    return client.url("http://localhost:" + port + url);
-                } else {
-                    return client.url(url);
-                }
-            }
+      public WSRequest url(String url) {
+        if (url.startsWith("/") && port != -1) {
+          return client.url("http://localhost:" + port + url);
+        } else {
+          return client.url(url);
+        }
+      }
 
-            public void close() throws IOException {
-                try {
-                    client.close();
-                } finally {
-                    system.terminate();
-                }
-            }
+      public void close() throws IOException {
+        try {
+          client.close();
+        } finally {
+          system.terminate();
+        }
+      }
 
-            @Override
-            public play.api.libs.ws.WSClient asScala() {
-                return new play.api.libs.ws.ahc.AhcWSClient(
-                    new play.api.libs.ws.ahc.StandaloneAhcWSClient(
-                        asyncHttpClient,
-                        materializer
-                    )
-                );
-            }
-        };
-    }
-
+      @Override
+      public play.api.libs.ws.WSClient asScala() {
+        return new play.api.libs.ws.ahc.AhcWSClient(
+            new play.api.libs.ws.ahc.StandaloneAhcWSClient(asyncHttpClient, materializer));
+      }
+    };
+  }
 }
-
-
-

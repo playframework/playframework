@@ -30,7 +30,7 @@ object Mode {
   @deprecated("Use play.api.Mode instead of play.api.Mode.Value", "2.6.0")
   type Value = play.api.Mode
 
-  case object Dev extends play.api.Mode(play.Mode.DEV)
+  case object Dev  extends play.api.Mode(play.Mode.DEV)
   case object Test extends play.api.Mode(play.Mode.TEST)
   case object Prod extends play.api.Mode(play.Mode.PROD)
 
@@ -142,7 +142,9 @@ object Play {
   def stop(app: Application): Unit = {
     if (app != null) {
       Threads.withContextClassLoader(app.classloader) {
-        try { Await.ready(app.stop(), Duration.Inf) } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
+        try {
+          Await.ready(app.stop(), Duration.Inf)
+        } catch { case NonFatal(e) => logger.warn("Error stopping application", e) }
       }
     }
     synchronized {

@@ -12,7 +12,9 @@ import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.mvc.request.RequestAttrKey
-import play.core.utils.{ AsciiBitSet, AsciiRange, AsciiSet }
+import play.core.utils.AsciiBitSet
+import play.core.utils.AsciiRange
+import play.core.utils.AsciiSet
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
@@ -21,7 +23,8 @@ import scala.util.control.NonFatal
 private[play] final class ServerResultUtils(
     sessionBaker: SessionCookieBaker,
     flashBaker: FlashCookieBaker,
-    cookieHeaderEncoding: CookieHeaderEncoding) {
+    cookieHeaderEncoding: CookieHeaderEncoding
+) {
 
   private val logger = Logger(getClass)
 
@@ -34,7 +37,7 @@ private[play] final class ServerResultUtils(
         // Close connection, header already exists
         DefaultClose
       } else if ((result.body.isInstanceOf[HttpEntity.Streamed] && result.body.contentLength.isEmpty)
-        || request.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))) {
+                 || request.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))) {
         // We need to close the connection and set the header
         SendClose
       } else {
@@ -44,7 +47,7 @@ private[play] final class ServerResultUtils(
       if (result.header.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))) {
         DefaultClose
       } else if ((result.body.isInstanceOf[HttpEntity.Streamed] && result.body.contentLength.isEmpty) ||
-        request.headers.get(CONNECTION).forall(!_.equalsIgnoreCase(KEEP_ALIVE))) {
+                 request.headers.get(CONNECTION).forall(!_.equalsIgnoreCase(KEEP_ALIVE))) {
         DefaultClose
       } else {
         SendKeepAlive
@@ -57,10 +60,12 @@ private[play] final class ServerResultUtils(
    *
    * Returns the validated result, which may be an error result if validation failed.
    */
-  def validateResult(request: RequestHeader, result: Result, httpErrorHandler: HttpErrorHandler)(implicit mat: Materializer): Future[Result] = {
+  def validateResult(request: RequestHeader, result: Result, httpErrorHandler: HttpErrorHandler)(
+      implicit mat: Materializer
+  ): Future[Result] = {
     if (request.version == HttpProtocol.HTTP_1_0 && result.body.isInstanceOf[HttpEntity.Chunked]) {
       cancelEntity(result.body)
-      val exception = new ServerResultException("HTTP 1.0 client does not support chunked response", result, null)
+      val exception                   = new ServerResultException("HTTP 1.0 client does not support chunked response", result, null)
       val errorResult: Future[Result] = httpErrorHandler.onServerError(request, exception)
       import play.core.Execution.Implicits.trampoline
       errorResult.map { originalErrorResult: Result =>
@@ -91,11 +96,13 @@ private[play] final class ServerResultUtils(
      *                  / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
      *                  / DIGIT / ALPHA
      */
-    val TChar = AsciiSet('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha
+    val TChar = AsciiSet('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|',
+      '~') ||| AsciiSet.Sets.Digit ||| AsciiSet.Sets.Alpha
     TChar.toBitSet
   }
 
-  def validateHeaderNameChars(headerName: String): Unit = validateString(allowedHeaderNameChars, "header name", headerName)
+  def validateHeaderNameChars(headerName: String): Unit =
+    validateString(allowedHeaderNameChars, "header name", headerName)
 
   /** Set of characters that are allowed in a header name. */
   private[this] val allowedHeaderValueChars: AsciiBitSet = {
@@ -107,19 +114,21 @@ private[play] final class ServerResultUtils(
      * From https://tools.ietf.org/html/rfc7230#section-3.2.6:
      *   obs-text       = %x80-FF
      */
-    val ObsText = new AsciiRange(0x80, 0xFF)
-    val FieldVChar = AsciiSet.Sets.VChar ||| ObsText
+    val ObsText      = new AsciiRange(0x80, 0xFF)
+    val FieldVChar   = AsciiSet.Sets.VChar ||| ObsText
     val FieldContent = FieldVChar ||| AsciiSet(' ', '\t')
     FieldContent.toBitSet
   }
 
-  def validateHeaderValueChars(headerValue: String): Unit = validateString(allowedHeaderValueChars, "header value", headerValue)
+  def validateHeaderValueChars(headerValue: String): Unit =
+    validateString(allowedHeaderValueChars, "header value", headerValue)
 
   private def validateString(allowedSet: AsciiBitSet, setDescription: String, string: String): Unit = {
     @tailrec def loop(i: Int): Unit = {
       if (i < string.length) {
         val c = string.charAt(i)
-        if (!allowedSet.get(c)) throw new IllegalArgumentException(s"Invalid $setDescription character: '$c' (${c.toInt})")
+        if (!allowedSet.get(c))
+          throw new IllegalArgumentException(s"Invalid $setDescription character: '$c' (${c.toInt})")
         loop(i + 1)
       }
     }
@@ -140,9 +149,10 @@ private[play] final class ServerResultUtils(
    *    fallback response is returned, without an conversion.
    */
   def resultConversionWithErrorHandling[R](
-    requestHeader: RequestHeader,
-    result: Result,
-    errorHandler: HttpErrorHandler)(resultConverter: Result => Future[R])(fallbackResponse: => R): Future[R] = {
+      requestHeader: RequestHeader,
+      result: Result,
+      errorHandler: HttpErrorHandler
+  )(resultConverter: Result => Future[R])(fallbackResponse: => R): Future[R] = {
 
     import play.core.Execution.Implicits.trampoline
 
@@ -150,20 +160,26 @@ private[play] final class ServerResultUtils(
       try {
         // Log some information about the error
         if (logger.isErrorEnabled) {
-          val prettyHeaders = result.header.headers.map { case (name, value) => s"<$name>: <$value>" }.mkString("[", ", ", "]")
-          val msg = s"Exception occurred while converting Result with headers $prettyHeaders. Calling HttpErrorHandler to get alternative Result."
+          val prettyHeaders =
+            result.header.headers.map { case (name, value) => s"<$name>: <$value>" }.mkString("[", ", ", "]")
+          val msg =
+            s"Exception occurred while converting Result with headers $prettyHeaders. Calling HttpErrorHandler to get alternative Result."
           logger.error(msg, conversionError)
         }
 
         // Call the HttpErrorHandler to generate an alternative error
-        errorHandler.onServerError(
-          requestHeader,
-          new ServerResultException("Error converting Play Result for server backend", result, conversionError)
-        ).flatMap { errorResult =>
+        errorHandler
+          .onServerError(
+            requestHeader,
+            new ServerResultException("Error converting Play Result for server backend", result, conversionError)
+          )
+          .flatMap { errorResult =>
             // Convert errorResult using normal conversion logic. This time use
             // the DefaultErrorHandler if there are any problems, e.g. if the
             // current HttpErrorHandler returns an invalid Result.
-            resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(fallbackResponse)
+            resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(
+              fallbackResponse
+            )
           }
       } catch {
         case NonFatal(onErrorError) =>
@@ -201,9 +217,9 @@ private[play] final class ServerResultUtils(
    */
   def cancelEntity(entity: HttpEntity)(implicit mat: Materializer) = {
     entity match {
-      case HttpEntity.Chunked(chunks, _) => chunks.runWith(Sink.cancelled)
+      case HttpEntity.Chunked(chunks, _)   => chunks.runWith(Sink.cancelled)
       case HttpEntity.Streamed(data, _, _) => data.runWith(Sink.cancelled)
-      case _ =>
+      case _                               =>
     }
   }
 
@@ -214,22 +230,25 @@ private[play] final class ServerResultUtils(
     def willClose: Boolean
     def header: Option[String]
   }
+
   /**
    * A `Connection: keep-alive` header should be sent. Used to
    * force an HTTP 1.0 connection to remain open.
    */
   case object SendKeepAlive extends ConnectionHeader {
     override def willClose = false
-    override def header = Some(KEEP_ALIVE)
+    override def header    = Some(KEEP_ALIVE)
   }
+
   /**
    * A `Connection: close` header should be sent. Used to
    * force an HTTP 1.1 connection to close.
    */
   case object SendClose extends ConnectionHeader {
     override def willClose = true
-    override def header = Some(CLOSE)
+    override def header    = Some(CLOSE)
   }
+
   /**
    * No `Connection` header should be sent. Used on an HTTP 1.0
    * connection where the default behavior is to close the connection,
@@ -237,8 +256,9 @@ private[play] final class ServerResultUtils(
    */
   case object DefaultClose extends ConnectionHeader {
     override def willClose = true
-    override def header = None
+    override def header    = None
   }
+
   /**
    * No `Connection` header should be sent. Used on an HTTP 1.1
    * connection where the default behavior is to keep the connection
@@ -246,12 +266,12 @@ private[play] final class ServerResultUtils(
    */
   case object DefaultKeepAlive extends ConnectionHeader {
     override def willClose = false
-    override def header = None
+    override def header    = None
   }
 
   // Values for the Connection header
   private val KEEP_ALIVE = "keep-alive"
-  private val CLOSE = "close"
+  private val CLOSE      = "close"
 
   /**
    * Bake the cookies and prepare the new Set-Cookie header.

@@ -5,20 +5,28 @@ package play.api.http
 
 import java.util.concurrent.CompletableFuture
 
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._
 import play.api.inject.BindingKey
-import play.api.mvc.{ RequestHeader, Results }
+import play.api.mvc.RequestHeader
+import play.api.mvc.Results
 import play.api.routing._
-import play.api.{ Configuration, Environment, Mode, OptionalSourceMapper }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Mode
+import play.api.OptionalSourceMapper
 import play.core.j._
-import play.core.test.{ FakeRequest, Fakes }
-import play.i18n.{ Langs, MessagesApi }
+import play.core.test.FakeRequest
+import play.core.test.Fakes
+import play.i18n.Langs
+import play.i18n.MessagesApi
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
+import scala.concurrent.Future
 
 import scala.collection.JavaConverters._
 
@@ -76,30 +84,34 @@ class HttpErrorHandlerSpec extends Specification {
   def handler(handlerClass: String, mode: Mode): HttpErrorHandler = {
     val properties = Map(
       "play.http.errorHandler" -> handlerClass,
-      "play.http.secret.key" -> "mysecret"
+      "play.http.secret.key"   -> "mysecret"
     )
-    val config = ConfigFactory.parseMap(properties.asJava).withFallback(ConfigFactory.defaultReference())
-    val configuration = Configuration(config)
-    val env = Environment.simple(mode = mode)
+    val config            = ConfigFactory.parseMap(properties.asJava).withFallback(ConfigFactory.defaultReference())
+    val configuration     = Configuration(config)
+    val env               = Environment.simple(mode = mode)
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
-    val langs = new play.api.i18n.DefaultLangsProvider(configuration).get
-    val messagesApi = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
-    val jLangs = new play.i18n.Langs(langs)
-    val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
-    Fakes.injectorFromBindings(HttpErrorHandler.bindingsFromConfiguration(env, configuration)
-      ++ Seq(
-        BindingKey(classOf[Router]).to(Router.empty),
-        BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
-        BindingKey(classOf[Configuration]).to(configuration),
-        BindingKey(classOf[Config]).to(configuration.underlying),
-        BindingKey(classOf[MessagesApi]).to(jMessagesApi),
-        BindingKey(classOf[Langs]).to(jLangs),
-        BindingKey(classOf[Environment]).to(env),
-        BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
-        BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
-        BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
-        BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
-      )).instanceOf[HttpErrorHandler]
+    val langs             = new play.api.i18n.DefaultLangsProvider(configuration).get
+    val messagesApi       = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
+    val jLangs            = new play.i18n.Langs(langs)
+    val jMessagesApi      = new play.i18n.MessagesApi(messagesApi)
+    Fakes
+      .injectorFromBindings(
+        HttpErrorHandler.bindingsFromConfiguration(env, configuration)
+          ++ Seq(
+            BindingKey(classOf[Router]).to(Router.empty),
+            BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
+            BindingKey(classOf[Configuration]).to(configuration),
+            BindingKey(classOf[Config]).to(configuration.underlying),
+            BindingKey(classOf[MessagesApi]).to(jMessagesApi),
+            BindingKey(classOf[Langs]).to(jLangs),
+            BindingKey(classOf[Environment]).to(env),
+            BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
+            BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
+            BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
+            BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
+          )
+      )
+      .instanceOf[HttpErrorHandler]
   }
 
 }

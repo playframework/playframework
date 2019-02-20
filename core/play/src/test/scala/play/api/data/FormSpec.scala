@@ -3,7 +3,8 @@
  */
 package play.api.data
 
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
+import play.api.Environment
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.data.format.Formats._
@@ -56,7 +57,8 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using POST" in {
-      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -64,7 +66,8 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using PUT" in {
-      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -72,7 +75,8 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using PATCH" in {
-      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -80,7 +84,8 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using GET" in {
-      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -88,7 +93,8 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using DELETE" in {
-      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -96,7 +102,8 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using HEAD" in {
-      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -104,7 +111,8 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using OPTIONS" in {
-      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john").withFormUrlEncodedBody("email" -> "michael@jackson.com")
+      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john")
+        .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -114,15 +122,15 @@ class FormSpec extends Specification {
     "support mapping 22 fields" in {
       val form = Form(
         tuple(
-          "k1" -> of[String],
-          "k2" -> of[String],
-          "k3" -> of[String],
-          "k4" -> of[String],
-          "k5" -> of[String],
-          "k6" -> of[String],
-          "k7" -> of[String],
-          "k8" -> of[String],
-          "k9" -> of[String],
+          "k1"  -> of[String],
+          "k2"  -> of[String],
+          "k3"  -> of[String],
+          "k4"  -> of[String],
+          "k5"  -> of[String],
+          "k6"  -> of[String],
+          "k7"  -> of[String],
+          "k8"  -> of[String],
+          "k9"  -> of[String],
           "k10" -> of[String],
           "k11" -> of[String],
           "k12" -> of[String],
@@ -139,30 +147,34 @@ class FormSpec extends Specification {
         )
       )
 
-      form.bind(Map(
-        "k1" -> "v1",
-        "k2" -> "v2",
-        "k3" -> "v3",
-        "k4" -> "v4",
-        "k5" -> "v5",
-        "k6" -> "v6",
-        "k7" -> "v7",
-        "k8" -> "v8",
-        "k9" -> "v9",
-        "k10" -> "v10",
-        "k11" -> "v11",
-        "k12" -> "v12",
-        "k13" -> "v13",
-        "k14" -> "v14",
-        "k15" -> "v15",
-        "k16" -> "v16",
-        "k17" -> "v17",
-        "k18" -> "v18",
-        "k19" -> "v19",
-        "k20" -> "v20",
-        "k21" -> "v21",
-        "k22" -> "v22"
-      )).fold(_ => "errors", t => t._21) must_== "v21"
+      form
+        .bind(
+          Map(
+            "k1"  -> "v1",
+            "k2"  -> "v2",
+            "k3"  -> "v3",
+            "k4"  -> "v4",
+            "k5"  -> "v5",
+            "k6"  -> "v6",
+            "k7"  -> "v7",
+            "k8"  -> "v8",
+            "k9"  -> "v9",
+            "k10" -> "v10",
+            "k11" -> "v11",
+            "k12" -> "v12",
+            "k13" -> "v13",
+            "k14" -> "v14",
+            "k15" -> "v15",
+            "k16" -> "v16",
+            "k17" -> "v17",
+            "k18" -> "v18",
+            "k19" -> "v19",
+            "k20" -> "v20",
+            "k21" -> "v21",
+            "k22" -> "v22"
+          )
+        )
+        .fold(_ => "errors", t => t._21) must_== "v21"
     }
 
     "apply constraints on wrapped mappings" in {
@@ -257,9 +269,11 @@ class FormSpec extends Specification {
 
     "not even attempt to validate on fill" in {
       val failingValidatorForm = Form(
-        "foo" -> Forms.text.verifying("isEmpty", s =>
-          if (s.isEmpty) true
-          else throw new AssertionError("Validation was run when it wasn't meant to")
+        "foo" -> Forms.text.verifying(
+          "isEmpty",
+          s =>
+            if (s.isEmpty) true
+            else throw new AssertionError("Validation was run when it wasn't meant to")
         )
       )
       failingValidatorForm.fill("foo").errors must beEmpty
@@ -273,9 +287,13 @@ class FormSpec extends Specification {
 
   "support default values" in {
     ScalaForms.defaultValuesForm.bindFromRequest(Map()).get must equalTo((42, "default text"))
-    ScalaForms.defaultValuesForm.bindFromRequest(Map("name" -> Seq("another text"))).get must equalTo((42, "another text"))
+    ScalaForms.defaultValuesForm.bindFromRequest(Map("name" -> Seq("another text"))).get must equalTo(
+      (42, "another text")
+    )
     ScalaForms.defaultValuesForm.bindFromRequest(Map("pos" -> Seq("123"))).get must equalTo((123, "default text"))
-    ScalaForms.defaultValuesForm.bindFromRequest(Map("pos" -> Seq("123"), "name" -> Seq("another text"))).get must equalTo((123, "another text"))
+    ScalaForms.defaultValuesForm
+      .bindFromRequest(Map("pos" -> Seq("123"), "name" -> Seq("another text")))
+      .get must equalTo((123, "another text"))
 
     val f1 = ScalaForms.defaultValuesForm.bindFromRequest(Map("pos" -> Seq("abc")))
     f1.errors must haveSize(1)
@@ -283,51 +301,107 @@ class FormSpec extends Specification {
 
   "support repeated values" in {
     ScalaForms.repeatedForm.bindFromRequest(Map("name" -> Seq("Kiki"))).get must equalTo(("Kiki", Seq()))
-    ScalaForms.repeatedForm.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
-    ScalaForms.repeatedForm.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
-    ScalaForms.repeatedForm.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com"))).hasErrors must equalTo(true)
-    ScalaForms.repeatedForm.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
-    ScalaForms.repeatedForm.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com"))).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedForm
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", Seq("kiki@gmail.com")))
+    ScalaForms.repeatedForm
+      .bindFromRequest(
+        Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))
+      )
+      .get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedForm
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")))
+      .hasErrors must equalTo(true)
+    ScalaForms.repeatedForm
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", Seq("kiki@gmail.com")))
+    ScalaForms.repeatedForm
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")))
+      .get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
   }
 
   "support repeated values with set" in {
     ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"))).get must equalTo(("Kiki", Set()))
-    ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", Set("kiki@gmail.com")))
-    ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))).get must equalTo(("Kiki", Set("kiki@gmail.com", "kiki@zen.com")))
-    ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com"))).hasErrors must equalTo(true)
-    ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", Set("kiki@gmail.com")))
-    ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com"))).get must equalTo(("Kiki", Set("kiki@gmail.com", "kiki@zen.com")))
-    ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@gmail.com"))).get must equalTo(("Kiki", Set("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithSet
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", Set("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithSet
+      .bindFromRequest(
+        Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))
+      )
+      .get must equalTo(("Kiki", Set("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithSet
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")))
+      .hasErrors must equalTo(true)
+    ScalaForms.repeatedFormWithSet
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", Set("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithSet
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")))
+      .get must equalTo(("Kiki", Set("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithSet
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@gmail.com")))
+      .get must equalTo(("Kiki", Set("kiki@gmail.com")))
   }
 
   "support repeated values with indexedSeq" in {
-    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"))).get must equalTo(("Kiki", IndexedSeq()))
-    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com")))
-    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))).get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com", "kiki@zen.com")))
-    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com"))).hasErrors must equalTo(true)
-    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com")))
-    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com"))).get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithIndexedSeq.bindFromRequest(Map("name" -> Seq("Kiki"))).get must equalTo(
+      ("Kiki", IndexedSeq())
+    )
+    ScalaForms.repeatedFormWithIndexedSeq
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithIndexedSeq
+      .bindFromRequest(
+        Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))
+      )
+      .get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithIndexedSeq
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")))
+      .hasErrors must equalTo(true)
+    ScalaForms.repeatedFormWithIndexedSeq
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithIndexedSeq
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")))
+      .get must equalTo(("Kiki", IndexedSeq("kiki@gmail.com", "kiki@zen.com")))
   }
 
   "support repeated values with vector" in {
     ScalaForms.repeatedFormWithVector.bindFromRequest(Map("name" -> Seq("Kiki"))).get must equalTo(("Kiki", Vector()))
-    ScalaForms.repeatedFormWithVector.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", Vector("kiki@gmail.com")))
-    ScalaForms.repeatedFormWithVector.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))).get must equalTo(("Kiki", Vector("kiki@gmail.com", "kiki@zen.com")))
-    ScalaForms.repeatedFormWithVector.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com"))).hasErrors must equalTo(true)
-    ScalaForms.repeatedFormWithVector.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com"))).get must equalTo(("Kiki", Vector("kiki@gmail.com")))
-    ScalaForms.repeatedFormWithVector.bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com"))).get must equalTo(("Kiki", Vector("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithVector
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", Vector("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithVector
+      .bindFromRequest(
+        Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com"))
+      )
+      .get must equalTo(("Kiki", Vector("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithVector
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")))
+      .hasErrors must equalTo(true)
+    ScalaForms.repeatedFormWithVector
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")))
+      .get must equalTo(("Kiki", Vector("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithVector
+      .bindFromRequest(Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")))
+      .get must equalTo(("Kiki", Vector("kiki@gmail.com", "kiki@zen.com")))
   }
 
   "render a form with max 18 fields" in {
-    ScalaForms.helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo("(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)")
+    ScalaForms.helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo(
+      "(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)"
+    )
   }
 
   "reject input if it contains global errors" in {
-    Form("value" -> nonEmptyText).withGlobalError("some.error")
+    Form("value" -> nonEmptyText)
+      .withGlobalError("some.error")
       .bind(Map("value" -> "some value"))
-      .errors.headOption must beSome.like {
-        case error => error.message must equalTo("some.error")
-      }
+      .errors
+      .headOption must beSome.like {
+      case error => error.message must equalTo("some.error")
+    }
   }
 
   "find nested error on unbind" in {
@@ -363,19 +437,20 @@ class FormSpec extends Specification {
   "correctly lookup error messages when using errorsAsJson" in {
     val messagesApi: MessagesApi = {
       val config = Configuration.reference
-      val langs = new DefaultLangsProvider(config).get
+      val langs  = new DefaultLangsProvider(config).get
       new DefaultMessagesApiProvider(Environment.simple(), config, langs, HttpConfiguration()).get
     }
     implicit val messages = messagesApi.preferred(Seq.empty)
 
-    val form = Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)
+    val form =
+      Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)
     (form.errorsAsJson \ "foo")(0).asOpt[String] must beSome("This is a custom error")
   }
 
   "correctly format error messages with arguments" in {
     val messagesApi: MessagesApi = {
       val config = Configuration.reference
-      val langs = new DefaultLangsProvider(config).get
+      val langs  = new DefaultLangsProvider(config).get
       new DefaultMessagesApiProvider(Environment.simple(), config, langs, HttpConfiguration()).get
     }
     implicit val messages = messagesApi.preferred(Seq.empty)
@@ -388,82 +463,82 @@ class FormSpec extends Specification {
   "render form using java.time.LocalDate" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate)
-    val data = Map("date" -> "2012-01-01")
+    val data     = Map("date"  -> "2012-01-01")
     dateForm.bind(data).get must beEqualTo(LocalDate.of(2012, 1, 1))
   }
 
   "render form using java.time.LocalDate with format(15/6/2016)" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate("dd/MM/yyyy"))
-    val data = Map("date" -> "15/06/2016")
+    val data     = Map("date"  -> "15/06/2016")
     dateForm.bind(data).get must beEqualTo(LocalDate.of(2016, 6, 15))
   }
 
   "render form using java.time.LocalDateTime" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> localDateTime)
-    val data = Map("date" -> "2012-01-01 10:10:10")
+    val data     = Map("date"  -> "2012-01-01 10:10:10")
     dateForm.bind(data).get must beEqualTo(LocalDateTime.of(2012, 1, 1, 10, 10, 10))
   }
 
   "render form using java.time.LocalDateTime with format(17/06/2016T17:15:33)" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> localDateTime("dd/MM/yyyy HH:mm:ss"))
-    val data = Map("date" -> "17/06/2016 10:10:10")
+    val data     = Map("date"  -> "17/06/2016 10:10:10")
     dateForm.bind(data).get must beEqualTo(LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
 
   "render form using java.time.LocalTime" in {
     import java.time.LocalTime
     val dateForm = Form("date" -> localTime)
-    val data = Map("date" -> "10:10:10")
+    val data     = Map("date"  -> "10:10:10")
     dateForm.bind(data).get must beEqualTo(LocalTime.of(10, 10, 10))
   }
 
   "render form using java.time.LocalTime with format(HH-mm-ss)" in {
     import java.time.LocalTime
     val dateForm = Form("date" -> localTime("HH-mm-ss"))
-    val data = Map("date" -> "10-11-12")
+    val data     = Map("date"  -> "10-11-12")
     dateForm.bind(data).get must beEqualTo(LocalTime.of(10, 11, 12))
   }
 
   "render form using java.sql.Date" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> sqlDate)
-    val data = Map("date" -> "2017-07-04")
-    val date = dateForm.bind(data).get.toLocalDate
+    val data     = Map("date" -> "2017-07-04")
+    val date     = dateForm.bind(data).get.toLocalDate
     date must beEqualTo(LocalDate.of(2017, 7, 4))
   }
 
   "render form using java.sql.Date with format(dd-MM-yyyy)" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> sqlDate("dd-MM-yyyy"))
-    val data = Map("date" -> "04-07-2017")
-    val date = dateForm.bind(data).get.toLocalDate
+    val data     = Map("date" -> "04-07-2017")
+    val date     = dateForm.bind(data).get.toLocalDate
     date must beEqualTo(LocalDate.of(2017, 7, 4))
   }
 
   "render form using java.sql.Timestamp" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> sqlTimestamp)
-    val data = Map("date" -> "2017-07-04 10:11:12")
-    val date = dateForm.bind(data).get.toLocalDateTime
+    val data     = Map("date" -> "2017-07-04 10:11:12")
+    val date     = dateForm.bind(data).get.toLocalDateTime
     date must beEqualTo(LocalDateTime.of(2017, 7, 4, 10, 11, 12))
   }
 
   "render form using java.sql.Date with format(dd/MM/yyyy HH-mm-ss)" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> sqlTimestamp("dd/MM/yyyy HH-mm-ss"))
-    val data = Map("date" -> "04/07/2017 10-11-12")
-    val date = dateForm.bind(data).get.toLocalDateTime
+    val data     = Map("date" -> "04/07/2017 10-11-12")
+    val date     = dateForm.bind(data).get.toLocalDateTime
     date must beEqualTo(LocalDateTime.of(2017, 7, 4, 10, 11, 12))
   }
 
   "render form using java.time.Timestamp with format(17/06/2016T17:15:33)" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> sqlTimestamp("dd/MM/yyyy HH:mm:ss"))
-    val data = Map("date" -> "17/06/2016 10:10:10")
-    val date = dateForm.bind(data).get.toLocalDateTime
+    val data     = Map("date" -> "17/06/2016 10:10:10")
+    val date     = dateForm.bind(data).get.toLocalDateTime
     date must beEqualTo(LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
 
@@ -478,91 +553,93 @@ object ScalaForms {
   val userForm = Form(
     mapping(
       "name" -> of[String].verifying(nonEmpty),
-      "age" -> of[Int].verifying(min(0), max(100))
+      "age"  -> of[Int].verifying(min(0), max(100))
     )(User.apply)(User.unapply)
   )
 
   val loginForm = Form(
     tuple(
-      "email" -> of[String],
+      "email"    -> of[String],
       "password" -> of[Int]
     )
   )
 
   val defaultValuesForm = Form(
     tuple(
-      "pos" -> default(number, 42),
+      "pos"  -> default(number, 42),
       "name" -> default(text, "default text")
     )
   )
 
   val helloForm = Form(
     tuple(
-      "name" -> nonEmptyText,
-      "repeat" -> number(min = 1, max = 100),
-      "color" -> optional(text),
+      "name"        -> nonEmptyText,
+      "repeat"      -> number(min = 1, max = 100),
+      "color"       -> optional(text),
       "still works" -> optional(text),
-      "1" -> optional(text),
-      "2" -> optional(text),
-      "3" -> optional(text),
-      "4" -> optional(text),
-      "5" -> optional(text),
-      "6" -> optional(text),
-      "7" -> optional(text),
-      "8" -> optional(text),
-      "9" -> optional(text),
-      "10" -> optional(text),
-      "11" -> optional(text),
-      "12" -> optional(text),
-      "13" -> optional(text),
-      "14" -> optional(text)
+      "1"           -> optional(text),
+      "2"           -> optional(text),
+      "3"           -> optional(text),
+      "4"           -> optional(text),
+      "5"           -> optional(text),
+      "6"           -> optional(text),
+      "7"           -> optional(text),
+      "8"           -> optional(text),
+      "9"           -> optional(text),
+      "10"          -> optional(text),
+      "11"          -> optional(text),
+      "12"          -> optional(text),
+      "13"          -> optional(text),
+      "14"          -> optional(text)
     )
   )
 
   val repeatedForm = Form(
     tuple(
-      "name" -> nonEmptyText,
+      "name"   -> nonEmptyText,
       "emails" -> list(nonEmptyText)
     )
   )
 
   val repeatedFormWithSet = Form(
     tuple(
-      "name" -> nonEmptyText,
+      "name"   -> nonEmptyText,
       "emails" -> set(nonEmptyText)
     )
   )
 
   val repeatedFormWithIndexedSeq = Form(
     tuple(
-      "name" -> nonEmptyText,
+      "name"   -> nonEmptyText,
       "emails" -> indexedSeq(nonEmptyText)
     )
   )
 
   val repeatedFormWithVector = Form(
     tuple(
-      "name" -> nonEmptyText,
+      "name"   -> nonEmptyText,
       "emails" -> vector(nonEmptyText)
     )
   )
 
   val form = Form(
-    "foo" -> Forms.text.verifying("first.digit", s => s.headOption contains '3')
-      .transform[Int](Integer.parseInt, _.toString).verifying("number.42", _ < 42)
+    "foo" -> Forms.text
+      .verifying("first.digit", s => s.headOption contains '3')
+      .transform[Int](Integer.parseInt, _.toString)
+      .verifying("number.42", _ < 42)
   )
 
   val emailForm = Form(
     tuple(
       "email" -> email,
-      "name" -> of[String]
+      "name"  -> of[String]
     )
   )
 
   val updateForm = Form(
     tuple(
       "email" -> optional(text),
-      "name" -> optional(text)
+      "name"  -> optional(text)
     )
   )
 

@@ -3,7 +3,8 @@
  */
 package play.api.db
 
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
+import play.api.Environment
 
 /**
  * The generic database configuration.
@@ -14,17 +15,23 @@ import play.api.{ Configuration, Environment }
  * @param password The password
  * @param jndiName The JNDI name
  */
-case class DatabaseConfig(driver: Option[String], url: Option[String], username: Option[String], password: Option[String], jndiName: Option[String])
+case class DatabaseConfig(
+    driver: Option[String],
+    url: Option[String],
+    username: Option[String],
+    password: Option[String],
+    jndiName: Option[String]
+)
 
 object DatabaseConfig {
 
   def fromConfig(config: Configuration, environment: Environment) = {
 
-    val driver = config.get[Option[String]]("driver")
+    val driver          = config.get[Option[String]]("driver")
     val (url, userPass) = ConnectionPool.extractUrl(config.get[Option[String]]("url"), environment.mode)
-    val username = config.getDeprecated[Option[String]]("username", "user").orElse(userPass.map(_._1))
-    val password = config.getDeprecated[Option[String]]("password", "pass").orElse(userPass.map(_._2))
-    val jndiName = config.get[Option[String]]("jndiName")
+    val username        = config.getDeprecated[Option[String]]("username", "user").orElse(userPass.map(_._1))
+    val password        = config.getDeprecated[Option[String]]("password", "pass").orElse(userPass.map(_._2))
+    val jndiName        = config.get[Option[String]]("jndiName")
 
     DatabaseConfig(driver, url, username, password, jndiName)
   }

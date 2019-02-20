@@ -14,8 +14,8 @@ class ApplicationSecretGeneratorSpec extends Specification {
           |# test configuration
           |play.http.secret.key=changeme
           |""".stripMargin
-      val config = ConfigFactory.parseString(configContent)
-      val lines = configContent.split("\n").toList
+      val config                 = ConfigFactory.parseString(configContent)
+      val lines                  = configContent.split("\n").toList
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
@@ -34,8 +34,8 @@ class ApplicationSecretGeneratorSpec extends Specification {
           |  }
           |}
           |""".stripMargin
-      val config = ConfigFactory.parseString(configContent)
-      val lines = configContent.split("\n").toList
+      val config                 = ConfigFactory.parseString(configContent)
+      val lines                  = configContent.split("\n").toList
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
@@ -59,8 +59,8 @@ class ApplicationSecretGeneratorSpec extends Specification {
           |  }
           |}
           |""".stripMargin
-      val config = ConfigFactory.parseString(configContent)
-      val lines = configContent.split("\n").toList
+      val config                 = ConfigFactory.parseString(configContent)
+      val lines                  = configContent.split("\n").toList
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))
@@ -82,8 +82,8 @@ class ApplicationSecretGeneratorSpec extends Specification {
           |play.crypto.secret=deleteme
           |
           |""".stripMargin
-      val config = ConfigFactory.parseString(configContent)
-      val lines = configContent.split("\n").toList
+      val config                 = ConfigFactory.parseString(configContent)
+      val lines                  = configContent.split("\n").toList
       val newLines: List[String] = ApplicationSecretGenerator.getUpdatedSecretLines("newSecret", lines, config)
 
       val newConfig = ConfigFactory.parseString(newLines.mkString("\n"))

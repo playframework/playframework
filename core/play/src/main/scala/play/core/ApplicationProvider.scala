@@ -4,7 +4,8 @@
 package play.core
 
 import java.io._
-import scala.util.{ Try, Success }
+import scala.util.Try
+import scala.util.Success
 
 import play.api._
 import play.api.mvc._
@@ -60,5 +61,9 @@ object ApplicationProvider {
 }
 
 trait HandleWebCommandSupport {
-  def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[Result]
+  def handleWebCommand(
+      request: play.api.mvc.RequestHeader,
+      buildLink: play.core.BuildLink,
+      path: java.io.File
+  ): Option[Result]
 }

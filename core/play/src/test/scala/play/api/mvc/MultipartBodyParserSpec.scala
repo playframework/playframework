@@ -10,7 +10,8 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
-import play.core.test.{ FakeHeaders, FakeRequest }
+import play.core.test.FakeHeaders
+import play.core.test.FakeRequest
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -18,12 +19,11 @@ import scala.concurrent.duration.Duration
 class MultipartBodyParserSpec extends Specification {
 
   "Multipart body parser" should {
-    implicit val system = ActorSystem()
+    implicit val system           = ActorSystem()
     implicit val executionContext = system.dispatcher
-    implicit val materializer = ActorMaterializer()
+    implicit val materializer     = ActorMaterializer()
 
-    val playBodyParsers = PlayBodyParsers(
-      tfc = new InMemoryTemporaryFileCreator(10))
+    val playBodyParsers = PlayBodyParsers(tfc = new InMemoryTemporaryFileCreator(10))
 
     "return an error if temporary file creation fails" in {
 
@@ -44,17 +44,19 @@ class MultipartBodyParserSpec extends Specification {
         ByteString(header) ::
           ByteString(content) ::
           ByteString(footer) ::
-          Nil)
+          Nil
+      )
 
       val bodySize = header.length + fileSize + footer.length
 
       val request = FakeRequest(
         method = "POST",
         uri = "/x",
-        headers = FakeHeaders(Seq(
-          "Content-Type" -> s"multipart/form-data; boundary=$boundary",
-          "Content-Length" -> bodySize.toString)),
-        body = body)
+        headers = FakeHeaders(
+          Seq("Content-Type" -> s"multipart/form-data; boundary=$boundary", "Content-Length" -> bodySize.toString)
+        ),
+        body = body
+      )
 
       val response = playBodyParsers.multipartFormData.apply(request).run(body)
       Await.result(response, Duration.Inf) must throwA[IOException]

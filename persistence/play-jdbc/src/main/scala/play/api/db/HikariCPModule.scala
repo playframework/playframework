@@ -3,17 +3,22 @@
  */
 package play.api.db
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import javax.inject.Singleton
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
-import com.zaxxer.hikari.{ HikariConfig, HikariDataSource }
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import play.api._
 import play.api.inject._
 import play.api.libs.JNDI
 
-import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * HikariCP runtime inject module.
@@ -30,7 +35,7 @@ trait HikariCPComponents {
 }
 
 @Singleton
-class HikariCPConnectionPool @Inject() (environment: Environment) extends ConnectionPool {
+class HikariCPConnectionPool @Inject()(environment: Environment) extends ConnectionPool {
 
   import HikariCPConnectionPool._
 
@@ -47,8 +52,8 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
     Try {
       Logger.info(s"Creating Pool for datasource '$name'")
 
-      val hikariConfig = new HikariCPConfig(dbConfig, config).toHikariConfig
-      val datasource = new HikariDataSource(hikariConfig)
+      val hikariConfig      = new HikariCPConfig(dbConfig, config).toHikariConfig
+      val datasource        = new HikariDataSource(hikariConfig)
       val wrappedDataSource = ConnectionPool.wrapToLogSql(datasource, configuration)
 
       // Bind in JNDI
@@ -60,7 +65,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
       wrappedDataSource
     } match {
       case Success(datasource) => datasource
-      case Failure(ex) => throw config.reportError(name, ex.getMessage, Some(ex))
+      case Failure(ex)         => throw config.reportError(name, ex.getMessage, Some(ex))
     }
   }
 
@@ -73,7 +78,7 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
     Logger.info("Shutting down connection pool.")
     ConnectionPool.unwrap(dataSource) match {
       case ds: HikariDataSource => ds.close()
-      case _ => sys.error("Unable to close data source: not a HikariDataSource")
+      case _                    => sys.error("Unable to close data source: not a HikariDataSource")
     }
   }
 }
@@ -106,7 +111,7 @@ private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Config
 
     def toMillis(duration: Duration) = {
       if (duration.isFinite()) duration.toMillis
-      else 0l
+      else 0L
     }
 
     // Frequently used

@@ -7,10 +7,16 @@ import java.io.File
 import java.nio.charset.Charset
 import java.nio.file._
 
-import play.api.db.{ DBApi, Database }
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle }
+import play.api.db.DBApi
+import play.api.db.Database
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
-import play.api.{ Configuration, Environment, Logger, Mode, Play }
+import play.api.Configuration
+import play.api.Environment
+import play.api.Logger
+import play.api.Mode
+import play.api.Play
 import play.core.DefaultWebCommands
 import play.utils.PlayIO
 
@@ -82,9 +88,9 @@ case class DownScript(evolution: Evolution) extends Script {
  */
 private[evolutions] object DatabaseUrlPatterns {
   lazy val SqlServerJdbcUrl = "^jdbc:sqlserver:.*".r
-  lazy val OracleJdbcUrl = "^jdbc:oracle:.*".r
-  lazy val MysqlJdbcUrl = "^(jdbc:)?mysql:.*".r
-  lazy val DerbyJdbcUrl = "^jdbc:derby:.*".r
+  lazy val OracleJdbcUrl    = "^jdbc:oracle:.*".r
+  lazy val MysqlJdbcUrl     = "^(jdbc:)?mysql:.*".r
+  lazy val DerbyJdbcUrl     = "^jdbc:derby:.*".r
 }
 
 /**
@@ -115,7 +121,12 @@ object Evolutions {
    * Apply pending evolutions for the given database.
    */
   @deprecated("Inject or create an instance of EvolutionsApi and use EvolutionsApi#applyFor", "2.6.0")
-  def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true, schema: String = ""): Unit = {
+  def applyFor(
+      dbName: String,
+      path: java.io.File = new java.io.File("."),
+      autocommit: Boolean = true,
+      schema: String = ""
+  ): Unit = {
     val evolutionsApi = Play.current.injector.instanceOf[EvolutionsApi]
     evolutionsApi.applyFor(dbName, path, autocommit, schema)
   }
@@ -123,7 +134,13 @@ object Evolutions {
   /**
    * Updates a local (file-based) evolution script.
    */
-  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit environment: Environment): Unit = {
+  def updateEvolutionScript(
+      db: String = "default",
+      revision: Int = 1,
+      comment: String = "Generated",
+      ups: String,
+      downs: String
+  )(implicit environment: Environment): Unit = {
     val evolutions = environment.getFile(fileName(db, revision))
     Files.createDirectory(environment.getFile(directoryName(db)).toPath)
     writeFileIfChanged(
@@ -136,7 +153,8 @@ object Evolutions {
          |# --- !Downs
          |%s
          |
-         |""".stripMargin.format(comment, ups, downs))
+         |""".stripMargin.format(comment, ups, downs)
+    )
   }
 
   private def writeFileIfChanged(path: File, content: String): Unit = {
@@ -158,10 +176,12 @@ object Evolutions {
    * @return a formatted script
    */
   def toHumanReadableScript(scripts: Seq[Script]): String = {
-    val txt = scripts.map {
-      case UpScript(ev) => "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + ev.sql_up + "\n"
-      case DownScript(ev) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + ev.sql_down + "\n"
-    }.mkString("\n")
+    val txt = scripts
+      .map {
+        case UpScript(ev)   => "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + ev.sql_up + "\n"
+        case DownScript(ev) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + ev.sql_down + "\n"
+      }
+      .mkString("\n")
 
     val hasDownWarning =
       "# !!! WARNING! This script contains DOWNS evolutions that are likely destructive\n\n"
@@ -178,9 +198,14 @@ object Evolutions {
    * @return the downs and ups to run to have the db synced to the current stage
    */
   def conflictings(downs: Seq[Evolution], ups: Seq[Evolution]): (Seq[Evolution], Seq[Evolution]) =
-    downs.zip(ups).reverse.dropWhile {
-      case (down, up) => down.hash == up.hash
-    }.reverse.unzip
+    downs
+      .zip(ups)
+      .reverse
+      .dropWhile {
+        case (down, up) => down.hash == up.hash
+      }
+      .reverse
+      .unzip
 
   /**
    * Apply evolutions for the given database.
@@ -190,10 +215,14 @@ object Evolutions {
    * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
    * @param schema The schema where all the play evolution tables are saved in
    */
-  def applyEvolutions(database: Database, evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
-    autocommit: Boolean = true, schema: String = ""): Unit = {
+  def applyEvolutions(
+      database: Database,
+      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+      autocommit: Boolean = true,
+      schema: String = ""
+  ): Unit = {
     val dbEvolutions = new DatabaseEvolutions(database, schema)
-    val evolutions = dbEvolutions.scripts(evolutionsReader)
+    val evolutions   = dbEvolutions.scripts(evolutionsReader)
     dbEvolutions.evolve(evolutions, autocommit)
   }
 
@@ -209,7 +238,7 @@ object Evolutions {
    */
   def cleanupEvolutions(database: Database, autocommit: Boolean = true, schema: String = ""): Unit = {
     val dbEvolutions = new DatabaseEvolutions(database, schema)
-    val evolutions = dbEvolutions.resetScripts()
+    val evolutions   = dbEvolutions.resetScripts()
     dbEvolutions.evolve(evolutions, autocommit)
   }
 
@@ -222,8 +251,12 @@ object Evolutions {
    * @param block The block to execute
    * @param schema The schema where all the play evolution tables are saved in
    */
-  def withEvolutions[T](database: Database, evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
-    autocommit: Boolean = true, schema: String = "")(block: => T): T = {
+  def withEvolutions[T](
+      database: Database,
+      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+      autocommit: Boolean = true,
+      schema: String = ""
+  )(block: => T): T = {
     applyEvolutions(database, evolutionsReader, autocommit, schema)
     try {
       block
@@ -249,11 +282,11 @@ object OfflineEvolutions {
   private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): EvolutionsComponents = {
     val _dbApi = dbApi
     new EvolutionsComponents {
-      lazy val environment = Environment(appPath, classloader, Mode.Dev)
-      lazy val configuration = Configuration.load(environment)
+      lazy val environment                                = Environment(appPath, classloader, Mode.Dev)
+      lazy val configuration                              = Configuration.load(environment)
       lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
-      lazy val dbApi: DBApi = _dbApi
-      lazy val webCommands = new DefaultWebCommands
+      lazy val dbApi: DBApi                               = _dbApi
+      lazy val webCommands                                = new DefaultWebCommands
     }
   }
 
@@ -266,10 +299,19 @@ object OfflineEvolutions {
    * @param dbApi the database api for managing application databases
    * @param schema The schema where all the play evolution tables are saved in
    */
-  def applyScript(appPath: File, classloader: ClassLoader, dbApi: DBApi, dbName: String, autocommit: Boolean = true, schema: String = ""): Unit = {
+  def applyScript(
+      appPath: File,
+      classloader: ClassLoader,
+      dbApi: DBApi,
+      dbName: String,
+      autocommit: Boolean = true,
+      schema: String = ""
+  ): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
-    val scripts = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema)
-    nonTestLogger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts))
+    val scripts    = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema)
+    nonTestLogger.warn(
+      "Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts)
+    )
     evolutions.evolutionsApi.evolve(dbName, scripts, autocommit, schema)
   }
 
@@ -283,7 +325,14 @@ object OfflineEvolutions {
    * @param revision the revision
    * @param schema The schema where all the play evolution tables are saved in
    */
-  def resolve(appPath: File, classloader: ClassLoader, dbApi: DBApi, dbName: String, revision: Int, schema: String = ""): Unit = {
+  def resolve(
+      appPath: File,
+      classloader: ClassLoader,
+      dbApi: DBApi,
+      dbName: String,
+      revision: Int,
+      schema: String = ""
+  ): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
     nonTestLogger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     evolutions.evolutionsApi.resolve(dbName, revision, schema)

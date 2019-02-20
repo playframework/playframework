@@ -4,17 +4,25 @@
 package play.api.mvc
 
 import java.lang.{ StringBuilder => JStringBuilder }
-import java.nio.file.{ Files, Path }
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.format.DateTimeFormatter
-import java.time.{ ZoneOffset, ZonedDateTime }
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
-import akka.stream.scaladsl.{ FileIO, Source, StreamConverters }
+import akka.stream.scaladsl.FileIO
+import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.StreamConverters
 import akka.util.ByteString
 import play.api.http.HeaderNames._
-import play.api.http.{ FileMimeTypes, _ }
-import play.api.i18n.{ Lang, MessagesApi }
-import play.api.{ Logger, Mode }
-import play.core.utils.{ CaseInsensitiveOrdered, HttpHeaderParameterEncoding }
+import play.api.http.FileMimeTypes
+import play.api.http._
+import play.api.i18n.Lang
+import play.api.i18n.MessagesApi
+import play.api.Logger
+import play.api.Mode
+import play.core.utils.CaseInsensitiveOrdered
+import play.core.utils.HttpHeaderParameterEncoding
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
@@ -28,7 +36,11 @@ import scala.concurrent.ExecutionContext
  * @param reasonPhrase the human-readable description of status, e.g. "Ok";
  *   if None, the default phrase for the status will be used
  */
-final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty, val reasonPhrase: Option[String] = None) {
+final class ResponseHeader(
+    val status: Int,
+    _headers: Map[String, String] = Map.empty,
+    val reasonPhrase: Option[String] = None
+) {
   private[play] def this(status: Int, _headers: java.util.Map[String, String], reasonPhrase: Option[String]) =
     this(status, _headers.asScala.toMap, reasonPhrase)
 
@@ -40,14 +52,18 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
     if (value eq null) throw new NullPointerException(s"Response header '$name' has null value!")
   }
 
-  def copy(status: Int = status, headers: Map[String, String] = headers, reasonPhrase: Option[String] = reasonPhrase): ResponseHeader =
+  def copy(
+      status: Int = status,
+      headers: Map[String, String] = headers,
+      reasonPhrase: Option[String] = reasonPhrase
+  ): ResponseHeader =
     new ResponseHeader(status, headers, reasonPhrase)
 
   override def toString = s"$status, $headers"
   override def hashCode = (status, headers).hashCode
   override def equals(o: Any) = o match {
     case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
-    case _ => false
+    case _                       => false
   }
 
   def asJava: play.mvc.ResponseHeader = {
@@ -63,7 +79,7 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
     val newValue = headers.get(VARY) match {
       case Some(existing) if existing.nonEmpty =>
         val existingSet: Set[String] = existing.split(",").map(_.trim.toLowerCase)(collection.breakOut)
-        val newValuesToAdd = headerValues.filterNot(v => existingSet.contains(v.trim.toLowerCase))
+        val newValuesToAdd           = headerValues.filterNot(v => existingSet.contains(v.trim.toLowerCase))
         s"$existing${newValuesToAdd.map(v => s",$v").mkString}"
       case _ =>
         headerValues.mkString(",")
@@ -75,11 +91,16 @@ final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.
 object ResponseHeader {
   val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
   val httpDateFormat: DateTimeFormatter =
-    DateTimeFormatter.ofPattern(basicDateFormatPattern + " 'GMT'")
+    DateTimeFormatter
+      .ofPattern(basicDateFormatPattern + " 'GMT'")
       .withLocale(java.util.Locale.ENGLISH)
       .withZone(ZoneOffset.UTC)
 
-  def apply(status: Int, headers: Map[String, String] = Map.empty, reasonPhrase: Option[String] = None): ResponseHeader =
+  def apply(
+      status: Int,
+      headers: Map[String, String] = Map.empty,
+      reasonPhrase: Option[String] = None
+  ): ResponseHeader =
     new ResponseHeader(status, headers)
   def unapply(rh: ResponseHeader): Option[(Int, Map[String, String], Option[String])] =
     if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
@@ -91,8 +112,13 @@ object ResponseHeader {
  * @param header the response header, which contains status code and HTTP headers
  * @param body the response body
  */
-case class Result(header: ResponseHeader, body: HttpEntity,
-    newSession: Option[Session] = None, newFlash: Option[Flash] = None, newCookies: Seq[Cookie] = Seq.empty) {
+case class Result(
+    header: ResponseHeader,
+    body: HttpEntity,
+    newSession: Option[Session] = None,
+    newFlash: Option[Flash] = None,
+    newCookies: Seq[Cookie] = Seq.empty
+) {
 
   /**
    * Adds headers to this result.
@@ -251,7 +277,7 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    * @param request Current request
    * @return The session carried by this result. Reads the request’s session if this result does not modify the session.
    */
-  def session(implicit request: RequestHeader): Session = newSession getOrElse request.session
+  def session(implicit request: RequestHeader): Session = newSession.getOrElse(request.session)
 
   /**
    * Example:
@@ -284,38 +310,49 @@ case class Result(header: ResponseHeader, body: HttpEntity,
    */
   @inline private def warnFlashingIfNotRedirect(flash: Flash): Unit = {
     if (!flash.isEmpty && !Status.isRedirect(header.status)) {
-      Logger("play").forMode(Mode.Dev).warn(
-        s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
-      )
+      Logger("play")
+        .forMode(Mode.Dev)
+        .warn(
+          s"You are using status code '${header.status}' with flashing, which should only be used with a redirect status!"
+        )
     }
   }
 
   /**
    * Convert this result to a Java result.
    */
-  def asJava: play.mvc.Result = new play.mvc.Result(header.asJava, body.asJava,
-    newSession.map(_.asJava).orNull, newFlash.map(_.asJava).orNull, newCookies.map(_.asJava).asJava)
+  def asJava: play.mvc.Result =
+    new play.mvc.Result(
+      header.asJava,
+      body.asJava,
+      newSession.map(_.asJava).orNull,
+      newFlash.map(_.asJava).orNull,
+      newCookies.map(_.asJava).asJava
+    )
 
   /**
    * Encode the cookies into the Set-Cookie header. The session is always baked first, followed by the flash cookie,
    * followed by all the other cookies in order.
    */
   def bakeCookies(
-    cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
-    sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
-    flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
-    requestHasFlash: Boolean = false): Result = {
+      cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
+      sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
+      flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
+      requestHasFlash: Boolean = false
+  ): Result = {
 
     val allCookies = {
       val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
       val session = newSession.map { data =>
         if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
       }
-      val flash = newFlash.map { data =>
-        if (data.isEmpty) flashBaker.discard.toCookie else flashBaker.encodeAsCookie(data)
-      }.orElse {
-        if (requestHasFlash) Some(flashBaker.discard.toCookie) else None
-      }
+      val flash = newFlash
+        .map { data =>
+          if (data.isEmpty) flashBaker.discard.toCookie else flashBaker.encodeAsCookie(data)
+        }
+        .orElse {
+          if (requestHasFlash) Some(flashBaker.discard.toCookie) else None
+        }
       setCookieCookies ++ session ++ flash ++ newCookies
     }
 
@@ -343,7 +380,8 @@ object Codec {
   /**
    * Create a Codec from an encoding already supported by the JVM.
    */
-  def javaSupported(charset: String) = Codec(charset)(str => ByteString.apply(str, charset), bytes => bytes.decodeString(charset))
+  def javaSupported(charset: String) =
+    Codec(charset)(str => ByteString.apply(str, charset), bytes => bytes.decodeString(charset))
 
   /**
    * Codec for UTF-8
@@ -430,7 +468,9 @@ trait Results {
       )
     }
 
-    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean)(implicit fileMimeTypes: FileMimeTypes): Result = {
+    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean)(
+        implicit fileMimeTypes: FileMimeTypes
+    ): Result = {
       Result(
         ResponseHeader(
           status,
@@ -459,7 +499,12 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendFile(content: java.io.File, inline: Boolean = true, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
+    def sendFile(
+        content: java.io.File,
+        inline: Boolean = true,
+        fileName: java.io.File => String = _.getName,
+        onClose: () => Unit = () => ()
+    )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
     }
 
@@ -470,10 +515,17 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
      */
-    def sendPath(content: Path, inline: Boolean = true, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ())(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
-      val io = FileIO.fromPath(content).mapMaterializedValue(_.onComplete { _ =>
-        onClose()
-      })
+    def sendPath(
+        content: Path,
+        inline: Boolean = true,
+        fileName: Path => String = _.getFileName.toString,
+        onClose: () => Unit = () => ()
+    )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
+      val io = FileIO
+        .fromPath(content)
+        .mapMaterializedValue(_.onComplete { _ =>
+          onClose()
+        })
       streamFile(io, fileName(content), Files.size(content), inline)(fileMimeTypes)
     }
 
@@ -484,8 +536,12 @@ trait Results {
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
      */
-    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader, inline: Boolean = true)(implicit fileMimeTypes: FileMimeTypes): Result = {
-      val stream = classLoader.getResourceAsStream(resource)
+    def sendResource(
+        resource: String,
+        classLoader: ClassLoader = Results.getClass.getClassLoader,
+        inline: Boolean = true
+    )(implicit fileMimeTypes: FileMimeTypes): Result = {
+      val stream   = classLoader.getResourceAsStream(resource)
       val fileName = resource.split('/').last
       streamFile(StreamConverters.fromInputStream(() => stream), fileName, stream.available(), inline)
     }
@@ -696,11 +752,16 @@ trait Results {
    */
   def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
     import java.net.URLEncoder
-    val fullUrl = url + Option(queryString).filterNot(_.isEmpty).map { params =>
-      (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair =>
-        pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
-      }.mkString("&")
-    }.getOrElse("")
+    val fullUrl = url + Option(queryString)
+      .filterNot(_.isEmpty)
+      .map { params =>
+        (if (url.contains("?")) "&" else "?") + params.toSeq
+          .flatMap { pair =>
+            pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
+          }
+          .mkString("&")
+      }
+      .getOrElse("")
     Status(status).withHeaders(LOCATION -> fullUrl)
   }
 

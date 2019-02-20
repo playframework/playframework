@@ -4,7 +4,9 @@
 package play.api.libs
 
 import play.api.libs.json.JsValue
-import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
+import play.api.http.ContentTypeOf
+import play.api.http.ContentTypes
+import play.api.http.Writeable
 import play.api.mvc.Codec
 
 /**

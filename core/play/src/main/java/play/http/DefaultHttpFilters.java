@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 import play.mvc.EssentialFilter;
 
 /**
- * Helper class which has a varargs constructor taking the filters. Reduces boilerplate for defining HttpFilters.
+ * Helper class which has a varargs constructor taking the filters. Reduces boilerplate for defining
+ * HttpFilters.
  */
 public class DefaultHttpFilters implements HttpFilters {
 

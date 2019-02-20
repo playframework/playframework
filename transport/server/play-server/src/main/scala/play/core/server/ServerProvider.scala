@@ -5,7 +5,8 @@ package play.core.server
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import play.api.{ Application, Configuration }
+import play.api.Application
+import play.api.Configuration
 import play.core.ApplicationProvider
 import scala.concurrent.Future
 
@@ -22,7 +23,10 @@ trait ServerProvider {
    * Create a server for a given application.
    */
   final def createServer(config: ServerConfig, app: Application): Server =
-    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, app.materializer, () => Future.successful(())))
+    createServer(
+      ServerProvider
+        .Context(config, ApplicationProvider(app), app.actorSystem, app.materializer, () => Future.successful(()))
+    )
 }
 
 object ServerProvider {
@@ -41,7 +45,8 @@ object ServerProvider {
       appProvider: ApplicationProvider,
       actorSystem: ActorSystem,
       materializer: Materializer,
-      stopHook: () => Future[_])
+      stopHook: () => Future[_]
+  )
 
   /**
    * Load a server provider from the configuration and classloader.
@@ -53,16 +58,25 @@ object ServerProvider {
    */
   def fromConfiguration(classLoader: ClassLoader, configuration: Configuration): ServerProvider = {
     val ClassNameConfigKey = "play.server.provider"
-    val className: String = configuration.getOptional[String](ClassNameConfigKey)
+    val className: String = configuration
+      .getOptional[String](ClassNameConfigKey)
       .getOrElse(throw ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
 
-    val clazz = try classLoader.loadClass(className) catch {
-      case ex: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'", cause = Some(ex))
+    val clazz = try classLoader.loadClass(className)
+    catch {
+      case ex: ClassNotFoundException =>
+        throw ServerStartException(s"Couldn't find ServerProvider class '$className'", cause = Some(ex))
     }
 
-    if (!classOf[ServerProvider].isAssignableFrom(clazz)) throw ServerStartException(s"Class ${clazz.getName} must implement ServerProvider interface")
-    val constructor = try clazz.getConstructor() catch {
-      case ex: NoSuchMethodException => throw ServerStartException(s"ServerProvider class ${clazz.getName} must have a public default constructor", cause = Some(ex))
+    if (!classOf[ServerProvider].isAssignableFrom(clazz))
+      throw ServerStartException(s"Class ${clazz.getName} must implement ServerProvider interface")
+    val constructor = try clazz.getConstructor()
+    catch {
+      case ex: NoSuchMethodException =>
+        throw ServerStartException(
+          s"ServerProvider class ${clazz.getName} must have a public default constructor",
+          cause = Some(ex)
+        )
     }
 
     constructor.newInstance().asInstanceOf[ServerProvider]
@@ -73,7 +87,7 @@ object ServerProvider {
    */
   implicit lazy val defaultServerProvider: ServerProvider = {
     val classLoader = this.getClass.getClassLoader
-    val config = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
+    val config      = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     fromConfiguration(classLoader, config)
   }
 

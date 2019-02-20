@@ -11,16 +11,17 @@ import scala.Tuple2;
 
 public class DefaultHttpRequestHandler implements HttpRequestHandler {
 
-    private final play.api.http.JavaCompatibleHttpRequestHandler underlying;
+  private final play.api.http.JavaCompatibleHttpRequestHandler underlying;
 
-    @Inject
-    public DefaultHttpRequestHandler(play.api.http.JavaCompatibleHttpRequestHandler underlying) {
-        this.underlying = underlying;
-    }
+  @Inject
+  public DefaultHttpRequestHandler(play.api.http.JavaCompatibleHttpRequestHandler underlying) {
+    this.underlying = underlying;
+  }
 
-    @Override
-    public HandlerForRequest handlerForRequest(RequestHeader request) {
-        Tuple2<play.api.mvc.RequestHeader, Handler> result = underlying.handlerForRequest(request.asScala());
-        return new HandlerForRequest(result._1().asJava(), result._2());
-    }
+  @Override
+  public HandlerForRequest handlerForRequest(RequestHeader request) {
+    Tuple2<play.api.mvc.RequestHeader, Handler> result =
+        underlying.handlerForRequest(request.asScala());
+    return new HandlerForRequest(result._1().asJava(), result._2());
+  }
 }

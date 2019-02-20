@@ -10,6 +10,7 @@ package play.api.mvc.request
  * it is first needed.
  */
 trait Cell[+A] {
+
   /**
    * The value in the cell. Calling this method may force the value to be evaluated.
    */
@@ -25,6 +26,7 @@ trait Cell[+A] {
 }
 
 object Cell {
+
   /**
    * Create a cell with the given value assigned to it.
    */

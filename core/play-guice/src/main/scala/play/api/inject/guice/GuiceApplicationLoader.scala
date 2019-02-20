@@ -3,8 +3,12 @@
  */
 package play.api.inject.guice
 
-import play.api.{ Application, ApplicationLoader, OptionalSourceMapper }
-import play.api.inject.{ ApplicationLifecycle, DefaultApplicationLifecycle, bind }
+import play.api.Application
+import play.api.ApplicationLoader
+import play.api.OptionalSourceMapper
+import play.api.inject.ApplicationLifecycle
+import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.bind
 import play.core.WebCommands
 
 /**
@@ -17,7 +21,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
   // empty constructor needed for instantiating via reflection
   def this() = this(new GuiceApplicationBuilder)
 
-  override final def load(context: ApplicationLoader.Context): Application = {
+  final override def load(context: ApplicationLoader.Context): Application = {
     builder(context).build
   }
 
@@ -44,6 +48,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
 }
 
 object GuiceApplicationLoader {
+
   /**
    * The default overrides provided by the Scala and Java GuiceApplicationLoaders.
    */
@@ -51,6 +56,7 @@ object GuiceApplicationLoader {
     Seq(
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
       bind[WebCommands] to context.webCommands,
-      bind[ApplicationLifecycle] to context.lifecycle)
+      bind[ApplicationLifecycle] to context.lifecycle
+    )
   }
 }

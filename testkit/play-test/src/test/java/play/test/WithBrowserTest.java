@@ -10,10 +10,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public class WithBrowserTest extends WithBrowser {
-    @Test
-    public void withBrowserShouldProvideABrowser() {
-        assertNotNull(browser);
-        browser.goTo("/");
-        assertThat(browser.pageSource(), containsString("Action Not Found"));
-    }
+  @Test
+  public void withBrowserShouldProvideABrowser() {
+    assertNotNull(browser);
+    browser.goTo("/");
+    assertThat(browser.pageSource(), containsString("Action Not Found"));
+  }
 }

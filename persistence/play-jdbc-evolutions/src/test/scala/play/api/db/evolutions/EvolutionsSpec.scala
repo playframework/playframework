@@ -3,10 +3,13 @@
  */
 package play.api.db.evolutions
 
-import java.sql.{ ResultSet, SQLException }
+import java.sql.ResultSet
+import java.sql.SQLException
 
-import org.specs2.mutable.{ After, Specification }
-import play.api.db.{ Database, Databases }
+import org.specs2.mutable.After
+import org.specs2.mutable.Specification
+import play.api.db.Database
+import play.api.db.Databases
 
 // TODO: functional test with InvalidDatabaseRevision exception
 
@@ -25,7 +28,7 @@ class EvolutionsSpec extends Specification {
     trait UpScripts { this: WithEvolutions =>
       val scripts = evolutions.scripts(Seq(a1, a2, a3))
 
-      scripts must have length (3)
+      (scripts must have).length(3)
       scripts must_== Seq(UpScript(a1), UpScript(a2), UpScript(a3))
 
       evolutions.evolve(scripts, autocommit = true)
@@ -44,7 +47,7 @@ class EvolutionsSpec extends Specification {
 
       val scripts = evolutions.scripts(Seq(b1, a2, b3))
 
-      scripts must have length (6)
+      (scripts must have).length(6)
       scripts must_== Seq(DownScript(a3), DownScript(a2), DownScript(a1), UpScript(b1), UpScript(a2), UpScript(b3))
 
       evolutions.evolve(scripts, autocommit = true)
@@ -59,7 +62,7 @@ class EvolutionsSpec extends Specification {
 
     trait ReportInconsistentStateAndResolve { this: WithEvolutions =>
       val broken = evolutions.scripts(Seq(c1, a2, a3))
-      val fixed = evolutions.scripts(Seq(a1, a2, a3))
+      val fixed  = evolutions.scripts(Seq(a1, a2, a3))
 
       evolutions.evolve(broken, autocommit = true) must throwAn[InconsistentDatabase]
 
@@ -122,7 +125,8 @@ class EvolutionsSpec extends Specification {
 
     // Test if the play_evolutions table gets created within a schema
     "create test schema derby" in new CreateSchema with WithDerbyEvolutionsSchema
-    "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase with WithDerbyEvolutionsSchema
+    "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase
+    with WithDerbyEvolutionsSchema
     "provide a helper for testing derby schema" in new ProvideHelperForTestingSchema with WithDerbyEvolutionsSchema
   }
 

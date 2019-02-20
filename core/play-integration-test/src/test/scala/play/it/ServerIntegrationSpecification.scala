@@ -4,11 +4,13 @@
 package play.it
 
 import org.specs2.execute._
-import org.specs2.mutable.{ Specification, SpecificationLike }
+import org.specs2.mutable.Specification
+import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AroundEach
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.core.server.{ NettyServer, ServerProvider }
+import play.core.server.NettyServer
+import play.core.server.ServerProvider
 import play.core.server.AkkaHttpServer
 
 import scala.concurrent.duration._
@@ -35,23 +37,25 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
+
     /**
      * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
      */
     def skipUntilAkkaHttpFixed: Result = parent match {
-      case _: NettyIntegrationSpecification => ResultExecution.execute(AsResult(t))
+      case _: NettyIntegrationSpecification    => ResultExecution.execute(AsResult(t))
       case _: AkkaHttpIntegrationSpecification => Skipped()
     }
   }
 
   implicit class UntilNettyHttpFixed[T: AsResult](t: => T) {
+
     /**
      * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
      */
     def skipUntilNettyHttpFixed: Result = parent match {
-      case _: NettyIntegrationSpecification => Skipped()
+      case _: NettyIntegrationSpecification    => Skipped()
       case _: AkkaHttpIntegrationSpecification => ResultExecution.execute(AsResult(t))
     }
   }
@@ -59,7 +63,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   implicit class UntilFastCIServer[T: AsResult](t: => T) {
     def skipOnSlowCIServer: Result = parent match {
       case _ if isContinuousIntegrationEnvironment => Skipped()
-      case _ => ResultExecution.execute(AsResult(t))
+      case _                                       => ResultExecution.execute(AsResult(t))
     }
   }
 
@@ -73,9 +77,10 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    * Override the standard TestServer factory method.
    */
   def TestServer(
-    port: Int,
-    application: Application = play.api.PlayCoreTestApplication(),
-    sslPort: Option[Int] = None): play.api.test.TestServer = {
+      port: Int,
+      application: Application = play.api.PlayCoreTestApplication(),
+      sslPort: Option[Int] = None
+  ): play.api.test.TestServer = {
     play.api.test.TestServer(port, application, sslPort, Some(integrationServerProvider))
   }
 
@@ -84,10 +89,12 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
    */
   abstract class WithServer(
       app: play.api.Application = GuiceApplicationBuilder().build(),
-      port: Int = play.api.test.Helpers.testServerPort)
-    extends play.api.test.WithServer(
-      app, port, serverProvider = Some(integrationServerProvider)
-    )
+      port: Int = play.api.test.Helpers.testServerPort
+  ) extends play.api.test.WithServer(
+        app,
+        port,
+        serverProvider = Some(integrationServerProvider)
+      )
 
 }
 

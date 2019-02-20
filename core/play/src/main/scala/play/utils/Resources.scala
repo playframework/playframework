@@ -3,7 +3,10 @@
  */
 package play.utils
 
-import java.net.{ JarURLConnection, URLConnection, URI, URL }
+import java.net.JarURLConnection
+import java.net.URLConnection
+import java.net.URI
+import java.net.URL
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -15,11 +18,12 @@ import sun.net.www.protocol.file.FileURLConnection
 object Resources {
 
   def isDirectory(classLoader: ClassLoader, url: URL) = url.getProtocol match {
-    case "file" => new File(url.toURI).isDirectory
-    case "jar" => isZipResourceDirectory(url)
-    case "zip" => isZipResourceDirectory(url)
+    case "file"   => new File(url.toURI).isDirectory
+    case "jar"    => isZipResourceDirectory(url)
+    case "zip"    => isZipResourceDirectory(url)
     case "bundle" => isBundleResourceDirectory(classLoader, url)
-    case _ => throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
+    case _ =>
+      throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
   /**
@@ -70,31 +74,31 @@ object Resources {
      * any existing resources. In an OSGi container (tested with Apache Felix), ending slashes
      * refers to a directory (return null otherwise). */
 
-    val path = url.getPath
+    val path      = url.getPath
     val pathSlash = if (path.last == '/') path else path + '/'
 
     classLoader.getResource(path) != null && classLoader.getResource(pathSlash) != null
   }
 
   private def isZipResourceDirectory(url: URL): Boolean = {
-    val path = url.getPath
+    val path      = url.getPath
     val bangIndex = url.getFile.indexOf("!")
 
-    val startIndex = if (path.startsWith("zip:")) 4 else 0
-    val fileUri = path.substring(startIndex, bangIndex)
-    val fileProtocol = if (fileUri.startsWith("/")) "file://" else ""
+    val startIndex      = if (path.startsWith("zip:")) 4 else 0
+    val fileUri         = path.substring(startIndex, bangIndex)
+    val fileProtocol    = if (fileUri.startsWith("/")) "file://" else ""
     val absoluteFileUri = fileProtocol + fileUri
 
     val zipFile: File = new File(URI.create(absoluteFileUri))
-    val resourcePath = URI.create(path.substring(bangIndex + 1)).getPath.drop(1)
-    val zip = new ZipFile(zipFile)
+    val resourcePath  = URI.create(path.substring(bangIndex + 1)).getPath.drop(1)
+    val zip           = new ZipFile(zipFile)
 
     try {
       val entry = zip.getEntry(resourcePath)
       if (entry.isDirectory) true
       else {
         val stream = zip.getInputStream(entry)
-        val isDir = stream == null
+        val isDir  = stream == null
         if (stream != null) stream.close()
         isDir
       }

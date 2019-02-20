@@ -11,10 +11,8 @@ import scala.collection.Seq;
 
 public class OpenIdModule extends Module {
 
-    @Override
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-                bind(OpenIdClient.class).to(DefaultOpenIdClient.class)
-        );
-    }
+  @Override
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    return seq(bind(OpenIdClient.class).to(DefaultOpenIdClient.class));
+  }
 }

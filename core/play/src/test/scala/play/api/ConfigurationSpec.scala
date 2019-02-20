@@ -5,7 +5,8 @@ package play.api
 
 import java.io._
 
-import com.typesafe.config.{ ConfigException, ConfigFactory }
+import com.typesafe.config.ConfigException
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 
 import scala.util.control.NonFatal
@@ -19,17 +20,17 @@ class ConfigurationSpec extends Specification {
       "foo.bar1" -> "value1",
       "foo.bar2" -> "value2",
       "foo.bar3" -> null,
-      "blah.0" -> List(true, false, true),
-      "blah.1" -> List(1, 2, 3),
-      "blah.2" -> List(1.1, 2.2, 3.3),
-      "blah.3" -> List(1L, 2L, 3L),
-      "blah.4" -> List("one", "two", "three"),
+      "blah.0"   -> List(true, false, true),
+      "blah.1"   -> List(1, 2, 3),
+      "blah.2"   -> List(1.1, 2.2, 3.3),
+      "blah.3"   -> List(1L, 2L, 3L),
+      "blah.4"   -> List("one", "two", "three"),
       "blah2" -> Map(
         "blah3" -> Map(
           "blah4" -> "value6"
         )
       ),
-      "longlong" -> 79219707376851105L,
+      "longlong"     -> 79219707376851105L,
       "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
     )
   )
@@ -80,7 +81,7 @@ class ConfigurationSpec extends Specification {
     }
     "support getting prototyped seqs" in {
       val seq = config(
-        "bars" -> Seq(Map("a" -> "different a")),
+        "bars"           -> Seq(Map("a" -> "different a")),
         "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
       ).getPrototypedSeq("bars")
       seq must haveSize(1)
@@ -89,8 +90,8 @@ class ConfigurationSpec extends Specification {
     }
     "support getting prototyped maps" in {
       val map = config(
-        "bars" -> Map("foo" -> Map("a" -> "different a")),
-        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+        "bars"           -> Map("foo" -> Map("a" -> "different a")),
+        "prototype.bars" -> Map("a"   -> "some a", "b" -> "some b")
       ).getPrototypedMap("bars")
       map must haveSize(1)
       val foo = map("foo")
@@ -100,16 +101,22 @@ class ConfigurationSpec extends Specification {
 
     "be accessible as an entry set" in {
       val map = Map(exampleConfig.entrySet.toList: _*)
-      map.keySet must contain(allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4"))
+      map.keySet must contain(
+        allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4")
+      )
     }
 
     "make all paths accessible" in {
-      exampleConfig.keys must contain(allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4"))
+      exampleConfig.keys must contain(
+        allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4")
+      )
     }
 
     "make all sub keys accessible" in {
       exampleConfig.subKeys must contain(allOf("foo", "blah", "blah2"))
-      exampleConfig.subKeys must not(contain(anyOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4")))
+      exampleConfig.subKeys must not(
+        contain(anyOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4"))
+      )
     }
 
     "make all get accessible using scala" in {
@@ -122,7 +129,9 @@ class ConfigurationSpec extends Specification {
 
     "handle longs of very large magnitude" in {
       exampleConfig.get[Long]("longlong") must ===(79219707376851105L)
-      exampleConfig.get[Seq[Long]]("longlonglist") must ===(Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L))
+      exampleConfig.get[Seq[Long]]("longlonglist") must ===(
+        Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
+      )
     }
 
     "handle invalid and null configuration values" in {
@@ -132,38 +141,35 @@ class ConfigurationSpec extends Specification {
 
     "query maps" in {
       "objects with simple keys" in {
-        val configuration = Configuration(ConfigFactory.parseString(
-          """
-            |foo.bar {
-            |  one = 1
-            |  two = 2
-            |}
+        val configuration = Configuration(ConfigFactory.parseString("""
+                                                                      |foo.bar {
+                                                                      |  one = 1
+                                                                      |  two = 2
+                                                                      |}
           """.stripMargin))
 
         configuration.get[Map[String, Int]]("foo.bar") must_== Map("one" -> 1, "two" -> 2)
       }
       "objects with complex keys" in {
-        val configuration = Configuration(ConfigFactory.parseString(
-          """
-            |test.files {
-            |  "/public/index.html" = "html"
-            |  "/public/stylesheets/\"foo\".css" = "css"
-            |  "/public/javascripts/\"bar\".js" = "js"
-            |}
+        val configuration = Configuration(ConfigFactory.parseString("""
+                                                                      |test.files {
+                                                                      |  "/public/index.html" = "html"
+                                                                      |  "/public/stylesheets/\"foo\".css" = "css"
+                                                                      |  "/public/javascripts/\"bar\".js" = "js"
+                                                                      |}
           """.stripMargin))
         configuration.get[Map[String, String]]("test.files") must_== Map(
-          "/public/index.html" -> "html",
+          "/public/index.html"                -> "html",
           """/public/stylesheets/"foo".css""" -> "css",
-          """/public/javascripts/"bar".js""" -> "js"
+          """/public/javascripts/"bar".js"""  -> "js"
         )
       }
       "nested objects" in {
-        val configuration = Configuration(ConfigFactory.parseString(
-          """
-            |objects.a {
-            |  "b.c" = { "D.E" = F }
-            |  "d.e" = { "F.G" = H, "I.J" = K }
-            |}
+        val configuration = Configuration(ConfigFactory.parseString("""
+                                                                      |objects.a {
+                                                                      |  "b.c" = { "D.E" = F }
+                                                                      |  "d.e" = { "F.G" = H, "I.J" = K }
+                                                                      |}
           """.stripMargin))
         configuration.get[Map[String, Map[String, String]]]("objects.a") must_== Map(
           "b.c" -> Map("D.E" -> "F"),
@@ -175,13 +181,13 @@ class ConfigurationSpec extends Specification {
     "throw serializable exceptions" in {
       // from Typesafe Config
       def copyViaSerialize(o: java.io.Serializable): AnyRef = {
-        val byteStream = new ByteArrayOutputStream()
+        val byteStream   = new ByteArrayOutputStream()
         val objectStream = new ObjectOutputStream(byteStream)
         objectStream.writeObject(o)
         objectStream.close()
-        val inStream = new ByteArrayInputStream(byteStream.toByteArray())
+        val inStream       = new ByteArrayInputStream(byteStream.toByteArray())
         val inObjectStream = new ObjectInputStream(inStream)
-        val copy = inObjectStream.readObject()
+        val copy           = inObjectStream.readObject()
         inObjectStream.close()
         copy
       }

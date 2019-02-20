@@ -7,8 +7,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 import com.typesafe.config.ConfigException
-import play.api.inject.{ Binding, BindingKey, Injector }
-import play.api.{ Configuration, Environment, Logger }
+import play.api.inject.Binding
+import play.api.inject.BindingKey
+import play.api.inject.Injector
+import play.api.Configuration
+import play.api.Environment
+import play.api.Logger
 import play.api.mvc.EssentialFilter
 import play.utils.Reflect
 
@@ -38,12 +42,18 @@ trait HttpFilters {
  *     extends DefaultHttpFilters(defaultFilters.filters :+ corsFilter: _*)
  * }}}
  */
-class DefaultHttpFilters @Inject() (val filters: EssentialFilter*) extends HttpFilters
+class DefaultHttpFilters @Inject()(val filters: EssentialFilter*) extends HttpFilters
 
 object HttpFilters {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpFilters, play.http.HttpFilters, JavaHttpFiltersAdapter, JavaHttpFiltersDelegate, EnabledFilters](environment, configuration, "play.http.filters", "Filters")
+    Reflect.bindingsFromConfiguration[
+      HttpFilters,
+      play.http.HttpFilters,
+      JavaHttpFiltersAdapter,
+      JavaHttpFiltersDelegate,
+      EnabledFilters
+    ](environment, configuration, "play.http.filters", "Filters")
   }
 
   def apply(filters: EssentialFilter*): HttpFilters = {
@@ -65,7 +75,7 @@ object HttpFilters {
  * @param injector finds an instance of filter by the class name
  */
 @Singleton
-class EnabledFilters @Inject() (env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
+class EnabledFilters @Inject()(env: Environment, configuration: Configuration, injector: Injector) extends HttpFilters {
 
   private val url = "https://www.playframework.com/documentation/latest/Filters"
 
@@ -83,7 +93,8 @@ class EnabledFilters @Inject() (env: Environment, configuration: Configuration, 
 
         for (filterClassName <- enabledList) yield {
           try {
-            val filterClass: Class[EssentialFilter] = env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
+            val filterClass: Class[EssentialFilter] =
+              env.classLoader.loadClass(filterClassName).asInstanceOf[Class[EssentialFilter]]
             BindingKey(filterClass)
           } catch {
             case e: ClassNotFoundException =>
@@ -129,8 +140,8 @@ object NoHttpFilters extends NoHttpFilters
 /**
  * Adapter from the Java HttpFilters to the Scala HttpFilters interface.
  */
-class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters)
-  extends DefaultHttpFilters(underlying.getFilters.asScala: _*)
+class JavaHttpFiltersAdapter @Inject()(underlying: play.http.HttpFilters)
+    extends DefaultHttpFilters(underlying.getFilters.asScala: _*)
 
-class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
-  extends play.http.DefaultHttpFilters(delegate.filters.asJava)
+class JavaHttpFiltersDelegate @Inject()(delegate: HttpFilters)
+    extends play.http.DefaultHttpFilters(delegate.filters.asJava)

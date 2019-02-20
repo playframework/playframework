@@ -14,14 +14,14 @@ public class TemplateImports {
   public static final List<String> defaultJavaTemplateImports;
   public static final List<String> defaultScalaTemplateImports;
 
-  private static final List<String> defaultTemplateImports = Collections.unmodifiableList(
-    Arrays.asList(
-      "models._",
-      "controllers._",
-      "play.api.i18n._",
-      "views.%format%._",
-      "play.api.templates.PlayMagic._"
-    ));
+  private static final List<String> defaultTemplateImports =
+      Collections.unmodifiableList(
+          Arrays.asList(
+              "models._",
+              "controllers._",
+              "play.api.i18n._",
+              "views.%format%._",
+              "play.api.templates.PlayMagic._"));
 
   static {
     List<String> minimalJavaImports = new ArrayList<String>();
@@ -47,5 +47,4 @@ public class TemplateImports {
     scalaImports.add("play.api.data._");
     defaultScalaTemplateImports = Collections.unmodifiableList(scalaImports);
   }
-
 }

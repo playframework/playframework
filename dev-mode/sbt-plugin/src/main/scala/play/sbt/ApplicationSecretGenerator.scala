@@ -4,7 +4,10 @@
 package play.sbt
 
 import java.security.SecureRandom
-import com.typesafe.config.{ ConfigValue, ConfigOrigin, Config, ConfigFactory }
+import com.typesafe.config.ConfigValue
+import com.typesafe.config.ConfigOrigin
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import sbt._
 
 /**
@@ -15,9 +18,12 @@ object ApplicationSecretGenerator {
   def generateSecret = {
     val random = new SecureRandom()
 
-    (1 to 64).map { _ =>
-      (random.nextInt(75) + 48).toChar
-    }.mkString.replaceAll("\\\\+", "/")
+    (1 to 64)
+      .map { _ =>
+        (random.nextInt(75) + 48).toChar
+      }
+      .mkString
+      .replaceAll("\\\\+", "/")
   }
 
   def generateSecretTask = Def.task[String] {
@@ -30,18 +36,18 @@ object ApplicationSecretGenerator {
 
   def updateSecretTask = Def.task[File] {
     val secret: String = play.sbt.PlayImport.PlayKeys.generateSecret.value
-    val baseDir: File = Keys.baseDirectory.value
-    val log = Keys.streams.value.log
+    val baseDir: File  = Keys.baseDirectory.value
+    val log            = Keys.streams.value.log
 
     val appConfFile = sys.props.get("config.file") match {
       case Some(applicationConf) => new File(baseDir, applicationConf)
-      case None => (Keys.resourceDirectory in Compile).value / "application.conf"
+      case None                  => (Keys.resourceDirectory in Compile).value / "application.conf"
     }
 
     if (appConfFile.exists()) {
       log.info("Updating application secret in " + appConfFile.getCanonicalPath)
 
-      val lines = IO.readLines(appConfFile)
+      val lines          = IO.readLines(appConfFile)
       val config: Config = ConfigFactory.parseString(lines.mkString("\n"))
 
       val newLines = if (config.hasPath("play.http.secret.key")) {
@@ -65,7 +71,7 @@ object ApplicationSecretGenerator {
 
   def getUpdatedSecretLines(newSecret: String, lines: List[String], config: Config): List[String] = {
 
-    val secretConfigValue: ConfigValue = config.getValue("play.http.secret.key")
+    val secretConfigValue: ConfigValue   = config.getValue("play.http.secret.key")
     val secretConfigOrigin: ConfigOrigin = secretConfigValue.origin()
 
     if (secretConfigOrigin.lineNumber == -1) {
@@ -75,11 +81,12 @@ object ApplicationSecretGenerator {
 
       val newLines: List[String] = lines.updated(
         lineNumber,
-        lines(lineNumber).replace(secretConfigValue.unwrapped().asInstanceOf[String], newSecret))
+        lines(lineNumber).replace(secretConfigValue.unwrapped().asInstanceOf[String], newSecret)
+      )
 
       // removes existing play.crypto.secret key
       if (config.hasPath("play.crypto.secret")) {
-        val applicationSecretValue = config.getValue("play.crypto.secret")
+        val applicationSecretValue  = config.getValue("play.crypto.secret")
         val applicationSecretOrigin = applicationSecretValue.origin()
 
         if (applicationSecretOrigin.lineNumber == -1) {

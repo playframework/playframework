@@ -27,17 +27,19 @@ private[routes] trait RoutesCompilerCompat {
               .asJava
           }
           override lazy val lineContent: String = {
-            line.asScala.flatMap { lineNumber =>
-              sourceFile.asScala.flatMap { file =>
-                IO.read(file).split('\n').lift(lineNumber - 1)
+            line.asScala
+              .flatMap { lineNumber =>
+                sourceFile.asScala.flatMap { file =>
+                  IO.read(file).split('\n').lift(lineNumber - 1)
+                }
               }
-            }.getOrElse("")
+              .getOrElse("")
           }
-          override val offset: Optional[Integer] = Optional.empty[java.lang.Integer]
-          override val pointer: Optional[Integer] = Optional.empty[java.lang.Integer]
+          override val offset: Optional[Integer]      = Optional.empty[java.lang.Integer]
+          override val pointer: Optional[Integer]     = Optional.empty[java.lang.Integer]
           override val pointerSpace: Optional[String] = Optional.empty[String]
-          override val sourceFile: Optional[File] = Optional.ofNullable(generatedSource.source.get)
-          override val sourcePath: Optional[String] = Optional.ofNullable(sourceFile.get.getCanonicalPath)
+          override val sourceFile: Optional[File]     = Optional.ofNullable(generatedSource.source.get)
+          override val sourcePath: Optional[String]   = Optional.ofNullable(sourceFile.get.getCanonicalPath)
           override lazy val toString: String = {
             val sb = new mutable.StringBuilder()
 

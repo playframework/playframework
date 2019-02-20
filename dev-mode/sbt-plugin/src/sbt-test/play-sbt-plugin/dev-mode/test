@@ -14,7 +14,7 @@
 # Watcher tests
 # -------------
 
-# SBT watcher
+# sbt watcher
 # - - - - - -
 
 # Start dev mode

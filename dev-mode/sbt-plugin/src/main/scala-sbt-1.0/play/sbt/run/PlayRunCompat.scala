@@ -3,7 +3,8 @@
  */
 package play.sbt.run
 
-import sbt.{ State, Watched }
+import sbt.State
+import sbt.Watched
 import sbt.internal.io.PlaySource
 
 import play.dev.filewatch.SourceModificationWatch
@@ -20,7 +21,8 @@ private[run] trait PlayRunCompat {
   def getPollInterval(watched: Watched): Int = watched.pollInterval.toMillis.toInt
 
   def getSourcesFinder(watched: Watched, state: State): SourceModificationWatch.PathFinder = () => {
-    watched.watchSources(state)
+    watched
+      .watchSources(state)
       .map(source => new PlaySource(source))
       .flatMap(_.getFiles)
       .collect {
@@ -38,7 +40,8 @@ private[run] trait PlayRunCompat {
     def watchUsingEvenMonitor = {
       // If we have Watched.ContinuousEventMonitor attribute and its state.count
       // is > 0 then we assume we're in ~ run mode
-      state.get(Watched.ContinuousEventMonitor)
+      state
+        .get(Watched.ContinuousEventMonitor)
         .map(_.state())
         .filter(_.count > 0)
         .flatMap(_ => state.get(Watched.Configuration))
@@ -50,7 +53,7 @@ private[run] trait PlayRunCompat {
       // attributes and if Watched.ContinuousState.count is 1 then we assume
       // we're in ~ run mode
       for {
-        watched <- state.get(Watched.Configuration)
+        watched    <- state.get(Watched.Configuration)
         watchState <- state.get(Watched.ContinuousState)
         if watchState.count == 1
       } yield watched

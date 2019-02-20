@@ -5,8 +5,10 @@ package play.api.cache
 
 import javax.inject.Inject
 
-import scala.concurrent.duration.{ Duration, _ }
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 /**
@@ -87,7 +89,7 @@ trait CacheApi {
 /**
  * A SyncCacheApi that wraps an AsyncCacheApi
  */
-class DefaultSyncCacheApi @Inject() (val cacheApi: AsyncCacheApi) extends SyncCacheApi with CacheApi {
+class DefaultSyncCacheApi @Inject()(val cacheApi: AsyncCacheApi) extends SyncCacheApi with CacheApi {
 
   protected val awaitTimeout: Duration = 5.seconds
 
