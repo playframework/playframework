@@ -110,7 +110,11 @@ class NettyServer(
         None
     }
 
-  private def setOptions(setOption: (ChannelOption[AnyRef], AnyRef) => Any, config: Config) = {
+  private def setOptions(
+      setOption: (ChannelOption[AnyRef], AnyRef) => Any,
+      config: Config,
+      bootstrapping: Boolean = false
+  ) = {
     def unwrap(value: ConfigValue) = value.unwrapped() match {
       case number: Number => number.intValue().asInstanceOf[Integer]
       case other          => other
@@ -118,6 +122,11 @@ class NettyServer(
     config.entrySet().asScala.filterNot(_.getKey.startsWith("child.")).foreach { option =>
       val cleanKey = option.getKey.stripPrefix("\"").stripSuffix("\"")
       if (ChannelOption.exists(cleanKey)) {
+        logger.debug(s"Setting Netty channel option ${cleanKey} to ${unwrap(option.getValue)}${if (bootstrapping) {
+          " at bootstrapping"
+        } else {
+          ""
+        }}")
         setOption(ChannelOption.valueOf(cleanKey), unwrap(option.getValue))
       } else {
         logger.warn("Ignoring unknown Netty channel option: " + cleanKey)
@@ -156,7 +165,7 @@ class NettyServer(
       .handler(channelPublisher)
       .localAddress(address)
 
-    setOptions(bootstrap.option, nettyConfig.get[Config]("option"))
+    setOptions(bootstrap.option, nettyConfig.get[Config]("option"), true)
 
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
@@ -302,12 +311,10 @@ class NettyServer(
 
     // How to force a class to get initialized:
     // https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html#jls-12.4.1
-    // > "A static field declared by T is assigned."
-
-    // It doesn't matter which static member you assign here, just choose one that exists ;)
-    val fake1 = ChannelOption.SO_REUSEADDR
-    val fake2 = UnixChannelOption.SO_REUSEPORT
-    val fake3 = EpollChannelOption.EPOLL_MODE
+    Seq(classOf[ChannelOption[_]], classOf[UnixChannelOption[_]], classOf[EpollChannelOption[_]]).foreach(clazz => {
+      logger.debug(s"Class ${clazz.getName} will be initialized (if it hasn't been initialized already)")
+      Class.forName(clazz.getName)
+    })
   }
 
   override lazy val mainAddress: InetSocketAddress = {
