@@ -285,7 +285,7 @@ object HttpConfiguration {
     val Blank = """\s*""".r
 
     val secret =
-      config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
+      config.getDeprecated[Option[String]]("play.http.secret.key") match {
         case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
           val message =
             """

@@ -14,25 +14,6 @@ class ActualKeySecretConfigurationParserSpec extends SecretConfigurationParserSp
   override def secretKey: String = "play.http.secret.key"
 }
 
-class DeprecatedKeySecretConfigurationParserSpec extends SecretConfigurationParserSpec {
-  override def secretKey: String = "play.crypto.secret"
-
-  override def parseSecret(mode: Mode, secret: Option[String] = None) = {
-    HttpConfiguration
-      .fromConfiguration(
-        Configuration.reference ++ Configuration.from(
-          secret.map(secretKey -> _).toMap ++ Map(
-            "play.http.secret.key" -> null
-          )
-        ),
-        Environment.simple(mode = mode)
-      )
-      .secret
-      .secret
-  }
-
-}
-
 trait SecretConfigurationParserSpec extends Specification {
 
   def secretKey: String
