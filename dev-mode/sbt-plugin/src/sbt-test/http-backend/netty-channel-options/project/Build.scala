@@ -10,6 +10,24 @@ object DevModeBuild {
 
   def callIndex(): Unit = callUrl("/")
 
+  def checkLines(source: String, target: String): Unit = {
+    val sourceLines = IO.readLines(new File(source))
+    val targetLines = IO.readLines(new File(target))
+
+    println("Source:")
+    println("-------")
+    println(sourceLines.mkString("\n"))
+    println("Target:")
+    println("-------")
+    println(targetLines.mkString("\n"))
+
+    sourceLines.foreach(sl => {
+      if (!targetLines.contains(sl)) {
+        throw new RuntimeException(s"File $target didn't contain line:\n$sl")
+      }
+    })
+  }
+
   private def callUrl(path: String, headers: (String, String)*): (Int, String) = {
     val url  = new java.net.URL("http://localhost:9000" + path)
     val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]

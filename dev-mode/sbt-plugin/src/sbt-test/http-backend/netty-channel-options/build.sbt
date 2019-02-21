@@ -18,5 +18,10 @@ lazy val root = (project in file("."))
     ),
     InputKey[Unit]("callIndex") := {
       DevModeBuild.callIndex()
+    },
+    InputKey[Unit]("checkLines") := {
+      val args                  = Def.spaceDelimited("<source> <target>").parsed
+      val source :: target :: _ = args
+      DevModeBuild.checkLines(source, target)
     }
   )

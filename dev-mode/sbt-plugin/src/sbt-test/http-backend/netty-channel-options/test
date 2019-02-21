@@ -3,5 +3,5 @@
 $ sleep 5000
 > callIndex
 $ sleep 2000
-$ must-mirror target/universal/stage/logs/application.log expected-application-log.txt
+> checkLines expected-application-log.txt target/universal/stage/logs/application.log
 > stopProd --no-exit-sbt
