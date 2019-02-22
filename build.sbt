@@ -459,7 +459,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     // See also:
     // 1. project/BuildSettings.scala
     // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(scala211, scala212, scala213),
+    crossScalaVersions := Seq(scala212, scala213),
     playBuildRepoName in ThisBuild := "playframework",
     concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
