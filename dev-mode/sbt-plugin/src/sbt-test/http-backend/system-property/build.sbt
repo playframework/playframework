@@ -2,7 +2,7 @@
 // Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala).enablePlugins(MediatorWorkaroundPlugin)
 
 name := "system-property"
 
