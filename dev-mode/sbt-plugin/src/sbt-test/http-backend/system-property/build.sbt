@@ -2,22 +2,26 @@
 // Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
-lazy val root = (project in file("."))
-  .enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala).enablePlugins(MediatorWorkaroundPlugin)
 
-name := "compiled-class"
+name := "system-property"
 
 scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8")
 
-// Change our tests directory because the usual "test" directory clashes
-// with the scripted "test" file.
+// because the "test" directory clashes with the scripted test file
 scalaSource in Test := (baseDirectory.value / "tests")
 
 libraryDependencies ++= Seq(
+  "com.typesafe.play" %% "play-akka-http-server" % sys.props("project.version"),
+  "com.typesafe.play" %% "play-netty-server"     % sys.props("project.version"),
   guice,
   ws,
   specs2 % Test
 )
+
+fork in Test := true
+
+javaOptions in Test += "-Dplay.server.provider=play.core.server.NettyServerProvider"
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
