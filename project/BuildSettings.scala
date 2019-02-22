@@ -41,9 +41,7 @@ object BuildSettings {
     }
   }
 
-  /**
-   * File header settings
-   */
+  /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
     val compiledPattern = Pattern.compile(pattern)
     override def accept(pathname: File): Boolean = {
@@ -86,9 +84,7 @@ object BuildSettings {
     playBuildPromoteSonatype := false
   )
 
-  /**
-   * These settings are used by all projects
-   */
+  /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
 
     fileHeaderSettings ++ Seq(
@@ -193,7 +189,7 @@ object BuildSettings {
   }
 
   /**
-   * These settings are used by all projects that are part of the runtime, as opposed to development, mode of Play.
+   * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
   def playRuntimeSettings: Seq[Setting[_]] =
     playCommonSettings ++ mimaDefaultSettings ++ Seq(
@@ -237,9 +233,7 @@ object BuildSettings {
     javacOptions in doc := Seq("-source", version)
   )
 
-  /**
-   * A project that is shared between the sbt runtime and the Play runtime
-   */
+  /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
@@ -251,9 +245,7 @@ object BuildSettings {
       )
   }
 
-  /**
-   * A project that is only used when running in development.
-   */
+  /** A project that is only used when running in development. */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
@@ -266,9 +258,7 @@ object BuildSettings {
       )
   }
 
-  /**
-   * A project that is in the Play runtime
-   */
+  /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
@@ -315,18 +305,14 @@ object BuildSettings {
     whitesourceIgnore := true
   )
 
-  /**
-   * A project that runs in the sbt runtime
-   */
+  /** A project that runs in the sbt runtime. */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
       .settings(playCommonSettings: _*)
   }
 
-  /**
-   * A project that *is* an sbt plugin
-   */
+  /** A project that *is* an sbt plugin. */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
