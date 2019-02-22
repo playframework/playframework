@@ -159,8 +159,15 @@ object Docs {
       val streams = sbt.Keys.streams.value
 
       val scalaCompiler = compilers.scalac()
-      val provider = ZincCompilerUtil.constantBridgeProvider(scalaCompiler.scalaInstance, new File("random"))
-      val scalac = new AnalyzingCompiler(scalaCompiler.scalaInstance, provider, scalaCompiler.classpathOptions(), (a: Seq[String]) => (), None)
+      val buildState = state.value
+      val globalBase = BuildPaths.getGlobalBase(buildState)
+      val zincDir = BuildPaths.getZincDirectory(buildState, globalBase)
+      val appConfig = appConfiguration.value
+      val launcher = appConfig.provider.scalaProvider.launcher
+      val bootDependencyResolution = (updateSbtClassifiers / dependencyResolution).value
+
+      val bridgeProvider = ZincBridgeProvider.getProvider(zincDir, launcher.globalLock(), appConfig.provider.components, bootDependencyResolution, streams.log)
+      val scalac = new AnalyzingCompiler(scalaCompiler.scalaInstance, bridgeProvider, scalaCompiler.classpathOptions(), (a: Seq[String]) => (), None)
 
       val scaladoc = {
         if (useCache) Doc.scaladoc(label, scalaCache, scalac)
