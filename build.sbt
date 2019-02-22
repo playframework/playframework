@@ -453,8 +453,8 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayRootProject)
   .enablePlugins(PlayWhitesourcePlugin)
   .enablePlugins(CrossPerProjectPlugin)
-  .settings(playCommonSettings: _*)
   .settings(
+    playCommonSettings,
     scalaVersion := (scalaVersion in PlayProject).value,
     // See also:
     // 1. project/BuildSettings.scala
@@ -466,7 +466,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Docs.apiDocsInclude := false,
     Docs.apiDocsIncludeManaged := false,
     mimaReportBinaryIssues := (),
-    commands += Commands.quickPublish
+    commands += Commands.quickPublish,
+    Release.settings
   )
-  .settings(Release.settings: _*)
   .aggregate(aggregatedProjects: _*)

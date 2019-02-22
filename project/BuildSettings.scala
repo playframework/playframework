@@ -85,148 +85,148 @@ object BuildSettings {
   )
 
   /** These settings are used by all projects. */
-  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
-
-    fileHeaderSettings ++ Seq(
-      homepage := Some(url("https://playframework.com")),
-      ivyLoggingLevel := UpdateLogging.DownloadOnly,
-      resolvers ++= Seq(
-        Resolver.sonatypeRepo("releases"),
-        Resolver.typesafeRepo("releases"),
-        Resolver.typesafeIvyRepo("releases")
-      ),
-      javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-      scalacOptions in (Compile, doc) := {
-        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
-          case _                       => Seq()
-        }
-      },
-      fork in Test := true,
-      parallelExecution in Test := false,
-      testListeners in (Test, test) := Nil,
-      javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
-      testOptions ++= Seq(
-        Tests.Argument(TestFrameworks.Specs2, "showtimes"),
-        Tests.Argument(TestFrameworks.JUnit, "-v")
-      ),
-      bintrayPackage := "play-sbt-plugin",
-      apiURL := {
-        val v = version.value
-        if (isSnapshot.value) {
-          v match {
-            case VersionPattern(epoch, major, _, _) =>
-              Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
-            case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
-          }
-        } else {
-          Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
-        }
-      },
-      autoAPIMappings := true,
-      apiMappings += scalaInstance.value.libraryJar -> url(
-        raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
-      ),
-      apiMappings ++= {
-        // Maps JDK 1.8 jar into apidoc.
-        val rtJar = sys.props
-          .get("sun.boot.class.path")
-          .flatMap(
-            cp =>
-              cp.split(java.io.File.pathSeparator).collectFirst {
-                case str if str.endsWith(java.io.File.separator + "rt.jar") => str
-              }
-          )
-        rtJar match {
-          case None        => Map.empty
-          case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
-        }
-      },
-      apiMappings ++= {
-        // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
-        // See the following:
-        //
-        // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
-        // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
-        // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
-
-        val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
-        val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
-
-        val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
-
-        (for {
-          jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
-          fullyFile = jar.data
-          urlOption = fullyFile.getCanonicalPath match {
-            case ScalaLibraryRegex(v) =>
-              Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
-
-            case JavaxInjectRegex(v) =>
-              // the jar file doesn't match up with $apiName-
-              Some(url(Docs.javaxInjectUrl))
-
-            case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
-              val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
-              apiOrganization match {
-                case "com.typesafe.akka" =>
-                  Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
-
-                case default =>
-                  val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
-                  Some(url(link))
-              }
-
-            case other =>
-              None
-
-          }
-          url <- urlOption
-        } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+  def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    fileHeaderSettings,
+    homepage := Some(url("https://playframework.com")),
+    ivyLoggingLevel := UpdateLogging.DownloadOnly,
+    resolvers ++= Seq(
+      Resolver.sonatypeRepo("releases"),
+      Resolver.typesafeRepo("releases"),
+      Resolver.typesafeIvyRepo("releases")
+    ),
+    evictionSettings,
+    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
+    scalacOptions in (Compile, doc) := {
+      // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
+        case _                       => Seq()
       }
-    )
-  }
+    },
+    fork in Test := true,
+    parallelExecution in Test := false,
+    testListeners in (Test, test) := Nil,
+    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    testOptions ++= Seq(
+      Tests.Argument(TestFrameworks.Specs2, "showtimes"),
+      Tests.Argument(TestFrameworks.JUnit, "-v")
+    ),
+    bintrayPackage := "play-sbt-plugin",
+    playPublishingPromotionSettings,
+    apiURL := {
+      val v = version.value
+      if (isSnapshot.value) {
+        v match {
+          case VersionPattern(epoch, major, _, _) =>
+            Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
+          case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
+        }
+      } else {
+        Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
+      }
+    },
+    autoAPIMappings := true,
+    apiMappings += scalaInstance.value.libraryJar -> url(
+      raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
+    ),
+    apiMappings ++= {
+      // Maps JDK 1.8 jar into apidoc.
+      val rtJar = sys.props
+        .get("sun.boot.class.path")
+        .flatMap(
+          cp =>
+            cp.split(java.io.File.pathSeparator).collectFirst {
+              case str if str.endsWith(java.io.File.separator + "rt.jar") => str
+            }
+        )
+      rtJar match {
+        case None        => Map.empty
+        case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
+      }
+    },
+    apiMappings ++= {
+      // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
+      // See the following:
+      //
+      // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
+      // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
+      // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
+
+      val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+      val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
+
+      val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
+
+      (for {
+        jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
+        fullyFile = jar.data
+        urlOption = fullyFile.getCanonicalPath match {
+          case ScalaLibraryRegex(v) =>
+            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+
+          case JavaxInjectRegex(v) =>
+            // the jar file doesn't match up with $apiName-
+            Some(url(Docs.javaxInjectUrl))
+
+          case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
+            val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
+            apiOrganization match {
+              case "com.typesafe.akka" =>
+                Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
+
+              case default =>
+                val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
+                Some(url(link))
+            }
+
+          case other =>
+            None
+
+        }
+        url <- urlOption
+      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+    }
+  )
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
-  def playRuntimeSettings: Seq[Setting[_]] =
-    playCommonSettings ++ mimaDefaultSettings ++ Seq(
-      mimaPreviousArtifacts := {
-        // Binary compatibility is tested against these versions
-        val previousVersions = mimaPreviousVersions(version.value)
-        if (crossPaths.value) {
-          previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
-        } else {
-          previousVersions.map(v => organization.value % moduleName.value % v)
-        }
-      },
-      mimaPreviousArtifacts := {
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
-          case _                       => mimaPreviousArtifacts.value
-        }
-      },
-      mimaBinaryIssueFilters ++= Seq(
-        // Scala 2.11 removed
-        ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
-        ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
-        ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
-        // Add fileName param (with default value) to Scala's sendResource(...) method
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
-      ),
-      unmanagedSourceDirectories in Compile += {
-        (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
-      },
-      // Argument for setting size of permgen space or meta space for all forked processes
-      Docs.apiDocsInclude := true
-    ) ++ Seq(
-      // See also:
-      // 1. the root project at build.sbt file.
-      // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(ScalaVersions.scala212, ScalaVersions.scala213)
-    )
+  def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
+    playCommonSettings,
+    mimaDefaultSettings,
+    mimaPreviousArtifacts := {
+      // Binary compatibility is tested against these versions
+      val previousVersions = mimaPreviousVersions(version.value)
+      if (crossPaths.value) {
+        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
+      } else {
+        previousVersions.map(v => organization.value % moduleName.value % v)
+      }
+    },
+    mimaPreviousArtifacts := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
+        case _                       => mimaPreviousArtifacts.value
+      }
+    },
+    mimaBinaryIssueFilters ++= Seq(
+      // Scala 2.11 removed
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
+      // Add fileName param (with default value) to Scala's sendResource(...) method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
+    ),
+    unmanagedSourceDirectories in Compile += {
+      (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
+    },
+    // Argument for setting size of permgen space or meta space for all forked processes
+    Docs.apiDocsInclude := true,
+    // See also:
+    // 1. the root project at build.sbt file.
+    // 2. RoutesCompilerProject project
+    crossScalaVersions := Seq(ScalaVersions.scala212, ScalaVersions.scala213)
+  )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
     javacOptions ++= Seq("-source", version, "-target", version),
@@ -249,8 +249,8 @@ object BuildSettings {
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
       .settings(
+        playCommonSettings,
         (javacOptions in compile) ~= (_.map {
           case "1.8" => "1.6"
           case other => other
@@ -309,16 +309,16 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
+      .settings(playCommonSettings)
   }
 
   /** A project that *is* an sbt plugin. */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
-      .settings(playScriptedSettings: _*)
       .settings(
+        playCommonSettings,
+        playScriptedSettings,
         fork in Test := false
       )
   }
