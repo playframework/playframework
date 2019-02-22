@@ -39,8 +39,8 @@ object Commands {
     "quickPublish",
     Help.more("quickPublish", "Toggles quick publish mode, disabling/enabling build of documentation/source jars")
   ) { state =>
-    val x = Project.extract(state)
-    import x._
+    val projectExtract = Project.extract(state)
+    import projectExtract._
 
     val quickPublishToggle = AttributeKey[Boolean]("quickPublishToggle")
 
@@ -48,7 +48,7 @@ object Commands {
 
     val filtered = session.mergeSettings.filter { setting =>
       setting.key match {
-        case Def.ScopedKey(Scope(_, Global, Global, Global), key) if key == publishArtifact.key => false
+        case Def.ScopedKey(Scope(_, Zero, Zero, Zero), key) if key == publishArtifact.key => false
         case other                                                                              => true
       }
     }
@@ -59,14 +59,11 @@ object Commands {
       state.log.info("Turning on quick publish")
     }
 
-    val newStructure = Load.reapply(
-      filtered ++ Seq(
+    projectExtract.appendWithoutSession(filtered ++ Seq(
         publishArtifact in GlobalScope in packageDoc := toggle,
         publishArtifact in GlobalScope in packageSrc := toggle,
-        publishArtifact in GlobalScope := true
-      ),
-      structure
+        publishArtifact in GlobalScope := true),
+      state.put(quickPublishToggle, toggle)
     )
-    Project.setProject(session, newStructure, state.put(quickPublishToggle, toggle))
   }
 }

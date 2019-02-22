@@ -99,14 +99,14 @@ object Docs {
         mappings in playdocPackage := {
           val base        = (baseDirectory in ThisBuild).value
           val docBase     = base.getParentFile / "documentation"
-          val raw         = (docBase / "manual").*** +++ (docBase / "style").***
+          val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
           val filtered    = raw.filter(_.getName != ".DS_Store")
           val docMappings = filtered.get.pair(relativeTo(docBase))
 
           // The play version is added so that resource paths are versioned
           val webjars        = extractWebjars.value
           val playVersion    = version.value
-          val webjarMappings = webjars.***.pair(rebase(webjars, "webjars/" + playVersion))
+          val webjarMappings = webjars.allPaths.pair(rebase(webjars, "webjars/" + playVersion))
 
           // Gather all the conf files into the project
           val referenceConfs = allConfs.value.map {

@@ -19,7 +19,6 @@ import sbt.Keys.{version, _}
 import sbt.ScriptedPlugin._
 import sbt.{Resolver, config, _}
 import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
-import scalariform.formatter.preferences._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
@@ -290,9 +289,8 @@ object BuildSettings {
     )
   )
 
-  def playFullScriptedSettings: Seq[Setting[_]] =
-    ScriptedPlugin.scriptedSettings ++ Seq(
-      ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
+  def playFullScriptedSettings: Seq[Setting[_]] =Seq(
+      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
 
   def disablePublishing = Seq[Setting[_]](
