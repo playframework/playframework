@@ -2,7 +2,8 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import play.api.{Application, Configuration}
+import play.api.Application
+import play.api.Configuration
 import play.api.libs.ws._
 import play.api.mvc.Results._
 import play.api.mvc._
