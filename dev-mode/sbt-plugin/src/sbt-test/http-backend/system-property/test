@@ -1,11 +1,16 @@
-# Start dev mode with the default server - NettyServer
+# Start dev mode with the default server - AkkaHttpServer
 > run
 > verifyResourceContains / 200 unknown
 > playStop
 
 # Start dev mode with an overridden server - AkkaHttpServer
 > run -Dplay.server.provider=play.core.server.AkkaHttpServerProvider
-> verifyResourceContains / 200 akka-http
+> verifyResourceContains / 200 unknown
+> playStop
+
+# Start dev mode with an overridden server - NettyServer
+> run -Dplay.server.provider=play.core.server.NettyServerProvider
+> verifyResourceContains / 200 netty
 > playStop
 
 # Check tests work with system properties

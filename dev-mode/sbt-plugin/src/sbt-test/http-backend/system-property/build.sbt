@@ -13,6 +13,7 @@ scalaSource in Test := (baseDirectory.value / "tests")
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-akka-http-server" % sys.props("project.version"),
+  "com.typesafe.play" %% "play-netty-server"     % sys.props("project.version"),
   guice,
   ws,
   specs2 % Test
@@ -20,7 +21,7 @@ libraryDependencies ++= Seq(
 
 fork in Test := true
 
-javaOptions in Test += "-Dplay.server.provider=play.core.server.AkkaHttpServerProvider"
+javaOptions in Test += "-Dplay.server.provider=play.core.server.NettyServerProvider"
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 

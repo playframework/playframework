@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import play.api.{Application, Configuration}
 import play.api.libs.ws._
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -11,23 +12,26 @@ import play.api.inject.guice._
 
 class ServerSpec extends PlaySpecification {
 
-  val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
-    case ("GET", "/httpServerTag") =>
-      Action { implicit request =>
-        val httpServer = request.attrs.get(RequestAttrKey.Server)
-        Ok(httpServer.toString)
-      }
+  val httpServerTagRoutes: Application => PartialFunction[(String, String), Handler] = { app =>
+    val Action = app.injector.instanceOf[DefaultActionBuilder]
+    ({
+      case ("GET", "/httpServerTag") =>
+        Action { implicit request =>
+          val httpServer = request.attrs.get(RequestAttrKey.Server).getOrElse("unknown")
+          Ok(httpServer)
+        }
+    })
   }
 
   "Functional tests" should {
 
-    "support starting an Akka HTTP server in a test" in new WithServer(
-      app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build()
+    "support starting an Netty server in a test" in new WithServer(
+      app = GuiceApplicationBuilder().appRoutes(httpServerTagRoutes).build()
     ) {
       val ws       = app.injector.instanceOf[WSClient]
       val response = await(ws.url("http://localhost:19001/httpServerTag").get())
       response.status must equalTo(OK)
-      response.body must_== "Some(akka-http)"
+      response.body must_== "netty"
     }
   }
 }
