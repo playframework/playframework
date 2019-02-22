@@ -250,7 +250,8 @@ public class Results {
    * @param fileName the name that the client should receive this file as
    * @return the result
    */
-  public static Result status(int status, File content, boolean inline, String fileName) {
+  public static Result status(
+          int status, File content, boolean inline, String fileName) {
     return status(status).sendFile(content, inline, fileName);
   }
 
@@ -265,7 +266,7 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, File content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
+          int status, File content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
     return status(status).sendFile(content, inline, fileName, fileMimeTypes);
   }
 
@@ -314,7 +315,7 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, Path content, boolean inline, FileMimeTypes fileMimeTypes) {
+          int status, Path content, boolean inline, FileMimeTypes fileMimeTypes) {
     return status(status).sendPath(content, inline, fileMimeTypes);
   }
 
@@ -340,7 +341,7 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, Path content, String fileName, FileMimeTypes fileMimeTypes) {
+          int status, Path content, String fileName, FileMimeTypes fileMimeTypes) {
     return status(status).sendPath(content, fileName, fileMimeTypes);
   }
 
@@ -353,7 +354,8 @@ public class Results {
    * @param fileName the name that the client should receive this path as
    * @return the result
    */
-  public static Result status(int status, Path content, boolean inline, String fileName) {
+  public static Result status(
+          int status, Path content, boolean inline, String fileName) {
     return status(status).sendPath(content, inline, fileName);
   }
 
@@ -368,7 +370,7 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, Path content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
+          int status, Path content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
     return status(status).sendPath(content, inline, fileName, fileMimeTypes);
   }
 
@@ -579,8 +581,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result ok(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result ok(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(OK, content, inline, filename, fileMimeTypes);
   }
 
@@ -672,8 +673,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result ok(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result ok(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(OK, content, inline, filename, fileMimeTypes);
   }
 
@@ -869,8 +869,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result created(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result created(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, inline, filename, fileMimeTypes);
   }
 
@@ -962,8 +961,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result created(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result created(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1159,8 +1157,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result badRequest(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result badRequest(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(BAD_REQUEST, content, inline, filename, fileMimeTypes);
   }
 
@@ -1252,8 +1249,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result badRequest(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result badRequest(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(BAD_REQUEST, content, inline, filename, fileMimeTypes);
   }
 
@@ -1449,8 +1445,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result unauthorized(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result unauthorized(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1542,8 +1537,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result unauthorized(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result unauthorized(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1739,8 +1733,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result paymentRequired(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result paymentRequired(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(PAYMENT_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1832,8 +1825,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result paymentRequired(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result paymentRequired(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(PAYMENT_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -2029,8 +2021,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result forbidden(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result forbidden(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, inline, filename, fileMimeTypes);
   }
 
@@ -2122,8 +2113,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result forbidden(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result forbidden(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, inline, filename, fileMimeTypes);
   }
 
@@ -2319,8 +2309,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result notFound(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result notFound(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_FOUND, content, inline, filename, fileMimeTypes);
   }
 
@@ -2412,8 +2401,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result notFound(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result notFound(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_FOUND, content, inline, filename, fileMimeTypes);
   }
 
@@ -2609,8 +2597,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result notAcceptable(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result notAcceptable(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, inline, filename, fileMimeTypes);
   }
 
@@ -2702,8 +2689,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result notAcceptable(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result notAcceptable(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, inline, filename, fileMimeTypes);
   }
 
@@ -2888,7 +2874,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unsupportedMediaType(File content, boolean inline, String filename) {
+  public static Result unsupportedMediaType(
+      File content, boolean inline, String filename) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename);
   }
 
@@ -2946,8 +2933,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result unsupportedMediaType(
-      Path content, boolean inline, FileMimeTypes fileMimeTypes) {
+  public static Result unsupportedMediaType(Path content, boolean inline, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, fileMimeTypes);
   }
 
@@ -2970,8 +2956,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result unsupportedMediaType(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result unsupportedMediaType(Path content, String filename, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, filename, fileMimeTypes);
   }
 
@@ -2996,8 +2981,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result unsupportedMediaType(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result unsupportedMediaType(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename, fileMimeTypes);
   }
 
@@ -3195,8 +3179,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result preconditionRequired(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result preconditionRequired(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -3240,8 +3223,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result preconditionRequired(
-      Path content, boolean inline, FileMimeTypes fileMimeTypes) {
+  public static Result preconditionRequired(Path content, boolean inline, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, inline, fileMimeTypes);
   }
 
@@ -3264,8 +3246,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result preconditionRequired(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result preconditionRequired(Path content, String filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -3290,8 +3271,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result preconditionRequired(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result preconditionRequired(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -3487,8 +3467,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result tooManyRequests(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result tooManyRequests(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, inline, filename, fileMimeTypes);
   }
 
@@ -3580,8 +3559,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result tooManyRequests(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result tooManyRequests(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, inline, filename, fileMimeTypes);
   }
 
@@ -3779,8 +3757,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result requestHeaderFieldsTooLarge(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename, fileMimeTypes);
   }
 
@@ -3824,8 +3801,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(
-      Path content, boolean inline, FileMimeTypes fileMimeTypes) {
+  public static Result requestHeaderFieldsTooLarge(Path content, boolean inline, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, fileMimeTypes);
   }
 
@@ -3848,8 +3824,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result requestHeaderFieldsTooLarge(Path content, String filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, filename, fileMimeTypes);
   }
 
@@ -3874,8 +3849,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result requestHeaderFieldsTooLarge(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename, fileMimeTypes);
   }
 
@@ -4073,8 +4047,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result internalServerError(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result internalServerError(File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, inline, filename, fileMimeTypes);
   }
 
@@ -4118,8 +4091,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result internalServerError(
-      Path content, boolean inline, FileMimeTypes fileMimeTypes) {
+  public static Result internalServerError(Path content, boolean inline, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, inline, fileMimeTypes);
   }
 
@@ -4142,8 +4114,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result internalServerError(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result internalServerError(Path content, String filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, filename, fileMimeTypes);
   }
 
@@ -4168,8 +4139,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result internalServerError(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result internalServerError(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, inline, filename, fileMimeTypes);
   }
 
@@ -4413,8 +4383,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result networkAuthenticationRequired(
-      Path content, boolean inline, FileMimeTypes fileMimeTypes) {
+  public static Result networkAuthenticationRequired(Path content, boolean inline, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, fileMimeTypes);
   }
 
@@ -4437,8 +4406,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result networkAuthenticationRequired(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result networkAuthenticationRequired(Path content, String filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -4450,8 +4418,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result networkAuthenticationRequired(
-      Path content, boolean inline, String filename) {
+  public static Result networkAuthenticationRequired(Path content, boolean inline, String filename) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename);
   }
 
@@ -4464,8 +4431,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result networkAuthenticationRequired(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result networkAuthenticationRequired(Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 

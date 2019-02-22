@@ -17,10 +17,10 @@ import interplay._
 import interplay.ScalaVersions._
 import sbt.Keys.{version, _}
 import sbt.ScriptedPlugin._
-import sbt.{Resolver, config, _}
+import sbt.Resolver
+import sbt._
 import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
 
-import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 import scala.sys.process.stringToProcess
 

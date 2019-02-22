@@ -119,7 +119,8 @@ public class StatusHeader extends Result {
    * @param fileName The file name of the resource.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(String resourceName, ClassLoader classLoader, String fileName) {
+  public Result sendResource(
+          String resourceName, ClassLoader classLoader, String fileName) {
     return sendResource(resourceName, classLoader, fileName, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -133,7 +134,7 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName, ClassLoader classLoader, String fileName, FileMimeTypes fileMimeTypes) {
+          String resourceName, ClassLoader classLoader, String fileName, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileName, fileMimeTypes);
   }
 
