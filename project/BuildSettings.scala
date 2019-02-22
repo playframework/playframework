@@ -14,6 +14,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay._
+import interplay.ScalaVersions._
 import sbt.Keys.version
 import sbt.Keys._
 import sbt.ScriptedPlugin._
@@ -86,6 +87,7 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    crossScalaVersions -= scala211, // until using https://github.com/playframework/interplay/pull/58
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -221,11 +223,7 @@ object BuildSettings {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
-    Docs.apiDocsInclude := true,
-    // See also:
-    // 1. the root project at build.sbt file.
-    // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(ScalaVersions.scala212, ScalaVersions.scala213)
+    Docs.apiDocsInclude := true
   )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
