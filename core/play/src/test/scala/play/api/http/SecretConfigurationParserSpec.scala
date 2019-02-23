@@ -10,13 +10,9 @@ import play.api.Environment
 import play.api.Mode
 import play.api.PlayException
 
-class ActualKeySecretConfigurationParserSpec extends SecretConfigurationParserSpec {
-  override def secretKey: String = "play.http.secret.key"
-}
+class SecretConfigurationParserSpec extends Specification {
 
-trait SecretConfigurationParserSpec extends Specification {
-
-  def secretKey: String
+  def secretKey: String = "play.http.secret.key"
 
   val Secret = "abcdefghijklmnopqrs"
 
