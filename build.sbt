@@ -30,10 +30,6 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-
   .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
-    // See also:
-    // 1. the root project at build.sbt file.
-    // 2. project/BuildSettings.scala
-    crossScalaVersions := Seq(scala212, scala213),
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
@@ -453,20 +449,16 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayRootProject)
   .enablePlugins(PlayWhitesourcePlugin)
   .enablePlugins(CrossPerProjectPlugin)
-  .settings(playCommonSettings: _*)
   .settings(
+    playCommonSettings,
     scalaVersion := (scalaVersion in PlayProject).value,
-    // See also:
-    // 1. project/BuildSettings.scala
-    // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(scala211, scala212, scala213),
     playBuildRepoName in ThisBuild := "playframework",
     concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude := false,
     Docs.apiDocsIncludeManaged := false,
     mimaReportBinaryIssues := (),
-    commands += Commands.quickPublish
+    commands += Commands.quickPublish,
+    Release.settings
   )
-  .settings(Release.settings: _*)
   .aggregate(aggregatedProjects: _*)
