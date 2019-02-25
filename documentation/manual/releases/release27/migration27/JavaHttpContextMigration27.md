@@ -614,7 +614,7 @@ Following tags need an implicit `Request` instance to be present:
 ```html
 @(arg1, arg2,...)(implicit request: Http.Request)
 
-These tags will automatically use the implicit request passed to this template:
+@*These tags will automatically use the implicit request passed to this template:*@
 @helper.jsloader
 @helper.script
 @helper.style
