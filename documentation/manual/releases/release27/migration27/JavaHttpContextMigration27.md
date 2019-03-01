@@ -614,7 +614,7 @@ Following tags need an implicit `Request` instance to be present:
 ```html
 @(arg1, arg2,...)(implicit request: Http.Request)
 
-These tags will automatically use the implicit request passed to this template:
+@*These tags will automatically use the implicit request passed to this template:*@
 @helper.jsloader
 @helper.script
 @helper.style
@@ -700,8 +700,8 @@ So, if you have a view that use some of the tags above, for example if you have 
 
     <body>
         @helper.form(action = routes.UsersController.save) {
-            @helper.inputText(addressData("name"))
-            @helper.inputText(addressData("email"))
+            @helper.inputText(userForm("name"))
+            @helper.inputText(userForm("email"))
             ...
         })
     </body>

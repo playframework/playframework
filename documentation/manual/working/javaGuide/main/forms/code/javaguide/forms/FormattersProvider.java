@@ -4,7 +4,7 @@
 
 package javaguide.forms;
 
-//#register-formatter
+// #register-formatter
 import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -21,44 +21,42 @@ import play.data.format.Formatters;
 import play.data.format.Formatters.SimpleFormatter;
 import play.i18n.MessagesApi;
 
-
 @Singleton
 public class FormattersProvider implements Provider<Formatters> {
 
-    private final MessagesApi messagesApi;
+  private final MessagesApi messagesApi;
 
-    @Inject
-    public FormattersProvider(MessagesApi messagesApi) {
-        this.messagesApi = messagesApi;
-    }
+  @Inject
+  public FormattersProvider(MessagesApi messagesApi) {
+    this.messagesApi = messagesApi;
+  }
 
-    @Override
-    public Formatters get() {
-        Formatters formatters = new Formatters(messagesApi);
+  @Override
+  public Formatters get() {
+    Formatters formatters = new Formatters(messagesApi);
 
-        formatters.register(LocalTime.class, new SimpleFormatter<LocalTime>() {
+    formatters.register(
+        LocalTime.class,
+        new SimpleFormatter<LocalTime>() {
 
-            private Pattern timePattern = Pattern.compile(
-                    "([012]?\\d)(?:[\\s:\\._\\-]+([0-5]\\d))?"
-            );
+          private Pattern timePattern = Pattern.compile("([012]?\\d)(?:[\\s:\\._\\-]+([0-5]\\d))?");
 
-            @Override
-            public LocalTime parse(String input, Locale l) throws ParseException {
-                Matcher m = timePattern.matcher(input);
-                if (!m.find()) throw new ParseException("No valid Input", 0);
-                int hour = Integer.valueOf(m.group(1));
-                int min = m.group(2) == null ? 0 : Integer.valueOf(m.group(2));
-                return LocalTime.of(hour, min);
-            }
+          @Override
+          public LocalTime parse(String input, Locale l) throws ParseException {
+            Matcher m = timePattern.matcher(input);
+            if (!m.find()) throw new ParseException("No valid Input", 0);
+            int hour = Integer.valueOf(m.group(1));
+            int min = m.group(2) == null ? 0 : Integer.valueOf(m.group(2));
+            return LocalTime.of(hour, min);
+          }
 
-            @Override
-            public String print(LocalTime localTime, Locale l) {
-                return localTime.format(DateTimeFormatter.ofPattern("HH:mm"));
-            }
-
+          @Override
+          public String print(LocalTime localTime, Locale l) {
+            return localTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+          }
         });
 
-        return formatters;
-    }
+    return formatters;
+  }
 }
-//#register-formatter
+// #register-formatter

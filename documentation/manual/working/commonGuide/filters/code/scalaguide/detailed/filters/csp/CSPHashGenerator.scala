@@ -4,7 +4,8 @@
 
 package scalaguide.detailed.filters.csp
 
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
 

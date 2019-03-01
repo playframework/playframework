@@ -7,10 +7,10 @@ package javaguide.forms.groupsequence;
 import javaguide.forms.groups.LoginCheck;
 import javaguide.forms.groups.SignUpCheck;
 
-//#ordered-checks
+// #ordered-checks
 import javax.validation.GroupSequence;
 import javax.validation.groups.Default;
 
-@GroupSequence({ Default.class, SignUpCheck.class, LoginCheck.class })
-public interface OrderedChecks { }
-//#ordered-checks
+@GroupSequence({Default.class, SignUpCheck.class, LoginCheck.class})
+public interface OrderedChecks {}
+// #ordered-checks

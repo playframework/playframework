@@ -1,2 +1,0 @@
-GET        /                    controllers.Application.index
-->         /akkaHttpApi         controllers.AkkaHttpRouter

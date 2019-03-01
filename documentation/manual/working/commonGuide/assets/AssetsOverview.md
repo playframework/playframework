@@ -18,7 +18,7 @@ If you follow this structure it will be simpler to get started, but nothing stop
 
 ## WebJars
 
-[WebJars](https://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of SBT. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+[WebJars](https://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of sbt. For example you can declare that you will be using the popular [Bootstrap library](https://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
 libraryDependencies += "org.webjars" % "bootstrap" % "3.3.6"

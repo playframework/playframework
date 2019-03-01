@@ -9,8 +9,8 @@ import java.util.List;
 
 // #java-asset-cache
 public class AssetCache {
-    public List<String> cspHashes() {
-        return Collections.singletonList("sha256-HELLO");
-    }
+  public List<String> cspHashes() {
+    return Collections.singletonList("sha256-HELLO");
+  }
 }
 // #java-asset-cache

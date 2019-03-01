@@ -47,7 +47,7 @@ libraryDependencies += openId
 
 ### Play JSON moved to separate project
 
-Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
+Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your sbt build. Instead, you'll have to specify the library manually:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
@@ -798,7 +798,7 @@ The following deprecated test helpers have been removed in 2.6.x:
 
 ## Changes to Template Helpers
 
-The `requireJs` template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
+The `requireJs` template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/2.6.x/core/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
 
 The `requireJs` template helper has an extra parameter `isProd` added to it that indicates whether the minified version of the helper should be used:
 
@@ -866,7 +866,7 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 
 Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now [`play.api.http.EnabledFilters`](api/scala/play/api/http/EnabledFilters.html), which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
-In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in SBT as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
+In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in sbt as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
 
 * [`play.filters.csrf.CSRFFilter`](api/scala/play/filters/csrf/CSRFFilter.html)
 * [`play.filters.headers.SecurityHeadersFilter`](api/scala/play/filters/headers/SecurityHeadersFilter.html)
@@ -1224,7 +1224,7 @@ And if you are, for some reason, directly using Netty classes, you should [adapt
 ### FluentLenium and Selenium
 
 The FluentLenium library was updated to version 3.2.0 and Selenium was updated to version [3.3.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/) (you may want to see the [changelog here](https://raw.githubusercontent.com/SeleniumHQ/selenium/master/java/CHANGELOG)). If you were using Selenium's WebDriver API before, there should not be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
-If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
+If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](https://fluentlenium.com/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
 
 ### HikariCP
 

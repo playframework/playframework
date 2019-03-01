@@ -1,0 +1,15 @@
+[DEBUG] play.core.server.NettyServer - Class io.netty.channel.ChannelOption will be initialized (if it hasn't been initialized already)
+[DEBUG] play.core.server.NettyServer - Class io.netty.channel.unix.UnixChannelOption will be initialized (if it hasn't been initialized already)
+[DEBUG] play.core.server.NettyServer - Class io.netty.channel.epoll.EpollChannelOption will be initialized (if it hasn't been initialized already)
+[WARN] play.core.server.NettyServer - Ignoring unknown Netty channel option: foo
+[WARN] play.core.server.NettyServer - Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option io.netty.channel.unix.UnixChannelOption#SO_REUSEPORT to true at bootstrapping
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option SO_BACKLOG to 256 at bootstrapping
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option io.netty.channel.epoll.EpollChannelOption#TCP_CORK to true at bootstrapping
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option io.netty.channel.epoll.EpollChannelOption#TCP_FASTOPEN_CONNECT to true
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option TCP_NODELAY to true
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option SO_KEEPALIVE to true
+[WARN] play.core.server.NettyServer - Ignoring unknown Netty channel option: bar
+[WARN] play.core.server.NettyServer - Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option io.netty.channel.epoll.EpollChannelOption#TCP_FASTOPEN to 3
+[DEBUG] play.core.server.NettyServer - Setting Netty channel option io.netty.channel.unix.UnixChannelOption#SO_REUSEPORT to false

@@ -10,10 +10,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
-//#logging-import
+// #logging-import
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//#logging-import
+// #logging-import
 
 public class JavaLogging {
 
@@ -21,7 +21,7 @@ public class JavaLogging {
 
   public void testDefaultLogger() {
 
-    //#logging-example
+    // #logging-example
     // Log some debug info
     logger.debug("Attempting risky calculation.");
 
@@ -34,27 +34,27 @@ public class JavaLogging {
       // Log error with message and Throwable.
       logger.error("Exception with riskyCalculation", t);
     }
-    //#logging-example
+    // #logging-example
 
   }
 
   @Test
   public void testCreateLogger() {
 
-    //#logging-create-logger-name
+    // #logging-create-logger-name
     final Logger accessLogger = LoggerFactory.getLogger("access");
-    //#logging-create-logger-name
+    // #logging-create-logger-name
 
     assertThat(accessLogger.getName(), equalTo("access"));
 
-    //#logging-create-logger-class
+    // #logging-create-logger-class
     final Logger log = LoggerFactory.getLogger(this.getClass());
-    //#logging-create-logger-class
+    // #logging-create-logger-class
 
     assertThat(log.getName(), equalTo("javaguide.logging.JavaLogging"));
   }
 
   private int riskyCalculation() {
-    return  10 / (new Random()).nextInt(2);
+    return 10 / (new Random()).nextInt(2);
   }
 }

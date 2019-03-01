@@ -4,6 +4,6 @@
 
 package javaguide.forms.groups;
 
-//#check
-public interface LoginCheck { }
-//#check
+// #check
+public interface LoginCheck {}
+// #check

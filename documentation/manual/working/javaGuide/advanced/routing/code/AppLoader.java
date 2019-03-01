@@ -9,25 +9,23 @@ import play.routing.RoutingDslComponentsFromContext;
 
 import static play.mvc.Results.ok;
 
-//#load
+// #load
 public class AppLoader implements ApplicationLoader {
-    public Application load(ApplicationLoader.Context context) {
-        return new MyComponents(context).application();
-    }
+  public Application load(ApplicationLoader.Context context) {
+    return new MyComponents(context).application();
+  }
 }
 
 class MyComponents extends RoutingDslComponentsFromContext
-        implements play.filters.components.NoHttpFiltersComponents {
+    implements play.filters.components.NoHttpFiltersComponents {
 
-    MyComponents(ApplicationLoader.Context context) {
-        super(context);
-    }
+  MyComponents(ApplicationLoader.Context context) {
+    super(context);
+  }
 
-    @Override
-    public Router router() {
-        return routingDsl()
-                .GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to))
-                .build();
-    }
+  @Override
+  public Router router() {
+    return routingDsl().GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
+  }
 }
-//#load
+// #load

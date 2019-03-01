@@ -7,15 +7,19 @@ package scalaguide.i18n
 // #inject-langs
 import javax.inject.Inject
 
-import play.api.i18n.{Lang, Langs}
-import play.api.mvc.{BaseController, ControllerComponents}
+import play.api.i18n.Lang
+import play.api.i18n.Langs
+import play.api.mvc.BaseController
+import play.api.mvc.ControllerComponents
 
 class ScalaI18nService @Inject()(langs: Langs) {
   val availableLangs: Seq[Lang] = langs.availables
 }
 // #inject-langs
 
-import play.api.i18n.{ Messages, MessagesImpl, MessagesProvider }
+import play.api.i18n.Messages
+import play.api.i18n.MessagesImpl
+import play.api.i18n.MessagesProvider
 
 class ScalaLangsOperations @Inject()(langs: Langs, messagesApi: play.api.i18n.MessagesApi) {
   val lang = langs.availables.head
@@ -24,10 +28,9 @@ class ScalaLangsOperations @Inject()(langs: Langs, messagesApi: play.api.i18n.Me
   val locale: java.util.Locale = lang.toLocale
   // #lang-to-locale
 
-
   // #using-messages-impl
   val messages: Messages = MessagesImpl(lang, messagesApi)
-  val title: String = messages("home.title")
+  val title: String      = messages("home.title")
   // #using-messages-impl
 
   {
@@ -97,7 +100,7 @@ import play.api.i18n.LangImplicits
 
 class MyClass @Inject()(val messagesApi: MessagesApi) extends LangImplicits {
   def convertToMessage: Unit = {
-    implicit val lang = Lang("en")
+    implicit val lang      = Lang("en")
     val messages: Messages = lang2Messages // implicit conversion
   }
 }

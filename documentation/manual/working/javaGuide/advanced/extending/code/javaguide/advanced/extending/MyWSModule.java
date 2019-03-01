@@ -13,10 +13,9 @@ import play.libs.ws.WSClient;
 
 // #builtin-module-definition
 public class MyWSModule extends play.inject.Module {
-    public List<Binding<?>> bindings(Environment environment, Config config) {
-        return Collections.singletonList(
-            bindClass(WSClient.class).toProvider(MyWSClientProvider.class)
-        );
-    }
+  public List<Binding<?>> bindings(Environment environment, Config config) {
+    return Collections.singletonList(
+        bindClass(WSClient.class).toProvider(MyWSClientProvider.class));
+  }
 }
 // #builtin-module-definition

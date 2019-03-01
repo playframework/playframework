@@ -1,0 +1,4 @@
+# Asserts the backend is Akka HTTP via checking a particular header is added on the response
+# Asserts tests start an HTTP/2 endpoint
+
+> test
