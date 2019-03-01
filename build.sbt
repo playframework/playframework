@@ -156,8 +156,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
   )
   .dependsOn(
     PlayGuiceProject,
-    PlayAkkaHttpServerProject,
-    PlayNettyServerProject
+    PlayAkkaHttpServerProject
   )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
