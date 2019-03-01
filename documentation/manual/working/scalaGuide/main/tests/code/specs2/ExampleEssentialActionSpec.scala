@@ -15,7 +15,7 @@ class ExampleEssentialActionSpec extends PlaySpecification {
   "An essential action" should {
     "can parse a JSON body" in new WithApplication() with Injecting {
       val Action = inject[DefaultActionBuilder]
-      val parse = inject[PlayBodyParsers]
+      val parse  = inject[PlayBodyParsers]
 
       val action: EssentialAction = Action(parse.json) { request =>
         val value = (request.body \ "field").as[String]

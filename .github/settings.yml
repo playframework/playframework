@@ -1,0 +1,118 @@
+# These settings are synced to GitHub by https://probot.github.io/apps/settings/
+repository:
+  topics: scala, java, jvm, reactive, web-framework, restful, play, playframework, framework, webapps
+
+  private: false
+  has_issues: true
+  has_projects: false
+  # We don't need wiki since the documentation lives in playframework.com
+  has_wiki: false
+  has_downloads: true
+  default_branch: master
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+
+teams:
+  - name: core
+    permission: admin
+  - name: integrators
+    permission: write
+
+branches:
+  - name: "*"
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+      # Require status checks to pass before merging
+      required_status_checks:
+        # The list of status checks to require in order to merge into this branch
+        contexts: ["Travis CI - Pull Request", "typesafe-cla-validator"]
+
+labels:
+  - color: f9d0c4
+    name: "closed:declined"
+  - color: f9d0c4
+    name: "closed:duplicated"
+    oldname: duplicate
+  - color: f9d0c4
+    name: "closed:invalid"
+    oldname: invalid
+  - color: f9d0c4
+    name: "closed:question"
+    oldname: question
+  - color: f9d0c4
+    name: "closed:wontfix"
+    oldname: wontfix
+  - color: 7057ff
+    name: "good first issue"
+  - color: 7057ff
+    name: "Hacktoberfest"
+  - color: 7057ff
+    name: "help wanted"
+  - color: cceecc
+    name: "status:backlog"
+    oldname: backlog
+  - color: b60205
+    name: "status:block-merge"
+    oldname: bock-merge
+  - color: b60205
+    name: "status:blocked"
+  - color: 0e8a16
+    name: "status:in-progress"
+    oldname: in progress
+  - color: 0e8a16
+    name: "status:merge-when-green"
+    oldname: merge-when-green
+  - color: fbca04
+    name: "status:needs-backport"
+  - color: fbca04
+    name: "status:needs-forwardport"
+  - color: fbca04
+    name: "status:ready-to-release"
+  - color: fbca04
+    name: "status:needs-info"
+    oldname: "help:needs-info"
+  - color: fbca04
+    name: "status:needs-verification"
+    oldname: "help:needs-verification"
+  - color: 0e8a16
+    name: "status:ready"
+    oldname: ready
+  - color: fbca04
+    name: "status:to-review"
+    oldname: review
+  - color: c5def5
+    name: "topic:build/tests"
+    oldname: "topic:build"
+  - color: c5def5
+    name: "topic:dev-environment"
+  - color: c5def5
+    name: "topic:documentation"
+  - color: c5def5
+    name: "topic:evolutions"
+  - color: c5def5
+    name: "topic:jdk-next"
+  - color: c5def5
+    name: "topic:java-api"
+  - color: c5def5
+    name: "topic:scala-api"
+  - color: c5def5
+    name: "topic:sbt"
+  - color: b60205
+    name: "type:defect"
+    oldname: bug
+  - color: b60205
+    name: "type:breaks-compatibility"
+  - color: b60205
+    name: "type:deprecated-feature"
+  - color: 0052cc
+    name: "type:feature"
+  - color: 0052cc
+    name: "type:improvement"
+    oldname: enhancement
+  - color: 0052cc
+    name: "type:updates"
+  - color: 0052cc
+    name: "type:upstream"

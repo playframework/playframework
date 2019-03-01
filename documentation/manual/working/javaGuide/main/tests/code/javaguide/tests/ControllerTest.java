@@ -4,7 +4,7 @@
 
 package javaguide.tests;
 
-//#test-controller-test
+// #test-controller-test
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static play.mvc.Http.Status.OK;
@@ -18,7 +18,7 @@ import play.mvc.Result;
 import play.twirl.api.Content;
 
 public class ControllerTest {
-  
+
   @Test
   public void testIndex() {
     Result result = new HomeController().index();
@@ -28,17 +28,17 @@ public class ControllerTest {
     assertTrue(contentAsString(result).contains("Welcome"));
   }
 
-  //###replace: }
-//#test-controller-test
+  // ###replace: }
+  // #test-controller-test
 
-  //#test-template
+  // #test-template
   @Test
   public void renderTemplate() {
-    //###replace:     Content html = views.html.index.render("Welcome to Play!");
+    // ###replace:     Content html = views.html.index.render("Welcome to Play!");
     Content html = javaguide.tests.html.index.render("Welcome to Play!");
     assertEquals("text/html", html.contentType());
     assertTrue(contentAsString(html).contains("Welcome to Play!"));
   }
-  //#test-template
+  // #test-template
 
 }

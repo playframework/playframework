@@ -12,8 +12,8 @@ Before making a contribution, it is important to make sure that the change you w
 1. Make sure you have signed the [Lightbend CLA](http://www.lightbend.com/contribute/cla); if not, sign it online.
 2. Ensure that your contribution meets the following guidelines:
     1. Live up to the current code standard:
-        - Not violate [DRY](https://97-things-every-x-should-know.gitbooks.io/97-things-every-programmer-should-know/content/en/thing_30/index.html).
-        - [Boy Scout Rule](https://97-things-every-x-should-know.gitbooks.io/97-things-every-programmer-should-know/content/en/thing_08/index.html) needs to have been applied.
+        - Not violate [DRY](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch30.html).
+        - [Boy Scout Rule](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html) needs to have been applied.
     2. Regardless of whether the code introduces new features or fixes bugs or regressions, it must have comprehensive tests.  This includes when modifying existing code that isn't tested.
     3. The code must be well documented in the Play standard documentation format (see the [documentation guidelines](https://playframework.com/documentation/latest/Documentation).)  Each API change must have the corresponding documentation change.
     4. Implementation-wise, the following things should be avoided as much as possible:
@@ -26,8 +26,8 @@ Before making a contribution, it is important to make sure that the change you w
         * Introducing new, heavy external dependencies
     5. The Play API design rules are the following:
         * Play is a Java and Scala framework, make sure any changes have feature parity in both the Scala and Java APIs.
-        * Java APIs should go to `framework/play/src/main/java`, package structure is `play.myapipackage.xxxx`
-        * Scala APIs should go to `framework/play/src/main/scala`, where the package structure is `play.api.myapipackage`
+        * Java APIs should go to `core/play/src/main/java`, package structure is `play.myapipackage.xxxx`
+        * Scala APIs should go to `core/play/src/main/scala`, where the package structure is `play.api.myapipackage`
         * Features are forever, always think about whether a new feature really belongs to the core framework or if it should be implemented as a module
         * Code must conform to standard style guidelines and pass all tests (see [Run tests](https://www.playframework.com/documentation/latest/BuildingFromSource#run-tests))
     6. New files must:

@@ -40,7 +40,7 @@ public class HomeController extends Controller {
 
 Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
 
-> **Note**: It is unlikely but possible that you have a custom `QueryStringBindable` or `PahBindable` with the name `Request`. If so, that one would now collide with Play detection of request params.
+> **Note**: It is unlikely but possible that you have a custom `QueryStringBindable` or `PathBindable` with the name `Request`. If so, that one would now collide with Play detection of request params.
 > Therefore you should use the fully qualified name of your `Request` type, for example.
 >
 >     GET    /        controllers.HomeController.index(myRequest: com.mycompany.Request)
@@ -672,7 +672,7 @@ Following tags need an implicit `Request` instance to be present:
 ```html
 @(arg1, arg2,...)(implicit request: Http.Request)
 
-These tags will automatically use the implicit request passed to this template:
+@*These tags will automatically use the implicit request passed to this template:*@
 @helper.jsloader
 @helper.script
 @helper.style
@@ -749,7 +749,7 @@ These tags will automatically use the implicit messages passed to this template:
 So, if you have a view that use some of the tags above, for example if you have a file `app/views/userForm.scala.html` like below:
 
 ```html
-@(userForm: Form[User)(implicit messages: play.i18n.Messages)
+@(userForm: Form[User])(implicit messages: play.i18n.Messages)
 
 <html>
     <head>
@@ -758,8 +758,8 @@ So, if you have a view that use some of the tags above, for example if you have 
 
     <body>
         @helper.form(action = routes.UsersController.save) {
-            @helper.inputText(addressData("name"))
-            @helper.inputText(addressData("email"))
+            @helper.inputText(userForm("name"))
+            @helper.inputText(userForm("email"))
             ...
         })
     </body>

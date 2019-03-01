@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=bin/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+# We are not running Scala 2.13 job for scheduled builds because they use
+# Akka snapshots which aren't being published for Scala 2.13 yet.
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    printMessage "SKIPPING TESTS FOR SCALA 2.13"
+else
+    cd "$BASEDIR"
+
+    printMessage "RUNNING TESTS FOR SCALA 2.13"
+
+    # Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
+    runSbt "+++2.13.0-M5 test"
+
+    printMessage "ALL TESTS PASSED"
+fi

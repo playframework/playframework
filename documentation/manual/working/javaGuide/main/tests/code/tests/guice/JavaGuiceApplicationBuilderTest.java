@@ -45,169 +45,189 @@ import play.inject.guice.GuiceInjectorBuilder;
 
 public class JavaGuiceApplicationBuilderTest {
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
+  @Rule public ExpectedException exception = ExpectedException.none();
 
-    @Test
-    public void setEnvironment() {
-        ClassLoader classLoader = new URLClassLoader(new URL[0]);
-        // #set-environment
-        Application application = new GuiceApplicationBuilder()
-            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule(), new play.api.mvc.CookiesModule()) // ###skip
+  @Test
+  public void setEnvironment() {
+    ClassLoader classLoader = new URLClassLoader(new URL[0]);
+    // #set-environment
+    Application application =
+        new GuiceApplicationBuilder()
+            .load(
+                new play.api.inject.BuiltinModule(),
+                new play.inject.BuiltInModule(),
+                new play.api.i18n.I18nModule(),
+                new play.api.mvc.CookiesModule()) // ###skip
             .loadConfig(ConfigFactory.defaultReference()) // ###skip
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
             .build();
-        // #set-environment
+    // #set-environment
 
-        assertThat(application.path(), equalTo(new File("path/to/app")));
-        assert(application.isTest());
-        assertThat(application.classloader(), sameInstance(classLoader));
-    }
+    assertThat(application.path(), equalTo(new File("path/to/app")));
+    assert (application.isTest());
+    assertThat(application.classloader(), sameInstance(classLoader));
+  }
 
-    @Test
-    public void setEnvironmentValues() {
-        ClassLoader classLoader = new URLClassLoader(new URL[0]);
-        // #set-environment-values
-        Application application = new GuiceApplicationBuilder()
-            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule(), new play.api.i18n.I18nModule(), new play.api.mvc.CookiesModule()) // ###skip
+  @Test
+  public void setEnvironmentValues() {
+    ClassLoader classLoader = new URLClassLoader(new URL[0]);
+    // #set-environment-values
+    Application application =
+        new GuiceApplicationBuilder()
+            .load(
+                new play.api.inject.BuiltinModule(),
+                new play.inject.BuiltInModule(),
+                new play.api.i18n.I18nModule(),
+                new play.api.mvc.CookiesModule()) // ###skip
             .loadConfig(ConfigFactory.defaultReference()) // ###skip
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .in(new File("path/to/app"))
             .in(Mode.TEST)
             .in(classLoader)
             .build();
-        // #set-environment-values
+    // #set-environment-values
 
-        assertThat(application.path(), equalTo(new File("path/to/app")));
-        assert(application.isTest());
-        assertThat(application.classloader(), sameInstance(classLoader));
-    }
+    assertThat(application.path(), equalTo(new File("path/to/app")));
+    assert (application.isTest());
+    assertThat(application.classloader(), sameInstance(classLoader));
+  }
 
-    @Test
-    public void addConfiguration() {
-        // #add-configuration
-        Config extraConfig = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
-        Map<String, Object> configMap = ImmutableMap.of("b", 2, "c", "three");
+  @Test
+  public void addConfiguration() {
+    // #add-configuration
+    Config extraConfig = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
+    Map<String, Object> configMap = ImmutableMap.of("b", 2, "c", "three");
 
-        Application application = new GuiceApplicationBuilder()
+    Application application =
+        new GuiceApplicationBuilder()
             .configure(extraConfig)
             .configure(configMap)
             .configure("key", "value")
             .build();
-        // #add-configuration
+    // #add-configuration
 
-        assertThat(application.config().getInt("a"), equalTo(1));
-        assertThat(application.config().getInt("b"), equalTo(2));
-        assertThat(application.config().getString("c"), equalTo("three"));
-        assertThat(application.config().getString("key"), equalTo("value"));
-    }
+    assertThat(application.config().getInt("a"), equalTo(1));
+    assertThat(application.config().getInt("b"), equalTo(2));
+    assertThat(application.config().getString("c"), equalTo("three"));
+    assertThat(application.config().getString("key"), equalTo("value"));
+  }
 
-    @Test
-    public void overrideConfiguration() {
-        // #override-configuration
-        Application application = new GuiceApplicationBuilder()
+  @Test
+  public void overrideConfiguration() {
+    // #override-configuration
+    Application application =
+        new GuiceApplicationBuilder()
             .withConfigLoader(env -> ConfigFactory.load(env.classLoader()))
             .build();
-        // #override-configuration
-    }
+    // #override-configuration
+  }
 
-    @Test
-    public void addBindings() {
-        // #add-bindings
-        Application application = new GuiceApplicationBuilder()
+  @Test
+  public void addBindings() {
+    // #add-bindings
+    Application application =
+        new GuiceApplicationBuilder()
             .bindings(new ComponentModule())
             .bindings(bind(Component.class).to(DefaultComponent.class))
             .build();
-        // #add-bindings
+    // #add-bindings
 
-        assertThat(application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
-    }
+    assertThat(
+        application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
+  }
 
-    @Test
-    public void overrideBindings() {
-        // #override-bindings
-        Application application = new GuiceApplicationBuilder()
+  @Test
+  public void overrideBindings() {
+    // #override-bindings
+    Application application =
+        new GuiceApplicationBuilder()
             .configure("play.http.router", Routes.class.getName()) // ###skip
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .bindings(new ComponentModule()) // ###skip
             .overrides(bind(Component.class).to(MockComponent.class))
             .build();
-        // #override-bindings
+    // #override-bindings
 
-        running(application, () -> {
-            Result result = route(application, fakeRequest(GET, "/"));
-            assertThat(contentAsString(result), equalTo("mock"));
+    running(
+        application,
+        () -> {
+          Result result = route(application, fakeRequest(GET, "/"));
+          assertThat(contentAsString(result), equalTo("mock"));
         });
-    }
+  }
 
-    @Test
-    public void loadModules() {
-        // #load-modules
-        Application application = new GuiceApplicationBuilder()
+  @Test
+  public void loadModules() {
+    // #load-modules
+    Application application =
+        new GuiceApplicationBuilder()
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .load(
                 Guiceable.modules(
                     new play.api.inject.BuiltinModule(),
                     new play.api.i18n.I18nModule(),
                     new play.api.mvc.CookiesModule(),
-                    new play.inject.BuiltInModule()
-                ),
-                Guiceable.bindings(
-                    bind(Component.class).to(DefaultComponent.class)
-                )
-            ).build();
-        // #load-modules
+                    new play.inject.BuiltInModule()),
+                Guiceable.bindings(bind(Component.class).to(DefaultComponent.class)))
+            .build();
+    // #load-modules
 
-        assertThat(application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
-    }
+    assertThat(
+        application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
+  }
 
-    @Test
-    public void disableModules() {
-        // #disable-modules
-        Application application = new GuiceApplicationBuilder()
+  @Test
+  public void disableModules() {
+    // #disable-modules
+    Application application =
+        new GuiceApplicationBuilder()
             .configure("play.http.filters", "play.api.http.NoHttpFilters") // ###skip
             .bindings(new ComponentModule()) // ###skip
             .disable(ComponentModule.class)
             .build();
-        // #disable-modules
+    // #disable-modules
 
-        exception.expect(com.google.inject.ConfigurationException.class);
-        application.injector().instanceOf(Component.class);
-    }
+    exception.expect(com.google.inject.ConfigurationException.class);
+    application.injector().instanceOf(Component.class);
+  }
 
-    @Test
-    public void injectorBuilder() {
-        // #injector-builder
-        Injector injector = new GuiceInjectorBuilder()
+  @Test
+  public void injectorBuilder() {
+    // #injector-builder
+    Injector injector =
+        new GuiceInjectorBuilder()
             .configure("key", "value")
             .bindings(new ComponentModule())
             .overrides(bind(Component.class).to(MockComponent.class))
             .injector();
 
-        Component component = injector.instanceOf(Component.class);
-        // #injector-builder
+    Component component = injector.instanceOf(Component.class);
+    // #injector-builder
 
-        assertThat(component, instanceOf(MockComponent.class));
-    }
+    assertThat(component, instanceOf(MockComponent.class));
+  }
 
-    //#test-guiceapp
-    @Test
-    public void findById() {
-        ClassLoader classLoader = classLoader();
-        Application application = new GuiceApplicationBuilder()
+  // #test-guiceapp
+  @Test
+  public void findById() {
+    ClassLoader classLoader = classLoader();
+    Application application =
+        new GuiceApplicationBuilder()
             .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
             .build();
 
-        running(application, () -> {
-            Computer macintosh = Computer.findById(21l);
-            assertEquals("Macintosh", macintosh.name);
-            assertEquals("1984-01-24", macintosh.introduced);
+    running(
+        application,
+        () -> {
+          Computer macintosh = Computer.findById(21l);
+          assertEquals("Macintosh", macintosh.name);
+          assertEquals("1984-01-24", macintosh.introduced);
         });
-    }
-    //#test-guiceapp
+  }
+  // #test-guiceapp
 
-    private ClassLoader classLoader() {
-        return new URLClassLoader(new URL[0]);
-    }
+  private ClassLoader classLoader() {
+    return new URLClassLoader(new URL[0]);
+  }
 }

@@ -10,9 +10,9 @@ import play.mvc.Result;
 
 // #csp-action-controller
 public class CSPActionController extends Controller {
-    @CSP
-    public Result index() {
-        return ok("result with CSP header");
-    }
+  @CSP
+  public Result index() {
+    return ok("result with CSP header");
+  }
 }
 // #csp-action-controller

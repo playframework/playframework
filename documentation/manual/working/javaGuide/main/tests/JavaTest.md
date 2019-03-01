@@ -7,7 +7,7 @@ Writing tests for your application can be an involved process. Play supports [JU
 
 The location for tests is in the "test" folder. There are two sample test files created in the test folder which can be used as templates.
 
-You can run tests from the SBT console.
+You can run tests from the sbt console.
 
 * To run all tests, run `test`.
 * To run only one test class, run `testOnly` followed by the name of the class i.e. `testOnly my.namespace.MyTest`.
@@ -67,7 +67,7 @@ Let's assume we have the following data model:
 
 @[test-model](code/javaguide/tests/ModelTest.java)
 
-Some data access libraries such as [Ebean](http://ebean-orm.github.io/) allow you to put data access logic directly in your model classes using static methods. This can make mocking a data dependency tricky.
+Some data access libraries such as [Ebean](https://ebean.io/) allow you to put data access logic directly in your model classes using static methods. This can make mocking a data dependency tricky.
 
 A common approach for testability is to keep the models isolated from the database and as much logic as possible, and abstract database access behind a repository interface.
 

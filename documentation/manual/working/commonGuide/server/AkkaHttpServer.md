@@ -43,7 +43,7 @@ Adding the plugin will do multiple things:
 
 ### Using HTTP/2 in `run` mode
 
-If you need to use HTTP/2 in dev mode, you need to add a `-javaagent` argument for the Jetty ALPN agent to the Java options used to execute SBT
+If you need to use HTTP/2 in dev mode, you need to add a `-javaagent` argument for the Jetty ALPN agent to the Java options used to execute sbt
 
 ```
 export SBT_OPTS="$SBT_OPTS -javaagent:$AGENT"

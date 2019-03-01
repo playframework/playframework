@@ -13,20 +13,21 @@ import static play.test.Helpers.*;
 
 public class ThreadPoolsJava {
 
-    @Test
-    public void usingAppClassLoader() throws Exception {
-        final Application app = fakeApplication();
-        running(app, () -> {
-            String myClassName = "java.lang.String";
-            try {
-                //#using-app-classloader
-                Class myClass = app.classloader().loadClass(myClassName);
-                //#using-app-classloader
-                assertThat(myClass, notNullValue());
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+  @Test
+  public void usingAppClassLoader() throws Exception {
+    final Application app = fakeApplication();
+    running(
+        app,
+        () -> {
+          String myClassName = "java.lang.String";
+          try {
+            // #using-app-classloader
+            Class myClass = app.classloader().loadClass(myClassName);
+            // #using-app-classloader
+            assertThat(myClass, notNullValue());
+          } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+          }
         });
-    }
-
+  }
 }

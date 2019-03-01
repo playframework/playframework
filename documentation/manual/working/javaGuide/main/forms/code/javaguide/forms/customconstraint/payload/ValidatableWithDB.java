@@ -4,12 +4,12 @@
 
 package javaguide.forms.customconstraint.payload;
 
-//#interface
+// #interface
 import play.db.Database;
 
 import play.data.validation.Constraints.ValidationPayload;
 
 public interface ValidatableWithDB<T> {
-    public T validate(final Database db, final ValidationPayload payload);
+  public T validate(final Database db, final ValidationPayload payload);
 }
-//#interface
+// #interface

@@ -14,7 +14,7 @@ Before you run your application in production mode, you need to generate an appl
 
 ## Using the dist task
 
-The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on SBT, the only thing the server needs is a Java installation.
+The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on sbt, the only thing the server needs is a Java installation.
 
 In the Play console, simply type `dist`:
 
@@ -88,7 +88,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 
 ## The Native Packager
 
-Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.14/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+Play uses the [sbt Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.18/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 [my-first-app] $ universal:packageBin
@@ -103,16 +103,16 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/) on the native packager plugin for more information.
+Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/) on the native packager plugin for more information.
 
 ### Build a server distribution
 
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_server/index.html#default-mappings)
+* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_server/index.html#default-mappings)
 
-More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_server/index.html).
+More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
@@ -155,7 +155,7 @@ s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
 
-Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.14/recipes/play.html) for more details.
+Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.18/recipes/play.html) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
@@ -163,7 +163,7 @@ To prevent Play from creating a PID just set the property to `/dev/null`:
 -Dpidfile.path=/dev/null
 ```
 
-For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.14/archetypes/java_app/customize.html).
+For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
 
@@ -183,7 +183,7 @@ Then in the Play console, use the `publish` task:
 
 ## Running a production server in place
 
-In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an SBT installation on the server, and can be done using the `stage` task.
+In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an sbt installation on the server, and can be done using the `stage` task.
 
 ```bash
 $ sbt clean stage
@@ -245,9 +245,9 @@ To run an application in prod mode, run `runProd`:
 [my-first-app] $ runProd
 ```
 
-## Using the SBT assembly plugin
+## Using the sbt assembly plugin
 
-Though not officially supported, the SBT assembly plugin may be used to package and run Play applications.  This will produce one jar as an output artifact, and allow you to execute it directly using the `java` command.
+Though not officially supported, the sbt assembly plugin may be used to package and run Play applications.  This will produce one jar as an output artifact, and allow you to execute it directly using the `java` command.
 
 To use this, add a dependency on the plugin to your `project/plugins.sbt` file:
 
