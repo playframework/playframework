@@ -117,8 +117,7 @@ object HelloWorldBenchmark {
         // Add SSL options if we need to
         val b2 = bench.serverEndpoint.ssl match {
           case Some(ssl) =>
-            b1
-              .sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
+            b1.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
               .hostnameVerifier((s: String, sslSession: SSLSession) => true)
           case _ => b1
         }
