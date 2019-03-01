@@ -9,6 +9,12 @@ generated.keystore
 generated.truststore
 *.log
 
+# Ensime-IDE spedific
+.ensime_cache/
+.ensime
+ensime.sbt
+*.el
+
 # Scala-IDE specific
 .scala_dependencies
 .classpath
