@@ -105,11 +105,11 @@ public class HomeController extends Controller {
 ```
 ## `Security.Authenticated` changes
 
-To secure action to prevent access without authentication you can use @Security.Authenticated.
+To secure action to prevent access without authentication you can use `@Security.Authenticated`.
+
 ### Before
 
 ```java
-
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
@@ -132,7 +132,6 @@ public class Secured extends Security.Authenticator {
 ### After
 
 ```java
-
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
@@ -157,12 +156,10 @@ public class Secured extends Security.Authenticator {
 And the corresponding action method:
 
 ```java
-
 @Security.Authenticated(Secured.class)
-    public Result index(Http.Request request) {
-        return ok(ndex.render(request));
-    }
-    
+public Result index(Http.Request request) {
+    return ok(views.html.index.render(request));
+}    
  ```
     
 ## `Action.call(Context)` deprecated
