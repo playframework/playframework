@@ -691,7 +691,7 @@ These tags will automatically use the implicit messages passed to this template:
 So, if you have a view that use some of the tags above, for example if you have a file `app/views/userForm.scala.html` like below:
 
 ```html
-@(userForm: Form[User)(implicit messages: play.i18n.Messages)
+@(userForm: Form[User])(implicit messages: play.i18n.Messages)
 
 <html>
     <head>
