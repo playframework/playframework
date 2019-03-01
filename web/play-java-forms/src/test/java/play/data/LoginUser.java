@@ -56,6 +56,6 @@ public class LoginUser extends UserBase implements Validatable<String> {
       return "Invalid email provided!";
     }
     return ""; // for testing purposes only we return an empty string here which will also be seen
-               // as an error
+    // as an error
   }
 }
