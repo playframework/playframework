@@ -160,7 +160,7 @@ And the corresponding action method:
 public Result index(Http.Request request) {
     return ok(views.html.index.render(request));
 }    
- ```
+```
     
 ## `Action.call(Context)` deprecated
 
