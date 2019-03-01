@@ -5,18 +5,10 @@
 package play.api.test
 
 import akka.annotation.ApiMayChange
-
 import play.api.Application
 import play.api.Configuration
 import play.core.server.ServerEndpoint.ClientSsl
-import play.core.server.AkkaHttpServer
-import play.core.server.NettyServer
-import play.core.server.SelfSigned
-import play.core.server.SelfSignedSSLEngineProvider
-import play.core.server.ServerConfig
-import play.core.server.ServerEndpoint
-import play.core.server.ServerEndpoints
-import play.core.server.ServerProvider
+import play.core.server._
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used
@@ -161,31 +153,17 @@ import play.core.server.ServerProvider
     "play.server.akka.http2.alwaysForInsecure" -> alwaysForInsecure
   )
 
-  val Netty11Plaintext = new HttpServerEndpointRecipe(
-    "Netty HTTP/1.1 (plaintext)",
-    NettyServer.provider,
-    Configuration.empty,
-    Set("1.0", "1.1"),
-    Option("netty")
-  )
-  val Netty11Encrypted = new HttpsServerEndpointRecipe(
-    "Netty HTTP/1.1 (encrypted)",
-    NettyServer.provider,
-    Configuration.empty,
-    Set("1.0", "1.1"),
-    Option("netty")
-  )
   val AkkaHttp11Plaintext = new HttpServerEndpointRecipe(
     "Akka HTTP HTTP/1.1 (plaintext)",
     AkkaHttpServer.provider,
-    http2Conf(false),
+    http2Conf(enabled = false),
     Set("1.0", "1.1"),
     None
   )
   val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe(
     "Akka HTTP HTTP/1.1 (encrypted)",
     AkkaHttpServer.provider,
-    http2Conf(false),
+    http2Conf(enabled = false),
     Set("1.0", "1.1"),
     None
   )
@@ -209,8 +187,6 @@ import play.core.server.ServerProvider
    * All non-experimental server endpoint recipes.
    */
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
-    Netty11Plaintext,
-    Netty11Encrypted,
     AkkaHttp11Plaintext,
     AkkaHttp11Encrypted,
     AkkaHttp20Encrypted
@@ -234,7 +210,7 @@ import play.core.server.ServerProvider
     val app: Application = appFactory.create()
 
     val testServerFactory = new DefaultTestServerFactory {
-      override def serverConfig(app: Application) = {
+      override def serverConfig(app: Application): ServerConfig = {
         super
           .serverConfig(app)
           .copy(
@@ -243,12 +219,12 @@ import play.core.server.ServerProvider
           )
       }
 
-      override def overrideServerConfiguration(app: Application) =
+      override def overrideServerConfiguration(app: Application): Configuration =
         endpointRecipe.serverConfiguration
 
-      override def serverProvider(app: Application) = endpointRecipe.serverProvider
+      override def serverProvider(app: Application): ServerProvider = endpointRecipe.serverProvider
 
-      override def serverEndpoints(testServer: TestServer) = {
+      override def serverEndpoints(testServer: TestServer): ServerEndpoints = {
         ServerEndpoints(Seq(endpointRecipe.createEndpointFromServer(testServer)))
       }
     }

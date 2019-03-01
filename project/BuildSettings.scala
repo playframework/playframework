@@ -217,7 +217,10 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Remove NettyServer dependency from Play-Test
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.Netty11Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.Netty11Plaintext")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
