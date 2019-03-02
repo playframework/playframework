@@ -73,7 +73,6 @@ $ sbt
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
 
-## Triggered Execution
 
 ## Compiling only
 
