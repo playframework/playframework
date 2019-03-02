@@ -103,7 +103,65 @@ public class HomeController extends Controller {
     }
 }
 ```
+## `Security.Authenticated` changes
 
+To secure action to prevent access without authentication you can use `@Security.Authenticated`.
+
+### Before
+
+```java
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Security;
+
+public class Secured extends Security.Authenticator {
+
+    @Override
+    public String getUsername(Http.Context ctx) {
+        return ctx.session().get("id");
+    }
+
+    @Override
+    public Result onUnauthorized(Http.Context ctx) {
+        ctx.flash().put("danger", "You need to login before access the application.");
+        return redirect(controllers.routes.HomeController.login());
+    }
+}
+```
+
+### After
+
+```java
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Security;
+
+import java.util.Optional;
+
+public class Secured extends Security.Authenticator {
+
+    @Override
+    public Optional getUsername(Http.Request req) {
+        return req.session().getOptional("id");
+    }
+
+    @Override
+    public Result onUnauthorized(Http.Request req) {
+        return redirect(controllers.routes.HomeController.login()).
+                flashing("danger",  "You need to login before access the application.");
+    }
+}
+```
+
+And the corresponding action method:
+
+```java
+@Security.Authenticated(Secured.class)
+public Result index(Http.Request request) {
+    return ok(views.html.index.render(request));
+}    
+```
+    
 ## `Action.call(Context)` deprecated
 
 If you are using [[action composition|JavaActionsComposition]] you have to update your actions to avoid `Http.Context`.
