@@ -361,7 +361,9 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     PlaySpecs2Project,
     PlayFiltersHelpersProject,
     PlayJavaProject,
-    PlayNettyServerProject
+    PlayNettyServerProject,
+    PlayAkkaHttpServerProject,
+    PlayAkkaHttp2SupportProject
   )
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "cache/play-cache")
