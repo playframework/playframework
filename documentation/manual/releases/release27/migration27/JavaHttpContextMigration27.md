@@ -40,7 +40,7 @@ public class HomeController extends Controller {
 
 Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param.
 
-> **Note**: It is unlikely but possible that you have a custom `QueryStringBindable` or `PahBindable` with the name `Request`. If so, that one would now collide with Play detection of request params.
+> **Note**: It is unlikely but possible that you have a custom `QueryStringBindable` or `PathBindable` with the name `Request`. If so, that one would now collide with Play detection of request params.
 > Therefore you should use the fully qualified name of your `Request` type, for example.
 >
 >     GET    /        controllers.HomeController.index(myRequest: com.mycompany.Request)
@@ -103,7 +103,65 @@ public class HomeController extends Controller {
     }
 }
 ```
+## `Security.Authenticated` changes
 
+To secure action to prevent access without authentication you can use `@Security.Authenticated`.
+
+### Before
+
+```java
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Security;
+
+public class Secured extends Security.Authenticator {
+
+    @Override
+    public String getUsername(Http.Context ctx) {
+        return ctx.session().get("id");
+    }
+
+    @Override
+    public Result onUnauthorized(Http.Context ctx) {
+        ctx.flash().put("danger", "You need to login before access the application.");
+        return redirect(controllers.routes.HomeController.login());
+    }
+}
+```
+
+### After
+
+```java
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Security;
+
+import java.util.Optional;
+
+public class Secured extends Security.Authenticator {
+
+    @Override
+    public Optional getUsername(Http.Request req) {
+        return req.session().getOptional("id");
+    }
+
+    @Override
+    public Result onUnauthorized(Http.Request req) {
+        return redirect(controllers.routes.HomeController.login()).
+                flashing("danger",  "You need to login before access the application.");
+    }
+}
+```
+
+And the corresponding action method:
+
+```java
+@Security.Authenticated(Secured.class)
+public Result index(Http.Request request) {
+    return ok(views.html.index.render(request));
+}    
+```
+    
 ## `Action.call(Context)` deprecated
 
 If you are using [[action composition|JavaActionsComposition]] you have to update your actions to avoid `Http.Context`.
@@ -691,7 +749,7 @@ These tags will automatically use the implicit messages passed to this template:
 So, if you have a view that use some of the tags above, for example if you have a file `app/views/userForm.scala.html` like below:
 
 ```html
-@(userForm: Form[User)(implicit messages: play.i18n.Messages)
+@(userForm: Form[User])(implicit messages: play.i18n.Messages)
 
 <html>
     <head>
