@@ -20,6 +20,7 @@ import play.utils.PlayIO
 import play.utils.Resources
 
 import scala.annotation.implicitNotFound
+import scala.concurrent.duration.FiniteDuration
 import scala.io.Codec
 import scala.language._
 import scala.util.parsing.combinator._
@@ -432,12 +433,30 @@ trait MessagesApi {
    */
   def clearLang(result: Result): Result
 
+  /**
+   * Name for the language Cookie.
+   */
   def langCookieName: String
 
+  /**
+   * An optional max age in seconds for the language Cookie.
+   */
+  def langCookieMaxAge: Option[Int]
+
+  /**
+   * Whether the secure attribute of the cookie is true or not.
+   */
   def langCookieSecure: Boolean
 
+  /**
+   * Whether the HTTP only attribute of the cookie should be set to true or not.
+   */
   def langCookieHttpOnly: Boolean
 
+  /**
+   * The value of the [[SameSite]] attribute of the cookie. If None, then no SameSite
+   * attribute is set.
+   */
   def langCookieSameSite: Option[SameSite]
 
   /**
@@ -457,7 +476,8 @@ class DefaultMessagesApi @Inject()(
     val langCookieSecure: Boolean = false,
     val langCookieHttpOnly: Boolean = false,
     val langCookieSameSite: Option[SameSite] = None,
-    val httpConfiguration: HttpConfiguration = HttpConfiguration()
+    val httpConfiguration: HttpConfiguration = HttpConfiguration(),
+    val langCookieMaxAge: Option[Int] = None
 ) extends MessagesApi {
 
   // Java API
@@ -469,7 +489,8 @@ class DefaultMessagesApi @Inject()(
       false,
       false,
       None,
-      HttpConfiguration()
+      HttpConfiguration(),
+      None
     )
   }
 
@@ -521,6 +542,7 @@ class DefaultMessagesApi @Inject()(
     val cookie = Cookie(
       langCookieName,
       lang.code,
+      maxAge = langCookieMaxAge,
       path = httpConfiguration.session.path,
       domain = httpConfiguration.session.domain,
       secure = langCookieSecure,
@@ -558,7 +580,8 @@ class DefaultMessagesApiProvider @Inject()(
       langCookieSecure = langCookieSecure,
       langCookieHttpOnly = langCookieHttpOnly,
       langCookieSameSite = langCookieSameSite,
-      httpConfiguration = httpConfiguration
+      httpConfiguration = httpConfiguration,
+      langCookieMaxAge = langCookieMaxAge
     )
   }
 
@@ -566,6 +589,7 @@ class DefaultMessagesApiProvider @Inject()(
   def langCookieSecure   = config.get[Boolean]("play.i18n.langCookieSecure")
   def langCookieHttpOnly = config.get[Boolean]("play.i18n.langCookieHttpOnly")
   def langCookieSameSite = HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
+  def langCookieMaxAge   = config.get[Option[FiniteDuration]]("play.i18n.langCookieMaxAge").map(_.toSeconds.toInt)
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
     langs.availables.iterator

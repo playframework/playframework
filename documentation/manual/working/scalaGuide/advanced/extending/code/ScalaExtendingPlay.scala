@@ -22,6 +22,7 @@ class MyMessagesApi extends MessagesApi {
   override def clearLang(result: Result): Result                                           = ???
   override def langCookieSecure: Boolean                                                   = ???
   override def langCookieName: String                                                      = ???
+  override def langCookieMaxAge: Option[Int]                                               = ???
   override def setLang(result: Result, lang: Lang): Result                                 = ???
   override def apply(key: String, args: Any*)(implicit lang: Lang): String                 = ???
   override def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String           = ???

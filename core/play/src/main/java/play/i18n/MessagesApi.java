@@ -11,6 +11,7 @@ import play.mvc.Result;
 import scala.collection.immutable.Seq;
 import scala.collection.mutable.Buffer;
 import scala.compat.java8.OptionConverters;
+import scala.Option;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /** The messages API. */
 @Singleton
@@ -162,18 +164,33 @@ public class MessagesApi {
     return messages.clearLang(result.asScala()).asJava();
   }
 
+  /** Name for the language Cookie. */
   public String langCookieName() {
     return messages.langCookieName();
   }
 
+  /** An optional max age in seconds for the language Cookie. */
+  public OptionalInt langCookieMaxAge() {
+    Option<Object> langCookieMaxAge = messages.langCookieMaxAge();
+    return langCookieMaxAge.isEmpty()
+        ? OptionalInt.empty()
+        : OptionalInt.of((Integer) langCookieMaxAge.get());
+  }
+
+  /** Whether the secure attribute of the cookie is true or not. */
   public boolean langCookieSecure() {
     return messages.langCookieSecure();
   }
 
+  /** Whether the HTTP only attribute of the cookie should be set to true or not. */
   public boolean langCookieHttpOnly() {
     return messages.langCookieHttpOnly();
   }
 
+  /**
+   * The value of the [[SameSite]] attribute of the cookie. If None, then no SameSite attribute is
+   * set.
+   */
   public Optional<Http.Cookie.SameSite> langCookieSameSite() {
     return OptionConverters.toJava(messages.langCookieSameSite()).map(Cookie.SameSite::asJava);
   }

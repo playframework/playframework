@@ -492,7 +492,12 @@ object BuildSettings {
       ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Http#Session.isDirty"),
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Flash"),
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Session"),
-      ProblemFilters.exclude[InaccessibleMethodProblem]("java.lang.Object.clone")
+      ProblemFilters.exclude[InaccessibleMethodProblem]("java.lang.Object.clone"),
+      // Add configuration for max-age of language-cookie
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.DefaultMessagesApi.this"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieMaxAge"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
