@@ -22,7 +22,7 @@ public class RepeatableBackwardCompatibilityController extends MockController {
 
   @SomeActionAnnotation({ // -> defines @With and therefore is NOT seen as container annotation
     @SomeRepeatable, // -> is defined @Repeatable and also has @With so this could be an actual
-                     // action annotation that could run
+    // action annotation that could run
     @SomeRepeatable
   })
   public Result action() {
