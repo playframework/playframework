@@ -11,11 +11,18 @@ printMessage "VALIDATE BINARY COMPATIBILITY"
 runSbt +mimaReportBinaryIssues
 
 
-printMessage "VALIDATE CODE FORMATTING"
+printMessage "VALIDATE SCALA CODE FORMATTING"
 scripts/scalafmt --test || (
-  echo "ERROR: Scalafmt test failed, see differences above."
-  echo "To fix, format your sources using bin/scalafmt before submitting a pull request."
-  echo "Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."
+  echo "[error] ERROR: Scalafmt test failed, see differences above."
+  echo "[error] To fix, format your sources using bin/scalafmt before submitting a pull request."
+  false
+)
+
+printMessage "VALIDATE JAVA CODE FORMATTING"
+runSbt javafmt
+git diff --exit-code || (
+  echo "[error] ERROR: javafmt check failed, see differences above."
+  echo "[error] To fix, format your sources using sbt javafmt test:javafmt before submitting a pull request."
   false
 )
 
