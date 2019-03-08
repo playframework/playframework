@@ -188,7 +188,7 @@ private[server] class AkkaModelConversion(
 
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: do something with trailing headers?
-        Right(chunks.takeWhile(!_.isLastChunk).map(_.data()))
+        Right(chunks.filter(!_.isLastChunk).map(_.data()))
     }
   }
 
