@@ -471,19 +471,20 @@ object QueryStringBindable {
   /**
    * QueryString binder for Option.
    */
-  implicit def bindableOption[T: QueryStringBindable] = new QueryStringBindable[Option[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
-      Some(
-        implicitly[QueryStringBindable[T]]
-          .bind(key, params)
-          .map(_.right.map(Some(_)))
-          .getOrElse(Right(None))
-      )
+  implicit def bindableOption[T: QueryStringBindable]: QueryStringBindable[Option[T]] =
+    new QueryStringBindable[Option[T]] {
+      def bind(key: String, params: Map[String, Seq[String]]) = {
+        Some(
+          implicitly[QueryStringBindable[T]]
+            .bind(key, params)
+            .map(_.right.map(Some(_)))
+            .getOrElse(Right(None))
+        )
+      }
+      def unbind(key: String, value: Option[T]) =
+        value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
+      override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
     }
-    def unbind(key: String, value: Option[T]) =
-      value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
-    override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
-  }
 
   /**
    * QueryString binder for Java Optional.
