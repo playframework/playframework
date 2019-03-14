@@ -51,12 +51,17 @@ object DevServerStart {
   }
 
   /**
-    * Provides an HTTP and HTTPS server for the dev environment
-    *
-    * <p>This method uses simple Java types so that it can be used with reflection by code
-    * compiled with different versions of Scala.
-    */
-  def mainDevHttpAndHttpsMode(buildLink: BuildLink, httpPort: Int, httpsPort: Int, httpAddress: String): ReloadableServer = {
+   * Provides an HTTP and HTTPS server for the dev environment
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
+   */
+  def mainDevHttpAndHttpsMode(
+      buildLink: BuildLink,
+      httpPort: Int,
+      httpsPort: Int,
+      httpAddress: String
+  ): ReloadableServer = {
     mainDev(buildLink, Some(httpPort), Some(httpsPort), httpAddress)
   }
 
