@@ -108,19 +108,29 @@ object Reloader {
 
     val devMap = devSettings.toMap
 
-    // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
+    // http port can be defined as the first non-property argument, or a -D(play.server.)http.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
     // Or it can be defined in devSettings as "play.server.http.port"
     val httpPortString: Option[String] =
-      otherArgs.headOption.orElse(prop("http.port")).orElse(devMap.get("play.server.http.port"))
+      prop("play.server.http.port")
+        .orElse(otherArgs.headOption)
+        .orElse(prop("http.port"))
+        .orElse(devMap.get("play.server.http.port"))
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
-    // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPortString: Option[String] = prop("https.port").orElse(devMap.get("play.server.https.port"))
-    val httpsPort                       = parsePortValue(httpsPortString)
+    // https port can be defined as a -D(play.server.)https.port argument or system property
+    val httpsPortString: Option[String] =
+      prop("play.server.https.port")
+        .orElse(prop("https.port"))
+        .orElse(devMap.get("play.server.https.port"))
+    val httpsPort = parsePortValue(httpsPortString)
 
-    // http address can be defined as a -Dhttp.address argument or system property
-    val httpAddress = prop("http.address").orElse(devMap.get("play.server.http.address")).getOrElse(defaultHttpAddress)
+    // http address can be defined as a -D(play.server.)http.address argument or system property
+    val httpAddress =
+      prop("play.server.http.address")
+        .orElse(prop("http.address"))
+        .orElse(devMap.get("play.server.http.address"))
+        .getOrElse(defaultHttpAddress)
 
     (properties, httpPort, httpsPort, httpAddress)
   }
