@@ -82,8 +82,9 @@ object DevServerStart {
     // "play.akka.dev-mode" has the priority, so if there is a conflict
     // between the actor system for dev mode and the application actor system
     // users can resolve it by add a specific configuration for dev mode.
-    // We then fallback to the app configuration to avoid losing configurations
-    // made using devSettings, system properties and application.conf itself.
+    // We then fallback to the server's root config to avoid losing configurations
+    // from the "akka.*" key provided by reference*.conf's, devSettings or system properties.
+    // Be aware that since we are in dev mode here the application.conf isn't included in the server conf!
     val devModeAkkaConfig = conf.underlying.getConfig("play.akka.dev-mode").withFallback(conf.underlying)
     ActorSystem("play-dev-mode", devModeAkkaConfig)
   }
