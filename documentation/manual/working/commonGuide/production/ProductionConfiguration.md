@@ -116,7 +116,11 @@ You can also use Netty as the HTTP server, which also provides its own configura
 
 @[](/confs/play-netty-server/reference.conf)
 
-> **Note**: The Netty server backend is not the default in 2.6.x, and so must be specifically enabled.
+> **Note**: The Netty server backend is not the default in 2.6.x, and so must be [[specifically enabled|NettyServer]].
+
+The configurations above are specific to the Akka HTTP and Netty server backend, but other more generic configurations are also available:
+
+@[](/confs/play-server/reference.conf)
 
 ## Logging configuration
 
