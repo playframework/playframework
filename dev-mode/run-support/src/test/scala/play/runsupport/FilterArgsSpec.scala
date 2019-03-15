@@ -60,6 +60,13 @@ class FilterArgsSpec extends Specification {
       )
     }
 
+    "support overriding port from first non-property argument by the one supplied as property" in {
+      check("5555", "-Dhttp.port=9876")(
+        properties = Seq("http.port" -> "9876"),
+        httpPort = Some(9876)
+      )
+    }
+
     "support port property long version from command line that overrides everything else" in {
       check("1234", "-Dplay.server.http.port=5555", "-Dhttp.port=9876")(
         devSettings = Seq("play.server.http.port" -> "5678"),

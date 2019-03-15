@@ -113,8 +113,8 @@ object Reloader {
     // Or it can be defined in devSettings as "play.server.http.port"
     val httpPortString: Option[String] =
       prop("play.server.http.port")
-        .orElse(otherArgs.headOption)
         .orElse(prop("http.port"))
+        .orElse(otherArgs.headOption)
         .orElse(devMap.get("play.server.http.port"))
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
