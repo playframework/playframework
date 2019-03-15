@@ -10,7 +10,7 @@ import org.specs2.execute.Result
 class FilterArgsSpec extends Specification {
 
   val defaultHttpPort    = 9000
-  val defaultHttpAddress = "0.0.0.0"
+  val defaultHttpAddress = "127.0.0.1"
 
   def check(args: String*)(
       properties: Seq[(String, String)] = Seq.empty,

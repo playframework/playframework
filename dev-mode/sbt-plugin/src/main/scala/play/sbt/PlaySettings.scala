@@ -117,7 +117,7 @@ object PlaySettings extends PlaySettingsCompat {
     fileWatchService := FileWatchService
       .defaultWatchService(target.value, getPoolInterval(pollInterval.value).toMillis.toInt, sLog.value),
     playDefaultPort := 9000,
-    playDefaultAddress := "0.0.0.0",
+    playDefaultAddress := "127.0.0.1",
     // Default hooks
     playRunHooks := Nil,
     playInteractionMode := PlayConsoleInteractionMode,

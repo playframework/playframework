@@ -94,6 +94,17 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.
 
+### Server binds to `127.0.0.1` by default now
+
+Until Play 2.7 the backend server by default bound to the `0.0.0.0` address (all addresses).
+If you didn't change that default and are connected to an untrusted network while developing a Play application anyone on that network could just access your Play app by navigating to your IP address (and the port your app is running on, by default `9000`).
+
+For obvious privacy reasons that default binding address changed to `127.0.0.1` in `DEV` as well as in `PROD` mode. You can still open up your application to be accessible from outside:
+
+* In `DEV` mode you can pass `-Dhttp.address=...` to the `run` command or set `PlayKeys.devSettings += "play.server.http.address" -> "..."` in your `build.sbt`. See the [[detailed docs|ConfigFile#Using-with-the-run-command]].
+
+* In `PROD` mode you can start you application with the `-Dhttp.address=...` argument or set `play.server.http.address=...` in `application.conf`. See the [[detailed docs|ProductionConfiguration#Overriding-configuration-with-system-properties]].
+
 ## Updated libraries
 
 This section lists significant updates made to our dependencies.

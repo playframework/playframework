@@ -44,7 +44,7 @@ object ServerConfig {
       rootDir: File = new File("."),
       port: Option[Int] = Some(9000),
       sslPort: Option[Int] = None,
-      address: String = "0.0.0.0",
+      address: String = "127.0.0.1",
       mode: Mode = Mode.Prod,
       properties: Properties = System.getProperties
   ): ServerConfig = {

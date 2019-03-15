@@ -64,9 +64,9 @@ First off, start the documentation server.  The documentation server will serve 
 $ sbt run
 [info] Set current project to root (in build file:/Users/jroper/tmp/foo-translation/)
 [info] play - Application started (Dev)
-[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+[info] play - Listening for HTTP on /127.0.0.1:9000
 
-Documentation server started, you can now view the docs by going to http://0:0:0:0:0:0:0:0:9000
+Documentation server started, you can now view the docs by going to http://127.0.0.1:9000
 ```
 
 Now open <http://localhost:9000/> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.

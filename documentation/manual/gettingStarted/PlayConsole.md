@@ -20,7 +20,7 @@ You will see something like:
 
 --- (Running the application from sbt, auto-reloading is enabled) ---
 
-[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+[info] play - Listening for HTTP on /127.0.0.1:9000
 
 (Server started, use Enter to stop and go back to the console...)
 The application starts directly. When you quit the server using Ctrl+D or Enter, the command prompt returns.
@@ -68,7 +68,7 @@ $ sbt
 
 --- (Running the application, auto-reloading is enabled) ---
 
-[info] p.c.s.AkkaHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+[info] p.c.s.AkkaHttpServer - Listening for HTTP on /127.0.0.1:9000
 
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
@@ -193,7 +193,7 @@ $ sbt run
 
 --- (Running the application from sbt, auto-reloading is enabled) ---
 
-[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+[info] play - Listening for HTTP on /127.0.0.1:9000
 
 (Server started, use Enter to stop and go back to the console...)
 ```

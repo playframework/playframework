@@ -65,10 +65,10 @@ $ /path/to/bin/<project-name> -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429
 
 #### Specifying the HTTP server address and port using system properties
 
-You can provide both HTTP port and address easily using system properties. The default is to listen on port `9000` at the `0.0.0.0` address (all addresses).
+You can provide both HTTP port and address easily using system properties. The default is to listen on port `9000` at the `127.0.0.1` address (localhost only).
 
 ```
-$ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=127.0.0.1
+$ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=0.0.0.0
 ```
 
 #### Changing the path of RUNNING_PID
