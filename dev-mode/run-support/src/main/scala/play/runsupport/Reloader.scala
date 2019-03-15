@@ -186,8 +186,10 @@ object Reloader {
 
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
-    // Set Java properties
+    // Properties are combined in this specific order so that command line
+    // properties win over the configured one, making them more useful.
     val systemPropertiesCombined = systemPropertiesJavaOptions ++ systemPropertiesArgs
+    // Set Java properties
     systemPropertiesCombined.foreach {
       case (key, value) => System.setProperty(key, value)
     }
