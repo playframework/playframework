@@ -180,14 +180,17 @@ object Reloader {
       reloadLock: AnyRef
   ): DevServer = {
 
-    val (properties, httpPort, httpsPort, httpAddress) =
+    val (systemPropertiesArgs, httpPort, httpsPort, httpAddress) =
       filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
-    val systemProperties = extractSystemProperties(javaOptions)
+    val systemPropertiesJavaOptions = extractSystemProperties(javaOptions)
 
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
+    // Properties are combined in this specific order so that command line
+    // properties win over the configured one, making them more useful.
+    val systemPropertiesCombined = systemPropertiesJavaOptions ++ systemPropertiesArgs
     // Set Java properties
-    (properties ++ systemProperties).foreach {
+    systemPropertiesCombined.foreach {
       case (key, value) => System.setProperty(key, value)
     }
 
@@ -296,7 +299,7 @@ object Reloader {
           runHooks.run(_.afterStopped())
 
           // Remove Java properties
-          properties.foreach {
+          systemPropertiesCombined.foreach {
             case (key, _) => System.clearProperty(key)
           }
         }
