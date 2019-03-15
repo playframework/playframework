@@ -3,8 +3,6 @@
  */
 package javaguide.ws.controllers;
 
-import play.twirl.api.Html;
-
 // #ws-openid-controller
 import java.util.*;
 import java.util.concurrent.CompletionStage;
