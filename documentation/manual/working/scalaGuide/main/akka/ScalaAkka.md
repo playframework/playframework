@@ -108,7 +108,7 @@ play.akka.config = "my-akka"
 Now settings will be read from the `my-akka` prefix instead of the `akka` prefix.
 
 ```
-my-akka.actor.default-dispatcher.fork-join-executor.pool-size-max = 64
+my-akka.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
 my-akka.actor.debug.receive = on
 ```
 
