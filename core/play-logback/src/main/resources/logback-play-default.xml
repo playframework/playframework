@@ -13,6 +13,8 @@
   </appender>
 
   <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>512</queueSize>
+    <discardingThreshold>0</discardingThreshold>
     <appender-ref ref="STDOUT" />
   </appender>
 
