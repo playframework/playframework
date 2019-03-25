@@ -109,28 +109,12 @@ private[server] class AkkaModelConversion(
 
         override lazy val queryMap: Map[String, Seq[String]] = {
           try {
-            toMultiMap(request.uri.query())
+            request.uri.query().toMultiMap
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse query string; returning empty map.", e)
               Map[String, Seq[String]]()
           }
-        }
-
-        // This method converts to a `Map`, preserving the order of the query parameters.
-        // It can be removed and replaced with `query().toMultiMap` once this Akka HTTP
-        // fix is available upstream:
-        // https://github.com/akka/akka-http/pull/1270
-        private def toMultiMap(query: Uri.Query): Map[String, Seq[String]] = {
-          @tailrec
-          def append(map: Map[String, Seq[String]], q: Query): Map[String, Seq[String]] = {
-            if (q.isEmpty) {
-              map
-            } else {
-              append(map.updated(q.key, map.getOrElse(q.key, Vector.empty[String]) :+ q.value), q.tail)
-            }
-          }
-          append(Map.empty, query)
         }
       },
       request.protocol.value,
