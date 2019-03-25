@@ -49,10 +49,18 @@ PlayKeys.devSettings += "play.server.http.port" -> "8080"
 
 ### HTTP server settings in `application.conf`
 
-In `run` mode the HTTP server part of Play starts before the application has been compiled. This means that the HTTP server cannot access the `application.conf` file when it starts. If you want to override HTTP server settings while using the `run` command you cannot use the `application.conf` file. Instead, you need to either use system properties or the `devSettings` setting shown above. An example of a server setting is the HTTP port. Other server settings can be seen [[here|ProductionConfiguration#Server-configuration-options]].
+In `run` mode the HTTP server part of Play starts before the application has been compiled. This means that the HTTP server cannot access the `application.conf` file when it starts. If you want to override HTTP server settings while using the `run` command you cannot use the `application.conf` file. Instead, you need to either use system properties or the `devSettings` setting shown above. An example of a server setting is the HTTP port:
 
 ```
 > run -Dhttp.port=1234
+```
+
+Other server settings can be seen [[here|ProductionConfiguration#Server-configuration-options]]. As you can see in these server settings the http(s) port(s) and address will fallback to the config keys `PLAY_HTTP_PORT`, `PLAY_HTTPS_PORT` and `PLAY_HTTP_ADDRESS` if a port or address are not defined already e.g. via `PlayKeys.devSettings`. Because these config keys are substitutions you can define them also via environment variables, e.g. when using Bash in Linux:
+
+```
+export PLAY_HTTP_PORT=9001
+export PLAY_HTTPS_PORT=9002
+export PLAY_HTTP_ADDRESS=127.0.0.1
 ```
 
 There is also a specific *namespace* if you need to customize Akka configuration for development mode (the mode used with `run` command). You need to prefix your configuration in `PlayKeys.devSettings` with `play.akka.dev-mode`, for example:
