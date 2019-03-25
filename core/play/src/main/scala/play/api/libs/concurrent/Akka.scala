@@ -152,6 +152,15 @@ object ActorSystemProvider {
     start(classLoader, config, Some(additionalSetup))
   }
 
+  /**
+    * Start an ActorSystem, using the given configuration, ClassLoader, and a list of additional Setups.
+    *
+    * @return The ActorSystem and a function that can be used to stop it.
+    */
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: List[Setup]): ActorSystem = {
+    start(classLoader, config, additionalSetup)
+  }
+
   private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
     val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
     if (config.get[Boolean](exitJvmPath)) {
