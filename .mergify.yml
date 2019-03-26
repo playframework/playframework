@@ -12,6 +12,30 @@ pull_request_rules:
         method: squash
         strict: smart
 
+  - name: backport patches to 2.7.x branch
+    conditions:
+      - label=status:needs-backport
+    actions:
+      backport:
+        branches:
+          - 2.7.x
+
+  - name: backport patches to 2.6.x branch
+    conditions:
+      - label=status:needs-backport-2.6
+    actions:
+      backport:
+        branches:
+          - 2.6.x          
+
+  - name: forward patches to master branch
+    conditions:
+      - label=status:needs-forwardport
+    actions:
+      backport:
+        branches:
+          - master
+
   - name: Delete the PR branch after merge
     conditions:
       - merged
