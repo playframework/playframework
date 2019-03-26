@@ -5,7 +5,8 @@ import java.util.regex.Pattern
 
 import bintray.BintrayPlugin.autoImport._
 import com.typesafe.sbt.pgp.PgpKeys
-import com.typesafe.tools.mima.core.{ProblemFilters, _}
+import com.typesafe.tools.mima.core.ProblemFilters
+import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
@@ -14,9 +15,11 @@ import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import interplay._
-import sbt.Keys.{version, _}
-import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
-import sbt.{Resolver, _}
+import sbt.Keys.version
+import sbt.Keys._
+import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
+import sbt.Resolver
+import sbt._
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
