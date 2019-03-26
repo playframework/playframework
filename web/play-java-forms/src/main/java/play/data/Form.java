@@ -895,7 +895,7 @@ public class Form<T> {
       // FYI: initBeanPropertyAccess() is the default, let's switch to direct field access instead
       dataBinder
           .initDirectFieldAccess(); // this should happen last, when everything else was set on the
-                                    // dataBinder already
+      // dataBinder already
     }
     return dataBinder;
   }
