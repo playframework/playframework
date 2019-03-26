@@ -151,23 +151,14 @@ object Docs {
         s"-doc-external-doc:${externalDocsScalacOption}"
       )
 
-      val compilers = Keys.compilers.value
-      val useCache = apiDocsUseCache.value
-      val classpath = apiDocsClasspath.value
+      val useCache            = apiDocsUseCache.value
+      val classpath           = apiDocsClasspath.value
       val apiDocsScalaSources = Docs.apiDocsScalaSources.value
-      val apiDocsJavaSources = Docs.apiDocsJavaSources.value
-      val streams = sbt.Keys.streams.value
+      val apiDocsJavaSources  = Docs.apiDocsJavaSources.value
+      val streams             = sbt.Keys.streams.value
 
-      val scalaCompiler = compilers.scalac()
-      val buildState = state.value
-      val globalBase = BuildPaths.getGlobalBase(buildState)
-      val zincDir = BuildPaths.getZincDirectory(buildState, globalBase)
-      val appConfig = appConfiguration.value
-      val launcher = appConfig.provider.scalaProvider.launcher
-      val bootDependencyResolution = (updateSbtClassifiers / dependencyResolution).value
-
-      val bridgeProvider = ZincBridgeProvider.getProvider(zincDir, launcher.globalLock(), appConfig.provider.components, bootDependencyResolution, streams.log)
-      val scalac = new AnalyzingCompiler(scalaCompiler.scalaInstance, bridgeProvider, scalaCompiler.classpathOptions(), (a: Seq[String]) => (), None)
+      val compilers = Keys.compilers.value
+      val scalac    = compilers.scalac().asInstanceOf[AnalyzingCompiler]
 
       val scaladoc = {
         if (useCache) Doc.scaladoc(label, scalaCache, scalac)
