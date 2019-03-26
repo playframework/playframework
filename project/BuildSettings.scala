@@ -5,26 +5,22 @@ import java.util.regex.Pattern
 
 import bintray.BintrayPlugin.autoImport._
 import com.typesafe.sbt.pgp.PgpKeys
-import com.typesafe.tools.mima.core.ProblemFilters
-import com.typesafe.tools.mima.core._
+import com.typesafe.tools.mima.core.{ProblemFilters, _}
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
-import interplay._
 import interplay.ScalaVersions._
+import interplay._
 import sbt.Keys.{version, _}
-import sbt.ScriptedPlugin._
-import sbt.Resolver
-import sbt._
 import sbt.ScriptedPlugin.{autoImport => ScriptedImport}
-
-import scala.util.control.NonFatal
-import scala.sys.process.stringToProcess
-
+import sbt.{Resolver, _}
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
+
+import scala.sys.process.stringToProcess
+import scala.util.control.NonFatal
 
 object BuildSettings {
 
@@ -86,7 +82,7 @@ object BuildSettings {
     playBuildPromoteSonatype := false
   )
 
-  val DocsApplication = config("docs").hide
+  val DocsApplication    = config("docs").hide
   val SourcesApplication = config("sources").hide
 
   /** These settings are used by all projects. */
@@ -289,7 +285,8 @@ object BuildSettings {
     )
   )
 
-  def playFullScriptedSettings: Seq[Setting[_]] =Seq(
+  def playFullScriptedSettings: Seq[Setting[_]] =
+    Seq(
       ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
 

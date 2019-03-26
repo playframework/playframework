@@ -6,7 +6,8 @@ import sbt.internal.BuildStructure
 import sbt.Keys._
 import sbt.File
 import sbt.util.CacheStoreFactory
-import sbt.internal.inc.{AnalyzingCompiler, LoggedReporter}
+import sbt.internal.inc.AnalyzingCompiler
+import sbt.internal.inc.LoggedReporter
 import java.net.URLClassLoader
 import org.webjars.FileSystemCache
 import org.webjars.WebJarExtractor
@@ -132,11 +133,11 @@ object Docs {
       }
 
       val scalaCache = CacheStoreFactory(new File(targetDir, "scalaapidocs.cache"))
-      val javaCache = CacheStoreFactory(new File(targetDir, "javaapidocs.cache"))
+      val javaCache  = CacheStoreFactory(new File(targetDir, "javaapidocs.cache"))
 
       val label = "Play " + version
       // Use the apiMappings value from the "doc" command
-      val apiMappings = Keys.apiMappings.value
+      val apiMappings              = Keys.apiMappings.value
       val externalDocsScalacOption = Opts.doc.externalAPI(apiMappings).head.replace("-doc-external-doc:", "")
 
       val options = Seq(
@@ -196,8 +197,16 @@ object Docs {
         else DocNoCache.javadoc(label, compilers, 10, streams.log)
       }
       val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
-      val reporter = new LoggedReporter(10, streams.log)
-      javadoc.run(apiDocsJavaSources.toList, classpath.toList, apiTarget / "java", javadocOptions.toList, incToolOpt, streams.log, reporter)
+      val reporter   = new LoggedReporter(10, streams.log)
+      javadoc.run(
+        apiDocsJavaSources.toList,
+        classpath.toList,
+        apiTarget / "java",
+        javadocOptions.toList,
+        incToolOpt,
+        streams.log,
+        reporter
+      )
     }
 
     val externalJavadocLinks = {
@@ -314,7 +323,7 @@ object Docs {
         if (includeApiDocs) childRef +: aggregated(childRef) else aggregated(childRef)
       }
     }
-    val rootProjectId = structure.rootProject(build)
+    val rootProjectId  = structure.rootProject(build)
     val rootProjectRef = ProjectRef(build, rootProjectId)
     aggregated(rootProjectRef)
   }
@@ -351,13 +360,38 @@ object Docs {
     def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String,  compiler: Compilers, maxRetry: Int, managedLogger: ManagedLogger): sbt.inc.Doc.JavaDoc = {
+    def javadoc(
+        label: String,
+        compiler: Compilers,
+        maxRetry: Int,
+        managedLogger: ManagedLogger
+    ): sbt.inc.Doc.JavaDoc = {
       new JavaDoc {
-        override def run(sources: List[File], classpath: List[File], outputDirectory: File, options: List[String], incToolOptions: IncToolOptions, log: Logger, reporter: Reporter): Unit = {
-          def helper(sources: Seq[File], classpath: Seq[File], outputDirectory: File, options: Seq[String], maxErrors: Int, log: Logger): Unit = {
+        override def run(
+            sources: List[File],
+            classpath: List[File],
+            outputDirectory: File,
+            options: List[String],
+            incToolOptions: IncToolOptions,
+            log: Logger,
+            reporter: Reporter
+        ): Unit = {
+          def helper(
+              sources: Seq[File],
+              classpath: Seq[File],
+              outputDirectory: File,
+              options: Seq[String],
+              maxErrors: Int,
+              log: Logger
+          ): Unit = {
             compiler.javaTools().javadoc().run(sources.toArray, options.toArray, incToolOptions, reporter, log)
           }
-          val impl = RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, helper))
+
+          val javaSourcesOnly: File => Boolean = _.getName.endsWith(".java")
+          val impl = RawCompileLike.prepare(
+            label + " Java API documentation",
+            RawCompileLike.filterSources(javaSourcesOnly, helper)
+          )
           impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
         }
       }
