@@ -3,7 +3,7 @@ language: scala
 branches:
   only:
     - master
-    # Explicitly listing the maintaned versions since we don't care
+    # Explicitly listing the maintained versions since we don't care
     # anymore about builds in unmaintained branches.
     - 2.7.x
     - 2.6.x
