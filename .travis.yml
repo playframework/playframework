@@ -59,6 +59,9 @@ jobs:
     - script: scripts/it-test-scala-212
       env: TRAVIS_JDK=adopt@1.11.0-2
       name: "Run it tests for Scala 2.12 and Java 11"
+    - script: scripts/test-sbt-plugins-1_0
+      env: TRAVIS_JDK=adopt@1.11.0-2
+      name: "Scripted tests for sbt 1 and Java 11"
 
 matrix:
   fast_finish: true
