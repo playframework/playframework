@@ -57,4 +57,4 @@ pull_request_rules:
       - title~=^(\[wip\]( |:) |\[WIP\]( |:) |wip( |:) |WIP( |:)).*
     actions:
       label:
-      add: ["status:block-merge"]
+        add: ["status:block-merge"]
