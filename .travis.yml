@@ -9,7 +9,7 @@ branches:
     - 2.6.x
     # Builds for tags. See Travis docs for more details:
     # https://docs.travis-ci.com/user/customizing-the-build/#using-regular-expressions
-    - /^\d+\.\d+\.\d+$/
+    - /^\d+\.\d+\.\d+(\-\w{2,})?$/
 
 addons:
   apt:
