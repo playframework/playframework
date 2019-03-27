@@ -116,6 +116,7 @@ object Reloader {
         .orElse(prop("http.port"))
         .orElse(otherArgs.headOption)
         .orElse(devMap.get("play.server.http.port"))
+        .orElse(sys.env.get("PLAY_HTTP_PORT"))
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
     // https port can be defined as a -D(play.server.)https.port argument or system property
@@ -123,6 +124,7 @@ object Reloader {
       prop("play.server.https.port")
         .orElse(prop("https.port"))
         .orElse(devMap.get("play.server.https.port"))
+        .orElse(sys.env.get("PLAY_HTTPS_PORT"))
     val httpsPort = parsePortValue(httpsPortString)
 
     // http address can be defined as a -D(play.server.)http.address argument or system property
@@ -130,6 +132,7 @@ object Reloader {
       prop("play.server.http.address")
         .orElse(prop("http.address"))
         .orElse(devMap.get("play.server.http.address"))
+        .orElse(sys.env.get("PLAY_HTTP_ADDRESS"))
         .getOrElse(defaultHttpAddress)
 
     (properties, httpPort, httpsPort, httpAddress)
