@@ -20,7 +20,7 @@ AKKA_HTTP_VERSION=""
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
     # `sort` is not necessary, but it is good to make it predictable.
     AKKA_VERSION=$(curl -s https://repo.akka.io/snapshots/com/typesafe/akka/akka-actor_2.12/ | grep -oEi '2\.5-[0-9]{8}-[0-9]{6}' | sort | tail -n 1)
-    AKKA_HTTP_VERSION=$(curl -s https://dl.bintray.com/akka/maven/com/typesafe/akka/akka-http-core_2.12/maven-metadata.xml | xmllint --xpath '//latest/text()' -)
+    AKKA_HTTP_VERSION=$(curl -s https://dl.bintray.com/akka/snapshots/com/typesafe/akka/akka-http-core_2.12/maven-metadata.xml | xmllint --xpath '//latest/text()' -)
 
     echo "Using Akka SNAPSHOT ${AKKA_VERSION} and Akka HTTP SNAPSHOT ${AKKA_HTTP_VERSION}"
 
