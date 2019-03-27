@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
+import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLSession
 import org.openjdk.jmh.annotations._
 import play.api.mvc.Results
@@ -118,7 +119,9 @@ object HelloWorldBenchmark {
         val b2 = bench.serverEndpoint.ssl match {
           case Some(ssl) =>
             b1.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
-              .hostnameVerifier((s: String, sslSession: SSLSession) => true)
+              .hostnameVerifier(new HostnameVerifier {
+                override def verify(s: String, sslSession: SSLSession): Boolean = true
+              })
           case _ => b1
         }
         b2.build()
