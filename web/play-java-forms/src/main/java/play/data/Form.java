@@ -894,8 +894,9 @@ public class Form<T> {
     if (this.directFieldAccess) {
       // FYI: initBeanPropertyAccess() is the default, let's switch to direct field access instead
       dataBinder
-          .initDirectFieldAccess(); // this should happen last, when everything else was set on the
-                                    // dataBinder already
+          // this should happen last, when everything else was set on the
+          // dataBinder already
+          .initDirectFieldAccess();
     }
     return dataBinder;
   }
