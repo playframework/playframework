@@ -9,7 +9,7 @@ Before making a contribution, it is important to make sure that the change you w
 
 ### Procedure
 
-1. Make sure you have signed the [Lightbend CLA](http://www.lightbend.com/contribute/cla); if not, sign it online.
+1. Make sure you have signed the [Lightbend CLA](https://www.lightbend.com/contribute/cla); if not, sign it online.
 2. Ensure that your contribution meets the following guidelines:
     1. Live up to the current code standard:
         - Not violate [DRY](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch30.html).
@@ -32,7 +32,7 @@ Before making a contribution, it is important to make sure that the change you w
         * Code must conform to standard style guidelines and pass all tests (see [Run tests](https://www.playframework.com/documentation/latest/BuildingFromSource#run-tests))
     6. New files must:
         * Have a Lightbend copyright header in the style of ``Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>``.
-        * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
+        * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](https://www.extremeprogramming.org/rules/collective.html).
 3. Ensure that your commits are squashed.  See [working with git](https://playframework.com/documentation/latest/WorkingWithGit) for more information.
 4. Submit a pull request.
 
