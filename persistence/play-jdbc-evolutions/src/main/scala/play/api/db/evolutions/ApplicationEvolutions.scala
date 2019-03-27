@@ -508,31 +508,33 @@ class EvolutionsWebCommands @Inject()(
       }
 
       case _ => {
-        var autoApplyCount = 0
-        if (!checkedAlready) {
-          dbApi
-            .databases()
-            .foreach(
-              ApplicationEvolutions.runEvolutions(
-                _,
-                config,
-                evolutions,
-                reader,
-                (db, dbConfig, schema, scripts, hasDown, autocommit) => {
-                  import Evolutions.toHumanReadableScript
+        synchronized {
+          var autoApplyCount = 0
+          if (!checkedAlready) {
+            dbApi
+              .databases()
+              .foreach(
+                ApplicationEvolutions.runEvolutions(
+                  _,
+                  config,
+                  evolutions,
+                  reader,
+                  (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+                    import Evolutions.toHumanReadableScript
 
-                  if (dbConfig.autoApply) {
-                    evolutions.evolve(db, scripts, autocommit, schema)
-                    autoApplyCount += 1
-                  } else {
-                    throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+                    if (dbConfig.autoApply) {
+                      evolutions.evolve(db, scripts, autocommit, schema)
+                      autoApplyCount += 1
+                    } else {
+                      throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+                    }
                   }
-                }
+                )
               )
-            )
-          checkedAlready = true
-          if (autoApplyCount > 0) {
-            buildLink.forceReload()
+            checkedAlready = true
+            if (autoApplyCount > 0) {
+              buildLink.forceReload()
+            }
           }
         }
         None
