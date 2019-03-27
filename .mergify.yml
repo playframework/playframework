@@ -14,6 +14,7 @@ pull_request_rules:
 
   - name: backport patches to 2.7.x branch
     conditions:
+      - merged
       - label=status:needs-backport
     actions:
       backport:
@@ -24,6 +25,7 @@ pull_request_rules:
 
   - name: backport patches to 2.6.x branch
     conditions:
+      - merged
       - label=status:needs-backport-2.6
     actions:
       backport:
@@ -34,6 +36,7 @@ pull_request_rules:
 
   - name: forward patches to master branch
     conditions:
+      - merged
       - label=status:needs-forwardport
     actions:
       backport:
