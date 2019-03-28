@@ -13,6 +13,12 @@
   </appender>
 
   <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+    <!-- increases the default queue size -->
+    <queueSize>512</queueSize>
+    <!-- don't discard messages -->
+    <discardingThreshold>0</discardingThreshold>
+    <!-- block when queue is full -->
+    <neverBlock>false</neverBlock>
     <appender-ref ref="STDOUT" />
   </appender>
 
