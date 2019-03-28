@@ -12,13 +12,16 @@ import de.heikoseeberger.sbtheader.HeaderKey._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPattern
 
+val DocsApplication = config("docs").hide
+
 lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl, AutomateHeaderPlugin)
   .disablePlugins(PlayEnhancer)
   .settings(
+    ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
-    test in Test <<= (test in Test).dependsOn(publishLocal in playDocs),
+    test in Test := ((test in Test).dependsOn(publishLocal in playDocs)).value,
     resolvers += Resolver
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,

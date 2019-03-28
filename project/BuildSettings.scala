@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
-import sbt.ScriptedPlugin._
+import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
 import sbt._
 import Keys.version
 import Keys._
@@ -16,7 +16,9 @@ import bintray.BintrayPlugin.autoImport._
 import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
+import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
+import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
@@ -55,25 +57,27 @@ object BuildSettings {
     )
   )
 
-  /**
-   * These settings are used by all projects
-   */
-  def playCommonSettings: Seq[Setting[_]] = {
+  val DocsApplication    = config("docs").hide
+  val SourcesApplication = config("sources").hide
 
-    fileHeaderSettings ++ Seq(
-      homepage := Some(url("https://playframework.com")),
-      ivyLoggingLevel := UpdateLogging.DownloadOnly,
-      resolvers ++= Seq(
-        Resolver.sonatypeRepo("releases"),
-        Resolver.typesafeRepo("releases"),
-        Resolver.typesafeIvyRepo("releases")
-      ),
-      javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-      scalacOptions in (Compile, doc) := {
-        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, 12)) => Seq("-no-java-comments")
-          case _             => Seq()
+  /** These settings are used by all projects. */
+  def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    fileHeaderSettings,
+    homepage := Some(url("https://playframework.com")),
+    ivyLoggingLevel := UpdateLogging.DownloadOnly,
+    resolvers ++= Seq(
+      Resolver.sonatypeRepo("releases"),
+      Resolver.typesafeRepo("releases"),
+      Resolver.typesafeIvyRepo("releases")
+    ),
+    evictionSettings,
+    ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
+    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
+    scalacOptions in (Compile, doc) := {
+      // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
+        case _                       => Seq()
         }
       },
       fork in Test := true,
@@ -297,8 +301,8 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
-    scriptedLaunchOpts ++= Seq(
+    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
+    ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
       "-Dscala.version=" + sys.props
@@ -309,8 +313,8 @@ object BuildSettings {
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] =
-    ScriptedPlugin.scriptedSettings ++ Seq(
-      ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
+    Seq(
+      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
 
   /**
