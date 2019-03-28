@@ -20,6 +20,7 @@ import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
+import sbt.io.Path._
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
@@ -209,6 +210,7 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice
   )
 
 lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plugin")
+  .enablePlugins(SbtPlugin)
   .settings(
     libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
     sourceGenerators in Compile += Def
@@ -407,6 +409,7 @@ lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "cache/play-jc
   )
 
 lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-mode/play-docs-sbt-plugin")
+  .enablePlugins(SbtPlugin)
   .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= playDocsSbtPluginDependencies
@@ -461,7 +464,6 @@ lazy val aggregatedProjects = Seq[ProjectReference](
 lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayRootProject)
   .enablePlugins(PlayWhitesourcePlugin)
-  .enablePlugins(CrossPerProjectPlugin)
   .settings(
     playCommonSettings,
     scalaVersion := (scalaVersion in PlayProject).value,
@@ -470,7 +472,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude := false,
     Docs.apiDocsIncludeManaged := false,
-    mimaReportBinaryIssues := (),
+    mimaReportBinaryIssues := ((): Unit),
     commands += Commands.quickPublish,
     Release.settings
   )

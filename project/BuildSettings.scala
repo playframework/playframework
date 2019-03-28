@@ -16,13 +16,13 @@ import interplay.PlayBuildBase.autoImport._
 import interplay._
 import sbt.Keys.version
 import sbt.Keys._
-import sbt.ScriptedPlugin._
+import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
 import sbt.Resolver
 import sbt._
-
-import scala.util.control.NonFatal
-
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
+
+import scala.sys.process.stringToProcess
+import scala.util.control.NonFatal
 
 object BuildSettings {
 
@@ -84,6 +84,9 @@ object BuildSettings {
     playBuildPromoteSonatype := false
   )
 
+  val DocsApplication    = config("docs").hide
+  val SourcesApplication = config("sources").hide
+
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
     fileHeaderSettings,
@@ -95,6 +98,7 @@ object BuildSettings {
       Resolver.typesafeIvyRepo("releases")
     ),
     evictionSettings,
+    ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
     scalacOptions in (Compile, doc) := {
       // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
@@ -265,8 +269,8 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
-    scriptedLaunchOpts ++= Seq(
+    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
+    ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
       "-Dscala.version=" + sys.props
@@ -277,8 +281,8 @@ object BuildSettings {
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] =
-    ScriptedPlugin.scriptedSettings ++ Seq(
-      ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
+    Seq(
+      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
 
   def disablePublishing = Seq[Setting[_]](
