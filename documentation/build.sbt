@@ -8,6 +8,8 @@ import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import sbt._
 
+val DocsApplication = config("docs").hide
+
 lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl)
   .disablePlugins(PlayEnhancer)
@@ -26,9 +28,10 @@ lazy val main = Project("Play-Documentation", file("."))
       "-Xlint:deprecation",
       "-Werror"
     ),
+    ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
-    test in Test <<= (test in Test).dependsOn(publishLocal in playDocs),
+    test in Test := ((test in Test).dependsOn(publishLocal in playDocs)).value,
     resolvers += Resolver
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,

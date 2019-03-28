@@ -36,10 +36,7 @@ addSbtPlugin("pl.project13.scala" % "sbt-jmh"            % Versions.sbtJmh)
 addSbtPlugin("de.heikoseeberger"  % "sbt-header"         % Versions.sbtHeader)
 
 libraryDependencies ++= Seq(
-  "org.scala-sbt" % "scripted-plugin"      % sbtVersion.value,
-  "org.webjars"   % "webjars-locator-core" % Versions.webjarsLocatorCore
+  "org.webjars" % "webjars-locator-core" % Versions.webjarsLocatorCore
 )
 
 resolvers += Resolver.typesafeRepo("releases")
-
-addSbtPlugin("com.eed3si9n" % "sbt-doge" % Versions.sbtDoge)
