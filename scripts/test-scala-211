@@ -17,6 +17,6 @@ cd "$BASEDIR"
 printMessage "RUNNING TESTS FOR SCALA 2.11"
 
 # Use sbt-doge for building code https://github.com/sbt/sbt-doge#strict-aggregation
-runSbt "+++2.11.12 test"
+runSbt "++2.11.12 test"
 
 printMessage "ALL TESTS PASSED"
