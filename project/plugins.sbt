@@ -10,7 +10,6 @@ val Versions = new {
   val sbtJavaAgent       = "0.1.4"
   val sbtJavaFormatter   = "0.4.3"
   val sbtJmh             = "0.2.27"
-  val sbtDoge            = "0.1.5"
   val webjarsLocatorCore = "0.33"
   val sbtHeader          = "5.2.0"
   val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.3.15")
