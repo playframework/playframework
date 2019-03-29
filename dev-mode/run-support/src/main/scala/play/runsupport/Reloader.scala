@@ -291,7 +291,18 @@ object Reloader {
 
       val server = {
         val mainClass = applicationLoader.loadClass(mainClassName)
-        if (httpPort.isDefined) {
+        if (httpPort.isDefined && httpsPort.isDefined) {
+          val mainDev = mainClass.getMethod(
+            "mainDevHttpAndHttpsMode",
+            classOf[BuildLink],
+            classOf[Int],
+            classOf[Int],
+            classOf[String]
+          )
+          mainDev
+            .invoke(null, reloader, httpPort.get: java.lang.Integer, httpsPort.get: java.lang.Integer, httpAddress)
+            .asInstanceOf[play.core.server.ReloadableServer]
+        } else if (httpPort.isDefined) {
           val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int], classOf[String])
           mainDev
             .invoke(null, reloader, httpPort.get: java.lang.Integer, httpAddress)
