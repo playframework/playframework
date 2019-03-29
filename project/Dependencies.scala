@@ -9,11 +9,11 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.21")
-  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.7")
+  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.8")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
 
-  val playJsonVersion = "2.7.1"
+  val playJsonVersion = "2.7.2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -48,11 +48,11 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.25"
+  val slf4jVersion = "1.7.26"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "27.0.1-jre"
+  val guava      = "com.google.guava"         % "guava"        % "27.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "2.23.4"
 
@@ -81,7 +81,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.0.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.2.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
@@ -91,7 +91,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.1.3.RELEASE"
+  val springFrameworkVersion = "5.1.5.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -105,7 +105,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.0.15.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.0.16.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -157,7 +157,7 @@ object Dependencies {
   val nettyVersion = "4.1.34.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.2",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.3",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -165,7 +165,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.12.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.12.2"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {

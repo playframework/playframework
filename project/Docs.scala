@@ -2,13 +2,25 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
+import sbt.internal.BuildStructure
 import sbt.Keys._
 import sbt.File
+import sbt.util.CacheStoreFactory
+import sbt.internal.inc.AnalyzingCompiler
+import sbt.internal.inc.LoggedReporter
 import java.net.URLClassLoader
 import org.webjars.FileSystemCache
 import org.webjars.WebJarExtractor
 import interplay.Playdoc
 import interplay.Playdoc.autoImport._
+import xsbti.compile.Compilers
+import xsbti.compile._
+import sbt.io.Path._
+import interplay.Playdoc
+import interplay.Playdoc.autoImport._
+import sbt.inc.Doc.JavaDoc
+import sbt.internal.util.ManagedLogger
+import xsbti.Reporter
 
 object Docs {
 
@@ -68,7 +80,7 @@ object Docs {
       val apiDocMappings = (apiBase ** "*").get.pair(rebase(apiBase, "play/docs/content/api"))
 
       // The play version is added so that resource paths are versioned
-      val webjarMappings = webjars.***.pair(rebase(webjars, "play/docs/content/webjars/" + version.value))
+      val webjarMappings = webjars.allPaths.pair(rebase(webjars, "play/docs/content/webjars/" + version.value))
 
       // Gather all the conf files into the project
       val referenceConfMappings = allConfs.value.map {
@@ -88,14 +100,14 @@ object Docs {
         mappings in playdocPackage := {
           val base        = (baseDirectory in ThisBuild).value
           val docBase     = base.getParentFile / "documentation"
-          val raw         = (docBase / "manual").*** +++ (docBase / "style").***
+          val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
           val filtered    = raw.filter(_.getName != ".DS_Store")
           val docMappings = filtered.get.pair(relativeTo(docBase))
 
           // The play version is added so that resource paths are versioned
           val webjars        = extractWebjars.value
           val playVersion    = version.value
-          val webjarMappings = webjars.***.pair(rebase(webjars, "webjars/" + playVersion))
+          val webjarMappings = webjars.allPaths.pair(rebase(webjars, "webjars/" + playVersion))
 
           // Gather all the conf files into the project
           val referenceConfs = allConfs.value.map {
@@ -107,8 +119,7 @@ object Docs {
       )
 
   // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
-  def apiDocsTask = Def.task {
-
+  def apiDocsTask = Def.taskDyn {
     val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
     val apiTarget = new File(targetDir, "apidocs")
 
@@ -121,8 +132,8 @@ object Docs {
         version
       }
 
-      val scalaCache = new File(targetDir, "scalaapidocs.cache")
-      val javaCache  = new File(targetDir, "javaapidocs.cache")
+      val scalaCache = CacheStoreFactory(new File(targetDir, "scalaapidocs.cache"))
+      val javaCache  = CacheStoreFactory(new File(targetDir, "javaapidocs.cache"))
 
       val label = "Play " + version
       // Use the apiMappings value from the "doc" command
@@ -141,18 +152,23 @@ object Docs {
         s"-doc-external-doc:${externalDocsScalacOption}"
       )
 
+      val useCache            = apiDocsUseCache.value
+      val classpath           = apiDocsClasspath.value
+      val apiDocsScalaSources = Docs.apiDocsScalaSources.value
+      val apiDocsJavaSources  = Docs.apiDocsJavaSources.value
+      val streams             = sbt.Keys.streams.value
+
       val compilers = Keys.compilers.value
-      val useCache  = apiDocsUseCache.value
-      val classpath = apiDocsClasspath.value
+      val scalac    = compilers.scalac().asInstanceOf[AnalyzingCompiler]
 
       val scaladoc = {
-        if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
-        else DocNoCache.scaladoc(label, compilers.scalac)
+        if (useCache) Doc.scaladoc(label, scalaCache, scalac)
+        else DocNoCache.scaladoc(label, scalac)
       }
       // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
       // are the parameter names of the method that does eventually get called:
       // (sources, classpath, outputDirectory, options, maxErrors, log)
-      scaladoc(apiDocsScalaSources.value, classpath, apiTarget / "scala", options, 10, streams.value.log)
+      scaladoc(apiDocsScalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
 
       val javadocOptions = Seq(
         "-windowtitle",
@@ -177,10 +193,20 @@ object Docs {
       )
 
       val javadoc = {
-        if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
-        else DocNoCache.javadoc(label, compilers)
+        if (useCache) sbt.inc.Doc.cachedJavadoc(label, javaCache, compilers.javaTools())
+        else DocNoCache.javadoc(label, compilers, 10, streams.log)
       }
-      javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
+      val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
+      val reporter   = new LoggedReporter(10, streams.log)
+      javadoc.run(
+        apiDocsJavaSources.toList,
+        classpath.toList,
+        apiTarget / "java",
+        javadocOptions.toList,
+        incToolOpt,
+        streams.log,
+        reporter
+      )
     }
 
     val externalJavadocLinks = {
@@ -220,7 +246,7 @@ object Docs {
       }
       IO.write(f, newContent)
     }
-    apiTarget
+    Def.task(apiTarget)
   }
 
   // Converts an artifact into a Javadoc URL.
@@ -297,7 +323,7 @@ object Docs {
         if (includeApiDocs) childRef +: aggregated(childRef) else aggregated(childRef)
       }
     }
-    val rootProjectId  = Load.getRootProject(structure.units)(build)
+    val rootProjectId  = structure.rootProject(build)
     val rootProjectRef = ProjectRef(build, rootProjectId)
     aggregated(rootProjectRef)
   }
@@ -329,15 +355,46 @@ object Docs {
 
   // Generate documentation but avoid caching the inputs because of https://github.com/sbt/sbt/issues/1614
   object DocNoCache {
-    type GenerateDoc = (Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
+    type GenerateDoc = RawCompileLike.Gen
 
-    def scaladoc(label: String, compile: compiler.AnalyzingCompiler): GenerateDoc =
+    def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
       RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
 
-    def javadoc(label: String, compilers: Compiler.Compilers): GenerateDoc =
-      RawCompileLike.prepare(
-        label + " Java API documentation",
-        RawCompileLike.filterSources(Doc.javaSourcesOnly, compilers.javac.doc)
-      )
+    def javadoc(
+        label: String,
+        compiler: Compilers,
+        maxRetry: Int,
+        managedLogger: ManagedLogger
+    ): sbt.inc.Doc.JavaDoc = {
+      new JavaDoc {
+        override def run(
+            sources: List[File],
+            classpath: List[File],
+            outputDirectory: File,
+            options: List[String],
+            incToolOptions: IncToolOptions,
+            log: Logger,
+            reporter: Reporter
+        ): Unit = {
+          def helper(
+              sources: Seq[File],
+              classpath: Seq[File],
+              outputDirectory: File,
+              options: Seq[String],
+              maxErrors: Int,
+              log: Logger
+          ): Unit = {
+            compiler.javaTools().javadoc().run(sources.toArray, options.toArray, incToolOptions, reporter, log)
+          }
+
+          val javaSourcesOnly: File => Boolean = _.getName.endsWith(".java")
+          val impl = RawCompileLike.prepare(
+            label + " Java API documentation",
+            RawCompileLike.filterSources(javaSourcesOnly, helper)
+          )
+          impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
+        }
+      }
+    }
   }
 }

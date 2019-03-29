@@ -71,6 +71,18 @@ You can provide both HTTP port and address easily using system properties. The d
 $ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=127.0.0.1
 ```
 
+#### Specifying the HTTP server address and port using environment variables
+
+You can provide both HTTP port and address easily using environment variables, e.g. when using Bash in Linux:
+
+```
+export PLAY_HTTP_PORT=1234
+export PLAY_HTTPS_PORT=1235
+export PLAY_HTTP_ADDRESS=127.0.0.1
+```
+
+These variables are picked up last, meaning any already defined port or address in `application.conf` or via system properties will override these environment variables.
+
 #### Changing the path of RUNNING_PID
 
 It is possible to change the path to the file that contains the process id of the started application. Normally this file is placed in the root directory of your play project, however it is advised that you put it somewhere where it will be automatically cleared on restart, such as `/var/run`:
@@ -116,7 +128,11 @@ You can also use Netty as the HTTP server, which also provides its own configura
 
 @[](/confs/play-netty-server/reference.conf)
 
-> **Note**: The Netty server backend is not the default in 2.6.x, and so must be specifically enabled.
+> **Note**: The Netty server backend is not the default in 2.6.x, and so must be [[specifically enabled|NettyServer]].
+
+The configurations above are specific to the Akka HTTP and Netty server backend, but other more generic configurations are also available:
+
+@[](/confs/play-server/reference.conf)
 
 ## Logging configuration
 

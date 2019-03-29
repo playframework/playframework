@@ -108,19 +108,32 @@ object Reloader {
 
     val devMap = devSettings.toMap
 
-    // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
+    // http port can be defined as the first non-property argument, or a -D(play.server.)http.port argument or system property
     // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
     // Or it can be defined in devSettings as "play.server.http.port"
     val httpPortString: Option[String] =
-      otherArgs.headOption.orElse(prop("http.port")).orElse(devMap.get("play.server.http.port"))
+      prop("play.server.http.port")
+        .orElse(prop("http.port"))
+        .orElse(otherArgs.headOption)
+        .orElse(devMap.get("play.server.http.port"))
+        .orElse(sys.env.get("PLAY_HTTP_PORT"))
     val httpPort: Option[Int] = parsePortValue(httpPortString, Option(defaultHttpPort))
 
-    // https port can be defined as a -Dhttps.port argument or system property
-    val httpsPortString: Option[String] = prop("https.port").orElse(devMap.get("play.server.https.port"))
-    val httpsPort                       = parsePortValue(httpsPortString)
+    // https port can be defined as a -D(play.server.)https.port argument or system property
+    val httpsPortString: Option[String] =
+      prop("play.server.https.port")
+        .orElse(prop("https.port"))
+        .orElse(devMap.get("play.server.https.port"))
+        .orElse(sys.env.get("PLAY_HTTPS_PORT"))
+    val httpsPort = parsePortValue(httpsPortString)
 
-    // http address can be defined as a -Dhttp.address argument or system property
-    val httpAddress = prop("http.address").orElse(devMap.get("play.server.http.address")).getOrElse(defaultHttpAddress)
+    // http address can be defined as a -D(play.server.)http.address argument or system property
+    val httpAddress =
+      prop("play.server.http.address")
+        .orElse(prop("http.address"))
+        .orElse(devMap.get("play.server.http.address"))
+        .orElse(sys.env.get("PLAY_HTTP_ADDRESS"))
+        .getOrElse(defaultHttpAddress)
 
     (properties, httpPort, httpsPort, httpAddress)
   }
@@ -180,14 +193,24 @@ object Reloader {
       reloadLock: AnyRef
   ): DevServer = {
 
-    val (properties, httpPort, httpsPort, httpAddress) =
+    val (systemPropertiesArgs, httpPort, httpsPort, httpAddress) =
       filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
-    val systemProperties = extractSystemProperties(javaOptions)
+    val systemPropertiesJavaOptions = extractSystemProperties(javaOptions)
 
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
+    // If the port(s) or the address were set via their shortcuts (http.address, http(s).port or first non-property argument,
+    // but who knows how they will be set in a future change) also set the actual configs they are shortcuts for.
+    // So when reading the actual (long) keys from the config (play.server.http...) the values match and are correct.
+    val systemPropertiesAddressPorts = Seq("play.server.http.address" -> httpAddress) ++
+      httpPort.map(port => Seq("play.server.http.port"   -> port.toString)).getOrElse(Nil) ++
+      httpsPort.map(port => Seq("play.server.https.port" -> port.toString)).getOrElse(Nil)
+
+    // Properties are combined in this specific order so that command line
+    // properties win over the configured one, making them more useful.
+    val systemPropertiesCombined = systemPropertiesJavaOptions ++ systemPropertiesArgs ++ systemPropertiesAddressPorts
     // Set Java properties
-    (properties ++ systemProperties).foreach {
+    systemPropertiesCombined.foreach {
       case (key, value) => System.setProperty(key, value)
     }
 
@@ -307,7 +330,7 @@ object Reloader {
           runHooks.run(_.afterStopped())
 
           // Remove Java properties
-          properties.foreach {
+          systemPropertiesCombined.foreach {
             case (key, _) => System.clearProperty(key)
           }
         }
