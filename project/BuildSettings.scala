@@ -150,7 +150,7 @@ object BuildSettings {
               case default =>
                 val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
                 Some(url(link))
-              }
+            }
 
           case other =>
             None
