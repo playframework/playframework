@@ -8,11 +8,9 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util
-import java.util.Optional
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
 
-import akka.NotUsed
 import akka.stream.javadsl
 import akka.stream.scaladsl.FileIO
 import akka.stream.scaladsl.Sink
@@ -40,9 +38,7 @@ import play.libs.ws.WSRequest
 import play.libs.ws.WSResponse
 import play.mvc.Http
 
-import scala.compat.java8.FutureConverters
 import scala.compat.java8.OptionConverters
-import scala.concurrent.Await
 import scala.concurrent.Future
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
@@ -157,9 +153,12 @@ trait JavaWSSpec
     }
 
     "sending a simple multipart form body" in withServer { ws =>
-      val source = Source
-        .single(new Http.MultipartFormData.DataPart("hello", "world"))
-        .asJava[Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], NotUsed]
+      val part: Http.MultipartFormData.Part[javadsl.Source[ByteString, _]] =
+        new Http.MultipartFormData.DataPart("hello", "world")
+      val source: javadsl.Source[Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], _] = Source
+        .single(part)
+        .asJava
+
       val res  = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().asJson()
 

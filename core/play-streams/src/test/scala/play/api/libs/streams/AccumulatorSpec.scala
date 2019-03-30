@@ -3,24 +3,22 @@
  */
 package play.api.libs.streams
 
-import java.util.concurrent.CompletionStage
-
 import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
-import akka.stream.ActorMaterializer
-import akka.stream.Materializer
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import org.specs2.mutable.Specification
 
 import scala.compat.java8.FutureConverters
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccumulatorSpec extends Specification {
 
@@ -134,7 +132,7 @@ class AccumulatorSpec extends Specification {
       "Java asScala" in withMaterializer { implicit m =>
         await(
           play.libs.streams.Accumulator
-            .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+            .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
             .asScala()
             .run(source)
         ) must_== 6
@@ -236,7 +234,7 @@ class AccumulatorSpec extends Specification {
         "Java asScala" in withMaterializer { implicit m =>
           await(
             play.libs.streams.Accumulator
-              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
               .asScala()
               .run(source)
           ) must_== 6
@@ -299,7 +297,7 @@ class AccumulatorSpec extends Specification {
         "Java asScala" in withMaterializer { implicit m =>
           await(
             play.libs.streams.Accumulator
-              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int, CompletionStage[Int]])
+              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
               .asScala()
               .run(6)
           ) must_== 6
