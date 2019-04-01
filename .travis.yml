@@ -2,11 +2,6 @@ language: scala
 
 branches:
   only:
-    - master
-    # Explicitly listing the maintained versions since we don't care
-    # anymore about builds in unmaintained branches.
-    - 2.7.x
-    - 2.6.x
     # Builds for tags. See Travis docs for more details:
     # https://docs.travis-ci.com/user/customizing-the-build/#using-regular-expressions
     - /^\d+\.\d+\.\d+(\-\w{2,})?$/
