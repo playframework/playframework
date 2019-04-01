@@ -4,6 +4,8 @@
 package javaguide.ws.controllers;
 
 // #ws-openid-controller
+// ###insert: package controllers;
+
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 

@@ -9,36 +9,35 @@ The Play team uses [Lightbend Tech Hub](https://developer.lightbend.com/start/?g
 
 ### Java
 
-| Example                                   | Download                                                                                 | Repository                                                                         |
-|:------------------------------------------|:-----------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------|
-| REST API Example                          | [Download (zip)](https://example.lightbend.com/v1/download/play-java-rest-api-example)   | [Github](https://github.com/playframework/play-java-rest-api-example/tree/2.6.x)   |
-| File Upload Example                       | [Download (zip)](https://example.lightbend.com/v1/download/play-java-fileupload-example) | [Github](https://github.com/playframework/play-java-fileupload-example/tree/2.6.x) |
-| Forms Example                             | [Download (zip)](https://example.lightbend.com/v1/download/play-java-forms-example)      | [Github](https://github.com/playframework/play-java-forms-example/tree/2.6.x)      |
-| JPA Example                               | [Download (zip)](https://example.lightbend.com/v1/download/play-java-jpa-example)        | [Github](https://github.com/playframework/play-java-jpa-example/tree/2.6.x)        |
-| Ebean Example                             | [Download (zip)](https://example.lightbend.com/v1/download/play-java-ebean-example)      | [Github](https://github.com/playframework/play-java-ebean-example/tree/2.6.x)      |
-| Websocket Example                         | [Download (zip)](https://example.lightbend.com/v1/download/play-java-websocket-example)  | [Github](https://github.com/playframework/play-java-websocket-example/tree/2.6.x)  |
-| Chatroom using Websockets Example         | [Download (zip)](https://example.lightbend.com/v1/download/play-java-chatroom-example)   | [Github](https://github.com/playframework/play-java-chatroom-example/tree/2.6.x)   |
-| Streaming Example                         | [Download (zip)](https://example.lightbend.com/v1/download/play-java-streaming-example)  | [Github](https://github.com/playframework/play-java-streaming-example/tree/2.6.x)  |
-| Compile Time Dependency Injection Example | [Download (zip)](https://example.lightbend.com/v1/download/play-java-compile-di-example) | [Github](https://github.com/playframework/play-java-compile-di-example/tree/2.6.x) |
-| Using Dagger 2 for Compile Time DI        | [Download (zip)](https://example.lightbend.com/v1/download/play-java-dagger2-example)    | [Github](https://github.com/playframework/play-java-dagger2-example/tree/2.6.x)    |
+| Example                                   | Repository                                                                         |
+|:------------------------------------------|:-----------------------------------------------------------------------------------|
+| REST API Example                          | [GitHub](https://github.com/playframework/play-java-rest-api-example/tree/2.6.x)   |
+| File Upload Example                       | [GitHub](https://github.com/playframework/play-java-fileupload-example/tree/2.6.x) |
+| Forms Example                             | [GitHub](https://github.com/playframework/play-java-forms-example/tree/2.6.x)      |
+| JPA Example                               | [GitHub](https://github.com/playframework/play-java-jpa-example/tree/2.6.x)        |
+| Ebean Example                             | [GitHub](https://github.com/playframework/play-java-ebean-example/tree/2.6.x)      |
+| Websocket Example                         | [GitHub](https://github.com/playframework/play-java-websocket-example/tree/2.6.x)  |
+| Chatroom using Websockets Example         | [GitHub](https://github.com/playframework/play-java-chatroom-example/tree/2.6.x)   |
+| Streaming Example                         | [GitHub](https://github.com/playframework/play-java-streaming-example/tree/2.6.x)  |
+| Compile Time Dependency Injection Example | [GitHub](https://github.com/playframework/play-java-compile-di-example/tree/2.6.x) |
+| Using Dagger 2 for Compile Time DI        | [GitHub](https://github.com/playframework/play-java-dagger2-example/tree/2.6.x)    |
 
 ### Scala
 
-| Example                                    | Download                                                                                  | Repository                                                                                  |
-|:-------------------------------------------|:------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------|
-| REST API Example                           | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-rest-api-example)   | [Github](https://github.com/playframework/play-scala-rest-api-example/tree/2.6.x)           |
-| File Upload Example                        | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-fileupload-example) | [Github](https://github.com/playframework/play-scala-fileupload-example/tree/2.6.x)         |
-| Forms Example                              | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-forms-example)      | [Github](https://github.com/playframework/play-scala-forms-example/tree/2.6.x)              |
-| Anorm Example                              | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-anorm-example)      | [Github](https://github.com/playframework/play-scala-anorm-example/tree/2.6.x)              |
-| Integrated Slick Example                   | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-slick-example)      | [Github](https://github.com/playframework/play-scala-slick-example/tree/2.6.x)              |
-| Isolated Slick Example                     | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-isolated-slick-example) | [Github](https://github.com/playframework/play-scala-isolated-slick-example/tree/2.6.x) |
-| Websocket Example                          | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-websocket-example)  | [Github](https://github.com/playframework/play-scala-websocket-example/tree/2.6.x)          |
-| Chatroom using Websockets Example          | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-chatroom-example)   | [Github](https://github.com/playframework/play-scala-chatroom-example/tree/2.6.x)           |
-| Streaming Example                          | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-streaming-example)  | [Github](https://github.com/playframework/play-scala-streaming-example/tree/2.6.x)          |
-| Compile Time Dependency Injection Example  | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-compile-di-example) | [Github](https://github.com/playframework/play-scala-compile-di-example/tree/2.6.x)         |
-| Dependency Injection using Macwire Example | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-macwire-di-example) | [Github](https://github.com/playframework/play-scala-macwire-di-example/tree/2.6.x)         |
-| Secure Session Example                     | [Download (zip)](https://example.lightbend.com/v1/download/play-scala-secure-session-example) | [Github](https://github.com/playframework/play-scala-secure-session-example/tree/2.6.x) |
-
+| Example                                    | Repository                                                                                  |
+|:-------------------------------------------|:--------------------------------------------------------------------------------------------|
+| REST API Example                           | [GitHub](https://github.com/playframework/play-scala-rest-api-example/tree/2.6.x)           |
+| File Upload Example                        | [GitHub](https://github.com/playframework/play-scala-fileupload-example/tree/2.6.x)         |
+| Forms Example                              | [GitHub](https://github.com/playframework/play-scala-forms-example/tree/2.6.x)              |
+| Anorm Example                              | [GitHub](https://github.com/playframework/play-scala-anorm-example/tree/2.6.x)              |
+| Integrated Slick Example                   | [GitHub](https://github.com/playframework/play-scala-slick-example/tree/2.6.x)              |
+| Isolated Slick Example                     | [GitHub](https://github.com/playframework/play-scala-isolated-slick-example/tree/2.6.x)     |
+| Websocket Example                          | [GitHub](https://github.com/playframework/play-scala-websocket-example/tree/2.6.x)          |
+| Chatroom using Websockets Example          | [GitHub](https://github.com/playframework/play-scala-chatroom-example/tree/2.6.x)           |
+| Streaming Example                          | [GitHub](https://github.com/playframework/play-scala-streaming-example/tree/2.6.x)          |
+| Compile Time Dependency Injection Example  | [GitHub](https://github.com/playframework/play-scala-compile-di-example/tree/2.6.x)         |
+| Dependency Injection using Macwire Example | [GitHub](https://github.com/playframework/play-scala-macwire-di-example/tree/2.6.x)         |
+| Secure Session Example                     | [GitHub](https://github.com/playframework/play-scala-secure-session-example/tree/2.6.x)     |
 
 ## Third Party Tutorials and Templates
 
