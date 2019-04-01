@@ -28,7 +28,7 @@ git diff --exit-code || (
 
 
 printMessage "VALIDATE FILE LICENSE HEADERS"
-runSbt checkHeaders test:checkHeaders
+runSbt headerCheck test:headerCheck
 
 
 printMessage "RUNNING WHITESOURCE REPORT"
