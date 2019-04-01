@@ -53,7 +53,7 @@ object BuildSettings {
   val fileHeaderSettings = Seq(
     headerEmptyLine := false,
     excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
-      fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
+      fileUriRegexFilter(".*/netty/utils/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>"))
   )
