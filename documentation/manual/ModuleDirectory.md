@@ -7,19 +7,18 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ## API hosting
 
+### iheartradio/play-swagger
+
+- **Website:** <https://github.com/iheartradio/play-swagger>
+- **Short description:** Write a Swagger spec in your routes file
+
 ### swagger-play
+
 * **Website:** <https://github.com/swagger-api/swagger-play>
 * **Short description:** Generate a Swagger API spec from your Play routes file and Swagger annotations
 
-### iheartradio/play-swagger
-* **Website:** <https://github.com/iheartradio/play-swagger>
-* **Short description:** Write a Swagger spec in your routes file
-
-### zalando/play-swagger
-* **Website:** <https://github.com/zalando/play-swagger>
-* **Short description:** Generate Play code from a Swagger spec
-
 ### mohiva/swagger-codegen-play-scala
+
 * **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
 * **Short description:** Swagger client generator which is based on the PlayWS library
 
@@ -238,7 +237,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 to Twirl
 
 ### Handlebars templates (Java and Scala)
- 
+
 * **Website:** <https://github.com/andriykuba/play-handlebars>
 * **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
 * **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
