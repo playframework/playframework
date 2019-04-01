@@ -3,8 +3,6 @@
  */
 package javaguide.ws.controllers;
 
-import play.twirl.api.Html;
-
 // #ws-openid-controller
 // ###insert: package controllers;
 
@@ -14,6 +12,7 @@ import java.util.concurrent.CompletionStage;
 import play.data.*;
 import play.libs.openid.*;
 import play.mvc.*;
+import play.twirl.api.Html;
 
 import javax.inject.Inject;
 
