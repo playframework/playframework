@@ -12,11 +12,6 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 - **Website:** <https://github.com/iheartradio/play-swagger>
 - **Short description:** Write a Swagger spec in your routes file
 
-### swagger-play
-
-* **Website:** <https://github.com/swagger-api/swagger-play>
-* **Short description:** Generate a Swagger API spec from your Play routes file and Swagger annotations
-
 ### mohiva/swagger-codegen-play-scala
 
 * **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
