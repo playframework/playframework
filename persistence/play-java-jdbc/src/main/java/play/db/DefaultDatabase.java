@@ -125,11 +125,6 @@ public class DefaultDatabase implements Database {
     db.shutdown();
   }
 
-  @Override
-  public play.api.db.Database toScala() {
-    return db;
-  }
-
   /**
    * Create a Scala function wrapper for ConnectionRunnable.
    *
