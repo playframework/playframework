@@ -76,7 +76,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 
       val testAppProvider = new TestApplicationProvider
       withApplicationProvider(testAppProvider) { implicit port: Port => // First we make a request to the server. This tries to load the application
-        // but fails because we set our TestApplicationProvider to contain to a Failure
+        // but fails because we set our TestApplicationProvider to contain a Failure
         // instead of an Application. The server can't load the Application configuration
         // yet, so it loads some default flash configuration.
 
