@@ -17,7 +17,7 @@ $ git clone git://github.com/playframework/playframework.git
 
 Checkout the branch you want, the current development branch is called `master`, while stable branches for major releases are named with a `.x`, for example, `2.7.x`.
 
-Now go to the `framework` directory and run `sbt`:
+Now run `sbt`:
 
 ```bash
 $ sbt
