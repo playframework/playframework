@@ -225,12 +225,19 @@ object BuildSettings {
       // Removed deprecated TOO_MANY_REQUEST field
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TOO_MANY_REQUEST"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MessagesAbstractController.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TooManyRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ControllerHelpers.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ControllerHelpers.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MessagesAbstractController.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MessagesAbstractController.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results.TooManyRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsBuilder.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsBuilder.TooManyRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TooManyRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TOO_MANY_REQUEST"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsBuilder.TOO_MANY_REQUEST")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TooManyRequest")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
