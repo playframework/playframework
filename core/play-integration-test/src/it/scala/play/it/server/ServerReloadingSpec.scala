@@ -95,7 +95,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
           .build()
 
         // This client producer is created based on the application above, which configures
-        // the use of cookie store to "true".N
+        // the use of cookie store to "true".
         val persistentCookiesClientProducer: (Port, String) => WSClient = { (port, scheme) =>
           application.injector.instanceOf[WSClient]
         }
