@@ -165,7 +165,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.12.2"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.14.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -269,7 +269,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.6.2"
+  val caffeineVersion = "2.7.0"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
