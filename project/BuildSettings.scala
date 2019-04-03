@@ -222,7 +222,7 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.TOO_MANY_REQUEST")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
