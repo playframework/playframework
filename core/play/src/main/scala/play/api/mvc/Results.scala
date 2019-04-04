@@ -734,10 +734,6 @@ trait Results {
   /** Generates a ‘431 REQUEST_HEADER_FIELDS_TOO_LARGE’ result. */
   val RequestHeaderFieldsTooLarge = new Status(REQUEST_HEADER_FIELDS_TOO_LARGE)
 
-  /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  @deprecated("Use TooManyRequests instead", "2.6.0")
-  val TooManyRequest = TooManyRequests
-
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
 
