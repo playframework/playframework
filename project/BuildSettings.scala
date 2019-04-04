@@ -221,7 +221,10 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Removed deprecated method Database.toScala()
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.Database.toScala"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"

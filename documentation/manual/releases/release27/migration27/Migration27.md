@@ -48,9 +48,20 @@ routesGenerator := StaticRoutesGenerator
 
 See changes made in `play.mvc.Http.Context` APIs. This is only relevant for Java users: [[Java `Http.Context` changes|JavaHttpContextMigration27]].
 
-### Play WS API Changes
+### Play WS Changes
 
 In Play 2.6, we extracted most of Play-WS into a [standalone project](https://github.com/playframework/play-ws) that has an independent release cycle. Play-WS now has a significant release that requires some changes in Play itself.
+
+#### Cookie store handling 
+
+Play-WS 2.0 brings an updated version of [Async-Http-Client](https://github.com/AsyncHttpClient/async-http-client) which has an internal cookie store that is global and can affect your application if you are sending user sensitive cookies in requests to third-party services. For example, since the cookie store is global, the application can mix cookies for a user with cookies for another one when making requests to the same host. There is now a new configuration that you can use to enable or disable the cache:
+
+```HOCON
+# Enables global cache cookie store
+play.ws.ahc.useCookieStore = true
+```
+
+By default, the cache is disabled. This affects other places such as following redirects automatically. Previously, the cookies for the first request were sent in the subsequent request, which is not the case when the cache is disabled. There is currently no way to configure the cache per request.
 
 #### Scala API
 
