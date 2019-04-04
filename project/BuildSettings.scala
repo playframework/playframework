@@ -222,6 +222,12 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Removed deprecated method Database.toScala()
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.Database.toScala"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala"),
+      // Removed deprecated BodyParsers.urlFormEncoded method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DefaultPlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
       // Removed deprecated TOO_MANY_REQUEST field
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TOO_MANY_REQUEST"),

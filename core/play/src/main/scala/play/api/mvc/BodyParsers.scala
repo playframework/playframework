@@ -859,12 +859,6 @@ trait PlayBodyParsers extends BodyParserUtils {
   def tolerantFormUrlEncoded: BodyParser[Map[String, Seq[String]]] =
     tolerantFormUrlEncoded(DefaultMaxTextLength)
 
-  @deprecated("Use formUrlEncoded", "2.6.0")
-  def urlFormEncoded(maxLength: Long): BodyParser[Map[String, Seq[String]]] = formUrlEncoded(maxLength)
-
-  @deprecated("Use formUrlEncoded", "2.6.0")
-  def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = formUrlEncoded
-
   /**
    * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
    *
