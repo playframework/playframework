@@ -224,7 +224,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // Removed deprecated method Database.toScala()
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.Database.toScala"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala"),
+      // Removed deprecated BodyParsers.urlFormEncoded method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DefaultPlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded")
     ),
     unmanagedSourceDirectories in Compile += {
       (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
