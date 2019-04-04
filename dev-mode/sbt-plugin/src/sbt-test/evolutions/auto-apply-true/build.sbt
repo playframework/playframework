@@ -16,7 +16,7 @@ lazy val root = (project in file("."))
       guice,
       javaJdbc,
       evolutions,
-      "com.h2database" % "h2" % "1.4.197"
+      "com.h2database" % "h2" % "1.4.199"
     ),
     InputKey[Unit]("applyEvolutions") := {
       val args        = Def.spaceDelimited("<path>").parsed
