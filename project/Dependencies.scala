@@ -91,7 +91,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.1.5.RELEASE"
+  val springFrameworkVersion = "5.1.6.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
