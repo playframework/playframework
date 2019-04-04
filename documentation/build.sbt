@@ -8,9 +8,8 @@ import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import sbt._
 
-import de.heikoseeberger.sbtheader.HeaderKey._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
-import de.heikoseeberger.sbtheader.HeaderPattern
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 
 val DocsApplication = config("docs").hide
 
@@ -65,18 +64,8 @@ lazy val main = Project("Play-Documentation", file("."))
     scalaVersion := PlayVersion.scalaVersion,
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
-    headers := Map(
-      "scala" -> (HeaderPattern.cStyleBlockComment,
-      """|/*
-         | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
-         | */
-         |""".stripMargin),
-      "java" -> (HeaderPattern.cStyleBlockComment,
-      """|/*
-         | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
-         | */
-         |""".stripMargin)
-    ),
+    headerEmptyLine := false,
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc.  <https://www.lightbend.com>")),
     sourceDirectories in format in Test ++= (unmanagedSourceDirectories in Test).value,
     sourceDirectories in format in Test ++= (unmanagedResourceDirectories in Test).value
   )
