@@ -237,7 +237,7 @@ object Dependencies {
     logback % Test
   )
 
-  val fluentleniumVersion = "3.7.1"
+  val fluentleniumVersion = "3.8.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
   val seleniumVersion = "3.141.59"
