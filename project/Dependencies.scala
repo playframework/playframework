@@ -260,7 +260,7 @@ object Dependencies {
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
 
   val jcacheApi = Seq(
-    "javax.cache" % "cache-api" % "1.0.0"
+    "javax.cache" % "cache-api" % "1.1.0"
   )
 
   val ehcacheVersion = "2.10.6"
