@@ -15,7 +15,7 @@ runSbt validateDocs
 printMessage "ALL DOCUMENTATION TESTS PASSED"
 
 # Check that sample code have copyright headers
-runSbt checkHeaders test:checkHeaders
+runSbt headerCheck test:headerCheck
 
 # Check that markdown files have copyright headers
 ./addMarkdownCopyright
