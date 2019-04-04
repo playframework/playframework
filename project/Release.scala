@@ -46,7 +46,10 @@ object Release {
       if (newState.remainingCommands.isEmpty) {
         newState
       } else {
-        runCommand(newState.remainingCommands.head, newState.copy(remainingCommands = newState.remainingCommands.tail))
+        runCommand(
+          newState.remainingCommands.head.commandLine,
+          newState.copy(remainingCommands = newState.remainingCommands.tail)
+        )
       }
     }
 

@@ -1,22 +1,25 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
-import sbt.ScriptedPlugin._
+import java.util.regex.Pattern
+
+import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
 import sbt._
 import Keys.version
 import Keys._
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
-import de.heikoseeberger.sbtheader.HeaderKey._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
-import de.heikoseeberger.sbtheader.HeaderPattern
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 
 import bintray.BintrayPlugin.autoImport._
 import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
+import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
+import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
@@ -39,116 +42,124 @@ object BuildSettings {
   /**
    * File header settings
    */
+  private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
+    val compiledPattern = Pattern.compile(pattern)
+    override def accept(pathname: File): Boolean = {
+      val uriString = pathname.toURI.toString
+      compiledPattern.matcher(uriString).matches()
+    }
+  }
+
   val fileHeaderSettings = Seq(
-    excludes := Seq("*/netty/utils/*", "*/inject/SourceProvider.java"),
-    headers := Map(
-      "scala" -> (HeaderPattern.cStyleBlockComment,
-      """|/*
-         | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
-         | */
-         |""".stripMargin),
-      "java" -> (HeaderPattern.cStyleBlockComment,
-      """|/*
-         | * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
-         | */
-         |""".stripMargin)
-    )
+    headerEmptyLine := false,
+    excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
+      fileUriRegexFilter(".*/netty/utils/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
+      fileUriRegexFilter(".*/libs/reflect/.*"),
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>"))
   )
 
-  /**
-   * These settings are used by all projects
-   */
-  def playCommonSettings: Seq[Setting[_]] = {
+  def evictionSettings: Seq[Setting[_]] = Seq(
+    // This avoids a lot of dependency resolution warnings to be showed.
+    evictionWarningOptions in update := EvictionWarningOptions.default
+      .withWarnTransitiveEvictions(false)
+      .withWarnDirectEvictions(false)
+  )
 
-    fileHeaderSettings ++ Seq(
-      homepage := Some(url("https://playframework.com")),
-      ivyLoggingLevel := UpdateLogging.DownloadOnly,
-      resolvers ++= Seq(
-        Resolver.sonatypeRepo("releases"),
-        Resolver.typesafeRepo("releases"),
-        Resolver.typesafeIvyRepo("releases")
-      ),
-      javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-      scalacOptions in (Compile, doc) := {
-        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, 12)) => Seq("-no-java-comments")
-          case _             => Seq()
-        }
-      },
-      fork in Test := true,
-      parallelExecution in Test := false,
-      testListeners in (Test, test) := Nil,
-      javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
-      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
-      bintrayPackage := "play-sbt-plugin",
-      apiURL := {
-        val v = version.value
-        if (isSnapshot.value) {
-          Some(url("https://www.playframework.com/documentation/2.6.x/api/scala/index.html"))
-        } else {
-          Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
-        }
-      },
-      autoAPIMappings := true,
-      apiMappings += scalaInstance.value.libraryJar -> url(
-        raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
-      ),
-      apiMappings += {
-        // Maps JDK 1.8 jar into apidoc.
-        val rtJar: String = System
-          .getProperty("sun.boot.class.path")
-          .split(java.io.File.pathSeparator)
-          .collectFirst {
-            case str: String if str.endsWith(java.io.File.separator + "rt.jar") => str
-          }
-          .get // fail hard if not found
-        file(rtJar) -> url(Docs.javaApiUrl)
-      },
-      apiMappings ++= {
-        // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
-        // See the following:
-        //
-        // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
-        // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
-        // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
+  val DocsApplication    = config("docs").hide
+  val SourcesApplication = config("sources").hide
 
-        val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
-        val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
-
-        val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
-
-        (for {
-          jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
-          fullyFile = jar.data
-          urlOption = fullyFile.getCanonicalPath match {
-            case ScalaLibraryRegex(v) =>
-              Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
-
-            case JavaxInjectRegex(v) =>
-              // the jar file doesn't match up with $apiName-
-              Some(url(Docs.javaxInjectUrl))
-
-            case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
-              val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
-              apiOrganization match {
-                case "com.typesafe.akka" =>
-                  Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
-
-                case default =>
-                  val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
-                  Some(url(link))
-              }
-
-            case other =>
-              None
-
-          }
-          url <- urlOption
-        } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+  /** These settings are used by all projects. */
+  def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    fileHeaderSettings,
+    homepage := Some(url("https://playframework.com")),
+    ivyLoggingLevel := UpdateLogging.DownloadOnly,
+    resolvers ++= Seq(
+      Resolver.sonatypeRepo("releases"),
+      Resolver.typesafeRepo("releases"),
+      Resolver.typesafeIvyRepo("releases")
+    ),
+    evictionSettings,
+    ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
+    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
+    scalacOptions in (Compile, doc) := {
+      // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
+        case _                       => Seq()
       }
-    )
-  }
+    },
+    fork in Test := true,
+    parallelExecution in Test := false,
+    testListeners in (Test, test) := Nil,
+    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
+    bintrayPackage := "play-sbt-plugin",
+    apiURL := {
+      val v = version.value
+      if (isSnapshot.value) {
+        Some(url("https://www.playframework.com/documentation/2.6.x/api/scala/index.html"))
+      } else {
+        Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
+      }
+    },
+    autoAPIMappings := true,
+    apiMappings += scalaInstance.value.libraryJar -> url(
+      raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
+    ),
+    apiMappings += {
+      // Maps JDK 1.8 jar into apidoc.
+      val rtJar: String = System
+        .getProperty("sun.boot.class.path")
+        .split(java.io.File.pathSeparator)
+        .collectFirst {
+          case str: String if str.endsWith(java.io.File.separator + "rt.jar") => str
+        }
+        .get // fail hard if not found
+      file(rtJar) -> url(Docs.javaApiUrl)
+    },
+    apiMappings ++= {
+      // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
+      // See the following:
+      //
+      // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
+      // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
+      // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
+
+      val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+      val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
+
+      val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
+
+      (for {
+        jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
+        fullyFile = jar.data
+        urlOption = fullyFile.getCanonicalPath match {
+          case ScalaLibraryRegex(v) =>
+            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+
+          case JavaxInjectRegex(v) =>
+            // the jar file doesn't match up with $apiName-
+            Some(url(Docs.javaxInjectUrl))
+
+          case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
+            val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
+            apiOrganization match {
+              case "com.typesafe.akka" =>
+                Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
+
+              case default =>
+                val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
+                Some(url(link))
+            }
+
+          case other =>
+            None
+
+        }
+        url <- urlOption
+      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+    }
+  )
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to development, mode of Play.
@@ -297,8 +308,8 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
-    scriptedLaunchOpts ++= Seq(
+    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
+    ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
       "-Dscala.version=" + sys.props
@@ -309,8 +320,8 @@ object BuildSettings {
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] =
-    ScriptedPlugin.scriptedSettings ++ Seq(
-      ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
+    Seq(
+      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
 
   /**

@@ -8,7 +8,7 @@
 cd "$BASEDIR"
 
 printMessage "VALIDATE BINARY COMPATIBILITY"
-runSbt mimaReportBinaryIssues
+runSbtNoisy mimaReportBinaryIssues
 
 
 printMessage "VALIDATE SCALA CODE FORMATTING"
@@ -19,7 +19,7 @@ scripts/scalafmt --test || (
 )
 
 printMessage "VALIDATE JAVA CODE FORMATTING"
-runSbt javafmt
+runSbtNoisy javafmt
 git diff --exit-code || (
   echo "[error] ERROR: javafmt check failed, see differences above."
   echo "[error] To fix, format your sources using sbt javafmt test:javafmt before submitting a pull request."
@@ -28,12 +28,12 @@ git diff --exit-code || (
 
 
 printMessage "VALIDATE FILE LICENSE HEADERS"
-runSbt checkHeaders test:checkHeaders
+runSbtNoisy headerCheck test:headerCheck
 
 
 printMessage "RUNNING WHITESOURCE REPORT"
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    runSbt 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
+    runSbtNoisy 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
 else
     echo "[info]"
     echo "[info] This is a pull request so Whitesource WILL NOT RUN."

@@ -11,7 +11,7 @@ SBT_VERSION="0.13"
 cd "$BASEDIR"
 
 printMessage "PUBLISHING PLAY LOCALLY FOR SBT ${SBT_VERSION}"
-runSbtNoisy quickPublish publishLocal
+runSbtNoisy ++${SCALA_VERSION} quickPublish publishLocal
 
 printMessage "RUNNING SCRIPTED TESTS FOR SBT ${SBT_VERSION}"
 runSbtNoisy "++${SCALA_VERSION} scripted"
