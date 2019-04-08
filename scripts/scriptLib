@@ -34,6 +34,11 @@ printMessage() {
   echo "[info]"
 }
 
-runSbt() {
+# Runs sbt commands using Akka and Akka HTTP snapshots
+runSbtWithSnapshots() {
   sbt "$AKKA_VERSION_OPTS" "$AKKA_HTTP_VERSION_OPTS" -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+}
+
+runSbt() {
+  sbt -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }

@@ -8,5 +8,5 @@
 cd "$DOCUMENTATION"
 
 printMessage "RUNNING DOCUMENTATION TESTS"
-runSbt test
+runSbtWithSnapshots test
 printMessage "ALL DOCUMENTATION TESTS PASSED"
