@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 
 import play.Mode;
 import play.api.Configuration;
@@ -52,6 +54,47 @@ public class ResultsTest {
   @After
   public void clearHttpContext() {
     Http.Context.current.remove();
+  }
+
+  @Test
+  public void shouldCopyFlashWhenCallingResultAs() {
+    Map<String, String> flash = new HashMap<>();
+    flash.put("flash.message", "flash message value");
+    Result result = Results.redirect("/somewhere").withFlash(flash);
+
+    Result as = result.as(Http.MimeTypes.HTML);
+    assertNotNull(as.flash());
+    assertTrue(as.flash().getOptional("flash.message").isPresent());
+    assertEquals(as.flash().getOptional("flash.message").get(), "flash message value");
+  }
+
+  @Test
+  public void shouldCopySessionWhenCallingResultAs() {
+    Map<String, String> session = new HashMap<>();
+    session.put("session.message", "session message value");
+    Result result = Results.ok("Result test body").withSession(session);
+
+    Result as = result.as(Http.MimeTypes.HTML);
+    assertNotNull(as.session());
+    assertTrue(as.session().getOptional("session.message").isPresent());
+    assertEquals(as.session().getOptional("session.message").get(), "session message value");
+  }
+
+  @Test
+  public void shouldCopyHeadersWhenCallingResultAs() {
+    Result result = Results.ok("Result test body").withHeader("X-Header", "header value");
+    Result as = result.as(Http.MimeTypes.HTML);
+    assertEquals("header value", as.header("X-Header").get());
+  }
+
+  @Test
+  public void shouldCopyCookiesWhenCallingResultAs() {
+    Result result =
+        Results.ok("Result test body")
+            .withCookies(Http.Cookie.builder("cookie-name", "cookie value").build())
+            .as(Http.MimeTypes.HTML);
+
+    assertEquals("cookie value", result.getCookie("cookie-name").get().value());
   }
 
   // -- Path tests
