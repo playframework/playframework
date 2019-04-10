@@ -535,7 +535,7 @@ public class Result {
    * @return the transformed copy
    */
   public Result as(String contentType) {
-    return new Result(header, body.as(contentType));
+    return new Result(header, body.as(contentType), session, flash, cookies);
   }
 
   /**

@@ -20,15 +20,24 @@ teams:
     permission: write
 
 branches:
-  - name: "*"
+  - &master_branch_protection
+    name: "master"
     protection:
       required_pull_request_reviews:
         required_approving_review_count: 1
         dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+        dismissal_restrictions: {}
       # Require status checks to pass before merging
       required_status_checks:
+        # Require branches to be up to date before merging.
+        strict: true
         # The list of status checks to require in order to merge into this branch
         contexts: ["Travis CI - Pull Request", "typesafe-cla-validator"]
+      enforce_admins: null
+      restrictions: null
+  - <<: *master_branch_protection
+    name: "2.[0-9].x"
 
 labels:
   - color: f9d0c4
