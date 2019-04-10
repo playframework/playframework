@@ -59,6 +59,7 @@ before_cache:
   - find $HOME/.sbt -name "*.lock" -delete
 
 notifications:
+  email: play-team@lightbend.com
   webhooks:
     urls:
     - https://webhooks.gitter.im/e/d2c8a242a2615f659595
