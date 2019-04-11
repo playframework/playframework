@@ -31,7 +31,7 @@ branches:
       # Require status checks to pass before merging
       required_status_checks:
         # Require branches to be up to date before merging.
-        strict: true
+        strict: false
         # The list of status checks to require in order to merge into this branch
         contexts: ["Travis CI - Pull Request", "typesafe-cla-validator"]
       enforce_admins: null
