@@ -19,5 +19,3 @@ lazy val root = (project in file("."))
       DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
     }
   )
-
-
