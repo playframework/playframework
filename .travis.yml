@@ -1,5 +1,8 @@
 language: scala
 
+# Only build PRs and tags: https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
+if: type = pull_request OR tag IS present
+
 addons:
   apt:
     packages:
