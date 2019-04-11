@@ -205,6 +205,7 @@ object PlaySettings extends PlaySettingsCompat {
 
   lazy val webSettings = Seq[Setting[_]](
     TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
+    playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value,
     RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
     // sbt-web
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
