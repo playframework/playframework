@@ -4,6 +4,7 @@
 
 package play.it.test
 
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -72,6 +73,8 @@ trait OkHttpEndpointSupport {
           // See https://tools.ietf.org/html/rfc2818#section-3.1
           b.hostnameVerifier((_, _) => true)
         }
+        // https://github.com/square/okhttp/issues/3146#issuecomment-407933860
+        b.pingInterval(500, TimeUnit.MILLISECONDS)
         b
       }
     }
