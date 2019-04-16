@@ -268,8 +268,9 @@ public class Scala extends CrossScala {
   public static <A, B> scala.PartialFunction<A, B> partialFunction(Function<A, B> f) {
     return new JavaPartialFunction<A, B>() {
       @Override
-      public B apply(A a, boolean isCheck) throws Exception {
-        return f.apply(a);
+      public B apply(A a, boolean isCheck) {
+        if (isCheck) return null;
+        else return f.apply(a);
       }
     };
   }
