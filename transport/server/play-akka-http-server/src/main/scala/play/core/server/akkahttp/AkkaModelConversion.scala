@@ -99,7 +99,7 @@ private[server] class AkkaModelConversion(
 
         override lazy val path: String = {
           try {
-            request.uri.path.toString
+            uri.getRawPath
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse path; returning empty string.", e)
