@@ -265,7 +265,8 @@ object BuildSettings {
       .settings(omnidocSettings: _*)
       .settings(
         autoScalaLibrary := false,
-        crossPaths := false
+        crossPaths := false,
+        crossScalaVersions := Seq(ScalaVersions.scala212)
       )
   }
 
