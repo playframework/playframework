@@ -102,7 +102,8 @@ trait ApplicationLifecycle {
  */
 @Singleton
 class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
-  private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
+  private val logger = Logger(getClass)
+  private val hooks  = new ConcurrentLinkedDeque[() => Future[_]]()
 
   override def addStopHook(hook: () => Future[_]): Unit = hooks.push(hook)
 
@@ -131,7 +132,7 @@ class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
             case Failure(e) => Future.failed(e)
           }
           hookFuture.recover {
-            case e => Logger.error("Error executing stop hook", e)
+            case e => logger.error("Error executing stop hook", e)
           }
         })
         else previous
