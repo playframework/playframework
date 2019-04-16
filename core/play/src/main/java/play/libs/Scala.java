@@ -105,9 +105,7 @@ public class Scala extends CrossScala {
       public A apply() {
         try {
           return callable.call();
-        } catch (RuntimeException e) {
-          throw e;
-        } catch (Error e) {
+        } catch (RuntimeException | Error e) {
           throw e;
         } catch (Throwable t) {
           throw new RuntimeException(t);

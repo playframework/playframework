@@ -9,6 +9,7 @@ import javax.inject.Inject
 import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
+import play.core.Execution
 import play.utils.ExecCtxUtils
 
 import scala.concurrent._
@@ -24,19 +25,12 @@ import scala.language.higherKinds
  */
 trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler { self =>
 
-  /**
-   * Returns itself, for better support in the routes file.
-   *
-   * @return itself
-   */
+  /** @return itself, for better support in the routes file. */
   def apply() = this
 
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
-    def apply(rh: play.mvc.Http.RequestHeader) = {
-      import play.core.Execution.Implicits.trampoline
-      self(rh.asScala).map(_.asJava).asJava
-    }
-    override def apply(rh: RequestHeader) = self(rh)
+    def apply(rh: play.mvc.Http.RequestHeader) = self(rh.asScala).map(_.asJava)(Execution.trampoline).asJava
+    override def apply(rh: RequestHeader)      = self(rh)
   }
 
 }
@@ -45,10 +39,7 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
  * Helper for creating `EssentialAction`s.
  */
 object EssentialAction {
-
-  def apply(f: RequestHeader => Accumulator[ByteString, Result]): EssentialAction = new EssentialAction {
-    def apply(rh: RequestHeader) = f(rh)
-  }
+  def apply(f: RequestHeader => Accumulator[ByteString, Result]): EssentialAction = f(_)
 }
 
 /**
@@ -68,16 +59,10 @@ trait Action[A] extends EssentialAction {
 
   private lazy val logger = Logger(getClass)
 
-  /**
-   * Type of the request body.
-   */
+  /** Type of the request body. */
   type BODY_CONTENT = A
 
-  /**
-   * Body parser associated with this action.
-   *
-   * @see BodyParser
-   */
+  /** Body parser associated with this action. */
   def parser: BodyParser[A]
 
   /**
@@ -99,23 +84,13 @@ trait Action[A] extends EssentialAction {
         apply(request)
     }(ExecCtxUtils.prepare(executionContext))
 
-  /**
-   * The execution context to run this action in
-   *
-   * @return The execution context to run the action in
-   */
+  /** @return The execution context to run the action in */
   def executionContext: ExecutionContext
 
-  /**
-   * Returns itself, for better support in the routes file.
-   *
-   * @return itself
-   */
+  /** @return itself, for better support in the routes file. */
   override def apply(): Action[A] = this
 
-  override def toString = {
-    "Action(parser=" + parser + ")"
-  }
+  override def toString = s"Action(parser=$parser)"
 
 }
 
@@ -142,9 +117,8 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
-      def apply(request: RequestHeader) =
-        self(request).map { _.right.map(f) }(pec)
-      override def toString = self.toString
+      def apply(request: RequestHeader) = self(request).map(_.right.map(f))(pec)
+      override def toString             = self.toString
     }
   }
 
@@ -164,11 +138,8 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {
-          case Right(a) =>
-            // safe to execute `Right.apply` in same thread
-            f(a).map(Right.apply)(play.core.Execution.trampoline)
-          case left =>
-            Future.successful(left.asInstanceOf[Either[Result, B]])
+          case Right(a) => f(a).map(Right.apply)(Execution.trampoline) // safe to execute `Right.apply` in same thread
+          case left     => Future.successful(left.asInstanceOf[Either[Result, B]])
         }(pec)
       override def toString = self.toString
     }
@@ -197,12 +168,8 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
-      def apply(request: RequestHeader) =
-        self(request).map {
-          case Left(e)  => Left(e)
-          case Right(a) => f(a)
-        }(pec)
-      override def toString = self.toString
+      def apply(request: RequestHeader) = self(request).map(_.flatMap(f))(pec)
+      override def toString             = self.toString
     }
   }
 
@@ -221,11 +188,8 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {
-          case Right(a) =>
-            // safe to execute `Done.apply` in same thread
-            f(a)
-          case Left(e) =>
-            Future.successful(Left(e))
+          case Right(a) => f(a) // safe to execute `Done.apply` in same thread
+          case Left(e)  => Future.successful(Left(e))
         }(pec)
       override def toString = self.toString
     }
@@ -237,14 +201,12 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
  */
 object BodyParser {
 
-  def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = {
-    apply("(no name)")(f)
-  }
+  def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = apply("(no name)")(f)
 
   def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] =
     new BodyParser[T] {
       def apply(rh: RequestHeader) = f(rh)
-      override def toString        = "BodyParser(" + debugName + ")"
+      override def toString        = s"BodyParser($debugName)"
     }
 
 }
@@ -271,11 +233,7 @@ trait ActionFunction[-R[_], +P[_]] {
    */
   def invokeBlock[A](request: R[A], block: P[A] => Future[Result]): Future[Result]
 
-  /**
-   * Get the execution context to run the request in.
-   *
-   * @return The execution context
-   */
+  /** @return The execution context to run the request in. */
   protected def executionContext: ExecutionContext
 
   /**
@@ -332,9 +290,9 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
   final def apply[A](bodyParser: BodyParser[A]): ActionBuilder[R, A] = new ActionBuilder[R, A] {
     override def parser                                                               = bodyParser
     protected override def executionContext                                           = self.executionContext
-    protected override def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
-    protected override def composeAction[A](action: Action[A]): Action[A]             = self.composeAction(action)
-    override def invokeBlock[A](request: Request[A], block: R[A] => Future[Result])   = self.invokeBlock(request, block)
+    protected override def composeParser[T](bodyParser: BodyParser[T]): BodyParser[T] = self.composeParser(bodyParser)
+    protected override def composeAction[T](action: Action[T]): Action[T]             = self.composeAction(action)
+    override def invokeBlock[T](request: Request[T], block: R[T] => Future[Result])   = self.invokeBlock(request, block)
   }
 
   /**
@@ -468,8 +426,7 @@ object ActionBuilder {
    * executes in the current thread. Since using this execution context in user code can cause unexpected
    * consequences, this method is private[play].
    */
-  private[play] lazy val ignoringBody: ActionBuilder[Request, AnyContent] =
-    new IgnoringBody()(play.core.Execution.trampoline)
+  private[play] lazy val ignoringBody: ActionBuilder[Request, AnyContent] = new IgnoringBody()(Execution.trampoline)
 }
 
 /**
@@ -536,8 +493,7 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
    */
   protected def transform[A](request: R[A]): Future[P[A]]
 
-  final def refine[A](request: R[A]) =
-    transform(request).map(Right(_))(executionContext)
+  final def refine[A](request: R[A]) = transform(request).map(Right(_))(executionContext)
 }
 
 /**
@@ -557,6 +513,5 @@ trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
    */
   protected def filter[A](request: R[A]): Future[Option[Result]]
 
-  protected final def refine[A](request: R[A]) =
-    filter(request).map(_.toLeft(request))(executionContext)
+  protected final def refine[A](request: R[A]) = filter(request).map(_.toLeft(request))(executionContext)
 }

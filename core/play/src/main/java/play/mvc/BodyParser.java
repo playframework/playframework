@@ -30,7 +30,6 @@ import scala.collection.JavaConverters;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
-import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
@@ -369,7 +368,6 @@ public interface BodyParser<A> {
 
   /** Parse the body as a byte string. */
   class Bytes extends BufferingBodyParser<ByteString> {
-
     public Bytes(long maxLength, HttpErrorHandler errorHandler) {
       super(maxLength, errorHandler, "Error decoding byte body");
     }
@@ -681,8 +679,7 @@ public interface BodyParser<A> {
      * API.
      */
     private class DelegatingMultipartFormData extends Http.MultipartFormData<A> {
-
-      private play.api.mvc.MultipartFormData<A> scalaFormData;
+      private final play.api.mvc.MultipartFormData<A> scalaFormData;
 
       DelegatingMultipartFormData(play.api.mvc.MultipartFormData<A> scalaFormData) {
         this.scalaFormData = scalaFormData;
@@ -700,7 +697,7 @@ public interface BodyParser<A> {
       @Override
       public List<FilePart<A>> getFiles() {
         return seqAsJavaListConverter(scalaFormData.files()).asJava().stream()
-            .map(part -> toJava(part))
+            .map(DelegatingMultipartFormDataBodyParser.this::toJava)
             .collect(Collectors.toList());
       }
     }

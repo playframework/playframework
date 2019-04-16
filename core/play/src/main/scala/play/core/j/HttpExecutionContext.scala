@@ -51,6 +51,7 @@ object HttpExecutionContext {
     def reportFailure(t: Throwable)          = delegate.reportFailure(t)
     override def prepare(): ExecutionContext = fromThread(delegate)
   }
+
 }
 
 /**
@@ -60,7 +61,7 @@ object HttpExecutionContext {
 class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext)
     extends ExecutionContextExecutor {
 
-  var httpContext: Http.Context = null
+  var httpContext: Http.Context = _
 
   @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
   def this(contextClassLoader: ClassLoader, httpContext: Http.Context, delegate: ExecutionContext) = {
@@ -69,19 +70,17 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
   }
 
   override def execute(runnable: Runnable) =
-    delegate.execute(new Runnable {
-      def run(): Unit = {
-        val thread                = Thread.currentThread()
-        val oldContextClassLoader = thread.getContextClassLoader()
-        val oldHttpContext        = Http.Context.safeCurrent().asScala
-        thread.setContextClassLoader(contextClassLoader)
-        Http.Context.setCurrent(httpContext)
-        try {
-          runnable.run()
-        } finally {
-          thread.setContextClassLoader(oldContextClassLoader)
-          oldHttpContext.foreach(Http.Context.setCurrent)
-        }
+    delegate.execute(() => {
+      val thread                = Thread.currentThread()
+      val oldContextClassLoader = thread.getContextClassLoader()
+      val oldHttpContext        = Http.Context.safeCurrent().asScala
+      thread.setContextClassLoader(contextClassLoader)
+      Http.Context.setCurrent(httpContext)
+      try {
+        runnable.run()
+      } finally {
+        thread.setContextClassLoader(oldContextClassLoader)
+        oldHttpContext.foreach(Http.Context.setCurrent)
       }
     })
 
