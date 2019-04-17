@@ -87,7 +87,8 @@ object PlayRun extends PlayRunCompat {
       dependencyClasspath.value.files,
       reloadCompile,
       assetsClassLoader.value,
-      playMonitoredFiles.value,
+      // avoid monitoring same folder twice or folders that don't exist
+      playMonitoredFiles.value.distinct.filter(_.exists()),
       fileWatchService.value,
       generatedSourceHandlers,
       playDefaultPort.value,
