@@ -229,6 +229,8 @@ object BuildSettings {
       // Removed deprecated BodyParsers.urlFormEncoded method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DefaultPlayBodyParsers.urlFormEncoded"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
+      // Remove deprecated
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Action$"),
       // Removed deprecated TOO_MANY_REQUEST field
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TOO_MANY_REQUEST"),
