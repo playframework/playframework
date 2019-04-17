@@ -213,8 +213,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * @param additionalConfiguration map containing config info for the app.
    * @return an application from the current path with additional configuration.
    */
-  public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
-    //noinspection unchecked
+  public static Application fakeApplication(Map<String, ?> additionalConfiguration) {
+    @SuppressWarnings("unchecked")
     Map<String, Object> conf = (Map<String, Object>) additionalConfiguration;
     return new GuiceApplicationBuilder().configure(conf).build();
   }
@@ -342,11 +342,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    */
   public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
     try {
-      return routeAndCall(
-          app,
-          (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"),
-          requestBuilder,
-          timeout);
+      @SuppressWarnings("unchecked")
+      Class<? extends Router> routerClass =
+          (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes");
+      return routeAndCall(app, routerClass, requestBuilder, timeout);
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable t) {

@@ -618,7 +618,7 @@ public class Form<T> {
   }
 
   protected Map<String, Http.MultipartFormData.FilePart<?>> requestFileData(Http.Request request) {
-    final Http.MultipartFormData multipartFormData = request.body().asMultipartFormData();
+    final Http.MultipartFormData<?> multipartFormData = request.body().asMultipartFormData();
     if (multipartFormData != null) {
       return resolveDuplicateFilePartKeys(multipartFormData.getFiles());
     }
@@ -631,8 +631,8 @@ public class Form<T> {
         fileParts.stream()
             .collect(
                 Collectors.toMap(
-                    filePart -> filePart.getKey(),
-                    filePart -> new ArrayList<>(Arrays.asList(filePart)),
+                    Http.MultipartFormData.FilePart::getKey,
+                    filePart -> new ArrayList<>(Collections.singletonList(filePart)),
                     (a, b) -> {
                       a.addAll(b);
                       return a;
@@ -862,12 +862,8 @@ public class Form<T> {
         lang,
         () -> {
           dataBinder.bind(new MutablePropertyValues(objectData));
-          final ValidationPayload payload =
-              new ValidationPayload(
-                  lang,
-                  lang != null ? new MessagesImpl(lang, this.messagesApi) : null,
-                  attrs,
-                  this.config);
+          final Messages messages = lang == null ? null : new MessagesImpl(lang, messagesApi);
+          final ValidationPayload payload = new ValidationPayload(lang, messages, attrs, config);
           final Validator validator =
               validatorFactory
                   .unwrap(HibernateValidatorFactory.class)
@@ -1680,6 +1676,7 @@ public class Form<T> {
     }
 
     /** @return The file, if defined. */
+    @SuppressWarnings("unchecked") // cross your fingers
     public <A> Optional<Http.MultipartFormData.FilePart<A>> file() {
       return Optional.ofNullable((Http.MultipartFormData.FilePart<A>) file);
     }
