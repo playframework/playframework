@@ -44,7 +44,6 @@ class PlayGlobalAppSpec extends Specification {
       app1.isTerminated must beTrue
       app2.isTerminated must beFalse
       Play.privateMaybeApplication must beSuccessfulTry.withValue(app2)
-      Play.current must_== app2
       Play.stop(app1)
       Play.stop(app2)
       success

@@ -119,20 +119,6 @@ object Evolutions {
   def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
 
   /**
-   * Apply pending evolutions for the given database.
-   */
-  @deprecated("Inject or create an instance of EvolutionsApi and use EvolutionsApi#applyFor", "2.6.0")
-  def applyFor(
-      dbName: String,
-      path: java.io.File = new java.io.File("."),
-      autocommit: Boolean = true,
-      schema: String = ""
-  ): Unit = {
-    val evolutionsApi = Play.current.injector.instanceOf[EvolutionsApi]
-    evolutionsApi.applyFor(dbName, path, autocommit, schema)
-  }
-
-  /**
    * Updates a local (file-based) evolution script.
    */
   def updateEvolutionScript(

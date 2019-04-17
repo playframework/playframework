@@ -228,6 +228,12 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$Implicits$"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout$"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.current"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.maybeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.unsafeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // Removed deprecated method Database.toScala()
