@@ -27,6 +27,7 @@ import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.core.server.common.ForwardedHeaderHandler
+import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
 import play.mvc.Http.HeaderNames
 
@@ -92,13 +93,16 @@ private[server] class AkkaModelConversion(
       ),
       request.method.name,
       new RequestTarget {
+
+        val (parsedPath, _) = PathAndQueryParser.parse(headers.uri)
+
         override lazy val uri: URI = new URI(headers.uri)
 
         override def uriString: String = headers.uri
 
         override lazy val path: String = {
           try {
-            uri.getRawPath
+            parsedPath
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse path; returning empty string.", e)
