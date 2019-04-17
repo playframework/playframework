@@ -24,8 +24,6 @@ import play.utils.Reflect
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
 import scala.util.control.NonFatal
-import scala.util.Failure
-import scala.util.Success
 
 /**
  * Component for handling HTTP errors in Play.
@@ -495,24 +493,6 @@ object DefaultHttpErrorHandler
     setEditor
     super.onServerError(request, exception)
   }
-}
-
-/**
- * A lazy HTTP error handler, that looks up the error handler from the current application
- */
-@deprecated("Access the global state. Inject a HttpErrorHandler instead", "2.7.0")
-object LazyHttpErrorHandler extends HttpErrorHandler {
-
-  private def errorHandler: HttpErrorHandler = Play.privateMaybeApplication match {
-    case Success(app) => app.errorHandler
-    case Failure(_)   => DefaultHttpErrorHandler
-  }
-
-  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
-    errorHandler.onClientError(request, statusCode, message)
-
-  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
-    errorHandler.onServerError(request, exception)
 }
 
 /**
