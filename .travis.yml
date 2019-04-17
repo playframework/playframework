@@ -66,11 +66,6 @@ jobs:
       env: TRAVIS_JDK=adopt@1.11.0-2
       name: "Scripted tests for sbt 1 and Java 11"
 
-matrix:
-  fast_finish: true
-  allow_failures:
-    - env: TRAVIS_JDK=adopt@1.11.0-2 # not fully supported but allows problem discovery
-
 cache:
   directories:
     - "$HOME/.ivy2/cache"
