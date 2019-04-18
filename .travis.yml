@@ -1,7 +1,7 @@
 language: scala
 
-# Only build PRs and tags: https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
-if: type = pull_request OR tag IS present
+# Only build PRs, tags, and forks: https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
+if: type = pull_request OR tag IS present OR repo != playframework/playframework
 
 addons:
   apt:
