@@ -9,8 +9,8 @@ repository:
   has_wiki: false
   has_downloads: true
   default_branch: master
-  allow_squash_merge: true
-  allow_merge_commit: false
+  allow_squash_merge: false
+  allow_merge_commit: true
   allow_rebase_merge: false
 
 teams:
