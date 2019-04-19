@@ -70,6 +70,7 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    scalaVersion := ScalaVersions.scala212,
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -269,7 +270,8 @@ object BuildSettings {
       .settings(omnidocSettings: _*)
       .settings(
         autoScalaLibrary := false,
-        crossPaths := false
+        crossPaths := false,
+        crossScalaVersions := Seq(ScalaVersions.scala212)
       )
   }
 

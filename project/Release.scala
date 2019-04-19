@@ -14,11 +14,16 @@ object Release {
   val branchVersion = SettingKey[String]("branch-version", "The version to use if Play is on a branch.")
 
   def settings: Seq[Setting[_]] = Seq(
+    // See https://www.scala-sbt.org/1.x/docs/Cross-Build.html#Note+about+sbt-release for details about
+    // these settings. They are required to make sbt 1 and sbt-release (at least < 1.0.10) work together.
+    crossScalaVersions := Nil,
+    publish / skip := true,
     // Disable cross building because we're using sbt-doge cross building
     releaseCrossBuild := false,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
+      runClean,
       setReleaseVersion,
       commitReleaseVersion,
       tagRelease,
