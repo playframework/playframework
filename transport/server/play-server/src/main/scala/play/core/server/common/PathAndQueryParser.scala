@@ -39,4 +39,16 @@ private[server] object PathAndQueryParser {
     (parsedPath, queryString)
   }
 
+  /**
+   * Parse URI String and extract the path part only.
+   * The path part is validate using [[java.net.URI]].
+   *
+   * See https://tools.ietf.org/html/rfc3986
+   *
+   * @throws IllegalArgumentException if path is invalid.
+   * @return
+   */
+  @throws[IllegalArgumentException]
+  def parsePath(uri: String): String = parse(uri)._1
+
 }
