@@ -94,7 +94,6 @@ private[server] class AkkaModelConversion(
       request.method.name,
       new RequestTarget {
 
-        val (parsedPath, _) = PathAndQueryParser.parse(headers.uri)
 
         override lazy val uri: URI = new URI(headers.uri)
 
@@ -102,7 +101,7 @@ private[server] class AkkaModelConversion(
 
         override lazy val path: String = {
           try {
-            parsedPath
+            PathAndQueryParser.parsePath(headers.uri)
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse path; returning empty string.", e)
