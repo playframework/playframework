@@ -9,7 +9,7 @@ private[server] object PathAndQueryParser {
 
   /**
    * Parse URI String into path and query string parts.
-   * The path part is validate using [[java.net.URI]].
+   * The path part is validated using [[java.net.URI]].
    *
    * See https://tools.ietf.org/html/rfc3986
    *
@@ -41,7 +41,7 @@ private[server] object PathAndQueryParser {
 
   /**
    * Parse URI String and extract the path part only.
-   * The path part is validate using [[java.net.URI]].
+   * The path part is validated using [[java.net.URI]].
    *
    * See https://tools.ietf.org/html/rfc3986
    *
