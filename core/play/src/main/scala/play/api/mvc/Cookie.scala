@@ -152,6 +152,7 @@ trait Cookies extends Traversable[Cookie] {
 /**
  * Helper utilities to encode Cookies.
  */
+@deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.0")
 object Cookies extends CookieHeaderEncoding {
 
   // Use global state for cookie header configuration
