@@ -13,6 +13,7 @@ val Versions = new {
   val sbtDoge            = "0.1.5"
   val webjarsLocatorCore = "0.36"
   val sbtHeader          = "5.2.0"
+  val scalafmt           = "2.0.0"
   val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.4.0")
   val interplay: String  = sys.props.getOrElse("interplay.version", "2.0.5")
 }
@@ -34,6 +35,7 @@ addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"      % Versions.sbtJavaAgent
 addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter" % Versions.sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"            % Versions.sbtJmh)
 addSbtPlugin("de.heikoseeberger"  % "sbt-header"         % Versions.sbtHeader)
+addSbtPlugin("org.scalameta"      % "sbt-scalafmt"       % Versions.scalafmt)
 
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % Versions.webjarsLocatorCore

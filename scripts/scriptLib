@@ -42,3 +42,24 @@ runSbtWithSnapshots() {
 runSbt() {
   sbt -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }
+
+# Runs code formating validation in the current directory
+scalafmtValidation() {
+  printMessage "VALIDATE SCALA CODE FORMATTING"
+  runSbt scalafmtCheckAll scalafmtSbtCheck || (
+    echo "[error] ERROR: Scalafmt test failed for $1 source."
+    echo "[error] To fix, format your sources using 'sbt scalafmtAll scalafmtAll' before submitting a pull request."
+    false
+  )
+}
+
+# Runs code formating validation in the current directory
+javafmtValidation() {
+  printMessage "VALIDATE JAVA CODE FORMATTING"
+  runSbt javafmt
+  git diff --exit-code || (
+    echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
+    echo "[error] To fix, format your sources using 'sbt javafmt test:javafmt' before submitting a pull request."
+    false
+  )
+}
