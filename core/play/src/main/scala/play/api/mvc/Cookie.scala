@@ -272,17 +272,16 @@ trait CookieHeaderEncoding {
         val newCookies = for {
           cookieString <- SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq
           cookie       <- Option(decoder.decode(cookieString.trim))
-        } yield
-          Cookie(
-            cookie.name,
-            cookie.value,
-            if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
-            Option(cookie.path).getOrElse("/"),
-            Option(cookie.domain),
-            cookie.isSecure,
-            cookie.isHttpOnly,
-            Option(cookie.sameSite).flatMap(SameSite.parse)
-          )
+        } yield Cookie(
+          cookie.name,
+          cookie.value,
+          if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
+          Option(cookie.path).getOrElse("/"),
+          Option(cookie.domain),
+          cookie.isSecure,
+          cookie.isHttpOnly,
+          Option(cookie.sameSite).flatMap(SameSite.parse)
+        )
         newCookies.map(Cookie.validatePrefix)
       }.getOrElse {
         logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")

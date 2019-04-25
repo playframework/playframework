@@ -190,6 +190,7 @@ private[server] object ForwardedHeaderHandler {
           .map { paramMap: Map[String, String] =>
             ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))
           }
+
       case Xforwarded =>
         def h(h: Headers, key: String) = h.getAll(key).flatMap(s => s.split(",\\s*")).map(unquote)
         val forHeaders                 = h(headers, "X-Forwarded-For")
