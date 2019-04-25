@@ -72,7 +72,7 @@ object Docs {
       val apiBase = apiDocs.value
       val webjars = extractWebjars.value
       // Include documentation and API docs in main binary JAR
-      val docBase     = baseDirectory.value / "../../../documentation"
+      val docBase     = baseDirectory.value / "../../documentation"
       val raw         = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
       val filtered    = raw.filter(_.getName != ".DS_Store")
       val docMappings = filtered.get.pair(rebase(docBase, "play/docs/content/"))
