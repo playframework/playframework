@@ -44,12 +44,8 @@ object HttpExecutionContext {
   /**
    * Create an ExecutionContext that will, when prepared, be created with values from that thread.
    */
-  def unprepared(delegate: ExecutionContext) = new ExecutionContext {
-    def execute(runnable: Runnable) =
-      delegate.execute(runnable) // FIXME: Make calling this an error once SI-7383 is fixed
-    def reportFailure(t: Throwable)          = delegate.reportFailure(t)
-    override def prepare(): ExecutionContext = fromThread(delegate)
-  }
+  @deprecated("This is a no-op, now that ExecutionContext#prepare is deprecated.", "2.8.0")
+  def unprepared(delegate: ExecutionContext) = delegate
 }
 
 /**
@@ -85,13 +81,4 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
     })
 
   override def reportFailure(t: Throwable) = delegate.reportFailure(t)
-
-  override def prepare(): ExecutionContext = {
-    val delegatePrepared = delegate.prepare()
-    if (delegatePrepared eq delegate) {
-      this
-    } else {
-      new HttpExecutionContext(contextClassLoader, httpContext, delegatePrepared)
-    }
-  }
 }

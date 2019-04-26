@@ -142,7 +142,7 @@ private class SelfPopulatingMap[K, V] {
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
       case None =>
-        val f = Future(pf(k))(ec.prepare())
+        val f = Future(pf(k))(ec)
         f.onComplete {
           case Failure(_) | Success(None) => store.remove(k)
           case _                          => // Do nothing, the asset was successfully found and is now cached

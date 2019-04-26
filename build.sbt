@@ -6,7 +6,6 @@ import Dependencies._
 import Generators._
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
-import com.typesafe.tools.mima.core._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
@@ -77,10 +76,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       .taskValue,
     sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
     TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaParsers.parse"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#MultipartFormData#FilePart.getFile"),
-    ),
     mappings in (Compile, packageSrc) ++= {
       // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
       // so omnidoc can compile and produce scaladocs for them.

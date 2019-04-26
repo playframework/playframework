@@ -244,7 +244,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TooManyRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TOO_MANY_REQUEST"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TooManyRequest")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TooManyRequest"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaParsers.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#MultipartFormData#FilePart.getFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.concurrent.CustomExecutionContext.prepare"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

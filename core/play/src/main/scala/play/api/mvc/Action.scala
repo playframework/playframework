@@ -96,7 +96,7 @@ trait Action[A] extends EssentialAction {
         val request = Request(rh, a)
         logger.trace("Invoking action with request: " + request)
         apply(request)
-    }(executionContext.prepare)
+    }(executionContext)
 
   /**
    * The execution context to run this action in
@@ -138,11 +138,9 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    * @see play.api.libs.streams.Accumulator.map
    */
   def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
     new BodyParser[B] {
       def apply(request: RequestHeader) =
-        self(request).map { _.right.map(f) }(pec)
+        self(request).map { _.right.map(f) }
       override def toString = self.toString
     }
   }
@@ -158,8 +156,6 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    * @see play.api.libs.streams.Accumulator.mapFuture[B]
    */
   def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {
@@ -168,7 +164,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
             f(a).map(Right.apply)(play.core.Execution.trampoline)
           case left =>
             Future.successful(left.asInstanceOf[Either[Result, B]])
-        }(pec)
+        }
       override def toString = self.toString
     }
   }
@@ -193,14 +189,12 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    * @return the transformed body parser
    */
   def validate[B](f: A => Either[Result, B])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).map {
           case Left(e)  => Left(e)
           case Right(a) => f(a)
-        }(pec)
+        }
       override def toString = self.toString
     }
   }
@@ -215,8 +209,6 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    * @see [[validate]]
    */
   def validateM[B](f: A => Future[Either[Result, B]])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {
@@ -225,7 +217,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
             f(a)
           case Left(e) =>
             Future.successful(Left(e))
-        }(pec)
+        }
       override def toString = self.toString
     }
   }
