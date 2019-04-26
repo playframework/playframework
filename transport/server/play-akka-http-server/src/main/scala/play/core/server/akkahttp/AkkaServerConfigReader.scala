@@ -16,7 +16,7 @@ private[server] final class AkkaServerConfigReader(akkaServerConfig: Configurati
         akkaServerConfig.reportError(
           "default-host-header",
           "Couldn't parse default host header",
-          new RuntimeException(errors.map(_.formatPretty).mkString(", "))
+          Some(new RuntimeException(errors.map(_.formatPretty).mkString(", ")))
         )
       }
   }
