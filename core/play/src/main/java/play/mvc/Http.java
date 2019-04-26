@@ -2108,25 +2108,6 @@ public class Http {
        * The File.
        *
        * @return the file
-       * @deprecated Deprecated as of 2.7.0. Use {@link #getRef()} instead, which however (when
-       *     using the default Play {@code BodyParser}) will give you a {@link
-       *     play.libs.Files.TemporaryFile} instance instead of a {@link java.io.File} one. <a
-       *     href="https://www.playframework.com/documentation/latest/Migration27#Javas-FilePart-exposes-the-TemporaryFile-for-uploaded-files">See
-       *     migration guide.</a>
-       */
-      @Deprecated
-      public A getFile() {
-        if (ref instanceof Files.TemporaryFile) {
-          // For backwards compatibility
-          return (A) ((Files.TemporaryFile) ref).path().toFile();
-        }
-        return ref;
-      }
-
-      /**
-       * The File.
-       *
-       * @return the file
        */
       public A getRef() {
         return ref;

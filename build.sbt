@@ -79,6 +79,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaParsers.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#MultipartFormData#FilePart.getFile"),
     ),
     mappings in (Compile, packageSrc) ++= {
       // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,

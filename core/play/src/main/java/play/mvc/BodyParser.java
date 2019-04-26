@@ -721,7 +721,7 @@ public interface BodyParser<A> {
           filePart.getKey(),
           filePart.getFilename(),
           Option.apply(filePart.getContentType()),
-          filePart.getFile(),
+          filePart.getRef(),
           filePart.getFileSize(),
           filePart.getDispositionType());
     }
