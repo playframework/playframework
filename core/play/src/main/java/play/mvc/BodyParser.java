@@ -95,7 +95,7 @@ public interface BodyParser<A> {
           || request.hasHeader(Http.HeaderNames.TRANSFER_ENCODING)) {
         return super.apply(request);
       } else {
-        return (Accumulator) new Empty().apply(request);
+        return BodyParser.<Optional<Void>, Object>widen(new Empty()).apply(request);
       }
     }
   }
@@ -120,7 +120,7 @@ public interface BodyParser<A> {
     public Accumulator<ByteString, F.Either<Result, Object>> apply(Http.RequestHeader request) {
       String contentType =
           request.contentType().map(ct -> ct.toLowerCase(Locale.ENGLISH)).orElse(null);
-      BodyParser parser;
+      final BodyParser<?> parser;
       if (contentType == null) {
         parser = new Raw(parsers);
       } else if (contentType.equals("text/plain")) {
@@ -138,7 +138,8 @@ public interface BodyParser<A> {
       } else {
         parser = new Raw(parsers);
       }
-      return parser.apply(request);
+      final BodyParser<Object> parser1 = widen(parser);
+      return parser1.apply(request);
     }
   }
 
@@ -725,5 +726,11 @@ public interface BodyParser<A> {
           filePart.getFileSize(),
           filePart.getDispositionType());
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  // covariance: BodyParser<?> <: BodyParser<Object>, given BodyParser<A> is covariant in A
+  static <A extends B, B> BodyParser<B> widen(final BodyParser<A> parser) {
+    return (BodyParser<B>) parser;
   }
 }
