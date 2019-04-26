@@ -12,6 +12,9 @@ runSbt evaluateSbtFiles
 runSbt validateDocs
 runSbt headerCheck test:headerCheck
 
+scalafmtValidation "documentation"
+javafmtValidation "documentation"
+
 printMessage "ALL DOCUMENTATION VALIDATION PASSED"
 
 # Check that markdown files have copyright headers
