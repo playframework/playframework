@@ -123,6 +123,11 @@ object RoutesProvider {
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     val routerClass = Router.load(environment, configuration)
 
+    import scala.language.existentials
+    // inferred existential type
+    // Seq[play.api.inject.Binding[_$1]] forSome { type _$1 <: play.api.routing.Router },
+    // which cannot be expressed by wildcards
+
     // If it's a generated router, then we need to provide a binding for it. Otherwise, it's the users
     // (or the library that provided the router) job to provide a binding for it.
     val routerInstanceBinding = routerClass match {
