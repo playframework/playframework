@@ -99,7 +99,7 @@ object Docs {
         libraryDependencies ++= Dependencies.playdocWebjarDependencies,
         mappings in playdocPackage := {
           val base        = (baseDirectory in ThisBuild).value
-          val docBase     = base.getParentFile / "documentation"
+          val docBase     = base / "documentation"
           val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
           val filtered    = raw.filter(_.getName != ".DS_Store")
           val docMappings = filtered.get.pair(relativeTo(docBase))
