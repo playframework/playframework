@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.scalaresults {
 
   import play.api.mvc._
@@ -12,7 +13,7 @@ package scalaguide.http.scalaresults {
   import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaResultsSpec extends PlaySpecification with Controller {
+  class ScalaResultsSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
 
     "A scala result" should {
       "default result Content-Type" in {
@@ -44,9 +45,7 @@ package scalaguide.http.scalaresults {
 
       "Manipulating HTTP headers" in {
         //#set-headers
-        val result = Ok("Hello World!").withHeaders(
-          CACHE_CONTROL -> "max-age=3600",
-          ETAG -> "xx")
+        val result = Ok("Hello World!").withHeaders(CACHE_CONTROL -> "max-age=3600", ETAG -> "xx")
         //#set-headers
         testHeader(result, CACHE_CONTROL, "max-age=3600")
         testHeader(result, ETAG, "xx")
@@ -72,11 +71,11 @@ package scalaguide.http.scalaresults {
       }
 
       "Changing the charset for text based HTTP responses" in {
-        val index = new scalaguide.http.scalaresults.full.Application().index
+        val index = new scalaguide.http.scalaresults.full.Application(Helpers.stubControllerComponents()).index
         assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
       }
 
-       "HTML method works" in {
+      "HTML method works" in {
         val result = scalaguide.http.scalaresults.full.CodeShow.HTML(Codec.javaSupported("iso-8859-1"))
         result must contain("iso-8859-1")
       }
@@ -87,15 +86,25 @@ package scalaguide.http.scalaresults {
     }
 
     def testHeader(results: Result, key: String, value: String) = {
-      results.bakeCookies() // bake cookies with default configuration
-        .header.headers.get(key).get must contain(value)
+      results
+        .bakeCookies() // bake cookies with default configuration
+        .header
+        .headers
+        .get(key)
+        .get must contain(value)
     }
 
     def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
-      assertAction(action, expectedResponse, request) { result => success }
+      assertAction(action, expectedResponse, request) { result =>
+        success
+      }
     }
 
-    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
+    def assertAction[A, T: AsResult](
+        action: Action[A],
+        expectedResponse: Int = OK,
+        request: Request[A] = FakeRequest()
+    )(assertions: Future[Result] => T) = {
       running() { app =>
         val result = action(request)
         status(result) must_== expectedResponse
@@ -105,8 +114,11 @@ package scalaguide.http.scalaresults {
   }
 
   package scalaguide.http.scalaresults.full {
+
+    import javax.inject.Inject
+
     //#full-application-set-myCustomCharset
-    class Application extends Controller {
+    class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
       implicit val myCustomCharset = Codec.javaSupported("iso-8859-1")
 
@@ -117,13 +129,12 @@ package scalaguide.http.scalaresults {
     }
     //#full-application-set-myCustomCharset
 
-
-  object CodeShow {
-    //#Source-Code-HTML
-    def HTML(implicit codec: Codec) = {
-      "text/html; charset=" + codec.charset
+    object CodeShow {
+      //#Source-Code-HTML
+      def HTML(implicit codec: Codec) = {
+        "text/html; charset=" + codec.charset
+      }
+      //#Source-Code-HTML
     }
-    //#Source-Code-HTML
   }
-   }
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.tests;
 
-//#database-test
+// #database-test
 import play.db.Database;
 import play.db.Databases;
 import play.db.evolutions.*;
@@ -14,34 +15,33 @@ import static org.junit.Assert.*;
 
 public class DatabaseTest {
 
-    Database database;
+  Database database;
 
-    @Before
-    public void setupDatabase() {
-        database = Databases.inMemory();
-        Evolutions.applyEvolutions(database, Evolutions.forDefault(new Evolution(
-            1,
-            "create table test (id bigint not null, name varchar(255));",
-            "drop table test;"
-        )));
-    }
+  @Before
+  public void setupDatabase() {
+    database = Databases.inMemory();
+    Evolutions.applyEvolutions(
+        database,
+        Evolutions.forDefault(
+            new Evolution(
+                1,
+                "create table test (id bigint not null, name varchar(255));",
+                "drop table test;")));
+  }
 
-    @After
-    public void shutdownDatabase() {
-        Evolutions.cleanupEvolutions(database);
-        database.shutdown();
-    }
+  @After
+  public void shutdownDatabase() {
+    Evolutions.cleanupEvolutions(database);
+    database.shutdown();
+  }
 
-    @Test
-    public void testDatabase() throws Exception {
-        Connection connection = database.getConnection();
-        connection.prepareStatement("insert into test values (10, 'testing')").execute();
+  @Test
+  public void testDatabase() throws Exception {
+    Connection connection = database.getConnection();
+    connection.prepareStatement("insert into test values (10, 'testing')").execute();
 
-        assertTrue(
-            connection.prepareStatement("select * from test where id = 10")
-                .executeQuery().next()
-        );
-    }
+    assertTrue(
+        connection.prepareStatement("select * from test where id = 10").executeQuery().next());
+  }
 }
-//#database-test
-
+// #database-test

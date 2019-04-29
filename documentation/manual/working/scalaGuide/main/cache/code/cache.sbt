@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
 //#cache-sbt-dependencies
@@ -8,8 +8,8 @@ libraryDependencies ++= Seq(
 )
 //#cache-sbt-dependencies
 
-//#ehcache-sbt-dependencies
+//#caffeine-sbt-dependencies
 libraryDependencies ++= Seq(
-  ehcache
+  caffeine
 )
-//#ehcache-sbt-dependencies
+//#caffeine-sbt-dependencies

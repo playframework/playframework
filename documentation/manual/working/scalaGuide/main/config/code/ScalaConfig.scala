@@ -1,7 +1,7 @@
-
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.config
 
 import javax.inject.Inject
@@ -9,24 +9,30 @@ import javax.inject.Inject
 import com.typesafe.config.Config
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import play.api.{ConfigLoader, Configuration}
+import play.api.ConfigLoader
+import play.api.Configuration
 import play.api.mvc._
+import play.api.test.Helpers
 import play.api.test.PlaySpecification
 import java.net.URI
 
-@RunWith(classOf[JUnitRunner])
-class ScalaConfigSpec extends PlaySpecification with Controller {
+import org.specs2.mutable.SpecificationLike
 
-  val config: Configuration = Configuration.from(Map(
-    "foo" -> "bar",
-    "bar" -> "1.25",
-    "baz" -> "true",
-    "listOfFoos" -> Seq("bar", "baz"),
-    "app.config" -> Map(
-      "title" -> "Foo",
-      "baseUri" -> "https://example.com"
+@RunWith(classOf[JUnitRunner])
+class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
+
+  val config: Configuration = Configuration.from(
+    Map(
+      "foo"        -> "bar",
+      "bar"        -> "1.25",
+      "baz"        -> "true",
+      "listOfFoos" -> Seq("bar", "baz"),
+      "app.config" -> Map(
+        "title"   -> "Foo",
+        "baseUri" -> "https://example.com"
+      )
     )
-  ))
+  )
 
   "Scala Configuration" should {
 
@@ -97,7 +103,7 @@ object AppConfig {
 //#config-loader-example
 
 //#inject-config
-class MyController @Inject() (config: Configuration, c: ControllerComponents) extends AbstractController(c) {
+class MyController @Inject()(config: Configuration, c: ControllerComponents) extends AbstractController(c) {
   def getFoo = Action {
     Ok(config.get[String]("foo"))
   }

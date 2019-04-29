@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.1?
 
 ## Migration to Scala 2.10 
@@ -60,7 +60,7 @@ In the configuration, at runtime a call to the `/my-subproject` URL will eventua
 
 > Note: in order to avoid name collision issues with the main application, always make sure that you define a subpackage within your controller classes that belong to a sub project (i.e. `my.subproject` in this particular example). You'll also need to make sure that the subproject's Assets controller is defined in the same name space.
 
-More information about this feature can be found at [[Working with sub-projects|SBTSubProjects]].
+More information about this feature can be found at [[Working with sub-projects|sbtSubProjects]].
 
 
 ## `Http.Context` propagation in the Java API
@@ -157,7 +157,7 @@ The `filters` project that is part of the standard Play distribution contain a s
 
 ## RequireJS
 
-In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use [requireJS](http://requirejs.org/) instead.
+In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use [requireJS](https://requirejs.org/) instead.
 
 What this means in practice is that by default Play will only minify and combine files in stage, dist, start modes only. In dev mode Play will resolve dependencies client side.
 

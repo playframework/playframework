@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.3 Migration Guide
 
 This is a guide for migrating from Play 2.2 to Play 2.3. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.2 Migration Guide|Migration22]].
@@ -15,7 +15,7 @@ All the features that were available with the `play` command are still available
 * `activator` to run the console. See [[Using the Play console|PlayConsole]].
 * `activator ui` is a new command that launches a web user interface.
 
-> The new `activator` command and the old `play` command are both wrappers around [sbt](http://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
+> The new `activator` command and the old `play` command are both wrappers around [sbt](https://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
 
 ### Activator distribution
 
@@ -23,7 +23,7 @@ Play is distributed as an Activator distribution that contains all Play's depend
 
 If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://www.lightbend.com/community/core-tools/activator-and-sbt). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
 
-Since Activator is a wrapper around sbt, you can also download and use [sbt](http://www.scala-sbt.org/) directly, if you prefer.
+Since Activator is a wrapper around sbt, you can also download and use [sbt](https://www.scala-sbt.org/) directly, if you prefer.
 
 ## Build changes
 
@@ -197,13 +197,13 @@ The following lists all sbt-web related components and their versions at the tim
 
 #### WebJars
 
-[WebJars](http://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+[WebJars](https://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](https://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
 libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
 ```
 
-WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](https://requirejs.org/) then you can reference it from a view using a line like:
 
 ```html
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
@@ -233,7 +233,7 @@ Coffeescript options have changed. The new options are:
 
   `CoffeeScriptKeys.sourceMap := true`
 
-* `bare` When set, generates JavaScript without the [top-level function safety wrapper](http://coffeescript.org/#lexical-scope). Defaults to `false`.
+* `bare` When set, generates JavaScript without the [top-level function safety wrapper](https://coffeescript.org/#lexical-scope). Defaults to `false`.
 
   `CoffeeScriptKeys.bare := false`
 
@@ -291,7 +291,7 @@ For more information please consult [the plugin's documentation](https://github.
 
 #### Closure Compiler
 
-The Closure Compiler has been replaced. Its two important functions of validating JavaScript and minifying it have been factored out into [JSHint](http://www.jshint.com/) and [UglifyJS 2](https://github.com/mishoo/UglifyJS2#uglifyjs-2) respectively.
+The Closure Compiler has been replaced. Its two important functions of validating JavaScript and minifying it have been factored out into [JSHint](https://jshint.com/) and [UglifyJS 2](https://github.com/mishoo/UglifyJS2#uglifyjs-2) respectively.
 
 To use JSHint you must declare it, typically in your plugins.sbt file:
 
@@ -299,7 +299,7 @@ To use JSHint you must declare it, typically in your plugins.sbt file:
 addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0")
 ```
 
-Options can be specified in accordance with the [JSHint website](http://www.jshint.com/docs) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
+Options can be specified in accordance with the [JSHint website](https://jshint.com/docs/) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
 `JshintKeys.config` is used to specify the location of a configuration file.
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-jshint#sbt-jshint).
@@ -354,7 +354,7 @@ mainModule              | By default, 'main' is used as the module.
 modules                 | The json array of modules.
 optimize                | The name of the optimizer, defaults to uglify2.
 paths                   | RequireJS path mappings of module ids to a tuple of the build path and production path. By default all WebJar libraries are made available from a CDN and their mappings can be found here (unless the cdn is set to None).
-preserveLicenseComments | Whether to preserve comments or not. Defaults to false given source maps (see http://requirejs.org/docs/errors.html#sourcemapcomments).
+preserveLicenseComments | Whether to preserve comments or not. Defaults to false given source maps (see https://requirejs.org/docs/errors.html#sourcemapcomments).
 webJarCdns              | CDNs to be used for locating WebJars. By default "org.webjars" is mapped to "jsdelivr".
 webJarModuleIds         | A sequence of webjar module ids to be used.
 

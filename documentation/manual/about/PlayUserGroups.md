@@ -1,14 +1,10 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play User Groups
 
 ## New York
 
 https://www.meetup.com/Play-NYC/
-
-## Berlin
-
-https://www.meetup.com/Play-Berlin-Brandenburg/
 
 ## Cologne
 
@@ -32,7 +28,6 @@ https://www.meetup.com/play-argentina/
 
 ## Japan
 
-* http://www.playframework-ja.org/
 * https://groups.google.com/forum/?fromgroups#!forum/play_ja
 
 ## Republic of Korea 

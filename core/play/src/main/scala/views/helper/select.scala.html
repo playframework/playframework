@@ -1,0 +1,42 @@
+@**
+ * Generate an HTML select.
+ *
+ * Example:
+ * {{{
+ * @select(
+ *   field = myForm("mySelect"),
+ *   options = Seq(
+ *     "Foo" -> "foo text",
+ *     "Bar" -> "bar text",
+ *     "Baz" -> "baz text"
+ *    ),
+ *   '_default -> "Choose One",
+ *   '_disabled -> Seq("FooKey", "BazKey")
+ *   'cust_att_name -> "cust_att_value"
+ * )
+ * }}}
+ *
+ * @param field The form field.
+ * @param options Sequence of options as pairs of value and HTML.
+ * @param args Set of extra attributes.
+ * @param handler The field constructor.
+ *@
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.MessagesProvider)
+@input(field, args:_*) { (id, name, value, htmlArgs) =>
+    @defining( if( htmlArgs.contains('multiple) ) "%s[]".format(name) else name ) { selectName =>
+    @defining( field.indexes.nonEmpty && htmlArgs.contains('multiple) match {
+            case true => field.indexes.map( i => field("[%s]".format(i)).value ).flatten.toSet
+            case _ => field.value.toSet
+    }){ selectedValues =>
+        <select id="@id" name="@selectName" @toHtmlArgs(htmlArgs)>
+            @args.toMap.get('_default).map { defaultValue =>
+                <option class="blank" value="">@defaultValue</option>
+            }
+            @options.map { case (k, v) =>
+                @defining( selectedValues.contains(k) ) { selected =>
+                @defining( args.toMap.get('_disabled).exists { case s: Seq[_] => s.asInstanceOf[Seq[String]].contains(k) }){ disabled =>
+                <option value="@k"@if(selected){ selected="selected"}@if(disabled){ disabled}>@v</option>
+            }}}
+        </select>
+    }}
+}

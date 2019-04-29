@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # WebSockets
 
 [WebSockets](https://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
 
 Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript WebSocket API.  However WebSockets are not limited in just being used by WebBrowsers, there are many WebSocket client libraries available, allowing for example servers to talk to each other, and also native mobile apps to use WebSockets.  Using WebSockets in these contexts has the advantage of being able to reuse the existing TCP port that a Play server uses.
 
-> **Tip:** Check [caniuse.com](http://caniuse.com/#feat=websockets) to see more about which browsers supports WebSockets, known issues and more information.
+> **Tip:** Check [caniuse.com](https://caniuse.com/#feat=websockets) to see more about which browsers supports WebSockets, known issues and more information.
 
 ## Handling WebSockets
 
@@ -19,7 +19,7 @@ Play provides some factory methods for constructing WebSockets in [WebSocket](ap
 
 ## Handling WebSockets with Akka Streams and actors
 
-To handle a WebSocket with an actor, we can use a Play utility, [ActorFlow](api/scala/play/api/libs/streams/ActorFlow$.html) to convert an `ActorRef` to a flow.  This utility takes a function that converts the `ActorRef` to send messages to to a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection:
+To handle a WebSocket with an actor, we can use a Play utility, [ActorFlow](api/scala/play/api/libs/streams/ActorFlow$.html) to convert an `ActorRef` to a flow.  This utility takes a function that converts the `ActorRef` to send messages to a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection:
 
 @[actor-accept](code/ScalaWebSockets.scala)
 
@@ -81,7 +81,7 @@ Actors are not always the right abstraction for handling WebSockets, particularl
 
 A `WebSocket` has access to the request headers (from the HTTP request that initiates the WebSocket connection), allowing you to retrieve standard headers and session data. However, it doesn’t have access to a request body, nor to the HTTP response.
 
-It this example we are creating a simple sink that prints each message to console. To send messages, we create a simple source that will send a single **Hello!** message.  We also need to concatenate a source that will never send anything, otherwise our single source will terminate the flow, and thus the connection.
+In this example we are creating a simple sink that prints each message to console. To send messages, we create a simple source that will send a single **Hello!** message.  We also need to concatenate a source that will never send anything, otherwise our single source will terminate the flow, and thus the connection.
 
 > **Tip:** You can test WebSockets on <https://www.websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
 
@@ -92,3 +92,13 @@ Let’s write another example that discards the input data and closes the socket
 Here is another example in which the input data is logged to standard out and then sent back to the client using a mapped flow:
 
 @[streams3](code/ScalaWebSockets.scala)
+
+## Configuring WebSocket Frame Length
+
+You can configure the max length for [WebSocket data frames](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Format) using `play.server.websocket.frame.maxLength` or passing `-Dwebsocket.frame.maxLength` system property when running your application. For example:
+
+```
+sbt -Dwebsocket.frame.maxLength=64k run
+```
+
+This configuration gives you more control of WebSocket frame length and can be adjusted to your application requirements. It may also reduce denial of service attacks using long data frames.

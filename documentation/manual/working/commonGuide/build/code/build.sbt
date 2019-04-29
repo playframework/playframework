@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
 //#default
@@ -10,7 +10,7 @@ version := "1.0-SNAPSHOT"
 libraryDependencies ++= Seq(
   jdbc,
   anorm,
-  cache
+  ehcache
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)

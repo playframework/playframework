@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Action composition
 
 This chapter introduces several ways of defining generic action functionality.
@@ -18,7 +18,7 @@ The first way is to implement this functionality in the `invokeBlock` method, wh
 Now we can use [[Dependency Injection|ScalaDependencyInjection]] in your controller to get an instance of the `LoggingAction` and use it the same way we use `Action`:
 
 @[basic-logging-index](code/ScalaActionsComposition.scala)
- 
+
 Since `ActionBuilder` provides all the different methods of building actions, this also works with, for example, declaring a custom body parser:
 
 @[basic-logging-parse](code/ScalaActionsComposition.scala)
@@ -84,9 +84,9 @@ One of the most common use cases for action functions is authentication.  We can
 
 Play also provides a built in authentication action builder.  Information on this and how to use it can be found [here](api/scala/play/api/mvc/Security$$AuthenticatedBuilder$.html).
 
-> **Note:** The built in authentication action builder is just a convenience helper to minimise the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
+> **Note:** The built in authentication action builder is just a convenience helper to minimize the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
 >
-> If you have more complex requirements than can be met by the built in authentication action, then implementing your own is not only simple, it is recommended.
+> Since it is simple to write your own authentication helper, we recommend doing so if the built-in helper does not suit your needs.
 
 ### Adding information to requests
 

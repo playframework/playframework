@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -18,15 +18,7 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 Play's default routes generator creates a router class that accepts controller instances in an `@Inject`-annotated constructor. That means the class is suitable for use with dependency injection and can also be instantiated manually using the constructor.
 
-Play also comes with a legacy static routes generator that works with controllers that declare actions as static methods. This is generally not recommended because it breaks encapsulation, makes code less testable, and is incompatible with many of Play's new APIs.
-
-If you need to use static controllers, you can switch to the static routes generator by adding the following configuration to your `build.sbt`.
-
-```scala
-routesGenerator := StaticRoutesGenerator
-```
-
-The code samples in Play's documentation assume that you are using the injected routes generator. If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
+Before Play 2.7.0, Play supported a static routes generator that supported defining actions as `static` methods. That is no longer supported, as Play no longer relies on static state. If you wish to use your own static state you can still do so in a controller using instance methods.
 
 ## The routes file syntax
 
@@ -87,6 +79,10 @@ You can also define your own regular expression for a dynamic part, using the `$
 
 Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
 
+It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|JavaCsrf]]:
+
+@[nocsrf](code/javaguide.http.routing.routes)
+
 ## Call to action generator method
 
 The last part of a route definition is the call. This part must define a valid call to an action method.
@@ -137,6 +133,18 @@ You can also specify an optional parameter that does not need to be present in a
 
 @[optional](code/javaguide.http.routing.routes)
 
+### Passing the current request to an action method
+
+You can also pass on the current request to an action method. Just add it as a parameter:
+
+@[pass-request](code/javaguide.http.routing.routes)
+
+And the corresponding action method:
+
+@[pass-request](code/javaguide/http/routing/controllers/Application.java)
+
+Play will automatically detect a route param of type `Request` (which is an import for `play.mvc.Http.Request`) and will pass the actual request into the corresponding action method's param. You can, of course, mix a `Request` param with other params and it doesn't matter at which position the `Request` param is.
+
 ## Routing priority
 
 Many routes can match the same request. If there is a conflict, the first route (in declaration order) is used.
@@ -164,6 +172,33 @@ You can then reverse the URL to the `hello` action method, by using the `control
 > **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.Application.hello` can be reversed via `controllers.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
 
 The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
+
+## Relative routes
+
+There are instances where returning a relative route instead of an absolute may be useful.  The routes returned by `play.mvc.Call` are always absolute (they lead with a `/`), which can lead to problems when requests to your web application are rewritten by HTTP proxies, load balancers, and API gateways.  Some examples where using a relative route would be useful include:
+
+* Hosting an app behind a web gateway that prefixes all routes with something other than what is configured in your `conf/routes` file, and roots your application at a route it's not expecting.
+* When dynamically rendering stylesheets, you need asset links to be relative because they may end up getting served from different URLs by a CDN.
+
+To be able to generate a relative route you need to know what to make the target route relative to (the start route).  The start route can be retrieved from the current `RequestHeader`.  Therefore, to generate a relative route it's required that you pass in your current `RequestHeader` or the start route as a `String` parameter.
+
+For example, given controller endpoints like:
+
+@[relative-controller](code/javaguide/http/routing/relative/controllers/Relative.java)
+
+And if you map it in the `conf/routes` file:
+
+@[relative-hello](code/javaguide.http.routing.relative.routes)
+
+You can then define relative routes using the reverse router as before and include an additional call to `relativeTo(play.mvc.RequestHeader requestHeader)`:
+
+@[relative-hello-view](code/javaguide/http/routing/relative/views/hello.scala.html)
+
+> **Note:** The `Http.Request` passed from the controller is cast to a `Http.RequestHeader` in the view parameters.
+
+When requesting `/foo/bar/hello` the generated HTML will look like so:
+
+@[relative-hello-html](code/javaguide/http/routing/relative/views/hello.html)
 
 ## The Default Controller
 

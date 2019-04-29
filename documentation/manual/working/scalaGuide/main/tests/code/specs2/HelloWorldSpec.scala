@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.tests.specs2
 
 // #scalatest-helloworldspec
@@ -10,7 +11,7 @@ class HelloWorldSpec extends Specification {
 
   "The 'Hello world' string" should {
     "contain 11 characters" in {
-      "Hello world" must have size(11)
+      "Hello world" must have size (11)
     }
     "start with 'Hello'" in {
       "Hello world" must startWith("Hello")

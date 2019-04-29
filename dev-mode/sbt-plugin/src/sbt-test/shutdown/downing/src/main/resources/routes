@@ -1,0 +1,3 @@
+GET        /                    controllers.HomeController.index
+GET        /verbose             controllers.HomeController.indexVerbose
+GET        /simulate-downing    controllers.HomeController.downing

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.1 migration guide
 
 This is a guide for migrating from Play 2.0 to Play 2.1.
@@ -144,7 +144,7 @@ Generally speaking, if you see error message "error: could not find implicit val
 import play.api.libs.concurrent.Execution.Implicits._
 ```
 
-_(Please see the [Scala documentation about Execution context](http://docs.scala-lang.org/overviews/core/futures.html) for more information)_
+_(Please see the [Scala documentation about Execution context](https://docs.scala-lang.org/overviews/core/futures.html) for more information)_
 
 And remember that:
 

@@ -1,3 +1,0 @@
-#injected
-GET        /some/path           @controllers.Application.index
-#injected

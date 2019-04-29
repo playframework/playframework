@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Crypto Migration Guide
 
 From Play 1.x, Play has come with a Crypto object that provides some cryptographic operations.  This used internally by Play.  The Crypto object is not mentioned in the documentation, but is mentioned as "cryptographic utilities" in the scaladoc:
@@ -17,7 +17,7 @@ Play uses the `Crypto.sign` method to provide message authentication for session
 
 ### MAC Algorithm Independence
 
-Play currently uses HMAC-SHA1 for signing and verifying session cookies.  An [HMAC](https://en.wikipedia.org/wiki/Hash-based_message_authentication_code) is a cryptographic function that authenticates that data has not been tampered with, using a secret key (the [[application secret|ApplicationSecret]] defined as play.crypto.secret) together with a message digest function (in this case [SHA-1](https://en.wikipedia.org/wiki/SHA-1)).  SHA-1 has suffered [some attacks recently](https://sites.google.com/site/itstheshappening/), but it remains secure when used with an HMAC for [message authenticity](https://killring.org/2014/01/05/how-broken-is-sha-1/).
+Play currently uses HMAC-SHA1 for signing and verifying session cookies.  An [HMAC](https://en.wikipedia.org/wiki/Hash-based_message_authentication_code) is a cryptographic function that authenticates that data has not been tampered with, using a secret key (the [[application secret|ApplicationSecret]] defined as play.crypto.secret) together with a message digest function (in this case [SHA-1](https://en.wikipedia.org/wiki/SHA-1)).  SHA-1 has suffered [some attacks recently](https://sites.google.com/site/itstheshappening/), but it remains secure when used with an HMAC for [message authenticity](https://www.killring.org/how-broken-is-sha-1).
 
 Play needs to have the flexibility be able to move to a different HMAC function [as needed](http://valerieaurora.org/hash.html) and so, should not be part of the public API.
 
@@ -53,7 +53,7 @@ Although using AES with an HMAC is considered a secure construction, there is a 
 
 For customers who are using `Crypto.encryptAES`, there is no immediate security vulnerability that results from the mixing of key usage here:
 
-"With HMAC vs AES, no such interference is known. The *general feeling* of cryptographers is that AES and SHA-1 (or SHA-256) are "sufficiently different" that there should be no practical issue with using the same key for AES and HMAC/SHA-1." -- [http://crypto.stackexchange.com/a/8086](http://crypto.stackexchange.com/a/8086)
+"With HMAC vs AES, no such interference is known. The *general feeling* of cryptographers is that AES and SHA-1 (or SHA-256) are "sufficiently different" that there should be no practical issue with using the same key for AES and HMAC/SHA-1." -- <https://crypto.stackexchange.com/a/8086>.
 
 Once the application gets larger, the key separation principle might be also violated in another way: If `Crypto.encryptAES` is used for multiple purposes, using separate keys is also advised.
 
@@ -93,6 +93,6 @@ Both Kalium and Keyczar use different cryptographic primitives than Crypto.  For
 
 There are some papers available on cryptographic design that go over some of the issues addressed by crypto APIs and the complexities involved:
 
-* [The Long Journey from Papers to Software: Crypto APIs](http://crypto.junod.info/IACR15_crypto_school_talk.pdf)
+* [The Long Journey from Papers to Software: Crypto APIs](https://crypto.junod.info/IACR15_crypto_school_talk.pdf)
 * [What’s Wrong with Crypto API Design](http://spar.isi.jhu.edu/~mgreen/CryptoAPIs.pdf)
 * [Real World Crypto 2015: Error-prone cryptographic designs (djb)](http://bristolcrypto.blogspot.com/2015/01/real-world-crypto-2015-error-prone.html) and [slides](http://cr.yp.to/talks/2015.01.07/slides-djb-20150107-a4.pdf)

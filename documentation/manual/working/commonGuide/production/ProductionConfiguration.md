@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Production Configuration
 
 There are a number of different types of configuration that you can configure in production.  The three mains types are:
@@ -59,8 +59,8 @@ $ /path/to/bin/<project-name> -Dconfig.file=/opt/conf/prod.conf
 
 Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying then as Java System properties:
 
-```
-$ /path/to/bin/<project-name> -Dplay.http.secret.key=abcdefghijk -Ddb.default.password=toto
+```bash
+$ /path/to/bin/<project-name> -Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b -Ddb.default.password=toto
 ```
 
 #### Specifying the HTTP server address and port using system properties
@@ -70,6 +70,18 @@ You can provide both HTTP port and address easily using system properties. The d
 ```
 $ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=127.0.0.1
 ```
+
+#### Specifying the HTTP server address and port using environment variables
+
+You can provide both HTTP port and address easily using environment variables, e.g. when using Bash in Linux:
+
+```
+export PLAY_HTTP_PORT=1234
+export PLAY_HTTPS_PORT=1235
+export PLAY_HTTP_ADDRESS=127.0.0.1
+```
+
+These variables are picked up last, meaning any already defined port or address in `application.conf` or via system properties will override these environment variables.
 
 #### Changing the path of RUNNING_PID
 
@@ -106,11 +118,21 @@ Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no
 
 ### Server configuration options
 
-Play's default HTTP server implementation is Netty, and this provides a large number of ways to tune and configure the server, including the size of parser buffers, whether keep alive is used, and so on.
+Play's default HTTP server implementation is Akka HTTP, and this provides a large number of ways to tune and configure the server, including the size of parser buffers, whether keep alive is used, and so on.
 
 A full list of server configuration options, including defaults, can be seen here:
 
+@[](/confs/play-akka-http-server/reference.conf)
+
+You can also use Netty as the HTTP server, which also provides its own configurations. A full list of Netty server configuration, including the defaults, can be seen below:
+
 @[](/confs/play-netty-server/reference.conf)
+
+> **Note**: The Netty server backend is not the default in 2.6.x, and so must be [[specifically enabled|NettyServer]].
+
+The configurations above are specific to the Akka HTTP and Netty server backend, but other more generic configurations are also available:
+
+@[](/confs/play-server/reference.conf)
 
 ## Logging configuration
 
@@ -127,7 +149,7 @@ You can also specify another logback configuration file via a System property. P
 Specify another logback configuration file to be loaded from the classpath:
 
 ```
-$ /path/to/bin/<project-name> -Dlogger.resource=conf/prod-logger.xml
+$ /path/to/bin/<project-name> -Dlogger.resource=prod-logger.xml
 ```
 
 ### Using `-Dlogger.file`
@@ -145,6 +167,8 @@ Specify another logback configuration file to be loaded from an URL:
 ```
 $ /path/to/bin/<project-name> -Dlogger.url=http://conf.mycompany.com/logger.xml
 ```
+
+> **Note**: To see which file is being used, you can set a system property to debug it: `-Dlogback.debug=true`.
 
 ## JVM configuration
 

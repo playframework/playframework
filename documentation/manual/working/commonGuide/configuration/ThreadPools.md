@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Understanding Play thread pools
 
 Play Framework is, from the bottom up, an asynchronous web framework.  Streams are handled asynchronously using iteratees.  Thread pools in Play are tuned to use fewer threads than in traditional web frameworks, since IO in play-core never blocks.
@@ -18,7 +18,7 @@ Other cases when your code may block include:
 
 In general, if the API you are using returns `Future`s, it is non-blocking, otherwise it is blocking.
 
-> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.  Please see Play's example templates on http://playframework.com/download#examples for how to configure your application for a blocking API.
+> Note that you may be tempted to therefore wrap your blocking code in Futures.  This does not make it non-blocking, it just means the blocking will happen in a different thread.  You still need to make sure that the thread pool that you are using has enough threads to handle the blocking.  Please see Play's example templates on https://playframework.com/download#examples for how to configure your application for a blocking API.
 
 In contrast, the following types of IO do not block:
 
@@ -46,7 +46,7 @@ or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html).
+This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=scala).
 
 ### Configuring the default thread pool
 
@@ -60,7 +60,7 @@ You can also try the default Akka configuration:
 
 @[akka-default-config](code/ThreadPools.scala)
 
-The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.5/general/configuration.html#Listing_of_the_Reference_Configuration).
+The full configuration options available to you can be found [here](https://doc.akka.io/docs/akka/2.5.3/java/general/configuration.html#listing-of-the-reference-configuration).
 
 ## Using other thread pools
 
@@ -82,7 +82,7 @@ or you could just use it implicitly:
 
 @[my-context-implicit](code/ThreadPools.scala)
 
-In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
+In addition, please see the example templates on https://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
 ## Class loaders and thread locals
 
@@ -138,7 +138,7 @@ In this profile, you would use the default execution context everywhere, but con
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
 
-In addition, please see the example templates on http://playframework.com/download#examples for examples of how to configure your application for a blocking API.
+In addition, please see the example templates on https://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
 ### Many specific thread pools
 
@@ -175,7 +175,7 @@ Note that you must have Akka logging set to a debug level to see output, so you 
 <logger name="akka" level="DEBUG" />
 ```
 
-Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should se your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
+Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should see your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
 
 ```
 { 

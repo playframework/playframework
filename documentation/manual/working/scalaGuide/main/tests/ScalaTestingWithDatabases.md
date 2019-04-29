@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing with databases
 
 While it is possible to write functional tests using [[ScalaTest|ScalaFunctionalTestingWithScalaTest]] or [[specs2|ScalaFunctionalTestingWithSpecs2]] that test database access code by starting up a full application including the database, starting up a full application is not often desirable, due to the complexity of having many more components started and running just to test one small part of your application.
@@ -6,6 +6,10 @@ While it is possible to write functional tests using [[ScalaTest|ScalaFunctional
 Play provides a number of utilities for helping to test database access code that allow it to be tested with a database but in isolation from the rest of your app.  These utilities can easily be used with either ScalaTest or specs2, and can make your database tests much closer to lightweight and fast running unit tests than heavy weight and slow functional tests.
 
 ## Using a database
+
+To test with a database backend, you only need:
+
+@[content](code/database/databases.sbt)
 
 To connect to a database, at a minimum, you just need database driver name and the url of the database, using the [`Databases`](api/scala/play/api/db/Databases$.html) companion object.  For example, to connect to MySQL, you might use the following:
 
@@ -39,7 +43,7 @@ Then it can be easily used in each test with minimal boilerplate:
 
 @[custom-with-database-use](code/database/ScalaTestingWithDatabases.scala)
 
-> **Tip:** You can use this to externalise your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
+> **Tip:** You can use this to externalize your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
 
 ### Using an in-memory database
 

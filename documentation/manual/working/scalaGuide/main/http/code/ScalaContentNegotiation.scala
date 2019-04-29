@@ -1,21 +1,22 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.scalacontentnegotiation {
 
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
-  import org.specs2.mutable.Specification
   import play.api.libs.json._
-
   import org.junit.runner.RunWith
+  import org.specs2.mutable.SpecificationLike
   import org.specs2.runner.JUnitRunner
+
   import scala.concurrent.Future
   import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaContentNegotiation extends Specification with Controller {
+  class ScalaContentNegotiation extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
 
     "A Scala Content Negotiation" should {
       "negotiate accept type" in {
@@ -37,9 +38,8 @@ package scalaguide.http.scalacontentnegotiation {
       }
 
       "negotiate accept type" in {
-        
-        val list = Action { implicit request =>
 
+        val list = Action { implicit request =>
           def ??? = Ok("ok")
           //#extract_custom_accept_type
           val AcceptsMp3 = Accepting("audio/mp3")
@@ -56,7 +56,11 @@ package scalaguide.http.scalacontentnegotiation {
 
     }
 
-    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
+    def assertAction[A, T: AsResult](
+        action: Action[A],
+        expectedResponse: Int = OK,
+        request: Request[A] = FakeRequest()
+    )(assertions: Future[Result] => T) = {
       running() { app =>
         val result = action(request)
         status(result) must_== expectedResponse

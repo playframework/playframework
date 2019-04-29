@@ -1,0 +1,66 @@
+# Ordinary run
+
+> playRoutes
+
+$ exists target/routes/main/a/Routes.scala
+$ exists target/routes/main/a/RoutesPrefix.scala
+$ exists target/routes/main/controllers/a/ReverseRoutes.scala
+$ exists target/routes/main/controllers/a/javascript/JavaScriptReverseRoutes.scala
+$ exists target/routes/main/controllers/a/routes.java
+$ exists target/routes/main/b/Routes.scala
+$ exists target/routes/main/b/RoutesPrefix.scala
+$ exists target/routes/main/controllers/b/ReverseRoutes.scala
+$ exists target/routes/main/controllers/b/javascript/JavaScriptReverseRoutes.scala
+$ exists target/routes/main/controllers/b/routes.java
+
+# Modify nothing, ensure nothing gets recompiled
+
+$ touch target/change1
+$ sleep 1100
+
+> playRoutes
+
+-$ newer target/routes/main/a/Routes.scala target/change1
+-$ newer target/routes/main/b/Routes.scala target/change1
+
+# Modify a, ensure only a gets recompiled
+
+$ touch target/change2
+$ copy-file a.routes.1 a.routes
+$ sleep 1100
+
+> playRoutes
+
+$ newer target/routes/main/a/Routes.scala target/change2
+-$ newer target/routes/main/b/Routes.scala target/change2
+
+# Modify b, change the package it produces routes in, ensure the old routes is deleted and the new is produced
+
+$ copy-file b.routes.1 b.routes
+
+> playRoutes
+
+$ exists target/routes/main/a/Routes.scala
+$ exists target/routes/main/a/RoutesPrefix.scala
+$ exists target/routes/main/controllers/a/ReverseRoutes.scala
+$ exists target/routes/main/controllers/a/javascript/JavaScriptReverseRoutes.scala
+$ exists target/routes/main/controllers/a/routes.java
+$ exists target/routes/main/b/Routes.scala
+$ exists target/routes/main/b/RoutesPrefix.scala
+-$ exists target/routes/main/controllers/b/ReverseRoutes.scala
+-$ exists target/routes/main/controllers/b/javascript/JavaScriptReverseRoutes.scala
+-$ exists target/routes/main/controllers/b/routes.java
+$ exists target/routes/main/controllers/c/ReverseRoutes.scala
+$ exists target/routes/main/controllers/c/javascript/JavaScriptReverseRoutes.scala
+$ exists target/routes/main/controllers/c/routes.java
+
+# Modify imports, check that everything gets recompiled
+
+> set routesImport += '"foo.Bar"'
+$ touch target/change3
+$ sleep 1100
+
+> playRoutes
+
+$ newer target/routes/main/a/Routes.scala target/change3
+$ newer target/routes/main/b/Routes.scala target/change3

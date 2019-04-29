@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.6 Migration Guide
 
 This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.5 Migration Guide|Migration25]].
@@ -9,7 +9,7 @@ The following steps need to be taken to update your sbt build before you can loa
 
 ### Play upgrade
 
-Update the Play version number in project/plugins.sbt to upgrade Play:
+Update the Play version number in `project/plugins.sbt` to upgrade Play:
 
 ```scala
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.x")
@@ -19,9 +19,11 @@ Where the "x" in `2.6.x` is the minor version of Play you want to use, for insta
 
 ### sbt upgrade to 0.13.15
 
-Although Play 2.6 will still work with sbt 0.13.11, we recommend upgrading to the latest sbt version, 0.13.15.  The 0.13.15 release of sbt has a number of [improvements and bug fixes](http://www.scala-sbt.org/0.13/docs/sbt-0.13-Tech-Previews.html#sbt+0.13.15) (see also the changes in [sbt 0.13.13](http://www.scala-sbt.org/0.13/docs/sbt-0.13-Tech-Previews.html#sbt+0.13.13)).
+Play 2.6 requires upgrading to at least sbt 0.13.15. The 0.13.15 release of sbt has a number of [improvements and bug fixes](https://www.scala-sbt.org/0.13/docs/sbt-0.13-Tech-Previews.html#sbt+0.13.15) (see also the changes in [sbt 0.13.13](https://www.scala-sbt.org/0.13/docs/sbt-0.13-Tech-Previews.html#sbt+0.13.13)). 
 
-Update your `project/build.properties` so that it reads:
+sbt 1.x is supported beginning with Play 2.6.6. If you are using other sbt plugins, you may need to check if there is a newer version compatible with sbt 1.x
+
+To update, change your `project/build.properties` so that it reads:
 
 ```
 sbt.version=0.13.15
@@ -45,13 +47,13 @@ libraryDependencies += openId
 
 ### Play JSON moved to separate project
 
-Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your SBT build. Instead, you'll have to specify the library manually:
+Play JSON has been moved to a separate library hosted at https://github.com/playframework/play-json. Since Play JSON has no dependencies on the rest of Play, the main change is that the `json` value from `PlayImport` will no longer work in your sbt build. Instead, you'll have to specify the library manually:
 
 ```scala
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
 ```
 
-Also, Play JSON has a separate versioning scheme, so the version no longer is in sync with the Play version.
+Also, play-json has a separate release cycle from the core Play library, so the version is no longer in sync with the Play version.
 
 ### Play Iteratees moved to separate project
 
@@ -69,7 +71,26 @@ libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" 
 
 > **Note**: The helper class `play.api.libs.streams.Streams` was moved to `play-iteratees-reactive-streams` and now is called `play.api.libs.iteratee.streams.IterateeStreams`. So you may need to add the Iteratees dependencies and also use the new class where necessary.
 
-Finally, Play Iteratees has a separate versioning scheme, so the version no longer is in sync with the Play version.
+Finally, Play Iteratees has a separate versioning scheme, so the version is no longer in sync with the Play version.
+
+## Akka HTTP as the default server engine
+
+Play now uses the [Akka-HTTP](https://doc.akka.io/docs/akka-http/current/?language=scala) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](https://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
+
+You can read more at [[Akka HTTP Server Backend|AkkaHttpServer]].
+
+### Akka HTTP server timeouts
+
+Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](https://doc.akka.io/docs/akka-http/current/common/timeouts.html?language=scala#akka-http-timeouts) states that:
+
+> Akka HTTP comes with a variety of built-in timeout mechanisms to protect your servers from malicious attacks or programming mistakes.
+
+And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](https://doc.akka.io/docs/akka-http/current/configuration.html?language=scala). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are more reasonable to your application, for example:
+
+```
+play.server.http.idleTimeout = 60s
+play.server.akka.requestTimeout = 40s
+```
 
 ## Scala `Mode` changes
 
@@ -110,26 +131,20 @@ Now, the default `Writeable[JsValue]` takes no implicit parameters and always wr
 
 If you need the old behavior back, you can define a `Writeable` with an arbitrary codec using `play.api.http.Writeable.writeableOf_JsValue(codec, contentType)` for your desired Codec and Content-Type.
 
-## Scala ActionBuilder and BodyParser changes
-
-The Scala `ActionBuilder` trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
-
-The `Action` global object and `BodyParsers.parse` are now deprecated. They are replaced by injectable traits, `DefaultActionBuilder` and `PlayBodyParsers` respectively. If you are inside a controller, they are automatically provided by the new `BaseController` trait (see the controller changes below).
-
 ## Scala Controller changes
 
-The idiomatic Play controller has in the past required global state. The main places that was needed was in the global `Action` object and `BodyParsers#parse` method.
+The idiomatic Play controller has in the past required global state. The main places that was needed was in the global [`Action`](api/scala/play/api/mvc/Action$.html) object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) method.
 
 We have provided several new controller classes with new ways of injecting that state, providing the same syntax:
- - `BaseController`: a trait with an abstract `ControllerComponents` that can be provided by an implementing class.
- - `AbstractController`: an abstract class extending `BaseController` with a `ControllerComponents` constructor parameter that can be injected using constructor injection.
- - `InjectedController`: a trait, extending `BaseController`, that obtains the `ControllerComponents` through method injection (calling a setControllerComponents method). If you are using a runtime DI framework like Guice, this is done automatically.
+ - [`BaseController`](api/scala/play/api/mvc/BaseController.html): a trait with an abstract [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be provided by an implementing class.
+ - [`AbstractController`](api/scala/play/api/mvc/AbstractController.html): an abstract class extending [`BaseController`](api/scala/play/api/mvc/BaseController.html) with a [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) constructor parameter that can be injected using constructor injection.
+ - [`InjectedController`](api/scala/play/api/mvc/InjectedController.html): a trait, extending [`BaseController`](api/scala/play/api/mvc/BaseController.html), that obtains the [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) through method injection (calling a `setControllerComponents` method). If you are using a runtime DI framework like Guice, this is done automatically.
 
-`ControllerComponents` is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending `ControllerHelpers` and injecting your own bundle of components. Play does not require your controllers to implement any particular trait.
+[`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) is simply meant to bundle together components typically used in a controller. You may also wish to create your own base controller for your app by extending [`ControllerHelpers`](api/scala/play/api/mvc/ControllerHelpers.html) and injecting your own bundle of components. Play does not require your controllers to implement any particular trait.
 
-Note that `BaseController` makes `Action` and `parse` refer to injected instances rather than the global objects, which is usually what you want to do.
+Note that [`BaseController`](api/scala/play/api/mvc/BaseController.html) makes [`Action`](api/scala/play/api/mvc/Action.html) and `parse` refer to injected instances rather than the global objects, which is usually what you want to do.
 
-Here's an example of code using `AbstractController`:
+Here's an example of code using [`AbstractController`](api/scala/play/api/mvc/AbstractController.html):
 
 ```scala
 class FooController @Inject() (components: ControllerComponents)
@@ -142,7 +157,7 @@ class FooController @Inject() (components: ControllerComponents)
 }
 ```
 
-and using `BaseController`:
+and using [`BaseController`](api/scala/play/api/mvc/BaseController.html):
 
 ```scala
 class FooController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
@@ -154,7 +169,7 @@ class FooController @Inject() (val controllerComponents: ControllerComponents) e
 }
 ```
 
-and `InjectedController`:
+and [`InjectedController`](api/scala/play/api/mvc/InjectedController.html):
 
 ```scala
 class FooController @Inject() () extends InjectedController {
@@ -166,9 +181,9 @@ class FooController @Inject() () extends InjectedController {
 }
 ```
 
-`InjectedController` gets its `ControllerComponents` by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using `InjectedController` with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding `InjectedController` since it hides the dependency.
+[`InjectedController`](api/scala/play/api/mvc/InjectedController.html) gets its [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) by calling the `setControllerComponents` method, which is called automatically by JSR-330 compliant dependency injection. We do not recommend using [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) with compile-time injection. If you plan to extensively unit test your controllers manually, we also recommend avoiding [`InjectedController`](api/scala/play/api/mvc/InjectedController.html) since it hides the dependency.
 
-If you prefer to pass the individial dependencies manually, you can do that instead and extend `ControllerHelpers`, which has no dependencies or state. Here's an example:
+If you prefer to pass the individual dependencies manually, you can do that instead and extend [`ControllerHelpers`](api/scala/play/api/mvc/ControllerHelpers.html), which has no dependencies or state. Here's an example:
 
 ```scala
 class Controller @Inject() (
@@ -182,12 +197,18 @@ class Controller @Inject() (
 }
 ```
 
+## Scala ActionBuilder and BodyParser changes
+
+The Scala [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
+
+The [`Action`](api/scala/play/api/mvc/Action$.html) global object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) are now deprecated. They are replaced by injectable traits, [`DefaultActionBuilder`](api/scala/play/api/mvc/DefaultActionBuilder.html) and [`PlayBodyParsers`](api/scala/play/api/mvc/PlayBodyParsers.html) respectively. If you are inside a controller, they are automatically provided by the new [`BaseController`](api/scala/play/api/mvc/BaseController.html) trait (see [the controller changes](#Scala-Controller-changes) above).
+
 ## Cookies
 
-For Java users, we now recommend using `Cookie.builder` to create new cookies, for example:
+For Java users, we now recommend using [`play.mvc.Http.Cookie.builder`](api/java/play/mvc/Http.Cookie.html#builder-java.lang.String-java.lang.String-) to create new cookies, for example:
 
 ```java
-Cookie cookie = Cookie.builder("color", "blue")
+Http.Cookie cookie = Cookie.builder("color", "blue")
   .withMaxAge(3600)
   .withSecure(true)
   .withHttpOnly(true)
@@ -199,7 +220,7 @@ This is more readable than a plain constructor call, and will be source-compatib
 
 ### SameSite attribute, enabled for session and flash
 
-Cookies now can have an additional [`SameSite` attribute](http://httpwg.org/http-extensions/draft-ietf-httpbis-cookie-same-site.html), which can be used to prevent CSRF. There are three possible states:
+Cookies now can have an additional [`SameSite` attribute](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00), which can be used to prevent CSRF. There are three possible states:
 
  - No `SameSite`, meaning cookies will be sent for all requests to that domain.
  - `SameSite=Strict`, meaning the cookie will only be sent for same-site requests (coming from another page on the site) not cross-site requests
@@ -212,19 +233,34 @@ play.http.session.sameSite = null // no same-site for session
 play.http.flash.sameSite = "strict" // strict same-site for flash
 ```
 
-*Note that this feature is currently not supported by many browsers, so you shouldn't rely on it. Chrome and Opera are the only major browsers to support SameSite right now.*
+> **Note**: this feature is currently [not supported by many browsers](https://caniuse.com/#feat=same-site-cookie-attribute), so you should not rely on it. Chrome and Opera are the only major browsers to support SameSite right now.
 
 ### __Host and __Secure prefixes
 
-We've also added support for the [__Host and __Secure cookie name prefixes](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00#section-3).
+We've also added support for the [\__Host and \__Secure cookie name prefixes](https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00#section-3).
 
 This will only affect you if you happen to be using these prefixes for cookie names. If you are, Play will warn when serializing and deserializing those cookies if the proper attributes are not set, then set them for you automatically. To remove the warning, either cease using those prefixes for your cookies, or be sure to set the attributes as follows:
- - Cookies named with `__Host-` should set `Path=/` and `Secure` attributes.
- - Cookies named with `__Secure-` should set the `Secure` attribute.
+
+- Cookies named with `__Host-` should set `Path=/` and `Secure` attributes.
+- Cookies named with `__Secure-` should set the `Secure` attribute.
 
 ## Assets
 
-Existing user-facing APIs have not changed, but we suggest moving over to the `AssetsFinder` API for finding assets and setting up your assets directories in configuration:
+### Binding Assets with compile-time DI
+
+If you are using compile-time DI, you should mix in [`controllers.AssetsComponents`](api/scala/controllers/AssetsComponents.html) and use that to obtain the `assets: Assets` controller instance:
+
+```scala
+class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) with AssetsComponents {
+  lazy val router = new Routes(httpErrorHandler, assets)
+}
+```
+
+If you have an existing `lazy val assets: Assets` you can remove it.
+
+### Assets configuration
+
+Existing user-facing APIs have not changed, but we suggest moving over to the [`AssetsFinder`](api/scala/controllers/AssetsFinder.html) API for finding assets and setting up your assets directories in configuration:
 
 ```
 play.assets {
@@ -237,13 +273,13 @@ Then in routes you can do:
 
 ```
 # prefix must match `play.assets.urlPrefix`
-/assets/*file           controllers.Assets.at(file)
-/versionedAssets/*file  controllers.Assets.versioned(file)
+GET /assets/*file           controllers.Assets.at(file)
+GET /versionedAssets/*file  controllers.Assets.versioned(file)
 ```
 
 You no longer need to provide an assets path at the start of the argument list, since that's now read from configuration.
 
-Then in your template you can use `AssetsFinder#path` to find the final path of the asset:
+Then in your template you can use [`AssetsFinder#path`](api/scala/controllers/AssetsFinder.html#path\(rawPath:String\):String) to find the final path of the asset:
 
 ```scala
 @(assets: AssetsFinder)
@@ -255,14 +291,16 @@ You can still continue to use reverse routes with `Assets.versioned`, but some g
 
 ## Form changes
 
-Starting with Play 2.6 query string parameters will not be bound to a form instance anymore when using `.bindFromRequest()` in combination with `POST`, `PUT` or `PATCH` requests.
+Starting with Play 2.6, query string parameters will not be bound to a form instance anymore when using [`bindFromRequest()`](api/scala/play/api/data/Form.html#bindFromRequest\(\)\(implicitrequest:play.api.mvc.Request[_]\):play.api.data.Form[T]) in combination with `POST`, `PUT` or `PATCH` requests.
+
+Static methods which where already deprecated in 2.5 (e.g. `DynamicForm.form()`) where removed in this release. Refer to the [[Play 2.5 Migration Guide|Migration25]] for details on how to migrate, in case you still use them.
 
 ### Java Form Changes
 
-The `.errors()` method of a `play.data.Form` instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
+The [`errors()`](api/java/play/data/Form.html#errors--) method of a [`play.data.Form`](api/java/play/data/Form.html) instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
-From now on a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
-Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the `Validatable` interface with the applicable type argument (all defined in `play.data.validation.Constraints`):
+From now on, a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
+Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the [`Validatable`](api/java/play/data/validation/Constraints.Validatable.html) interface with the applicable type argument (all defined in [`play.data.validation.Constraints`](api/java/play/data/validation/Constraints.html)):
 
 | **Return type**                                                                    | **Interface to implement**
 | -----------------------------------------------------------------------------------|-------------------------------------
@@ -318,7 +356,7 @@ See [[Java Configuration Migration|JavaConfigMigration26]].
 
 ## Scala Configuration API
 
-The Scala `play.api.Configuration` API now has new methods that allow loading any type using a `ConfigLoader`. These new methods expect configuration keys to exist in the configuration file. For example, the following old code:
+The Scala [`play.api.Configuration`](api/scala/play/api/Configuration.html) API now has new methods that allow loading any type using a [`ConfigLoader`](api/scala/play/api/ConfigLoader.html). These new methods expect configuration keys to exist in the configuration file. For example, the following old code:
 
 ```scala
 val myConfig: String = configuration.getString("my.config.key").getOrElse("default")
@@ -335,15 +373,59 @@ val myConfigOption: Option[String] = configuration.get[Option[String]]("my.confi
 val myConfig: String = myConfigOption.getOrElse(computeDefaultValue())
 ```
 
-Also, there are several methods in the old `Configuration` that return Java types, like `getBooleanList`. We recommend using the Scala version `get[Seq[Boolean]]` instead if possible. If that is not possible, you can access the `underlying` Config object and call `getBooleanList` from it.
+Also, there are several methods in the old [`play.api.Configuration`](api/scala/play/api/Configuration.html) that return Java types, like `getBooleanList`. We recommend using the Scala version `get[Seq[Boolean]]` instead if possible. If that is not possible, you can access the `underlying` Config object and call `getBooleanList` from it.
 
-The deprecation messages on the existing methods also explain how to migrate each method. See [[the Scala Configuration docs|ScalaConfig]] for more details on the proper use of `play.api.Configuration`.
+The deprecation messages on the existing methods also explain how to migrate each method. See [[the Scala Configuration docs|ScalaConfig]] for more details on the proper use of [`play.api.Configuration`](api/scala/play/api/Configuration.html).
+
+## Play JSON API changes
+
+### JSON array index lookup
+
+If you are using the Scala play-json API, there was a small change in the way the `JsLookup` implicit class works. For example, if you have code like:
+
+```scala
+val bar = (jsarray(index) \ "bar").as[Bar]
+```
+where `index` is an array index and `jsarray` is a `JsArray`, now you should write:
+```scala
+val bar = (jsarray \ index \ "bar").as[Bar]
+```
+
+This was done to bring the behavior of indexing on `JsArray`s in line with that of other collections in Scala. Now the `jsarray(index)` method will return the value at the index, throwing an exception if it does not exist.
 
 ## Removed APIs
 
 ### Removed Crypto API
 
 The Crypto API has removed the deprecated classes `play.api.libs.Crypto`, `play.libs.Crypto` and `AESCTRCrypter`.  The CSRF references to `Crypto` have been replaced by `CSRFTokenSigner`.  The session cookie references to `Crypto` have been replaced with `CookieSigner`.  Please see [[CryptoMigration25]] for more information.
+
+### `Akka` deprecated methods removed
+
+The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access to the actor system.
+
+For Scala:
+
+```scala
+class MyComponent @Inject() (system: ActorSystem) {
+
+}
+```
+
+And for Java:
+
+```java
+public class MyComponent {
+
+    private final ActorSystem system;
+
+    @Inject
+    public MyComponent(ActorSystem system) {
+        this.system = system;
+    }
+}
+```
+
+Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](https://doc.akka.io/docs/akka/current/project/migration-guide-2.4.x-2.5.x.html?language=scala) to see how to adapt your own code if necessary.
 
 ### Removed Yaml API
 
@@ -388,38 +470,65 @@ public class Yaml {
 }
 ```
 
-If you explicitly depend on an alternate DI library for play, or have defined your own custom application loader, no changes should be required.
+Or in Scala:
 
-Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an `ApplicationLoader`.
+```scala
+class Yaml @Inject()(environment: play.api.Environment) {
+  def load(resourceName: String) = {
+    load(environment.resourceAsStream(resourceName), environment.classLoader)
+  }
 
-### Removed libraries
+  def load(inputStream: InputStream, classLoader: ClassLoader) = {
+    new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader)).load(inputStream)
+  }
+}
+```
+
+If you explicitly depend on an alternate DI library for Play, or have defined your own custom application loader, no changes should be required.
+
+Libraries that provide Play DI support should define the `play.application.loader` configuration key. If no external DI library is provided, Play will refuse to start unless you point that to an [`ApplicationLoader`](api/scala/play/api/ApplicationLoader.html).
+
+### Removed deprecated `play.Routes`
+
+The deprecated `play.Routes` class used to create a JavaScript router were removed. You now have to use the new Java or Scala helpers:
+
+* [[Javascript Routing in Scala|ScalaJavascriptRouting]]
+* [[Javascript Routing in Java|JavaJavascriptRouter]]
+
+## Removed libraries
 
 In order to make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.6, so you will need to manually add them to your build if you use them.
 
-#### Joda-Time removal
+### Joda-Time removal
 
-If you can, you could migrate all occurrences to Java8 `java.time`.
+We recommend using the `java.time` APIs, so we are removing joda-time support from the core of Play.
 
-If you can't and still need to use Joda-Time in Play Forms and Play-Json you can just add the `play-joda` project:
+Play's Scala forms library had some Joda formats. If you don't wish to migrate, you can add the `jodaForms` module in your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.typesafe.play" % "play-joda" % "1.0.0"
+libraryDependencies += jodaForms
 ```
 
-And then import the corresponding Object for Forms:
+And then import the corresponding object:
 
 ```scala
 import play.api.data.JodaForms._
 ```
 
-or for Play-Json
+If you need Joda support in play-json, you can add the following dependency:
 
 ```scala
-import play.api.data.JodaWrites._
-import play.api.data.JodaReads._
+libraryDependencies += "com.typesafe.play" %% "play-json-joda" % playJsonVersion
 ```
 
-#### Joda-Convert removal
+where `playJsonVersion` is the play-json version you wish to use. Play 2.6.x should be compatible with play-json 2.6.x. Note that play-json is now a separate project (described later).
+
+```scala
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
+```
+
+### Joda-Convert removal
 
 Play had some internal uses of `joda-convert` if you used it in your project you need to add it to your `build.sbt`:
 
@@ -427,7 +536,7 @@ Play had some internal uses of `joda-convert` if you used it in your project you
 libraryDependencies += "org.joda" % "joda-convert" % "1.8.1"
 ```
 
-#### XercesImpl removal
+### XercesImpl removal
 
 For XML handling Play used the Xerces XML Library. Since modern JVM are using Xerces as a reference implementation we removed it. If your project relies on the external package you can simply add it to your `build.sbt`:
 
@@ -435,7 +544,7 @@ For XML handling Play used the Xerces XML Library. Since modern JVM are using Xe
 libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 ```
 
-#### H2 removal
+### H2 removal
 
 Prior versions of Play prepackaged the H2 database. But to make the core of Play smaller we removed it. If you make use of H2 you can add it to your `build.sbt`:
 
@@ -451,13 +560,15 @@ libraryDependencies += "com.h2database" % "h2" % "1.4.193" % Test
 
 The [[H2 Browser|Developing-with-the-H2-Database#H2-Browser]] will still work after you added the dependency.
 
-#### snakeyaml removal
+### snakeyaml removal
 
 Play removed `play.libs.Yaml` and therefore the dependency on `snakeyaml` was dropped. If you still use it add it to your `build.sbt`:
 
 ```scala
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.17"
 ```
+
+See also [notes about the removal of Yaml API](#Removed-Yaml-API).
 
 ### Tomcat-servlet-api removal
 
@@ -467,39 +578,15 @@ Play removed the `tomcat-servlet-api` since it was of no use. If you still use i
 libraryDependencies += "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.33"
 ```
 
-### Akka Migration
+### fork-run removal
 
-The deprecated static methods `play.libs.Akka.system` and `play.api.libs.concurrent.Akka.system` were removed.  Use dependency injection to get an instance of `ActorSystem` and access the actor system.
+The `sbt-fork-run-plugin` will no longer be generated, as it was only needed for the now end-of-life activator utility. As it will no longer resolve for 2.6 it can safely be removed altogether. 
 
-For Scala:
-
-```scala
-class MyComponent @Inject() (system: ActorSystem) {
-
-}
-```
-
-And for Java:
-
-```java
-public class MyComponent {
-
-    private final ActorSystem system;
-
-    @Inject
-    public MyComponent(ActorSystem system) {
-        this.system = system;
-    }
-}
-```
-
-Also, Akka version used by Play was updated to the 2.5.x. Read Akka [migration guide from 2.4.x to 2.5.x](http://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
-
-### Request attributes
+## Request attributes
 
 All request objects now contain *attributes*. Request attributes are a replacement for request *tags*. Tags have now been deprecated and you should upgrade to attributes. Attributes are more powerful than tags; you can use attributes to store objects in requests, whereas tags only supported storing Strings.
 
-#### Request tags deprecation
+### Request tags deprecation
 
 Tags have been deprecated so you should start migrating from using tags to using attributes. Migration should be fairly straightforward.
 
@@ -522,6 +609,7 @@ Java after:
 class Attrs {
   public static final TypedKey<String> USER_NAME = TypedKey.<String>create("userName");
 }
+
 // Getting an attribute from a Request or RequestHeader
 String userName = req.attrs().get(Attrs.USER_NAME);
 String userName = req.attrs().getOptional(Attrs.USER_NAME);
@@ -570,15 +658,15 @@ object Attrs {
 }
 ```
 
-#### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
+### Calling `FakeRequest.withCookies` no longer updates the `Cookies` header
 
-Request cookies are now stored in a request attribute. Previously they were stored in the request's `Cookie` header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
+Request cookies are now stored in a request attribute. Previously they were stored in the request's [`Cookie`](api/scala/play/api/mvc/Cookie.html) header `String`. This required encoding and decoding the cookie to the header whenever the cookie changed.
 
-Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the `Cookie` HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
+Now that cookies are stored in request attributes updating the cookie will change the new cookie attribute but not the [`Cookie`](api/scala/play/api/mvc/Cookie.html) HTTP header. This will only affect your tests if you're relying on the fact that calling `withCookies` will update the header.
 
-If you still need the old behavior you can still use `Cookies.encodeCookieHeader` to convert the `Cookie` objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
+If you still need the old behavior you can still use [`Cookies.encodeCookieHeader`](api/scala/play/api/mvc/Cookies$.html#encodeCookieHeader\(cookies:Seq[play.api.mvc.Cookie]\):String) to convert the [`Cookie`](api/scala/play/api/mvc/Cookie.html) objects into an HTTP header then store the header with `FakeRequest.withHeaders`.
 
-#### `play.api.mvc.Security.username` (Scala API), `session.username` changes
+### `play.api.mvc.Security.username` (Scala API), `session.username` changes
 
 `play.api.mvc.Security.username` (Scala API), `session.username` config key and dependent actions helpers are deprecated. `Security.username` just retrieves the `session.username` key from configuration, which defined the session key used to get the username. It was removed since it required statics to work, and it's fairly easy to implement the same or similar behavior yourself.
 
@@ -587,13 +675,13 @@ You can read the username session key from configuration yourself using `configu
 If you're using the `Authenticated(String => EssentialAction)` method, you can easily create your own action to do something similar:
 
 ```scala
-  def AuthenticatedWithUsername(action: String => EssentialAction) =
-    WithAuthentication[String](_.session.get(UsernameKey))(action)
+def AuthenticatedWithUsername(action: String => EssentialAction) =
+  WithAuthentication[String](_.session.get(UsernameKey))(action)
 ```
 
 where `UsernameKey` represents the session key you want to use for the username.
 
-#### Request Security (Java API) username property is now an attribute
+### Request Security (Java API) username property is now an attribute
 
 The Java Request object contains a `username` property which is set when the `Security.Authenticated` annotation is added to a Java action. In Play 2.6 the username property has been deprecated. The username property methods have been updated to store the username in the `Security.USERNAME` attribute. You should update your code to use the `Security.USERNAME` attribute directly. In a future version of Play we will remove the username property.
 
@@ -623,9 +711,9 @@ String username = req1.attr(USERNAME);
 Request reqWithUsername = new RequestBuilder().putAttr(USERNAME, "admin").build();
 ```
 
-#### Router tags are now attributes
+### Router tags are now attributes
 
-If you used any of the `Router.Tags.*` tags, you should change your code to use the new `Router.Attrs.HandlerDef` (Scala) or `Router.Attrs.HANDLER_DEF` (Java) attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
+If you used any of the `Router.Tags.*` tags, you should change your code to use the new [`Router.Attrs.HandlerDef`](api/scala/play/api/routing/Router$$Attrs$.html#HandlerDef:play.api.libs.typedmap.TypedKey[play.api.routing.HandlerDef]) (Scala) or [`Router.Attrs.HANDLER_DEF`](api/java/play/routing/Router.Attrs.html#HANDLER_DEF) (Java) attribute instead. The existing tags are still available, but are deprecated and will be removed in a future version of Play.
 
 This new attribute contains a `HandlerDef` object with all the information that is currently in the tags. The current tags all correspond to a field in the `HandlerDef` object:
 
@@ -639,14 +727,7 @@ This new attribute contains a `HandlerDef` object with all the information that 
 
 > **Note**: As part of this change the `HandlerDef` object has been moved from the `play.core.routing` internal package into the `play.api.routing` public API package.
 
-### Remove deprecated `play.Routes`
-
-The deprecated `play.Routes` class used to create a JavaScript router were removed. You now have to use the new Java or Scala helpers:
-
-* [[Javascript Routing in Scala|ScalaJavascriptRouting]]
-* [[Javascript Routing in Java|JavaJavascriptRouter]]
-
-### `play.api.libs.concurrent.Execution` is deprecated
+## `play.api.libs.concurrent.Execution` is deprecated
 
 The `play.api.libs.concurrent.Execution` class has been deprecated, as it was using global mutable state under the hood to pull the "current" application's ExecutionContext.
 
@@ -669,9 +750,9 @@ class MyComponentsFromContext(context: ApplicationLoader.Context)
 
 However, there are some good reasons why you may not want to import an execution context even in the general case.  In the general case, the application's execution context is good for rendering actions, and executing CPU-bound activities that do not involve blocking API calls or I/O activity.  If you are calling out to a database, or making network calls, then you may want to define your own custom execution context.
 
-The recommended way to create a custom execution context is through `CustomExecutionContext`, which uses the Akka dispatcher system ([java](http://doc.akka.io/docs/akka/2.5/java/dispatchers.html) / [scala](http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html))  so that executors can be defined through configuration.
+The recommended way to create a custom execution context is through [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html), which uses the Akka dispatcher system ([java](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=java) / [scala](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=scala))  so that executors can be defined through configuration.
 
-To use your own execution context, extend the `CustomExecutionContext` abstract class with the full path to the dispatcher in the `application.conf` file:
+To use your own execution context, extend the [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html) abstract class with the full path to the dispatcher in the `application.conf` file:
 
 ```scala
 import play.api.libs.concurrent.CustomExecutionContext
@@ -698,7 +779,7 @@ class MyBlockingRepository @Inject()(implicit myExecutionContext: MyExecutionCon
 }
 ```
 
-Please see [[ThreadPools]] page for more information on custom execution contexts.
+Please see [[ThreadPools]] page for more information on custom thread pool configuration, and [[JavaAsync]] / [[ScalaAsync]] for using `CustomExecutionContext`.
 
 ## Changes to play.api.test Helpers
 
@@ -717,7 +798,7 @@ The following deprecated test helpers have been removed in 2.6.x:
 
 ## Changes to Template Helpers
 
-The `requireJs` template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
+The `requireJs` template helper in [`views/helper/requireJs.scala.html`](https://github.com/playframework/playframework/blob/2.6.x/core/play/src/main/scala/views/helper/requireJs.scala.html) used `Play.maybeApplication` to access the configuration.
 
 The `requireJs` template helper has an extra parameter `isProd` added to it that indicates whether the minified version of the helper should be used:
 
@@ -747,7 +828,7 @@ There is a `Http.Context.current().fileMimeTypes()` method that is provided unde
 
 ### Scala API
 
-The `play.api.libs.MimeTypes` class has been changed to `play.api.http.FileMimeTypes` interface, and the implementation has changed to `play.api.http.DefaultMimeTypes`.
+The `play.api.libs.MimeTypes` class has been changed to [`play.api.http.FileMimeTypes`](api/scala/play/api/http/FileMimeTypes.html) interface, and the implementation has changed to [`play.api.http.DefaultFileMimeTypes`](api/scala/play/api/http/DefaultFileMimeTypes.html).
 
 All the results that send files or resources now take `FileMimeTypes` implicitly, i.e.
 
@@ -783,15 +864,111 @@ val fileMimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(
 
 ## Default Filters
 
-Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.EnabledFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
+Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now [`play.api.http.EnabledFilters`](api/scala/play/api/http/EnabledFilters.html), which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
-In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in SBT as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
+In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in sbt as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
 
-* `play.filters.csrf.CSRFFilter`
-* `play.filters.headers.SecurityHeadersFilter`
-* `play.filters.hosts.AllowedHostsFilter`
+* [`play.filters.csrf.CSRFFilter`](api/scala/play/filters/csrf/CSRFFilter.html)
+* [`play.filters.headers.SecurityHeadersFilter`](api/scala/play/filters/headers/SecurityHeadersFilter.html)
+* [`play.filters.hosts.AllowedHostsFilter`](api/scala/play/filters/hosts/AllowedHostsFilter.html)
 
 This means that on new projects, CSRF protection ([[ScalaCsrf]] / [[JavaCsrf]]), [[SecurityHeaders]] and [[AllowedHostsFilter]] are all defined automatically.
+
+### Effects of Default Filters
+
+The default filters are configured to give a "secure by default" configuration to projects. 
+
+**You should keep these filters enabled: they make your application more secure.** 
+
+If you did not have these filters enabled in an existing project, then there is some configuration required, and you may not be familiar with the errors and failures involved.  To help with migration, we'll go over each filter, what it does and what configuration is required.
+
+#### CSRFFilter 
+
+The CSRF filter is described in [[ScalaCsrf]] and [[JavaCsrf]].  It protects against [cross site request forgery](https://en.wikipedia.org/wiki/Cross-site_request_forgery) attacks, by adding a CSRF token to forms that is checked on POST requests.
+
+##### Why it is enabled by default
+
+CSRF is a very common attack that takes very little skill to implement.  You can see an example of a CSRF attack using Play at [https://github.com/Manc/play-scala-csrf](https://github.com/Manc/play-scala-csrf).  
+
+##### What changes do I need to make? 
+
+If you are migrating from an existing project that does not use CSRF form helpers such as `CSRF.formField`, then you may see "403 Forbidden" on PUT and POST requests from the CSRF filter.  
+
+Adding `CSRF.formField` to your form templates will resolve the error If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
+
+To check this behavior, please add `<logger name="play.filters.csrf" value="TRACE"/>` to your `logback.xml`.
+
+You may also want to enable SameSite cookies in Play, which provide an additional defense against CSRF attacks.
+
+#### SecurityHeadersFilter
+
+[[SecurityHeadersFilter|SecurityHeaders]] prevents [cross site scripting](https://en.wikipedia.org/wiki/Cross-site_scripting) and [clickjacking](https://en.wikipedia.org/wiki/Clickjacking) attacks, by adding extra HTTP headers to the request.  
+
+##### Why it is enabled by default
+
+Browser based attacks are extremely common, and security headers can provide a defense in depth to help frustrate those attacks.
+
+##### What changes do I need to make? 
+
+The default "Content-Security-Policy" settings are quite strict, and it is likely that you will need to experiment with it to find the most useful settings.  The Content-Security-Policy settings will change how Javascript and remote frames are displayed in a browser.  **Embedded Javascript or CSS will not be loaded in your web page until you modify the Content-Security-Policy header.** 
+
+If you are sure that you do not want to enable it, you can disable the Content-Security-Policy as follows:
+
+```
+play.filters.headers.contentSecurityPolicy=null
+```
+
+[CSP-Useful](https://github.com/nico3333fr/CSP-useful) is a good resource on Content-Security-Policy in general.  Note that there are other potential solutions to embedded Javascript, such as adding a custom CSP nonce on every request.
+
+The other headers are less intrusive, and are unlikely to cause problems on a plain website, but may cause cookie or rendering problems on a Single Page Application.  Mozilla has documentation describing each header in detail, using the header name in the URL: for example, for X-Frame-Options go to [https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options).
+
+
+```
+play.filters.headers {
+
+    # The X-Frame-Options header. If null, the header is not set.
+    frameOptions = "DENY"
+
+    # The X-XSS-Protection header. If null, the header is not set.
+    xssProtection = "1; mode=block"
+
+    # The X-Content-Type-Options header. If null, the header is not set.
+    contentTypeOptions = "nosniff"
+
+    # The X-Permitted-Cross-Domain-Policies header. If null, the header is not set.
+    permittedCrossDomainPolicies = "master-only"
+
+    # The Content-Security-Policy header. If null, the header is not set.
+    contentSecurityPolicy = "default-src 'self'"
+
+    # The Referrer-Policy header. If null, the header is not set.
+    referrerPolicy = "origin-when-cross-origin, strict-origin-when-cross-origin"
+
+    # If true, allow an action to use .withHeaders to replace one or more of the above headers
+    allowActionSpecificHeaders = false
+}
+```
+
+#### AllowedHostsFilter
+
+The AllowedHostsFilter adds a whitelist of allowed hosts and sends a 400 (Bad Request) response to all requests with a host that do not match the whitelist.
+
+##### Why it is enabled by default
+
+This is an important filter to use in development, because DNS rebinding attacks can be used against a developer’s instance of Play: see [Rails Webconsole DNS Rebinding](https://benmmurphy.github.io/blog/2016/07/11/rails-webconsole-dns-rebinding/) for an example of how short lived DNS rebinding can attack a server running on localhost.
+
+##### What changes do I need to make? 
+
+If you are running a Play application on something other than localhost, you must configure the AllowedHostsFilter to specifically allow the hostname/ip you are connecting from.  This is especially important to note when you change environments, because typically you'll run on localhost in development, but will run remotely in staging and production.
+
+```
+play.filters.hosts {
+  # Allow requests to example.com, its subdomains, and localhost:9000.
+  allowed = [".example.com", "localhost:9000"]
+}
+```
+
+### Appending To Filters
 
 To append to the defaults list, use the `+=`:
 
@@ -988,8 +1165,7 @@ If you have custom cookies being used in Play, using the `CookieBaker[T]` trait,
 
 The `encode` and `decode` methods that `Map[String, String]` to and from the format found in the browser have been extracted into `CookieDataCodec`.  There are three implementations: `FallbackCookieDataCodec`, `JWTCookieDataCodec`, or `UrlEncodedCookieDataCodec`, which respectively represent URL-encoded with an HMAC, or a JWT, or a "read signed or JWT, write JWT" codec.
 
-
-and then provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration, or use `JWTConfiguration()` for the defaults.
+You will also need to provide a `JWTConfiguration` case class, using the `JWTConfigurationParser` with the path to your configuration, or use `JWTConfiguration()` for the defaults.
 
 
 ```scala
@@ -1041,14 +1217,14 @@ class MyClass {
 
 ### Netty 4.1
 
-Netty was upgraded to [version 4.1](http://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the [[Akka Server|AkkaHttpServer]].
+Netty was upgraded to [version 4.1](https://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the [[Akka Server|AkkaHttpServer]].
 
-And if you are, for some reason, directly using Netty classes, you should [adapt your code to this new version](http://netty.io/wiki/new-and-noteworthy-in-4.1.html).
+And if you are, for some reason, directly using Netty classes, you should [adapt your code to this new version](https://netty.io/wiki/new-and-noteworthy-in-4.1.html).
 
 ### FluentLenium and Selenium
 
 The FluentLenium library was updated to version 3.2.0 and Selenium was updated to version [3.3.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/) (you may want to see the [changelog here](https://raw.githubusercontent.com/SeleniumHQ/selenium/master/java/CHANGELOG)). If you were using Selenium's WebDriver API before, there should not be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
-If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](http://fluentlenium.org/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
+If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](https://fluentlenium.com/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
 
 ### HikariCP
 
@@ -1056,9 +1232,10 @@ HikariCP was updated and a new configuration was introduced: `initializationFail
 
 ## Other Configuration changes
 
-There are some configurations.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
+There are some configuration changes. The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them. Here is a summary of the changed keys:
 
-| Old key                   | New key                            |
-| ------------------------- | ---------------------------------- |
-| `play.crypto.secret`      | `play.http.secret.key`             |
-| `play.crypto.provider`    | `play.http.secret.provider`        |
+| Old key                       | New key                                 |
+|-------------------------------|-----------------------------------------|
+| `play.crypto.secret`          | `play.http.secret.key`                  |
+| `play.crypto.provider`        | `play.http.secret.provider`             |
+| `play.websocket.buffer.limit` | `play.server.websocket.frame.maxLength` |

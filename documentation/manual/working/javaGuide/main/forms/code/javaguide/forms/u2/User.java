@@ -1,32 +1,31 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.forms.u2;
 
 import play.data.validation.Constraints.Required;
 
-//#user
+// #user
 public class User {
 
-    @Required
-    protected String email;
-    protected String password;
+  @Required protected String email;
+  protected String password;
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  public String getEmail() {
+    return email;
+  }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-    public String getPassword() {
-        return password;
-    }
-
+  public String getPassword() {
+    return password;
+  }
 }
-//#user
+// #user

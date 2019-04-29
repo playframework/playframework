@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.application.httpfilters;
 
 // #filters
-import play.mvc.EssentialFilter;
 import play.http.DefaultHttpFilters;
 import play.filters.gzip.GzipFilter;
 import javax.inject.Inject;
@@ -15,4 +15,4 @@ public class Filters extends DefaultHttpFilters {
     super(gzip, logging);
   }
 }
-//#filters
+// #filters

@@ -1,0 +1,99 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@import InjectedRoutesGenerator.Dependency
+
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String],
+  deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]], includes: Seq[Dependency[Include]])
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+// @@DATE:@sourceInfo.date
+
+@for(p <- pkg) {package @p}
+
+import play.core.routing._
+import play.core.routing.HandlerInvokerFactory._
+
+import play.api.mvc._
+@for(i <- imports) {
+import @if(!i.startsWith("_root_.")){_root_.}@i}
+
+class Routes(
+  override val errorHandler: play.api.http.HttpErrorHandler, @for(dep <- deps){
+  @markLines(dep.rule)
+  @dep.ident: @dep.clazz,}
+  val prefix: String
+) extends GeneratedRouter @ob
+
+   @@javax.inject.Inject()
+   def this(errorHandler: play.api.http.HttpErrorHandler@for(dep <- deps) {,
+    @markLines(dep.rule)
+    @dep.ident: @dep.clazz}
+  ) = this(errorHandler, @for(dep <- deps){@dep.ident, }"/")
+
+  def withPrefix(addPrefix: String): Routes = @ob
+    val prefix = play.api.routing.Router.concatPrefix(addPrefix, this.prefix)
+    @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
+    new Routes(errorHandler, @for(dep <- deps){@dep.ident, }prefix)
+  @cb
+
+  private[this] val defaultPrefix: String = @ob
+    if (this.prefix.endsWith("/")) "" else "/"
+  @cb
+
+  def documentation = List(@for((dep, index) <- rules.zipWithIndex) {
+    @dep.rule match {
+      case Route(verb, path, call, _, _) if path.parts.isEmpty => {(@tq@verb@tq, this.prefix, @tq@call@tq)}
+      case Route(verb, path, call, _, _) => {(@tq@verb@tq, this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
+      case include: Include => {prefixed_@(dep.ident)_@(index).router.documentation}
+  },}
+    Nil
+  ).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
+    case r @@ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
+    case l => s ++ l.asInstanceOf[List[(String,String,String)]]
+  }}
+
+@for((dep, index) <- rules.zipWithIndex){@dep.rule match {
+case route @ Route(verb, path, call, comments, modifiers) => {
+  @markLines(route)
+  private[this] lazy val @routeIdentifier(route, index) = Route("@verb.value",
+    PathPattern(List(StaticPart(this.prefix)@if(path.parts.nonEmpty) {, StaticPart(this.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
+  )
+  private[this] lazy val @invokerIdentifier(route, index) = createInvoker(
+    @if(route.call.passJavaRequest){
+    (req:play.mvc.Http.Request) =>
+      }@injectedControllerMethodCall(route, dep.ident, p => s"fakeValue[${p.typeNameReal}]"),
+    play.api.routing.HandlerDef(this.getClass.getClassLoader,
+      "@for(p <- pkg) {@p}",
+      "@{call.packageName.map(_ + ".").getOrElse("")}@call.controller",
+      "@call.method",
+      @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeNameReal + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
+      "@verb",
+      this.prefix + @encodeStringConstant(path.toString),
+      @encodeStringConstant(comments.map(_.comment).mkString("\n")),
+      Seq(@modifiers.map(_.value).map(encodeStringConstant).mkString(", "))
+    )
+  )
+}
+case include @ Include(path, router) => {
+  @markLines(include)
+  private[this] val prefixed_@(dep.ident)_@(index) = Include(@(dep.ident).withPrefix(this.prefix + (if (this.prefix.endsWith("/")) "" else "/") + "@include.prefix"))
+}}}
+
+  def routes: PartialFunction[RequestHeader, Handler] = @ob
+  @if(rules.isEmpty) {
+    Map.empty
+  } else {@for((dep, index) <- rules.zipWithIndex){@dep.rule match {
+  case include: Include => {
+    @markLines(include)
+    case prefixed_@(dep.ident)_@(index)(handler) => handler
+  }
+  case route: Route => {
+    @markLines(route)
+    case @(routeIdentifier(route, index))(params@@_) =>
+      call@(routeBinding(route)) @ob @localNames(route)
+        @(invokerIdentifier(route, index)).call(@if(route.call.passJavaRequest){
+          req => }@injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.nameClean)))
+      @cb
+  }
+  }}}@cb
+@cb

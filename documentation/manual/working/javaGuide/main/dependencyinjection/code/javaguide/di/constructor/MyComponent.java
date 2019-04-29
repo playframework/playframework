@@ -1,20 +1,21 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.di.constructor;
 
-//#constructor
+// #constructor
 import javax.inject.*;
 import play.libs.ws.*;
 
 public class MyComponent {
-    private final WSClient ws;
+  private final WSClient ws;
 
-    @Inject
-    public MyComponent(WSClient ws) {
-        this.ws = ws;
-    }
+  @Inject
+  public MyComponent(WSClient ws) {
+    this.ws = ws;
+  }
 
-    // ...
+  // ...
 }
-//#constructor
+// #constructor

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd "$BASEDIR"
+
+printMessage "VALIDATE BINARY COMPATIBILITY"
+runSbt +mimaReportBinaryIssues
+
+
+scalafmtValidation "framework"
+javafmtValidation "framework"
+
+
+printMessage "VALIDATE FILE LICENSE HEADERS"
+runSbt +headerCheck +test:headerCheck Play-Microbenchmark/test:headerCheck
+
+
+printMessage "RUNNING WHITESOURCE REPORT"
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    runSbt 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
+else
+    echo "[info]"
+    echo "[info] This is a pull request so Whitesource WILL NOT RUN."
+    echo "[info] It only runs when integrating the code and should not run for PRs. See the page below for details:"
+    echo "[info] https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions"
+    echo "[info]"
+fi

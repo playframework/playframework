@@ -1,41 +1,52 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.application.httpfilters;
 
 // #essential-filter-example
 import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import akka.util.ByteString;
-import play.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.libs.streams.Accumulator;
 import play.mvc.*;
 
 public class EssentialLoggingFilter extends EssentialFilter {
 
-    private final Executor executor;
+  private static final Logger log = LoggerFactory.getLogger(EssentialLoggingFilter.class);
 
-    @Inject
-    public EssentialLoggingFilter(Executor executor) {
-        super();
-        this.executor = executor;
-    }
+  private final Executor executor;
 
-    @Override
-    public EssentialAction apply(EssentialAction next) {
-        return EssentialAction.of(request -> {
-            long startTime = System.currentTimeMillis();
-            Accumulator<ByteString, Result> accumulator = next.apply(request);
-            return accumulator.map(result -> {
+  @Inject
+  public EssentialLoggingFilter(Executor executor) {
+    super();
+    this.executor = executor;
+  }
+
+  @Override
+  public EssentialAction apply(EssentialAction next) {
+    return EssentialAction.of(
+        request -> {
+          long startTime = System.currentTimeMillis();
+          Accumulator<ByteString, Result> accumulator = next.apply(request);
+          return accumulator.map(
+              result -> {
                 long endTime = System.currentTimeMillis();
                 long requestTime = endTime - startTime;
 
-                Logger.info("{} {} took {}ms and returned {}",
-                    request.method(), request.uri(), requestTime, result.status());
+                log.info(
+                    "{} {} took {}ms and returned {}",
+                    request.method(),
+                    request.uri(),
+                    requestTime,
+                    result.status());
 
                 return result.withHeader("Request-Time", "" + requestTime);
-            }, executor);
+              },
+              executor);
         });
-    }
+  }
 }
 // #essential-filter-example

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -9,13 +9,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases).
+Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases) in your project/plugins.sbt file or follow [sbteclipse docs](https://github.com/typesafehub/sbteclipse#for-sbt-013-and-up) to install globally.
 
 ```scala
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.1.0")
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.2")
 ```
 
-You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting in build.sbt:
 
 ```scala
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
@@ -24,7 +24,7 @@ EclipseKeys.preTasks := Seq(compile in Compile, compile in Test)
 
 If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
 
-If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
+If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following build.sbt (assuming you have no Scala sources)::
 
 ```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
@@ -51,7 +51,7 @@ If you want to grab the available source jars (this will take longer and it's po
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
-or from the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
+or from the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
 
 ```bash
 [my-first-app] $ eclipse skip-parents=false
@@ -73,13 +73,13 @@ The generated configuration files contain absolute references to your framework 
 
 ## IntelliJ IDEA
 
-[Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
+[Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the sbt build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
 Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](https://www.jetbrains.com/idea/help/creating-and-running-your-scala-application.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
 
 To create a Play application:
 
-1. Open ***New Project*** wizard, select ***Sbt*** under ***Scala*** section and click ***Next***.
+1. Open ***New Project*** wizard, select ***sbt*** under ***Scala*** section and click ***Next***.
 2. Enter your project's information and click ***Finish***.
 
 You can also import an existing Play project.
@@ -88,18 +88,18 @@ To import a Play project:
 
 1. Open Project wizard, select ***Import Project***.
 2. In the window that opens, select a project you want to import and click ***OK***.
-3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***.
+3. On the next page of the wizard, select ***Import project from external model*** option, choose ***sbt project*** and click ***Next***.
 4. On the next page of the wizard, select additional import options and click ***Finish***.
 
 > **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or either one of the [example projects](https://playframework.com/download#examples).
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
-You can run the created application and view the result in the default browser `http://localhost:9000`. To run a Play application:
+You can run the created application and view the result in the default browser <http://localhost:9000>. To run a Play application:
 
 1. Create a new Run Configuration -- From the main menu, select Run -> Edit Configurations
 2. Click on the + to add a new configuration
-3. From the list of configurations, choose "SBT Task"
+3. From the list of configurations, choose "sbt Task"
 4. In the "tasks" input box, simply put "run"
 5. Apply changes and select OK.
 6. Now you can choose "Run" from the main Run menu and run your application
@@ -140,11 +140,11 @@ PLAY_EDITOR="http://localhost:63342/api/file/?file=%s&line=%s"
 
 ### Generate Configuration
 
-Play does not have native [Netbeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and SBT:
+Play does not have native [Netbeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and sbt:
 
 <https://github.com/dcaoyuan/nbscala>
 
-There is also a SBT plugin to create Netbeans project definition:
+There is also a sbt plugin to create Netbeans project definition:
 
 <https://github.com/dcaoyuan/nbsbt>
 
@@ -159,54 +159,29 @@ Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
 ```scala
-addSbtPlugin("org.ensime" % "ensime-sbt" % "0.2.3")
+addSbtPlugin("org.ensime" % "sbt-ensime" % "2.0.1")
 ```
 
-Start SBT:
+Start sbt:
 
 ```bash
 $ sbt
 ```
 
-Enter 'gen-ensime' at the [sbt shell](http://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
+Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
-[MYPROJECT] $ gen-ensime
-[info] Gathering project information...
-[info] Processing project: ProjectRef(file:/Users/aemon/projects/www/MYPROJECT/,MYPROJECT)...
-[info]  Reading setting: name...
-[info]  Reading setting: organization...
-[info]  Reading setting: version...
-[info]  Reading setting: scala-version...
-[info]  Reading setting: module-name...
-[info]  Evaluating task: project-dependencies...
-[info]  Evaluating task: unmanaged-classpath...
-[info]  Evaluating task: managed-classpath...
-[info] Updating {file:/Users/aemon/projects/www/MYPROJECT/}MYPROJECT...
-[info] Done updating.
-[info]  Evaluating task: internal-dependency-classpath...
-[info]  Evaluating task: unmanaged-classpath...
-[info]  Evaluating task: managed-classpath...
-[info]  Evaluating task: internal-dependency-classpath...
-[info] Compiling 5 Scala sources and 1 Java source to /Users/aemon/projects/www/MYPROJECT/target/scala-2.9.1/classes...
-[info]  Evaluating task: exported-products...
-[info]  Evaluating task: unmanaged-classpath...
-[info]  Evaluating task: managed-classpath...
-[info]  Evaluating task: internal-dependency-classpath...
-[info]  Evaluating task: exported-products...
-[info]  Reading setting: source-directories...
-[info]  Reading setting: source-directories...
-[info]  Reading setting: class-directory...
-[info]  Reading setting: class-directory...
-[info]  Reading setting: ensime-config...
-[info] Wrote configuration to .ensime
+[[play-scala-seed] $ ensimeConfig
+[info] ENSIME update.
+...
+[info] ENSIME processing root (play-scala-seed)
 ```
 
 ### Start ENSIME
 
 From Emacs, execute M-x ensime and follow the on-screen instructions.
 
-That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "gen-ensime" and re-launch ENSIME.
+That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "ensimeConfig" and re-launch ENSIME.
 
 ### More Information
 
@@ -217,5 +192,4 @@ Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you 
 1. Eclipse Scala IDE: <http://scala-ide.org/>
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
 3. IntelliJ IDEA Scala Plugin: <https://blog.jetbrains.com/scala/>
-4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
-(see below for ENSIME/Play instructions)
+4. ENSIME - Scala IDE Mode for Emacs: <https://github.com/ensime/ensime-emacs>

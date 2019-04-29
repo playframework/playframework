@@ -1,28 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.tests.specs2
 
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
-
 import play.api.mvc._
-import play.api.routing._
-import play.api.routing.sird._
 
 // #scalafunctionaltest-imports
 import play.api.test._
 // ###replace: import play.api.test.Helpers._
-import play.api.test.Helpers.{GET => GET_REQUEST, _}
+import play.api.test.Helpers.{ GET => GET_REQUEST, _ }
 // #scalafunctionaltest-imports
 
 import play.api.Application
 
-trait ExampleSpecification extends Specification
-  with DefaultAwaitTimeout
-  with FutureAwaits
-  with Results
+trait ExampleSpecification extends Specification with DefaultAwaitTimeout with FutureAwaits with Results
 
 class ScalaFunctionalTestSpec extends ExampleSpecification {
 
@@ -39,11 +34,17 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     val application: Application = GuiceApplicationBuilder().build()
     // #scalafunctionaltest-application
 
-    val applicationWithRouter = GuiceApplicationBuilder().router(Router.from {
-      case GET(p"/Bob") => Action {
-        Ok("Hello Bob") as "text/html; charset=utf-8"
+    val applicationWithRouter = GuiceApplicationBuilder()
+      .appRoutes { app =>
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        ({
+          case ("GET", "/Bob") =>
+            Action {
+              Ok("Hello Bob").as("text/html; charset=utf-8")
+            }
+        })
       }
-    }).build()
+      .build()
 
     // #scalafunctionaltest-respondtoroute
     "respond to the index Action" in new WithApplication(applicationWithRouter) {
@@ -77,47 +78,52 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     // #scalafunctionaltest-testmodel
 
     // #scalafunctionaltest-testwithbrowser
-    def applicationWithBrowser = new GuiceApplicationBuilder().router(Router.from {
-      case GET(p"/") =>
-        Action {
-          Ok(
-            """
-              |<html>
-              |<body>
-              |  <div id="title">Hello Guest</div>
-              |  <a href="/login">click me</a>
-              |</body>
-              |</html>
-            """.stripMargin) as "text/html"
+    def applicationWithBrowser = {
+      new GuiceApplicationBuilder()
+        .appRoutes { app =>
+          val Action = app.injector.instanceOf[DefaultActionBuilder]
+          ({
+            case ("GET", "/") =>
+              Action {
+                Ok("""
+                     |<html>
+                     |<body>
+                     |  <div id="title">Hello Guest</div>
+                     |  <a href="/login">click me</a>
+                     |</body>
+                     |</html>
+                """.stripMargin).as("text/html")
+              }
+            case ("GET", "/login") =>
+              Action {
+                Ok("""
+                     |<html>
+                     |<body>
+                     |  <div id="title">Hello Coco</div>
+                     |</body>
+                     |</html>
+                """.stripMargin).as("text/html")
+              }
+          })
         }
-      case GET(p"/login") =>
-        Action {
-          Ok(
-            """
-              |<html>
-              |<body>
-              |  <div id="title">Hello Coco</div>
-              |</body>
-              |</html>
-            """.stripMargin) as "text/html"
-        }
-    }).build()
+        .build()
+    }
 
     "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
       browser.goTo("/")
 
       // Check the page
-      browser.$("#title").text() must equalTo("Hello Guest")
+      browser.el("#title").text() must equalTo("Hello Guest")
 
-      browser.$("a").click()
+      browser.el("a").click()
 
       browser.url must equalTo("login")
-      browser.$("#title").text() must equalTo("Hello Coco")
+      browser.el("#title").text() must equalTo("Hello Coco")
     }
     // #scalafunctionaltest-testwithbrowser
 
-    val testPort = 19001
-    val myPublicAddress =  s"localhost:$testPort"
+    val testPort              = 19001
+    val myPublicAddress       = s"localhost:$testPort"
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
     "test server logic" in new WithServer(app = applicationWithBrowser, port = testPort) {
@@ -127,25 +133,50 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       val ws = app.injector.instanceOf[WSClient]
 
       // await is from play.api.test.FutureAwaits
-      val response = await(ws.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
+      val response = await(ws.url(testPaymentGatewayURL).withQueryStringParameters("callbackURL" -> callbackURL).get())
 
       response.status must equalTo(OK)
     }
     // #scalafunctionaltest-testpaymentgateway
 
     // #scalafunctionaltest-testws
-    val appWithRoutes = GuiceApplicationBuilder().router(Router.from {
-      case GET(p"/") => Action {
-        Ok("ok")
+    val appWithRoutes = GuiceApplicationBuilder()
+      .appRoutes { app =>
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        ({
+          case ("GET", "/") =>
+            Action {
+              Ok("ok")
+            }
+        })
       }
-    }).build()
+      .build()
 
-    "test WS logic" in new WithServer(app = appWithRoutes, port = 3333) {
+    "test WSClient logic" in new WithServer(app = appWithRoutes, port = 3333) {
       val ws = app.injector.instanceOf[WSClient]
       await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
     }
     // #scalafunctionaltest-testws
 
+    // #scalafunctionaltest-testmessages
+    "messages" should {
+      import play.api.i18n._
+
+      implicit val lang = Lang("en-US")
+
+      "provide default messages with the Java API" in new WithApplication() with Injecting {
+        val javaMessagesApi = inject[play.i18n.MessagesApi]
+        val msg             = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
+        msg must ===("Email")
+      }
+
+      "provide default messages with the Scala API" in new WithApplication() with Injecting {
+        val messagesApi = inject[MessagesApi]
+        val msg         = messagesApi("constraint.email")
+        msg must ===("Email")
+      }
+    }
+    // #scalafunctionaltest-testmessages
   }
 
 }

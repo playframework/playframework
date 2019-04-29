@@ -1,10 +1,28 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play WS Migration Guide
 
-Play WS is now a standalone project and is available at https://github.com/playframework/play-ws. It can be added to an SBT project with:
+Play WS now has a standalone version - [https://github.com/playframework/play-ws](https://github.com/playframework/play-ws) - that can be used outside a Play project. If you have a Play sbt project, you can still add WS by adding the following line to your `build.sbt`:
+ 
+```scala
+libraryDependencies += ws
+```
+
+This includes the `play-ahc-ws` module, which wraps the standalone version with Play Dependency Injection bindings and components, configuration and anything else that is necessary to better integrate it.
+
+
+And if you want to use the cache support, you need to add `ws`, `ehcache` and [[enable and configure cache|WsCache]]:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0"
+libraryDependencies += ws
+libraryDependencies += ehcache
+```
+
+If you want to use it in a non Play project, it can be added to an sbt project with:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.1"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-json" % "1.0.1"
+libraryDependencies += "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.1"
 ```
 
 ## Package changes
@@ -61,6 +79,12 @@ play.api.test.WsTestClient.withClient { ws =>
 
 The `ning` package has been replaced by the `ahc` package, and the Ning* classes replaced by AHC*.
 
+A normal `WSResponse` instance is returned from `stream()` instead of `StreamedResponse`.  You should call `response.bodyAsSource` to return the streamed result.
+
+There are some naming changes with deprecations to make things more explicit on `play.api.libs.ws.WSRequest`. Extra care should be exercised when migrating these:
+- [`WsRequest.withHeaders`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withHeaders\(headers:\(String,String\)*\):WSRequest.this.Self) is now [`WsRequest.addHttpHeaders`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@addHttpHeaders\(hdrs:\(String,String\)*\):StandaloneWSRequest.this.Self) (same behaviour) or [`WsRequest.withHttpHeaders`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withHttpHeaders\(headers:\(String,String\)*\):WSRequest.this.Self) (throws away existing headers)
+- [`WsRequest.withQueryString`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withQueryString\(parameters:\(String,String\)*\):WSRequest.this.Self) is now [`WsRequest.addQueryStringParameters`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@addQueryStringParameters\(parameters:\(String,String\)*\):StandaloneWSRequest.this.Self) (same behaviour) or [`WsRequest.withQueryStringParameters`](https://playframework.com/documentation/2.6.x/api/scala/index.html#play.api.libs.ws.WSRequest@withQueryStringParameters\(parameters:\(String,String\)*\):WSRequest.this.Self) (throws away existing query string)
+
 ### Java
 
 In Java, the `play.libs.ws.WS` class has been deprecated.  An injected `WSClient` instance should be used instead.
@@ -89,3 +113,5 @@ WSClient ws = play.test.WsTestClient.newClient(19001);
 ...
 ws.close();
 ```
+
+A normal `WSResponse` instance is returned from `stream()` instead of `StreamedResponse`.  You should call `response.getBodyAsSource()` to return the streamed result.

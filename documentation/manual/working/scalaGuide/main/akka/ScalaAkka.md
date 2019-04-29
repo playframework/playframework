@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with Akka
 
-[Akka](http://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
+[Akka](https://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
 
 ## The application actor system
 
@@ -108,7 +108,7 @@ play.akka.config = "my-akka"
 Now settings will be read from the `my-akka` prefix instead of the `akka` prefix.
 
 ```
-my-akka.actor.default-dispatcher.fork-join-executor.pool-size-max = 64
+my-akka.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
 my-akka.actor.debug.receive = on
 ```
 
@@ -122,20 +122,6 @@ play.akka.actor-system = "custom-name"
 
 > **Note:** This feature is useful if you want to put your play application ActorSystem in an Akka cluster.
 
-## Scheduling asynchronous tasks
-
-You can schedule sending messages to actors and executing tasks (functions or `Runnable`). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
-
-For example, to send a message to the `testActor` every 300 microseconds:
-
-@[schedule-actor](code/ScalaAkka.scala)
-
-> **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
-
-Similarly, to run a block of code 10 milliseconds from now:
-
-@[schedule-callback](code/ScalaAkka.scala)
-
 ## Using your own Actor system
 
 While we recommend you use the built in actor system, as it sets up everything such as the correct classloader, lifecycle hooks, etc, there is nothing stopping you from using your own actor system.  It is important however to ensure you do the following:
@@ -143,3 +129,32 @@ While we recommend you use the built in actor system, as it sets up everything s
 * Register a [[stop hook|ScalaDependencyInjection#Stopping/cleaning-up]] to shut the actor system down when Play shuts down
 * Pass in the correct classloader from the Play [Environment](api/scala/play/api/Application.html) otherwise Akka won't be able to find your applications classes
 * Ensure that either you change the location that Play reads it's akka configuration from using `play.akka.config`, or that you don't read your akka configuration from the default `akka` config, as this will cause problems such as when the systems try to bind to the same remote ports
+
+
+## Akka Coordinated Shutdown
+
+Play handles the shutdown of the `Application` and the `Server` using Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown). Find more information in the [[Coordinated Shutdown|Shutdown]] common section.
+
+NOTE: Play only handles the shutdown of its internal `ActorSystem`. If you are using extra actor systems, make sure they are all terminated and feel free to migrate your termination code to [Coordinated Shutdown](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown).
+
+## Akka Cluster
+
+You can make your Play application join an existing [Akka Cluster](https://doc.akka.io/docs/akka/current/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Akka's Coordinated Shutdown which will take care of that graceful leave. 
+
+If you already have custom Cluster Leave code it is recommended that you replace it with Akka's handling. See [Akka docs](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown) for more details.
+
+## Updating Akka version
+
+If you want to use a newer version of Akka, one that is not used by Play yet, you can add the following to your `build.sbt` file:
+
+@[akka-update](code/scalaguide.akkaupdate.sbt)
+
+Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
+
+If you also want to update Akka HTTP, you should also add its dependencies explicitly:
+
+@[akka-http-update](code/scalaguide.akkaupdate.sbt)
+
+> **Note:** When doing such updates, keep in mind that you need to follow Akka's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html). And if you are manually adding other Akka artifacts, remember to keep the version of all the Akka artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
+
+> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Akka (or Akka HTTP) version than the one you are declaring, Play version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).

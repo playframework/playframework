@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Using JSHint
 
-From its [website documentation](http://www.jshint.com/about/):
+From its [website documentation](https://jshint.com/about/):
 
 > JSHint is a community-driven tool to detect errors and potential problems in JavaScript code and to enforce your team's coding conventions. It is very flexible so you can easily adjust it to your particular coding guidelines and the environment you expect your code to execute in.
 
@@ -16,7 +16,7 @@ JavaScript code is compiled during the `assets` command as well as when the brow
 JSHint processing is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.6")
 ```
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-jshint#sbt-jshint) for information on how it may be configured.

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play modules
 
 Play uses public modules to augment built-in functionality.  
@@ -7,19 +7,13 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ## API hosting
 
-### swagger-play
-* **Website:** <https://github.com/swagger-api/swagger-play>
-* **Short description:** Generate a Swagger API spec from your Play routes file and Swagger annotations
-
 ### iheartradio/play-swagger
-* **Website:** <https://github.com/iheartradio/play-swagger>
-* **Short description:** Write a Swagger spec in your routes file
 
-### zalando/play-swagger
-* **Website:** <https://github.com/zalando/play-swagger>
-* **Short description:** Generate Play code from a Swagger spec
+- **Website:** <https://github.com/iheartradio/play-swagger>
+- **Short description:** Write a Swagger spec in your routes file
 
 ### mohiva/swagger-codegen-play-scala
+
 * **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
 * **Short description:** Swagger client generator which is based on the PlayWS library
 
@@ -35,11 +29,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Typescript Plugin
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
-* **Short description:** A plugin for SBT that uses sbt-web to compile typescript resources
+* **Short description:** A plugin for sbt that uses sbt-web to compile typescript resources
 
 ### play-webpack Plugin
 * **Website:** <https://github.com/BowlingX/play-webpack>
-* **Short description:** A plugin for SBT to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
+* **Short description:** A plugin for sbt to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
 
 ## Authentication (Login & Registration) and Authorization (Restricted Access)
 
@@ -52,7 +46,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Deadbolt 2 Plugin
 
 * **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
-* **Short description:** Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
+* **Short description:** Deadbolt is an authorization mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
 
 ### Play-pac4j (Java and Scala)
 
@@ -93,7 +87,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### MongoDB Morphia Plugin (Java)
 * **Website (docs, sample):** <https://github.com/morellik/play-morphia>
-* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://mongodb.github.io/morphia/)
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://morphiaorg.github.io/morphia/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
 * **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>
@@ -177,7 +171,26 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/mumoshu/play2-memcached>
 * **Short description:** Provides a memcached based cache implementation
 
+## Task Schedulers
 
+### Akka Quartz Scheduler
+
+* **Website**: <https://github.com/enragedginger/akka-quartz-scheduler>
+* **Documentation**: <https://github.com/enragedginger/akka-quartz-scheduler/blob/master/README.md>
+* **Short description**: Quartz Extension and utilities for cron-style scheduling in Akka
+
+### play-akkjobs
+
+* **Website**: <https://github.com/tuxBurner/play-akkjobs>
+* **Documentation**: <https://github.com/tuxBurner/play-akkjobs/blob/master/README.md>
+* **Short description**: A simple Play 2.5 module, which allows you to manage jobs
+
+
+## Settings
+
+### Remote Configuration
+* **Website:** <https://github.com/play-rconf>
+* **Short description:** Loads and apply configuration items (keys & files) from remote providers like etcd, consul, DynamoDB...
 
 ## Templates and View
 
@@ -201,6 +214,12 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/innoveit/play2-pdf/blob/master/README.md>
 * **Short description** Generate PDF output from HTML templates
 
+### PlayFOP (Java and Scala)
+
+* **Website (live demo, user guide, other docs):** <https://www.dmanchester.com/playfop>
+* **Repository:** <https://github.com/dmanchester/playfop>
+* **Short description:** A library for creating PDFs, images, and other types of output in Play applications. Accepts XSL-FO that an application has generated and processes it with [Apache FOP](https://xmlgraphics.apache.org/fop/).
+
 ### Play-Bootstrap (Java and Scala)
 * **Website:** <https://adrianhurt.github.io/play-bootstrap/>
 * **Repository:** <https://github.com/adrianhurt/play-bootstrap>
@@ -209,15 +228,14 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Thymeleaf module (Scala)
 * **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
 * **Documentation:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md>
-* **Short description:** Allows to use [Thymeleaf](http://www.thymeleaf.org/) template engine as an alternative
+* **Short description:** Allows to use [Thymeleaf](https://www.thymeleaf.org/) template engine as an alternative
 to Twirl
 
 ### Handlebars templates (Java and Scala)
- 
+
 * **Website:** <https://github.com/andriykuba/play-handlebars>
 * **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
 * **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
-
 
 ## Utilities
 
@@ -263,7 +281,18 @@ to Twirl
 * **Documentation:** <https://github.com/Rhinofly/play-s3/blob/master/README.md>
 * **Short description:** S3 (Simple Storage Service) API wrapper for Play
 
+### Benji (Scala)
+
+* **Website:** <https://github.com/zengularity/benji>
+* **Documentation:** <https://github.com/zengularity/benji/tree/master/examples>
+* **Short description:** A reactive module for the Benji library, providing an Object storage DSL (AWS/Ceph S3, Google Cloud Storage).
+
 ### Pusher
 * **Website:** <https://pusher.com/>
 * **Documentation:** <https://github.com/tindr/Play2Pusher>
 * **Short description:** Easily interact with the Pusher Service within your Play application.
+
+### Push Notifications module (Java)
+* **Website:** <https://github.com/splendidbits/play-pushservices>
+* **Documentation:** <https://github.com/splendidbits/play-pushservices/blob/master/README.md>
+* **Short description:** A stupid-simple module for creating, batching, queuing and sending push notifications.

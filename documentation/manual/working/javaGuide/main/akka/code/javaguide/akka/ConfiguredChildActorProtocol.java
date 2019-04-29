@@ -1,17 +1,18 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.akka;
 
-//#protocol
+// #protocol
 import akka.actor.Actor;
 
 public class ConfiguredChildActorProtocol {
 
-    public static class GetConfig {}
+  public static class GetConfig {}
 
-    public interface Factory {
-        public Actor create(String key);
-    }
+  public interface Factory {
+    public Actor create(String key);
+  }
 }
-//#protocol
+// #protocol

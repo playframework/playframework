@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Filters
 
 Play provides a simple filter API for applying global filters to each request.
@@ -11,7 +11,7 @@ The filter API is intended for cross cutting concerns that are applied indiscrim
 * [[GZIP encoding|GzipEncoding]]
 * [[Security headers|SecurityHeaders]]
 
-In contrast, [[action composition|ScalaActionsComposition]] is intended for route specific concerns, such as authentication and authorization, caching and so on.  If your filter is not one that you want applied to every route, consider using action composition instead, it is far more powerful.  And don't forget that you can create your own action builders that compose your own custom defined sets of actions to each route, to minimise boilerplate.
+In contrast, [[action composition|ScalaActionsComposition]] is intended for route specific concerns, such as authentication and authorization, caching and so on.  If your filter is not one that you want applied to every route, consider using action composition instead, it is far more powerful.  And don't forget that you can create your own action builders that compose your own custom defined sets of actions to each route, to minimize boilerplate.
 
 ## A simple logging filter
 
@@ -64,6 +64,10 @@ Here is the above filter example rewritten as an `EssentialFilter`:
 
 @[essential-filter-example](code/EssentialFilter.scala)
 
-The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  You could compose this with an Akka Streams Flow using the `through` method some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
+The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  
+
+You could compose the [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html) with an Akka Streams Flow using the `through` method with some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
+
+@[essential-filter-flow-example](code/AccumulatorFlowFilter.scala)
 
 > Although it may seem that there are two different filter APIs, there is only one, `EssentialFilter`.  The simpler `Filter` API in the earlier examples extends `EssentialFilter`, and implements it by creating a new `EssentialAction`.  The passed in callback makes it appear to skip the body parsing by creating a promise for the `Result`, while the body parsing and the rest of the action are executed asynchronously.

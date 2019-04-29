@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.async.scalaasync
 
 import javax.inject.Inject
@@ -38,12 +39,16 @@ class ScalaAsyncSpec extends PlaySpecification {
 //#my-execution-context
 import play.api.libs.concurrent.CustomExecutionContext
 
+// Make sure to bind the new context class to this trait using one of the custom
+// binding techniques listed on the "Scala Dependency Injection" documentation page
 trait MyExecutionContext extends ExecutionContext
 
 class MyExecutionContextImpl @Inject()(system: ActorSystem)
-  extends CustomExecutionContext(system, "my.executor") with MyExecutionContext
+    extends CustomExecutionContext(system, "my.executor")
+    with MyExecutionContext
 
-class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends Controller {
+class HomeController @Inject()(myExecutionContext: MyExecutionContext, val controllerComponents: ControllerComponents)
+    extends BaseController {
   def index = Action.async {
     Future {
       // Call some blocking API
@@ -53,7 +58,10 @@ class HomeController @Inject()(myExecutionContext: MyExecutionContext) extends C
 }
 //#my-execution-context
 
-class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: ExecutionContext) extends Controller {
+class ScalaAsyncSamples @Inject()(val controllerComponents: ControllerComponents)(
+    implicit actorSystem: ActorSystem,
+    ec: ExecutionContext
+) extends BaseController {
 
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
@@ -101,13 +109,17 @@ class ScalaAsyncSamples @Inject() (implicit actorSystem: ActorSystem, ec: Execut
     import play.api.libs.concurrent.Futures._
 
     def index = Action.async {
-      // futures instance implicit here
-      intensiveComputation().withTimeout(1.seconds).map { i =>
-        Ok("Got result: " + i)
-      }.recover {
-        case e: TimeoutException =>
-          InternalServerError("timeout")
-      }
+      // You will need an implicit Futures for withTimeout() -- you usually get
+      // that by injecting it into your controller's constructor
+      intensiveComputation()
+        .withTimeout(1.seconds)
+        .map { i =>
+          Ok("Got result: " + i)
+        }
+        .recover {
+          case e: scala.concurrent.TimeoutException =>
+            InternalServerError("timeout")
+        }
     }
     //#timeout
     index

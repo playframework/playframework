@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.http.routing
 
 import akka.stream.ActorMaterializer
@@ -13,44 +14,54 @@ import play.api.routing.Router
 
 package controllers {
 
+  import javax.inject.Inject
+
   object Client {
     def findById(id: Long) = Some("showing client " + id)
   }
 
-  class Clients extends Controller {
+  class Clients @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
     // #show-client-action
     def show(id: Long) = Action {
-      Client.findById(id).map { client =>
-        Ok(views.html.Clients.display(client))
-      }.getOrElse(NotFound)
+      Client
+        .findById(id)
+        .map { client =>
+          Ok(views.html.Clients.display(client))
+        }
+        .getOrElse(NotFound)
     }
     // #show-client-action
 
     def list() = Action(Ok("all clients"))
   }
 
-  class Application extends Controller {
+  class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
     def download(name: String) = Action(Ok("download " + name))
-    def homePage() = Action(Ok("home page"))
+    def homePage()             = Action(Ok("home page"))
 
     def loadContentFromDatabase(page: String) = Some("showing page " + page)
 
     // #show-page-action
     def show(page: String) = Action {
-      loadContentFromDatabase(page).map { htmlContent =>
-        Ok(htmlContent).as("text/html")
-      }.getOrElse(NotFound)
+      loadContentFromDatabase(page)
+        .map { htmlContent =>
+          Ok(htmlContent).as("text/html")
+        }
+        .getOrElse(NotFound)
     }
     // #show-page-action
   }
 
-  class Items extends Controller {
+  class Items @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
     def show(id: Long) = Action(Ok("showing item " + id))
   }
 
-  class Api extends Controller {
+  class Api @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
     def list(version: Option[String]) = Action(Ok("version " + version))
+    def newThing = Action(parse.json) { request =>
+      Ok(request.body)
+    }
   }
 }
 
@@ -67,7 +78,10 @@ package fixed {
 }
 
 package defaultvalue.controllers {
-  class Clients extends Controller {
+
+  import javax.inject.Inject
+
+  class Clients @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
     def list(page: Int) = Action(Ok("clients page " + page))
   }
 }
@@ -80,16 +94,18 @@ package defaultcontroller.controllers {
 // ###replace: package controllers
 package reverse.controllers {
 
-import play.api._
-import play.api.mvc._
+  import javax.inject.Inject
 
-class Application extends Controller {
+  import play.api._
+  import play.api.mvc._
 
-  def hello(name: String) = Action {
-    Ok("Hello " + name + "!")
+  class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+
+    def hello(name: String) = Action {
+      Ok("Hello " + name + "!")
+    }
+
   }
-
-}
 // #reverse-controller
 }
 
@@ -135,8 +151,9 @@ object ScalaRoutingSpec extends Specification {
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version Some(3.0)"
     }
     "support reverse routing" in {
-      import reverse.controllers.routes
       import Results.Redirect
+      import reverse.controllers.routes
+      val Action = Helpers.stubControllerComponents().actionBuilder
       // #reverse-router
       // Redirect to /hello/Bob
       def helloBob = Action {
@@ -153,7 +170,7 @@ object ScalaRoutingSpec extends Specification {
     running() { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
       contentAsString {
-        val routedHandler = app.injector.instanceOf(router).routes(rh)
+        val routedHandler          = app.injector.instanceOf(router).routes(rh)
         val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
         terminalHandler match {
           case e: EssentialAction => e(rh2).run()
@@ -166,7 +183,7 @@ object ScalaRoutingSpec extends Specification {
     running() { app =>
       implicit val mat = ActorMaterializer()(app.actorSystem)
       status {
-        val routedHandler = app.injector.instanceOf(router).routes(rh)
+        val routedHandler          = app.injector.instanceOf(router).routes(rh)
         val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
         terminalHandler match {
           case e: EssentialAction => e(rh2).run()

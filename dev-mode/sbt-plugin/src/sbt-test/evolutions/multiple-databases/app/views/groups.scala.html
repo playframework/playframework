@@ -1,0 +1,22 @@
+@(groups: List[models.Group])
+
+@main("List Group") {
+  <h1>All groups</h1>
+
+  <table>
+    <thead>
+      <th>
+        <td>id</td>
+        <td>name</td>
+      </th>
+    </thead>
+    <tbody>
+      @for(group <- groups) {
+        <tr>
+          <td>@{group.id}</td>
+          <td>@{group.name}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

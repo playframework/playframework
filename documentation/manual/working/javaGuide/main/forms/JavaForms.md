@@ -1,21 +1,40 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 Before you start with Play forms, read the documentation on the [[Play enhancer|PlayEnhancer]]. The Play enhancer generates accessors for fields in Java classes for you, so that you don't have to generate them yourself. You may decide to use this as a convenience. All the examples below show manually writing accessors for your classes.
 
+## Enabling/Disabling the forms module
+
+By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` sbt plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
+
+The forms module is also available in `PlayImport` as `javaForms`, which can be used with `libraryDependencies += javaForms` in your `build.sbt`.
+
+> **Note:** If you are not using forms, you can remove the forms dependency by using the `PlayMinimalJava` sbt plugin instead of `PlayJava`. This also allows you to remove several transitive dependencies only used by the forms module, including several Spring modules and the Hibernate validator.
+    
 ## Defining a form
 
 The `play.data` package contains several helpers to handle HTTP form data submission and validation. The easiest way to handle a form submission is to define a `play.data.Form` that wraps an existing class:
 
 @[user](code/javaguide/forms/u1/User.java)
 
+The above form defines an `email` and a `password` text field and a `profilePicture` file input field, meaning the corresponding HTML form has to be defined with the `multipart/form-data` encoding to be able to upload the file.
+As you can see, by default, you have to define getter and setter methods so Play is able to access the Form fields. You can however also enable "direct field access" (for all forms) by setting `play.forms.binding.directFieldAccess = true` in `conf/application.conf`. In this mode Play will ignore the getter and setter methods and will try to directly access the fields:
+
+@[user](code/javaguide/forms/u4/User.java)
+
+> **Note:** When using "direct field access" and a field is not accessible to Play during form binding (e.g. if a field or the class containing the field is not defined as `public`) Play will try to make a field accessible via reflection by calling [`field.setAccessible(true)`](https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/AccessibleObject.html#setAccessible-boolean-) internally. Depending on the Java version (8+), JVM and the [ Security Manager](https://docs.oracle.com/javase/tutorial/essential/environment/security.html) settings that could cause warnings about *illegal reflective access* or, in the worst case, throw a [`SecurityException`](https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityException.html)
+
 To wrap a class you have to inject a [`play.data.FormFactory`](api/java/play/data/FormFactory.html) into your Controller which then allows you to create the form:
 
 @[create](code/javaguide/forms/JavaForms.java)
 
+Instead of enabling "direct field access" for all forms, you can enable it only for specific ones:
+
+@[create](code/javaguide/forms/JavaFormsDirectFieldAccess.java)
+
 > **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/4.2.4.RELEASE/spring-framework-reference/html/validation.html).
 
-This form can generate a `User` result value from `HashMap<String,String>` data:
+This form can generate a `User` result value from a `HashMap<String,String>` for the text data and from a `Map<String, FilePart<?>>` for the file data:
 
 @[bind](code/javaguide/forms/JavaForms.java)
 
@@ -25,11 +44,11 @@ If you have a request available in the scope, you can bind directly from the req
 
 ## Defining constraints
 
-You can define additional constraints that will be checked during the binding phase using [`JSR-303` (Bean Validation 1.0)](http://beanvalidation.org/1.0/spec/) annotations:
+You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 2.0)](https://beanvalidation.org/2.0/spec/) annotations:
 
 @[user](code/javaguide/forms/u2/User.java)
 
-> **Tip:** The `play.data.validation.Constraints` class contains several built-in validation annotations.
+> **Tip:** The `play.data.validation.Constraints` class contains several built-in validation annotations. All of these constraint annotations are defined as `@Repeatable`. This lets you, for example, reuse the same annotation on the same element several times but each time with different `groups`. For some constraints however it makes sense to let them repeat itself anyway, like `@ValidateWith`/`@ValidatePayloadWith` for example.
 
 In the [Advanced validation](#advanced-validation) section further below you will learn how to handle concerns like cross field validation, partial form validation or how to make use of injected components (e.g. to access a database) during validation.
 
@@ -47,7 +66,7 @@ Errors for a particular field can be rendered in the following manner with [`err
 
 @[field-errors](code/javaguide/forms/view.scala.html)
 
-Note that `error.format` takes `messages()` as an argument -- this is an [`play.18n.Messages`](api/java/play/i18n/Messages.html) instance defined in [[JavaI18n]].
+Note that `error.format` takes `messages()` as an argument -- this is an [`play.18n.Messages`](api/java/play/i18n/Messages.html) instance defined in [[JavaI18N]].
 
 ## Filling a form with initial default values
 
@@ -57,9 +76,9 @@ Sometimes you’ll want to fill a form with existing values, typically for editi
 
 > **Tip:** `Form` objects are immutable - calls to methods like `bind()` and `fill()` will return a new object filled with the new data.
 
-## Handling a form that is not related to a Model
+## Handling a form with dynamic fields
 
-You can use a `DynamicForm` if you need to retrieve data from an html form that is not related to a `Model`:
+You can use a `DynamicForm` if you need to retrieve data from an html form with dynamic fields:
 
 @[dynamic](code/javaguide/forms/JavaForms.java)
 
@@ -88,11 +107,11 @@ The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs
 
 ## Advanced validation
 
-Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-303` (Bean Validation 1.0)](http://beanvalidation.org/1.0/spec/) and [`JSR-349` (Bean Validation 1.1)](http://beanvalidation.org/1.1/spec/1.1.0.cr3/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/).
+Play's built-in validation module is using [Hibernate Validator](http://hibernate.org/validator/) under the hood. This means we can take advantage of features defined in the [`JSR-380` (Bean Validation 2.0)](https://beanvalidation.org/2.0/spec/). The Hibernate Validator documentation can be found [here](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/).
 
 ### Cross field validation
 
-To validate the state of an entire object we can make use of [class-level constraints](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-class-level-constraints).
+To validate the state of an entire object we can make use of [class-level constraints](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-class-level-constraints).
 To free you from the burden of implementing your own class-level constraint(s), Play out-of-the-box already provides a generic implementation of such constraint which should cover at least the most common use cases.
 
 Now let's see how this works: To define an ad-hoc validation, all you need to do is annotate your form class with Play's provided class-level constraint (`@Validate`) and implement the corresponding interface (in this case `Validatable<String>`) - which forces you to override a `validate` method:
@@ -129,7 +148,7 @@ Or think about the sign-up and the login process of a web application. Usually f
 
 Using three different forms for such a case isn't really a good idea because you would use the same constraint annotations for most of the form fields anyway. What if you have defined a max-length constraint of 255 for a `name` field and then want to change it to a limit of just 100? You would have to change this for each form. As you can imagine this would be error prone in case you forget to update one of the forms.
 
-Luckily we can simply [group constraints](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#chapter-groups):
+Luckily we can simply [group constraints](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#chapter-groups):
 
 @[user](code/javaguide/forms/groups/PartialUserForm.java)
 
@@ -167,11 +186,11 @@ But as soon you pass any other group(s) you would also have to pass the `Default
 
 > **Tip:** You can pass as many groups as you like to the `form(...)` method (not just one). Just to be clear: These groups will then be validated all at once - *not* one after the other.
 
-For advanced usage a group of constraints can include another group. You can do that using [group inheritance](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-group-inheritance).
+For advanced usage a group of constraints can include another group. You can do that using [group inheritance](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-group-inheritance).
 
 ### Defining the order of constraint groups
 
-You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this is part](https://hibernate.atlassian.net/browse/BVAL-248) of `JSR-380` - Bean Validation 2.0 - which is still [in draft](http://beanvalidation.org/proposals/BVAL-248/))
+You can validate groups [in sequences](https://docs.jboss.org/hibernate/validator/6.0/reference/en-US/html_single/#section-defining-group-sequences). This means groups will be validated one after another - but the next group will only be validated if the previous group was validated successfully before. (However right now it's not possible to determine the order of how constraints will be validated *within* a group itself - [this will be part](https://hibernate.atlassian.net/browse/BVAL-248) of a [future version of Bean Validation](https://beanvalidation.org/proposals/BVAL-248/))
 
 Based on the example above let's define a group sequence:
 
@@ -185,33 +204,59 @@ Using this group sequence will first validate all fields belonging to the `Defau
 
 Using a group sequence is especially a good practice when you have a `validate` method which queries a database or performs any other blocking action: It's not really useful to execute the method at all if the validation fails at it's basic level (email is not valid, number is a string, etc). In such a case you probably want the `validate` be called only after checking all other annotation-based constraints before and only if they pass. A user, for example, who signs up should enter a valid email address and *only* if it is valid a database lookup for the email address should be done *afterwards*.
 
+### Passing payloads to validators
+
+If needed, you can also pass a `ValidationPayload` object - which contains useful information sometimes needed for a validation process - to a `validate` method.
+To pass such a payload just annotate your form with `@ValidateWithPayload` (instead of just `@Validate`) and implement `ValidatableWithPayload` (instead of just `Validatable`):
+
+@[payload-validate](code/javaguide/forms/JavaForms.java)
+
 ### Custom class-level constraints with DI support
 
 Sometimes you need more sophisticated validation processes. E.g. when a user signs up you want to check if his email address already exists in the database and if so validation should fail.
 
-Because constraints support [[Dependency Injection|JavaDependencyInjection]] we can easily create our own custom (class-level) constraint which gets a `Database` object injected - which we can use later in the validation process. (Actually you could also inject other components like `MessagesApi`, `JPAApi`, etc.)
+Because constraints support both [[runtime Dependency Injection|JavaDependencyInjection]] and [[|JavaCompileTimeDependencyInjection]], we can easily create our own custom (class-level) constraint which gets a `Database` object injected - which we can use later in the validation process. Of course you can also inject other components like `MessagesApi`, `JPAApi`, etc.
 
-> You only need to create one class-level constraint for each cross concern.
-**For example:** The constraint we will create in this section is reusable and can be used for all validation processes where you need to access the database. The reason why Play doesn't provide any generic class-level constraints with dependency injected components is because Play doesn't know which components you might have enabled in your project.
+> **Note:** You only need to create one class-level constraint for each cross concern. For example, the constraint we will create in this section is reusable and can be used for all validation processes where you need to access the database. The reason why Play doesn't provide any generic class-level constraints with dependency injected components is because Play doesn't know which components you might have enabled in your project.
 
 First let's set up the interface with the `validate` method we will implement in our form later. You can see the method gets passed a `Database` object (Checkout the [[database docs|JavaDatabase]]):
 
-@[interface](code/javaguide/forms/customconstraint/ValidatableWithDB.java)
+Without Payload
+: @[interface](code/javaguide/forms/customconstraint/nopayload/ValidatableWithDB.java)
+
+With Payload
+: @[interface](code/javaguide/forms/customconstraint/payload/ValidatableWithDB.java)
 
 We also need the class-level annotation we put on our form class:
 
-@[annotation](code/javaguide/forms/customconstraint/ValidateWithDB.java)
+@[annotation](code/javaguide/forms/customconstraint/nopayload/ValidateWithDB.java)
 
 Finally this is how our constraint implementation looks like:
 
-@[constraint](code/javaguide/forms/customconstraint/ValidateWithDBValidator.java)
+Without Payload
+: @[constraint](code/javaguide/forms/customconstraint/nopayload/ValidateWithDBValidator.java)
 
-As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`.
+With Payload
+: @[constraint](code/javaguide/forms/customconstraint/payload/ValidateWithDBValidator.java)
+
+> **Note:** Don't get confused with `ValidationPayload` and `ConstraintValidatorContext`: The former class is provided by Play and is what you use in your day-to-day work when dealing with forms in Play. The latter class is defined by the [Bean Validation specification](https://beanvalidation.org/2.0/spec/) and is used only internally in Play - with one exception: This class emerges when your write your own custom class-level constraints, where you only need to pass it on to the `reportValidationStatus` method however anyway.
+
+As you can see we inject the `Database` object into the constraint's constructor and use it later when calling `validate`. When using runtime Dependency Injection, Guice will automatically inject the `Database` object, but for compile-time Dependency Injection you need to do that by yourself:
+
+@[constraint-compile-timed-di](code/javaguide/forms/customconstraint/ValidateWithDBComponents.java)
+
+> **Note**: you don't need to create the `database` instance by yourself, it is already defined in the implemented interfaces.
+
+This way, your validator will be available when necessary.
 
 When writing your own class-level constraints you can pass following objects to the `reportValidationStatus` method: A `ValidationError`, a `List<ValidationError>` or a `String` (handled as global error). Any other objects will be ignored by Play.
 
 Finally we can use our custom class-level constraint to validate a form:
 
-@[user](code/javaguide/forms/customconstraint/DBAccessForm.java)
+Without Payload
+: @[user](code/javaguide/forms/customconstraint/nopayload/DBAccessForm.java)
 
-> **Tip:** You might have recognised that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).
+With Payload
+: @[user](code/javaguide/forms/customconstraint/payload/DBAccessForm.java)
+
+> **Tip:** You might have recognized that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).

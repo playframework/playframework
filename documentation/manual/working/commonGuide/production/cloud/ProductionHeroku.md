@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Deploying to Heroku
 
 [Heroku](https://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.
@@ -98,7 +98,7 @@ $ heroku logs
 2015-07-13T20:44:54.960105+00:00 app[web.1]: [info] p.a.l.c.ActorSystemProvider - Starting application default Akka system: application
 2015-07-13T20:44:55.066582+00:00 app[web.1]: [info] play.api.Play$ - Application started (Prod)
 2015-07-13T20:44:55.445021+00:00 heroku[web.1]: State changed from starting to up
-2015-07-13T20:44:55.330940+00:00 app[web.1]: [info] p.c.s.NettyServer$ - Listening for HTTP on /0:0:0:0:0:0:0:0:8626
+2015-07-13T20:44:55.330940+00:00 app[web.1]: [info] p.c.s.AkkaHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 ...
 ```
 
@@ -112,7 +112,7 @@ $ heroku logs -t --app warm-frost-1289
 2015-07-13T20:44:54.960105+00:00 app[web.1]: [info] p.a.l.c.ActorSystemProvider - Starting application default Akka system: application
 2015-07-13T20:44:55.066582+00:00 app[web.1]: [info] play.api.Play$ - Application started (Prod)
 2015-07-13T20:44:55.445021+00:00 heroku[web.1]: State changed from starting to up
-2015-07-13T20:44:55.330940+00:00 app[web.1]: [info] p.c.s.NettyServer$ - Listening for HTTP on /0:0:0:0:0:0:0:0:8626
+2015-07-13T20:44:55.330940+00:00 app[web.1]: [info] p.c.s.AkkaHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 ...
 ```
 
@@ -122,16 +122,36 @@ Looks good. We can now visit the app by running:
 $ heroku open
 ```
 
+### Troubleshooting
+
+If your app contains a `build.gradle` file, Heroku will detect it and try to build your app as Gradle project instead of a Scala sbt project. You can force Heroku to use with sbt by running the following command:
+
+```bash
+$ heroku buildpacks:set heroku/scala
+```
+
+The [Scala buildpack](https://github.com/heroku/heroku-buildpack-scala) will use the `build.sbt` file in your repo to build the app.
+
+
+## Deploying applications that use latest java versions
+
+Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying an application that uses newer java version leads to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory, for example:
+```txt
+java.runtime.version=11
+```
+
+See the [heroku documentation](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version) for more details.
+
 ## Deploying with the sbt-heroku plugin
 
 The Heroku sbt plugin utilizes an API to provide direct deployment of prepackaged standalone web applications to Heroku. This may be a preferred approach for applications that take a long time to compile, or that need to be deployed from a Continuous Integration server such as Travis CI or Jenkins.
 
 ### Adding the plugin
 
-To include the plugin in your project, add the following to your `project/plugins.sbt` file:
+To include the [Heroku sbt Plugin](https://github.com/heroku/sbt-heroku) in your project, add the following to your `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.heroku" % "sbt-heroku" % "0.5.1")
+addSbtPlugin("com.heroku" % "sbt-heroku" % "2.0.0")
 ```
 
 Next, we must configure the name of the Heroku application the plugin will deploy to. But first, create a new app. Install the Heroku Toolbelt and run the create command.
@@ -244,7 +264,6 @@ Note that the creation of a Procfile is not actually required by Heroku, as Hero
 * [Using WebSockets on Heroku with Java and the Play Framework](https://devcenter.heroku.com/articles/play-java-websockets)
 * [Seed Project for Play and Heroku](https://github.com/jkutner/play-heroku-seed)
 * [Play Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
-* [Getting Started with Play, Scala, and Squeryl](https://www.artima.com/articles/play2_scala_squeryl.html)
 * [Edge Caching With Play, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
 * [Optimizing Play for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
 * [Play App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)

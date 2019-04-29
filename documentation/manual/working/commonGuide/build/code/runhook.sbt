@@ -1,12 +1,13 @@
 //
-// Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
-// You can't define objects at the root level of an SBT file, so we do it inside a def
+// You can't define objects at the root level of an sbt file, so we do it inside a def
 def Grunt(base: File) = {
   //#grunt-before-started
   import play.sbt.PlayRunHook
   import sbt._
+  import scala.sys.process.Process
 
   object Grunt {
     def apply(base: File): PlayRunHook = {
@@ -34,6 +35,7 @@ def Grunt2(base: File) = {
   import play.sbt.PlayRunHook
   import sbt._
   import java.net.InetSocketAddress
+  import scala.sys.process.Process
 
   object Grunt {
     def apply(base: File): PlayRunHook = {
@@ -46,7 +48,7 @@ def Grunt2(base: File) = {
           Process("grunt dist", base).run
         }
 
-        override def afterStarted(addr: InetSocketAddress): Unit = {
+        override def afterStarted(): Unit = {
           watchProcess = Some(Process("grunt watch", base).run)
         }
 
@@ -62,4 +64,3 @@ def Grunt2(base: File) = {
   //#grunt-watch
   Grunt(base)
 }
-

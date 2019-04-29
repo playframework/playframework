@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package detailedtopics.configuration.gzipencoding
 
 import akka.stream.ActorMaterializer
@@ -13,8 +14,7 @@ class GzipEncoding extends PlaySpecification {
   import play.api.http.DefaultHttpFilters
   import play.filters.gzip.GzipFilter
 
-  class Filters @Inject() (gzipFilter: GzipFilter)
-      extends DefaultHttpFilters(gzipFilter)
+  class Filters @Inject()(gzipFilter: GzipFilter) extends DefaultHttpFilters(gzipFilter)
 
   "gzip filter" should {
 
@@ -23,17 +23,16 @@ class GzipEncoding extends PlaySpecification {
       import play.api.mvc._
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
-        def Action = app.injector.instanceOf[DefaultActionBuilder]
+        def Action       = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter =
-        //#should-gzip
-          new GzipFilter(shouldGzip = (request, response) =>
-            response.body.contentType.exists(_.startsWith("text/html")))
+          //#should-gzip
+          new GzipFilter(
+            shouldGzip = (request, response) => response.body.contentType.exists(_.startsWith("text/html"))
+          )
         //#should-gzip
 
-        header(CONTENT_ENCODING,
-          filter(Action(Results.Ok("foo")))(gzipRequest).run()
-        ) must beNone
+        header(CONTENT_ENCODING, filter(Action(Results.Ok("foo")))(gzipRequest).run()) must beNone
       }
     }
 
@@ -43,19 +42,16 @@ class GzipEncoding extends PlaySpecification {
       val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
         implicit val mat = ActorMaterializer()(app.actorSystem)
-        def Action = app.injector.instanceOf[DefaultActionBuilder]
+        def Action       = app.injector.instanceOf[DefaultActionBuilder]
 
-        val filter = (new CustomFilters(mat)).filters()(0)
+        val filter = (new CustomFilters(mat)).getFilters.get(0)
 
-        header(CONTENT_ENCODING,
-          filter(Action(Results.Ok("foo")))(gzipRequest).run()
-        ) must beNone
+        header(CONTENT_ENCODING, filter(Action(Results.Ok("foo")))(gzipRequest).run()) must beNone
       }
     }
 
   }
 
   def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
-
 
 }

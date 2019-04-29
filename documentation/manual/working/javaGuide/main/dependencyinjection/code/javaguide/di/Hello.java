@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.di;
 
-//#implemented-by
+// #implemented-by
 import com.google.inject.ImplementedBy;
 
 @ImplementedBy(EnglishHello.class)
 public interface Hello {
 
-    String sayHello(String name);
+  String sayHello(String name);
 }
-//#implemented-by
+// #implemented-by

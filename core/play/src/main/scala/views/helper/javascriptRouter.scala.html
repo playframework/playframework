@@ -1,0 +1,27 @@
+@**
+ * Generates a Javascript object that lets you refer 
+ * to your application's routes in Javascript code
+ *
+ * Example:
+ * {{{
+ * @javascriptRouter("jsRoutes")(
+ *   routes.javascript.Users.list,
+ *   routes.javascript.Application.index
+ * )
+ * }}}
+ *
+ * You can access your routes in JavaScript without hardcoded URL's, e.g. assuming jQuery's ajax function:
+ * {{{
+ * $.ajax(jsRoutes.controllers.Users.list()).done( /* */ ).fail( /* */ )
+ * }}}
+ * Each action in the generated object also has the following properties:
+ * * *type*: HTTP method
+ * * *url*: the url to be used
+ * 
+ * @param name The javascript object name.
+ * @param routes Set of routes to include in this javascript router.
+ *@
+@(name:String = "Router")(routes: play.api.routing.JavaScriptReverseRoute*)(implicit request: play.api.mvc.RequestHeader)
+@script('type -> "text/javascript") {
+    @Html(play.api.routing.JavaScriptReverseRouter(name)(routes: _*).body.replace("/", "\\/"))
+}

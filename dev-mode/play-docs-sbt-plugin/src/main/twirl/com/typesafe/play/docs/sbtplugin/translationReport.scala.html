@@ -1,0 +1,150 @@
+@(report: com.typesafe.play.docs.sbtplugin.PlayDocsValidation.TranslationReport, version: String)
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+        <script src="//code.jquery.com/jquery-2.2.0.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <title>Play Translation Report</title>
+
+        <style>
+            ul {
+                list-style-type: none;
+            }
+            li.missing:before {
+                content: "-";
+                position: relative;
+                left: -5px;
+                color: darkred;
+            }
+            li.missing {
+                text-indent: -5px;
+                color: darkred;
+            }
+            li.introduced:before {
+                content: "+";
+                position: relative;
+                left: -5px;
+                color: darkorange;
+            }
+            li.introduced {
+                text-indent: -5px;
+                color: darkorange;
+            }
+            li.ok {
+                color: darkgreen;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Play Translation Report</h1>
+
+            <h2>Play upstream documentation version: @version</h2>
+
+            <a href="/@@report?force">Rerun report</a>
+
+            <p>
+                This report details the progress of this translation against the given version of the Play documentation,
+                and attempts to identify potential issues.
+            </p>
+
+            <p>Total parsed files: @report.total</p>
+
+            @if(report.missingFiles.nonEmpty) {
+                <h3>Missing files</h3>
+
+                <p>
+                    The following Markdown files are present in the official Play documentation, but are not present in the
+                    translation.  This indicates that there may be translation work left to do.
+                </p>
+
+                <ul>
+                    @for(file <- report.missingFiles) {
+                        <li class="missing">@file</li>
+                    }
+                </ul>
+            }
+
+            @if(report.introducedFiles.nonEmpty) {
+                <h3>Introduced files</h3>
+
+                <p>
+                    The following Markdown files are not present in the official Play documentation, but are present in the
+                    translation.  This could indicate many things, such as documentation being restructured, or a typo in
+                    the file name.
+                </p>
+
+                <ul>
+                @for(file <- report.introducedFiles) {
+                    <li class="introduced">@file</li>
+                }
+                </ul>
+            }
+
+            @if(report.changedPathFiles.nonEmpty) {
+                <h3>Non matching paths</h3>
+
+                <p>
+                    The following Markdown files have changed paths.  This could create issues, particularly with sourcing
+                    code samples.
+                </p>
+
+                <dl>
+                @for(file <- report.changedPathFiles) {
+                    <dt>@file._2</dt>
+                    <dd>-> @file._1</dd>
+                }
+                </dl>
+            }
+
+            @if(report.codeSampleIssues.nonEmpty) {
+                <h3>Code sample issues</h3>
+
+                <p>
+                    The following Markdown files have potential issues in code samples.  They are either missing code samples,
+                    or they refer to code samples that the official documentation doesn't.  This could indicate an error
+                    in translating, or that something has changed.
+                </p>
+
+                <dl>
+                    @for(file <- report.codeSampleIssues) {
+                        <dt>@file.name</dt>
+                        <dd>
+                            <p>Total code samples in official documentation: @file.totalCodeSamples</p>
+
+                            <ul>
+                                @for(codeSample <- file.missingCodeSamples) {
+                                    <li class="missing">[@codeSample.segment](@codeSample.source)</li>
+                                }
+                                @for(codeSample <- file.introducedCodeSamples) {
+                                    <li class="introduced">[@codeSample.segment](@codeSample.source)</li>
+                                }
+                            </ul>
+                        </dd>
+                    }
+                </dl>
+            }
+
+            @if(report.okFiles.nonEmpty) {
+                <h3>Ok files</h3>
+
+                <p>
+                    The following files have no problems.
+                </p>
+
+                <ul>
+                    @for(file <- report.okFiles) {
+                        <li class="ok">@file</li>
+                    }
+                </ul>
+            }
+
+        </div>
+    </body>
+</html>

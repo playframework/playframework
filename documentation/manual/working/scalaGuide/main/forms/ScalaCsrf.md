@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Protecting against Cross Site Request Forgery
 
-Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victims browser into making a request using the victims session.  Since the session token is sent with every request, if an attacker can coerce the victims browser to make a request on their behalf, the attacker can make requests on the users behalf.
+Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victim's browser into making a request using the victim's session.  Since the session token is sent with every request, if an attacker can coerce the victim's browser to make a request on their behalf, the attacker can make requests on the user's behalf.
 
-It is recommended that you familiarise yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
+It is recommended that you familiarize yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
 
-There is no simple answer to what requests are safe and what are vulnerable to CSRF requests, the reason for this is that there is no clear specification as to what is allowable from plugins and future extensions to specifications.  Historically, browser plugins and extensions have relaxed the rules that frameworks previously thought could be trusted, introducing CSRF vulnerabilities to many applications, and the onus has been on the frameworks to fix them.  For this reason, Play takes a conservative approach in its defaults, but allows you to configure exactly when a check is done.  By default, Play will require a CSRF check when all of the following are true:
+There is no simple answer to what requests are safe and what are vulnerable to CSRF requests; the reason for this is that there is no clear specification as to what is allowable from plugins and future extensions to specifications.  Historically, browser plugins and extensions have relaxed the rules that frameworks previously thought could be trusted, introducing CSRF vulnerabilities to many applications, and the onus has been on the frameworks to fix them.  For this reason, Play takes a conservative approach in its defaults, but allows you to configure exactly when a check is done.  By default, Play will require a CSRF check when all of the following are true:
 
 * The request method is not `GET`, `HEAD` or `OPTIONS`.
 * The request has one or more `Cookie` or `Authorization` headers.
@@ -15,9 +15,9 @@ There is no simple answer to what requests are safe and what are vulnerable to C
 
 ### Play's CSRF protection
 
-Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the users session.  Play then verifies that both tokens are present and match.
+Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the user's session.  Play then verifies that both tokens are present and match.
 
-To allow simple protection for non browser requests, Play only checks requests with cookies in the header.  If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
+To allow simple protection for non-browser requests, Play only checks requests with cookies in the header.  If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
 
 Alternatively, you can set `play.filters.csrf.header.bypassHeaders` to match common headers: A common configuration would be:
 
@@ -46,49 +46,62 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.filters.enabled += play.filters.csrf.CsrfFilter
+play.filters.enabled += "play.filters.csrf.CSRFFilter"
 ```
+
+It is also possible to disable the CSRF filter for a specific route in the routes file. To do this, add the `nocsrf` modifier tag before your route:
+
+@[nocsrf](../http/code/scalaguide.http.routing.routes)
 
 ### Using an implicit request
 
-All CSRF functionality assumes that a `RequestHeader` or a `Request` is available in implicit scope, and will not compile without one available. 
+All CSRF functionality assumes that a implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) (or a [`Request`](api/scala/play/api/mvc/Request.html), which extends  [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html)) is available in implicit scope, and will not compile without one available.  Examples will be shown below.
 
 #### Defining an implicit Request in Actions
 
-For all the CSRF actions, the request must be exposed implicitly with `implicit request =>` as follows:
+For all the actions that need to access the CSRF token, the request must be exposed implicitly with `implicit request =>` as follows:
 
-``` scala
-def someMethod = SomeCSRFAction { implicit request =>
-  ... // methods that depend on an implicit request
-}
-```
+@[some-csrf-action](code/ScalaCsrfController.scala)
+
+That is because the helper methods like [`CSRF.getToken`](api/scala/views/html/helper/CSRF$.html#getToken\(implicitrequest:play.api.mvc.RequestHeader\):play.filters.csrf.CSRF.Token) access receives the request as an implicit parameter to retrieve CSRF token, for example:
+
+@[implicit-access-to-token](code/ScalaCsrfController.scala)
 
 #### Passing an implicit Request between methods
 
 If you have broken up your code into methods that CSRF functionality is used in, then you can pass through the implicit request from the action:
 
-```scala
-def someMethod(...)(implicit request: Request[_]) = {
-  val token: Option[CSRF.Token] = CSRF.getToken
-  ... // do more things
-}
-```
+@[some-csrf-action-with-more-methods](code/ScalaCsrfController.scala)
 
 #### Defining an implicit Requests in Templates
 
-Your HTML template should have an implicit `Request` parameter to your template, if it doesn't have one already:
+Your HTML template should have an implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) parameter to your template, if it doesn't have one already, because the [`CSRF.formField`](api/scala/views/html/helper/CSRF$.html#formField\(implicitrequest:play.api.mvc.RequestHeader\):play.twirl.api.Html) helper requires one to be passed in (discussed more below):
 
 ```html
-@(...)(implicit request: Request[_])
+@(...)(implicit request: RequestHeader)
+```
+
+Since you will typically use CSRF in conjunction with form helpers that require a [`MessagesProvider`](api/scala/play/api/i18n/MessagesProvider.html) instance, you may want to use [`MessagesAbstractController`](api/scala/play/api/mvc/MessagesAbstractController.html) or another controller which provides a [`MessagesRequestHeader`](api/scala/play/api/mvc/MessagesRequestHeader.html):
+
+```html
+@(...)(implicit request: MessagesRequestHeader)
+```
+
+Or, if you are using a controller with [`I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) you can pass in the messages as a separate implicit parameter:
+
+```html
+@(...)(implicit request: RequestHeader, messages: Messages)
 ```
 
 ### Getting the current token
 
-The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes an implicit `RequestHeader`, so ensure that one is in scope.
+The current CSRF token can be accessed using the [`CSRF.getToken`](api/scala/views/html/helper/CSRF$.html#getToken\(implicitrequest:play.api.mvc.RequestHeader\):play.filters.csrf.CSRF.Token) method.  It takes an implicit [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html), so ensure that one is in scope.
 
 @[get-token](code/ScalaCsrf.scala)
 
-If you are not using the CSRF filter, you also should inject the `CSRFAddToken` and `CSRFCheck` action wrappers to force adding a token or a CSRF check on a specific action. Otherwise the token will not be available.
+> **Note**: If the CSRF filter is installed, Play will try to avoid generating the token as long as the cookie being used is HttpOnly (meaning it cannot be accessed from JavaScript). When sending a response with a strict body, Play skips adding the token to the response unless `CSRF.getToken` has already been called. This results in a significant performance improvement for responses that don't need a CSRF token. If the cookie is not configured to be HttpOnly, Play will assume you wish to access it from JavaScript and generate it regardless.
+
+If you are not using the CSRF filter, you also should inject the [`CSRFAddToken`](api/scala/play/filters/csrf/CSRFAddToken.html) and [`CSRFCheck`](api/scala/play/filters/csrf/CSRFCheck.html) action wrappers to force adding a token or a CSRF check on a specific action. Otherwise the token will not be available.
 
 @[csrf-controller](code/ScalaCsrf.scala)
 
@@ -117,8 +130,6 @@ This might render a form that looks like this:
 </form>
 ```
 
-The form helper methods all require an implicit `RequestHeader` to be available in scope. This will typically be provided by adding an implicit `RequestHeader` parameter to your template, if it doesn't have one already.
-
 ### Adding a CSRF token to the session
 
 To ensure that a CSRF token is available to be rendered in forms, and sent back to the client, the global filter will generate a new token for all GET requests that accept HTML, if a token isn't already available in the incoming request.
@@ -129,11 +140,11 @@ Sometimes global CSRF filtering may not be appropriate, for example in situation
 
 In these cases, Play provides two actions that can be composed with your applications actions.
 
-The first action is the `CSRFCheck` action, and it performs the check.  It should be added to all actions that accept session authenticated POST form submissions:
+The first action is the [`CSRFCheck`](api/scala/play/filters/csrf/CSRFCheck.html) action, and it performs the check.  It should be added to all actions that accept session authenticated POST form submissions:
 
 @[csrf-check](code/ScalaCsrf.scala)
 
-The second action is the `CSRFAddToken` action, it generates a CSRF token if not already present on the incoming request.  It should be added to all actions that render forms:
+The second action is the [`CSRFAddToken`](api/scala/play/filters/csrf/CSRFAddToken.html) action, it generates a CSRF token if not already present on the incoming request.  It should be added to all actions that render forms:
 
 @[csrf-add-token](code/ScalaCsrf.scala)
 
@@ -141,7 +152,7 @@ A more convenient way to apply these actions is to use them in combination with 
 
 @[csrf-action-builder](code/ScalaCsrf.scala)
 
-Then you can minimise the boiler plate code necessary to write actions:
+Then you can minimize the boiler plate code necessary to write actions:
 
 @[csrf-actions](code/ScalaCsrf.scala)
 
@@ -161,22 +172,6 @@ You can use all the above features if your application is using compile time dep
 
 ## Testing CSRF 
 
-When rendering, you may need to add the CSRF token to a template.  You can do this with `import play.api.test.CSRFTokenHelper._`, which enriches `play.api.test.FakeRequest` with the `withCSRFToken` method:
+When rendering, you may need to add the CSRF token to a template.  You can do this with [`import play.api.test.CSRFTokenHelper._`](api/scala/play/api/test/CSRFTokenHelper$.html), which enriches [`play.api.test.FakeRequest`](api/scala/play/api/test/FakeRequest.html) with the `withCSRFToken` method:
 
-```scala
-import play.api.test.CSRFTokenHelper._
-
-class UserControllerSpec extends PlaySpec with GuiceOneAppPerTest {
-  "UserController GET" should {
-
-    "render the index page from the application" in {
-      val controller = app.injector.instanceOf[UserController]
-      val request = FakeRequest().withCSRFToken
-      val result = controller.userGet().apply(request)
-
-      status(result) mustBe OK
-      contentType(result) mustBe Some("text/html")
-    }
-  }
-}
-```
+@[testing-csrf](code/scalaguide/forms/csrf/UserControllerSpec.scala)

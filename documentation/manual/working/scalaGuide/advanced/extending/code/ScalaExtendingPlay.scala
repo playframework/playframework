@@ -1,28 +1,31 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.advanced.extending
 
 import org.specs2.mutable.Specification
 import play.api._
 import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc.Result
 import play.mvc.Http.RequestHeader
 
 class MyMessagesApi extends MessagesApi {
-  override def messages: Map[String, Map[String, String]] = ???
-  override def preferred(candidates: Seq[Lang]): Messages = ???
-  override def preferred(request: mvc.RequestHeader): Messages = ???
-  override def preferred(request: RequestHeader): Messages = ???
-  override def langCookieHttpOnly: Boolean = ???
-  override def clearLang(result: Result): Result = ???
-  override def langCookieSecure: Boolean = ???
-  override def langCookieName: String = ???
-  override def setLang(result: Result, lang: Lang): Result = ???
-  override def apply(key: String, args: Any*)(implicit lang: Lang): String = ???
-  override def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String = ???
-  override def isDefinedAt(key: String)(implicit lang: Lang): Boolean = ???
+  override def messages: Map[String, Map[String, String]]                                  = ???
+  override def preferred(candidates: Seq[Lang]): Messages                                  = ???
+  override def preferred(request: mvc.RequestHeader): Messages                             = ???
+  override def preferred(request: RequestHeader): Messages                                 = ???
+  override def langCookieHttpOnly: Boolean                                                 = ???
+  override def langCookieSameSite: Option[SameSite]                                        = ???
+  override def clearLang(result: Result): Result                                           = ???
+  override def langCookieSecure: Boolean                                                   = ???
+  override def langCookieName: String                                                      = ???
+  override def setLang(result: Result, lang: Lang): Result                                 = ???
+  override def apply(key: String, args: Any*)(implicit lang: Lang): String                 = ???
+  override def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String           = ???
+  override def isDefinedAt(key: String)(implicit lang: Lang): Boolean                      = ???
   override def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = ???
 }
 
@@ -78,6 +81,5 @@ class ScalaExtendingPlay extends Specification {
     }
 
   }
-
 
 }

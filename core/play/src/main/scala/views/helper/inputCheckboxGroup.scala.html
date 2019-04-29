@@ -1,0 +1,29 @@
+@**
+* Generate an HTML checkbox group
+*
+* Example:
+* {{{
+* @inputCheckboxGroup(
+*           contactForm("hobbies"),
+*           options = Seq("S" -> "Surfing", "R" -> "Running", "B" -> "Biking","P" -> "Paddling"),
+*           '_label -> "Hobbies",
+*           '_error -> contactForm("hobbies").error.map(_.withMessage("select one or more hobbies")))
+*
+* }}}
+*
+* @param field The form field.
+* @param options Sequence of options as pairs of value and HTML
+* @param args Set of extra HTML attributes.
+* @param handler The field constructor.
+*@
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.MessagesProvider)
+@input(field, args.map{ x => if(x._1 == '_label) '_name -> x._2 else x }:_*) { (id, name, value, htmlArgs) =>
+  <span class="buttonset" id="@id">
+    @defining(field.indexes.map( i => field("[%s]".format(i)).value ).flatten.toSet) { values =>
+      @options.map { v =>
+        <input type="checkbox" id="@(id)_@v._1" name="@{name + "[]"}" value="@v._1" @if(values.contains(v._1)){checked="checked"} @toHtmlArgs(htmlArgs)/>
+        <label for="@(id)_@v._1">@v._2</label>
+      }
+    }
+  </span>
+}

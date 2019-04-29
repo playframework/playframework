@@ -1,11 +1,15 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing with databases
 
 While it is possible to write [[functional tests|JavaFunctionalTest]] that test database access code by starting up a full application including the database, starting up a full application is not often desirable, due to the complexity of having many more components started and running just to test one small part of your application.
 
-Play provides a number of utilities for helping to test database access code that allow it to be tested with a database but in isolation from the rest of your app.  These utilities can easily be used with either ScalaTest or specs2, and can make your database tests much closer to lightweight and fast running unit tests than heavy weight and slow functional tests.
+Play provides a number of utilities for helping to test database access code that allow it to be tested with a database but in isolation from the rest of your app.  These utilities can easily be used with either [[ScalaTest|ScalaFunctionalTestingWithScalaTest]] or [[specs2|ScalaFunctionalTestingWithSpecs2]], and can make your database tests much closer to lightweight and fast running unit tests than heavy weight and slow functional tests.
 
 ## Using a database
+
+To test with a database backend, you only need:
+
+@[content](code/javaguide.tests.databases.sbt)
 
 To connect to a database, at a minimum, you just need database driver name and the url of the database, using the [`Database`](api/java/play/db/Database.html) static factory methods.  For example, to connect to MySQL, you might use the following:
 
@@ -25,7 +29,7 @@ These methods are particularly useful if you use them in combination with JUnit'
 
 @[database-junit](code/javaguide/tests/JavaTestingWithDatabases.java)
 
-> **Tip:** You can use this to externalise your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
+> **Tip:** You can use this to externalize your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
 
 ### Using an in-memory database
 

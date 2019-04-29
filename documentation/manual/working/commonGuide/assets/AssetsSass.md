@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Using Sass
 
 [Sass](http://sass-lang.com/) is a dynamic stylesheet language. It allows considerable flexibility in the way you write CSS files including support for variables, mixins and more.
@@ -48,7 +48,7 @@ The Sass file outlined above, will be compiled into `public/stylesheets/main.css
 
 ## Mixing Sass and web-jars
 
-[WebJars](http://www.webjars.org) enable us to depend on client libraries without pulling all dependencies into our own code base manually.
+[WebJars](https://www.webjars.org) enable us to depend on client libraries without pulling all dependencies into our own code base manually.
 
 Compass is a library containing all sorts of reusable functions and mixins for Sass. Unfortunately, this library is targeted towards the Ruby implementation of Sass. There is a number of useful mixins that can be extracted from it. Fortunately, these mixins are wrapped in a web-jar.
 
@@ -88,7 +88,7 @@ Then to use it in your project, you can use:
 Sass compilation is enabled by simply adding the sbt-sassify plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.4")
+addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.11")
 ```
 
 The plugin's default configuration should normally be sufficient. However please refer to the [plugin's documentation](https://github.com/irundaia/sbt-sassify#options) for information on how it may be configured as well as its latest version.

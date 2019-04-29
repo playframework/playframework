@@ -1,35 +1,92 @@
 language: scala
-# Trusty VM has 1.8u101
-# https://github.com/travis-ci/travis-ci/issues/3259#issuecomment-243534696
-dist: trusty
-sudo: true
-group: beta
-jdk:
-  - oraclejdk8
-scala:
-  - 2.11.11
-  - 2.12.2
-script:    
-  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash framework/bin/sourceclear; fi'
-  - framework/bin/travis 
+
+# Only build PRs, tags, and forks: https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
+if: type = pull_request OR tag IS present OR repo != playframework/playframework
+
+addons:
+  apt:
+    packages:
+      # Install xmllint used to get Akka HTTP version
+      - libxml2-utils
+
+env:
+  global:
+    - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
+  matrix:
+    - TRAVIS_JDK=adopt@1.8.202-08
+
+before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
+install: jabba install "$TRAVIS_JDK" && jabba use $_ && java -Xmx32m -version
+
+stages:
+  - validations
+  - test
+  - test-sbt
+  - java11
+
+jobs:
+  include:
+    - stage: validations
+      script: scripts/validate-code
+      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+    - script: scripts/validate-docs
+      name: "Validate docs (links, sample code, etc.)"
+    - script: scripts/validate-microbenchmarks
+      name: "Validate that microbenchmarks are runnable"
+    - script: scripts/publish-local
+      name: "Run a publishLocal for the default scala version"
+
+    - stage: test
+      script: scripts/test-scala-212
+      name: "Run tests for Scala 2.12"
+    - script: scripts/test-scala-213
+      name: "Run tests for Scala 2.13"
+    - script: scripts/test-docs
+      name: "Run documentation tests"
+    - script: scripts/it-test-scala-212
+      name: "Run it tests for Scala 2.12"
+    - script: scripts/it-test-scala-213
+      name: "Run it tests for Scala 2.13"
+
+    - stage: test-sbt
+      script: scripts/test-sbt-plugins-0_13
+      name: "Scripted tests for sbt 0.13"
+    - script: scripts/test-sbt-plugins-1_0
+      name: "Scripted tests for sbt 1"
+
+    # Test against Java 11, but only for Scala 2.12
+    - stage: java11
+      script: scripts/test-scala-212
+      env: TRAVIS_JDK=adopt@1.11.0-2
+      name: "Run tests for Scala 2.12 and Java 11"
+    - script: scripts/it-test-scala-212
+      env: TRAVIS_JDK=adopt@1.11.0-2
+      name: "Run it tests for Scala 2.12 and Java 11"
+    - script: scripts/test-sbt-plugins-1_0
+      env: TRAVIS_JDK=adopt@1.11.0-2
+      name: "Scripted tests for sbt 1 and Java 11"
+
 cache:
   directories:
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot/
+    - "$HOME/.ivy2/cache"
+    - "$HOME/.jabba/jdk"
+    - "$HOME/.sbt"
+
 before_cache:
-  # Ensure changes to the cache aren't persisted
   - rm -rf $HOME/.ivy2/local
   - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
   - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
-  # Delete all ivydata files since ivy touches them on each build
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print0 | xargs -n10 -0 rm
-  # Delete any SBT lock files
-  - find $HOME/.sbt -name "*.lock" -delete
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt  -name "*.lock"               -delete
+
 notifications:
+  email: play-team@lightbend.com
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/d2c8a242a2615f659595
+    - https://webhooks.gitter.im/e/d2c8a242a2615f659595
     on_success: always
     on_failure: always
   slack:
-    secure: LIYWP1YF6DEXh4gBQ0DlaQP+kenerp7Q1AC3y/+egJYUu1g2TWmBlkcpXOcdHzrgTIUX/LYnSlhowIpsW7/YwcyLn3rOJI6SJM00DrDPRm6X1586P9DcR4XiX7MChewzbnmebx6KISt6bFtfvcd67J2cinmShwXQh2AmwvuT3Tc=
+    secure: bMaBU2Az2YK0rVx95luyOikXqB/C5khfvuVI03muOGFfdiEEBEZYoqiCtB7OisveBU/orQCrjZJRL9+vCsEwVvIFF1eIa66ZE8wOTOGNMdv8hetdfR6dg2+RLrnE0zltVhlG2XMFK7X743utmE8e3koMWYH8uQSTQCXdOoUJwpQ=
+    on_success: never
+    on_failure: always

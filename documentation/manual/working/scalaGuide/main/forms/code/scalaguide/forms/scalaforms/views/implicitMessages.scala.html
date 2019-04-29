@@ -1,0 +1,18 @@
+@import scalaguide.forms.scalaforms._
+@import scalaguide.forms.scalaforms.controllers.routes
+
+@* #form-define *@
+@(userForm: Form[UserData])(implicit request: RequestHeader, messagesProvider: MessagesProvider)
+
+@import helper._
+
+@helper.form(action = routes.FormController.post()) {
+@CSRF.formField                     @* <- takes a RequestHeader    *@
+@helper.inputText(userForm("name")) @* <- takes a MessagesProvider *@
+@helper.inputText(userForm("age"))  @* <- takes a MessagesProvider *@
+}
+@* #form-define *@<!--
+  ~ /*
+  ~  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+  ~  */
+  -->

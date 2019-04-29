@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
-# The Play WS API
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+# Calling REST APIs with Play WS
 
-Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/), which provides a way to make asynchronous HTTP calls through a WSClient instance.
+Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/index.html), which provides a way to make asynchronous HTTP calls through a WSClient instance.
 
 There are two important parts to using the WSClient: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WSClient.  Finally, we'll discuss some common use cases.
 
@@ -12,10 +12,22 @@ There are two important parts to using the WSClient: making a request, and proce
 To use WSClient, first add `ws` to your `build.sbt` file:
 
 ```scala
-libraryDependencies ++= Seq(
-  ws
-)
+libraryDependencies += ws
 ```
+
+## Enabling HTTP Caching in Play WS
+
+Play WS supports [HTTP caching](https://tools.ietf.org/html/rfc7234), but requires a JSR-107 cache implementation to enable this feature.  You can add `ehcache`:
+
+```scala
+libraryDependencies += ehcache
+```
+
+Or you can use another JSR-107 compatible cache such as [Caffeine](https://github.com/ben-manes/caffeine/wiki/JCache).
+
+Once you have the library dependencies, then enable the HTTP cache as shown on [[WS Cache Configuration|WsCache]] page.
+
+Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
 
 ## Making a Request
 
@@ -39,6 +51,10 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 This returns a `Future[WSResponse]` where the [Response](api/scala/play/api/libs/ws/WSResponse.html) contains the data returned from the server.
 
+> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures. 
+
+> If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736), consider using [`Futures.timeout`](api/scala/play/api/libs/concurrent/Futures.html) and a [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) like [Failsafe](https://github.com/jhalterman/failsafe#circuit-breakers).
+
 ### Request with authentication
 
 If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an `AuthScheme`.  Valid case objects for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NTLM`, and `SPNEGO`.
@@ -53,19 +69,25 @@ If an HTTP call results in a 302 or a 301 redirect, you can automatically follow
 
 ### Request with query parameters
 
-Parameters can be specified as a series of key/value tuples.
+Parameters can be specified as a series of key/value tuples.  Use [`addQueryStringParameters`](api/scala/play/api/libs/ws/WSRequest.html#addQueryStringParameters\(parameters:\(String,String\)*\):StandaloneWSRequest.this.Self) to add parameters, and [`withQueryStringParameters`](api/scala/play/api/libs/ws/WSRequest.html#withQueryStringParameters\(parameters:\(String,String\)*\):WSRequest.this.Self) to overwrite all query string parameters.
 
 @[query-string](code/ScalaWSSpec.scala)
 
 ### Request with additional headers
 
-Headers can be specified as a series of key/value tuples.
+Headers can be specified as a series of key/value tuples.  Use `addHttpHeaders` to append additional headers, and `withHttpHeaders` to overwrite all headers.
 
 @[headers](code/ScalaWSSpec.scala)
 
 If you are sending plain text in a particular format, you may want to define the content type explicitly.
 
 @[content-type](code/ScalaWSSpec.scala)
+
+### Request with cookies
+
+Cookies can be added to the request by using `DefaultWSCookie` or by passing through [`play.api.mvc.Cookie`](api/scala/play/api/mvc/Cookie.html).  Use [`addCookies`](api/scala/play/api/libs/ws/WSRequest.html#addCookies\(cookies:play.api.libs.ws.WSCookie*\):StandaloneWSRequest.this.Self) to append cookies, and [`withCookies`](api/scala/play/api/libs/ws/WSRequest.html#withCookies\(cookie:play.api.libs.ws.WSCookie*\):WSRequest.this.Self) to overwrite all cookies.
+
+@[cookie](code/ScalaWSSpec.scala)
 
 ### Request with virtual host
 
@@ -75,13 +97,14 @@ A virtual host can be specified as a string.
 
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value. An infinite timeout can be set by passing `Duration.Inf`.
+If you wish to specify a request timeout, you can use [`withRequestTimeout`](api/scala/play/api/libs/ws/WSRequest.html#withRequestTimeout\(timeout:scala.concurrent.duration.Duration\):WSRequest.this.Self) to set a value. An infinite timeout can be set by passing `Duration.Inf`.
 
 @[request-timeout](code/ScalaWSSpec.scala)
 
 ### Submitting form data
 
 To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed into `post`.
+If the body is empty, you must pass play.api.libs.ws.EmptyBody into the post method.
 
 @[url-encoded](code/ScalaWSSpec.scala)
 
@@ -107,21 +130,21 @@ The easiest way to post XML data is to use XML literals.  XML literals are conve
 
 @[scalaws-post-xml](code/ScalaWSSpec.scala)
 
-### Streaming data
+### Submitting Streaming data
 
-It's also possible to stream data.
+It's also possible to stream data in the request body using [Akka Streams](https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html?language=scala).
 
 For example, imagine you have executed a database query that is returning a large image, and you would like to forward that data to a different endpoint for further processing. Ideally, if you can send the data as you receive it from the database, you will reduce latency and also avoid problems resulting from loading in memory a large set of data. If your database access library supports [Reactive Streams](http://www.reactive-streams.org/) (for instance, [Slick](http://slick.typesafe.com/) does), here is an example showing how you could implement the described behavior:
 
 @[scalaws-stream-request](code/ScalaWSSpec.scala)
 
-The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[ByteString, _]`.
+The `largeImageFromDB` in the code snippet above is a `Source[ByteString, _]`.
 
 ### Request Filters
 
 You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the `play.api.libs.ws.WSRequestFilter` trait, and then adding it to the request with `request.withRequestFilter(filter)`.
 
-A sample request filter that logs the request in cURL format to SLF4J has been added in [`play.api.libs.ws.ahc.AhcCurlRequestLogger`](api/scala/play/api/libs/ws/ahc/AhcCurlRequestLogger.html).
+A sample request filter that logs the request in cURL format to SLF4J has been added in `play.api.libs.ws.ahc.AhcCurlRequestLogger`.
 
 @[curl-logger-filter](code/ScalaWSSpec.scala)
 
@@ -138,7 +161,7 @@ curl \
 
 ## Processing the Response
 
-Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
+Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](https://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
 
 The examples given below have some common dependencies that will be shown once here for brevity.
 
@@ -146,35 +169,35 @@ Whenever an operation is done on a `Future`, an implicit execution context must 
 
 @[scalaws-context-injected](code/ScalaWSSpec.scala)
 
-If you are not using DI, you can still access the default Play execution context:
-
-@[scalaws-context](code/ScalaWSSpec.scala)
-
 The examples also use the following case class for serialization/deserialization:
 
 @[scalaws-person](code/ScalaWSSpec.scala)
 
+The WSResponse extends [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/libs/ws/WSBodyReadables.html) trait, which contains type classes for Play JSON and Scala XML conversion.  You can also create your own custom type classes if you would like to convert the response to your own types, or use a different JSON or XML encoding. 
+
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/JsValue.html) by calling `response.json`.
+You can process the response as a [JSON object](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/JsValue.html) by calling `response.json`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
-The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://oss.sonatype.org/service/local/repositories/public/archive/com/typesafe/play/play-json_2.12/2.6.0-M1/play-json_2.12-2.6.0-M1-javadoc.jar/!/play/api/libs/json/Reads.html) directly to a class:
+The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/Reads.html) directly to a class:
 
 @[scalaws-process-json-with-implicit](code/ScalaWSSpec.scala)
 
 ### Processing a response as XML
 
-You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
+You can process the response as an [XML literal](https://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
 
 @[scalaws-process-xml](code/ScalaWSSpec.scala)
 
 ### Processing large responses
 
-Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcomed garbage collection or even out of memory errors.
+Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an Akka Streams `Sink`.  The `stream()` method on `WSRequest` returns a `Future[StreamedResponse]`. A `StreamedResponse` is a simple container holding together the response's headers and body.
+`WS` lets you consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html?language=scala) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:akka.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
+
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
 
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
@@ -188,7 +211,7 @@ Another common destination for response bodies is to stream them back from a con
 
 @[stream-to-result](code/ScalaWSSpec.scala)
 
-As you may have noticed, before calling `stream()` we need to set the HTTP method to use by calling `withMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
+As you may have noticed, before calling [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) we need to set the HTTP method to use by calling `withMethod` on the request. Here follows another example that uses `PUT` instead of `GET`:
 
 @[stream-put](code/ScalaWSSpec.scala)
 
@@ -198,7 +221,7 @@ Of course, you can use any other valid HTTP verb.
 
 ### Chaining WSClient calls
 
-Using for comprehensions is a good way to chain WSClient calls in a trusted environment.  You should use for comprehensions together with [Future.recover](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
+Using for comprehensions is a good way to chain WSClient calls in a trusted environment.  You should use for comprehensions together with [Future.recover](https://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
 
 @[scalaws-forcomprehension](code/ScalaWSSpec.scala)
 
@@ -208,15 +231,15 @@ When making a request from a controller, you can map the response to a `Future[R
 
 @[async-result](code/ScalaWSSpec.scala)
 
-### Using WSClient with unreliable networks
-
-If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736) or doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through [`play.api.libs.concurrent.CustomExecutionContext`](api/scala/play/api/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for futures, and consider using [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html) and a [Failsafe Circuit Breaker](https://github.com/jhalterman/failsafe#circuit-breakers).
-
 ### Using WSClient with Future Timeout
 
 If a chain of WS calls does not complete in time, it may be useful to wrap the result in a timeout block, which will return a failed Future if the chain does not complete in time -- this is more generic than using `withRequestTimeout`, which only applies to a single request.  The best way to do this is with Play's [[non-blocking timeout feature|ScalaAsync]], using [`play.api.libs.concurrent.Futures`](api/scala/play/api/libs/concurrent/Futures.html):
 
 @[ws-futures-timeout](code/ScalaWSSpec.scala)
+
+## Compile Time Dependency Injection
+
+If you are using compile time dependency injection, you can access a `WSClient` instance by using the trait `AhcWSComponents`.
 
 ## Directly creating WSClient
 
@@ -256,15 +279,27 @@ libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSS
 
 Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
 
+## Custom BodyReadables and BodyWritables
+
+Play WS comes with rich type support for bodies in the form of [`play.api.libs.ws.WSBodyWritables`](api/scala/play/api/libs/ws/WSBodyWritables.html), which contains type classes for converting input such as `JsValue` or `XML` in the body of a `WSRequest` into a `ByteString` or `Source[ByteString, _]`, and  [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/libs/ws/WSBodyReadables.html), which aggregates type classes that read the body of a `WSResponse` from a `ByteString` or `Source[ByteString, _]` and return the appropriate type, such as `JsValue` or XML.  These type classes are automatically in scope when you import the ws package, but you can also create custom types.  This is especially useful if you want to use a custom library, i.e. you would like to stream XML through STaX API or use another JSON library such as Argonaut or Circe.
+
+### Creating a Custom Readable
+
+You can create a custom readable by accessing the response body:
+
+@[ws-custom-body-readable](code/ScalaWSSpec.scala)
+
+### Creating a Custom BodyWritable
+
+You can create a custom body writable to a request as follows, using an `BodyWritable` and an `InMemoryBody`.  To specify a custom body writable with streaming, use a `SourceBody`.
+
+@[ws-custom-body-writable](code/ScalaWSSpec.scala)
+
 ## Accessing AsyncHttpClient
 
 You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[underlying](code/ScalaWSSpec.scala)
-
-This is important in a couple of cases.  WSClient has a couple of limitations that require access to the underlying client:
-
-* `WSClient` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WSClient
 
@@ -278,6 +313,10 @@ Use the following properties in `application.conf` to configure the WSClient:
 ### Configuring WSClient with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
+### Configuring WS with Caching
+
+To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsCache]].
 
 ### Configuring Timeouts
 
@@ -294,8 +333,6 @@ The request timeout can be overridden for a specific connection with `withReques
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
 Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
-
-> **Note:** `allowPoolingConnection` and `allowSslConnectionPool` are combined in AsyncHttpClient 2.0 into a single `keepAlive` variable.  As such, `play.ws.ning.allowPoolingConnection` and `play.ws.ning.allowSslConnectionPool` are not valid and will throw an exception if configured.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

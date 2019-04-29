@@ -1,19 +1,24 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.ws;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import org.slf4j.Logger;
-import play.Application;
 import play.api.Configuration;
-import play.core.j.HttpExecutionContext;
 import play.core.j.JavaHandlerComponents;
 import play.libs.concurrent.Futures;
 import play.libs.ws.*;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.concurrent.*;
 // #ws-imports
@@ -24,10 +29,12 @@ import play.libs.Json;
 // #json-imports
 
 // #multipart-imports
+import play.libs.ws.ahc.AhcCurlRequestLogger;
 import play.mvc.Http.MultipartFormData.*;
 // #multipart-imports
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.Optional;
 import java.util.stream.*;
 
@@ -47,374 +54,462 @@ import play.mvc.Results;
 // #ws-client-imports
 
 public class JavaWS {
-    private static final String feedUrl = "http://localhost:3333/feed";
+  private static final String feedUrl = "http://localhost:3333/feed";
 
-    public static class Controller0 extends MockJavaAction {
+  public static class Controller0 extends MockJavaAction
+      implements WSBodyReadables, WSBodyWritables {
 
-        private final WSClient ws;
-        private final Materializer materializer;
+    private final WSClient ws;
+    private final Materializer materializer;
 
-        @Inject
-        Controller0(JavaHandlerComponents javaHandlerComponents, WSClient ws, Materializer materializer) {
-            super(javaHandlerComponents);
-            this.ws = ws;
-            this.materializer = materializer;
-        }
+    @Inject
+    Controller0(
+        JavaHandlerComponents javaHandlerComponents, WSClient ws, Materializer materializer) {
+      super(javaHandlerComponents);
+      this.ws = ws;
+      this.materializer = materializer;
+    }
 
-        public void requestExamples() {
-            // #ws-holder
-            WSRequest request = ws.url("http://example.com");
-            // #ws-holder
+    public void requestExamples() {
+      // #ws-holder
+      WSRequest request = ws.url("http://example.com");
+      // #ws-holder
 
-            // #ws-complex-holder
-            WSRequest complexRequest = request.setHeader("headerKey", "headerValue")
-                                                    .setRequestTimeout(1000)
-                                                    .setQueryParameter("paramKey", "paramValue");
-            // #ws-complex-holder
+      // #ws-complex-holder
+      WSRequest complexRequest =
+          request
+              .addHeader("headerKey", "headerValue")
+              .setRequestTimeout(Duration.of(1000, ChronoUnit.MILLIS))
+              .addQueryParameter("paramKey", "paramValue");
+      // #ws-complex-holder
 
-            // #ws-get
-            CompletionStage<? extends WSResponse> responsePromise = complexRequest.get();
-            // #ws-get
+      // #ws-get
+      CompletionStage<? extends WSResponse> responsePromise = complexRequest.get();
+      // #ws-get
 
-            String url = "http://example.com";
-            // #ws-auth
-            ws.url(url).setAuth("user", "password", WSAuthScheme.BASIC).get();
-            // #ws-auth
+      String url = "http://example.com";
+      // #ws-auth
+      ws.url(url).setAuth("user", "password", WSAuthScheme.BASIC).get();
+      // #ws-auth
 
-            // #ws-follow-redirects
-            ws.url(url).setFollowRedirects(true).get();
-            // #ws-follow-redirects
+      // #ws-follow-redirects
+      ws.url(url).setFollowRedirects(true).get();
+      // #ws-follow-redirects
 
-            // #ws-query-parameter
-            ws.url(url).setQueryParameter("paramKey", "paramValue");
-            // #ws-query-parameter
+      // #ws-query-parameter
+      ws.url(url).addQueryParameter("paramKey", "paramValue");
+      // #ws-query-parameter
 
-            // #ws-header
-            ws.url(url).setHeader("headerKey", "headerValue").get();
-            // #ws-header
+      // #ws-header
+      ws.url(url).addHeader("headerKey", "headerValue").get();
+      // #ws-header
 
-            String jsonString = "{\"key1\":\"value1\"}";
-            // #ws-header-content-type
-            ws.url(url).setHeader("Content-Type", "application/json").post(jsonString);
-            // OR
-            ws.url(url).setContentType("application/json").post(jsonString);
-            // #ws-header-content-type
+      // #ws-cookie
+      ws.url(url)
+          .addCookies(new WSCookieBuilder().setName("headerKey").setValue("headerValue").build())
+          .get();
+      // #ws-cookie
 
-            // #ws-timeout
-            ws.url(url).setRequestTimeout(1000).get();
-            // #ws-timeout
+      String jsonString = "{\"key1\":\"value1\"}";
+      // #ws-header-content-type
+      ws.url(url).addHeader("Content-Type", "application/json").post(jsonString);
+      // OR
+      ws.url(url).setContentType("application/json").post(jsonString);
+      // #ws-header-content-type
 
-            // #ws-post-form-data
-            ws.url(url).setContentType("application/x-www-form-urlencoded")
-                       .post("key1=value1&key2=value2");
-            // #ws-post-form-data
+      // #ws-timeout
+      ws.url(url).setRequestTimeout(Duration.of(1000, ChronoUnit.MILLIS)).get();
+      // #ws-timeout
 
-            // #ws-post-json
-            JsonNode json = Json.newObject()
-                                .put("key1", "value1")
-                                .put("key2", "value2");
+      // #ws-post-form-data
+      ws.url(url)
+          .setContentType("application/x-www-form-urlencoded")
+          .post("key1=value1&key2=value2");
+      // #ws-post-form-data
 
-            ws.url(url).post(json);
-            // #ws-post-json
+      // #ws-post-json
+      JsonNode json = Json.newObject().put("key1", "value1").put("key2", "value2");
 
-            // #ws-post-multipart
-            ws.url(url).post(Source.single(new DataPart("hello", "world")));
-            // #ws-post-multipart
+      ws.url(url).post(json);
+      // #ws-post-json
 
-            // #ws-post-multipart2
-            Source<ByteString, ?> file = FileIO.fromFile(new File("hello.txt"));
-            FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
-            DataPart dp = new DataPart("key", "value");
+      // #ws-post-json-objectmapper
+      ObjectMapper objectMapper = play.libs.Json.newDefaultMapper();
+      ws.url(url).post(body(json, objectMapper));
+      // #ws-post-json-objectmapper
 
-            ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
-            // #ws-post-multipart2
+      // #ws-post-xml
+      Document xml = play.libs.XML.fromString("<document></document>");
+      ws.url(url).post(xml);
+      // #ws-post-xml
 
-            String value = IntStream.range(0,100).boxed().
-                map(i -> "abcdefghij").reduce("", (a,b) -> a + b);
-            ByteString seedValue = ByteString.fromString(value);
-            Stream<ByteString> largeSource = IntStream.range(0,10).boxed().map(i -> seedValue);
-            Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
-            // #ws-stream-request
-            CompletionStage<? extends WSResponse> wsResponse = ws.url(url).setBody(largeImage).execute("PUT");
-            // #ws-stream-request
-        }
+      // #ws-post-multipart
+      ws.url(url).post(Source.single(new DataPart("hello", "world")));
+      // #ws-post-multipart
 
-        public void responseExamples() {
+      // #ws-post-multipart2
+      Source<ByteString, ?> file = FileIO.fromPath(Paths.get("hello.txt"));
+      FilePart<Source<ByteString, ?>> fp = new FilePart<>("hello", "hello.txt", "text/plain", file);
+      DataPart dp = new DataPart("key", "value");
 
-            String url = "http://example.com";
+      ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
+      // #ws-post-multipart2
 
-            // #ws-response-json
-            CompletionStage<JsonNode> jsonPromise = ws.url(url).get()
-                    .thenApply(WSResponse::asJson);
-            // #ws-response-json
+      String value =
+          IntStream.range(0, 100).boxed().map(i -> "abcdefghij").reduce("", (a, b) -> a + b);
+      ByteString seedValue = ByteString.fromString(value);
+      Stream<ByteString> largeSource = IntStream.range(0, 10).boxed().map(i -> seedValue);
+      Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
+      // #ws-stream-request
+      CompletionStage<WSResponse> wsResponse = ws.url(url).setBody(body(largeImage)).execute("PUT");
+      // #ws-stream-request
 
-            // #ws-response-xml
-            CompletionStage<Document> documentPromise = ws.url(url).get()
-                    .thenApply(WSResponse::asXml);
-            // #ws-response-xml
-        }
+      // #ws-curl-logger-filter
+      ws.url("https://www.playframework.com")
+          .setRequestFilter(new AhcCurlRequestLogger())
+          .addHeader("Header-Name", "Header value")
+          .get();
+      // #ws-curl-logger-filter
+    }
 
-        public void streamSimpleRequest() {
-            String url = "http://example.com";
-            // #stream-count-bytes
-            // Make the request
-            CompletionStage<? extends StreamedResponse> futureResponse =
-                ws.url(url).setMethod("GET").stream();
+    public void responseExamples() {
 
-            CompletionStage<Long> bytesReturned = futureResponse.thenCompose(res -> {
-                Source<ByteString, ?> responseBody = res.getBody();
+      String url = "http://example.com";
+
+      // #ws-response-json
+      // implements WSBodyReadables or use WSBodyReadables.instance.json()
+      CompletionStage<JsonNode> jsonPromise = ws.url(url).get().thenApply(r -> r.getBody(json()));
+      // #ws-response-json
+
+      // #ws-response-xml
+      // implements WSBodyReadables or use WSBodyReadables.instance.xml()
+      CompletionStage<Document> documentPromise =
+          ws.url(url).get().thenApply(r -> r.getBody(xml()));
+      // #ws-response-xml
+    }
+
+    public void streamSimpleRequest() {
+      String url = "http://example.com";
+      // #stream-count-bytes
+      // Make the request
+      CompletionStage<WSResponse> futureResponse = ws.url(url).setMethod("GET").stream();
+
+      CompletionStage<Long> bytesReturned =
+          futureResponse.thenCompose(
+              res -> {
+                Source<ByteString, ?> responseBody = res.getBodyAsSource();
 
                 // Count the number of bytes returned
                 Sink<ByteString, CompletionStage<Long>> bytesSum =
                     Sink.fold(0L, (total, bytes) -> total + bytes.length());
 
                 return responseBody.runWith(bytesSum, materializer);
-            });
-            // #stream-count-bytes
-        }
+              });
+      // #stream-count-bytes
+    }
 
-        public void streamFile() throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
-            String url = "http://example.com";
-            //#stream-to-file
-            File file = File.createTempFile("stream-to-file-", ".txt");
-            OutputStream outputStream = java.nio.file.Files.newOutputStream(file.toPath());
+    public void streamFile()
+        throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
+      String url = "http://example.com";
+      // #stream-to-file
+      File file = File.createTempFile("stream-to-file-", ".txt");
+      OutputStream outputStream = java.nio.file.Files.newOutputStream(file.toPath());
 
-            // Make the request
-            CompletionStage<? extends StreamedResponse> futureResponse =
-                ws.url(url).setMethod("GET").stream();
+      // Make the request
+      CompletionStage<WSResponse> futureResponse = ws.url(url).setMethod("GET").stream();
 
-            CompletionStage<File> downloadedFile = futureResponse.thenCompose(res -> {
-                Source<ByteString, ?> responseBody = res.getBody();
+      CompletionStage<File> downloadedFile =
+          futureResponse.thenCompose(
+              res -> {
+                Source<ByteString, ?> responseBody = res.getBodyAsSource();
 
                 // The sink that writes to the output stream
                 Sink<ByteString, CompletionStage<akka.Done>> outputWriter =
                     Sink.<ByteString>foreach(bytes -> outputStream.write(bytes.toArray()));
 
                 // materialize and run the stream
-                CompletionStage<File> result = responseBody.runWith(outputWriter, materializer)
-                    .whenComplete((value, error) -> {
-                        // Close the output stream whether there was an error or not
-                        try { outputStream.close(); }
-                        catch(IOException e) {}
-                    })
-                    .thenApply(v -> file);
+                CompletionStage<File> result =
+                    responseBody
+                        .runWith(outputWriter, materializer)
+                        .whenComplete(
+                            (value, error) -> {
+                              // Close the output stream whether there was an error or not
+                              try {
+                                outputStream.close();
+                              } catch (IOException e) {
+                              }
+                            })
+                        .thenApply(v -> file);
                 return result;
-            });
-            //#stream-to-file
-            downloadedFile.toCompletableFuture().get();
-            file.delete();
-        }
+              });
+      // #stream-to-file
+      downloadedFile.toCompletableFuture().get();
+      file.delete();
+    }
 
-        public void streamResponse() {
-            String url = "http://example.com";
-            //#stream-to-result
-            // Make the request
-            CompletionStage<? extends StreamedResponse> futureResponse = ws.url(url).setMethod("GET").stream();
+    public void streamResponse() {
+      String url = "http://example.com";
+      // #stream-to-result
+      // Make the request
+      CompletionStage<WSResponse> futureResponse = ws.url(url).setMethod("GET").stream();
 
-            CompletionStage<Result> result = futureResponse.thenApply(response -> {
-                WSResponseHeaders responseHeaders = response.getHeaders();
-                Source<ByteString, ?> body = response.getBody();
+      CompletionStage<Result> result =
+          futureResponse.thenApply(
+              response -> {
+                Source<ByteString, ?> body = response.getBodyAsSource();
                 // Check that the response was successful
-                if (responseHeaders.getStatus() == 200) {
-                    // Get the content type
-                    String contentType =
-                            Optional.ofNullable(responseHeaders.getHeaders().get("Content-Type"))
-                                    .map(contentTypes -> contentTypes.get(0))
-                                    .orElse("application/octet-stream");
+                if (response.getStatus() == 200) {
+                  // Get the content type
+                  String contentType =
+                      Optional.ofNullable(response.getHeaders().get("Content-Type"))
+                          .map(contentTypes -> contentTypes.get(0))
+                          .orElse("application/octet-stream");
 
-                    // If there's a content length, send that, otherwise return the body chunked
-                    Optional<String> contentLength = Optional.ofNullable(responseHeaders.getHeaders()
-                            .get("Content-Length"))
-                            .map(contentLengths -> contentLengths.get(0));
-                    if (contentLength.isPresent()) {
-                        return ok().sendEntity(new HttpEntity.Streamed(
+                  // If there's a content length, send that, otherwise return the body chunked
+                  Optional<String> contentLength =
+                      Optional.ofNullable(response.getHeaders().get("Content-Length"))
+                          .map(contentLengths -> contentLengths.get(0));
+                  if (contentLength.isPresent()) {
+                    return ok().sendEntity(
+                            new HttpEntity.Streamed(
                                 body,
                                 Optional.of(Long.parseLong(contentLength.get())),
-                                Optional.of(contentType)
-                        ));
-                    } else {
-                        return ok().chunked(body).as(contentType);
-                    }
+                                Optional.of(contentType)));
+                  } else {
+                    return ok().chunked(body).as(contentType);
+                  }
                 } else {
-                    return new Result(Status.BAD_GATEWAY);
+                  return new Result(Status.BAD_GATEWAY);
                 }
-            });
-            //#stream-to-result
-        }
+              });
+      // #stream-to-result
+    }
 
-        public void streamPut() {
-            String url = "http://example.com";
-            //#stream-put
-            CompletionStage<? extends StreamedResponse> futureResponse  =
-                ws.url(url).setMethod("PUT").setBody("some body").stream();
-            //#stream-put
-        }
+    public void streamPut() {
+      String url = "http://example.com";
+      // #stream-put
+      CompletionStage<WSResponse> futureResponse =
+          ws.url(url).setMethod("PUT").setBody(body("some body")).stream();
+      // #stream-put
+    }
 
-        public void patternExamples() {
-            String urlOne = "http://localhost:3333/one";
-            // #ws-composition
-            final CompletionStage<? extends WSResponse> responseThreePromise = ws.url(urlOne).get()
-                    .thenCompose(responseOne -> ws.url(responseOne.getBody()).get())
-                    .thenCompose(responseTwo -> ws.url(responseTwo.getBody()).get());
-            // #ws-composition
+    public void patternExamples() {
+      String urlOne = "http://localhost:3333/one";
+      // #ws-composition
+      final CompletionStage<WSResponse> responseThreePromise =
+          ws.url(urlOne)
+              .get()
+              .thenCompose(responseOne -> ws.url(responseOne.getBody()).get())
+              .thenCompose(responseTwo -> ws.url(responseTwo.getBody()).get());
+      // #ws-composition
 
-            // #ws-recover
-            CompletionStage<? extends WSResponse> responsePromise = ws.url("http://example.com").get();
-            responsePromise.handle((result, error) -> {
-                if (error != null) {
-                    return ws.url("http://backup.example.com").get();
-                } else {
-                    return CompletableFuture.completedFuture(result);
-                }
-            });
-            // #ws-recover
-        }
-
-        public void clientExamples() {
-            play.api.Configuration configuration = Configuration.reference();
-            play.Environment environment = play.Environment.simple();
-
-            // #ws-client
-            // Set up the client config (you can also use a parser here):
-            // play.api.Configuration configuration = ... // injection
-            // play.Environment environment = ... // injection
-
-            WSClient customWSClient = play.libs.ws.ahc.AhcWSClient.create(
-                    play.libs.ws.ahc.AhcWSClientConfigFactory.forConfig(
-                            configuration.underlying(),
-                            environment.classLoader()),
-                            null, // no HTTP caching
-                            materializer);
-            // #ws-client
-
-            org.slf4j.Logger logger = play.Logger.underlying();
-            // #ws-close-client
-            try {
-                customWSClient.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
+      // #ws-recover
+      CompletionStage<WSResponse> responsePromise = ws.url("http://example.com").get();
+      responsePromise.handle(
+          (result, error) -> {
+            if (error != null) {
+              return ws.url("http://backup.example.com").get();
+            } else {
+              return CompletableFuture.completedFuture(result);
             }
-            // #ws-close-client
-
-            // #ws-underlying-client
-            play.shaded.ahc.org.asynchttpclient.AsyncHttpClient underlyingClient =
-                (play.shaded.ahc.org.asynchttpclient.AsyncHttpClient) ws.getUnderlying();
-            // #ws-underlying-client
-
-        }
+          });
+      // #ws-recover
     }
 
-    public static class Controller1 extends MockJavaAction {
+    public void clientExamples() {
+      play.api.Configuration configuration = Configuration.reference();
+      play.Environment environment = play.Environment.simple();
 
-        private final WSClient ws;
+      // #ws-client
+      // Set up the client config (you can also use a parser here):
+      // play.api.Configuration configuration = ... // injection
+      // play.Environment environment = ... // injection
 
-        @Inject
-        public Controller1(JavaHandlerComponents javaHandlerComponents, WSClient client) {
-            super(javaHandlerComponents);
-            this.ws = client;
-        }
+      WSClient customWSClient =
+          play.libs.ws.ahc.AhcWSClient.create(
+              play.libs.ws.ahc.AhcWSClientConfigFactory.forConfig(
+                  configuration.underlying(), environment.classLoader()),
+              null, // no HTTP caching
+              materializer);
+      // #ws-client
 
-        // #ws-action
-        public CompletionStage<Result> index() {
-            return ws.url(feedUrl).get().thenApply(response ->
-                ok("Feed title: " + response.asJson().findPath("title").asText())
-            );
-        }
-        // #ws-action
+      org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
+      // #ws-close-client
+      try {
+        customWSClient.close();
+      } catch (IOException e) {
+        logger.error(e.getMessage(), e);
+      }
+      // #ws-close-client
+
+      // #ws-underlying-client
+      play.shaded.ahc.org.asynchttpclient.AsyncHttpClient underlyingClient =
+          (play.shaded.ahc.org.asynchttpclient.AsyncHttpClient) ws.getUnderlying();
+      // #ws-underlying-client
+
+    }
+  }
+
+  public static class Controller1 extends MockJavaAction {
+
+    private final WSClient ws;
+
+    @Inject
+    public Controller1(JavaHandlerComponents javaHandlerComponents, WSClient client) {
+      super(javaHandlerComponents);
+      this.ws = client;
     }
 
-    public static class Controller2 extends MockJavaAction {
+    // #ws-action
+    public CompletionStage<Result> index() {
+      return ws.url(feedUrl)
+          .get()
+          .thenApply(response -> ok("Feed title: " + response.asJson().findPath("title").asText()));
+    }
+    // #ws-action
+  }
 
-        private final WSClient ws;
+  public static class Controller2 extends MockJavaAction
+      implements WSBodyWritables, WSBodyReadables {
 
-        @Inject
-        public Controller2(JavaHandlerComponents javaHandlerComponents, WSClient ws) {
-            super(javaHandlerComponents);
-            this.ws = ws;
-        }
+    private final WSClient ws;
 
-        // #composed-call
-        public CompletionStage<Result> index() {
-            return ws.url(feedUrl).get()
-                    .thenCompose(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
-                    .thenApply(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
-        }
-        // #composed-call
+    @Inject
+    public Controller2(JavaHandlerComponents javaHandlerComponents, WSClient ws) {
+      super(javaHandlerComponents);
+      this.ws = ws;
     }
 
-    public static class Controller3 extends MockJavaAction {
+    // #composed-call
+    public CompletionStage<Result> index() {
+      return ws.url(feedUrl)
+          .get()
+          .thenCompose(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
+          .thenApply(
+              response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
+    }
+    // #composed-call
+  }
 
-        private final WSClient ws;
-        private Logger logger;
+  public static class Controller3 extends MockJavaAction
+      implements WSBodyWritables, WSBodyReadables {
 
-        @Inject
-        public Controller3(JavaHandlerComponents javaHandlerComponents, WSClient ws) {
-            super(javaHandlerComponents);
-            this.ws = ws;
-            this.logger = org.slf4j.LoggerFactory.getLogger("testLogger");
-        }
+    private final WSClient ws;
+    private Logger logger;
 
-        public void setLogger(Logger logger) {
-            this.logger = logger;
-        }
+    @Inject
+    public Controller3(JavaHandlerComponents javaHandlerComponents, WSClient ws) {
+      super(javaHandlerComponents);
+      this.ws = ws;
+      this.logger = org.slf4j.LoggerFactory.getLogger("testLogger");
+    }
 
-        // #ws-request-filter
-        public CompletionStage<Result> index() {
-            WSRequestFilter filter = executor -> request -> {
+    public void setLogger(Logger logger) {
+      this.logger = logger;
+    }
+
+    // #ws-request-filter
+    public CompletionStage<Result> index() {
+      WSRequestFilter filter =
+          executor ->
+              request -> {
                 logger.debug("url = " + request.getUrl());
                 return executor.apply(request);
-            };
+              };
 
-            return ws.url(feedUrl).setRequestFilter(filter).get().thenApply(response ->
-                    ok("Feed title: " + response.asJson().findPath("title").asText())
-            );
+      return ws.url(feedUrl)
+          .setRequestFilter(filter)
+          .get()
+          .thenApply(
+              (WSResponse r) -> {
+                String title = r.getBody(json()).findPath("title").asText();
+                return ok("Feed title: " + title);
+              });
+    }
+    // #ws-request-filter
+  }
+
+  // #ws-custom-body-readable
+  public interface URLBodyReadables {
+    default BodyReadable<java.net.URL> url() {
+      return response -> {
+        try {
+          String s = response.getBody();
+          return java.net.URI.create(s).toURL();
+        } catch (MalformedURLException e) {
+          throw new RuntimeException(e);
         }
-        // #ws-request-filter
+      };
+    }
+  }
+  // #ws-custom-body-readable
+
+  // #ws-custom-body-writable
+  public interface URLBodyWritables {
+    default InMemoryBodyWritable body(java.net.URL url) {
+      try {
+        String s = url.toURI().toString();
+        ByteString byteString = ByteString.fromString(s);
+        return new InMemoryBodyWritable(byteString, "text/plain");
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  // #ws-custom-body-writable
+
+  public static class Controller4 extends MockJavaAction {
+    private final WSClient ws;
+    private final Futures futures;
+    private Logger logger;
+    Executor customExecutionContext = ForkJoinPool.commonPool();
+
+    @Inject
+    public Controller4(JavaHandlerComponents javaHandlerComponents, WSClient ws, Futures futures) {
+      super(javaHandlerComponents);
+      this.ws = ws;
+      this.futures = futures;
+      this.logger = org.slf4j.LoggerFactory.getLogger("testLogger");
     }
 
-    public static class Controller4 extends MockJavaAction {
-        private final WSClient ws;
-        private final Futures futures;
-        private Logger logger;
-        Executor customExecutionContext = ForkJoinPool.commonPool();
-
-        @Inject
-        public Controller4(JavaHandlerComponents javaHandlerComponents, WSClient ws, Futures futures) {
-            super(javaHandlerComponents);
-            this.ws = ws;
-            this.futures = futures;
-            this.logger = org.slf4j.LoggerFactory.getLogger("testLogger");
-        }
-
-        //#ws-futures-timeout
-        public CompletionStage<Result> index() {
-            CompletionStage<Result> f = futures.timeout(ws.url("http://playframework.com").get().thenApplyAsync(result -> {
-                try {
-                    Thread.sleep(10000L);
-                    return Results.ok();
-                } catch (InterruptedException e) {
-                    return Results.status(SERVICE_UNAVAILABLE);
-                }
-            }, customExecutionContext), 1L, TimeUnit.SECONDS);
-
-            return f.handleAsync((result, e) -> {
-                if (e != null) {
-                    if (e instanceof CompletionException) {
-                        Throwable completionException = e.getCause();
-                        if (completionException instanceof TimeoutException) {
-                            return Results.status(SERVICE_UNAVAILABLE, "Service has timed out");
-                        } else {
-                            return internalServerError(e.getMessage());
+    // #ws-futures-timeout
+    public CompletionStage<Result> index() {
+      CompletionStage<Result> f =
+          futures.timeout(
+              ws.url("http://playframework.com")
+                  .get()
+                  .thenApplyAsync(
+                      result -> {
+                        try {
+                          Thread.sleep(10000L);
+                          return Results.ok();
+                        } catch (InterruptedException e) {
+                          return Results.status(SERVICE_UNAVAILABLE);
                         }
-                    } else {
-                        logger.error("Unknown exception " + e.getMessage(), e);
-                        return internalServerError(e.getMessage());
-                    }
+                      },
+                      customExecutionContext),
+              1L,
+              TimeUnit.SECONDS);
+
+      return f.handleAsync(
+          (result, e) -> {
+            if (e != null) {
+              if (e instanceof CompletionException) {
+                Throwable completionException = e.getCause();
+                if (completionException instanceof TimeoutException) {
+                  return Results.status(SERVICE_UNAVAILABLE, "Service has timed out");
                 } else {
-                    return result;
+                  return internalServerError(e.getMessage());
                 }
-            });
-        }
-        //#ws-futures-timeout
+              } else {
+                logger.error("Unknown exception " + e.getMessage(), e);
+                return internalServerError(e.getMessage());
+              }
+            } else {
+              return result;
+            }
+          });
     }
+    // #ws-futures-timeout
+  }
 }

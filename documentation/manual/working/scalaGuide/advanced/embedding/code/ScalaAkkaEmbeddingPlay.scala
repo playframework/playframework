@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import org.specs2.mutable.Specification
-import play.api.NoHttpFiltersComponents
+import play.api.routing.Router
 import play.api.test.WsTestClient
 
 import scala.concurrent.Await
@@ -17,11 +18,17 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.routing.sird._
       import play.core.server.AkkaHttpServer
 
-      val server = AkkaHttpServer.fromRouter() {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
+      val server = AkkaHttpServer.fromRouterWithComponents() { components =>
+        import Results._
+        import components.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/hello/$to") =>
+            Action {
+              Ok(s"Hello $to")
+            }
         }
       }
+      //#simple-akka-http
 
       try {
         testRequest(9000)
@@ -31,20 +38,27 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
         //#stop-akka-http
       }
     }
-    //#simple-akka-http
 
     "be configurable with akka" in {
       //#config-akka-http
       import play.api.mvc._
       import play.api.routing.sird._
-      import play.core.server.{AkkaHttpServer, _}
+      import play.core.server.AkkaHttpServer
+      import play.core.server._
 
-      val server = AkkaHttpServer.fromRouter(ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      )) {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
+      val server = AkkaHttpServer.fromRouterWithComponents(
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      ) { components =>
+        import Results._
+        import components.{ defaultActionBuilder => Action }
+        {
+          case GET(p"/hello/$to") =>
+            Action {
+              Ok(s"Hello $to")
+            }
         }
       }
       //#config-akka-http
@@ -58,29 +72,31 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
     "allow overriding components" in {
       //#components-akka-http
-      import play.api.BuiltInComponents
       import play.api.http.DefaultHttpErrorHandler
       import play.api.mvc._
       import play.api.routing.Router
       import play.api.routing.sird._
-      import play.core.server.AkkaHttpServerComponents
+      import play.core.server.DefaultAkkaHttpServerComponents
 
       import scala.concurrent.Future
 
-      val components = new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
+      val components = new DefaultAkkaHttpServerComponents {
 
-        lazy val Action = defaultActionBuilder
-
-        lazy val router = Router.from {
-          case GET(p"/hello/$to") => Action {
-            Results.Ok(s"Hello $to")
-          }
+        override lazy val router: Router = Router.from {
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
 
-        override lazy val httpErrorHandler = new DefaultHttpErrorHandler(environment,
-          configuration, sourceMapper, Some(router)) {
+        override lazy val httpErrorHandler = new DefaultHttpErrorHandler(
+          environment,
+          configuration,
+          devContext.map(_.sourceMapper),
+          Some(router)
+        ) {
 
-          override protected def onNotFound(request: RequestHeader, message: String) = {
+          protected override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
             Future.successful(Results.NotFound("Nothing was found!"))
           }
         }
@@ -97,30 +113,83 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
 
     "allow usage from a running application" in {
       //#application-akka-http
-      import play.api.inject.guice.GuiceApplicationBuilder
       import play.api.mvc._
-      import play.api.routing.SimpleRouterImpl
       import play.api.routing.sird._
-      import play.core.server.{AkkaHttpServer, ServerConfig}
+      import play.core.server.AkkaHttpServer
+      import play.core.server.ServerConfig
+      import play.filters.HttpFiltersComponents
+      import play.api.Environment
+      import play.api.ApplicationLoader
+      import play.api.BuiltInComponentsFromContext
 
-      val server = AkkaHttpServer.fromApplication(GuiceApplicationBuilder().router(new SimpleRouterImpl({
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
+      val context = ApplicationLoader.Context.create(Environment.simple())
+      val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
+        override def router: Router = Router.from {
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
         }
-      })).build(), ServerConfig(
-        port = Some(19000),
-        address = "127.0.0.1"
-      ))
-      //#config-akka-http
+      }
+
+      val server = AkkaHttpServer.fromApplication(
+        components.application,
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      )
+      //#application-akka-http
 
       try {
         testRequest(19000)
       } finally {
         server.stop()
       }
-      //#application-akka-http
     }
 
+    "allow usage from with logger configurator" in {
+      //#logger-akka-http
+      import play.api.mvc._
+      import play.api.routing.sird._
+      import play.filters.HttpFiltersComponents
+      import play.core.server.AkkaHttpServer
+      import play.core.server.ServerConfig
+      import play.api.Environment
+      import play.api.ApplicationLoader
+      import play.api.LoggerConfigurator
+      import play.api.BuiltInComponentsFromContext
+
+      val context = ApplicationLoader.Context.create(Environment.simple())
+      // Do the logging configuration
+      LoggerConfigurator(context.environment.classLoader).foreach {
+        _.configure(context.environment, context.initialConfiguration, Map.empty)
+      }
+
+      val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
+        override def router: Router = Router.from {
+          case GET(p"/hello/$to") =>
+            Action {
+              Results.Ok(s"Hello $to")
+            }
+        }
+      }
+
+      val server = AkkaHttpServer.fromApplication(
+        components.application,
+        ServerConfig(
+          port = Some(19000),
+          address = "127.0.0.1"
+        )
+      )
+      //#logger-akka-http
+
+      try {
+        testRequest(19000)
+      } finally {
+        server.stop()
+      }
+    }
   }
 
   def testRequest(port: Int) = {

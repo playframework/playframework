@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuration
 
 This section explains how to configure your Play application.
@@ -12,3 +12,4 @@ This section explains how to configure your Play application.
 - [[Configuring Netty Server Backend|SettingsNetty]]
 - [[Configuring logging|SettingsLogger]]
 - [[Configuring WS SSL|WsSSL]]
+- [[Configuring WS Cache|WsCache]]

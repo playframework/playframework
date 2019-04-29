@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Protecting against Cross Site Request Forgery
 
 Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victim's browser into making a request using the victim's session.  Since the session token is sent with every request, if an attacker can coerce the victim's browser to make a request on their behalf, the attacker can make requests on the user's behalf.
 
-It is recommended that you familiarise yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
+It is recommended that you familiarize yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
 
 There is no simple answer to what requests are safe and what are vulnerable to CSRF requests, the reason for this is that there is no clear specification as to what is allowable from plugins and future extensions to specifications.  Historically, browser plugins and extensions have relaxed the rules that frameworks previously thought could be trusted, introducing CSRF vulnerabilities to many applications, and the onus has been on the frameworks to fix them.  For this reason, Play takes a conservative approach in its defaults, but allows you to configure exactly when a check is done.  By default, Play will require a CSRF check when all of the following are true:
 
@@ -46,14 +46,22 @@ By default, if you have a CORS filter before your CSRF filter, the CSRF filter w
 Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To add the filter manually, add it to `application.conf`:
 
 ```
-play.filters.enabled += play.filters.csrf.CsrfFilter
+play.filters.enabled += "play.filters.csrf.CSRFFilter"
 ```
+
+It is also possible to disable the CSRF filter for a specific route in the routes file. To do this, add the `nocsrf` modifier tag before your route:
+
+@[nocsrf](../http/code/javaguide.http.routing.routes)
 
 ### Getting the current token
 
-The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes a `RequestHeader`, which can be obtained by calling `Controllers.request()`:
+The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes a [`RequestHeader`](api/java/play/mvc/Http.RequestHeader.html):
 
 @[get-token](code/javaguide/forms/JavaCsrf.java)
+
+> **Note**: If the CSRF filter is installed, Play will try to avoid generating the token as long as the cookie being used is HttpOnly (meaning it cannot be accessed from JavaScript). When sending a response with a strict body, Play skips adding the token to the response unless `CSRF.getToken` has already been called. This results in a significant performance improvement for responses that don't need a CSRF token. If the cookie is not configured to be HttpOnly, Play will assume you wish to access it from JavaScript and generate it regardless.
+
+> **Note**: if you are accessing the template from a `CompletionStage` and get an `There is no HTTP Context` error, then you will need to add  [`HttpExecutionContext.current()`](api/java/play/libs/concurrent/HttpExecutionContext.html) -- see [[JavaAsync]] for details. Be aware that `Http.Context` is deprecated however and you should [[migrate away from it|JavaHttpContextMigration27]].
 
 To help in adding CSRF tokens to forms, Play provides some template helpers.  The first one adds it to the query string of the action URL:
 
@@ -90,11 +98,11 @@ Sometimes global CSRF filtering may not be appropriate, for example in situation
 
 In these cases, Play provides two actions that can be composed with your applications actions.
 
-The first action is the `play.filters.csrf.RequireCSRFCheck` action which performs the CSRF check. It should be added to all actions that accept session authenticated POST form submissions:
+The first action is the [`play.filters.csrf.RequireCSRFCheck`](api/java/play/filters/csrf/RequireCSRFCheck.html) action which performs the CSRF check. It should be added to all actions that accept session authenticated POST form submissions:
 
 @[csrf-check](code/javaguide/forms/JavaCsrf.java)
 
-The second action is the `play.filters.csrf.AddCSRFToken` action, it generates a CSRF token if not already present on the incoming request. It should be added to all actions that render forms:
+The second action is the [`play.filters.csrf.AddCSRFToken`](api/java/play/filters/csrf/AddCSRFToken.html) action, it generates a CSRF token if not already present on the incoming request. It should be added to all actions that render forms:
 
 @[csrf-add-token](code/javaguide/forms/JavaCsrf.java)
 
@@ -111,8 +119,7 @@ The full range of CSRF configuration options can be found in the filters [refere
 ## Testing CSRF
 
 
-In a functional test, if you are rendering a Twirl template with a CSRF token, you need to have a CSRF token available.  You can do this by calling `CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
+In a functional test, if you are rendering a Twirl template with a CSRF token, you need to have a CSRF token available.  You can do this by calling `play.api.test.CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
 
-```
-RequestBuilder requestBuilder = CSRFTokenHelper.addCSRFToken(requestBuilder);
-```
+@[test-with-addCSRFToken](../../../commonGuide/filters/code/javaguide/detailed/filters/FiltersTest.java)
+

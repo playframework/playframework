@@ -1,0 +1,46 @@
+@**
+ * Default page for 501 Not Implemented responses.
+ *@
+@()(implicit request: play.api.mvc.RequestHeader)
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO</title>
+        @views.html.helper.style('type -> "text/css") {
+            html, body, pre {
+                margin: 0;
+                padding: 0;
+                font-family: Monaco, 'Lucida Console', monospace;
+                background: #ECECEC;
+            }
+            h1 {
+                margin: 0;
+                background: #533CAD;
+                padding: 20px 45px;
+                color: #fff;
+                text-shadow: 1px 1px 1px rgba(0,0,0,.3);
+                border-bottom: 1px solid #3A0B9F;
+                font-size: 28px;
+            }
+            p#detail {
+                margin: 0;
+                padding: 15px 45px;
+                background: #BCACF6;
+                border-top: 4px solid #7365B6;
+                color: #312073;
+                text-shadow: 1px 1px 1px rgba(255,255,255,.3);
+                font-size: 14px;
+                border-bottom: 1px solid #39325B;
+            }
+        }
+    </head>
+    <body>
+        <h1>TODO</h1>
+
+        <p id="detail">
+            Action not implemented yet.
+        </p>
+
+    </body>
+</html>

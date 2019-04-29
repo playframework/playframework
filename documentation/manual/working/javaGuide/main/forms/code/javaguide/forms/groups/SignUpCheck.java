@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.forms.groups;
 
-//#check
-public interface SignUpCheck { }
-//#check
+// #check
+public interface SignUpCheck {}
+// #check

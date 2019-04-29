@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Writing functional tests
 
 Play provides a number of classes and convenience methods that assist with functional testing. Most of these can be found either in the [`play.test`](api/java/play/test/package-summary.html) package or in the [`Helpers`](api/java/play/test/Helpers.html) class.
@@ -10,6 +10,10 @@ You can add these methods and classes by importing the following:
 ## Creating `Application` instances for testing
 
 Play frequently requires a running [`Application`](api/java/play/Application.html) as context. To provide an environment for tests, Play provides helpers that produce new application instances for testing:
+
+```java
+import static play.test.Helpers.*;
+```
 
 @[test-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 

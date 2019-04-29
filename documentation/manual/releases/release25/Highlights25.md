@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.5
 
 This page highlights the new features of Play 2.5. If you want to learn about the changes you need to make to migrate to Play 2.5, check out the [[Play 2.5 Migration Guide|Migration25]].
 
 ## New streaming API based on Akka Streams
 
-The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka Streams](http://doc.akka.io/docs/akka/2.4.3/scala/stream/stream-introduction.html).
+The main theme of Play 2.5 has been moving from Play's iteratee-based asynchronous IO API to [Akka Streams](https://doc.akka.io/docs/akka/2.4.3/scala/stream/stream-introduction.html).
 
 At its heart, any time you communicate over the network, or write/read some data to the filesystem, some streaming is involved.  In many cases, this streaming is done at a low level, and the framework exposes the materialized values to your application as in-memory messages.  This is the case for many Play actions, a body parser converts the request body stream into an object such as a parsed JSON object, which the application consumes, and the returned result body is a JSON object that Play then turns back into a stream.
 
@@ -80,7 +80,7 @@ For more information about how to use SQL logging, see the Play [[Java|JavaDatab
 
 ## Netty native socket transport
 
-If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
+If you run Play server on Linux you can now get a performance boost by using the [native socket feature](https://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
 
 You can learn how to use native sockets in Play documentation on [[configuring Netty|SettingsNetty#Configuring-transport-socket]].
 

@@ -1,0 +1,41 @@
+# Build the distribution and ensure that the files we expect are indeed there
+# Note: externalizeResources is true by default
+> set PlayKeys.externalizeResourcesExcludes += baseDirectory.value / '"conf"' / '"META-INF"' / '"persistence.xml"'
+> stage
+$ exists target/universal/stage/README
+$ exists target/universal/stage/SomeFile.txt
+$ exists target/universal/stage/SomeFolder/SomeOtherFile.txt
+$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT-sans-externalized.jar
+-$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT.jar
+
+> checkStartScript
+$ exists target/universal/stage/conf/application.conf
+-$ exists target/universal/stage/conf/META-INF/persistence.xml
+$ exists target/universal/stage/lib
+$ exists target/universal/stage/share/doc/api
+
+# Run it to make sure everything works
+> runProd --no-exit-sbt
+> checkConfig foo
+> countApplicationConf 1
+> stopProd --no-exit-sbt
+
+# Change the configuration in the conf directory, make sure it takes effect
+$ copy-file conf/alternate.conf target/universal/stage/conf/application.conf
+> runProd --no-exit-sbt
+> checkConfig bar
+> stopProd --no-exit-sbt
+
+# Turn off externalize resources, rebuild, make sure the conf directory is not created or on the classpath
+> set PlayKeys.externalizeResources := false
+> stage
+-$ exists target/dist/conf/application.conf
+-$ exists target/universal/stage/conf/application.conf
+-$ exists target/universal/stage/conf/META-INF/persistence.xml
+-$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT-sans-externalized.jar
+$ exists target/universal/stage/lib/dist-sample.dist-sample-1.0-SNAPSHOT.jar
+> checkStartScript no-conf
+> runProd --no-exit-sbt
+> checkConfig foo
+> countApplicationConf 1
+> stopProd --no-exit-sbt

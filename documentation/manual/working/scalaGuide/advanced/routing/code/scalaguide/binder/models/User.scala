@@ -1,22 +1,23 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package scalaguide.binder.models
 
 import scala.Left
 import scala.Right
 import play.api.mvc.PathBindable
-import play.Logger
+import play.api.Logging
 
 //#declaration
 case class User(id: Int, name: String) {}
 //#declaration
-object User {
-  
-  // stubbed test 
-	// designed to be lightweight operation
+object User extends Logging {
+
+  // stubbed test
+  // designed to be lightweight operation
   def findById(id: Int): Option[User] = {
-    Logger.info("findById: " + id.toString)
+    logger.info("findById: " + id.toString)
     if (id > 3) None
     var user = new User(id, "User " + String.valueOf(id))
     Some(user)
@@ -26,7 +27,7 @@ object User {
   implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
     override def bind(key: String, value: String): Either[String, User] = {
       for {
-        id <- intBinder.bind(key, value).right
+        id   <- intBinder.bind(key, value).right
         user <- User.findById(id).toRight("User not found").right
       } yield user
     }
@@ -34,6 +35,5 @@ object User {
       user.id.toString
     }
   }
-	//#bind
+  //#bind
 }
-

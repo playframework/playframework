@@ -1,27 +1,29 @@
 /*
- * Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.async;
 
-//#actor
+// #actor
 import akka.actor.*;
 
-public class MyWebSocketActor extends UntypedAbstractActor {
+public class MyWebSocketActor extends AbstractActor {
 
-    public static Props props(ActorRef out) {
-        return Props.create(MyWebSocketActor.class, out);
-    }
+  public static Props props(ActorRef out) {
+    return Props.create(MyWebSocketActor.class, out);
+  }
 
-    private final ActorRef out;
+  private final ActorRef out;
 
-    public MyWebSocketActor(ActorRef out) {
-        this.out = out;
-    }
+  public MyWebSocketActor(ActorRef out) {
+    this.out = out;
+  }
 
-    public void onReceive(Object message) throws Exception {
-        if (message instanceof String) {
-            out.tell("I received your message: " + message, self());
-        }
-    }
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(String.class, message -> out.tell("I received your message: " + message, self()))
+        .build();
+  }
 }
-//#actor
+// #actor

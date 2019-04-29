@@ -1,0 +1,52 @@
+@(title: String, main: Option[String], sidebar: Option[String], locate: String => String)
+<html>
+    <head>
+        <title>@title</title>
+        <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css"></link>
+        <script type="text/javascript" src='/@@documentation/resources/@locate("jquery.min.js")'></script>
+        <script type="text/javascript" src="/@@documentation/resources/style/main.js"></script>
+    </head>
+    <body>
+
+        <section id="top">
+            <div class="wrapper">
+                <h1><a href="/@@documentation">Manual, tutorials & references</a></h1>
+                <nav>
+                    <span class="versions">
+                        <span>Browse APIs</span>
+                        <select onchange="document.location=this.value">
+                            <option selected disabled>Select language</option>
+                            <option value="/@@documentation/api/scala/index.html">Scala</option>
+                            <option value="/@@documentation/api/java/index.html">Java</option>
+                        </select>
+                    </span>
+                </nav>
+            </div>
+        </section>
+
+        <div id="content" class="wrapper doc">
+            <article id="main">
+                @main.map { html =>
+                    @Html(html)
+                }.getOrElse {
+                    <h1>Page not found [@title]</h1>
+                }
+            </article>
+            <aside>
+                @sidebar.map(Html.apply)
+            </aside>
+        </div>
+
+        <style type="text/css">
+            @@import '/@@documentation/resources/@locate("prettify.css")';
+        </style>
+        <script type="text/javascript" charset="utf-8" src='/@@documentation/resources/@locate("prettify.js")'></script>
+        <script type="text/javascript" charset="utf-8" src='/@@documentation/resources/@locate("lang-scala.js")'></script>
+        <script type="text/javascript">
+            $(function() {
+                window.prettyPrint && prettyPrint();
+            });
+        </script>
+
+    </body>
+</html>

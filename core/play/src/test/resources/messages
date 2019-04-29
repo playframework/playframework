@@ -1,0 +1,13 @@
+error.custom=This is a {0}
+error.customarg=custom error
+
+error.generalcustomerror=Some general custom error message
+
+constraint.custom=I am a {0}
+constraint.customarg=custom constraint
+
+format.custom=Look at me! I am a {0}
+format.customarg=custom format pattern
+
+myfieldlabel=I am the label of the field
+myfieldname=I am the name of the field

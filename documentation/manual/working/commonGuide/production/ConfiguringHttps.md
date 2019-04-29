@@ -1,9 +1,11 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring HTTPS
 
 Play can be configured to serve HTTPS.  To enable this, simply tell Play which port to listen to using the `https.port` system property.  For example:
 
-    ./start -Dhttps.port=9443
+```bash
+./bin/your-app -Dhttps.port=9443
+```
 
 ## Providing configuration
 
@@ -15,7 +17,7 @@ HTTPS configuration can either be supplied using system properties or in `applic
 
 By default, Play will generate itself a self-signed certificate, however typically this will not be suitable for serving a website.  Play uses Java key stores to configure SSL certificates and keys.
 
-Signing authorities often provide instructions on how to create a Java keystore (typically with reference to Tomcat configuration).  The official Oracle documentation on how to generate keystores using the JDK keytool utility can be found [here](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html).  There is also an example in the [Generating X.509 Certificates](https://typesafehub.github.io/ssl-config/CertificateGeneration.html) section.
+Signing authorities often provide instructions on how to create a Java keystore (typically with reference to Tomcat configuration).  The official Oracle documentation on how to generate keystores using the JDK keytool utility can be found [here](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html).  There is also an example in the [Generating X.509 Certificates](https://lightbend.github.io/ssl-config/CertificateGeneration.html) section.
 
 Having created your keystore, the following configuration properties can be used to configure Play to use it:
 
@@ -26,30 +28,31 @@ Having created your keystore, the following configuration properties can be used
 
 ### SSL Certificates from a custom SSL Engine
 
-Another alternative to configure the SSL certificates is to provide a custom [SSLEngine](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLEngine.html).  This is also useful in cases where a customized SSLEngine is required, such as in the case of client authentication.
+Another alternative to configure the SSL certificates is to provide a custom [SSLEngine](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLEngine.html).  This is also useful in cases where a customized `SSLEngine` is required, such as in the case of client authentication. In Java, an implementation must be provided for [`play.server.SSLEngineProvider`](api/java/play/server/SSLEngineProvider.html) and in Scala, an implementation must be provided for [`play.server.api.SSLEngineProvider`](api/scala/play/server/api/SSLEngineProvider.html). For example:
 
-#### in Java, an implementation must be provided for [`play.server.SSLEngineProvider`](api/java/play/server/SSLEngineProvider.html)
+Scala
+: @[scalaexample](code/scalaguide/CustomSSLEngineProvider.scala)
 
-@[javaexample](code/java/CustomSSLEngineProvider.java)
-
-#### in Scala, an implementation must be provided for [`play.server.api.SSLEngineProvider`](api/scala/play/server/api/SSLEngineProvider.html)
-
-@[scalaexample](code/scala/CustomSSLEngineProvider.scala)
+Java:
+: @[javaexample](code/javaguide/CustomSSLEngineProvider.java)
 
 Having created an implementation for `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`, the following system property configures Play to use it:
 
-* **play.server.https.engineProvider** - The path to the class implementing `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`:
+* **`play.server.https.engineProvider`** - The path to the class implementing `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`:
 
 Example:
 
-    ./start -Dhttps.port=9443 -Dplay.server.https.engineProvider=mypackage.CustomSSLEngineProvider
-
+```bash
+./bin/your-app -Dhttps.port=9443 -Dplay.server.https.engineProvider=mypackage.CustomSSLEngineProvider
+```
 
 ## Turning HTTP off
 
 To disable binding on the HTTP port, set the `http.port` system property to be `disabled`, eg:
 
-    ./start -Dhttp.port=disabled -Dhttps.port=9443 -Dplay.server.https.keyStore.path=/path/to/keystore -Dplay.server.https.keyStore.password=changeme
+```bash
+./bin/your-app -Dhttp.port=disabled -Dhttps.port=9443 -Dplay.server.https.keyStore.path=/path/to/keystore -Dplay.server.https.keyStore.password=changeme
+```
 
 ## Production usage of HTTPS
 

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling errors
 
 There are two main types of errors that an HTTP application can return - client errors and server errors.  Client errors indicate that the connecting client has done something wrong, server errors indicate that there is something wrong with the server.
@@ -7,9 +7,32 @@ Play will in many circumstances automatically detect client errors - these inclu
 
 The interface through which Play handles these errors is [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html).  It defines two methods, `onClientError`, and `onServerError`.
 
+## Handling errors in a JSON API
+
+By default, Play returns errors in a HTML format. 
+For a JSON API, it's more consistent to return errors in JSON.
+
+Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttpErrorHandler`](api/java/play/http/JsonHttpErrorHandler.html), which will return errors formatted in JSON.
+
+To use that `HttpErrorHandler` implementation, you should configure the `play.http.errorHandler` configuration property in `application.conf` like this:
+
+    play.http.errorHandler = play.http.JsonHttpErrorHandler
+
+## Using both HTML and JSON, and other content types
+
+If your application uses a mixture of HTML and JSON, as is common in modern web apps, Play offers another error handler that delegates to either the HTML or JSON error handler based on the preferences specified in the client's `Accept` header. This can be specified with:
+
+    play.http.errorHandler = play.http.HtmlOrJsonHttpErrorHandler
+
+This is a suitable default choice of error handler for most applications.
+
+Finally, if you want to support other content types for errors in addition to HTML and JSON, you can extend [`PreferredMediaTypeHttpErrorHandler`](api/java/play/http/PreferredMediaTypeHttpErrorHandler.html) and add error handlers for specific content types, then specify a custom error handler as described below.
+
 ## Supplying a custom error handler
 
-A custom error handler can be supplied by creating a class in the root package called `ErrorHandler` that implements [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), for example:
+If you're using [`BuiltInComponents`](api/java/play/BuiltInComponents.html) to construct your app, override the `httpRequestHandler` method to return an instance of your custom handler.
+
+If you're using runtime dependency injection (e.g. Guice), the error handler can be dynamically loaded at runtime. The simplest way is to create a class in the root package called `ErrorHandler` that implements [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), for example:
 
 @[root](code/javaguide/application/root/ErrorHandler.java)
 

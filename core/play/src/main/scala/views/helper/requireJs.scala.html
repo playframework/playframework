@@ -1,0 +1,17 @@
+@**
+ * RequireJS Javascript module loader.
+ *
+ * Example:
+ * {{{
+ * @requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url, isProd = true)
+ * }}}
+ *
+ * @param module Javascript module in question.
+ * @param core Reference to require.js.
+ * @param isProd true if the javascript should be minified, false otherwise.
+ * @param productionFolderPrefix Prefix of Javascript production folder, default "-min".
+ * @param folder Javascript folder, default "javascripts".
+ *@
+
+@(module: String, core: String, isProd: Boolean, productionFolderPrefix: String = "-min", folder: String = "javascripts")
+<script type="text/javascript" data-main="@{if(isProd) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>

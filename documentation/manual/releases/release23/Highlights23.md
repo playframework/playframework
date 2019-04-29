@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2017 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.3
 
 This page highlights the new features of Play 2.3. If you want learn about the changes you need to make to migrate to Play 2.3, check out the [[Play 2.3 Migration Guide|Migration23]].
@@ -11,7 +11,7 @@ The first thing you'll notice about Play 2.3 is that the `play` command has beco
 * Provide a nice web UI for getting started with Play, especially for newcomers who are unfamiliar with command line interfaces. Users can write code and run tests through the web UI. For experienced users, the command line interface is available just like before.
 * Make Play's high productivity development approach available to other projects. Activator isn't just for Play. Other projects can use Activator too.
 
-In the future Activator will get even more features, and these features will automatically benefit Play and other projects that use Activator. [Activator is open source](https://github.com/typesafehub/activator), so the community can contribute to its evolution.
+In the future Activator will get even more features, and these features will automatically benefit Play and other projects that use Activator. [Activator is open source](https://www.lightbend.com/community/core-tools/activator-and-sbt), so the community can contribute to its evolution.
 
 ### Activator command
 
@@ -21,7 +21,7 @@ All the features that were available with the `play` command are still available
 * `activator` to run the console. See [[Using the Play console|PlayConsole]].
 * `activator ui` is a new command that launches a web user interface.
 
-> The new `activator` command and the old `play` command are both wrappers around [sbt](http://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
+> The new `activator` command and the old `play` command are both wrappers around [sbt](https://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
 
 ### Activator distribution
 
@@ -29,7 +29,7 @@ Play is distributed as an Activator distribution that contains all Play's depend
 
 If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://www.lightbend.com/community/core-tools/activator-and-sbt). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
 
-Since Activator is a wrapper around sbt, you can also download and use [sbt](http://www.scala-sbt.org/) directly, if you prefer.
+Since Activator is a wrapper around sbt, you can also download and use [sbt](https://www.scala-sbt.org/) directly, if you prefer.
 
 ## Build improvements
 
@@ -54,7 +54,7 @@ pipelineStages := Seq(rjs, digest, gzip)
 
 The above will order the RequireJs optimizer (sbt-rjs), the digester (sbt-digest) and then compression (sbt-gzip). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
 
-One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expiries when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
+One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](https://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expires when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
 
 ### Default ivy cache and local repository
 
@@ -68,7 +68,7 @@ This means Play will now integrate better with other sbt builds, not requiring a
 
 Play 2.3 has been tested with Java 8. Your project will work just fine with Java 8; there is nothing special to do other than ensuring that your Java environment is configured for Java 8. There is a new Activator sample available for Java 8:
 
-http://www.lightbend.com/activator/template/reactive-stocks-java8
+https://www.lightbend.com/activator/template/reactive-stocks-java8
 
 Our documentation has been improved with Java examples in general and, where applicable, Java 8 examples. Check out some [[examples of asynchronous programming with Java 8|JavaAsync]].
 
@@ -85,7 +85,7 @@ We've worked on Java performance. Compared to Play 2.2, throughput of simple Jav
 
 Some of these changes also improved Scala performance, but Java had the biggest performance gains and was the main focus of our work.
 
-Thankyou to [YourKit](https://www.yourkit.com/) for supplying the Play team with licenses to make this work possible.
+Thank you to [YourKit](https://www.yourkit.com/) for supplying the Play team with licenses to make this work possible.
 
 ## Scala 2.11
 

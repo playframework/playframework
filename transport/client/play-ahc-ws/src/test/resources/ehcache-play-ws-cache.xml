@@ -1,0 +1,11 @@
+<ehcache
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+        name="play-ws-cache"
+        updateCheck="false"
+>
+
+  <cache name="play-ws-cache" maxEntriesLocalHeap="10000" eternal="false"
+         timeToIdleSeconds="360" timeToLiveSeconds="1000" overflowToDisk="false" />
+
+</ehcache>
