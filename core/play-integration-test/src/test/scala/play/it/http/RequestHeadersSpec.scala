@@ -291,5 +291,23 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       }
     }
 
+    "maintain uri and path consistency" in {
+      def uriInRequest(uri: String): MatchResult[Either[String, _]] = {
+        withServer(
+          (Action, _) =>
+            Action { rh =>
+              Results.Ok((rh.uri.contains(rh.path) && rh.uri.contains(rh.rawQueryString)).toString)
+            }
+        ) { port =>
+          val Seq(response) = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", uri, "HTTP/1.1", Map(), "")
+          )
+          response.body must beLeft(s"true")
+        }
+      }
+      "encoded uri" in uriInRequest("/foo%3Abar?bar%3Abaz=foo")
+      "decoded uri" in uriInRequest("/foo:bar?bar:baz=foo")
+    }
+
   }
 }

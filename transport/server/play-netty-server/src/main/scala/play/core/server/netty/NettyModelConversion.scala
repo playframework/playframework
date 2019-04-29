@@ -8,8 +8,8 @@ import java.net.InetSocketAddress
 import java.net.URI
 import java.security.cert.X509Certificate
 import java.time.Instant
-import javax.net.ssl.SSLPeerUnverifiedException
 
+import javax.net.ssl.SSLPeerUnverifiedException
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
@@ -33,6 +33,7 @@ import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.request.RequestTarget
 import play.core.server.common.ForwardedHeaderHandler
+import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
 
 import scala.collection.JavaConverters._
@@ -48,22 +49,6 @@ private[server] class NettyModelConversion(
 ) {
 
   private val logger = Logger(classOf[NettyModelConversion])
-
-  private def parsePathAndQuery(uri: String): (String, String) = {
-    // https://tools.ietf.org/html/rfc3986#section-3.3
-    val withoutHost = uri.dropWhile(_ != '/')
-    // The path is terminated by the first question mark ("?")
-    // or number sign ("#") character, or by the end of the URI.
-    val queryEndPos = Some(withoutHost.indexOf('#')).filter(_ != -1).getOrElse(withoutHost.length)
-    val pathEndPos  = Some(withoutHost.indexOf('?')).filter(_ != -1).getOrElse(queryEndPos)
-    val path        = withoutHost.substring(0, pathEndPos)
-    // https://tools.ietf.org/html/rfc3986#section-3.4
-    // The query component is indicated by the first question
-    // mark ("?") character and terminated by a number sign ("#") character
-    // or by the end of the URI.
-    val queryString = withoutHost.substring(pathEndPos, queryEndPos)
-    (path, queryString)
-  }
 
   /**
    * Convert a Netty request to a Play RequestHeader.
@@ -108,12 +93,8 @@ private[server] class NettyModelConversion(
 
   /** Create request target information from a Netty request. */
   private def createRequestTarget(request: HttpRequest): RequestTarget = {
-    val (unsafePath, parsedQueryString) = parsePathAndQuery(request.uri)
-    // wrapping into URI to handle absoluteURI and path validation
-    val parsedPath = Option(new URI(unsafePath).getRawPath).getOrElse {
-      // if the URI has a invalid path, this will trigger a 400 error
-      throw new IllegalStateException(s"Cannot parse path from URI: $unsafePath")
-    }
+    val (parsedPath, parsedQueryString) = PathAndQueryParser.parse(request.uri)
+
     new RequestTarget {
       override lazy val uri: URI       = new URI(uriString)
       override def uriString: String   = request.uri
