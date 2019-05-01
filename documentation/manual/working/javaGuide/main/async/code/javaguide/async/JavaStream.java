@@ -20,6 +20,7 @@ import play.mvc.Result;
 import play.test.WithApplication;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -116,7 +117,12 @@ public class JavaStream extends WithApplication {
       java.nio.file.Path path = file.toPath();
       Source<ByteString, ?> source = FileIO.fromPath(path);
 
-      Optional<Long> contentLength = Optional.of(file.length());
+      Optional<Long> contentLength = null;
+      try {
+          contentLength = Optional.of(Files.size(path));
+      } catch (IOException ioe) {
+          throw new RuntimeException(ioe);
+      }
 
       return new Result(
           new ResponseHeader(200, Collections.emptyMap()),
