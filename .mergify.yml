@@ -45,6 +45,14 @@ pull_request_rules:
       label:
         remove: [status:needs-forwardport]
 
+  - name: Close backport PRs that fail
+    conditions:
+      - author=mergify[bot]
+      - status-failure=Travis CI - Pull Request
+      - "#assignee=0"
+    actions:
+      close: {}
+
   - name: Delete the PR branch after merge
     conditions:
       - merged
