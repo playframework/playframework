@@ -456,12 +456,16 @@ public class StatusHeader extends Result {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    return doSendResource(
-        FileIO.fromPath(file.toPath()),
-        Optional.of(file.length()),
-        Optional.of(file.getName()),
-        inline,
-        fileMimeTypes);
+    try {
+      return doSendResource(
+          FileIO.fromPath(file.toPath()),
+          Optional.of(Files.size(file.toPath())),
+          Optional.of(file.getName()),
+          inline,
+          fileMimeTypes);
+    } catch (final IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 
   /**
@@ -514,12 +518,16 @@ public class StatusHeader extends Result {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    return doSendResource(
-        FileIO.fromPath(file.toPath()),
-        Optional.of(file.length()),
-        Optional.of(fileName),
-        inline,
-        fileMimeTypes);
+    try {
+      return doSendResource(
+          FileIO.fromPath(file.toPath()),
+          Optional.of(Files.size(file.toPath())),
+          Optional.of(fileName),
+          inline,
+          fileMimeTypes);
+    } catch (final IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 
   private Result doSendResource(
