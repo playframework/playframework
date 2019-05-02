@@ -6,7 +6,7 @@ Play uses a secret key for a number of things, including:
 * Signing session cookies and CSRF tokens
 * Built in encryption utilities
 
-It is configured in `application.conf`, with the property name `play.crypto.secret`, and defaults to `changeme`.  As the default suggests, it should be changed for production.
+It is configured in `application.conf`, with the property name `play.secret`, and defaults to `changeme`.  As the default suggests, it should be changed for production.
 
 > When started in prod mode, if Play finds that the secret is not set, or if it is set to `changeme`, Play will throw an error.
 
