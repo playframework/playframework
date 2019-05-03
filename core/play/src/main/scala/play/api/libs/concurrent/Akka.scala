@@ -144,7 +144,7 @@ object ActorSystemProvider {
   }
 
   /**
-   * Start an ActorSystem, using the given configuration, ClassLoader, and additional ActorSystem Setup.
+   * Start an ActorSystem, using the given configuration, ClassLoader, and a list of additional ActorSystem Setups.
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
