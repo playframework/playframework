@@ -148,11 +148,11 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Setup): ActorSystem = {
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: List[Setup]): ActorSystem = {
     start(classLoader, config, Some(additionalSetup))
   }
 
-  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[Setup]): ActorSystem = {
+  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[List[Setup]]): ActorSystem = {
     val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
     if (config.get[Boolean](exitJvmPath)) {
       // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
@@ -197,7 +197,7 @@ object ActorSystemProvider {
 
     val bootstrapSetup = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
     val actorSystemSetup = additionalSetup match {
-      case Some(setup) => ActorSystemSetup(bootstrapSetup, setup)
+      case Some(setup:List[Setup]) => ActorSystemSetup(bootstrapSetup +: setup:_*)
       case None        => ActorSystemSetup(bootstrapSetup)
     }
 
