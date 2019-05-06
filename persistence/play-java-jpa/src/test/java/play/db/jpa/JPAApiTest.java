@@ -30,11 +30,7 @@ public class JPAApiTest {
     Config overrides = ConfigFactory.parseString(configString);
     Config config = overrides.withFallback(ConfigFactory.load());
     return new JPAConfigProvider(config)
-        .get()
-        .persistenceUnits()
-        .stream()
-        .map(unit -> unit.unitName)
-        .collect(Collectors.toSet());
+        .get().persistenceUnits().stream().map(unit -> unit.unitName).collect(Collectors.toSet());
   }
 
   @Test

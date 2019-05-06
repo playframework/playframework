@@ -1887,8 +1887,7 @@ public class Http {
         Map<String, String[]> form = asFormUrlEncoded();
         if (form != null) {
           return ByteString.fromString(
-              form.entrySet()
-                  .stream()
+              form.entrySet().stream()
                   .flatMap(
                       entry -> {
                         String key = encode(entry.getKey());
