@@ -23,9 +23,7 @@ public class MyAppComponents extends BuiltInComponentsFromContext implements Htt
 
   @Override
   public List<EssentialFilter> httpFilters() {
-    return HttpFiltersComponents.super
-        .httpFilters()
-        .stream()
+    return HttpFiltersComponents.super.httpFilters().stream()
         .filter(filter -> !filter.getClass().equals(CSRFFilter.class))
         .collect(Collectors.toList());
   }
