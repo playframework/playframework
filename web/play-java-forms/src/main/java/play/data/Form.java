@@ -931,7 +931,8 @@ public class Form<T> {
     return play.libs.Json.toJson(allMessages);
   }
 
-  private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, Lang lang) {
+  private Object translateMsgArg(
+      List<Object> arguments, MessagesApi messagesApi, play.i18n.Lang lang) {
     if (arguments != null) {
       return arguments.stream()
           .map(
