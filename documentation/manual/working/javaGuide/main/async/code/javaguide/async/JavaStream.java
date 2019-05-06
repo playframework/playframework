@@ -119,9 +119,9 @@ public class JavaStream extends WithApplication {
 
       Optional<Long> contentLength = null;
       try {
-          contentLength = Optional.of(Files.size(path));
+        contentLength = Optional.of(Files.size(path));
       } catch (IOException ioe) {
-          throw new RuntimeException(ioe);
+        throw new RuntimeException(ioe);
       }
 
       return new Result(

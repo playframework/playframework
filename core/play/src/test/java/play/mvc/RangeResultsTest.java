@@ -280,12 +280,12 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified() throws IOException {
+  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified()
+      throws IOException {
     this.mockRangeRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result =
-        RangeResults.ofSource(Files.size(path), source, path.toFile().getName(), TEXT);
+    Result result = RangeResults.ofSource(Files.size(path), source, path.toFile().getName(), TEXT);
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(TEXT, result.body().contentType().orElse(""));
@@ -305,7 +305,8 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename() throws IOException {
+  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename()
+      throws IOException {
     this.mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
