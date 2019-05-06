@@ -1891,8 +1891,7 @@ public class Http {
                   .flatMap(
                       entry -> {
                         String key = encode(entry.getKey());
-                        return Arrays.asList(entry.getValue())
-                            .stream()
+                        return Arrays.asList(entry.getValue()).stream()
                             .map(value -> key + "=" + encode(value));
                       })
                   .collect(Collectors.joining("&")));
@@ -2054,8 +2053,7 @@ public class Http {
     }
 
     public Optional<Cookie> cookie(String name) {
-      return cookies
-          .stream()
+      return cookies.stream()
           .filter(
               x -> {
                 return x.name().equals(name);

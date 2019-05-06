@@ -597,9 +597,7 @@ public class Form<T> {
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(BindingResult result) {
-    return result
-        .getFieldErrors()
-        .stream()
+    return result.getFieldErrors().stream()
         .map(
             error -> {
               String key = error.getObjectName() + "." + error.getField();
