@@ -1310,10 +1310,7 @@ public class Http {
                               + "\" needs to be present")));
 
       long dataSizeSum =
-          multipartFormData
-              .asFormUrlEncoded()
-              .entrySet()
-              .stream()
+          multipartFormData.asFormUrlEncoded().entrySet().stream()
               .mapToLong(
                   dataPart ->
                       Arrays.stream(dataPart.getValue())
@@ -1331,9 +1328,7 @@ public class Http {
               .sum();
 
       long fileHeadersSizeSum =
-          multipartFormData
-              .getFiles()
-              .stream()
+          multipartFormData.getFiles().stream()
               .mapToLong(
                   filePart ->
                       // Pass empty body because we add the file size sum later instead anyway (see
@@ -2342,8 +2337,7 @@ public class Http {
         Map<String, String[]> form = asFormUrlEncoded();
         if (form != null) {
           return ByteString.fromString(
-              form.entrySet()
-                  .stream()
+              form.entrySet().stream()
                   .flatMap(
                       entry -> {
                         String key = encode(entry.getKey());

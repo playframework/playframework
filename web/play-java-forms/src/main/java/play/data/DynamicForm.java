@@ -221,18 +221,14 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   @Override
   public Map<String, String> rawData() {
     return Collections.unmodifiableMap(
-        super.rawData()
-            .entrySet()
-            .stream()
+        super.rawData().entrySet().stream()
             .collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
   }
 
   @Override
   public Map<String, Http.MultipartFormData.FilePart<?>> files() {
     return Collections.unmodifiableMap(
-        super.files()
-            .entrySet()
-            .stream()
+        super.files().entrySet().stream()
             .collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
   }
 
@@ -336,12 +332,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         super.bind(
             lang,
             attrs,
-            data.entrySet()
-                .stream()
+            data.entrySet().stream()
                 .collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())),
-            files
-                .entrySet()
-                .stream()
+            files.entrySet().stream()
                 .collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())),
             allowedFields);
     return new DynamicForm(
