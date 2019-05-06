@@ -279,11 +279,10 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified()
-      throws IOException {
+  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified() {
     this.mockRangeRequest();
 
-    Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromFile(path.toFile());
+    Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
     Result result =
         RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), TEXT);
 
