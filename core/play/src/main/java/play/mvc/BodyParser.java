@@ -690,9 +690,7 @@ public interface BodyParser<A> {
       @Override
       public Map<String, String[]> asFormUrlEncoded() {
         // TODO have this transformations in Scala is easier.
-        return JavaConverters.mapAsJavaMap(scalaFormData.asFormUrlEncoded())
-            .entrySet()
-            .stream()
+        return JavaConverters.mapAsJavaMap(scalaFormData.asFormUrlEncoded()).entrySet().stream()
             .collect(
                 Collectors.toMap(
                     Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
@@ -700,9 +698,7 @@ public interface BodyParser<A> {
 
       @Override
       public List<FilePart<A>> getFiles() {
-        return seqAsJavaListConverter(scalaFormData.files())
-            .asJava()
-            .stream()
+        return seqAsJavaListConverter(scalaFormData.files()).asJava().stream()
             .map(part -> toJava(part))
             .collect(Collectors.toList());
       }
