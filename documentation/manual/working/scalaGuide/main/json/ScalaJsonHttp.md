@@ -115,7 +115,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json
 Content-Length: 79
 
-{"status":"OK","message":{"obj.name":[{"msg":"error.path.missing","args":[]}]}}
+{"status":"KO","message":{"obj.name":[{"msg":"error.path.missing","args":[]}]}}
 ```
 Testing the action with a invalid data, wrong data type for "lat":
 
@@ -133,7 +133,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json
 Content-Length: 92
 
-{"status":"OK","message":{"obj.location.lat":[{"msg":"error.expected.jsnumber","args":[]}]}}
+{"status":"KO","message":{"obj.location.lat":[{"msg":"error.expected.jsnumber","args":[]}]}}
 ```
 
 ## Summary
