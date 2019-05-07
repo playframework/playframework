@@ -12,6 +12,9 @@ runSbtNoisy test
 runSbtNoisy evaluateSbtFiles
 runSbt validateDocs
 
+scalafmtValidation "documentation"
+javafmtValidation "documentation"
+
 printMessage "ALL DOCUMENTATION TESTS PASSED"
 
 # Check that sample code have copyright headers

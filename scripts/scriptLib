@@ -40,9 +40,10 @@ runSbtNoisy() {
 # Runs code formating validation in the current directory
 scalafmtValidation() {
   printMessage "VALIDATE SCALA CODE FORMATTING"
-  runSbtNoisy scalafmtCheckAll scalafmtSbtCheck || (
+  runSbtNoisy scalafmtAll scalafmtSbt
+  git diff --exit-code || (
     echo "[error] ERROR: Scalafmt test failed for $1 source."
-    echo "[error] To fix, format your sources using 'sbt scalafmtAll scalafmtSbt' before submitting a pull request."
+    echo "[error] To fix, format your sources using 'sbt scalafmtAll scalafmtAll' before submitting a pull request."
     false
   )
 }

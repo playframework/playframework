@@ -545,11 +545,10 @@ class EnvironmentEvolutionsReader @Inject()(environment: Environment) extends Re
         for {
           u <- uri
           e <- evolution
-        } yield
-          logger.warn(
-            s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString
-              .substring(u.toString.lastIndexOf('/') + 1)} instead already"
-          )
+        } yield logger.warn(
+          s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString
+            .substring(u.toString.lastIndexOf('/') + 1)} instead already"
+        )
         findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
       }
     }
