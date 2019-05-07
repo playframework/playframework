@@ -30,7 +30,7 @@ printMessage() {
 }
 
 runSbt() {
-  sbt "$EXTRA_OPTS" --warn -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+  sbt ${EXTRA_OPTS} --warn -jvm-opts ${BASEDIR}/.travis-jvmopts 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }
 
 runSbtNoisy() {
@@ -51,7 +51,7 @@ scalafmtValidation() {
 # Runs code formating validation in the current directory
 javafmtValidation() {
   printMessage "VALIDATE JAVA CODE FORMATTING"
-  runSbtNoisy javafmt
+  runSbtNoisy javafmt test:javafmt
   git diff --exit-code || (
     echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
     echo "[error] To fix, format your sources using 'sbt javafmt test:javafmt' before submitting a pull request."
