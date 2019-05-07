@@ -118,8 +118,7 @@ public class MessagesApi {
    * @return the most appropriate Messages instance given the candidate languages
    */
   public Messages preferred(Collection<Lang> candidates) {
-    Seq<Lang> cs = Scala.asScala(candidates);
-    play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
+    play.api.i18n.Messages msgs = messages.preferred(Scala.asScala(candidates));
     return new MessagesImpl(new Lang(msgs.lang()), this);
   }
 

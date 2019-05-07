@@ -54,8 +54,7 @@ public class Langs {
    * @return The preferred language
    */
   public Lang preferred(Collection<Lang> candidates) {
-    return new Lang(
-        langs.preferred((scala.collection.immutable.Seq) Scala.asScala(candidates).toSeq()));
+    return new Lang(langs.preferred(Scala.asScala(candidates)));
   }
 
   /** @return the Scala version for this Langs. */
