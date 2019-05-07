@@ -422,9 +422,7 @@ public class Configuration {
    */
   public List<Configuration> getConfigList(String key) {
     if (conf.getConfigList(key).isDefined()) {
-      return conf.getConfigList(key)
-          .get()
-          .stream()
+      return conf.getConfigList(key).get().stream()
           .map(Configuration::new)
           .collect(Collectors.toList());
     }
@@ -609,9 +607,7 @@ public class Configuration {
    */
   public List<Map<String, Object>> getObjectList(String key) {
     if (conf.getObjectList(key).isDefined()) {
-      return conf.getObjectList(key)
-          .get()
-          .stream()
+      return conf.getObjectList(key).get().stream()
           .map((Function<ConfigObject, Map<String, Object>>) ConfigObject::unwrapped)
           .collect(Collectors.toList());
     }

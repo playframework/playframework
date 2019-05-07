@@ -597,9 +597,7 @@ public class Form<T> {
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(BindingResult result) {
-    return result
-        .getFieldErrors()
-        .stream()
+    return result.getFieldErrors().stream()
         .map(
             error -> {
               String key = error.getObjectName() + "." + error.getField();
@@ -634,9 +632,7 @@ public class Form<T> {
   }
 
   private List<ValidationError> globalErrorsAsValidationErrors(BindingResult result) {
-    return result
-        .getGlobalErrors()
-        .stream()
+    return result.getGlobalErrors().stream()
         .map(
             error ->
                 new ValidationError(
@@ -938,8 +934,7 @@ public class Form<T> {
   private Object translateMsgArg(
       List<Object> arguments, MessagesApi messagesApi, play.i18n.Lang lang) {
     if (arguments != null) {
-      return arguments
-          .stream()
+      return arguments.stream()
           .map(
               arg -> {
                 if (arg instanceof String) {
@@ -948,12 +943,12 @@ public class Form<T> {
                 if (arg instanceof List) {
                   return ((List<?>) arg)
                       .stream()
-                      .map(
-                          key ->
-                              messagesApi != null
-                                  ? messagesApi.get(lang, (String) key)
-                                  : (String) key)
-                      .collect(Collectors.toList());
+                          .map(
+                              key ->
+                                  messagesApi != null
+                                      ? messagesApi.get(lang, (String) key)
+                                      : (String) key)
+                          .collect(Collectors.toList());
                 }
                 return arg;
               })

@@ -300,8 +300,7 @@ public class Result {
   public Result withCookies(Cookie... newCookies) {
     List<Cookie> finalCookies =
         Stream.concat(
-                cookies
-                    .stream()
+                cookies.stream()
                     .filter(
                         cookie -> {
                           for (Cookie newCookie : newCookies) {

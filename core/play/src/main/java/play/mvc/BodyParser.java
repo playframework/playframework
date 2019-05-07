@@ -627,9 +627,7 @@ public interface BodyParser<A> {
 
       @Override
       public List<FilePart<A>> getFiles() {
-        return seqAsJavaListConverter(scalaFormData.files())
-            .asJava()
-            .stream()
+        return seqAsJavaListConverter(scalaFormData.files()).asJava().stream()
             .map(part -> toJava(part))
             .collect(Collectors.toList());
       }
