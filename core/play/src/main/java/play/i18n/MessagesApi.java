@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,9 +57,12 @@ public class MessagesApi {
    * @param args arguments as a List
    */
   @SafeVarargs
+  @SuppressWarnings("unchecked")
   private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
     List<T> out;
-    if (args != null && args.length == 1 && args[0] instanceof List) {
+    if (args == null) {
+      out = Collections.emptyList();
+    } else if (args.length == 1 && args[0] instanceof List) {
       out = (List<T>) args[0];
     } else {
       out = Arrays.asList(args);
@@ -118,8 +122,7 @@ public class MessagesApi {
    * @return the most appropriate Messages instance given the candidate languages
    */
   public Messages preferred(Collection<Lang> candidates) {
-    Seq<Lang> cs = Scala.asScala(candidates);
-    play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
+    play.api.i18n.Messages msgs = messages.preferred(Scala.asScala(candidates));
     return new MessagesImpl(new Lang(msgs.lang()), this);
   }
 

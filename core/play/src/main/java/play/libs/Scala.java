@@ -76,13 +76,20 @@ public class Scala extends CrossScala {
    * Converts a Java Collection to a Scala Seq.
    *
    * @param javaCollection the java collection
-   * @param <A> the type of Seq element
+   * @param <A> the input type of Seq element
+   * @param <B> the output type of Seq element
    * @return the scala Seq.
    */
-  public static <A> scala.collection.immutable.Seq<A> asScala(Collection<A> javaCollection) {
-    return scala.collection.JavaConverters.collectionAsScalaIterableConverter(javaCollection)
-        .asScala()
-        .toList();
+  public static <A extends B, B> scala.collection.immutable.Seq<B> asScala(
+      Collection<A> javaCollection) {
+    final scala.collection.immutable.List<A> as =
+        scala.collection.JavaConverters.collectionAsScalaIterableConverter(javaCollection)
+            .asScala()
+            .toList();
+    @SuppressWarnings("unchecked")
+    // covariance: List<A> <: List<B> iff A <: B, given List<A> is covariant in A
+    final scala.collection.immutable.List<B> bs = (scala.collection.immutable.List<B>) as;
+    return bs;
   }
 
   /**
@@ -152,6 +159,7 @@ public class Scala extends CrossScala {
    * @return the array
    */
   public static <T> T[] asArray(Class<T> clazz, scala.collection.Seq<T> scalaList) {
+    @SuppressWarnings("unchecked")
     T[] arr = (T[]) Array.newInstance(clazz, scalaList.length());
     scalaList.copyToArray(arr);
     return arr;
@@ -172,6 +180,7 @@ public class Scala extends CrossScala {
    * @param <T> the type parameter
    * @return a scala {@code None}.
    */
+  @SuppressWarnings("unchecked")
   public static <T> scala.Option<T> None() {
     return (scala.Option<T>) scala.None$.MODULE$;
   }
@@ -224,6 +233,7 @@ public class Scala extends CrossScala {
    * @param <C> the classtag's type.
    * @return an any ClassTag typed according to the Java compiler as C.
    */
+  @SuppressWarnings("unchecked")
   public static <C> scala.reflect.ClassTag<C> classTag() {
     return (scala.reflect.ClassTag<C>) scala.reflect.ClassTag$.MODULE$.Any();
   }

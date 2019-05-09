@@ -85,29 +85,24 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form filled with the new data
    */
   def bindFromRequest()(implicit request: play.api.mvc.Request[_]): Form[T] = {
-    bindFromRequest {
-      ((request.body match {
-        case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
-        case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
-          body.asMultipartFormData.get.asFormUrlEncoded
-        case body: play.api.mvc.AnyContent if body.asJson.isDefined =>
-          FormUtils.fromJson(js = body.asJson.get).mapValues(Seq(_))
-        case body: Map[_, _]                         => body.asInstanceOf[Map[String, Seq[String]]]
-        case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
-        case body: Either[_, play.api.mvc.MultipartFormData[_]] =>
-          body match {
-            case Right(b) => b.asFormUrlEncoded
-            case Left(_)  => Map.empty[String, Seq[String]]
-          }
-        case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_))
-        case _                                => Map.empty[String, Seq[String]]
-      }) ++ {
-        request.method.toUpperCase match {
-          case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
-          case _                                                => request.queryString
-        }
-      }).toMap
+    import play.api.mvc.MultipartFormData
+    val unwrap = request.body match {
+      case body: play.api.mvc.AnyContent =>
+        body.asFormUrlEncoded.orElse(body.asMultipartFormData).orElse(body.asJson).getOrElse(body)
+      case body => body
     }
+    val data = unwrap match {
+      case body: Map[_, _]                   => body.asInstanceOf[Map[String, Seq[String]]]
+      case body: MultipartFormData[_]        => body.asFormUrlEncoded
+      case Right(body: MultipartFormData[_]) => body.asFormUrlEncoded
+      case body: play.api.libs.json.JsValue  => FormUtils.fromJson(js = body).mapValues(Seq(_))
+      case _                                 => Map.empty
+    }
+    val method = request.method.toUpperCase match {
+      case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
+      case _                                                => request.queryString
+    }
+    bindFromRequest((data ++ method).toMap)
   }
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {

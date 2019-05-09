@@ -2108,25 +2108,6 @@ public class Http {
        * The File.
        *
        * @return the file
-       * @deprecated Deprecated as of 2.7.0. Use {@link #getRef()} instead, which however (when
-       *     using the default Play {@code BodyParser}) will give you a {@link
-       *     play.libs.Files.TemporaryFile} instance instead of a {@link java.io.File} one. <a
-       *     href="https://www.playframework.com/documentation/latest/Migration27#Javas-FilePart-exposes-the-TemporaryFile-for-uploaded-files">See
-       *     migration guide.</a>
-       */
-      @Deprecated
-      public A getFile() {
-        if (ref instanceof Files.TemporaryFile) {
-          // For backwards compatibility
-          return (A) ((Files.TemporaryFile) ref).path().toFile();
-        }
-        return ref;
-      }
-
-      /**
-       * The File.
-       *
-       * @return the file
        */
       public A getRef() {
         return ref;
@@ -2200,7 +2181,7 @@ public class Http {
      * @return the file part specified by key
      */
     public FilePart<A> getFile(String key) {
-      for (FilePart filePart : getFiles()) {
+      for (FilePart<A> filePart : getFiles()) {
         if (filePart.getKey().equals(key)) {
           return filePart;
         }
@@ -2224,6 +2205,7 @@ public class Http {
      * @param <A> the file type (e.g. play.api.libs.Files.TemporaryFile)
      * @return the content parsed as multipart form data
      */
+    @SuppressWarnings("unchecked")
     public <A> MultipartFormData<A> asMultipartFormData() {
       return as(MultipartFormData.class);
     }
@@ -2237,13 +2219,14 @@ public class Http {
       // Best effort, check if it's a map, then check if the first element in that map is String ->
       // String[].
       if (body instanceof Map) {
-        if (((Map) body).isEmpty()) {
+        if (((Map<?, ?>) body).isEmpty()) {
           return Collections.emptyMap();
         } else {
-          Map.Entry<Object, Object> first =
-              ((Map<Object, Object>) body).entrySet().iterator().next();
+          Map.Entry<?, ?> first = ((Map<?, ?>) body).entrySet().iterator().next();
           if (first.getKey() instanceof String && first.getValue() instanceof String[]) {
-            return (Map<String, String[]>) body;
+            @SuppressWarnings("unchecked")
+            final Map<String, String[]> body = (Map<String, String[]>) this.body;
+            return body;
           }
         }
       }

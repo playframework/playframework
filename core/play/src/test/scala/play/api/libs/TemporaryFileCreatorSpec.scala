@@ -332,7 +332,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         writeFile(file, "file to be moved")
 
         // move the file
-        creator.create(file).moveTo(destination, replace = false)
+        creator.create(file).moveFileTo(destination, replace = false)
 
         JFiles.exists(file) must beFalse
         JFiles.exists(destination) must beTrue
@@ -352,7 +352,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         // Create source file only
         writeFile(file, "file to be moved")
 
-        creator.create(file).moveTo(destination, replace = true)
+        creator.create(file).moveFileTo(destination, replace = true)
 
         JFiles.exists(file) must beFalse
         JFiles.exists(destination) must beTrue
@@ -373,7 +373,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         writeFile(file, "file to be moved")
         writeFile(destination, "the destination file")
 
-        creator.create(file).moveTo(destination, replace = true)
+        creator.create(file).moveFileTo(destination, replace = true)
 
         JFiles.exists(file) must beFalse
         JFiles.exists(destination) must beTrue
@@ -393,8 +393,8 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         writeFile(file, "file that won't be replaced")
         writeFile(destination, "already exists")
 
-        val to = creator.create(file).moveTo(destination, replace = false)
-        new String(java.nio.file.Files.readAllBytes(to.toPath)) must contain("already exists")
+        val to = creator.create(file).moveFileTo(destination, replace = false)
+        new String(java.nio.file.Files.readAllBytes(to)) must contain("already exists")
       }
 
       "move a file atomically with replace enabled" in new WithScope() {
@@ -406,7 +406,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         writeFile(file, "file to be moved")
 
         val destination = parentDirectory.resolve("destination.txt")
-        creator.create(file).atomicMoveWithFallback(destination)
+        creator.create(file).atomicMoveFileWithFallback(destination)
 
         JFiles.exists(file) must beFalse
         JFiles.exists(destination) must beTrue
