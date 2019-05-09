@@ -33,7 +33,7 @@ trait Request[+A] extends RequestHeader {
   override def hasBody: Boolean = {
     @tailrec @inline def isEmptyBody(body: Any): Boolean = body match {
       case rb: play.mvc.Http.RequestBody                      => isEmptyBody(rb.as(classOf[AnyRef]))
-      case AnyContentAsEmpty | null | Unit                    => true
+      case AnyContentAsEmpty | null | ()                      => true
       case unit if unit.isInstanceOf[scala.runtime.BoxedUnit] => true
       case _                                                  => false
     }
