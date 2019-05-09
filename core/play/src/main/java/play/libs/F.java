@@ -341,21 +341,6 @@ public class F {
     return new Tuple5<A, B, C, D, E>(a, b, c, d, e);
   }
 
-  /**
-   * Converts the execution context to an executor, preparing it first.
-   *
-   * @param ec the execution context.
-   * @return the Java Executor.
-   */
-  private static Executor toExecutor(ExecutionContext ec) {
-    ExecutionContext prepared = ec.prepare();
-    if (prepared instanceof Executor) {
-      return (Executor) prepared;
-    } else {
-      return prepared::execute;
-    }
-  }
-
   public static class LazySupplier<T> implements Supplier<T> {
 
     private T value;

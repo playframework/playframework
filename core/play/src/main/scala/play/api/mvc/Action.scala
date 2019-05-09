@@ -9,6 +9,7 @@ import javax.inject.Inject
 import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
+import play.utils.ExecCtxUtils
 
 import scala.concurrent._
 import scala.language.higherKinds
@@ -96,7 +97,7 @@ trait Action[A] extends EssentialAction {
         val request = Request(rh, a)
         logger.trace("Invoking action with request: " + request)
         apply(request)
-    }(executionContext.prepare)
+    }(ExecCtxUtils.prepare(executionContext))
 
   /**
    * The execution context to run this action in
@@ -139,7 +140,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    */
   def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
+    implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).map { _.right.map(f) }(pec)
@@ -159,7 +160,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    */
   def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
+    implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {
@@ -194,7 +195,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    */
   def validate[B](f: A => Either[Result, B])(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
+    implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).map {
@@ -216,7 +217,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
    */
   def validateM[B](f: A => Future[Either[Result, B]])(implicit ec: ExecutionContext): BodyParser[B] = {
     // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
+    implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {

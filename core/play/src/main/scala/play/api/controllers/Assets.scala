@@ -29,6 +29,7 @@ import play.core.routing.ReverseRouteContext
 import play.utils.InvalidUriEncodingException
 import play.utils.Resources
 import play.utils.UriEncoding
+import play.utils.ExecCtxUtils
 
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
@@ -142,7 +143,7 @@ private class SelfPopulatingMap[K, V] {
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
       case None =>
-        val f = Future(pf(k))(ec.prepare())
+        val f = Future(pf(k))(ExecCtxUtils.prepare(ec))
         f.onComplete {
           case Failure(_) | Success(None) => store.remove(k)
           case _                          => // Do nothing, the asset was successfully found and is now cached
