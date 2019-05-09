@@ -32,7 +32,6 @@ import java.util.concurrent.CompletionStage;
 public class RangeResultsTest {
 
   private static Path path;
-  private Http.Context ctx;
 
   @BeforeClass
   public static void createFile() throws IOException {
@@ -44,19 +43,6 @@ public class RangeResultsTest {
   @AfterClass
   public static void deleteFile() throws IOException {
     Files.deleteIfExists(path);
-  }
-
-  @Before
-  public void setUpHttpContext() {
-    this.ctx = mock(Http.Context.class);
-    ThreadLocal<Http.Context> threadLocal = new ThreadLocal<>();
-    threadLocal.set(this.ctx);
-    Http.Context.current = threadLocal;
-  }
-
-  @After
-  public void clearHttpContext() {
-    Http.Context.current.remove();
   }
 
   // -- InputStreams
@@ -365,26 +351,12 @@ public class RangeResultsTest {
   private Http.Request mockRegularRequest() {
     Http.Request request = mock(Http.Request.class);
     when(request.header(RANGE)).thenReturn(Optional.empty());
-    when(this.ctx.request()).thenReturn(request);
-
-    mockRegularFileTypes();
     return request;
   }
 
   private Http.Request mockRangeRequest() {
     Http.Request request = mock(Http.Request.class);
     when(request.header(RANGE)).thenReturn(Optional.of("bytes=0-1"));
-    when(this.ctx.request()).thenReturn(request);
-
-    mockRegularFileTypes();
     return request;
-  }
-
-  private void mockRegularFileTypes() {
-    final DefaultFileMimeTypes defaultFileMimeTypes =
-        new DefaultFileMimeTypes(
-            new FileMimeTypesConfiguration(Scala.asScala(Collections.emptyMap())));
-    final FileMimeTypes fileMimeTypes = new FileMimeTypes(defaultFileMimeTypes);
-    when(this.ctx.fileMimeTypes()).thenReturn(fileMimeTypes);
   }
 }
