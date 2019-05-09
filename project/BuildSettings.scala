@@ -216,7 +216,11 @@ object BuildSettings {
     },
     mimaBinaryIssueFilters ++= Seq(),
     unmanagedSourceDirectories in Compile += {
-      (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
+      val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((x, y)) => s"$x.$y"
+        case None         => scalaBinaryVersion.value
+      }
+      (sourceDirectory in Compile).value / s"scala-$suffix"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
