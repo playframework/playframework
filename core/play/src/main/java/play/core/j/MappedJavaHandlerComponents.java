@@ -77,13 +77,19 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
 
   public <A extends Action<?>> MappedJavaHandlerComponents addAction(
       Class<A> clazz, Supplier<A> actionSupplier) {
-    this.actions.put(clazz, (Supplier<Action<?>>) actionSupplier);
+    actions.put(clazz, widenSupplier(actionSupplier));
     return this;
   }
 
   public <B extends BodyParser<?>> MappedJavaHandlerComponents addBodyParser(
       Class<B> clazz, Supplier<B> bodyParserSupplier) {
-    this.bodyPasers.put(clazz, (Supplier<BodyParser<?>>) bodyParserSupplier);
+    bodyPasers.put(clazz, widenSupplier(bodyParserSupplier));
     return this;
+  }
+
+  @SuppressWarnings("unchecked")
+  // covariance: Supplier<?> <: Supplier<Object>, given Supplier<A> is covariant in A
+  static <A extends B, B> Supplier<B> widenSupplier(final Supplier<A> parser) {
+    return (Supplier<B>) parser;
   }
 }

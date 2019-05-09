@@ -218,13 +218,13 @@ public abstract class Accumulator<E, A> {
    */
   public static <E, A> Accumulator<E, A> flatten(
       CompletionStage<Accumulator<E, A>> stage, Materializer materializer) {
-    final CompletableFuture<A> result = new CompletableFuture<A>();
+    final CompletableFuture<A> result = new CompletableFuture<>();
     final FlattenSubscriber<A, E> subscriber = new FlattenSubscriber<>(stage, result, materializer);
 
-    final Sink<E, CompletableFuture<A>> sink =
+    final Sink<E, CompletionStage<A>> sink =
         Sink.fromSubscriber(subscriber).mapMaterializedValue(x -> result);
 
-    return new SinkAccumulator(sink);
+    return new SinkAccumulator<>(sink);
   }
 
   private static final class NoOpSubscriber<E> implements Subscriber<E> {
@@ -242,7 +242,7 @@ public abstract class Accumulator<E, A> {
     private final CompletionStage<Accumulator<E, A>> stage;
     private final CompletableFuture<A> result;
     private final Materializer materializer;
-    private volatile Subscriber<? super E> underlying = new NoOpSubscriber<E>();
+    private volatile Subscriber<? super E> underlying = new NoOpSubscriber<>();
 
     public FlattenSubscriber(
         CompletionStage<Accumulator<E, A>> stage,
@@ -423,7 +423,6 @@ public abstract class Accumulator<E, A> {
       return toSink;
     }
 
-    @SuppressWarnings("unchecked")
     public play.api.libs.streams.Accumulator<E, A> asScala() {
       return Accumulator$.MODULE$.strict(
           new AbstractFunction1<Option<E>, Future<A>>() {

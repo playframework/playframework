@@ -37,6 +37,7 @@ class PathExtractor(regex: Regex, partDescriptors: Seq[PathPart.Value]) {
       parts.zip(partDescriptors).map {
         case (part, PathPart.Decoded) => UriEncoding.decodePathSegment(part, "utf-8")
         case (part, PathPart.Raw)     => part
+        case (part, pathPart)         => throw new MatchError(s"unexpected ($path, $pathPart)")
       }
     }
   }

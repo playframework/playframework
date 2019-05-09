@@ -77,7 +77,7 @@ trait Request[+A] extends RequestHeader {
     removeAttr(Messages.Attrs.CurrentLang)
 
   override def asJava: Http.Request = this match {
-    case req: Request[Http.RequestBody] =>
+    case req: Request[Http.RequestBody @unchecked] =>
       // This will preserve the parsed body since it is already using the Java body wrapper
       new Http.RequestImpl(req)
     case _ =>
