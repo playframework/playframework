@@ -83,9 +83,12 @@ class ResultsSpec extends Specification {
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-Yop" -> "2")
 
       headers.size must_== 2
-      headers must havePair("Set-Cookie"  -> "yes")
-      (headers must not).havePair("X-YOP" -> "1")
-      headers must havePair("X-Yop"       -> "2")
+      headers must havePair("Set-Cookie" -> "yes")
+      // In Scala 2.12 (and earlier) the second version of the key ("X-Yop") is in the map
+      // As of Scala 2.13 the original version of the key ("X-YOP") is in the map
+      // from fixing bug https://github.com/scala/bug/issues/11514
+      (headers must not).havePair("X-YOP" -> "1").and(headers must not).havePair("X-Yop" -> "1")
+      (headers must havePair("X-Yop" -> "2")).or(headers must havePair("X-YOP" -> "2"))
     }
 
     "support date headers manipulation" in {
