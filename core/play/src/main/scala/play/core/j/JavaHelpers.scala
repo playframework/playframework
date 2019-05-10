@@ -347,12 +347,13 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
 
+  @deprecated
   override def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
 
   override def queryString(key: String): Optional[String] = {
-    OptionConverters.toJava(header.queryString.get(key).flatMap(_.headOption))
+    OptionConverters.toJava(header.getQueryString(key))
   }
 
   override def cookie(name: String): JCookie = {
