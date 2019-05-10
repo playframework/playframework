@@ -266,7 +266,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.JPAApi.withTransaction"),
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPAEntityManagerContext"),
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.Transactional"),
-      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction")
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction"),
+      // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
