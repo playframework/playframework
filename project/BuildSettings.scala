@@ -256,7 +256,17 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.session"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.TODO"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.getUsername"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.onUnauthorized")
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.onUnauthorized"),
+      // Removed Java's JPAApi thread-local
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.em"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.JPAApi.withTransaction"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPAEntityManagerContext"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.Transactional"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
