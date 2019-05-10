@@ -28,17 +28,20 @@ class JavaCSPReportSpec extends PlaySpecification {
   private def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
   private def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
-  private def javaContextComponents(implicit app: Application) = inject[JavaContextComponents]
   private def myAction(implicit app: Application)              = inject[JavaCSPReportSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application): JavaAction =
+  def javaAction[T: ClassTag](method: String, inv: Http.Request => Result)(implicit app: Application): JavaAction =
     new JavaAction(javaHandlerComponents) {
       val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
       def parser: play.api.mvc.BodyParser[Http.RequestBody] =
         HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-      def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
+      def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv(req))
       val annotations =
-        new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
+        new JavaActionAnnotations(
+          clazz,
+          clazz.getMethod(method, classOf[Http.Request]),
+          handlerComponents.httpConfiguration.actionComposition
+        )
     }
 
   def withActionServer[T](config: (String, String)*)(block: Application => T): T = {
@@ -129,9 +132,9 @@ object JavaCSPReportSpec {
 
   class MyAction extends Controller {
     @BodyParser.Of(classOf[CSPReportBodyParser])
-    def cspReport: Result = {
+    def cspReport(request: Http.Request): Result = {
       import scala.collection.JavaConverters._
-      val cspReport: JavaCSPReport = Http.Context.current().request().body.as(classOf[JavaCSPReport])
+      val cspReport: JavaCSPReport = request.body.as(classOf[JavaCSPReport])
       val json                     = play.libs.Json.toJson(Map("violation" -> cspReport.violatedDirective).asJava)
       Results.ok(json).as(play.mvc.Http.MimeTypes.JSON)
     }

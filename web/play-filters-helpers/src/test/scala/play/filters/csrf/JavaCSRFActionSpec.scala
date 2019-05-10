@@ -8,14 +8,10 @@ import java.util.concurrent.CompletableFuture
 
 import play.api.Application
 import play.api.libs.ws._
-import play.api.mvc.DefaultSessionCookieBaker
-import play.api.mvc.SessionCookieBaker
 import play.core.j.JavaAction
 import play.core.j.JavaActionAnnotations
-import play.core.j.JavaContextComponents
 import play.core.j.JavaHandlerComponents
 import play.core.routing.HandlerInvokerFactory
-import play.mvc.Http.Context
 import play.mvc.Http.RequestHeader
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Controller
@@ -31,16 +27,19 @@ import scala.reflect.ClassTag
 class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
-  def javaContextComponents(implicit app: Application) = inject[JavaContextComponents]
   def myAction(implicit app: Application)              = inject[JavaCSRFActionSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application) =
+  def javaAction[T: ClassTag](method: String, inv: JRequest => Result)(implicit app: Application) =
     new JavaAction(javaHandlerComponents) {
       val clazz                     = implicitly[ClassTag[T]].runtimeClass
       def parser                    = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-      def invocation(req: JRequest) = CompletableFuture.completedFuture(inv)
+      def invocation(req: JRequest) = CompletableFuture.completedFuture(inv(req))
       val annotations =
-        new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
+        new JavaActionAnnotations(
+          clazz,
+          clazz.getMethod(method, classOf[JRequest]),
+          handlerComponents.httpConfiguration.actionComposition
+        )
     }
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
@@ -50,10 +49,10 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
           case _ if sendUnauthorizedResult =>
             javaAction[JavaCSRFActionSpec.MyUnauthorizedAction](
               "check",
-              new JavaCSRFActionSpec.MyUnauthorizedAction().check()
+              new JavaCSRFActionSpec.MyUnauthorizedAction().check
             )
           case _ =>
-            javaAction[JavaCSRFActionSpec.MyAction]("check", myAction.check())
+            javaAction[JavaCSRFActionSpec.MyAction]("check", myAction.check)
         }
       } { ws =>
         handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
@@ -64,7 +63,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
       withActionServer(configuration) { implicit app =>
-        { case _ => javaAction[JavaCSRFActionSpec.MyAction]("add", myAction.add()) }
+        { case _ => javaAction[JavaCSRFActionSpec.MyAction]("add", myAction.add) }
       } { ws =>
         handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
@@ -74,7 +73,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   def buildCsrfWithSession(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
       withActionServer(configuration) { implicit app =>
-        { case _ => javaAction[JavaCSRFActionSpec.MyAction]("withSession", myAction.withSession()) }
+        { case _ => javaAction[JavaCSRFActionSpec.MyAction]("withSession", myAction.withSession) }
       } { ws =>
         handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
       }
@@ -91,7 +90,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
         }
       }
     }
-    "allow accessing the token from the http context" in withActionServer(
+    "allow accessing the token from the http request" in withActionServer(
       Seq(
         "play.http.filters" -> "play.filters.csrf.CsrfFilters"
       )
@@ -110,26 +109,25 @@ object JavaCSRFActionSpec {
 
   class MyAction extends Controller {
     @AddCSRFToken
-    def add(): Result = {
-      require(Context.current().request().asScala() != null) // Make sure request is set
+    def add(request: JRequest): Result = {
+      require(request.asScala() != null) // Make sure request is set
       // Simulate a template that adds a CSRF token
       import play.core.j.PlayMagicForJava.requestHeader
       Results.ok(CSRF.getToken.get.value)
     }
-    def getToken: Result = {
-      Results.ok(Option(CSRF.getToken(Context.current().request()).orElse(null)) match {
+    def getToken(request: JRequest): Result = {
+      Results.ok(Option(CSRF.getToken(request).orElse(null)) match {
         case Some(CSRF.Token(_, value)) => value
         case None                       => ""
       })
     }
     @RequireCSRFCheck
-    def check(): Result = {
+    def check(request: JRequest): Result = {
       Results.ok()
     }
     @AddCSRFToken
-    def withSession(): Result = {
-      Context.current().session().put("hello", "world")
-      Results.ok()
+    def withSession(request: JRequest): Result = {
+      Results.ok().addingToSession(request, "hello", "world")
     }
   }
 
@@ -141,7 +139,7 @@ object JavaCSRFActionSpec {
       Results.ok(CSRF.getToken.get.value)
     }
     @RequireCSRFCheck(error = classOf[CustomErrorHandler])
-    def check(): Result = {
+    def check(request: JRequest): Result = {
       Results.ok()
     }
   }
