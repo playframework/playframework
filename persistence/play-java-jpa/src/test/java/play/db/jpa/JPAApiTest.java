@@ -98,23 +98,10 @@ public class JPAApiTest {
         });
 
     db.jpa.withTransaction(
-        () -> {
-          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+        entityManager -> {
+          TestEntity entity = TestEntity.find(1L, entityManager);
           assertThat(entity.name, equalTo("alice"));
         });
-  }
-
-  @Test
-  public void shouldReuseEntityManagerWhenExecutingTransaction() {
-    JPAApi api = db.jpa;
-    boolean reused =
-        api.withTransaction(
-            entityManager -> {
-              EntityManager fromContext = api.em();
-              return fromContext == entityManager;
-            });
-
-    assertThat(reused, is(true));
   }
 
   @Test
@@ -128,8 +115,8 @@ public class JPAApiTest {
         });
 
     db.jpa.withTransaction(
-        () -> {
-          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+        entityManager -> {
+          TestEntity entity = TestEntity.find(1L, entityManager);
           assertThat(entity.name, equalTo("alice"));
         });
   }
@@ -146,8 +133,8 @@ public class JPAApiTest {
         });
 
     db.jpa.withTransaction(
-        () -> {
-          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+        entityManager -> {
+          TestEntity entity = TestEntity.find(1L, entityManager);
           assertThat(entity, nullValue());
         });
   }
@@ -166,14 +153,14 @@ public class JPAApiTest {
   @Test
   public void shouldExecuteASupplierBlockInsideATransaction() throws Exception {
     db.jpa.withTransaction(
-        () -> {
+        entityManager -> {
           TestEntity entity = createTestEntity();
-          entity.save(db.jpa.em());
+          entity.save(entityManager);
         });
 
     db.jpa.withTransaction(
-        () -> {
-          TestEntity entity = TestEntity.find(1L, db.jpa.em());
+        entityManager -> {
+          TestEntity entity = TestEntity.find(1L, entityManager);
           assertThat(entity.name, equalTo("alice"));
         });
   }
@@ -181,20 +168,20 @@ public class JPAApiTest {
   @Test
   public void shouldNestTransactions() {
     db.jpa.withTransaction(
-        () -> {
+        entityManager -> {
           TestEntity entity = new TestEntity();
           entity.id = 2L;
           entity.name = "test2";
-          entity.save(db.jpa.em());
+          entity.save(entityManager);
 
           db.jpa.withTransaction(
-              () -> {
-                TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
+              entityManagerInner -> {
+                TestEntity entity2 = TestEntity.find(2L, entityManagerInner);
                 assertThat(entity2, nullValue());
               });
 
           // Verify that we can still access the EntityManager
-          TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
+          TestEntity entity3 = TestEntity.find(2L, entityManager);
           assertThat(entity3, equalTo(entity));
         });
   }
@@ -202,31 +189,31 @@ public class JPAApiTest {
   @Test
   public void shouldRollbackInnerTransactionOnly() {
     db.jpa.withTransaction(
-        () -> {
+        entityManager -> {
           // Parent transaction creates entity 2
           TestEntity entity = createTestEntity(2L);
-          entity.save(db.jpa.em());
+          entity.save(entityManager);
 
           db.jpa.withTransaction(
-              () -> {
+              entityManagerInner -> {
                 // Nested transaction creates entity 3, but rolls back
                 TestEntity entity2 = createTestEntity(3L);
-                entity2.save(db.jpa.em());
+                entity2.save(entityManagerInner);
 
-                db.jpa.em().getTransaction().setRollbackOnly();
+                entityManagerInner.getTransaction().setRollbackOnly();
               });
 
           // Verify that we can still access the EntityManager
-          TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
+          TestEntity entity3 = TestEntity.find(2L, entityManager);
           assertThat(entity3, equalTo(entity));
         });
 
     db.jpa.withTransaction(
-        () -> {
-          TestEntity entity = TestEntity.find(3L, db.jpa.em());
+        entityManager -> {
+          TestEntity entity = TestEntity.find(3L, entityManager);
           assertThat(entity, nullValue());
 
-          TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
+          TestEntity entity2 = TestEntity.find(2L, entityManager);
           assertThat(entity2.name, equalTo("alice"));
         });
   }
@@ -234,31 +221,31 @@ public class JPAApiTest {
   @Test
   public void shouldRollbackOuterTransactionOnly() {
     db.jpa.withTransaction(
-        () -> {
+        entityManager -> {
           // Parent transaction creates entity 2, but rolls back
           TestEntity entity = createTestEntity(2L);
-          entity.save(db.jpa.em());
+          entity.save(entityManager);
 
           db.jpa.withTransaction(
-              () -> {
+              entityManagerInner -> {
                 // Nested transaction creates entity 3
                 TestEntity entity2 = createTestEntity(3L);
-                entity2.save(db.jpa.em());
+                entity2.save(entityManagerInner);
               });
 
           // Verify that we can still access the EntityManager
-          TestEntity entity3 = TestEntity.find(2L, db.jpa.em());
+          TestEntity entity3 = TestEntity.find(2L, entityManager);
           assertThat(entity3, equalTo(entity));
 
-          db.jpa.em().getTransaction().setRollbackOnly();
+          entityManager.getTransaction().setRollbackOnly();
         });
 
     db.jpa.withTransaction(
-        () -> {
-          TestEntity entity = TestEntity.find(3L, db.jpa.em());
+        entityManager -> {
+          TestEntity entity = TestEntity.find(3L, entityManager);
           assertThat(entity.name, equalTo("alice"));
 
-          TestEntity entity2 = TestEntity.find(2L, db.jpa.em());
+          TestEntity entity2 = TestEntity.find(2L, entityManager);
           assertThat(entity2, nullValue());
         });
   }
@@ -266,8 +253,6 @@ public class JPAApiTest {
   public static class TestDatabase extends ExternalResource {
     Database database;
     JPAApi jpa;
-
-    static JPAEntityManagerContext entityManagerContext = new JPAEntityManagerContext();
 
     public void execute(final String sql) {
       database.withConnection(
@@ -280,10 +265,7 @@ public class JPAApiTest {
     public void before() {
       database = Databases.inMemoryWith("jndiName", "DefaultDS");
       execute("create table TestEntity (id bigint not null, name varchar(255));");
-      jpa =
-          new DefaultJPAApi(
-                  DefaultJPAConfig.of("default", "defaultPersistenceUnit"), entityManagerContext)
-              .start();
+      jpa = new DefaultJPAApi(DefaultJPAConfig.of("default", "defaultPersistenceUnit")).start();
     }
 
     @Override
