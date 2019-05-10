@@ -11,7 +11,6 @@ import play.api.mvc.PathBindable;
 import play.api.mvc.PathBindable$;
 import play.core.j.JavaContextComponents;
 import play.core.routing.HandlerInvokerFactory$;
-import play.libs.F;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -28,9 +27,6 @@ import java.util.List;
 import java.util.Spliterators;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,11 +67,11 @@ import java.util.stream.StreamSupport;
  *   public Router getRouter() {
  *     return this.routingDsl
  *
- *       .GET("/hello/:to").routeTo(to -&gt; ok("Hello " + to))
+ *       .GET("/hello/:to").routingTo((req, to) -&gt; ok("Hello " + to))
  *
- *       .POST("/api/items/:id").routeAsync((Integer id) -&gt; {
+ *       .POST("/api/items/:id").routingAsync((Http.Request req, Integer id) -&gt; {
  *         return Items.save(id,
- *           Json.fromJson(request().body().asJson(), Item.class)
+ *           Json.fromJson(req.body().asJson(), Item.class)
  *         ).map(result -&gt; ok("Saved item with id " + id));
  *       })
  *
@@ -433,120 +429,6 @@ public class RoutingDsl {
     public <A1, A2, A3> RoutingDsl routingAsync(
         RequestFunctions.Params3<A1, A2, A3, ? extends CompletionStage<Result>> action) {
       return build(3, action, RequestFunctions.Params3.class);
-    }
-
-    /**
-     * Route with no parameters.
-     *
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params0)} instead.
-     */
-    @Deprecated
-    public RoutingDsl routeTo(Supplier<Result> action) {
-      return build(0, action, Supplier.class);
-    }
-
-    /**
-     * Route with one parameter.
-     *
-     * @param <A1> the first type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params1)} instead.
-     */
-    @Deprecated
-    public <A1> RoutingDsl routeTo(Function<A1, Result> action) {
-      return build(1, action, Function.class);
-    }
-
-    /**
-     * Route with two parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params2)} instead.
-     */
-    @Deprecated
-    public <A1, A2> RoutingDsl routeTo(BiFunction<A1, A2, Result> action) {
-      return build(2, action, BiFunction.class);
-    }
-
-    /**
-     * Route with three parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param <A3> the third type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params3)} instead.
-     */
-    @Deprecated
-    public <A1, A2, A3> RoutingDsl routeTo(F.Function3<A1, A2, A3, Result> action) {
-      return build(3, action, F.Function3.class);
-    }
-
-    /**
-     * Route with no parameters.
-     *
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params0)}
-     *     instead.
-     */
-    @Deprecated
-    public RoutingDsl routeAsync(Supplier<? extends CompletionStage<Result>> action) {
-      return build(0, action, Supplier.class);
-    }
-
-    /**
-     * Route with one parameter.
-     *
-     * @param <A1> the first type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params1)}
-     *     instead.
-     */
-    @Deprecated
-    public <A1> RoutingDsl routeAsync(Function<A1, ? extends CompletionStage<Result>> action) {
-      return build(1, action, Function.class);
-    }
-
-    /**
-     * Route with two parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params2)}
-     *     instead.
-     */
-    @Deprecated
-    public <A1, A2> RoutingDsl routeAsync(
-        BiFunction<A1, A2, ? extends CompletionStage<Result>> action) {
-      return build(2, action, BiFunction.class);
-    }
-
-    /**
-     * Route with three parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param <A3> the third type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params3)}
-     *     instead.
-     */
-    @Deprecated
-    public <A1, A2, A3> RoutingDsl routeAsync(
-        F.Function3<A1, A2, A3, ? extends CompletionStage<Result>> action) {
-      return build(3, action, F.Function3.class);
     }
 
     private <T> RoutingDsl build(int arity, T action, Class<T> actionFunction) {
