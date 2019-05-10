@@ -4,8 +4,6 @@
 
 package play.it.routing
 
-import java.util.function.Supplier
-
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAll
 import play.{ BuiltInComponents => JBuiltInComponents }
@@ -13,7 +11,6 @@ import play.api.Mode
 import play.api.routing.Router
 import play.it.http.BasicHttpClient
 import play.it.http.BasicRequest
-import play.mvc.Result
 import play.mvc.Results
 import play.routing.RoutingDsl
 import play.server.Server
@@ -89,11 +86,7 @@ trait ServerSpec extends Specification with BeforeAll {
               RoutingDsl
                 .fromComponents(components)
                 .GET("/something")
-                .routeTo(
-                  new Supplier[Result] {
-                    override def get() = Results.ok("You got something")
-                  }
-                )
+                .routingTo(_ => Results.ok("You got something"))
                 .build()
             }
           )
