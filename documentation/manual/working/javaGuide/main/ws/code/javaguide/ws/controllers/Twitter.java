@@ -55,21 +55,24 @@ public class Twitter extends Controller {
   public Result auth(Http.Request request) {
     Optional<String> verifier = request.queryString("oauth_verifier");
     Result result =
-      verifier
-        .filter(s -> !s.isEmpty())
-        .map(s -> {
-          RequestToken requestToken = getSessionTokenPair(request).get();
-          RequestToken accessToken = TWITTER.retrieveAccessToken(requestToken, s);
-          return redirect(routes.Twitter.homeTimeline())
-                  .addingToSession(request, "token", accessToken.token)
-                  .addingToSession(request, "secret", accessToken.secret);
-        }).orElseGet(() -> {
-        String url = routes.Twitter.auth().absoluteURL(request);
-        RequestToken requestToken = TWITTER.retrieveRequestToken(url);
-        return redirect(TWITTER.redirectUrl(requestToken.token))
-                .addingToSession(request, "token", requestToken.token)
-                .addingToSession(request, "secret", requestToken.secret);
-      });
+        verifier
+            .filter(s -> !s.isEmpty())
+            .map(
+                s -> {
+                  RequestToken requestToken = getSessionTokenPair(request).get();
+                  RequestToken accessToken = TWITTER.retrieveAccessToken(requestToken, s);
+                  return redirect(routes.Twitter.homeTimeline())
+                      .addingToSession(request, "token", accessToken.token)
+                      .addingToSession(request, "secret", accessToken.secret);
+                })
+            .orElseGet(
+                () -> {
+                  String url = routes.Twitter.auth().absoluteURL(request);
+                  RequestToken requestToken = TWITTER.retrieveRequestToken(url);
+                  return redirect(TWITTER.redirectUrl(requestToken.token))
+                      .addingToSession(request, "token", requestToken.token)
+                      .addingToSession(request, "secret", requestToken.secret);
+                });
 
     return result;
   }
