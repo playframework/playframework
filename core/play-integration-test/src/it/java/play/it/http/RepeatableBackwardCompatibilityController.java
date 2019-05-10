@@ -4,6 +4,7 @@
 
 package play.it.http;
 
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 import play.mvc.With;
@@ -24,7 +25,7 @@ public class RepeatableBackwardCompatibilityController extends MockController {
         @SomeRepeatable, // -> is defined @Repeatable and also has @With so this could be an actual action annotation that could run
         @SomeRepeatable
     })
-    public Result action() {
+    public Result action(Http.Request request) {
         return Results.ok();
     }
 }
