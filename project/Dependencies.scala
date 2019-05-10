@@ -11,13 +11,13 @@ object Dependencies {
   val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.6.0-M1")
   val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.8")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7" // "0.4.0" once Akka 2.6 <3 RC1+
 
-  val playJsonVersion = "2.7.2"
+  val playJsonVersion = "2.7.2" // "2.7.3" once Akka 2.6 <3 RC1+
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.3.6"
+  val specs2Version = "4.5.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -87,8 +87,9 @@ object Dependencies {
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1")
-    case _                               => Nil
+    case Some((2, major)) if major >= 11 =>
+      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1") // "1.1.2" once Akka 2.6 <3 RC1+
+    case _ => Nil
   }
 
   val springFrameworkVersion = "5.1.7.RELEASE"
