@@ -221,6 +221,13 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedMap.underlying"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$Implicits$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // Removed deprecated method Database.toScala()
