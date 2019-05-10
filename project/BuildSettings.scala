@@ -223,6 +223,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Add queryString method to RequestHeader interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.queryString"),
       // Removed deprecated method Database.toScala()
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.Database.toScala"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala"),

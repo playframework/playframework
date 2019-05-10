@@ -991,7 +991,7 @@ public class Http {
      *
      * @param key the query string parameter to look up
      * @return the value for the provided <code>key</code>.
-     * @deprecated Deprecated as of 2.7.3. Use {@link #queryString(String)} instead.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #queryString(String)} instead.
      */
     @Deprecated
     String getQueryString(String key);
