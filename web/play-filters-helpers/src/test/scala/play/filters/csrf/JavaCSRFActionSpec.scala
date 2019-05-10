@@ -111,13 +111,13 @@ object JavaCSRFActionSpec {
   class MyAction extends Controller {
     @AddCSRFToken
     def add(): Result = {
-      require(Controller.request().asScala() != null) // Make sure request is set
+      require(Context.current().request().asScala() != null) // Make sure request is set
       // Simulate a template that adds a CSRF token
       import play.core.j.PlayMagicForJava.requestHeader
       Results.ok(CSRF.getToken.get.value)
     }
     def getToken: Result = {
-      Results.ok(Option(CSRF.getToken(Controller.request()).orElse(null)) match {
+      Results.ok(Option(CSRF.getToken(Context.current().request()).orElse(null)) match {
         case Some(CSRF.Token(_, value)) => value
         case None                       => ""
       })

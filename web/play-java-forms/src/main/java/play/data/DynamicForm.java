@@ -256,10 +256,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   @Deprecated
   public DynamicForm bindFromRequest(String... allowedFields) {
     return bind(
-        play.mvc.Controller.ctx().messages().lang(),
-        play.mvc.Controller.request().attrs(),
-        requestData(play.mvc.Controller.request()),
-        requestFileData(play.mvc.Controller.request()),
+        Http.Context.current().messages().lang(),
+        Http.Context.current().request().attrs(),
+        requestData(Http.Context.current().request()),
+        requestFileData(Http.Context.current().request()),
         allowedFields);
   }
 
