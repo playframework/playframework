@@ -244,7 +244,19 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TooManyRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TOO_MANY_REQUEST"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TooManyRequest")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TooManyRequest"),
+      // Removed deprecated methods that depend on Java's Http.Context
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.changeLang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.clearLang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.ctx"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.flash"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.lang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.request"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.response"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.session"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.TODO"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.getUsername"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.onUnauthorized")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
