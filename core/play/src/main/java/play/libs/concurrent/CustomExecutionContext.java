@@ -37,6 +37,7 @@ public abstract class CustomExecutionContext implements ExecutionContextExecutor
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public ExecutionContext prepare() {
     return executionContext.prepare();
   }

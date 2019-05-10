@@ -7,6 +7,7 @@ package play.core.j
 import java.util.concurrent.Executor
 
 import play.mvc.Http
+import play.utils.ExecCtxUtils
 import scala.compat.java8.FutureConverters
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.ExecutionContext
@@ -87,7 +88,7 @@ class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionC
   override def reportFailure(t: Throwable) = delegate.reportFailure(t)
 
   override def prepare(): ExecutionContext = {
-    val delegatePrepared = delegate.prepare()
+    val delegatePrepared = ExecCtxUtils.prepare(delegate)
     if (delegatePrepared eq delegate) {
       this
     } else {
