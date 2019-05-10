@@ -262,32 +262,61 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testQuery_doubleEncoding() {
+  public void testGetQuery_doubleEncoding() {
     final String query =
         new Http.RequestBuilder().uri("path?query=x%2By").build().getQueryString("query");
     assertEquals("x+y", query);
   }
 
   @Test
-  public void testQuery_multipleParams() {
+  public void testQuery_doubleEncoding() {
+    final Optional<String> query =
+        new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
+    assertEquals(Optional.of("x+y"), query);
+  }
+
+  @Test
+  public void testGetQuery_multipleParams() {
     final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
     assertEquals("1", req.getQueryString("one"));
     assertEquals("a b", req.getQueryString("two"));
   }
 
   @Test
-  public void testQuery_emptyParam() {
+  public void testQuery_multipleParams() {
+    final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
+    assertEquals(Optional.of("1"), req.queryString("one"));
+    assertEquals(Optional.of("a b"), req.queryString("two"));
+  }
+
+  @Test
+  public void testGetQuery_emptyParam() {
     final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
     assertEquals(null, req.getQueryString("one"));
     assertEquals("a b", req.getQueryString("two"));
   }
 
   @Test
-  public void testUri_badEncoding() {
+  public void testQuery_emptyParam() {
+    final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
+    assertEquals(Optional.empty(), req.queryString("one"));
+    assertEquals(Optional.of("a b"), req.queryString("two"));
+  }
+
+  @Test
+  public void testGetUri_badEncoding() {
     final Request req =
         new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
     assertEquals("hello=world", req.getQueryString("one"));
     assertEquals("false", req.getQueryString("two"));
+  }
+
+  @Test
+  public void testUri_badEncoding() {
+    final Request req =
+        new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
+    assertEquals(Optional.of("hello=world"), req.queryString("one"));
+    assertEquals(Optional.of("false"), req.queryString("two"));
   }
 
   @Test
