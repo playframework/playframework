@@ -351,6 +351,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
 
+  override def queryString(key: String): Optional[String] = {
+    OptionConverters.toJava(header.queryString.get(key).flatMap(_.headOption))
+  }
+
   override def cookie(name: String): JCookie = {
     cookies().get(name)
   }
