@@ -135,24 +135,12 @@ object ActorSystemProvider {
   case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
 
   /**
-   * Start an ActorSystem, using the given configuration and ClassLoader.
+   * Start an ActorSystem, using the given configuration, ClassLoader, and optional additional ActorSystem Setups.
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
-    start(classLoader, config, additionalSetup = None)
-  }
 
-  /**
-   * Start an ActorSystem, using the given configuration, ClassLoader, and a list of additional ActorSystem Setups.
-   *
-   * @return The ActorSystem and a function that can be used to stop it.
-   */
-  def start(classLoader: ClassLoader, config: Configuration, additionalSetup: List[Setup]): ActorSystem = {
-    start(classLoader, config, Some(additionalSetup))
-  }
-
-  private def start(classLoader: ClassLoader, config: Configuration, additionalSetup: Option[List[Setup]]): ActorSystem = {
+   def start(classLoader: ClassLoader, config: Configuration, additionalSetups:Setup*): ActorSystem = {
     val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
     if (config.get[Boolean](exitJvmPath)) {
       // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
@@ -196,10 +184,8 @@ object ActorSystemProvider {
     val name = config.get[String]("play.akka.actor-system")
 
     val bootstrapSetup = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
-    val actorSystemSetup = additionalSetup match {
-      case Some(setup:List[Setup]) => ActorSystemSetup(bootstrapSetup +: setup:_*)
-      case None        => ActorSystemSetup(bootstrapSetup)
-    }
+    val actorSystemSetup = ActorSystemSetup(bootstrapSetup +: additionalSetups:_*)
+
 
     val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
