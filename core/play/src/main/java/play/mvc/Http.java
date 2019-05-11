@@ -2225,6 +2225,7 @@ public class Http {
      *
      * @return the request content parsed as URL form-encoded.
      */
+    @SuppressWarnings("unchecked")
     public Map<String, String[]> asFormUrlEncoded() {
       // Best effort, check if it's a map, then check if the first element in that map is String ->
       // String[].
