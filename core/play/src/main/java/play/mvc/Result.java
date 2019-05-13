@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -555,6 +556,26 @@ public class Result {
    */
   public Result withLang(Lang lang, MessagesApi messagesApi) {
     return messagesApi.setLang(this, lang);
+  }
+
+  /**
+   * Returns a new result with the given lang set in a cookie. For example:
+   *
+   * <pre>{@code
+   * public Result action() {
+   *     ok("Hello").withLang(new Locale("es"), messagesApi);
+   * }
+   * }</pre>
+   *
+   * Where {@code messagesApi} were injected.
+   *
+   * @param locale the new lang
+   * @param messagesApi the messages api implementation
+   * @return a new result with the given lang.
+   * @see MessagesApi#setLang(Result, Lang)
+   */
+  public Result withLang(Locale locale, MessagesApi messagesApi) {
+    return withLang(new Lang(locale), messagesApi);
   }
 
   /**
