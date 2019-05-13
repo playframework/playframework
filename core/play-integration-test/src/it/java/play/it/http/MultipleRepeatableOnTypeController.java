@@ -4,6 +4,7 @@
 
 package play.it.http;
 
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 
@@ -13,7 +14,7 @@ import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 @SomeRepeatable // once more, so makes it four
 public class MultipleRepeatableOnTypeController extends MockController {
 
-    public Result action() {
+    public Result action(Http.Request request) {
         return Results.ok();
     }
 

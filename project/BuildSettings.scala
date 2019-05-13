@@ -221,8 +221,17 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedMap.underlying"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$Implicits$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout$"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Add queryString method to RequestHeader interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.queryString"),
       // Removed deprecated method Database.toScala()
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.Database.toScala"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala"),
@@ -318,7 +327,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.JPAApi.withTransaction"),
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPAEntityManagerContext"),
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.Transactional"),
-      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction")
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction"),
+      // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

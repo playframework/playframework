@@ -325,7 +325,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def secure: Boolean = header.secure
 
   override def attrs: TypedMap                                        = new TypedMap(header.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.underlying()).asJava
+  override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.asScala).asJava
   override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
   override def removeAttr(key: TypedKey[_]): JRequestHeader           = withAttrs(attrs.remove(key))
 
@@ -347,8 +347,13 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
 
+  @deprecated
   override def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
+  }
+
+  override def queryString(key: String): Optional[String] = {
+    OptionConverters.toJava(header.getQueryString(key))
   }
 
   override def cookie(name: String): JCookie = {
@@ -378,13 +383,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
   override def asScala: Request[RequestBody] = request
 
-  override def attrs: TypedMap = new TypedMap(asScala.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequest =
-    new RequestImpl(request.withAttrs(newAttrs.underlying()))
-  override def addAttr[A](key: TypedKey[A], value: A): JRequest =
-    withAttrs(attrs.put(key, value))
-  override def removeAttr(key: TypedKey[_]): JRequest =
-    withAttrs(attrs.remove(key))
+  override def attrs: TypedMap                                  = new TypedMap(asScala.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequest          = new RequestImpl(request.withAttrs(newAttrs.asScala))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequest = withAttrs(attrs.put(key, value))
+  override def removeAttr(key: TypedKey[_]): JRequest           = withAttrs(attrs.remove(key))
 
   override def body: RequestBody                     = request.body
   override def hasBody: Boolean                      = request.hasBody

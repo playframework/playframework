@@ -76,7 +76,7 @@ public interface BodyParser<A> {
      *
      * @return the class
      */
-    Class<? extends BodyParser> value();
+    Class<? extends BodyParser<?>> value();
   }
 
   /** If the request has a body, guess the body content by checking the Content-Type header. */

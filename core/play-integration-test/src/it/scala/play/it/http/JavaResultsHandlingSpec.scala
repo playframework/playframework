@@ -80,7 +80,7 @@ trait JavaResultsHandlingSpec
     }
 
     "add Date header" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results.ok("Hello world")
       }
     }) { response =>
@@ -88,7 +88,7 @@ trait JavaResultsHandlingSpec
     }
 
     "work with non-standard HTTP response codes" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results.status(498)
       }
     }) { response =>
@@ -96,7 +96,7 @@ trait JavaResultsHandlingSpec
     }
 
     "add Content-Length for strict results" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results.ok("Hello world")
       }
     }) { response =>
@@ -105,7 +105,7 @@ trait JavaResultsHandlingSpec
     }
 
     "add Content-Length for streamed results" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         val body = Source.single(ByteString.fromString("1234567890"))
         Results.ok().streamed(body, Optional.of(10L), Optional.empty())
       }
@@ -115,7 +115,7 @@ trait JavaResultsHandlingSpec
     }
 
     "not add Content-Length for streamed results when it is not specified" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         val body = Source.single(ByteString.fromString("1234567890"))
         Results.ok().streamed(body, Optional.empty(), Optional.empty())
       }
@@ -125,7 +125,7 @@ trait JavaResultsHandlingSpec
     }
 
     "support responses with custom Content-Types" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         val entity = new HttpEntity.Strict(ByteString(0xff.toByte), Optional.of("schmitch/foo; bar=bax"))
         new StatusHeader(OK).sendEntity(entity)
       }
@@ -156,7 +156,7 @@ trait JavaResultsHandlingSpec
            |This is the epilogue.  It is also to be ignored.""".stripMargin
 
       makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           val entity = new HttpEntity.Strict(ByteString(body), Optional.of(contentType))
           new StatusHeader(OK).sendEntity(entity)
         }
@@ -169,7 +169,7 @@ trait JavaResultsHandlingSpec
     }
 
     "serve a JSON with UTF-8 charset" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
         Results.ok(objectNode)
@@ -183,7 +183,7 @@ trait JavaResultsHandlingSpec
     }
 
     "serve a XML with correct Content-Type" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results.ok("<name>marcos</name>").as("application/xml;charset=Windows-1252")
       }
     }) { response =>
@@ -197,7 +197,7 @@ trait JavaResultsHandlingSpec
     "when adding headers" should {
 
       "accept simple values" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", "foo")
         }
       }) { response =>
@@ -206,19 +206,16 @@ trait JavaResultsHandlingSpec
       }
 
       "treat headers case insensitively" in makeRequest(new MockController {
-        def action = {
-          response.setHeader("Server", "foo")
-          response.setHeader("server", "bar")
+        def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", "foo").withHeader("other", "bar")
         }
       }) { response =>
-        response.header("Server") must beSome("bar")
         response.header("Other") must beSome("bar")
         response.body must_== "Hello world"
       }
 
       "fail if adding null values" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", null)
         }
       }) { response =>
@@ -229,7 +226,7 @@ trait JavaResultsHandlingSpec
     "discard headers" should {
 
       "remove the header" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("Other")
         }
       }) { response =>
@@ -237,7 +234,7 @@ trait JavaResultsHandlingSpec
       }
 
       "treat headers case insensitively" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("other")
         }
       }) { response =>
@@ -247,45 +244,30 @@ trait JavaResultsHandlingSpec
 
     "discard cookies from result" in {
       "on the default path with no domain and that's not secure" in makeRequest(new MockController {
-        def action = {
-          response.discardCookie("Response-Discard")
+        def action(request: Http.Request) = {
           Results.ok("Hello world").discardingCookie("Result-Discard")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
-        )
         response.headers("Set-Cookie") must contain(
           (s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
         )
       }
 
       "on the given path with no domain and not that's secure" in makeRequest(new MockController {
-        def action = {
-          response.discardCookie("Response-Discard", "/path")
+        def action(request: Http.Request) = {
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.startsWith("Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
-        )
         response.headers("Set-Cookie") must contain(
           (s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
         )
       }
 
       "on the given path and domain that's not secure" in makeRequest(new MockController {
-        def action = {
-          response.discardCookie("Response-Discard", "/path", "playframework.com")
+        def action(request: Http.Request) = {
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) =>
-            s.startsWith(
-              "Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
-            )
-        )
         response.headers("Set-Cookie") must contain(
           (s: String) =>
             s.startsWith(
@@ -295,17 +277,10 @@ trait JavaResultsHandlingSpec
       }
 
       "on the given path and domain that's is secure" in makeRequest(new MockController {
-        def action = {
-          response.discardCookie("Response-Discard", "/path", "playframework.com", true)
+        def action(request: Http.Request) = {
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true)
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) =>
-            s.startsWith(
-              "Response-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
-            )
-        )
         response.headers("Set-Cookie") must contain(
           (s: String) =>
             s.startsWith(
@@ -316,7 +291,7 @@ trait JavaResultsHandlingSpec
     }
 
     "add cookies in Result" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results
           .ok("Hello world")
           .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
@@ -329,7 +304,7 @@ trait JavaResultsHandlingSpec
     }
 
     "add cookies with SameSite policy in Result" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results
           .ok("Hello world")
           .withCookies(Http.Cookie.builder("bar", "KitKat").withSameSite(Http.Cookie.SameSite.LAX).build())
@@ -347,7 +322,7 @@ trait JavaResultsHandlingSpec
     "change lang for result" should {
       "works for MessagesApi.setLang" in makeRequestWithApp() { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             val result          = Results.ok("Hello world")
             javaMessagesApi.setLang(result, Lang.forCode("pt-BR"))
@@ -361,7 +336,7 @@ trait JavaResultsHandlingSpec
 
       "works with Result.withLang" in makeRequestWithApp() { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
           }
@@ -378,7 +353,7 @@ trait JavaResultsHandlingSpec
         )
       ) { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
           }
@@ -395,7 +370,7 @@ trait JavaResultsHandlingSpec
         )
       ) { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
           }
@@ -412,7 +387,7 @@ trait JavaResultsHandlingSpec
         )
       ) { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
           }
@@ -428,7 +403,7 @@ trait JavaResultsHandlingSpec
     "clear lang for result" should {
       "works with MessagesApi.clearLang" in makeRequestWithApp() { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             val result          = Results.ok("Hello world")
             javaMessagesApi.clearLang(result)
@@ -442,7 +417,7 @@ trait JavaResultsHandlingSpec
 
       "works with Result.withoutLang" in makeRequestWithApp() { app =>
         new MockController() {
-          override def action: Result = {
+          override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             Results.ok("Hello world").withoutLang(javaMessagesApi)
           }
@@ -457,7 +432,7 @@ trait JavaResultsHandlingSpec
     "honor configuration for play.http.session.sameSite" in {
       "when configured to lax" in makeRequest(
         new MockController {
-          def action = {
+          def action(request: Http.Request) = {
             val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
             val body           = HttpEntity.fromString("Hello World", "utf-8")
             val session        = new Session(Map.empty[String, String].asJava)
@@ -476,7 +451,7 @@ trait JavaResultsHandlingSpec
 
       "when configured to strict" in makeRequest(
         new MockController {
-          def action = {
+          def action(request: Http.Request) = {
             val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
             val body           = HttpEntity.fromString("Hello World", "utf-8")
             val session        = new Session(Map.empty[String, String].asJava)
@@ -508,7 +483,7 @@ trait JavaResultsHandlingSpec
     }
 
     "handle duplicate cookies" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results
           .ok("Hello world")
           .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
@@ -519,20 +494,9 @@ trait JavaResultsHandlingSpec
       response.body must_== "Hello world"
     }
 
-    "add cookies in Response" in makeRequest(new MockController {
-      def action = {
-        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
-        Results.ok("Hello world")
-      }
-    }) { response =>
-      response.header("Set-Cookie").get must contain("foo=1;")
-      response.body must_== "Hello world"
-    }
-
-    "add transient cookies in Response" in makeRequest(new MockController {
-      def action = {
-        response.setCookie(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null))
-        Results.ok("Hello world")
+    "add transient cookies in Result" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
+        Results.ok("Hello world").withCookies(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null))
       }
     }) { response =>
       response.header("Set-Cookie").get.toLowerCase must not contain "max-age="
@@ -540,18 +504,16 @@ trait JavaResultsHandlingSpec
     }
 
     "clear Session" in makeRequest(new MockController {
-      def action = {
-        session.clear()
-        Results.ok("Hello world")
+      def action(request: Http.Request) = {
+        Results.ok("Hello world").withNewSession()
       }
     }) { response =>
       response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=0")
       response.body must_== "Hello world"
     }
 
-    "add cookies in both Response and Result" in makeRequest(new MockController {
-      def action = {
-        response.setCookie(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null))
+    "add cookies in Result" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
         Results
           .ok("Hello world")
           .withCookies(
@@ -560,19 +522,18 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.headers("Set-Cookie")(0) must contain("bar=KitKat")
-      response.headers("Set-Cookie")(1) must contain("foo=1")
       response.body must_== "Hello world"
     }
 
     "send strict results" in makeRequest(new MockController {
-      def action = Results.ok("Hello world")
+      def action(request: Http.Request) = Results.ok("Hello world")
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
     }
 
     "chunk comet results from string" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         import scala.collection.JavaConverters._
         val dataSource  = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
         val cometSource = dataSource.via(Comet.string("callback"))
@@ -587,7 +548,7 @@ trait JavaResultsHandlingSpec
     }
 
     "chunk comet results from json" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
         val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(Arrays.asList(objectNode))
@@ -601,7 +562,7 @@ trait JavaResultsHandlingSpec
     }
 
     "chunk event source results" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map {
           new akka.japi.function.Function[String, EventSource.Event] {
             def apply(t: String) = EventSource.Event.event(t)
@@ -620,7 +581,7 @@ trait JavaResultsHandlingSpec
     }
 
     "stream input stream responses as chunked" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")))
       }
     }) { response =>
@@ -629,7 +590,7 @@ trait JavaResultsHandlingSpec
     }
 
     "not chunk input stream results if a content length is set" in makeRequest(new MockController {
-      def action = {
+      def action(request: Http.Request) = {
         // chunk size 2 to force more than one chunk
         Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 5)
       }
@@ -641,7 +602,7 @@ trait JavaResultsHandlingSpec
 
     "when changing the content-type" should {
       "correct change it for strict entities" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           Results.ok("<h1>Hello</h1>").as(HTML)
         }
       }) { response =>
@@ -651,7 +612,7 @@ trait JavaResultsHandlingSpec
       }
 
       "correct change it for chunked entities" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(HTML)
@@ -663,7 +624,7 @@ trait JavaResultsHandlingSpec
       }
 
       "correct change it for streamed entities" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
           new Result(
             new ResponseHeader(200, java.util.Collections.emptyMap()),
@@ -676,7 +637,7 @@ trait JavaResultsHandlingSpec
       }
 
       "have no content type if set to null in strict entities" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           Results.ok("<h1>Hello</h1>").as(null)
         }
       }) { response =>
@@ -685,7 +646,7 @@ trait JavaResultsHandlingSpec
       }
 
       "have no content type if set to null in chunked entities" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(null)
@@ -695,7 +656,7 @@ trait JavaResultsHandlingSpec
       }
 
       "have no content type if set to null in streamed entities" in makeRequest(new MockController {
-        def action = {
+        def action(request: Http.Request) = {
           val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
           new Result(
             new ResponseHeader(200, java.util.Collections.emptyMap()),

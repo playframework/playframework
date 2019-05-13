@@ -30,15 +30,6 @@ public final class TypedMap {
     this.underlying = underlying;
   }
 
-  /**
-   * @return the underlying Scala TypedMap which this instance wraps.
-   * @deprecated As of release 2.6.8. Use {@link #asScala()}
-   */
-  @Deprecated
-  public play.api.libs.typedmap.TypedMap underlying() {
-    return underlying;
-  }
-
   /** @return the underlying Scala TypedMap which this instance wraps. */
   public play.api.libs.typedmap.TypedMap asScala() {
     return underlying;

@@ -991,8 +991,18 @@ public class Http {
      *
      * @param key the query string parameter to look up
      * @return the value for the provided <code>key</code>.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #queryString(String)} instead.
      */
+    @Deprecated
     String getQueryString(String key);
+
+    /**
+     * Helper method to access a queryString parameter.
+     *
+     * @param key the query string parameter to look up
+     * @return the value for the provided <code>key</code>, if it exists.
+     */
+    Optional<String> queryString(String key);
 
     /** @return the request cookies */
     Cookies cookies();
@@ -2215,6 +2225,7 @@ public class Http {
      *
      * @return the request content parsed as URL form-encoded.
      */
+    @SuppressWarnings("unchecked")
     public Map<String, String[]> asFormUrlEncoded() {
       // Best effort, check if it's a map, then check if the first element in that map is String ->
       // String[].

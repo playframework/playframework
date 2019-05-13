@@ -37,6 +37,7 @@ public class MultipartFormatter {
               } else if (part instanceof Http.MultipartFormData.FilePart) {
                 Http.MultipartFormData.FilePart<?> fp = (Http.MultipartFormData.FilePart<?>) part;
                 if (fp.ref instanceof Source) {
+                  @SuppressWarnings("unchecked")
                   Source<ByteString, ?> ref = (Source<ByteString, ?>) fp.ref;
                   Option<String> ct = Option.apply(fp.getContentType());
                   return new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(

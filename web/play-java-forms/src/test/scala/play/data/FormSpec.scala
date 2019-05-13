@@ -5,16 +5,11 @@
 package play.data
 
 import java.nio.file.Files
-import java.nio.file.Path
 import java.util
-import java.util.Collections
 import java.util.Optional
 import java.time.LocalDate
 import java.time.ZoneId
 
-import akka.stream.javadsl.FileIO
-import akka.stream.javadsl.Source
-import akka.util.ByteString
 import javax.validation.Validation
 import javax.validation.ValidatorFactory
 import javax.validation.{ Configuration => vConfiguration }
@@ -30,21 +25,16 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
 import play.components.TemporaryFileComponents
-import play.core.j.JavaContextComponents
 import play.data.validation.ValidationError
-import play.libs.F.Tuple
 import play.libs.Files.TemporaryFile
 import play.libs.Files.TemporaryFileCreator
 import play.mvc.EssentialFilter
 import play.mvc.Http
-import play.mvc.Http.Context
 import play.mvc.Http.Request
-import play.mvc.Http.RequestBody
 import play.mvc.Http.RequestBuilder
-import play.mvc.Http.MultipartFormData.DataPart
 import play.mvc.Http.MultipartFormData.FilePart
-import play.mvc.Http.MultipartFormData.Part
 import play.routing.Router
+import play.test.Helpers
 import play.twirl.api.Html
 
 import scala.beans.BeanProperty
@@ -53,9 +43,6 @@ import scala.compat.java8.OptionConverters._
 
 class RuntimeDependencyInjectionFormSpec extends FormSpec {
   private var app: Option[Application] = None
-
-  override def defaultContextComponents: JavaContextComponents =
-    app.getOrElse(application()).injector.instanceOf[JavaContextComponents]
 
   override def formFactory: FormFactory = app.getOrElse(application()).injector.instanceOf[FormFactory]
 
@@ -113,9 +100,6 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
     components = Option(myComponents)
     myComponents.application().asScala()
   }
-
-  override def defaultContextComponents: JavaContextComponents =
-    components.getOrElse(new MyComponents(ApplicationLoader.create(play.Environment.simple()))).javaContextComponents()
 }
 
 trait CommonFormSpec extends Specification {
@@ -188,7 +172,6 @@ trait FormSpec extends CommonFormSpec {
   def formFactory: FormFactory
   def tempFileCreator: TemporaryFileCreator
   def application(extraConfig: (String, Any)*): Application
-  def defaultContextComponents: JavaContextComponents
 
   "a java form" should {
 
@@ -202,11 +185,8 @@ trait FormSpec extends CommonFormSpec {
             "task.endDate" -> Array("2008-11-21")
           )
         )
-        Context.current.set(
-          new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-        )
 
-        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
+        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
         myForm.hasErrors() must beEqualTo(false)
       }
       "be valid with all fields with direct field access" in {
@@ -234,24 +214,16 @@ trait FormSpec extends CommonFormSpec {
             "task.dueDate" -> Array("15/12/2009")
           )
         )
-        Context.current.set(
-          new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-        )
 
-        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
+        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
 
         myForm.hasErrors() must beEqualTo(true)
         myForm.field("task.name").value.asScala must beSome("peter")
       }
       "have an error due to missing required value" in new WithApplication(application()) {
-        val contextComponents = defaultContextComponents
-
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
-        Context.current.set(
-          new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, contextComponents)
-        )
 
-        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest()
+        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
         myForm.hasErrors() must beEqualTo(true)
         myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
       }
@@ -273,11 +245,8 @@ trait FormSpec extends CommonFormSpec {
           "endDate" -> Array("2008-11-21")
         )
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
     }
     "be valid with all fields with direct field access" in {
@@ -312,11 +281,8 @@ trait FormSpec extends CommonFormSpec {
       val req = FormSpec.dummyRequest(
         Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"))
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
     }
     "query params ignored when using POST" in {
@@ -325,11 +291,8 @@ trait FormSpec extends CommonFormSpec {
         "POST",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getName() must beEqualTo("peter")
       myForm.value().get().getId() must beEqualTo(null)
@@ -340,11 +303,8 @@ trait FormSpec extends CommonFormSpec {
         "PUT",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getName() must beEqualTo("peter")
       myForm.value().get().getId() must beEqualTo(null)
@@ -355,11 +315,8 @@ trait FormSpec extends CommonFormSpec {
         "PATCH",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getName() must beEqualTo("peter")
       myForm.value().get().getId() must beEqualTo(null)
@@ -371,11 +328,8 @@ trait FormSpec extends CommonFormSpec {
         "GET",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
         LocalDate.of(2009, 12, 15)
@@ -389,11 +343,8 @@ trait FormSpec extends CommonFormSpec {
         "DELETE",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
         LocalDate.of(2009, 12, 15)
@@ -407,11 +358,8 @@ trait FormSpec extends CommonFormSpec {
         "HEAD",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
         LocalDate.of(2009, 12, 15)
@@ -425,11 +373,8 @@ trait FormSpec extends CommonFormSpec {
         "OPTIONS",
         "?name=michael&id=55555"
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
       myForm.value().get().getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() must beEqualTo(
         LocalDate.of(2009, 12, 15)
@@ -442,11 +387,8 @@ trait FormSpec extends CommonFormSpec {
       val req = FormSpec.dummyRequest(
         Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(2)
       myForm.errors("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date")
@@ -461,38 +403,27 @@ trait FormSpec extends CommonFormSpec {
       val req = FormSpec.dummyRequest(
         Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.get must throwAn[IllegalStateException]
     }
     "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication(
       application()
     ) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.value().get().getId() must_== null
       myForm.value().get().getName() must_== null
     }
-    "have an error due to badly formatted date after using setTransientLang" in new WithApplication(
+    "have an error due to badly formatted date after using withTransientLang" in new WithApplication(
       application("play.i18n.langs" -> Seq("en", "en-US", "fr"))
     ) {
       val req = FormSpec.dummyRequest(
         Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      Context.current.get().setTransientLang("fr")
-
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req.withTransientLang("fr"))
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
       myForm
@@ -515,19 +446,19 @@ trait FormSpec extends CommonFormSpec {
         .get(0)
         .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
     }
-    "have an error due to badly formatted date after using changeLang" in new WithApplication(
+    "have an error due to badly formatted date when using lang cookie" in new WithApplication(
       application("play.i18n.langs" -> Seq("en", "en-US", "fr"))
     ) {
-      val req = FormSpec.dummyRequest(
-        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
-      )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
+      val req = new RequestBuilder()
+        .method("POST")
+        .uri("http://localhost/test")
+        .bodyFormArrayValues(
+          Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")).asJava
+        )
+        .cookie(Http.Cookie.builder(Helpers.stubMessagesApi().langCookieName(), "fr").build())
+        .build()
 
-      Context.current.get().changeLang("fr")
-
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
       myForm
@@ -552,11 +483,8 @@ trait FormSpec extends CommonFormSpec {
     }
     "have an error due to missing required value" in new WithApplication(application()) {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
     }
@@ -581,11 +509,8 @@ trait FormSpec extends CommonFormSpec {
       val req = FormSpec.dummyRequest(
         Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009"))
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("id").get(0).messages().asScala must contain("error.invalid")
     }
@@ -599,11 +524,8 @@ trait FormSpec extends CommonFormSpec {
           "endDate" -> Array("2008-11e-21")
         )
       )
-      Context.current.set(
-        new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava, defaultContextComponents)
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest()
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("endDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
     }
