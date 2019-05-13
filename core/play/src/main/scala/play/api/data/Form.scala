@@ -483,22 +483,22 @@ trait Mapping[T] {
   /**
    * The field key.
    */
-  val key: String
+  def key: String
 
   /**
    * Sub-mappings (these can be seen as sub-keys).
    */
-  val mappings: Seq[Mapping[_]]
+  def mappings: Seq[Mapping[_]]
 
   /**
    * The Format expected for this field, if it exists.
    */
-  val format: Option[(String, Seq[Any])] = None
+  def format: Option[(String, Seq[Any])] = None
 
   /**
    * The constraints associated with this field.
    */
-  val constraints: Seq[Constraint[T]]
+  def constraints: Seq[Constraint[T]]
 
   /**
    * Binds this field, i.e. construct a concrete value from submitted data.
