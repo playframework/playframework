@@ -6,6 +6,7 @@ package play.it.http
 
 import java.io.ByteArrayInputStream
 import java.util.Arrays
+import java.util.Locale
 import java.util.Optional
 
 import akka.NotUsed
@@ -339,6 +340,19 @@ trait JavaResultsHandlingSpec
           override def action(request: Http.Request): Result = {
             val javaMessagesApi = app.injector.instanceOf[MessagesApi]
             Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
+        )
+      }
+
+      "works with Result.withLang(locale)" in makeRequestWithApp() { app =>
+        new MockController() {
+          override def action(request: Http.Request): Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(new Locale("pt", "BR"), javaMessagesApi)
           }
         }
       } { response =>
