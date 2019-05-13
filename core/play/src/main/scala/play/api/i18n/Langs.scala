@@ -128,6 +128,8 @@ object Lang {
    */
   def get(code: String): Option[Lang] = Try(apply(code)).toOption
 
+  val logger = Logger(getClass)
+
   private val langsCache = Application.instanceCache[Langs]
 }
 
@@ -179,12 +181,13 @@ class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) 
 
 @Singleton
 class DefaultLangsProvider @Inject()(config: Configuration) extends Provider[Langs] {
+  import Lang.logger
 
   def availables: Seq[Lang] = {
     val langs = config
       .getOptional[String]("application.langs")
       .map { langsStr =>
-        Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
+        logger.warn("application.langs is deprecated, use play.i18n.langs instead")
         langsStr.split(",").map(_.trim).toSeq
       }
       .getOrElse {

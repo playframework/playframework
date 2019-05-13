@@ -263,7 +263,7 @@ class Logger private (val logger: Slf4jLogger, isEnabled: => Boolean) extends Lo
  * Logger("my.logger").info("Hello!")
  * }}}
  */
-object Logger extends Logger(LoggerFactory.getLogger("application")) { // TODO: After Play 2.7 this should simply become: object Logger {
+object Logger {
 
   private[this] val log: Slf4jLogger = LoggerFactory.getLogger(getClass)
 
@@ -321,63 +321,6 @@ object Logger extends Logger(LoggerFactory.getLogger("application")) { // TODO: 
    */
   def apply(clazz: Class[_]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
 
-  // ### Deprecate inherited methods from Logger and LoggerLike
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def enabled: Boolean = super.enabled
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def forMode(mode: Mode*): Logger = super.forMode(mode: _*)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def isTraceEnabled(implicit mc: MarkerContext): Boolean = super.isTraceEnabled
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def isDebugEnabled(implicit mc: MarkerContext): Boolean = super.isDebugEnabled
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def isInfoEnabled(implicit mc: MarkerContext): Boolean = super.isInfoEnabled
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def isWarnEnabled(implicit mc: MarkerContext): Boolean = super.isWarnEnabled
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def isErrorEnabled(implicit mc: MarkerContext): Boolean = super.isErrorEnabled
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def trace(message: => String)(implicit mc: MarkerContext): Unit = super.trace(message)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def trace(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
-    super.trace(message, error)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def debug(message: => String)(implicit mc: MarkerContext): Unit = super.debug(message)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def debug(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
-    super.debug(message, error)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def info(message: => String)(implicit mc: MarkerContext): Unit = super.info(message)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def info(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
-    super.info(message, error)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def warn(message: => String)(implicit mc: MarkerContext): Unit = super.warn(message)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def warn(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
-    super.warn(message, error)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def error(message: => String)(implicit mc: MarkerContext): Unit = super.error(message)
-
-  @deprecated("Create an instance of via Logger(...) and use the same-named method. Or use SLF4J directly.", "2.7.0")
-  override def error(message: => String, error: => Throwable)(implicit mc: MarkerContext): Unit =
-    super.error(message, error)
 }
 
 /**

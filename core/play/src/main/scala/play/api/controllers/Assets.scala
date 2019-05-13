@@ -641,6 +641,7 @@ private class AssetInfo(
  * }}}
  */
 object Assets {
+  private val logger = Logger(getClass)
 
   import ResponseHeader.basicDateFormatPattern
 
@@ -675,14 +676,14 @@ object Assets {
         }
       } catch {
         case e: IllegalArgumentException =>
-          Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+          logger.debug(s"An invalid date was received: couldn't parse: $date", e)
           None
         case e: DateTimeParseException =>
-          Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+          logger.debug(s"An invalid date was received: couldn't parse: $date", e)
           None
       }
     } else {
-      Logger.debug(s"An invalid date was received: unrecognized format: $date")
+      logger.debug(s"An invalid date was received: unrecognized format: $date")
       None
     }
   }

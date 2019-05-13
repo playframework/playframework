@@ -98,6 +98,7 @@ private[evolutions] object DatabaseUrlPatterns {
  * Defines Evolutions utilities functions.
  */
 object Evolutions {
+  private val logger = Logger(getClass)
 
   /**
    * Default evolutions directory location.
@@ -252,7 +253,7 @@ object Evolutions {
         cleanupEvolutions(database, autocommit, schema)
       } catch {
         case e: Exception =>
-          Logger.warn("Error resetting evolutions", e)
+          logger.warn("Error resetting evolutions", e)
       }
     }
   }

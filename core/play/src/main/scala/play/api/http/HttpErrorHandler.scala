@@ -132,6 +132,7 @@ class DefaultHttpErrorHandler(
     sourceMapper: Option[SourceMapper] = None,
     router: => Option[Router] = None
 ) extends HttpErrorHandler {
+  private val logger = Logger(getClass)
 
   /**
    * @param environment The environment
@@ -271,7 +272,7 @@ class DefaultHttpErrorHandler(
 
     } catch {
       case NonFatal(e) =>
-        Logger.error("Error while handling error", e)
+        logger.error("Error while handling error", e)
         Future.successful(InternalServerError)
     }
   }
@@ -285,7 +286,7 @@ class DefaultHttpErrorHandler(
    * @param usefulException The server error.
    */
   protected def logServerError(request: RequestHeader, usefulException: UsefulException): Unit = {
-    Logger.error(
+    logger.error(
       """
         |
         |! @%s - Internal server error, for (%s) [%s] ->
@@ -370,6 +371,7 @@ object HttpErrorHandlerExceptions {
  */
 class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[SourceMapper] = None)
     extends HttpErrorHandler {
+  private val logger = Logger(getClass)
 
   @Inject
   def this(environment: Environment, optionalSourceMapper: OptionalSourceMapper) = {
@@ -420,7 +422,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
       )
     } catch {
       case NonFatal(e) =>
-        Logger.error("Error while handling error", e)
+        logger.error("Error while handling error", e)
         Future.successful(InternalServerError)
     }
 
@@ -461,7 +463,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
    * @param usefulException The server error.
    */
   protected def logServerError(request: RequestHeader, usefulException: UsefulException): Unit = {
-    Logger.error(
+    logger.error(
       """
         |
         |! @%s - Internal server error, for (%s) [%s] ->

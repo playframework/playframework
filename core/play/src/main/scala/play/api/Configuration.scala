@@ -178,6 +178,8 @@ object Configuration {
   }
 
   private[Configuration] def asScalaList[A](l: java.util.List[A]): Seq[A] = asScalaBufferConverter(l).asScala.toList
+
+  private[Configuration] val logger = Logger(getClass)
 }
 
 /**
@@ -189,10 +191,11 @@ object Configuration {
  */
 case class Configuration(underlying: Config) {
   import Configuration.asScalaList
+  import Configuration.logger
 
   private[play] def reportDeprecation(path: String, deprecated: String): Unit = {
     val origin = underlying.getValue(deprecated).origin
-    Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead")
+    logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead")
   }
 
   /**

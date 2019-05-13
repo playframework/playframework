@@ -236,6 +236,20 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // play.api.Logger$ no longer extends play.api.Logger
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.Logger$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.debug"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.enabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.error"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.forMode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.info"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isDebugEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isErrorEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isInfoEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isTraceEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isWarnEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.trace"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.warn"),
       // Add queryString method to RequestHeader interface
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.queryString"),
       // Add getCookie method to RequestHeader interface
