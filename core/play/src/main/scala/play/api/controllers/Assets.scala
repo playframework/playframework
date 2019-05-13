@@ -640,19 +640,7 @@ private class AssetInfo(
  * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
  * }}}
  */
-object Assets extends AssetsBuilder(LazyHttpErrorHandler, StaticAssetsMetadata) {
-
-  @deprecated("Inject Assets and use Assets#at", "2.6.0")
-  override def at(file: String) = super.at(file)
-
-  @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
-  override def versioned(file: String) = super.versioned(file)
-
-  @deprecated("Inject Assets and use Assets#at", "2.6.0")
-  override def at(path: String, file: String, aggressiveCaching: Boolean) = super.at(path, file, aggressiveCaching)
-
-  @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
-  override def versioned(path: String, file: Asset) = super.versioned(path, file)
+object Assets {
 
   import ResponseHeader.basicDateFormatPattern
 

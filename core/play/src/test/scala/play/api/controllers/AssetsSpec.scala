@@ -8,12 +8,14 @@ import java.time.Instant
 
 import org.specs2.mutable.Specification
 import play.api.http.DefaultFileMimeTypesProvider
+import play.api.http.DefaultHttpErrorHandler
 import play.api.http.FileMimeTypes
 import play.api.http.FileMimeTypesConfiguration
 import play.api.mvc.ResponseHeader
 import play.utils.InvalidUriEncodingException
 
 class AssetsSpec extends Specification {
+  val Assets = new AssetsBuilder(new DefaultHttpErrorHandler(), StaticAssetsMetadata)
 
   "Assets controller" should {
 

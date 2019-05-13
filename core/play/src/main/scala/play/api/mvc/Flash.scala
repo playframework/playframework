@@ -139,46 +139,10 @@ class LegacyFlashCookieBaker @Inject()(
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
-object Flash extends CookieBaker[Flash] with UrlEncodedCookieDataCodec {
+object Flash {
 
   val emptyCookie = new Flash
 
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = javaFlash.asScala
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override val isSigned: Boolean = false
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  def config: FlashConfiguration = HttpConfiguration.current.flash
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def path: String = HttpConfiguration.current.context
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def cookieSigner: CookieSigner = play.api.libs.Crypto.cookieSigner
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def COOKIE_NAME: String = config.cookieName
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def secure: Boolean = config.secure
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def maxAge = None
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def httpOnly: Boolean = config.httpOnly
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def domain: Option[String] = config.domain
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def sameSite: Option[Cookie.SameSite] = config.sameSite
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def deserialize(data: Map[String, String]): Flash = new Flash(data)
-
-  @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
-  override def serialize(flash: Flash): Map[String, String] = flash.data
 
 }
