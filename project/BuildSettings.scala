@@ -238,6 +238,13 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#Cookies.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Result.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultAsyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultSyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.SyncCacheApiAdapter.getOptional"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.DefaultSyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // play.api.Logger$ no longer extends play.api.Logger

@@ -64,7 +64,7 @@ public class JavaEhCache extends WithApplication {
       block(result);
     }
     // #get
-    CompletionStage<Optional<News>> news = cache.getOptional("item.key");
+    CompletionStage<Optional<News>> news = cache.get("item.key");
     // #get
     assertThat(block(news).get(), equalTo(frontPageNews));
     // #get-or-else
@@ -82,7 +82,7 @@ public class JavaEhCache extends WithApplication {
       // #removeAll
       block(result);
     }
-    assertThat(cache.sync().getOptional("item.key"), equalTo(Optional.empty()));
+    assertThat(cache.sync().get("item.key"), equalTo(Optional.empty()));
   }
 
   private CompletionStage<News> lookUpFrontPageNews() {
@@ -111,7 +111,7 @@ public class JavaEhCache extends WithApplication {
         contentAsString(
             call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
         equalTo("Hello world"));
-    assertThat(cache.sync().getOptional("homePage").get(), notNullValue());
+    assertThat(cache.sync().get("homePage").get(), notNullValue());
     cache.set("homePage", Results.ok("something else"));
     assertThat(
         contentAsString(
