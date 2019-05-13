@@ -1010,8 +1010,16 @@ public class Http {
     /**
      * @param name Name of the cookie to retrieve
      * @return the cookie, if found, otherwise null
+     * @deprecated Deprecated as of 2.8.0. Use {@link #getCookie(String)} instead.
      */
+    @Deprecated
     Cookie cookie(String name);
+
+    /**
+     * @param name Name of the cookie to retrieve
+     * @return the cookie, if found
+     */
+    Optional<Cookie> getCookie(String name);
 
     /**
      * Parses the Session cookie and returns the Session data. The request's session cookie is
