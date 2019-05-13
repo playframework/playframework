@@ -497,19 +497,6 @@ class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: Exec
   def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = this(parser: BodyParser[AnyContent])
 }
 
-/**
- * Helper object to create `Action` values.
- */
-@deprecated(
-  "Inject an ActionBuilder (e.g. DefaultActionBuilder)" + " or extend BaseController/AbstractController/InjectedController",
-  "2.6.0"
-)
-object Action extends DefaultActionBuilder {
-  override def executionContext: ExecutionContext                                         = play.core.Execution.internalContext
-  override def parser: BodyParser[AnyContent]                                             = BodyParsers.parse.default
-  override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
-}
-
 /* NOTE: the following are all example uses of ActionFunction, each subtly
  * different but useful in different ways. They may not all be necessary. */
 
