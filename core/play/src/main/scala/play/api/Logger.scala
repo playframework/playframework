@@ -23,7 +23,7 @@ trait LoggerLike {
   /**
    * The underlying SLF4J Logger.
    */
-  val logger: Slf4jLogger
+  def logger: Slf4jLogger
 
   /**
    * The underlying SLF4J Logger.
@@ -36,56 +36,31 @@ trait LoggerLike {
    * `true` if the logger instance is enabled for the `TRACE` level.
    */
   def isTraceEnabled(implicit mc: MarkerContext): Boolean =
-    enabled && (mc.marker match {
-      case None =>
-        logger.isTraceEnabled
-      case Some(marker) =>
-        logger.isTraceEnabled(marker)
-    })
+    enabled && mc.marker.fold(logger.isTraceEnabled)(logger.isTraceEnabled)
 
   /**
    * `true` if the logger instance is enabled for the `DEBUG` level.
    */
   def isDebugEnabled(implicit mc: MarkerContext): Boolean =
-    enabled && (mc.marker match {
-      case None =>
-        logger.isDebugEnabled
-      case Some(marker) =>
-        logger.isDebugEnabled(marker)
-    })
+    enabled && mc.marker.fold(logger.isDebugEnabled)(logger.isDebugEnabled)
 
   /**
    * `true` if the logger instance is enabled for the `INFO` level.
    */
   def isInfoEnabled(implicit mc: MarkerContext): Boolean =
-    enabled && (mc.marker match {
-      case None =>
-        logger.isInfoEnabled
-      case Some(marker) =>
-        logger.isInfoEnabled(marker)
-    })
+    enabled && mc.marker.fold(logger.isInfoEnabled)(logger.isInfoEnabled)
 
   /**
    * `true` if the logger instance is enabled for the `WARN` level.
    */
   def isWarnEnabled(implicit mc: MarkerContext): Boolean =
-    enabled && (mc.marker match {
-      case None =>
-        logger.isWarnEnabled()
-      case Some(marker) =>
-        logger.isWarnEnabled(marker)
-    })
+    enabled && mc.marker.fold(logger.isWarnEnabled)(logger.isWarnEnabled)
 
   /**
    * `true` if the logger instance is enabled for the `ERROR` level.
    */
   def isErrorEnabled(implicit mc: MarkerContext): Boolean =
-    enabled && (mc.marker match {
-      case None =>
-        logger.isErrorEnabled()
-      case Some(marker) =>
-        logger.isErrorEnabled(marker)
-    })
+    enabled && mc.marker.fold(logger.isErrorEnabled)(logger.isErrorEnabled)
 
   /**
    * Logs a message with the `TRACE` level.
