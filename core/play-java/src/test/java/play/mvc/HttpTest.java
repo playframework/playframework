@@ -6,6 +6,7 @@ package play.mvc;
 
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.typesafe.config.Config;
@@ -418,8 +419,8 @@ public class HttpTest {
             Context.current.set(ctx);
 
             // Let's make sure the request (and its cookie) is returned from the context methods
-            assertThat(Context.current().request().cookie("location").value())
-                .isEqualTo("contextrequest");
+            assertThat(Context.current().request().getCookie("location").map(c -> c.value()))
+                .isEqualTo(Optional.of("contextrequest"));
 
             Http.Request request =
                 new RequestBuilder()
@@ -448,8 +449,8 @@ public class HttpTest {
             Context.current.set(ctx);
 
             // Let's make sure the request (and its cookie) is returned from the context methods
-            assertThat(Context.current().request().cookie("location").value())
-                .isEqualTo("contextrequest");
+            assertThat(Context.current().request().getCookie("location").map(c -> c.value()))
+                .isEqualTo(Optional.of("contextrequest"));
 
             Http.Request request =
                 new RequestBuilder()
