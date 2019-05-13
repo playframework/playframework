@@ -18,7 +18,7 @@ class ServerSpec extends PlaySpecification {
     ({
       case ("GET", "/httpServerTag") =>
         Action { implicit request =>
-          val httpServer = request.attrs.get(RequestAttrKey.Server).getOrElse("unknown")
+          val httpServer = request.attrs.get(RequestAttrKey.Server).getOrElse("akka-http")
           Ok(httpServer)
         }
     })
