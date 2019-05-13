@@ -58,8 +58,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
     "work with default singleton apply method with all default options" in new WithApplication() {
       val filter = SecurityHeadersFilter()
-      // Play.current is set at this point...
-      val rh = FakeRequest()
+      val rh     = FakeRequest()
 
       val Action = app.injector.instanceOf[DefaultActionBuilder]
       val action = Action(Ok("success"))
