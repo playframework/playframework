@@ -61,50 +61,31 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
     val components = new play.BuiltInComponentsFromContext(context(configuration)) {
 
       override def javaHandlerComponents(): MappedJavaHandlerComponents = {
-        import java.util.function.{ Supplier => JSupplier }
         super
           .javaHandlerComponents()
           .addAction(
             classOf[ActionCompositionOrderTest.ActionComposition],
-            new JSupplier[ActionCompositionOrderTest.ActionComposition] {
-              override def get(): ActionCompositionOrderTest.ActionComposition =
-                new ActionCompositionOrderTest.ActionComposition()
-            }
+            () => new ActionCompositionOrderTest.ActionComposition(),
           )
           .addAction(
             classOf[ActionCompositionOrderTest.ControllerComposition],
-            new JSupplier[ActionCompositionOrderTest.ControllerComposition] {
-              override def get(): ActionCompositionOrderTest.ControllerComposition =
-                new ActionCompositionOrderTest.ControllerComposition()
-            }
+            () => new ActionCompositionOrderTest.ControllerComposition(),
           )
           .addAction(
             classOf[ActionCompositionOrderTest.WithUsernameAction],
-            new JSupplier[ActionCompositionOrderTest.WithUsernameAction] {
-              override def get(): ActionCompositionOrderTest.WithUsernameAction =
-                new ActionCompositionOrderTest.WithUsernameAction()
-            }
+            () => new ActionCompositionOrderTest.WithUsernameAction(),
           )
           .addAction(
             classOf[ActionCompositionOrderTest.FirstAction],
-            new JSupplier[ActionCompositionOrderTest.FirstAction] {
-              override def get(): ActionCompositionOrderTest.FirstAction =
-                new ActionCompositionOrderTest.FirstAction()
-            }
+            () => new ActionCompositionOrderTest.FirstAction(),
           )
           .addAction(
             classOf[ActionCompositionOrderTest.SecondAction],
-            new JSupplier[ActionCompositionOrderTest.SecondAction] {
-              override def get(): ActionCompositionOrderTest.SecondAction =
-                new ActionCompositionOrderTest.SecondAction()
-            }
+            () => new ActionCompositionOrderTest.SecondAction(),
           )
           .addAction(
             classOf[ActionCompositionOrderTest.SomeActionAnnotationAction],
-            new JSupplier[ActionCompositionOrderTest.SomeActionAnnotationAction] {
-              override def get(): ActionCompositionOrderTest.SomeActionAnnotationAction =
-                new ActionCompositionOrderTest.SomeActionAnnotationAction()
-            }
+            () => new ActionCompositionOrderTest.SomeActionAnnotationAction(),
           )
       }
 
@@ -477,4 +458,4 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 }
 
 @ControllerAnnotation
-abstract class ComposedController extends MockController {}
+abstract class ComposedController extends MockController
