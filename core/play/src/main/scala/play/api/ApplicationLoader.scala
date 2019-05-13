@@ -174,7 +174,7 @@ object ApplicationLoader {
       case Some(Left(scalaClass)) =>
         scalaClass.getDeclaredConstructor().newInstance()
       case Some(Right(javaClass)) =>
-        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+        val javaApplicationLoader: play.ApplicationLoader = javaClass.getDeclaredConstructor().newInstance()
         // Create an adapter from a Java to a Scala ApplicationLoader. This class is
         // effectively anonymous, but let's give it a name to make debugging easier.
         class JavaApplicationLoaderAdapter extends ApplicationLoader {
