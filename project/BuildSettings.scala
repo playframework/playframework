@@ -245,6 +245,27 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.moveTo"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveTo"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // play.api.Logger$ no longer extends play.api.Logger
