@@ -234,6 +234,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.unsafeApplication"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
+      // Renamed methods back to original name
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Result.cookie"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.get"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // play.api.Logger$ no longer extends play.api.Logger

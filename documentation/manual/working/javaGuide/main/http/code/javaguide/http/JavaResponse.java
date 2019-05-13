@@ -100,7 +100,7 @@ public class JavaResponse extends WithApplication {
                 mat)
             .cookies();
 
-    Optional<Cookie> cookie = cookies.getCookie("theme");
+    Optional<Cookie> cookie = cookies.get("theme");
     assertTrue(cookie.isPresent());
     assertThat(cookie.get().value(), equalTo("blue"));
   }
@@ -129,7 +129,7 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .cookies();
-    Optional<Cookie> cookieOpt = cookies.getCookie("theme");
+    Optional<Cookie> cookieOpt = cookies.get("theme");
 
     assertTrue(cookieOpt.isPresent());
 
@@ -158,7 +158,7 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .cookies();
-    Optional<Cookie> cookie = cookies.getCookie("theme");
+    Optional<Cookie> cookie = cookies.get("theme");
     assertTrue(cookie.isPresent());
     assertThat(cookie.get().name(), equalTo("theme"));
     assertThat(cookie.get().value(), equalTo(""));

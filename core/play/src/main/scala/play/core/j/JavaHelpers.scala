@@ -57,11 +57,7 @@ trait JavaHelpers {
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
 
-      override def get(name: String): JCookie = {
-        cookies.get(name).map(_.asJava).orNull
-      }
-
-      override def getCookie(name: String): Optional[JCookie] = {
+      override def get(name: String): Optional[JCookie] = {
         Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
       }
 
@@ -358,11 +354,11 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   @deprecated
   override def cookie(name: String): JCookie = {
-    cookies().get(name)
+    cookies().get(name).orElse(null)
   }
 
   override def getCookie(name: String): Optional[JCookie] = {
-    cookies().getCookie(name)
+    cookies().get(name)
   }
 
   override def hasBody: Boolean = header.hasBody
