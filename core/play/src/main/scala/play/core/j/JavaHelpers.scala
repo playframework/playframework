@@ -369,6 +369,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
 
+  @deprecated
   override def withTransientLang(code: String): JRequestHeader = withTransientLang(play.i18n.Lang.forCode(code))
 
   override def withTransientLang(locale: Locale): JRequestHeader = withTransientLang(new play.i18n.Lang(locale))
@@ -395,6 +396,7 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
 
   override def withTransientLang(lang: play.i18n.Lang): JRequest =
     addAttr(i18n.Messages.Attrs.CurrentLang, lang)
+  @deprecated
   override def withTransientLang(code: String): JRequest =
     withTransientLang(play.i18n.Lang.forCode(code))
   override def withTransientLang(locale: Locale): JRequest =
