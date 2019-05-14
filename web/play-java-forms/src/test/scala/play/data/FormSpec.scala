@@ -26,6 +26,7 @@ import play.api.test.WithApplication
 import play.api.Application
 import play.components.TemporaryFileComponents
 import play.data.validation.ValidationError
+import play.i18n.Lang
 import play.libs.Files.TemporaryFile
 import play.libs.Files.TemporaryFileCreator
 import play.mvc.EssentialFilter
@@ -455,7 +456,7 @@ trait FormSpec extends CommonFormSpec {
         .bodyFormArrayValues(
           Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")).asJava
         )
-        .cookie(Http.Cookie.builder(Helpers.stubMessagesApi().langCookieName(), "fr").build())
+        .langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi())
         .build()
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
