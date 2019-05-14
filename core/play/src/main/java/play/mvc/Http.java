@@ -3403,18 +3403,18 @@ public class Http {
     /**
      * @param name Name of the cookie to retrieve
      * @return the cookie that is associated with the given name
-     * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
      */
-    @Deprecated
-    default Cookie get(String name) {
-      return getCookie(name).get();
-    }
+    Optional<Cookie> get(String name);
 
     /**
      * @param name Name of the cookie to retrieve
      * @return the optional cookie that is associated with the given name
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #get(String)}
      */
-    Optional<Cookie> getCookie(String name);
+    @Deprecated
+    default Optional<Cookie> getCookie(String name) {
+      return get(name);
+    }
   }
 
   /** Defines all standard HTTP headers. */

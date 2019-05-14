@@ -80,7 +80,9 @@ public final class Files {
      *
      * @param destination the path to the destination file
      * @see #moveFileTo(Path, boolean)
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #moveTo(File)}.
      */
+    @Deprecated
     default Path moveFileTo(File destination) {
       return moveFileTo(destination, false);
     }
@@ -92,7 +94,9 @@ public final class Files {
      *
      * @param destination the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #moveTo(File, boolean)}.
      */
+    @Deprecated
     Path moveFileTo(File destination, boolean replace);
 
     /**
@@ -100,7 +104,9 @@ public final class Files {
      *
      * @param to the path to the destination file.
      * @see #moveFileTo(Path, boolean)
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #moveTo(Path)}.
      */
+    @Deprecated
     default Path moveFileTo(Path to) {
       return moveFileTo(to, false);
     }
@@ -111,7 +117,9 @@ public final class Files {
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
      * @see #moveFileTo(Path, boolean)
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #moveTo(Path, boolean)}.
      */
+    @Deprecated
     default Path moveFileTo(Path to, boolean replace) {
       return moveFileTo(to.toFile(), replace);
     }
@@ -121,10 +129,8 @@ public final class Files {
      *
      * @param destination the path to the destination file
      * @see #moveTo(Path, boolean)
-     * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(File)} instead.
      */
-    @Deprecated
-    default TemporaryFile moveTo(File destination) {
+    default Path moveTo(File destination) {
       return moveTo(destination, false);
     }
 
@@ -135,20 +141,16 @@ public final class Files {
      *
      * @param destination the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(File, boolean)} instead.
      */
-    @Deprecated
-    TemporaryFile moveTo(File destination, boolean replace);
+    Path moveTo(File destination, boolean replace);
 
     /**
      * Move the file using a {@link java.nio.file.Path}.
      *
      * @param to the path to the destination file.
      * @see #moveTo(Path, boolean)
-     * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(Path)} instead.
      */
-    @Deprecated
-    default TemporaryFile moveTo(Path to) {
+    default Path moveTo(Path to) {
       return moveTo(to, false);
     }
 
@@ -158,10 +160,8 @@ public final class Files {
      * @param to the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
      * @see #moveTo(Path, boolean)
-     * @deprecated Deprecated as of 2.7.0. Use {@link #moveFileTo(Path, boolean)} instead.
      */
-    @Deprecated
-    default TemporaryFile moveTo(Path to, boolean replace) {
+    default Path moveTo(Path to, boolean replace) {
       return moveTo(to.toFile(), replace);
     }
 
@@ -173,7 +173,9 @@ public final class Files {
      * more predictable.
      *
      * @param to the path to the destination file
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #atomicMoveWithFallback(File)}.
      */
+    @Deprecated
     Path atomicMoveFileWithFallback(File to);
 
     /**
@@ -184,7 +186,9 @@ public final class Files {
      * more predictable.
      *
      * @param to the path to the destination file
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #atomicMoveWithFallback(Path)}.
      */
+    @Deprecated
     default Path atomicMoveFileWithFallback(Path to) {
       return atomicMoveFileWithFallback(to.toFile());
     }
@@ -197,10 +201,8 @@ public final class Files {
      * more predictable.
      *
      * @param to the path to the destination file
-     * @deprecated Deprecated as of 2.7.0. Use {@link #atomicMoveFileWithFallback(File)} instead.
      */
-    @Deprecated
-    TemporaryFile atomicMoveWithFallback(File to);
+    Path atomicMoveWithFallback(File to);
 
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
@@ -210,10 +212,8 @@ public final class Files {
      * more predictable.
      *
      * @param to the path to the destination file
-     * @deprecated Deprecated as of 2.7.0. Use {@link #atomicMoveFileWithFallback(Path)} instead.
      */
-    @Deprecated
-    default TemporaryFile atomicMoveWithFallback(Path to) {
+    default Path atomicMoveWithFallback(Path to) {
       return atomicMoveWithFallback(to.toFile());
     }
   }
@@ -281,15 +281,14 @@ public final class Files {
     }
 
     @Override
+    @Deprecated
     public Path moveFileTo(File to, boolean replace) {
-      return temporaryFile.moveFileTo(to, replace);
+      return moveTo(to, replace);
     }
 
     @Override
-    @Deprecated
-    public TemporaryFile moveTo(File to, boolean replace) {
-      return new DelegateTemporaryFile(
-          temporaryFile.moveTo(to, replace), this.temporaryFileCreator);
+    public Path moveTo(File to, boolean replace) {
+      return temporaryFile.moveTo(to, replace);
     }
 
     @Override
@@ -298,15 +297,14 @@ public final class Files {
     }
 
     @Override
+    @Deprecated
     public Path atomicMoveFileWithFallback(File to) {
-      return temporaryFile.atomicMoveFileWithFallback(to.toPath());
+      return atomicMoveWithFallback(to);
     }
 
     @Override
-    @Deprecated
-    public TemporaryFile atomicMoveWithFallback(File to) {
-      return new DelegateTemporaryFile(
-          temporaryFile.atomicMoveWithFallback(to.toPath()), this.temporaryFileCreator);
+    public Path atomicMoveWithFallback(File to) {
+      return temporaryFile.atomicMoveWithFallback(to.toPath());
     }
   }
 

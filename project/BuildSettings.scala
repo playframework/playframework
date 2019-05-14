@@ -234,6 +234,38 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.unsafeApplication"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
+      // Renamed methods back to original name
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Result.cookie"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultAsyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultSyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.SyncCacheApiAdapter.getOptional"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.DefaultSyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.moveTo"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveTo"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // play.api.Logger$ no longer extends play.api.Logger

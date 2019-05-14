@@ -120,7 +120,7 @@ package scalaguide.upload.fileupload {
 
       //#upload-file-directly-action
       def upload = Action(parse.temporaryFile) { request =>
-        request.body.moveFileTo(Paths.get("/tmp/picture/uploaded"), replace = true)
+        request.body.moveTo(Paths.get("/tmp/picture/uploaded"), replace = true)
         Ok("File uploaded")
       }
       //#upload-file-directly-action
