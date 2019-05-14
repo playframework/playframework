@@ -1114,7 +1114,9 @@ public class Http {
      *
      * @param code The language to use.
      * @return The new version of this object with the given transient language set.
+     * @deprecated Deprecated as of 2.8.0 Use {@link #withTransientLang(Lang)} instead.
      */
+    @Deprecated
     default RequestHeader withTransientLang(String code) {
       return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
     }
@@ -1186,6 +1188,7 @@ public class Http {
     }
 
     // Override return type and provide default implementation
+    @Deprecated
     default Request withTransientLang(String code) {
       return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
     }
@@ -1966,7 +1969,9 @@ public class Http {
      *
      * @param code The language to use.
      * @return the builder instance
+     * @deprecated Deprecated as of 2.8.0 Use {@link #transientLang(Lang)} instead.
      */
+    @Deprecated
     public RequestBuilder transientLang(String code) {
       req = req.withTransientLang(code);
       return this;
