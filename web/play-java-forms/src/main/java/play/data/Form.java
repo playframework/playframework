@@ -926,7 +926,6 @@ public class Form<T> {
               new ValidationPayload(
                   lang,
                   lang != null ? new MessagesImpl(lang, this.messagesApi) : null,
-                  Http.Context.safeCurrent().map(ctx -> ctx.args).orElse(null),
                   attrs,
                   this.config);
           final Validator validator =
