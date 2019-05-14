@@ -18,8 +18,8 @@ import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
+import play.test.Helpers;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -223,6 +223,41 @@ public class RequestBuilderTest {
 
     // Language attr should be removed
     assertFalse(builder.withoutTransientLang().build().transientLang().isPresent());
+  }
+
+  @Test
+  public void testNewRequestsShouldNotHaveALangCookie() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Request request = builder.build();
+    assertNull(request.cookie(Helpers.stubMessagesApi().langCookieName()));
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
+  public void testAddALangCookieToRequestBuilder() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Lang lang = new Lang(Locale.GERMAN);
+    Request request = builder.langCookie(lang, Helpers.stubMessagesApi()).build();
+
+    assertEquals(lang.code(), request.cookie(Helpers.stubMessagesApi().langCookieName()).value());
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
+  public void testAddALangCookieByLocaleToRequestBuilder() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Locale locale = Locale.GERMAN;
+    Request request = builder.langCookie(locale, Helpers.stubMessagesApi()).build();
+
+    assertEquals(
+        locale.toLanguageTag(), request.cookie(Helpers.stubMessagesApi().langCookieName()).value());
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
 
   @Test

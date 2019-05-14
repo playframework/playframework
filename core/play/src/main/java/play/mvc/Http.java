@@ -1933,6 +1933,30 @@ public class Http {
     }
 
     /**
+     * Sets given lang in a cookie.
+     *
+     * @param lang The language to use.
+     * @return the builder instance
+     */
+    public RequestBuilder langCookie(Lang lang, MessagesApi messagesApi) {
+      return Results.ok()
+          .withLang(lang, messagesApi)
+          .getCookie(messagesApi.langCookieName())
+          .map(this::cookie)
+          .orElse(this);
+    }
+
+    /**
+     * Sets given lang in a cookie.
+     *
+     * @param locale The language to use.
+     * @return the builder instance
+     */
+    public RequestBuilder langCookie(Locale locale, MessagesApi messagesApi) {
+      return langCookie(new Lang(locale), messagesApi);
+    }
+
+    /**
      * Sets the transient language.
      *
      * @param lang The language to use.
