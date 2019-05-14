@@ -234,6 +234,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.unsafeApplication"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.JavaScriptReverseRouter.create"),
       // Renamed methods back to original name
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#Cookies.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Result.cookie"),
