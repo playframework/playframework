@@ -26,4 +26,16 @@ public class JavaScriptReverseRouter {
     return play.api.routing.JavaScriptReverseRouter.apply(
         name, Scala.Option(ajaxMethod), host, Scala.varargs(routes));
   }
+
+  /**
+   * Generates a JavaScript reverse router.
+   *
+   * @param name the router's name
+   * @param host the host to use for the reverse route
+   * @param routes the reverse routes for this router
+   * @return the router
+   */
+  public static JavaScript create(String name, String host, JavaScriptReverseRoute... routes) {
+    return create(name, "jQuery.ajax", host, routes);
+  }
 }

@@ -17,7 +17,6 @@ public class Application extends Controller {
   public Result javascriptRoutes(Http.Request request) {
     return ok(JavaScriptReverseRouter.create(
             "jsRoutes",
-            "jQuery.ajax",
             request.host(),
             routes.javascript.Users.list(),
             routes.javascript.Users.get()))
