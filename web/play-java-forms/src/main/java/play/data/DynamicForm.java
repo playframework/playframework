@@ -253,17 +253,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   }
 
   @Override
-  @Deprecated
-  public DynamicForm bindFromRequest(String... allowedFields) {
-    return bind(
-        Http.Context.current().messages().lang(),
-        Http.Context.current().request().attrs(),
-        requestData(Http.Context.current().request()),
-        requestFileData(Http.Context.current().request()),
-        allowedFields);
-  }
-
-  @Override
   public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
     return bind(
         this.messagesApi.preferred(request).lang(),
@@ -271,13 +260,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         requestData(request),
         requestFileData(request),
         allowedFields);
-  }
-
-  @Override
-  @Deprecated
-  public DynamicForm bindFromRequest(Map<String, String[]> requestData, String... allowedFields) {
-    return bindFromRequestData(
-        ctxLang(), ctxRequestAttrs(), requestData, Collections.emptyMap(), allowedFields);
   }
 
   @Override
@@ -293,12 +275,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   }
 
   @Override
-  @Deprecated
-  public DynamicForm bind(JsonNode data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
-  }
-
-  @Override
   public DynamicForm bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
     return bind(
         lang,
@@ -307,12 +283,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
             play.api.data.FormUtils.fromJson(
                 "", play.api.libs.json.Json.parse(play.libs.Json.stringify(data)))),
         allowedFields);
-  }
-
-  @Override
-  @Deprecated
-  public DynamicForm bind(Map<String, String> data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
   }
 
   @Override
