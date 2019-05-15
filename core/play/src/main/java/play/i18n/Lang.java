@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import play.Application;
 import play.libs.*;
-import scala.collection.immutable.Seq;
 
 import static java.util.stream.Collectors.toList;
 
@@ -94,5 +93,10 @@ public class Lang extends play.api.i18n.Lang {
     List<play.api.i18n.Lang> langSeq =
         stream.map(l -> new play.api.i18n.Lang(l.toLocale())).collect(toList());
     return new Lang(langs.preferred(Scala.toSeq(langSeq)));
+  }
+
+  /** The default Lang (platform default). */
+  public static Lang defaultLang() {
+    return play.api.i18n.Lang.defaultLang().asJava();
   }
 }
