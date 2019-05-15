@@ -222,6 +222,9 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.Constraints#ValidationPayload.getArgs"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.Constraints#ValidationPayload.this"),
+      // Remove deprecated
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedMap.underlying"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$"),
