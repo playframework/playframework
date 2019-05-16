@@ -38,8 +38,8 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
     val action = new EssentialAction {
       override def apply(req: RequestHeader): Accumulator[ByteString, Result] = {
         req match {
-          case r: Request[A] => Accumulator.done(block(r))
-          case _             => Accumulator.done(block(req.withBody(request.body)))
+          case r: Request[A @unchecked] => Accumulator.done(block(r))
+          case _                        => Accumulator.done(block(req.withBody(request.body)))
         }
       }
     }

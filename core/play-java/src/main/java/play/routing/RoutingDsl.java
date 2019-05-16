@@ -249,7 +249,7 @@ public class RoutingDsl {
       }
       start = result.end();
     }
-    sb.append(Pattern.quote(pathPattern.substring(start, pathPattern.length())));
+    sb.append(Pattern.quote(pathPattern.substring(start)));
 
     Pattern regex = Pattern.compile(sb.toString());
 
@@ -278,13 +278,18 @@ public class RoutingDsl {
     if (builtIn != null) {
       return builtIn;
     } else if (play.mvc.PathBindable.class.isAssignableFrom(clazz)) {
-      return PathBindable$.MODULE$.javaPathBindable((ClassTag) ClassTag$.MODULE$.apply(clazz));
+      return javaPathBindableFor(clazz);
     } else if (clazz.equals(Object.class)) {
       // Special case for object, treat as a string
       return PathBindable.bindableString$.MODULE$;
     } else {
       throw new IllegalArgumentException("Don't know how to bind argument of type " + clazz);
     }
+  }
+
+  private static <A extends play.mvc.PathBindable<A>> PathBindable<?> javaPathBindableFor(
+      Class<?> clazz) {
+    return PathBindable$.MODULE$.<A>javaPathBindable(ClassTag$.MODULE$.apply(clazz));
   }
 
   private static class Route {

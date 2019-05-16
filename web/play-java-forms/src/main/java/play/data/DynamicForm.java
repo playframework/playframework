@@ -200,6 +200,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
    * @param key the string key.
    * @return the value, or null if there is no match.
    */
+  @SuppressWarnings("unchecked") // cross your fingers
   public <A> Http.MultipartFormData.FilePart<A> file(String key) {
     try {
       return (Http.MultipartFormData.FilePart<A>) get().getData().get(asNormalKey(key));
@@ -330,19 +331,17 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         field.constraints(),
         field.format(),
         field.errors(),
-        field
-            .value()
-            .orElse(value(key).map(v -> v instanceof String ? (String) v : null).orElse(null)),
-        field
-            .file()
-            .orElse(
-                value(key)
-                    .map(
-                        v ->
-                            v instanceof Http.MultipartFormData.FilePart
-                                ? (Http.MultipartFormData.FilePart) v
-                                : null)
-                    .orElse(null)));
+        field.value().orElse((String) value(key).filter(v -> v instanceof String).orElse(null)),
+        fieldFile(key, field));
+  }
+
+  @SuppressWarnings("unchecked")
+  private <A> Http.MultipartFormData.FilePart<A> fieldFile(String key, Field field) {
+    return field
+        .<A>file()
+        .orElse(
+            (Http.MultipartFormData.FilePart<A>)
+                value(key).filter(v -> v instanceof Http.MultipartFormData.FilePart).orElse(null));
   }
 
   @Override
