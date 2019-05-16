@@ -39,13 +39,7 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
   }
 
   @Override
-  @Deprecated
-  public <T> CompletionStage<T> get(String key) {
-    return toJava(asyncCacheApi.get(key, Scala.<T>classTag())).thenApply(Scala::orNull);
-  }
-
-  @Override
-  public <T> CompletionStage<Optional<T>> getOptional(String key) {
+  public <T> CompletionStage<Optional<T>> get(String key) {
     return toJava(asyncCacheApi.get(key, Scala.<T>classTag())).thenApply(OptionConverters::toJava);
   }
 

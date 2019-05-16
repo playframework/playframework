@@ -16,6 +16,7 @@ import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
+import play.test.Helpers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -220,6 +221,44 @@ public class RequestBuilderTest {
 
     // Language attr should be removed
     assertFalse(builder.withoutTransientLang().build().transientLang().isPresent());
+  }
+
+  @Test
+  public void testNewRequestsShouldNotHaveALangCookie() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Request request = builder.build();
+    assertFalse(request.getCookie(Helpers.stubMessagesApi().langCookieName()).isPresent());
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
+  public void testAddALangCookieToRequestBuilder() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Lang lang = new Lang(Locale.GERMAN);
+    Request request = builder.langCookie(lang, Helpers.stubMessagesApi()).build();
+
+    assertEquals(
+        Optional.of(lang.code()),
+        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(c -> c.value()));
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
+  public void testAddALangCookieByLocaleToRequestBuilder() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Locale locale = Locale.GERMAN;
+    Request request = builder.langCookie(locale, Helpers.stubMessagesApi()).build();
+
+    assertEquals(
+        Optional.of(locale.toLanguageTag()),
+        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(c -> c.value()));
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
 
   @Test

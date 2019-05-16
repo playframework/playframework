@@ -57,17 +57,9 @@ trait JavaHelpers {
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
 
-      override def get(name: String): JCookie = {
-        cookies.get(name).map(_.asJava).orNull
-      }
+      override def get(name: String): Optional[JCookie] = Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
 
-      override def getCookie(name: String): Optional[JCookie] = {
-        Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
-      }
-
-      def iterator: java.util.Iterator[JCookie] = {
-        cookies.toIterator.map(_.asJava).asJava
-      }
+      def iterator: java.util.Iterator[JCookie] = cookies.toIterator.map(_.asJava).asJava
     }
   }
 
@@ -314,15 +306,11 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def asScala: RequestHeader = header
 
-  override def uri: String = header.uri
-
-  override def method: String = header.method
-
-  override def version: String = header.version
-
+  override def uri: String           = header.uri
+  override def method: String        = header.method
+  override def version: String       = header.version
   override def remoteAddress: String = header.remoteAddress
-
-  override def secure: Boolean = header.secure
+  override def secure: Boolean       = header.secure
 
   override def attrs: TypedMap                                        = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.asScala).asJava
@@ -332,7 +320,6 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
   override def host: String = header.host
-
   override def path: String = header.path
 
   override def acceptLanguages: util.List[i18n.Lang] = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
@@ -352,18 +339,11 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
 
-  override def queryString(key: String): Optional[String] = {
-    OptionConverters.toJava(header.getQueryString(key))
-  }
+  override def queryString(key: String): Optional[String] = OptionConverters.toJava(header.getQueryString(key))
 
-  @deprecated
-  override def cookie(name: String): JCookie = {
-    cookies().get(name)
-  }
+  @deprecated override def cookie(name: String): JCookie = cookies().get(name).orElse(null)
 
-  override def getCookie(name: String): Optional[JCookie] = {
-    cookies().getCookie(name)
-  }
+  override def getCookie(name: String): Optional[JCookie] = cookies().get(name)
 
   override def hasBody: Boolean = header.hasBody
 
@@ -373,6 +353,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
 
+  @deprecated
   override def withTransientLang(code: String): JRequestHeader = withTransientLang(play.i18n.Lang.forCode(code))
 
   override def withTransientLang(locale: Locale): JRequestHeader = withTransientLang(new play.i18n.Lang(locale))
@@ -399,6 +380,7 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
 
   override def withTransientLang(lang: play.i18n.Lang): JRequest =
     addAttr(i18n.Messages.Attrs.CurrentLang, lang)
+  @deprecated
   override def withTransientLang(code: String): JRequest =
     withTransientLang(play.i18n.Lang.forCode(code))
   override def withTransientLang(locale: Locale): JRequest =

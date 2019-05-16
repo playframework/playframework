@@ -868,42 +868,26 @@ public class Http {
       return (Long) attrs().get(RequestAttrKey.Id().asJava());
     }
 
-    /**
-     * The complete request URI, containing both path and query string.
-     *
-     * @return the uri
-     */
+    /** @return The complete request URI, containing both path and query string */
     String uri();
 
-    /**
-     * The HTTP Method.
-     *
-     * @return the http method
-     */
+    /** @return the HTTP Method */
     String method();
 
-    /**
-     * The HTTP version.
-     *
-     * @return the version
-     */
+    /** @return the HTTP version */
     String version();
 
     /**
      * The client IP address.
      *
-     * <p>retrieves the last untrusted proxy from the Forwarded-Headers or the
+     * <p>Retrieves the last untrusted proxy from the Forwarded-Headers or the
      * X-Forwarded-*-Headers.
      *
      * @return the remote address
      */
     String remoteAddress();
 
-    /**
-     * Is the client using SSL?
-     *
-     * @return true that the client is using SSL
-     */
+    /** @return true if the client is using SSL */
     boolean secure();
 
     /** @return a map of typed attributes associated with the request. */
@@ -943,18 +927,10 @@ public class Http {
      */
     Request withBody(RequestBody body);
 
-    /**
-     * The request host.
-     *
-     * @return the host
-     */
+    /** @return the request host */
     String host();
 
-    /**
-     * The URI path.
-     *
-     * @return the path
-     */
+    /** @return the URI path */
     String path();
 
     /**
@@ -963,7 +939,7 @@ public class Http {
      *
      * @return the preference-ordered list of languages accepted by the client
      */
-    List<play.i18n.Lang> acceptLanguages();
+    List<Lang> acceptLanguages();
 
     /**
      * @return The media types set in the request Accept header, sorted by preference (preferred
@@ -1066,25 +1042,13 @@ public class Http {
       return getHeaders().contains(headerName);
     }
 
-    /**
-     * Checks if the request has a body.
-     *
-     * @return true if request has a body, false otherwise.
-     */
+    /** @return true if request has a body, false otherwise. */
     boolean hasBody();
 
-    /**
-     * Get the content type of the request.
-     *
-     * @return The request content type excluding the charset, if it exists.
-     */
+    /** @return The request content type excluding the charset, if it exists. */
     Optional<String> contentType();
 
-    /**
-     * Get the charset of the request.
-     *
-     * @return The request charset, which comes from the content type header, if it exists.
-     */
+    /** @return The request charset, which comes from the content type header, if it exists. */
     Optional<String> charset();
 
     /**
@@ -1114,7 +1078,9 @@ public class Http {
      *
      * @param code The language to use.
      * @return The new version of this object with the given transient language set.
+     * @deprecated Deprecated as of 2.8.0 Use {@link #withTransientLang(Lang)} instead.
      */
+    @Deprecated
     default RequestHeader withTransientLang(String code) {
       return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
     }
@@ -1151,8 +1117,6 @@ public class Http {
     }
 
     /**
-     * Return the Scala version of the request header.
-     *
      * @return the Scala version for this request header.
      * @see play.api.mvc.RequestHeader
      */
@@ -1162,11 +1126,7 @@ public class Http {
   /** An HTTP request. */
   public interface Request extends RequestHeader {
 
-    /**
-     * The request body.
-     *
-     * @return the body
-     */
+    /** @return the request body */
     RequestBody body();
 
     Request withBody(RequestBody body);
@@ -1186,6 +1146,7 @@ public class Http {
     }
 
     // Override return type and provide default implementation
+    @Deprecated
     default Request withTransientLang(String code) {
       return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
     }
@@ -1200,12 +1161,7 @@ public class Http {
       return removeAttr(Messages.Attrs.CurrentLang);
     }
 
-    /**
-     * Return the Scala version of the request
-     *
-     * @return the underlying request.
-     * @see play.api.mvc.Request
-     */
+    /** @return the underlying (Scala API) request. */
     play.api.mvc.Request<RequestBody> asScala();
   }
 
@@ -1360,7 +1316,9 @@ public class Http {
                           ""))
               .sum();
       long fileSizeSum =
-          multipartFormData.getFiles().stream().mapToLong(filePart -> filePart.getFileSize()).sum();
+          multipartFormData.getFiles().stream()
+              .mapToLong(MultipartFormData.FilePart::getFileSize)
+              .sum();
 
       long length = dataSizeSum + fileHeadersSizeSum + fileSizeSum;
 
@@ -1667,11 +1625,7 @@ public class Http {
       return this;
     }
 
-    /**
-     * Get the request attributes.
-     *
-     * @return the request builder's request attributes.
-     */
+    /** @return the request builder's request attributes. */
     public TypedMap attrs() {
       return new TypedMap(req.attrs());
     }
@@ -1951,6 +1905,30 @@ public class Http {
     }
 
     /**
+     * Sets given lang in a cookie.
+     *
+     * @param lang The language to use.
+     * @return the builder instance
+     */
+    public RequestBuilder langCookie(Lang lang, MessagesApi messagesApi) {
+      return Results.ok()
+          .withLang(lang, messagesApi)
+          .cookie(messagesApi.langCookieName())
+          .map(this::cookie)
+          .orElse(this);
+    }
+
+    /**
+     * Sets given lang in a cookie.
+     *
+     * @param locale The language to use.
+     * @return the builder instance
+     */
+    public RequestBuilder langCookie(Locale locale, MessagesApi messagesApi) {
+      return langCookie(new Lang(locale), messagesApi);
+    }
+
+    /**
      * Sets the transient language.
      *
      * @param lang The language to use.
@@ -1966,7 +1944,9 @@ public class Http {
      *
      * @param code The language to use.
      * @return the builder instance
+     * @deprecated Deprecated as of 2.8.0 Use {@link #transientLang(Lang)} instead.
      */
+    @Deprecated
     public RequestBuilder transientLang(String code) {
       req = req.withTransientLang(code);
       return this;
@@ -2002,11 +1982,7 @@ public class Http {
   /** Handle the request body a raw bytes data. */
   public abstract static class RawBuffer {
 
-    /**
-     * Buffer size.
-     *
-     * @return the buffer size
-     */
+    /** @return the buffer size */
     public abstract Long size();
 
     /**
@@ -2017,18 +1993,10 @@ public class Http {
      */
     public abstract ByteString asBytes(int maxLength);
 
-    /**
-     * Returns the buffer content as a bytes array
-     *
-     * @return the bytes
-     */
+    /** @return the buffer content as a bytes array */
     public abstract ByteString asBytes();
 
-    /**
-     * Returns the buffer content as File
-     *
-     * @return the file
-     */
+    /** @return the buffer content as a file */
     public abstract File asFile();
   }
 
@@ -2095,29 +2063,17 @@ public class Http {
         this.fileSize = fileSize;
       }
 
-      /**
-       * The part name.
-       *
-       * @return the part name
-       */
+      /** @return the part name */
       public String getKey() {
         return key;
       }
 
-      /**
-       * The file name.
-       *
-       * @return the file name
-       */
+      /** @return the file name */
       public String getFilename() {
         return filename;
       }
 
-      /**
-       * The file Content-Type
-       *
-       * @return the content type
-       */
+      /** @return the file content type */
       public String getContentType() {
         return contentType;
       }
@@ -2131,20 +2087,12 @@ public class Http {
         return ref;
       }
 
-      /**
-       * The disposition type.
-       *
-       * @return the disposition type
-       */
+      /** @return the disposition type */
       public String getDispositionType() {
         return dispositionType;
       }
 
-      /**
-       * The size of the file in bytes.
-       *
-       * @return the size of the file in bytes
-       */
+      /** @return the size of the file in bytes */
       public long getFileSize() {
         return fileSize;
       }
@@ -2159,20 +2107,12 @@ public class Http {
         this.value = value;
       }
 
-      /**
-       * The part name.
-       *
-       * @return the part name
-       */
+      /** @return the part name */
       public String getKey() {
         return key;
       }
 
-      /**
-       * The part value.
-       *
-       * @return the part value
-       */
+      /** @return the part value */
       public String getValue() {
         return value;
       }
@@ -2252,38 +2192,22 @@ public class Http {
       return null;
     }
 
-    /**
-     * The request content as Array bytes.
-     *
-     * @return The request content as Array bytes.
-     */
+    /** @return The request content as Array bytes. */
     public RawBuffer asRaw() {
       return as(RawBuffer.class);
     }
 
-    /**
-     * The request content as text.
-     *
-     * @return The request content as text.
-     */
+    /** @return The request content as text. */
     public String asText() {
       return as(String.class);
     }
 
-    /**
-     * The request content as XML.
-     *
-     * @return The request content as XML.
-     */
+    /** @return The request content as XML. */
     public Document asXml() {
       return as(Document.class);
     }
 
-    /**
-     * The request content as Json.
-     *
-     * @return The request content as Json.
-     */
+    /** @return The request content as Json. */
     public JsonNode asJson() {
       return as(JsonNode.class);
     }
@@ -2389,8 +2313,7 @@ public class Http {
   @Deprecated
   public static class Response implements HeaderNames {
 
-    private final Map<String, String> headers =
-        new TreeMap<>((Comparator<String>) String::compareToIgnoreCase);
+    private final Map<String, String> headers = new TreeMap<>(String::compareToIgnoreCase);
     private final List<Cookie> cookies = new ArrayList<>();
 
     /**
@@ -2409,11 +2332,7 @@ public class Http {
       this.headers.put(name, value);
     }
 
-    /**
-     * Gets the current response headers.
-     *
-     * @return the current response headers.
-     */
+    /** @return the current response headers. */
     public Map<String, String> getHeaders() {
       return headers;
     }
@@ -3298,7 +3217,6 @@ public class Http {
     /**
      * @param name the cookie builder name
      * @param value the cookie builder value
-     * @return the cookie builder with the specified name and value
      */
     private CookieBuilder(String name, String value) {
       this.name = name;
@@ -3403,22 +3321,22 @@ public class Http {
     /**
      * @param name Name of the cookie to retrieve
      * @return the cookie that is associated with the given name
-     * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
      */
-    @Deprecated
-    default Cookie get(String name) {
-      return getCookie(name).get();
-    }
+    Optional<Cookie> get(String name);
 
     /**
      * @param name Name of the cookie to retrieve
      * @return the optional cookie that is associated with the given name
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #get(String)}
      */
-    Optional<Cookie> getCookie(String name);
+    @Deprecated
+    default Optional<Cookie> getCookie(String name) {
+      return get(name);
+    }
   }
 
   /** Defines all standard HTTP headers. */
-  public static interface HeaderNames {
+  public interface HeaderNames {
 
     String ACCEPT = "Accept";
     String ACCEPT_CHARSET = "Accept-Charset";
@@ -3603,7 +3521,7 @@ public class Http {
   }
 
   /** Standard HTTP Verbs */
-  public static interface HttpVerbs {
+  public interface HttpVerbs {
     String GET = "GET";
     String POST = "POST";
     String PUT = "PUT";

@@ -118,7 +118,7 @@ public final class TypedMap {
     return underlying.toString();
   }
 
-  private static TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
+  private static final TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
 
   /** @return the empty <code>TypedMap</code> instance. */
   public static TypedMap empty() {

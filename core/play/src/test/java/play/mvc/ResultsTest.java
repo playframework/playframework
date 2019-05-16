@@ -72,7 +72,7 @@ public class ResultsTest {
             .withCookies(Http.Cookie.builder("cookie-name", "cookie value").build())
             .as(Http.MimeTypes.HTML);
 
-    assertEquals("cookie value", result.getCookie("cookie-name").get().value());
+    assertEquals("cookie value", result.cookie("cookie-name").get().value());
   }
 
   // -- Path tests
@@ -208,8 +208,8 @@ public class ResultsTest {
     Result result =
         Results.ok()
             .withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
-    assertTrue(result.getCookie("foo").isPresent());
-    assertEquals(result.getCookie("foo").get().name(), "foo");
-    assertFalse(result.getCookie("bar").isPresent());
+    assertTrue(result.cookie("foo").isPresent());
+    assertEquals(result.cookie("foo").get().name(), "foo");
+    assertFalse(result.cookie("bar").isPresent());
   }
 }

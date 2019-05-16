@@ -14,11 +14,9 @@ public interface SyncCacheApi {
    *
    * @param <T> the type of the stored object
    * @param key the key to look up
-   * @return the object or null
-   * @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead.
+   * @return the object wrapped in an Optional
    */
-  @Deprecated
-  <T> T get(String key);
+  <T> Optional<T> get(String key);
 
   /**
    * Retrieves an object by key.
@@ -26,8 +24,12 @@ public interface SyncCacheApi {
    * @param <T> the type of the stored object
    * @param key the key to look up
    * @return the object wrapped in an Optional
+   * @deprecated Deprecated as of 2.8.0. Renamed to {@link #get(String)}.
    */
-  <T> Optional<T> getOptional(String key);
+  @Deprecated
+  default <T> Optional<T> getOptional(String key) {
+    return get(key);
+  }
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.

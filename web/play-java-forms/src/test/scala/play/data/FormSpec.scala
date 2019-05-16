@@ -26,8 +26,10 @@ import play.api.test.WithApplication
 import play.api.Application
 import play.components.TemporaryFileComponents
 import play.data.validation.ValidationError
+import play.i18n.Lang
 import play.libs.Files.TemporaryFile
 import play.libs.Files.TemporaryFileCreator
+import play.libs.typedmap.TypedMap
 import play.mvc.EssentialFilter
 import play.mvc.Http
 import play.mvc.Http.Request
@@ -455,7 +457,7 @@ trait FormSpec extends CommonFormSpec {
         .bodyFormArrayValues(
           Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")).asJava
         )
-        .cookie(Http.Cookie.builder(Helpers.stubMessagesApi().langCookieName(), "fr").build())
+        .langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi())
         .build()
 
       val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
@@ -584,13 +586,13 @@ trait FormSpec extends CommonFormSpec {
       data.put("name", "Kiki")
 
       val userForm1: Form[AnotherUser] = formFactory.form(classOf[AnotherUser])
-      val user1                        = userForm1.bind(new java.util.HashMap[String, String]()).get()
+      val user1                        = userForm1.bind(Lang.defaultLang, TypedMap.empty(), new java.util.HashMap[String, String]()).get()
       user1.getCompany.isPresent must beFalse
 
       data.put("company", "Acme")
 
       val userForm2: Form[AnotherUser] = formFactory.form(classOf[AnotherUser])
-      val user2                        = userForm2.bind(data).get()
+      val user2                        = userForm2.bind(Lang.defaultLang, TypedMap.empty(), data).get()
       user2.getCompany.isPresent must beTrue
     }
 
@@ -608,7 +610,7 @@ trait FormSpec extends CommonFormSpec {
 
     "bind when valid" in {
       val userForm: Form[MyUser] = formFactory.form(classOf[MyUser])
-      val user                   = userForm.bind(new java.util.HashMap[String, String]()).get()
+      val user                   = userForm.bind(Lang.defaultLang(), TypedMap.empty(), new java.util.HashMap[String, String]()).get()
       userForm.hasErrors() must equalTo(false)
       (user == null) must equalTo(false)
     }
@@ -704,15 +706,24 @@ trait FormSpec extends CommonFormSpec {
 
     "support email validation" in {
       val userEmail = formFactory.form(classOf[UserEmail])
-      userEmail.bind(Map("email" -> "john@example.com").asJava).errors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not(beEmpty)
+      userEmail
+        .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "john@example.com").asJava)
+        .errors()
+        .asScala must beEmpty
+      userEmail
+        .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "o'flynn@example.com").asJava)
+        .errors()
+        .asScala must beEmpty
+      userEmail
+        .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "john@ex'ample.com").asJava)
+        .errors()
+        .asScala must not(beEmpty)
     }
 
     "support custom validators" in {
       "that fails when validator's condition is not met" in {
         val form  = formFactory.form(classOf[Red])
-        val bound = form.bind(Map("name" -> "blue").asJava)
+        val bound = form.bind(Lang.defaultLang(), TypedMap.empty(), Map("name" -> "blue").asJava)
         bound.hasErrors must_== true
         bound.hasGlobalErrors must_== true
         bound.globalErrors().asScala must not(beEmpty)
@@ -721,7 +732,11 @@ trait FormSpec extends CommonFormSpec {
       "that returns customized message when validator fails" in {
         val form = formFactory
           .form(classOf[MyBlueUser])
-          .bind(Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue", "nailColor" -> "darkblue").asJava)
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue", "nailColor" -> "darkblue").asJava
+          )
         form.hasErrors must beEqualTo(true)
         form.errors("hairColor").asScala must beEmpty
         form.errors("nailColor").asScala must beEmpty
@@ -736,7 +751,11 @@ trait FormSpec extends CommonFormSpec {
       "that returns customized message in annotation when validator fails" in {
         val form = formFactory
           .form(classOf[MyBlueUser])
-          .bind(Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white", "nailColor" -> "darkblue").asJava)
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white", "nailColor" -> "darkblue").asJava
+          )
         form.errors("skinColor").asScala must beEmpty
         form.errors("nailColor").asScala must beEmpty
         form.hasErrors must beEqualTo(true)
@@ -749,7 +768,11 @@ trait FormSpec extends CommonFormSpec {
       "that returns customized message when validator fails even when args param from getErrorMessageKey is null" in {
         val form = formFactory
           .form(classOf[MyBlueUser])
-          .bind(Map("name" -> "Nemo", "skinColor" -> "blue", "hairColor" -> "blue", "nailColor" -> "yellow").asJava)
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map("name" -> "Nemo", "skinColor" -> "blue", "hairColor" -> "blue", "nailColor" -> "yellow").asJava
+          )
         form.errors("skinColor").asScala must beEmpty
         form.errors("hairColor").asScala must beEmpty
         form.hasErrors must beEqualTo(true)
@@ -807,7 +830,9 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "support @repeatable constraints" in {
-      val form = formFactory.form(classOf[RepeatableConstraintsForm]).bind(Map("name" -> "xyz").asJava)
+      val form = formFactory
+        .form(classOf[RepeatableConstraintsForm])
+        .bind(Lang.defaultLang(), TypedMap.empty(), Map("name" -> "xyz").asJava)
       form.field("name").constraints().size() must beEqualTo(4)
       form.field("name").constraints().get(0)._1 must beEqualTo("constraint.validatewith")
       form.field("name").constraints().get(1)._1 must beEqualTo("constraint.validatewith")
@@ -1096,7 +1121,11 @@ trait FormSpec extends CommonFormSpec {
       "first group gets validated and already fails and therefore second group wont even get validated anymore" in {
         val myForm = formFactory
           .form(classOf[SomeUser], classOf[OrderedChecks])
-          .bind(Map("email" -> "invalid_email", "password" -> "", "repeatPassword" -> "").asJava)
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map("email" -> "invalid_email", "password" -> "", "repeatPassword" -> "").asJava
+          )
         // first group
         myForm.errors("email").size() must beEqualTo(1)
         myForm.errors("email").get(0).message() must beEqualTo("error.email")
@@ -1108,7 +1137,11 @@ trait FormSpec extends CommonFormSpec {
       "first group gets validated and already succeeds but then second group fails" in {
         val myForm = formFactory
           .form(classOf[SomeUser], classOf[OrderedChecks])
-          .bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "").asJava)
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "").asJava
+          )
         // first group
         myForm.errors("email").size() must beEqualTo(0)
         myForm.errors("password").size() must beEqualTo(0)
@@ -1119,7 +1152,11 @@ trait FormSpec extends CommonFormSpec {
       "all group gets validated and succeed" in {
         val myForm = formFactory
           .form(classOf[SomeUser], classOf[OrderedChecks])
-          .bind(Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map("email" -> "larry@google.com", "password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava
+          )
         // first group
         myForm.errors("email").size() must beEqualTo(0)
         myForm.errors("password").size() must beEqualTo(0)
@@ -1133,40 +1170,60 @@ trait FormSpec extends CommonFormSpec {
     "honor its validate method" in {
       "when it returns an error object" in {
         val myForm =
-          formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
+          formFactory
+            .form(classOf[SomeUser])
+            .bind(
+              Lang.defaultLang(),
+              TypedMap.empty(),
+              Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava
+            )
         myForm.error("password").get.message() must beEqualTo("Passwords do not match")
       }
       "when it returns an null (error) object" in {
         val myForm =
-          formFactory.form(classOf[SomeUser]).bind(Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava)
+          formFactory
+            .form(classOf[SomeUser])
+            .bind(
+              Lang.defaultLang(),
+              TypedMap.empty(),
+              Map("password" -> "asdfasdf", "repeatPassword" -> "asdfasdf").asJava
+            )
         myForm.globalErrors().size() must beEqualTo(0)
         myForm.errors("password").size() must beEqualTo(0)
       }
       "when it returns an error object but is skipped because its not in validation group" in {
         val myForm = formFactory
           .form(classOf[SomeUser], classOf[LoginCheck])
-          .bind(Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map("password" -> "asdfasdf", "repeatPassword" -> "vwxyz").asJava)
         myForm.error("password").isPresent must beFalse
       }
       "when it returns a string" in {
-        val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "fail@google.com").asJava)
+        val myForm = formFactory
+          .form(classOf[LoginUser])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "fail@google.com").asJava)
         myForm.globalErrors().size() must beEqualTo(1)
         myForm.globalErrors().get(0).message() must beEqualTo("Invalid email provided!")
       }
       "when it returns an empty string" in {
-        val myForm = formFactory.form(classOf[LoginUser]).bind(Map("email" -> "bill.gates@microsoft.com").asJava)
+        val myForm = formFactory
+          .form(classOf[LoginUser])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "bill.gates@microsoft.com").asJava)
         myForm.globalErrors().size() must beEqualTo(1)
         myForm.globalErrors().get(0).message() must beEqualTo("")
       }
       "when it returns an error list" in {
-        val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Bob Marley").asJava)
+        val myForm = formFactory
+          .form(classOf[AnotherUser])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map("name" -> "Bob Marley").asJava)
         myForm.globalErrors().size() must beEqualTo(1)
         myForm.globalErrors().get(0).message() must beEqualTo("Form could not be processed")
         myForm.errors("name").size() must beEqualTo(1)
         myForm.errors("name").get(0).message() must beEqualTo("Name not correct")
       }
       "when it returns an empty error list" in {
-        val myForm = formFactory.form(classOf[AnotherUser]).bind(Map("name" -> "Kiki").asJava)
+        val myForm = formFactory
+          .form(classOf[AnotherUser])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map("name" -> "Kiki").asJava)
         myForm.globalErrors().size() must beEqualTo(0)
         myForm.errors().size() must beEqualTo(0)
         myForm.errors("name").size() must beEqualTo(0)
@@ -1174,7 +1231,8 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "not process it's legacy validate method when the Validatable interface is implemented" in {
-      val myForm = formFactory.form(classOf[LegacyUser]).bind(Map("foo" -> "foo").asJava)
+      val myForm =
+        formFactory.form(classOf[LegacyUser]).bind(Lang.defaultLang(), TypedMap.empty(), Map("foo" -> "foo").asJava)
       myForm.globalErrors().size() must beEqualTo(0)
     }
 

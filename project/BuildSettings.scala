@@ -222,6 +222,9 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
       // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.Constraints#ValidationPayload.getArgs"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.Constraints#ValidationPayload.this"),
+      // Remove deprecated
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedMap.underlying"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$"),
@@ -229,11 +232,68 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout$"),
       // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.bindFromRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.allErrors"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.getName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.getValue"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.getError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.getGlobalError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.openid.DefaultOpenIdClient.verifiedId"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.openid.OpenIdClient.verifiedId"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofPath"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofSource"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofStream"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.httpContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.invokeWithContext"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.DynamicForm.bindFromRequest"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.RangeResults.ofFile"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.RangeResults.ofPath"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.RangeResults.ofStream"),
+      // Remove deprecated
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.current"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.maybeApplication"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.unsafeApplication"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.JavaScriptReverseRouter.create"),
+      // Renamed methods back to original name
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Result.cookie"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultAsyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultSyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.SyncCacheApiAdapter.getOptional"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.DefaultSyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.moveTo"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveTo"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
       // play.api.Logger$ no longer extends play.api.Logger

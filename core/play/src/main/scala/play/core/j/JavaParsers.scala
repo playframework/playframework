@@ -4,7 +4,6 @@
 
 package play.core.j
 
-import java.io.File
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
 

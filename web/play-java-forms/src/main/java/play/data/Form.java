@@ -652,38 +652,6 @@ public class Form<T> {
     return data;
   }
 
-  /** @deprecated Deprecated as of 2.7.0. */
-  @Deprecated
-  protected Lang ctxLang() {
-    return Http.Context.safeCurrent().map(ctx -> ctx.messages().lang()).orElse(null);
-  }
-
-  /** @deprecated Deprecated as of 2.7.0. */
-  @Deprecated
-  protected TypedMap ctxRequestAttrs() {
-    return Http.Context.safeCurrent()
-        .map(ctx -> ctx.request().attrs())
-        .orElseGet(() -> TypedMap.empty());
-  }
-
-  /**
-   * Binds request data to this form - that is, handles form submission.
-   *
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Http.Request, String...)}
-   *     instead.
-   */
-  @Deprecated
-  public Form<T> bindFromRequest(String... allowedFields) {
-    return bind(
-        Http.Context.current().messages().lang(),
-        Http.Context.current().request().attrs(),
-        requestData(Http.Context.current().request()),
-        requestFileData(Http.Context.current().request()),
-        allowedFields);
-  }
-
   /**
    * Binds request data to this form - that is, handles form submission.
    *
@@ -698,20 +666,6 @@ public class Form<T> {
         requestData(request),
         requestFileData(request),
         allowedFields);
-  }
-
-  /**
-   * Binds request data to this form - that is, handles form submission.
-   *
-   * @param requestData the map of data to bind from
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, TypedMap, Map,
-   *     String...)} instead.
-   */
-  @Deprecated
-  public Form<T> bindFromRequest(Map<String, String[]> requestData, String... allowedFields) {
-    return bindFromRequestData(ctxLang(), ctxRequestAttrs(), requestData, allowedFields);
   }
 
   /**
@@ -753,20 +707,6 @@ public class Form<T> {
     Map<String, String> data = new HashMap<>();
     fillDataWith(data, requestData);
     return bind(lang, attrs, data, requestFileData, allowedFields);
-  }
-
-  /**
-   * Binds Json data to this form - that is, handles form submission.
-   *
-   * @param data data to submit
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, JsonNode, String...)}
-   *     instead.
-   */
-  @Deprecated
-  public Form<T> bind(JsonNode data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
   }
 
   /**
@@ -926,7 +866,6 @@ public class Form<T> {
               new ValidationPayload(
                   lang,
                   lang != null ? new MessagesImpl(lang, this.messagesApi) : null,
-                  Http.Context.safeCurrent().map(ctx -> ctx.args).orElse(null),
                   attrs,
                   this.config);
           final Validator validator =
@@ -1041,20 +980,6 @@ public class Form<T> {
                 new ValidationError(
                     "", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Binds data to this form - that is, handles form submission.
-   *
-   * @param data data to submit
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, Map, String...)} instead.
-   */
-  @SuppressWarnings("unchecked")
-  @Deprecated
-  public Form<T> bind(Map<String, String> data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
   }
 
   /**
@@ -1238,31 +1163,9 @@ public class Form<T> {
    * Retrieves the first global error (an error without any key), if it exists.
    *
    * @return An error.
-   * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #globalError()}.
-   */
-  @Deprecated
-  public Optional<ValidationError> getGlobalError() {
-    return globalError();
-  }
-
-  /**
-   * Retrieves the first global error (an error without any key), if it exists.
-   *
-   * @return An error.
    */
   public Optional<ValidationError> globalError() {
     return globalErrors().stream().findFirst();
-  }
-
-  /**
-   * Returns all errors.
-   *
-   * @return All errors associated with this form.
-   * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #errors()}.
-   */
-  @Deprecated
-  public List<ValidationError> allErrors() {
-    return errors();
   }
 
   /**
@@ -1284,16 +1187,6 @@ public class Form<T> {
     }
     return Collections.unmodifiableList(
         errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList()));
-  }
-
-  /**
-   * @param key the field name associated with the error.
-   * @return an error by key
-   * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
-   */
-  @Deprecated
-  public Optional<ValidationError> getError(String key) {
-    return error(key);
   }
 
   /**
@@ -1776,27 +1669,9 @@ public class Form<T> {
       this.file = file;
     }
 
-    /**
-     * @return The field name.
-     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #name()}.
-     */
-    @Deprecated
-    public Optional<String> getName() {
-      return name();
-    }
-
     /** @return The field name. */
     public Optional<String> name() {
       return Optional.ofNullable(name);
-    }
-
-    /**
-     * @return The field value, if defined.
-     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #value()}.
-     */
-    @Deprecated
-    public Optional<String> getValue() {
-      return value();
     }
 
     /** @return The field value, if defined. */
