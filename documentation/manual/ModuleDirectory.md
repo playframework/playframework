@@ -90,7 +90,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://morphiaorg.github.io/morphia/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
-* **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>
+* **Website (docs, sample):** <http://reactivemongo.org/releases/0.1x/documentation/tutorial/play.html>
 * **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
 
 ### Play-Hippo
