@@ -4,6 +4,7 @@
 
 package play.i18n;
 
+import play.api.mvc.Cookie;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -174,7 +175,6 @@ public class MessagesApi {
   }
 
   public Optional<Http.Cookie.SameSite> langCookieSameSite() {
-    return OptionConverters.toJava(messages.langCookieSameSite())
-        .map(sameSite -> sameSite.asJava());
+    return OptionConverters.toJava(messages.langCookieSameSite()).map(Cookie.SameSite::asJava);
   }
 }

@@ -50,7 +50,7 @@ public abstract class Action<T> extends Results {
   public Action<?> delegate;
 
   private static final TypedKey<Map<String, Object>> CTX_ARGS =
-      TypedKey.<Map<String, Object>>create("http-context-args");
+      TypedKey.create("http-context-args");
 
   /**
    * Executes this action with the given HTTP context and returns the result.
