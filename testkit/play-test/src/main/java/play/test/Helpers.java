@@ -6,7 +6,6 @@ package play.test;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -30,7 +29,6 @@ import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Scala;
 import play.mvc.Call;
-import play.mvc.Http;
 import play.mvc.Result;
 import play.routing.Router;
 import play.twirl.api.Content;
@@ -38,7 +36,6 @@ import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 
 import static play.libs.Scala.asScala;
-import static play.mvc.Http.Context;
 import static play.mvc.Http.Request;
 import static play.mvc.Http.RequestBuilder;
 

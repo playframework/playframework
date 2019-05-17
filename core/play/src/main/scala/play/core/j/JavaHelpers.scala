@@ -11,7 +11,6 @@ import java.security.cert.X509Certificate
 import java.util
 import java.util.Locale
 import java.util.Optional
-import java.util.concurrent.CompletionStage
 
 import play.api.http.DefaultFileMimeTypesProvider
 import play.api.http.FileMimeTypes
@@ -25,24 +24,19 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
-import play.core.Execution.Implicits.trampoline
 import play.i18n
 import play.libs.typedmap.TypedKey
 import play.libs.typedmap.TypedMap
 import play.mvc.Http.RequestBody
-import play.mvc.Http.{ Context => JContext }
 import play.mvc.Http.{ Cookie => JCookie }
 import play.mvc.Http.{ Cookies => JCookies }
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Http.{ RequestHeader => JRequestHeader }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
 import play.mvc.Http
-import play.mvc.{ Result => JResult }
 
 import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters
 import scala.compat.java8.OptionConverters
-import scala.concurrent.Future
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
@@ -145,76 +139,6 @@ trait JavaHelpers {
   }
 
   /**
-   * Creates a scala result from java context and result objects
-   * @param javaContext the Java Http.Context
-   * @param javaResult the Java Result
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def createResult(javaContext: JContext, javaResult: JResult): Result = {
-    require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
-    val scalaResult = javaResult.asScala
-    val wResult = scalaResult
-      .withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-      .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
-
-    if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult
-        .withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
-        .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
-    } else {
-      if (javaContext.session.isDirty) {
-        wResult.withSession(
-          Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data)
-        )
-      } else {
-        if (javaContext.flash.isDirty) {
-          wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
-        } else {
-          wResult
-        }
-      }
-    }
-  }
-
-  /**
-   * Creates a java context from a scala RequestHeader
-   * @param req the scala request
-   * @param components the context components (use JavaHelpers.createContextComponents)
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def createJavaContext(req: RequestHeader, components: JavaContextComponents): JContext = {
-    require(components != null, "Null JavaContextComponents")
-    new JContext(
-      req.id,
-      req,
-      new JRequestImpl(req),
-      req.session.data.asJava,
-      req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
-      components
-    )
-  }
-
-  /**
-   * Creates a java context from a scala Request[RequestBody]
-   * @param req the scala request
-   * @param components the context components (use JavaHelpers.createContextComponents)
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def createJavaContext(req: Request[RequestBody], components: JavaContextComponents): JContext = {
-    require(components != null, "Null JavaContextComponents")
-    new JContext(
-      req.id,
-      req,
-      new JRequestImpl(req),
-      req.session.data.asJava,
-      req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
-      components
-    )
-  }
-
-  /**
    * Creates java context components from environment, using
    * play.api.Configuration.reference and play.api.Environment.simple as defaults.
    *
@@ -258,44 +182,6 @@ trait JavaHelpers {
     val jLangs         = new play.i18n.Langs(langs)
     val jFileMimeTypes = new play.mvc.FileMimeTypes(fileMimeTypes)
     new DefaultJavaContextComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
-  }
-
-  /**
-   * Invoke the given function with the right context set, converting the scala request to a
-   * Java request, and converting the resulting Java result to a Scala result, before returning
-   * it.
-   *
-   * This is intended for use by callback methods in Java adapters.
-   *
-   * @param request The request
-   * @param components the context components
-   * @param f The function to invoke
-   * @return The result
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def invokeWithContext(
-      request: RequestHeader,
-      components: JavaContextComponents,
-      f: JRequest => CompletionStage[JResult]
-  ): Future[Result] = {
-    withContext(request, components) { javaContext =>
-      FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
-    }
-  }
-
-  /**
-   * Invoke the given block with Java context created from the request header
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def withContext[A](request: RequestHeader, components: JavaContextComponents)(block: JContext => A) = {
-    val javaContext = createJavaContext(request, components)
-    try {
-      JContext.setCurrent(javaContext)
-      block(javaContext)
-    } finally {
-      JContext.clear()
-    }
-
   }
 
 }
@@ -370,13 +256,13 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def asScala: Request[RequestBody] = request
 
   override def attrs: TypedMap                                  = new TypedMap(asScala.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequest          = new RequestImpl(request.withAttrs(newAttrs.asScala))
+  override def withAttrs(newAttrs: TypedMap): JRequest          = new JRequestImpl(request.withAttrs(newAttrs.asScala))
   override def addAttr[A](key: TypedKey[A], value: A): JRequest = withAttrs(attrs.put(key, value))
   override def removeAttr(key: TypedKey[_]): JRequest           = withAttrs(attrs.remove(key))
 
   override def body: RequestBody                     = request.body
   override def hasBody: Boolean                      = request.hasBody
-  override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
+  override def withBody(body: RequestBody): JRequest = new JRequestImpl(request.withBody(body))
 
   override def withTransientLang(lang: play.i18n.Lang): JRequest =
     addAttr(i18n.Messages.Attrs.CurrentLang, lang)

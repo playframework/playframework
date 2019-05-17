@@ -14,7 +14,6 @@ import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
 import play.libs.reflect.MethodUtils
-import play.mvc.Http.Context
 import play.mvc.Http.RequestBody
 
 import scala.compat.java8.FutureConverters
@@ -174,18 +173,7 @@ object HandlerInvokerFactory {
       def call(call: => JWebSocket) = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
           WebSocket.acceptOrResult[Message, Message] { request =>
-            val javaContext = JavaHelpers.createJavaContext(request, handlerComponents.contextComponents)
-
-            val callWithContext = {
-              try {
-                Context.setCurrent(javaContext)
-                FutureConverters.toScala(call(request.asJava))
-              } finally {
-                Context.clear()
-              }
-            }
-
-            callWithContext.map { resultOrFlow =>
+            FutureConverters.toScala(call(request.asJava)).map { resultOrFlow =>
               if (resultOrFlow.left.isPresent) {
                 Left(resultOrFlow.left.get.asScala())
               } else {

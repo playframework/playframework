@@ -112,7 +112,8 @@ object JavaCSRFActionSpec {
     def add(request: JRequest): Result = {
       require(request.asScala() != null) // Make sure request is set
       // Simulate a template that adds a CSRF token
-      import play.core.j.PlayMagicForJava.requestHeader
+      import play.core.j.PlayMagicForJava._
+      implicit val req = request
       Results.ok(CSRF.getToken.get.value)
     }
     def getToken(request: JRequest): Result = {
@@ -133,9 +134,10 @@ object JavaCSRFActionSpec {
 
   class MyUnauthorizedAction() extends Controller {
     @AddCSRFToken
-    def add(): Result = {
+    def add(request: JRequest): Result = {
       // Simulate a template that adds a CSRF token
-      import play.core.j.PlayMagicForJava.requestHeader
+      import play.core.j.PlayMagicForJava._
+      implicit val req = request
       Results.ok(CSRF.getToken.get.value)
     }
     @RequireCSRFCheck(error = classOf[CustomErrorHandler])

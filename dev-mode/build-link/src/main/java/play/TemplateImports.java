@@ -33,7 +33,6 @@ public class TemplateImports {
     minimalJavaImports.add("play.core.j.PlayMagicForJava._");
     minimalJavaImports.add("play.mvc._");
     minimalJavaImports.add("play.api.data.Field");
-    minimalJavaImports.add("play.mvc.Http.Context.Implicit._");
     minimalJavaTemplateImports = Collections.unmodifiableList(minimalJavaImports);
 
     List<String> defaultJavaImports = new ArrayList<String>();
