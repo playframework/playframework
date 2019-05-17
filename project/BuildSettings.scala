@@ -414,7 +414,30 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction"),
       // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo"),
+      // Remove Http.Context and Http.Response
+      ProblemFilters.exclude[DirectAbstractMethodProblem]("play.mvc.Action.call"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.httpContext_="),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.httpContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.createJavaContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.createResult"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invokeWithContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.withContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.createJavaContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.createResult"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.invokeWithContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.withContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.implicitJavaLang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.javaRequest2ScalaRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.requestHeader"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Action.call"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Context"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Context$Implicit"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Response"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$WrappedContext"),
+      ProblemFilters.exclude[ReversedAbstractMethodProblem]("play.mvc.Action.call")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

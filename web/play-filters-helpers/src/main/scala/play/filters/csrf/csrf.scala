@@ -16,15 +16,14 @@ import play.api.http.HttpConfiguration
 import play.api.http.HttpErrorHandler
 import play.api.inject.Binding
 import play.api.inject.Module
-import play.api.inject.bind
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.crypto.CSRFTokenSignerProvider
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.core.Execution
 import play.core.j.JavaContextComponents
-import play.core.j.JavaHelpers
 import play.filters.csrf.CSRF.CSRFHttpErrorHandler
 import play.filters.csrf.CSRF._
 import play.mvc.Http
@@ -294,7 +293,7 @@ object CSRF {
   class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents)
       extends ErrorHandler {
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
+      FutureConverters.toScala(underlying.handle(request.asJava, msg)).map(_.asScala)(Execution.trampoline)
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject()(delegate: ErrorHandler) extends CSRFErrorHandler {
