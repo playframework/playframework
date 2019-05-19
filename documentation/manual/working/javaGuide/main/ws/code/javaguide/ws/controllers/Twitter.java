@@ -80,8 +80,8 @@ public class Twitter extends Controller {
   private Optional<RequestToken> getSessionTokenPair(Http.Request request) {
     return request
         .session()
-        .getOptional("token")
-        .map(token -> new RequestToken(token, request.session().getOptional("secret").get()));
+        .get("token")
+        .map(token -> new RequestToken(token, request.session().get("secret").get()));
   }
 }
 // #ws-oauth-controller

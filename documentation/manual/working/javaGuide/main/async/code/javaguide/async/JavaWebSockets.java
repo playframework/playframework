@@ -69,7 +69,7 @@ public class JavaWebSockets {
           request ->
               CompletableFuture.completedFuture(
                   req.session()
-                      .getOptional("user")
+                      .get("user")
                       .map(
                           user ->
                               F.Either.<Result, Flow<String, String, ?>>Right(
