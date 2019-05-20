@@ -209,7 +209,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     DefaultHttpFilters filters = new DefaultHttpFilters(httpFilters());
 
     play.api.http.HttpErrorHandler scalaErrorHandler =
-        new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaContextComponents());
+        new JavaHttpErrorHandlerAdapter(httpErrorHandler());
 
     return new JavaCompatibleHttpRequestHandler(
             webCommands(),

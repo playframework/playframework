@@ -144,6 +144,7 @@ trait JavaHelpers {
    *
    * @return an instance of JavaContextComponents.
    */
+  @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
   def createContextComponents(): JavaContextComponents = {
     val reference: Configuration = play.api.Configuration.reference
     val environment              = play.api.Environment.simple()
@@ -156,6 +157,7 @@ trait JavaHelpers {
    * @param env play environment.
    * @return an instance of JavaContextComponents with default messagesApi and langs.
    */
+  @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
   def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
     val langs             = new DefaultLangsProvider(configuration).get
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
@@ -172,6 +174,7 @@ trait JavaHelpers {
    * @param httpConfiguration the http configuration
    * @return an instance of JavaContextComponents with given input components.
    */
+  @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
   def createContextComponents(
       messagesApi: MessagesApi,
       langs: Langs,

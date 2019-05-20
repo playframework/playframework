@@ -7,7 +7,6 @@ package javaguide.http;
 import com.fasterxml.jackson.databind.JsonNode;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
-import play.core.j.JavaContextComponents;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.mvc.Http;
@@ -28,10 +27,6 @@ import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
 public class JavaResponse extends WithApplication {
-
-  JavaContextComponents contextComponents() {
-    return app.injector().instanceOf(JavaContextComponents.class);
-  }
 
   @Test
   public void textContentType() {

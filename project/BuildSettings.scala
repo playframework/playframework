@@ -415,6 +415,8 @@ object BuildSettings {
       // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo"),
+      // Remove constructor from private class
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RouterBuilderHelper.this"),
       // Remove Http.Context and Http.Response
       ProblemFilters.exclude[DirectAbstractMethodProblem]("play.mvc.Action.call"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.httpContext_="),

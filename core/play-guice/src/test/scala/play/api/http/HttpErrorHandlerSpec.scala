@@ -25,8 +25,6 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
 import play.api.OptionalSourceMapper
-import play.core.j.JavaContextComponents
-import play.core.j.DefaultJavaContextComponents
 import play.core.test.FakeRequest
 import play.core.test.Fakes
 import play.http
@@ -242,8 +240,7 @@ class HttpErrorHandlerSpec extends Specification {
             BindingKey(classOf[Environment]).to(env),
             BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
             BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
-            BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
-            BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
+            BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider]
           )
       )
       .instanceOf[HttpErrorHandler]

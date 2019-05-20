@@ -412,6 +412,10 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
+  @deprecated(
+    "Use the corresponding methods that provide MessagesApi, Langs, FileMimeTypes or HttpConfiguration",
+    "2.8.0"
+  )
   lazy val javaContextComponents: JavaContextComponents =
     JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 

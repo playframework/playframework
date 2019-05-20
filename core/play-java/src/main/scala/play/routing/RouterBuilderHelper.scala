@@ -7,7 +7,6 @@ package play.routing
 import java.util.concurrent.CompletionStage
 
 import play.api.mvc._
-import play.core.j.JavaContextComponents
 import play.mvc.Http.RequestBody
 import play.mvc.Result
 import play.utils.UriEncoding
@@ -18,8 +17,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 private[routing] class RouterBuilderHelper(
-    bodyParser: BodyParser[RequestBody],
-    contextComponents: JavaContextComponents
+    bodyParser: BodyParser[RequestBody]
 ) {
 
   def build(router: RoutingDsl): play.routing.Router = {

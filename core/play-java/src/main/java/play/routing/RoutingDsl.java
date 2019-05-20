@@ -14,7 +14,6 @@ import play.core.routing.HandlerInvokerFactory$;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
-import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
 import javax.inject.Inject;
@@ -87,19 +86,23 @@ import java.util.stream.StreamSupport;
 public class RoutingDsl {
 
   private final BodyParser<Http.RequestBody> bodyParser;
-  private final JavaContextComponents contextComponents;
 
   final List<Route> routes = new ArrayList<>();
 
   @Inject
+  public RoutingDsl(play.mvc.BodyParser.Default bodyParser) {
+    this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
+  }
+
+  /** @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents */
+  @Deprecated
   public RoutingDsl(
       play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {
-    this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
-    this.contextComponents = contextComponents;
+    this(bodyParser);
   }
 
   public static RoutingDsl fromComponents(BuiltInComponents components) {
-    return new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents());
+    return new RoutingDsl(components.defaultBodyParser());
   }
 
   /**
@@ -189,7 +192,7 @@ public class RoutingDsl {
    * @return The built router.
    */
   public play.routing.Router build() {
-    return new RouterBuilderHelper(this.bodyParser, this.contextComponents).build(this);
+    return new RouterBuilderHelper(this.bodyParser).build(this);
   }
 
   private RoutingDsl with(
