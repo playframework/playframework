@@ -198,6 +198,7 @@ trait JavaHandler extends Handler {
   def withComponents(handlerComponents: JavaHandlerComponents): Handler
 }
 
+@deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
 trait JavaContextComponents {
   def messagesApi: JMessagesApi
   def langs: JLangs
@@ -208,6 +209,7 @@ trait JavaContextComponents {
 /**
  * The components necessary to handle a play.mvc.Http.Context object.
  */
+@deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
 class DefaultJavaContextComponents @Inject()(
     val messagesApi: JMessagesApi,
     val langs: JLangs,
@@ -221,6 +223,10 @@ trait JavaHandlerComponents {
   def actionCreator: play.http.ActionCreator
   def httpConfiguration: HttpConfiguration
   def executionContext: ExecutionContext
+  @deprecated(
+    "Use the corresponding methods that provide MessagesApi, Langs, FileMimeTypes or HttpConfiguration",
+    "2.8.0"
+  )
   def contextComponents: JavaContextComponents
 }
 
@@ -232,6 +238,7 @@ class DefaultJavaHandlerComponents @Inject()(
     val actionCreator: play.http.ActionCreator,
     val httpConfiguration: HttpConfiguration,
     val executionContext: ExecutionContext,
+    @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
     val contextComponents: JavaContextComponents
 ) extends JavaHandlerComponents {
   def getBodyParser[A <: JBodyParser[_]](parserClass: Class[A]): A = injector.instanceOf(parserClass)
