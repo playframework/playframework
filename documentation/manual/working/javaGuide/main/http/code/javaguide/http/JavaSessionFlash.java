@@ -31,7 +31,7 @@ public class JavaSessionFlash extends WithApplication {
                   public Result index(Http.Request request) {
                     return request
                         .session()
-                        .getOptional("connected")
+                        .get("connected")
                         .map(user -> ok("Hello " + user))
                         .orElseGet(() -> unauthorized("Oops, you are not connected"));
                   }
@@ -56,7 +56,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .session();
-    assertThat(session.getOptional("connected").get(), equalTo("user@gmail.com"));
+    assertThat(session.get("connected").get(), equalTo("user@gmail.com"));
   }
 
   @Test
@@ -73,7 +73,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest().session("connected", "foo"),
                 mat)
             .session();
-    assertFalse(session.getOptional("connected").isPresent());
+    assertFalse(session.get("connected").isPresent());
   }
 
   @Test
@@ -90,7 +90,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest().session("connected", "foo"),
                 mat)
             .session();
-    assertFalse(session.getOptional("connected").isPresent());
+    assertFalse(session.get("connected").isPresent());
   }
 
   @Test
@@ -101,7 +101,7 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #read-flash
                   public Result index(Http.Request request) {
-                    return ok(request.flash().getOptional("success").orElse("Welcome!"));
+                    return ok(request.flash().get("success").orElse("Welcome!"));
                   }
                   // #read-flash
                 },
@@ -124,7 +124,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .flash();
-    assertThat(flash.getOptional("success").get(), equalTo("The item has been created"));
+    assertThat(flash.get("success").get(), equalTo("The item has been created"));
   }
 
   @Test
