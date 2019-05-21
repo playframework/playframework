@@ -36,7 +36,7 @@ Multiple APIs changes were made following our policy of deprecating the existing
 
 Play 2.8 has dropped support for Scala 2.11, which has reached it's end of life, and now only supports Scala 2.12 and 2.13.
 
-### How to migrate
+### Setting `scalaVersion` in your project
 
 **Both Scala and Java users** must configure sbt to use Scala 2.12 or 2.13.  Even if you have no Scala code in your project, Play itself uses Scala and must be configured to use the right Scala libraries.
 
@@ -77,7 +77,7 @@ xxx
 
 #### Java API
 
-1. xxx
+1. In Play 2.7 we deprecate `play.mvc.Http.Context` in favor of directly using `play.mvc.Http.RequestHeader` or `play.mvc.Http.Request`. We have now removed `Http.Context` and if your application was still depending on it, you should read [[Play 2.7 migration guide instructions|JavaHttpContextMigration27]].
 1. xxx
 
 Some new methods were added to improve the Java API too:
