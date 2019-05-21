@@ -198,6 +198,9 @@ trait JavaHandler extends Handler {
   def withComponents(handlerComponents: JavaHandlerComponents): Handler
 }
 
+/**
+ * Group components that are commonly to serve requests.
+ */
 @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
 trait JavaContextComponents {
   def messagesApi: JMessagesApi
@@ -206,9 +209,6 @@ trait JavaContextComponents {
   def httpConfiguration: HttpConfiguration
 }
 
-/**
- * The components necessary to handle a play.mvc.Http.Context object.
- */
 @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
 class DefaultJavaContextComponents @Inject()(
     val messagesApi: JMessagesApi,
