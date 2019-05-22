@@ -290,8 +290,11 @@ object CSRF {
     def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
   }
 
-  class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents)
-      extends ErrorHandler {
+  class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler) extends ErrorHandler {
+    @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+    def this(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) {
+      this(underlying)
+    }
     def handle(request: RequestHeader, msg: String) =
       FutureConverters.toScala(underlying.handle(request.asJava, msg)).map(_.asScala)(Execution.trampoline)
   }

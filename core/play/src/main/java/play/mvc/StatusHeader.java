@@ -76,6 +76,27 @@ public class StatusHeader extends Result {
   }
 
   /**
+   * Send the given bytes.
+   *
+   * @param content The bytes to send.
+   * @return The result.
+   */
+  public Result sendBytes(byte[] content) {
+    return new Result(
+        status(), new HttpEntity.Strict(ByteString.fromArray(content), Optional.empty()));
+  }
+
+  /**
+   * Send the given ByteString.
+   *
+   * @param content The ByteString to send.
+   * @return The result.
+   */
+  public Result sendByteString(ByteString content) {
+    return new Result(status(), new HttpEntity.Strict(content, Optional.empty()));
+  }
+
+  /**
    * Send the given resource.
    *
    * <p>The resource will be loaded from the same classloader that this class comes from.

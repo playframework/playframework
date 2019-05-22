@@ -15,6 +15,7 @@ import play.mvc.Result;
 import play.mvc.Results;
 
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -469,7 +470,7 @@ public abstract class AbstractRoutingDslTest {
         );
 
         Result result = routeAndCall(application(), router, fakeRequest("GET", "/hello/world"));
-        assertThat(result.session().get("foo"), equalTo("bar"));
+        assertThat(result.session().get("foo"), equalTo(Optional.of("bar")));
         assertThat(result.headers().get("Foo"), equalTo("Bar"));
     }
 

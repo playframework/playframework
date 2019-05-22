@@ -265,16 +265,16 @@ public class RequestBuilderTest {
   public void testFlash() {
     final Request req =
         new RequestBuilder().flash("a", "1").flash("b", "1").flash("b", "2").build();
-    assertEquals("1", req.flash().get("a"));
-    assertEquals("2", req.flash().get("b"));
+    assertEquals(Optional.of("1"), req.flash().get("a"));
+    assertEquals(Optional.of("2"), req.flash().get("b"));
   }
 
   @Test
   public void testSession() {
     final Request req =
         new RequestBuilder().session("a", "1").session("b", "1").session("b", "2").build();
-    assertEquals("1", req.session().get("a"));
-    assertEquals("2", req.session().get("b"));
+    assertEquals(Optional.of("1"), req.session().get("a"));
+    assertEquals(Optional.of("2"), req.session().get("b"));
   }
 
   @Test

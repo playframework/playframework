@@ -449,12 +449,11 @@ trait JavaResultsHandlingSpec
           def action(request: Http.Request) = {
             val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
             val body           = HttpEntity.fromString("Hello World", "utf-8")
-            val session        = new Session(Map.empty[String, String].asJava)
+            val session        = new Session(Map("bar" -> "KitKat").asJava)
             val flash          = new Flash(Map.empty[String, String].asJava)
             val cookies        = List.empty[Cookie].asJava
 
             val result = new Result(responseHeader, body, session, flash, cookies)
-            result.session().put("bar", "KitKat")
             result
           }
         },
@@ -468,12 +467,11 @@ trait JavaResultsHandlingSpec
           def action(request: Http.Request) = {
             val responseHeader = new ResponseHeader(OK, Map.empty[String, String].asJava)
             val body           = HttpEntity.fromString("Hello World", "utf-8")
-            val session        = new Session(Map.empty[String, String].asJava)
+            val session        = new Session(Map("bar" -> "KitKat").asJava)
             val flash          = new Flash(Map.empty[String, String].asJava)
             val cookies        = List.empty[Cookie].asJava
 
             val result = new Result(responseHeader, body, session, flash, cookies)
-            result.session().put("bar", "KitKat")
             result
           }
         },

@@ -10,7 +10,6 @@ import javax.inject.Provider
 import play.api.inject._
 import play.api.Configuration
 import play.api.Environment
-import play.api.mvc.PlayBodyParsers
 import play.core.j.JavaContextComponents
 import play.mvc.BodyParser.Default
 
@@ -27,8 +26,11 @@ class RoutingDslModule extends Module {
 }
 
 class JavaRoutingDslProvider @Inject()(
-    bodyParser: play.mvc.BodyParser.Default,
-    contextComponents: JavaContextComponents
+    bodyParser: play.mvc.BodyParser.Default
 ) extends Provider[RoutingDsl] {
-  override def get(): RoutingDsl = new RoutingDsl(bodyParser, contextComponents)
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+  def this(bodyParser: play.mvc.BodyParser.Default, contextComponents: JavaContextComponents) {
+    this(bodyParser)
+  }
+  override def get(): RoutingDsl = new RoutingDsl(bodyParser)
 }

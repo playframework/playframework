@@ -32,6 +32,7 @@ public interface BuiltInComponents
         I18nComponents,
         TemporaryFileComponents {
 
+  @Deprecated
   @Override
   default JavaContextComponents javaContextComponents() {
     return JavaHelpers$.MODULE$.createContextComponents(

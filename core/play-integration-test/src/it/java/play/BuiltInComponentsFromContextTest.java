@@ -12,7 +12,6 @@ import play.components.BodyParserComponents;
 import play.core.BuildLink;
 import play.core.HandleWebCommandSupport;
 import play.filters.components.HttpFiltersComponents;
-import play.mvc.EssentialFilter;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
@@ -22,8 +21,6 @@ import play.test.Helpers;
 import scala.Option;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -40,7 +37,7 @@ public class BuiltInComponentsFromContextTest {
 
         @Override
         public Router router() {
-            return new RoutingDsl(defaultBodyParser(), javaContextComponents())
+            return new RoutingDsl(defaultBodyParser())
                     .GET("/").routingTo(req -> Results.ok("index"))
                     .build();
         }

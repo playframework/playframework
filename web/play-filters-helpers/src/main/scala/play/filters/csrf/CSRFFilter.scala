@@ -52,6 +52,23 @@ class CSRFFilter(
       tokenSigner: play.libs.crypto.CSRFTokenSigner,
       sessionConfiguration: SessionConfiguration,
       tokenProvider: TokenProvider,
+      errorHandler: CSRFErrorHandler
+  )(mat: Materializer) = {
+    this(
+      config,
+      tokenSigner.asScala,
+      sessionConfiguration,
+      tokenProvider,
+      new JavaCSRFErrorHandlerAdapter(errorHandler)
+    )(mat)
+  }
+
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+  def this(
+      config: CSRFConfig,
+      tokenSigner: play.libs.crypto.CSRFTokenSigner,
+      sessionConfiguration: SessionConfiguration,
+      tokenProvider: TokenProvider,
       errorHandler: CSRFErrorHandler,
       contextComponents: JavaContextComponents
   )(mat: Materializer) = {
@@ -60,7 +77,7 @@ class CSRFFilter(
       tokenSigner.asScala,
       sessionConfiguration,
       tokenProvider,
-      new JavaCSRFErrorHandlerAdapter(errorHandler, contextComponents)
+      new JavaCSRFErrorHandlerAdapter(errorHandler)
     )(mat)
   }
 

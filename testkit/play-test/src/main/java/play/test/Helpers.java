@@ -140,7 +140,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * play.api.Environment.simple as defaults
    *
    * @return the newly created JavaContextComponents
+   * @deprecated Deprecated as of 2.8.0. Inject MessagesApi, Langs, FileMimeTypes or
+   *     HttpConfiguration instead
    */
+  @Deprecated
   public static JavaContextComponents contextComponents() {
     return JavaHelpers$.MODULE$.createContextComponents();
   }

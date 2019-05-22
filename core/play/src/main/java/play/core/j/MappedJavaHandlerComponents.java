@@ -35,6 +35,15 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
   public MappedJavaHandlerComponents(
       ActionCreator actionCreator,
       HttpConfiguration httpConfiguration,
+      ExecutionContext executionContext) {
+    this(actionCreator, httpConfiguration, executionContext, null);
+  }
+
+  /** @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents */
+  @Deprecated
+  public MappedJavaHandlerComponents(
+      ActionCreator actionCreator,
+      HttpConfiguration httpConfiguration,
       ExecutionContext executionContext,
       JavaContextComponents contextComponents) {
     this.actionCreator = actionCreator;
@@ -70,6 +79,7 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
     return this.executionContext;
   }
 
+  @Deprecated
   @Override
   public JavaContextComponents contextComponents() {
     return this.contextComponents;

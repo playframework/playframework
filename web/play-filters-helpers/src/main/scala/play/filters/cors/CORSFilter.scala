@@ -52,12 +52,25 @@ class CORSFilter(
   def this(
       corsConfig: CORSConfig,
       errorHandler: play.http.HttpErrorHandler,
+      pathPrefixes: java.util.List[String]
+  ) = {
+    this(
+      corsConfig,
+      new JavaHttpErrorHandlerAdapter(errorHandler),
+      Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
+    )
+  }
+
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+  def this(
+      corsConfig: CORSConfig,
+      errorHandler: play.http.HttpErrorHandler,
       pathPrefixes: java.util.List[String],
       contextComponents: JavaContextComponents
   ) = {
     this(
       corsConfig,
-      new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents),
+      new JavaHttpErrorHandlerAdapter(errorHandler),
       Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
     )
   }
