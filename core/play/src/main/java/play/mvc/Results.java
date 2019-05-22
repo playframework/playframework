@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Optional;
 
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -59,7 +58,7 @@ public class Results {
     if (content == null) {
       throw new NullPointerException("Null content");
     }
-    return new Result(status, HttpEntity.fromContent(content, charset));
+    return status(status).sendEntity(HttpEntity.fromContent(content, charset));
   }
 
   /**
@@ -85,7 +84,7 @@ public class Results {
     if (content == null) {
       throw new NullPointerException("Null content");
     }
-    return new Result(status, HttpEntity.fromString(content, charset));
+    return status(status).sendEntity(HttpEntity.fromString(content, charset));
   }
 
   /**
@@ -125,8 +124,7 @@ public class Results {
     if (content == null) {
       throw new NullPointerException("Null content");
     }
-    return new Result(
-        status, new HttpEntity.Strict(ByteString.fromArray(content), Optional.empty()));
+    return status(status).sendBytes(content);
   }
 
   /**
@@ -140,7 +138,7 @@ public class Results {
     if (content == null) {
       throw new NullPointerException("Null content");
     }
-    return new Result(status, new HttpEntity.Strict(content, Optional.empty()));
+    return status(status).sendByteString(content);
   }
 
   /**
