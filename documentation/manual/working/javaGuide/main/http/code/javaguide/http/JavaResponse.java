@@ -7,7 +7,6 @@ package javaguide.http;
 import com.fasterxml.jackson.databind.JsonNode;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
-import play.core.j.JavaContextComponents;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.mvc.Http;
@@ -28,10 +27,6 @@ import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
 public class JavaResponse extends WithApplication {
-
-  JavaContextComponents contextComponents() {
-    return app.injector().instanceOf(JavaContextComponents.class);
-  }
 
   @Test
   public void textContentType() {
@@ -100,7 +95,7 @@ public class JavaResponse extends WithApplication {
                 mat)
             .cookies();
 
-    Optional<Cookie> cookie = cookies.getCookie("theme");
+    Optional<Cookie> cookie = cookies.get("theme");
     assertTrue(cookie.isPresent());
     assertThat(cookie.get().value(), equalTo("blue"));
   }
@@ -129,7 +124,7 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .cookies();
-    Optional<Cookie> cookieOpt = cookies.getCookie("theme");
+    Optional<Cookie> cookieOpt = cookies.get("theme");
 
     assertTrue(cookieOpt.isPresent());
 
@@ -158,7 +153,7 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .cookies();
-    Optional<Cookie> cookie = cookies.getCookie("theme");
+    Optional<Cookie> cookie = cookies.get("theme");
     assertTrue(cookie.isPresent());
     assertThat(cookie.get().name(), equalTo("theme"));
     assertThat(cookie.get().value(), equalTo(""));

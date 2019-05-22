@@ -190,9 +190,8 @@ object HttpConfiguration {
     config.get[Option[String]](key).flatMap { value =>
       val result = SameSite.parse(value)
       if (result.isEmpty) {
-        logger.warn(
-          s"""Assuming $key = null, since "$value" is not a valid SameSite value (${SameSite.values.mkString(", ")})"""
-        )
+        val values = SameSite.values.mkString(", ")
+        logger.warn(s"""Assuming $key = null, since "$value" is not a valid SameSite value ($values)""")
       }
       result
     }

@@ -15,9 +15,9 @@ From the shell, first checkout the Play source:
 $ git clone git://github.com/playframework/playframework.git
 ```
 
-Checkout the branch you want, the current development branch is called `master`, while stable branches for major releases are named with a `.x`, for example, `2.5.x`.
+Checkout the branch you want, the current development branch is called `master`, while stable branches for major releases are named with a `.x`, for example, `2.7.x`.
 
-Now go to the `framework` directory and run `sbt`:
+Now run `sbt`:
 
 ```bash
 $ sbt
@@ -29,7 +29,7 @@ To build and publish Play, run `publishLocal`:
 > publishLocal
 ```
 
-This will build and publish Play for the default Scala version (currently 2.11.12). If you want to publish for all versions of Scala, you can cross build:
+This will build and publish Play for the default Scala version (currently 2.12.8). If you want to publish for all versions of Scala, you can cross build:
 
 ```bash
 > +publishLocal
@@ -73,8 +73,8 @@ When you publish Play locally, it will publish a snapshot version to your local 
 Navigate to your existing Play project and make the following edits in `project/plugins.sbt`:
 
 ```scala
-// Change the sbt plugin to use the local Play build (2.6.0-SNAPSHOT)
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.0-SNAPSHOT")
+// Change the sbt plugin to use the local Play build (2.7.0-SNAPSHOT)
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.7.0-SNAPSHOT")
 ```
 
 Once you have done this, you can start the console and interact with your project normally:

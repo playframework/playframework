@@ -4,7 +4,6 @@
 
 package play.core.j
 
-import java.io.File
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
 
@@ -21,10 +20,6 @@ import play.libs.Files.{ TemporaryFile => JTemporaryFile }
  * provides Java centric BodyParsers
  */
 object JavaParsers {
-
-  // Java code can't access objects defined on traits, so we use this instead
-  @deprecated("Inject PlayBodyParsers instead", "2.6.0")
-  val parse = BodyParsers.parse
 
   def toJavaMultipartFormData[A](
       multipart: MultipartFormData[TemporaryFile]

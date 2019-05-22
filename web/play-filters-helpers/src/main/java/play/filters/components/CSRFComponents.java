@@ -49,7 +49,6 @@ public interface CSRFComponents
         sessionConfiguration(),
         csrfTokenProvider(),
         csrfErrorHandler(),
-        javaContextComponents(),
         materializer());
   }
 

@@ -32,10 +32,18 @@ case class AllowedHostsFilter @Inject()(config: AllowedHostsConfig, errorHandler
   // Java API
   def this(
       config: AllowedHostsConfig,
+      errorHandler: play.http.HttpErrorHandler
+  ) {
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
+  }
+
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+  def this(
+      config: AllowedHostsConfig,
       errorHandler: play.http.HttpErrorHandler,
       contextComponents: JavaContextComponents
   ) {
-    this(config, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents))
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
   }
 
   private val hostMatchers: Seq[HostMatcher] = config.allowed.map(HostMatcher.apply)

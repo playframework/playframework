@@ -1,15 +1,8 @@
 language: scala
 
-branches:
-  only:
-    - master
-    # Explicitly listing the maintained versions since we don't care
-    # anymore about builds in unmaintained branches.
-    - 2.7.x
-    - 2.6.x
-    # Builds for tags. See Travis docs for more details:
-    # https://docs.travis-ci.com/user/customizing-the-build/#using-regular-expressions
-    - /^\d+\.\d+\.\d+(\-\w{2,})?$/
+# Only build non-pushes (so PRs, API requests & cron jobs) OR tags OR forks
+# https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
+if: type != push OR tag IS present OR repo != playframework/playframework
 
 addons:
   apt:
@@ -74,11 +67,6 @@ jobs:
       env: TRAVIS_JDK=adopt@1.11.0-2
       name: "Scripted tests for sbt 1 and Java 11"
 
-matrix:
-  fast_finish: true
-  allow_failures:
-    - env: TRAVIS_JDK=adopt@1.11.0-2 # not fully supported but allows problem discovery
-
 cache:
   directories:
     - "$HOME/.ivy2/cache"
@@ -93,6 +81,7 @@ before_cache:
   - find $HOME/.sbt  -name "*.lock"               -delete
 
 notifications:
+  email: play-team@lightbend.com
   webhooks:
     urls:
     - https://webhooks.gitter.im/e/d2c8a242a2615f659595

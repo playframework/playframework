@@ -23,4 +23,5 @@ package object http {
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
     .withLocale(java.util.Locale.ENGLISH)
     .withZone(ZoneId.of("GMT"))
+
 }

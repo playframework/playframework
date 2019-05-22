@@ -9,19 +9,15 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.typesafe.config.Config;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
 import play.api.libs.json.JsValue;
-import play.api.mvc.DiscardingCookie;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
-import play.core.j.JavaContextComponents;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaParsers;
 import play.i18n.Lang;
-import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.Files;
@@ -31,7 +27,6 @@ import play.libs.XML;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
-import scala.Option;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
 
@@ -47,728 +42,10 @@ import java.time.Duration;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /** Defines HTTP standard objects. */
 public class Http {
-
-  /**
-   * The global HTTP context.
-   *
-   * @deprecated Deprecated as of 2.7.0. See <a
-   *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration
-   *     guide</a>.
-   */
-  @Deprecated
-  public static class Context {
-
-    private static Config config() {
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      Properties properties = System.getProperties();
-      scala.collection.immutable.Map<String, Object> directSettings =
-          scala.collection.immutable.Map$.MODULE$.empty();
-
-      // We are allowing missing application conf because it can handle both cases.
-      boolean allowMissingApplicationConf = true;
-
-      // Using play.api.Configuration.load because it is more consistent with how the
-      // actual configuration is loaded for the application.
-      return play.api.Configuration.load(
-              classLoader, properties, directSettings, allowMissingApplicationConf)
-          .underlying();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use
-     *     a request instead</a>.
-     */
-    @Deprecated
-    public static ThreadLocal<Context> current =
-        config().getBoolean("play.allowHttpContext") ? new ThreadLocal<>() : null;
-
-    /**
-     * Retrieves the current HTTP context, for the current thread.
-     *
-     * @return the context
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use
-     *     a request instead</a>.
-     */
-    @Deprecated
-    public static Context current() {
-      if (current == null) {
-        throw new RuntimeException(
-            "The Http.Context thread-local, which is deprecated as of Play 2.7, has been disabled. To enable it set \"play.allowHttpContext = true\" in application.conf");
-      }
-      Context c = current.get();
-      if (c == null) {
-        throw new RuntimeException("There is no HTTP Context available from here.");
-      }
-      return c;
-    }
-
-    /**
-     * Safely retrieves the current HTTP context, for the current thread.
-     *
-     * @return the context or empty if null
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use
-     *     a request instead</a>.
-     */
-    @Deprecated
-    public static Optional<Http.Context> safeCurrent() {
-      return Optional.ofNullable(Context.current).map(ThreadLocal::get);
-    }
-
-    /**
-     * Safely sets the current HTTP context, for the current thread. Does nothing is the context
-     * thread local is disabled.
-     *
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use
-     *     a request instead</a>.
-     */
-    @Deprecated
-    public static void setCurrent(Http.Context ctx) {
-      if (Context.current != null) {
-        Context.current.set(ctx);
-      }
-    }
-
-    /**
-     * Safely removes the current HTTP context, for the current thread. Does nothing is the context
-     * thread local is disabled.
-     *
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">Use
-     *     a request instead</a>.
-     */
-    @Deprecated
-    public static void clear() {
-      if (Context.current != null) {
-        Context.current.remove();
-      }
-    }
-
-    //
-
-    private final Long id;
-    private final Request request;
-    private final Response response;
-    private final Session session;
-    private final Flash flash;
-    private final JavaContextComponents components;
-
-    private Lang lang = null;
-
-    /**
-     * Creates a new HTTP context.
-     *
-     * @param requestBuilder the HTTP request builder.
-     * @param components the context components.
-     */
-    public Context(RequestBuilder requestBuilder, JavaContextComponents components) {
-      this(requestBuilder.build(), components);
-    }
-
-    /**
-     * Creates a new HTTP context.
-     *
-     * @param request the HTTP request
-     * @param components the context components.
-     */
-    public Context(Request request, JavaContextComponents components) {
-      this.request = request;
-      this.id = this.request.asScala().id();
-      this.response = new Response();
-      this.session = new Session(this.request.session());
-      this.flash = new Flash(this.request.flash());
-      this.args = new HashMap<>();
-      this.components = components;
-    }
-
-    /**
-     * Creates a new HTTP context.
-     *
-     * @param id the unique context ID
-     * @param header the request header (Not used anymore. You could simply pass null, it doesn't
-     *     matter)
-     * @param request the request with body
-     * @param sessionData the session data extracted from the session cookie
-     * @param flashData the flash data extracted from the flash cookie
-     * @param args any arbitrary data to associate with this request context.
-     * @param components the context components.
-     */
-    public Context(
-        Long id,
-        play.api.mvc.RequestHeader header,
-        Request request,
-        Map<String, String> sessionData,
-        Map<String, String> flashData,
-        Map<String, Object> args,
-        JavaContextComponents components) {
-      this(id, header, request, sessionData, flashData, args, null, components);
-    }
-
-    /**
-     * Creates a new HTTP context.
-     *
-     * @param id the unique context ID
-     * @param header the request header
-     * @param request the request with body
-     * @param sessionData the session data extracted from the session cookie
-     * @param flashData the flash data extracted from the flash cookie
-     * @param args any arbitrary data to associate with this request context.
-     * @param lang the transient lang to use.
-     * @param components the context components.
-     */
-    public Context(
-        Long id,
-        play.api.mvc.RequestHeader header,
-        Request request,
-        Map<String, String> sessionData,
-        Map<String, String> flashData,
-        Map<String, Object> args,
-        Lang lang,
-        JavaContextComponents components) {
-      this(
-          id,
-          header,
-          request,
-          new Response(),
-          new Session(sessionData),
-          new Flash(flashData),
-          new HashMap<>(args),
-          lang,
-          components);
-    }
-
-    /**
-     * Creates a new HTTP context, using the references provided.
-     *
-     * <p>Use this constructor (or withRequest) to copy a context within a Java Action to be passed
-     * to a delegate.
-     *
-     * @param id the unique context ID
-     * @param header the request header
-     * @param request the request with body
-     * @param response the response instance to use
-     * @param session the session instance to use
-     * @param flash the flash instance to use
-     * @param args any arbitrary data to associate with this request context.
-     * @param components the context components.
-     * @deprecated Use {@link #Context(Long, play.api.mvc.RequestHeader, Request, Response, Session,
-     *     Flash, Map, Lang, JavaContextComponents)} instead. Since 2.7.0.
-     */
-    public Context(
-        Long id,
-        play.api.mvc.RequestHeader header,
-        Request request,
-        Response response,
-        Session session,
-        Flash flash,
-        Map<String, Object> args,
-        JavaContextComponents components) {
-      this(id, header, request, response, session, flash, args, null, components);
-    }
-
-    /**
-     * Creates a new HTTP context, using the references provided.
-     *
-     * <p>Use this constructor (or withRequest) to copy a context within a Java Action to be passed
-     * to a delegate.
-     *
-     * @param id the unique context ID
-     * @param header the request header (Not used anymore. You could simply pass null, it doesn't
-     *     matter)
-     * @param request the request with body
-     * @param response the response instance to use
-     * @param session the session instance to use
-     * @param flash the flash instance to use
-     * @param args any arbitrary data to associate with this request context.
-     * @param lang the transient lang to use.
-     * @param components the context components.
-     */
-    public Context(
-        Long id,
-        play.api.mvc.RequestHeader header,
-        Request request,
-        Response response,
-        Session session,
-        Flash flash,
-        Map<String, Object> args,
-        Lang lang,
-        JavaContextComponents components) {
-      this.id = id;
-      this.request = request;
-      this.response = response;
-      this.session = session;
-      this.flash = flash;
-      this.args = args;
-      this.lang = lang;
-      this.components = components;
-    }
-
-    /**
-     * The context id (unique)
-     *
-     * @return the id
-     * @deprecated Deprecated as of 2.7.0 Use {@link RequestHeader#id()} instead.
-     */
-    @Deprecated
-    public Long id() {
-      return id;
-    }
-
-    /**
-     * Returns the current request.
-     *
-     * @return the request
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public Request request() {
-      return request;
-    }
-
-    /**
-     * Returns the current response.
-     *
-     * @return the response
-     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-     */
-    @Deprecated
-    public Response response() {
-      return response;
-    }
-
-    /**
-     * Returns the current session.
-     *
-     * @return the session
-     * @deprecated Deprecated as of 2.7.0. Use {@link Request#session()} and {@link Result} instead.
-     */
-    @Deprecated
-    public Session session() {
-      return session;
-    }
-
-    /**
-     * Returns the current flash scope.
-     *
-     * @return the flash scope
-     * @deprecated Deprecated as of 2.7.0. Use {@link Request#flash()} and {@link Result} instead.
-     */
-    @Deprecated
-    public Flash flash() {
-      return flash;
-    }
-
-    /**
-     * The original Play request Header used to create this context. For internal usage only.
-     *
-     * @return the original request header.
-     * @deprecated Use {@link #request()}.asScala() instead. Since 2.7.0.
-     */
-    @Deprecated
-    public play.api.mvc.RequestHeader _requestHeader() {
-      return request.asScala();
-    }
-
-    /**
-     * The current lang
-     *
-     * @return the current lang
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public Lang lang() {
-      if (lang != null) {
-        return lang;
-      } else {
-        return messages().lang();
-      }
-    }
-
-    /**
-     * @return the messages for the current lang
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public Messages messages() {
-      Request request = lang != null ? request().withTransientLang(lang) : request();
-      return messagesApi().preferred(request);
-    }
-
-    /**
-     * Change durably the lang for the current user.
-     *
-     * @param code New lang code to use (e.g. "fr", "en-US", etc.)
-     * @return true if the requested lang was supported by the application, otherwise false
-     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)}.
-     */
-    @Deprecated
-    public boolean changeLang(String code) {
-      return changeLang(Lang.forCode(code));
-    }
-
-    /**
-     * Change durably the lang for the current user.
-     *
-     * @param lang New Lang object to use
-     * @return true if the requested lang was supported by the application, otherwise false.
-     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#setLang(Result, Lang)}.
-     */
-    @Deprecated
-    public boolean changeLang(Lang lang) {
-      if (langs().availables().contains(lang)) {
-        this.lang = lang;
-        scala.Option<String> domain = sessionDomain();
-        Cookie langCookie =
-            new Cookie(
-                messagesApi().langCookieName(),
-                lang.code(),
-                null,
-                sessionPath(),
-                domain.isDefined() ? domain.get() : null,
-                messagesApi().langCookieSecure(),
-                messagesApi().langCookieHttpOnly(),
-                messagesApi().langCookieSameSite().orElse(null));
-        response.setCookie(langCookie);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    /**
-     * Clear the lang for the current user.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link MessagesApi#clearLang(Result)}.
-     */
-    @Deprecated
-    public void clearLang() {
-      this.lang = null;
-      scala.Option<String> domain = sessionDomain();
-      response.discardCookie(
-          messagesApi().langCookieName(),
-          sessionPath(),
-          domain.isDefined() ? domain.get() : null,
-          messagesApi().langCookieSecure());
-    }
-
-    private Langs langs() {
-      return components.langs();
-    }
-
-    private MessagesApi messagesApi() {
-      return components.messagesApi();
-    }
-
-    private scala.Option<String> sessionDomain() {
-      return components.httpConfiguration().session().domain();
-    }
-
-    private String sessionPath() {
-      return components.httpConfiguration().context();
-    }
-
-    /**
-     * Set the language for the current request, but don't change the language cookie. This means
-     * the language will be set for this request, but will not change for future requests.
-     *
-     * @param code the language code to set (e.g. "en-US")
-     * @throws IllegalArgumentException If the given language is not supported by the application.
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public void setTransientLang(String code) {
-      setTransientLang(Lang.forCode(code));
-    }
-
-    /**
-     * Set the language for the current request, but don't change the language cookie. This means
-     * the language will be set for this request, but will not change for future requests.
-     *
-     * @param lang the language to set
-     * @throws IllegalArgumentException If the given language is not supported by the application.
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public void setTransientLang(Lang lang) {
-      final Langs langs = components.langs();
-      if (langs.availables().contains(lang)) {
-        this.lang = lang;
-      } else {
-        throw new IllegalArgumentException(
-            "Language not supported in this application: "
-                + lang
-                + " not in "
-                + langs.availables());
-      }
-    }
-
-    /**
-     * Clear the language for the current request, but don't change the language cookie. This means
-     * the language will be cleared for this request (so a default will be used), but will not
-     * change for future requests.
-     *
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public void clearTransientLang() {
-      this.lang = null;
-    }
-
-    /**
-     * Free space to store your request specific data.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use request attributes instead.
-     */
-    @Deprecated public Map<String, Object> args;
-
-    /** @deprecated Deprecated as of 2.7.0. Inject {@link FileMimeTypes} instead. */
-    @Deprecated
-    public FileMimeTypes fileMimeTypes() {
-      return components.fileMimeTypes();
-    }
-
-    /**
-     * Import in templates to get implicit HTTP context.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-     */
-    @Deprecated
-    public static class Implicit {
-
-      /**
-       * Returns the current response.
-       *
-       * @return the current response.
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Response response() {
-        return Context.current().response();
-      }
-
-      /**
-       * Returns the current request.
-       *
-       * @return the current request.
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Request request() {
-        return Context.current().request();
-      }
-
-      /**
-       * Returns the current flash scope.
-       *
-       * @return the current flash scope.
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Flash flash() {
-        return Context.current().flash();
-      }
-
-      /**
-       * Returns the current session.
-       *
-       * @return the current session.
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Session session() {
-        return Context.current().session();
-      }
-
-      /**
-       * Returns the current lang.
-       *
-       * @return the current lang.
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Lang lang() {
-        return Context.current().lang();
-      }
-
-      /**
-       * @return the messages for the current lang
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Messages messages() {
-        return Context.current().messages();
-      }
-
-      /**
-       * Returns the current context.
-       *
-       * @return the current context.
-       * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead.
-       */
-      @Deprecated
-      public static Context ctx() {
-        return Context.current();
-      }
-    }
-
-    /** @return a String representation */
-    public String toString() {
-      return "Context attached to (" + request() + ")";
-    }
-
-    /**
-     * Create a new context with the given request.
-     *
-     * <p>The id, session, flash and args remain unchanged.
-     *
-     * <p>This method is intended for use within a Java action, to create a new Context to pass to a
-     * delegate action.
-     *
-     * @param request The request to create the new header from.
-     * @return The new context.
-     * @deprecated Deprecated as of 2.7.0. <a
-     *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">See
-     *     migration guide.</a>.
-     */
-    @Deprecated
-    public Context withRequest(Request request) {
-      return new Context(
-          id, request.asScala(), request, response, session, flash, args, lang, components);
-    }
-  }
-
-  /**
-   * A wrapped context. Use this to modify the context in some way.
-   *
-   * @deprecated Deprecated as of 2.7.0. See <a
-   *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration
-   *     guide</a>.
-   */
-  @Deprecated
-  public abstract static class WrappedContext extends Context {
-    private final Context wrapped;
-
-    /** @param wrapped the context the created instance will wrap */
-    public WrappedContext(Context wrapped) {
-      super(
-          wrapped.id(),
-          wrapped.request().asScala(),
-          wrapped.request(),
-          wrapped.session(),
-          wrapped.flash(),
-          wrapped.args,
-          wrapped.lang,
-          wrapped.components);
-      this.args = wrapped.args;
-      this.wrapped = wrapped;
-    }
-
-    @Override
-    @Deprecated
-    public Long id() {
-      return wrapped.id();
-    }
-
-    @Override
-    @Deprecated
-    public Request request() {
-      return wrapped.request();
-    }
-
-    @Override
-    @Deprecated
-    public Response response() {
-      return wrapped.response();
-    }
-
-    @Override
-    @Deprecated
-    public Session session() {
-      return wrapped.session();
-    }
-
-    @Override
-    @Deprecated
-    public Flash flash() {
-      return wrapped.flash();
-    }
-
-    @Override
-    @Deprecated
-    public play.api.mvc.RequestHeader _requestHeader() {
-      return wrapped.request().asScala();
-    }
-
-    @Override
-    @Deprecated
-    public Lang lang() {
-      return wrapped.lang();
-    }
-
-    @Override
-    @Deprecated
-    public boolean changeLang(String code) {
-      return wrapped.changeLang(code);
-    }
-
-    @Override
-    @Deprecated
-    public boolean changeLang(Lang lang) {
-      return wrapped.changeLang(lang);
-    }
-
-    @Override
-    @Deprecated
-    public void clearLang() {
-      wrapped.clearLang();
-    }
-
-    @Override
-    @Deprecated
-    public void setTransientLang(String code) {
-      wrapped.setTransientLang(code);
-    }
-
-    @Override
-    @Deprecated
-    public void setTransientLang(Lang lang) {
-      wrapped.setTransientLang(lang);
-    }
-
-    @Override
-    @Deprecated
-    public void clearTransientLang() {
-      wrapped.clearTransientLang();
-    }
-
-    @Override
-    @Deprecated
-    public Messages messages() {
-      return wrapped.messages();
-    }
-  }
 
   public static class Headers {
 
@@ -868,42 +145,26 @@ public class Http {
       return (Long) attrs().get(RequestAttrKey.Id().asJava());
     }
 
-    /**
-     * The complete request URI, containing both path and query string.
-     *
-     * @return the uri
-     */
+    /** @return The complete request URI, containing both path and query string */
     String uri();
 
-    /**
-     * The HTTP Method.
-     *
-     * @return the http method
-     */
+    /** @return the HTTP Method */
     String method();
 
-    /**
-     * The HTTP version.
-     *
-     * @return the version
-     */
+    /** @return the HTTP version */
     String version();
 
     /**
      * The client IP address.
      *
-     * <p>retrieves the last untrusted proxy from the Forwarded-Headers or the
+     * <p>Retrieves the last untrusted proxy from the Forwarded-Headers or the
      * X-Forwarded-*-Headers.
      *
      * @return the remote address
      */
     String remoteAddress();
 
-    /**
-     * Is the client using SSL?
-     *
-     * @return true that the client is using SSL
-     */
+    /** @return true if the client is using SSL */
     boolean secure();
 
     /** @return a map of typed attributes associated with the request. */
@@ -943,18 +204,10 @@ public class Http {
      */
     Request withBody(RequestBody body);
 
-    /**
-     * The request host.
-     *
-     * @return the host
-     */
+    /** @return the request host */
     String host();
 
-    /**
-     * The URI path.
-     *
-     * @return the path
-     */
+    /** @return the URI path */
     String path();
 
     /**
@@ -963,7 +216,7 @@ public class Http {
      *
      * @return the preference-ordered list of languages accepted by the client
      */
-    List<play.i18n.Lang> acceptLanguages();
+    List<Lang> acceptLanguages();
 
     /**
      * @return The media types set in the request Accept header, sorted by preference (preferred
@@ -991,8 +244,18 @@ public class Http {
      *
      * @param key the query string parameter to look up
      * @return the value for the provided <code>key</code>.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #queryString(String)} instead.
      */
+    @Deprecated
     String getQueryString(String key);
+
+    /**
+     * Helper method to access a queryString parameter.
+     *
+     * @param key the query string parameter to look up
+     * @return the value for the provided <code>key</code>, if it exists.
+     */
+    Optional<String> queryString(String key);
 
     /** @return the request cookies */
     Cookies cookies();
@@ -1000,8 +263,16 @@ public class Http {
     /**
      * @param name Name of the cookie to retrieve
      * @return the cookie, if found, otherwise null
+     * @deprecated Deprecated as of 2.8.0. Use {@link #getCookie(String)} instead.
      */
+    @Deprecated
     Cookie cookie(String name);
+
+    /**
+     * @param name Name of the cookie to retrieve
+     * @return the cookie, if found
+     */
+    Optional<Cookie> getCookie(String name);
 
     /**
      * Parses the Session cookie and returns the Session data. The request's session cookie is
@@ -1048,25 +319,13 @@ public class Http {
       return getHeaders().contains(headerName);
     }
 
-    /**
-     * Checks if the request has a body.
-     *
-     * @return true if request has a body, false otherwise.
-     */
+    /** @return true if request has a body, false otherwise. */
     boolean hasBody();
 
-    /**
-     * Get the content type of the request.
-     *
-     * @return The request content type excluding the charset, if it exists.
-     */
+    /** @return The request content type excluding the charset, if it exists. */
     Optional<String> contentType();
 
-    /**
-     * Get the charset of the request.
-     *
-     * @return The request charset, which comes from the content type header, if it exists.
-     */
+    /** @return The request charset, which comes from the content type header, if it exists. */
     Optional<String> charset();
 
     /**
@@ -1096,7 +355,9 @@ public class Http {
      *
      * @param code The language to use.
      * @return The new version of this object with the given transient language set.
+     * @deprecated Deprecated as of 2.8.0 Use {@link #withTransientLang(Lang)} instead.
      */
+    @Deprecated
     default RequestHeader withTransientLang(String code) {
       return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
     }
@@ -1133,8 +394,6 @@ public class Http {
     }
 
     /**
-     * Return the Scala version of the request header.
-     *
      * @return the Scala version for this request header.
      * @see play.api.mvc.RequestHeader
      */
@@ -1144,11 +403,7 @@ public class Http {
   /** An HTTP request. */
   public interface Request extends RequestHeader {
 
-    /**
-     * The request body.
-     *
-     * @return the body
-     */
+    /** @return the request body */
     RequestBody body();
 
     Request withBody(RequestBody body);
@@ -1168,6 +423,7 @@ public class Http {
     }
 
     // Override return type and provide default implementation
+    @Deprecated
     default Request withTransientLang(String code) {
       return addAttr(Messages.Attrs.CurrentLang, Lang.forCode(code));
     }
@@ -1182,12 +438,7 @@ public class Http {
       return removeAttr(Messages.Attrs.CurrentLang);
     }
 
-    /**
-     * Return the Scala version of the request
-     *
-     * @return the underlying request.
-     * @see play.api.mvc.Request
-     */
+    /** @return the underlying (Scala API) request. */
     play.api.mvc.Request<RequestBody> asScala();
   }
 
@@ -1310,10 +561,7 @@ public class Http {
                               + "\" needs to be present")));
 
       long dataSizeSum =
-          multipartFormData
-              .asFormUrlEncoded()
-              .entrySet()
-              .stream()
+          multipartFormData.asFormUrlEncoded().entrySet().stream()
               .mapToLong(
                   dataPart ->
                       Arrays.stream(dataPart.getValue())
@@ -1331,9 +579,7 @@ public class Http {
               .sum();
 
       long fileHeadersSizeSum =
-          multipartFormData
-              .getFiles()
-              .stream()
+          multipartFormData.getFiles().stream()
               .mapToLong(
                   filePart ->
                       // Pass empty body because we add the file size sum later instead anyway (see
@@ -1347,7 +593,9 @@ public class Http {
                           ""))
               .sum();
       long fileSizeSum =
-          multipartFormData.getFiles().stream().mapToLong(filePart -> filePart.getFileSize()).sum();
+          multipartFormData.getFiles().stream()
+              .mapToLong(MultipartFormData.FilePart::getFileSize)
+              .sum();
 
       long length = dataSizeSum + fileHeadersSizeSum + fileSizeSum;
 
@@ -1654,11 +902,7 @@ public class Http {
       return this;
     }
 
-    /**
-     * Get the request attributes.
-     *
-     * @return the request builder's request attributes.
-     */
+    /** @return the request builder's request attributes. */
     public TypedMap attrs() {
       return new TypedMap(req.attrs());
     }
@@ -1938,6 +1182,30 @@ public class Http {
     }
 
     /**
+     * Sets given lang in a cookie.
+     *
+     * @param lang The language to use.
+     * @return the builder instance
+     */
+    public RequestBuilder langCookie(Lang lang, MessagesApi messagesApi) {
+      return Results.ok()
+          .withLang(lang, messagesApi)
+          .cookie(messagesApi.langCookieName())
+          .map(this::cookie)
+          .orElse(this);
+    }
+
+    /**
+     * Sets given lang in a cookie.
+     *
+     * @param locale The language to use.
+     * @return the builder instance
+     */
+    public RequestBuilder langCookie(Locale locale, MessagesApi messagesApi) {
+      return langCookie(new Lang(locale), messagesApi);
+    }
+
+    /**
      * Sets the transient language.
      *
      * @param lang The language to use.
@@ -1953,7 +1221,9 @@ public class Http {
      *
      * @param code The language to use.
      * @return the builder instance
+     * @deprecated Deprecated as of 2.8.0 Use {@link #transientLang(Lang)} instead.
      */
+    @Deprecated
     public RequestBuilder transientLang(String code) {
       req = req.withTransientLang(code);
       return this;
@@ -1989,11 +1259,7 @@ public class Http {
   /** Handle the request body a raw bytes data. */
   public abstract static class RawBuffer {
 
-    /**
-     * Buffer size.
-     *
-     * @return the buffer size
-     */
+    /** @return the buffer size */
     public abstract Long size();
 
     /**
@@ -2004,18 +1270,10 @@ public class Http {
      */
     public abstract ByteString asBytes(int maxLength);
 
-    /**
-     * Returns the buffer content as a bytes array
-     *
-     * @return the bytes
-     */
+    /** @return the buffer content as a bytes array */
     public abstract ByteString asBytes();
 
-    /**
-     * Returns the buffer content as File
-     *
-     * @return the file
-     */
+    /** @return the buffer content as a file */
     public abstract File asFile();
   }
 
@@ -2082,50 +1340,19 @@ public class Http {
         this.fileSize = fileSize;
       }
 
-      /**
-       * The part name.
-       *
-       * @return the part name
-       */
+      /** @return the part name */
       public String getKey() {
         return key;
       }
 
-      /**
-       * The file name.
-       *
-       * @return the file name
-       */
+      /** @return the file name */
       public String getFilename() {
         return filename;
       }
 
-      /**
-       * The file Content-Type
-       *
-       * @return the content type
-       */
+      /** @return the file content type */
       public String getContentType() {
         return contentType;
-      }
-
-      /**
-       * The File.
-       *
-       * @return the file
-       * @deprecated Deprecated as of 2.7.0. Use {@link #getRef()} instead, which however (when
-       *     using the default Play {@code BodyParser}) will give you a {@link
-       *     play.libs.Files.TemporaryFile} instance instead of a {@link java.io.File} one. <a
-       *     href="https://www.playframework.com/documentation/latest/Migration27#Javas-FilePart-exposes-the-TemporaryFile-for-uploaded-files">See
-       *     migration guide.</a>
-       */
-      @Deprecated
-      public A getFile() {
-        if (ref instanceof Files.TemporaryFile) {
-          // For backwards compatibility
-          return (A) ((Files.TemporaryFile) ref).path().toFile();
-        }
-        return ref;
       }
 
       /**
@@ -2137,20 +1364,12 @@ public class Http {
         return ref;
       }
 
-      /**
-       * The disposition type.
-       *
-       * @return the disposition type
-       */
+      /** @return the disposition type */
       public String getDispositionType() {
         return dispositionType;
       }
 
-      /**
-       * The size of the file in bytes.
-       *
-       * @return the size of the file in bytes
-       */
+      /** @return the size of the file in bytes */
       public long getFileSize() {
         return fileSize;
       }
@@ -2165,20 +1384,12 @@ public class Http {
         this.value = value;
       }
 
-      /**
-       * The part name.
-       *
-       * @return the part name
-       */
+      /** @return the part name */
       public String getKey() {
         return key;
       }
 
-      /**
-       * The part value.
-       *
-       * @return the part value
-       */
+      /** @return the part value */
       public String getValue() {
         return value;
       }
@@ -2205,7 +1416,7 @@ public class Http {
      * @return the file part specified by key
      */
     public FilePart<A> getFile(String key) {
-      for (FilePart filePart : getFiles()) {
+      for (FilePart<A> filePart : getFiles()) {
         if (filePart.getKey().equals(key)) {
           return filePart;
         }
@@ -2229,6 +1440,7 @@ public class Http {
      * @param <A> the file type (e.g. play.api.libs.Files.TemporaryFile)
      * @return the content parsed as multipart form data
      */
+    @SuppressWarnings("unchecked")
     public <A> MultipartFormData<A> asMultipartFormData() {
       return as(MultipartFormData.class);
     }
@@ -2238,55 +1450,41 @@ public class Http {
      *
      * @return the request content parsed as URL form-encoded.
      */
+    @SuppressWarnings("unchecked")
     public Map<String, String[]> asFormUrlEncoded() {
       // Best effort, check if it's a map, then check if the first element in that map is String ->
       // String[].
       if (body instanceof Map) {
-        if (((Map) body).isEmpty()) {
+        if (((Map<?, ?>) body).isEmpty()) {
           return Collections.emptyMap();
         } else {
-          Map.Entry<Object, Object> first =
-              ((Map<Object, Object>) body).entrySet().iterator().next();
+          Map.Entry<?, ?> first = ((Map<?, ?>) body).entrySet().iterator().next();
           if (first.getKey() instanceof String && first.getValue() instanceof String[]) {
-            return (Map<String, String[]>) body;
+            @SuppressWarnings("unchecked")
+            final Map<String, String[]> body = (Map<String, String[]>) this.body;
+            return body;
           }
         }
       }
       return null;
     }
 
-    /**
-     * The request content as Array bytes.
-     *
-     * @return The request content as Array bytes.
-     */
+    /** @return The request content as Array bytes. */
     public RawBuffer asRaw() {
       return as(RawBuffer.class);
     }
 
-    /**
-     * The request content as text.
-     *
-     * @return The request content as text.
-     */
+    /** @return The request content as text. */
     public String asText() {
       return as(String.class);
     }
 
-    /**
-     * The request content as XML.
-     *
-     * @return The request content as XML.
-     */
+    /** @return The request content as XML. */
     public Document asXml() {
       return as(Document.class);
     }
 
-    /**
-     * The request content as Json.
-     *
-     * @return The request content as Json.
-     */
+    /** @return The request content as Json. */
     public JsonNode asJson() {
       return as(JsonNode.class);
     }
@@ -2342,8 +1540,7 @@ public class Http {
         Map<String, String[]> form = asFormUrlEncoded();
         if (form != null) {
           return ByteString.fromString(
-              form.entrySet()
-                  .stream()
+              form.entrySet().stream()
                   .flatMap(
                       entry -> {
                         String key = encode(entry.getKey());
@@ -2385,214 +1582,69 @@ public class Http {
   }
 
   /**
-   * The HTTP response.
-   *
-   * @deprecated Deprecated as of 2.7.0. Use {@link Result} instead which has methods to add headers
-   *     and cookies.
-   */
-  @Deprecated
-  public static class Response implements HeaderNames {
-
-    private final Map<String, String> headers =
-        new TreeMap<>((Comparator<String>) String::compareToIgnoreCase);
-    private final List<Cookie> cookies = new ArrayList<>();
-
-    /**
-     * Adds a new header to the response.
-     *
-     * @param name The name of the header, must not be null
-     * @param value The value of the header, must not be null
-     */
-    public void setHeader(String name, String value) {
-      if (name == null) {
-        throw new NullPointerException("Header name cannot be null!");
-      }
-      if (value == null) {
-        throw new NullPointerException("Header value cannot be null!");
-      }
-      this.headers.put(name, value);
-    }
-
-    /**
-     * Gets the current response headers.
-     *
-     * @return the current response headers.
-     */
-    public Map<String, String> getHeaders() {
-      return headers;
-    }
-
-    /**
-     * Set a new cookie.
-     *
-     * @param cookie to set
-     */
-    public void setCookie(Cookie cookie) {
-      cookies.add(cookie);
-    }
-
-    /**
-     * Discard a cookie on the default path ("/") with no domain and that's not secure.
-     *
-     * @param name The name of the cookie to discard, must not be null
-     */
-    public void discardCookie(String name) {
-      discardCookie(name, "/", null, false);
-    }
-
-    /**
-     * Discard a cookie on the given path with no domain and not that's secure.
-     *
-     * @param name The name of the cookie to discard, must not be null
-     * @param path The path of the cookie te discard, may be null
-     */
-    public void discardCookie(String name, String path) {
-      discardCookie(name, path, null, false);
-    }
-
-    /**
-     * Discard a cookie on the given path and domain that's not secure.
-     *
-     * @param name The name of the cookie to discard, must not be null
-     * @param path The path of the cookie te discard, may be null
-     * @param domain The domain of the cookie to discard, may be null
-     */
-    public void discardCookie(String name, String path, String domain) {
-      discardCookie(name, path, domain, false);
-    }
-
-    /**
-     * Discard a cookie in this result
-     *
-     * @param name The name of the cookie to discard, must not be null
-     * @param path The path of the cookie te discard, may be null
-     * @param domain The domain of the cookie to discard, may be null
-     * @param secure Whether the cookie to discard is secure
-     */
-    public void discardCookie(String name, String path, String domain, boolean secure) {
-      cookies.add(
-          new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
-    }
-
-    public Collection<Cookie> cookies() {
-      return cookies;
-    }
-
-    public Optional<Cookie> cookie(String name) {
-      return cookies.stream().filter(x -> x.name().equals(name)).findFirst();
-    }
-  }
-
-  /**
    * HTTP Session.
    *
    * <p>Session data are encoded into an HTTP cookie, and can only contain simple <code>String
    * </code> values.
    */
-  public static class Session extends HashMap<String, String> {
+  public static class Session {
 
-    /** @deprecated Deprecated as of 2.7.0. */
-    @Deprecated public boolean isDirty = false;
+    private final play.api.mvc.Session underlying;
+
+    public Session() {
+      this.underlying = new play.api.mvc.Session(Scala.asScala(Collections.emptyMap()));
+    }
 
     public Session(Map<String, String> data) {
-      super(data);
+      this.underlying = new play.api.mvc.Session(Scala.asScala(data));
     }
 
     public Session(play.api.mvc.Session underlying) {
-      this(Scala.asJava(underlying.data()));
+      this.underlying = underlying;
     }
 
     public Map<String, String> data() {
-      return Collections.unmodifiableMap(this);
-    }
-
-    /** @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead. */
-    @Deprecated
-    @Override
-    public boolean containsKey(Object key) {
-      return super.containsKey(key);
-    }
-
-    /** @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead. */
-    @Deprecated
-    @Override
-    public String get(Object key) {
-      return super.get(key);
+      return Scala.asJava(this.underlying.data());
     }
 
     /** Optionally returns the session value associated with a key. */
-    public Optional<String> apply(String key) {
-      return getOptional(key);
-    }
-
-    /** Optionally returns the session value associated with a key. */
-    public Optional<String> getOptional(String key) {
-      return Optional.ofNullable(super.get(key));
+    public Optional<String> get(String key) {
+      return OptionConverters.toJava(this.underlying.get(key));
     }
 
     /**
-     * Removes the specified value from the session.
+     * Optionally returns the session value associated with a key.
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #removing(String...)} instead.
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #get(String)}.
      */
     @Deprecated
-    @Override
-    public String remove(Object key) {
-      isDirty = true;
-      return super.remove(key);
+    public Optional<String> getOptional(String key) {
+      return get(key);
+    }
+
+    /**
+     * Optionally returns the session value associated with a key.
+     *
+     * @deprecated Deprecated as of 2.8.0. Use {@link #get(String)} instead.
+     */
+    @Deprecated
+    public Optional<String> apply(String key) {
+      return get(key);
     }
 
     /** Returns a new session with the given keys removed. */
     public Session removing(String... keys) {
-      return new play.api.mvc.Session(Scala.asScala(this)).$minus$minus(Scala.toSeq(keys)).asJava();
-    }
-
-    /**
-     * Adds the given value to the session.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #adding(String, String)} instead.
-     */
-    @Deprecated
-    @Override
-    public String put(String key, String value) {
-      isDirty = true;
-      return super.put(key, value);
-    }
-
-    /**
-     * Adds the given values to the session.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #adding(Map)} instead.
-     */
-    @Deprecated
-    @Override
-    public void putAll(Map<? extends String, ? extends String> values) {
-      isDirty = true;
-      super.putAll(values);
+      return this.underlying.$minus$minus(Scala.varargs(keys)).asJava();
     }
 
     /** Returns a new session with the given key-value pair added. */
     public Session adding(String key, String value) {
-      return new play.api.mvc.Session(Scala.asScala(this)).$plus(Scala.Tuple(key, value)).asJava();
+      return this.underlying.$plus(Scala.Tuple(key, value)).asJava();
     }
 
     /** Returns a new session with the values from the given map added. */
     public Session adding(Map<String, String> values) {
-      return new play.api.mvc.Session(Scala.asScala(this))
-          .$plus$plus(Scala.asScala(values))
-          .asJava();
-    }
-
-    /**
-     * Clears the session.
-     *
-     * @deprecated Deprecated as of 2.7.0. Just create a new instance instead.
-     */
-    @Deprecated
-    @Override
-    public void clear() {
-      isDirty = true;
-      super.clear();
+      return this.underlying.$plus$plus(Scala.asScala(values)).asJava();
     }
 
     /**
@@ -2601,215 +1653,7 @@ public class Http {
      * @return the Scala session.
      */
     public play.api.mvc.Session asScala() {
-      return new play.api.mvc.Session(Scala.asScala(this));
-    }
-
-    // ### Let's deprecate all of HashMap
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    public Session(int initialCapacity, float loadFactor) {
-      super(initialCapacity, loadFactor);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    public Session(int initialCapacity) {
-      super(initialCapacity);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public int size() {
-      return super.size();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean isEmpty() {
-      return super.isEmpty();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean containsValue(Object value) {
-      return super.containsValue(value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Set<String> keySet() {
-      return super.keySet();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Collection<String> values() {
-      return super.values();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Set<Entry<String, String>> entrySet() {
-      return super.entrySet();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String getOrDefault(Object key, String defaultValue) {
-      return super.getOrDefault(key, defaultValue);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String putIfAbsent(String key, String value) {
-      return super.putIfAbsent(key, value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean remove(Object key, Object value) {
-      return super.remove(key, value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean replace(String key, String oldValue, String newValue) {
-      return super.replace(key, oldValue, newValue);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String replace(String key, String value) {
-      return super.replace(key, value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String computeIfAbsent(
-        String key, Function<? super String, ? extends String> mappingFunction) {
-      return super.computeIfAbsent(key, mappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String computeIfPresent(
-        String key,
-        BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
-      return super.computeIfPresent(key, remappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String compute(
-        String key,
-        BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
-      return super.compute(key, remappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String merge(
-        String key,
-        String value,
-        BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
-      return super.merge(key, value, remappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public void forEach(BiConsumer<? super String, ? super String> action) {
-      super.forEach(action);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public void replaceAll(BiFunction<? super String, ? super String, ? extends String> function) {
-      super.replaceAll(function);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Session} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Object clone() {
-      return super.clone();
+      return this.underlying;
     }
   }
 
@@ -2818,108 +1662,64 @@ public class Http {
    *
    * <p>Flash data are encoded into an HTTP cookie, and can only contain simple String values.
    */
-  public static class Flash extends HashMap<String, String> {
+  public static class Flash {
 
-    /** @deprecated Deprecated as of 2.7.0. */
-    @Deprecated public boolean isDirty = false;
+    private final play.api.mvc.Flash underlying;
+
+    public Flash() {
+      this.underlying = new play.api.mvc.Flash(Scala.asScala(Collections.emptyMap()));
+    }
 
     public Flash(Map<String, String> data) {
-      super(data);
+      this.underlying = new play.api.mvc.Flash(Scala.asScala(data));
     }
 
     public Flash(play.api.mvc.Flash underlying) {
-      this(Scala.asJava(underlying.data()));
+      this.underlying = underlying;
     }
 
     public Map<String, String> data() {
-      return Collections.unmodifiableMap(this);
-    }
-
-    /** @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead. */
-    @Deprecated
-    @Override
-    public boolean containsKey(Object key) {
-      return super.containsKey(key);
-    }
-
-    /** @deprecated Deprecated as of 2.7.0. Use {@link #getOptional(String)} instead. */
-    @Deprecated
-    @Override
-    public String get(Object key) {
-      return super.get(key);
-    }
-
-    /** Optionally returns the session value associated with a key. */
-    public Optional<String> apply(String key) {
-      return getOptional(key);
+      return Scala.asJava(this.underlying.data());
     }
 
     /** Optionally returns the flash scope value associated with a key. */
-    public Optional<String> getOptional(String key) {
-      return Optional.ofNullable(super.get(key));
+    public Optional<String> get(String key) {
+      return OptionConverters.toJava(this.underlying.get(key));
     }
 
     /**
-     * Removes the specified value from the flash scope.
+     * Optionally returns the flash scope value associated with a key.
      *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #removing(String...)} instead.
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #get(String)}.
      */
     @Deprecated
-    @Override
-    public String remove(Object key) {
-      isDirty = true;
-      return super.remove(key);
+    public Optional<String> getOptional(String key) {
+      return get(key);
+    }
+
+    /**
+     * Optionally returns the flash value associated with a key.
+     *
+     * @deprecated Deprecated as of 2.8.0. Use {@link #get(String)} instead.
+     */
+    @Deprecated
+    public Optional<String> apply(String key) {
+      return get(key);
     }
 
     /** Returns a new flash with the given keys removed. */
     public Flash removing(String... keys) {
-      return new play.api.mvc.Flash(Scala.asScala(this)).$minus$minus(Scala.toSeq(keys)).asJava();
-    }
-
-    /**
-     * Adds the given value to the flash scope.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #adding(String, String)} instead.
-     */
-    @Deprecated
-    @Override
-    public String put(String key, String value) {
-      isDirty = true;
-      return super.put(key, value);
-    }
-
-    /**
-     * Adds the given values to the flash scope.
-     *
-     * @deprecated Deprecated as of 2.7.0. Use {@link #adding(Map)} instead.
-     */
-    @Deprecated
-    @Override
-    public void putAll(Map<? extends String, ? extends String> values) {
-      isDirty = true;
-      super.putAll(values);
+      return this.underlying.$minus$minus(Scala.varargs(keys)).asJava();
     }
 
     /** Returns a new flash with the given key-value pair added. */
     public Flash adding(String key, String value) {
-      return new play.api.mvc.Flash(Scala.asScala(this)).$plus(Scala.Tuple(key, value)).asJava();
+      return this.underlying.$plus(Scala.Tuple(key, value)).asJava();
     }
 
     /** Returns a new flash with the values from the given map added. */
     public Flash adding(Map<String, String> values) {
-      return new play.api.mvc.Flash(Scala.asScala(this)).$plus$plus(Scala.asScala(values)).asJava();
-    }
-
-    /**
-     * Clears the flash scope.
-     *
-     * @deprecated Deprecated as of 2.7.0. Just create a new instance instead.
-     */
-    @Deprecated
-    @Override
-    public void clear() {
-      isDirty = true;
-      super.clear();
+      return this.underlying.$plus$plus(Scala.asScala(values)).asJava();
     }
 
     /**
@@ -2928,215 +1728,7 @@ public class Http {
      * @return the Scala flash.
      */
     public play.api.mvc.Flash asScala() {
-      return new play.api.mvc.Flash(Scala.asScala(this));
-    }
-
-    // ### Let's deprecate all of HashMap
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    public Flash(int initialCapacity, float loadFactor) {
-      super(initialCapacity, loadFactor);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    public Flash(int initialCapacity) {
-      super(initialCapacity);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public int size() {
-      return super.size();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean isEmpty() {
-      return super.isEmpty();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean containsValue(Object value) {
-      return super.containsValue(value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Set<String> keySet() {
-      return super.keySet();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Collection<String> values() {
-      return super.values();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Set<Entry<String, String>> entrySet() {
-      return super.entrySet();
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String getOrDefault(Object key, String defaultValue) {
-      return super.getOrDefault(key, defaultValue);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String putIfAbsent(String key, String value) {
-      return super.putIfAbsent(key, value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean remove(Object key, Object value) {
-      return super.remove(key, value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public boolean replace(String key, String oldValue, String newValue) {
-      return super.replace(key, oldValue, newValue);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String replace(String key, String value) {
-      return super.replace(key, value);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String computeIfAbsent(
-        String key, Function<? super String, ? extends String> mappingFunction) {
-      return super.computeIfAbsent(key, mappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String computeIfPresent(
-        String key,
-        BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
-      return super.computeIfPresent(key, remappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String compute(
-        String key,
-        BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
-      return super.compute(key, remappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public String merge(
-        String key,
-        String value,
-        BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
-      return super.merge(key, value, remappingFunction);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public void forEach(BiConsumer<? super String, ? super String> action) {
-      super.forEach(action);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public void replaceAll(BiFunction<? super String, ? super String, ? extends String> function) {
-      super.replaceAll(function);
-    }
-
-    /**
-     * @deprecated Deprecated as of 2.7.0. {@link Flash} will not be a subclass of {@link HashMap}
-     *     in future Play releases.
-     */
-    @Deprecated
-    @Override
-    public Object clone() {
-      return super.clone();
+      return this.underlying;
     }
   }
 
@@ -3302,7 +1894,6 @@ public class Http {
     /**
      * @param name the cookie builder name
      * @param value the cookie builder value
-     * @return the cookie builder with the specified name and value
      */
     private CookieBuilder(String name, String value) {
       this.name = name;
@@ -3407,22 +1998,22 @@ public class Http {
     /**
      * @param name Name of the cookie to retrieve
      * @return the cookie that is associated with the given name
-     * @deprecated Deprecated as of 2.7.0. Use {@link #getCookie(String)}
      */
-    @Deprecated
-    default Cookie get(String name) {
-      return getCookie(name).get();
-    }
+    Optional<Cookie> get(String name);
 
     /**
      * @param name Name of the cookie to retrieve
      * @return the optional cookie that is associated with the given name
+     * @deprecated Deprecated as of 2.8.0. Renamed to {@link #get(String)}
      */
-    Optional<Cookie> getCookie(String name);
+    @Deprecated
+    default Optional<Cookie> getCookie(String name) {
+      return get(name);
+    }
   }
 
   /** Defines all standard HTTP headers. */
-  public static interface HeaderNames {
+  public interface HeaderNames {
 
     String ACCEPT = "Accept";
     String ACCEPT_CHARSET = "Accept-Charset";
@@ -3607,7 +2198,7 @@ public class Http {
   }
 
   /** Standard HTTP Verbs */
-  public static interface HttpVerbs {
+  public interface HttpVerbs {
     String GET = "GET";
     String POST = "POST";
     String PUT = "PUT";

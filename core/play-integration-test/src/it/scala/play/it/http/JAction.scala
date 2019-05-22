@@ -11,7 +11,6 @@ import play.api._
 import play.api.mvc.EssentialAction
 import play.core.j.JavaAction
 import play.core.j.JavaActionAnnotations
-import play.core.j.JavaContextComponents
 import play.core.j.JavaHandlerComponents
 import play.core.routing.HandlerInvokerFactory
 import play.mvc.Http
@@ -39,31 +38,25 @@ object JAction {
     new JavaAction(handlerComponents) {
       val annotations = new JavaActionAnnotations(
         c.getClass,
-        c.getClass.getMethod("action"),
+        c.getClass.getMethod("action", classOf[Http.Request]),
         handlerComponents.httpConfiguration.actionComposition
       )
       val parser                        = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
-      def invocation(req: Http.Request) = c.invocation
+      def invocation(req: Http.Request) = c.invocation(req)
     }
   }
 }
 
 trait AbstractMockController {
-  def invocation: CompletionStage[Result]
-
-  def ctx      = Http.Context.current()
-  def response = ctx.response()
-  def request  = ctx.request()
-  def session  = ctx.session()
-  def flash    = ctx.flash()
+  def invocation(request: Http.Request): CompletionStage[Result]
 }
 
 abstract class MockController extends AbstractMockController {
-  def action: Result
-  def invocation: CompletionStage[Result] = CompletableFuture.completedFuture(action)
+  def action(request: Http.Request): Result
+  def invocation(request: Http.Request): CompletionStage[Result] = CompletableFuture.completedFuture(action(request))
 }
 
 abstract class AsyncMockController extends AbstractMockController {
-  def action: CompletionStage[Result]
-  def invocation: CompletionStage[Result] = action
+  def action(request: Http.Request): CompletionStage[Result]
+  def invocation(request: Http.Request): CompletionStage[Result] = action(request)
 }

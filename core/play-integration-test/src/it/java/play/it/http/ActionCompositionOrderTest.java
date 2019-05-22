@@ -115,48 +115,6 @@ public class ActionCompositionOrderTest {
         }
     }
 
-    @With(ContextArgsSetAction.class)
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface ContextArgsSet {}
-
-    static class ContextArgsSetAction extends Action<ContextArgsSet> {
-        @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            ctx.args.put("foo", "bar");
-            return delegate.call(ctx);
-        }
-    }
-
-    @With(ContextArgsGetAction.class)
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface ContextArgsGet {}
-
-    static class ContextArgsGetAction extends Action<ContextArgsGet> {
-        @Override
-        public CompletionStage<Result> call(Http.Context ctx) {
-            return delegate.call(ctx).thenApply(result -> {
-                if("bar".equals(ctx.args.get("foo"))) {
-                    return Results.ok("ctx.args were set");
-                }
-                return Results.ok();
-            });
-        }
-    }
-
-    @With(NoopUsingRequestAction.class)
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface NoopUsingRequest {}
-
-    static class NoopUsingRequestAction extends Action<NoopUsingRequest> {
-        @Override
-        public CompletionStage<Result> call(Http.Request req) {
-            return delegate.call(req);
-        }
-    }
-
     @With(SingletonActionAnnotationAction.class)
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)

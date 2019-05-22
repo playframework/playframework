@@ -36,7 +36,7 @@ lazy val main = Project("Play-Documentation", file("."))
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
-      "com.typesafe"   % "config"       % "1.3.3"   % Test,
+      "com.typesafe"   % "config"       % "1.3.4"   % Test,
       "com.h2database" % "h2"           % "1.4.197" % Test,
       "org.mockito"    % "mockito-core" % "2.18.3"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
@@ -76,8 +76,8 @@ lazy val main = Project("Play-Documentation", file("."))
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
-    sourceDirectories in format in Test ++= (unmanagedSourceDirectories in Test).value,
-    sourceDirectories in format in Test ++= (unmanagedResourceDirectories in Test).value,
+    sourceDirectories in javafmt in Test ++= (unmanagedSourceDirectories in Test).value,
+    sourceDirectories in javafmt in Test ++= (unmanagedResourceDirectories in Test).value,
     // No need to show eviction warnings for Play documentation.
     evictionWarningOptions in update := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)

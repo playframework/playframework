@@ -18,4 +18,4 @@ package play.api
  * }
  * }}}
  */
-package object mvc {}
+package object mvc

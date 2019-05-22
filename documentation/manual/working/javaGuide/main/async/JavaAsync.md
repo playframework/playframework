@@ -35,15 +35,13 @@ Using `supplyAsync` creates a new task which will be placed on the fork join poo
 
 ## Using HttpExecutionContext
 
-You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the classloader and the `HTTP.Context` remains in scope.  If you don't supply the HTTP execution context, you'll get "There is no HTTP Context available from here" errors when you call `request()` or other methods that depend on `Http.Context`.
-
-> **Note:** Be aware that `Http.Context` is deprecated however and you should [[migrate away from it|JavaHttpContextMigration27]].
+You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the classloader remains in scope.
 
 You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
 
 @[http-execution-context](../../../commonGuide/configuration/code/detailedtopics/httpec/MyController.java)
 
-Please see [[Java thread locals|ThreadPools#Java thread locals]] for more information on using Java thread locals and HttpExecutionContext.
+Please see [[Class loaders|ThreadPools#Class loaders]] for more information on using `HttpExecutionContext`.
 
 ## Using CustomExecutionContext and HttpExecution
 

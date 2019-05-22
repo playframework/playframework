@@ -11,9 +11,9 @@ SBT_VERSION="1.2.8"
 cd "$BASEDIR"
 
 printMessage "PUBLISHING PLAY LOCALLY FOR SBT ${SBT_VERSION}"
-runSbt ++${SCALA_VERSION} quickPublish publishLocal
+runSbtWithSnapshots ++${SCALA_VERSION} quickPublish publishLocal
 
 printMessage "RUNNING SCRIPTED TESTS FOR SBT ${SBT_VERSION}"
-runSbt scripted
+runSbtWithSnapshots scripted
 
 printMessage "ALL SCRIPTED TESTS PASSED"

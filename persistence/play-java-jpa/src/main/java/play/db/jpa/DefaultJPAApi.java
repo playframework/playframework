@@ -14,7 +14,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -30,17 +29,8 @@ public class DefaultJPAApi implements JPAApi {
 
   private final Map<String, EntityManagerFactory> emfs = new HashMap<>();
 
-  private final JPAEntityManagerContext entityManagerContext;
-
-  /** @deprecated Deprecated as of 2.7.0. Use {@link #DefaultJPAApi(JPAConfig)} instead. */
-  @Deprecated
-  public DefaultJPAApi(JPAConfig jpaConfig, JPAEntityManagerContext entityManagerContext) {
-    this.jpaConfig = jpaConfig;
-    this.entityManagerContext = entityManagerContext;
-  }
-
   public DefaultJPAApi(JPAConfig jpaConfig) {
-    this(jpaConfig, null);
+    this.jpaConfig = jpaConfig;
   }
 
   @Singleton
@@ -48,33 +38,25 @@ public class DefaultJPAApi implements JPAApi {
     private final JPAApi jpaApi;
 
     /**
-     * @deprecated Deprecated as of 2.7.0. Use {@link #JPAApiProvider(JPAConfig,
-     *     ApplicationLifecycle, DBApi, Config)} instead.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #JPAApiProvider(JPAConfig,
+     *     ApplicationLifecycle, DBApi)} instead.
      */
-    @Inject
     @Deprecated
     public JPAApiProvider(
-        JPAConfig jpaConfig,
-        JPAEntityManagerContext context,
-        ApplicationLifecycle lifecycle,
-        DBApi dbApi,
-        Config config) {
+        JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
+      this(jpaConfig, lifecycle, dbApi);
+    }
+
+    @Inject
+    public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi) {
       // dependency on db api ensures that the databases are initialised
-      jpaApi =
-          new DefaultJPAApi(
-              jpaConfig,
-              config.getBoolean("play.jpa.allowJPAEntityManagerContext") ? context : null);
+      jpaApi = new DefaultJPAApi(jpaConfig);
       lifecycle.addStopHook(
           () -> {
             jpaApi.shutdown();
             return CompletableFuture.completedFuture(null);
           });
       jpaApi.start();
-    }
-
-    public JPAApiProvider(
-        JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
-      this(jpaConfig, null, lifecycle, dbApi, config);
     }
 
     @Override
@@ -106,22 +88,6 @@ public class DefaultJPAApi implements JPAApi {
       return null;
     }
     return emf.createEntityManager();
-  }
-
-  /**
-   * Get the EntityManager for a particular persistence unit for this thread.
-   *
-   * @return EntityManager for the specified persistence unit name
-   * @deprecated Deprecated as of 2.7.0. The EntityManager is supplied as lambda parameter instead
-   *     when using {@link #withTransaction(Function)}
-   */
-  @Deprecated
-  public EntityManager em() {
-    if (entityManagerContext == null) {
-      throw new RuntimeException(
-          "EntityManager can't be acquired from a thread-local. You should instead use one of the JPAApi methods where the EntityManager is provided automatically.");
-    }
-    return entityManagerContext.em();
   }
 
   /**
@@ -195,10 +161,6 @@ public class DefaultJPAApi implements JPAApi {
         throw new RuntimeException("Could not create JPA entity manager for '" + name + "'");
       }
 
-      if (entityManagerContext != null) {
-        entityManagerContext.push(entityManager, true);
-      }
-
       if (!readOnly) {
         tx = entityManager.getTransaction();
         tx.begin();
@@ -229,9 +191,6 @@ public class DefaultJPAApi implements JPAApi {
       throw t;
     } finally {
       if (entityManager != null) {
-        if (entityManagerContext != null) {
-          entityManagerContext.pop(true);
-        }
         entityManager.close();
       }
     }
@@ -251,55 +210,6 @@ public class DefaultJPAApi implements JPAApi {
         em -> {
           block.accept(em);
           return null;
-        });
-  }
-
-  /**
-   * Run a block of code in a JPA transaction.
-   *
-   * @param block Block of code to execute
-   * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(Function)} instead.
-   */
-  @Deprecated
-  public <T> T withTransaction(Supplier<T> block) {
-    return withTransaction("default", false, block);
-  }
-
-  /**
-   * Run a block of code in a JPA transaction.
-   *
-   * @param block Block of code to execute
-   * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(Consumer)} instead.
-   */
-  @Deprecated
-  public void withTransaction(final Runnable block) {
-    try {
-      withTransaction(
-          () -> {
-            block.run();
-            return null;
-          });
-    } catch (Throwable t) {
-      throw new RuntimeException("JPA transaction failed", t);
-    }
-  }
-
-  /**
-   * Run a block of code in a JPA transaction.
-   *
-   * @param name The persistence unit name
-   * @param readOnly Is the transaction read-only?
-   * @param block Block of code to execute
-   * @deprecated Deprecated as of 2.7.0. Use {@link #withTransaction(String, boolean, Function)}
-   *     instead.
-   */
-  @Deprecated
-  public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
-    return withTransaction(
-        name,
-        readOnly,
-        entityManager -> {
-          return block.get();
         });
   }
 

@@ -17,7 +17,7 @@ import scala.annotation.tailrec
  */
 trait Handler
 
-final object Handler {
+object Handler {
 
   /**
    * Some handlers are built as a series of stages, with each stage returning

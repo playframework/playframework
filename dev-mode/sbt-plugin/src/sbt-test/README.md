@@ -2,6 +2,10 @@
 
 This is a collection of sbt scripted tests for Play's sbt-plugin. They are organized in distinct groups to test specific features provided by Play plugin.
 
+## Maven Layout test suite
+
+This holds a few regression tests. When Maven Layout becomes the default Layout for Play this test suite can be removed.
+
 ## Evolutions test suite
 
 Verifies that Play evolutions work as expected for the following scenarios:

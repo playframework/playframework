@@ -11,20 +11,8 @@ printMessage "VALIDATE BINARY COMPATIBILITY"
 runSbt +mimaReportBinaryIssues
 
 
-printMessage "VALIDATE SCALA CODE FORMATTING"
-scripts/scalafmt --test || (
-  echo "[error] ERROR: Scalafmt test failed, see differences above."
-  echo "[error] To fix, format your sources using bin/scalafmt before submitting a pull request."
-  false
-)
-
-printMessage "VALIDATE JAVA CODE FORMATTING"
-runSbt javafmt
-git diff --exit-code || (
-  echo "[error] ERROR: javafmt check failed, see differences above."
-  echo "[error] To fix, format your sources using sbt javafmt test:javafmt before submitting a pull request."
-  false
-)
+scalafmtValidation "framework"
+javafmtValidation "framework"
 
 
 printMessage "VALIDATE FILE LICENSE HEADERS"

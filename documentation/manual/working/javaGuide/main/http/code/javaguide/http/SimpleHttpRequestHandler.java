@@ -7,7 +7,6 @@ package javaguide.advanced.httprequesthandlers;
 // #simple
 import javax.inject.Inject;
 
-import play.core.j.JavaContextComponents;
 import play.routing.Router;
 import play.api.mvc.Handler;
 import play.http.*;

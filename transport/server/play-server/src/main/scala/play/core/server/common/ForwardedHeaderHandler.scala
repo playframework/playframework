@@ -173,24 +173,23 @@ private[server] object ForwardedHeaderHandler {
         val params = (for {
           fhs <- headers.getAll("Forwarded")
           fh  <- fhs.split(",\\s*")
-        } yield
-          (fh
-            .split(";")
-            .iterator
-            .flatMap {
-              _.span(_ != '=') match {
-                case (_, "") => Option.empty[(String, String)] // no value
+        } yield (fh
+          .split(";")
+          .iterator
+          .flatMap {
+            _.span(_ != '=') match {
+              case (_, "") => Option.empty[(String, String)] // no value
 
-                case (rawName, v) => {
-                  // Remove surrounding quotes
-                  val name  = rawName.toLowerCase(java.util.Locale.ENGLISH)
-                  val value = unquote(v.tail)
+              case (rawName, v) => {
+                // Remove surrounding quotes
+                val name  = rawName.toLowerCase(java.util.Locale.ENGLISH)
+                val value = unquote(v.tail)
 
-                  Some(name -> value)
-                }
+                Some(name -> value)
               }
             }
-            .toMap))
+          }
+          .toMap))
 
         params.map { paramMap: Map[String, String] =>
           ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))

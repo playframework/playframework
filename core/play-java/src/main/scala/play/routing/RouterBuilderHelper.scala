@@ -7,9 +7,6 @@ package play.routing
 import java.util.concurrent.CompletionStage
 
 import play.api.mvc._
-import play.core.j.JavaContextComponents
-import play.core.j.JavaHelpers
-import play.mvc.Http.Context
 import play.mvc.Http.RequestBody
 import play.mvc.Result
 import play.utils.UriEncoding
@@ -20,8 +17,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 private[routing] class RouterBuilderHelper(
-    bodyParser: BodyParser[RequestBody],
-    contextComponents: JavaContextComponents
+    bodyParser: BodyParser[RequestBody]
 ) {
 
   def build(router: RoutingDsl): play.routing.Router = {
@@ -44,24 +40,6 @@ private[routing] class RouterBuilderHelper(
                 FutureConverters.toScala(p)
             }
             javaResultFuture.map(_.asScala())
-          }
-
-          def handleUsingHttpContext(parameters: Seq[AnyRef], request: Request[RequestBody])(
-              implicit executionContext: ExecutionContext
-          ) = {
-            val ctx = JavaHelpers.createJavaContext(request, contextComponents)
-            try {
-              Context.setCurrent(ctx)
-              val javaResultFuture = route.actionMethod.invoke(route.action, parameters: _*) match {
-                case result: Result => Future.successful(result)
-                case promise: CompletionStage[_] =>
-                  val p = promise.asInstanceOf[CompletionStage[Result]]
-                  FutureConverters.toScala(p)
-              }
-              javaResultFuture.map(JavaHelpers.createResult(ctx, _))
-            } finally {
-              Context.clear()
-            }
           }
 
           // First check method
@@ -99,10 +77,7 @@ private[routing] class RouterBuilderHelper(
                 case Right(parameters) =>
                   import play.core.Execution.Implicits.trampoline
                   ActionBuilder.ignoringBody.async(bodyParser) { request: Request[RequestBody] =>
-                    route.action match {
-                      case _: RequestFunctions.RequestFunction => handleUsingRequest(parameters, request)
-                      case _                                   => handleUsingHttpContext(parameters, request)
-                    }
+                    handleUsingRequest(parameters, request)
                   }
               }
 

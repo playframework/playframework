@@ -32,16 +32,9 @@ import scala.util.Try
 sealed abstract class Mode(val asJava: play.Mode)
 
 object Mode {
-
-  @deprecated("Use play.api.Mode instead of play.api.Mode.Mode", "2.6.0")
-  type Mode = play.api.Mode
-
-  @deprecated("Use play.api.Mode instead of play.api.Mode.Value", "2.6.0")
-  type Value = play.api.Mode
-
-  case object Dev  extends play.api.Mode(play.Mode.DEV)
-  case object Test extends play.api.Mode(play.Mode.TEST)
-  case object Prod extends play.api.Mode(play.Mode.PROD)
+  case object Dev  extends Mode(play.Mode.DEV)
+  case object Test extends Mode(play.Mode.TEST)
+  case object Prod extends Mode(play.Mode.PROD)
 
   lazy val values: Set[play.api.Mode] = Set(Dev, Test, Prod)
 }
@@ -66,18 +59,6 @@ object Play {
    */
   private[play] def XML = scala.xml.XML.withSAXParser(xercesSaxParserFactory.newSAXParser())
 
-  /**
-   * Returns the currently running application, or `null` if not defined.
-   */
-  @deprecated("This is a static reference to application, use DI", "2.5.0")
-  def unsafeApplication: Application = privateMaybeApplication.get
-
-  /**
-   * Optionally returns the current running application.
-   */
-  @deprecated("This is a static reference to application, use DI instead", "2.5.0")
-  def maybeApplication: Option[Application] = privateMaybeApplication.toOption
-
   private[play] def privateMaybeApplication: Try[Application] = {
     if (_currentApp.get != null) {
       Success(_currentApp.get)
@@ -97,15 +78,6 @@ object Play {
 
   /* Used by the routes compiler to resolve an application for the injector.  Treat as private. */
   def routesCompilerMaybeApplication: Option[Application] = privateMaybeApplication.toOption
-
-  /**
-   * Implicitly import the current running application in the context.
-   *
-   * Note that by relying on this, your code will only work properly in
-   * the context of a running application.
-   */
-  @deprecated("This is a static reference to application, use DI instead", "2.5.0")
-  implicit def current: Application = privateMaybeApplication.getOrElse(sys.error("There is no started application"))
 
   // _currentApp is an AtomicReference so that `start()` can invoke `stop()`
   // without causing a deadlock. That potential deadlock (and this derived complexity)
