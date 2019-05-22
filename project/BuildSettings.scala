@@ -90,7 +90,6 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    crossScalaVersions -= scala211, // until using https://github.com/playframework/interplay/pull/58
     scalaVersion := ScalaVersions.scala212,
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
