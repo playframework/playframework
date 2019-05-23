@@ -682,7 +682,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * Parse the body as Json given a BodyParser,
    * validating the result with the Json reader.
    */
-  def jsonReads[A](parser: BodyParser[JsValue])(implicit reader: Reads[A]): BodyParser[A] =
+  private def jsonReads[A](parser: BodyParser[JsValue])(implicit reader: Reads[A]): BodyParser[A] =
     BodyParser("json reader") { request =>
       import Execution.Implicits.trampoline
       parser(request).mapFuture {
