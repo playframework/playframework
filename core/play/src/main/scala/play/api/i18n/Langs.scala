@@ -9,7 +9,6 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import play.api.Application
 import play.api.Configuration
 import play.api.Logger
 
@@ -128,7 +127,7 @@ object Lang {
    */
   def get(code: String): Option[Lang] = Try(apply(code)).toOption
 
-  private val langsCache = Application.instanceCache[Langs]
+  val logger = Logger(getClass)
 }
 
 /**
@@ -165,42 +164,36 @@ trait Langs {
 class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
 
   // Java API
-  def this() = {
-    this(Seq(Lang.defaultLang))
-  }
+  def this() = this(Seq(Lang.defaultLang))
 
   def preferred(candidates: Seq[Lang]): Lang =
     candidates
-      .collectFirst(Function.unlift { lang =>
-        availables.find(_.satisfies(lang))
-      })
+      .collectFirst(Function.unlift(lang => availables.find(_.satisfies(lang))))
       .getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
 }
 
 @Singleton
 class DefaultLangsProvider @Inject()(config: Configuration) extends Provider[Langs] {
+  import Lang.logger
 
   def availables: Seq[Lang] = {
     val langs = config
       .getOptional[String]("application.langs")
       .map { langsStr =>
-        Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
+        logger.warn("application.langs is deprecated, use play.i18n.langs instead")
         langsStr.split(",").map(_.trim).toSeq
       }
-      .getOrElse {
-        config.get[Seq[String]]("play.i18n.langs")
-      }
+      .getOrElse(config.get[Seq[String]]("play.i18n.langs"))
 
     langs.map { lang =>
       try {
         Lang(lang)
       } catch {
-        case NonFatal(e) => throw config.reportError("play.i18n.langs", "Invalid language code [" + lang + "]", Some(e))
+        case NonFatal(e) =>
+          throw config.reportError("play.i18n.langs", s"Invalid language code [$lang]", Some(e))
       }
     }
   }
 
-  lazy val get: Langs = {
-    new DefaultLangs(availables)
-  }
+  lazy val get: Langs = new DefaultLangs(availables)
 }

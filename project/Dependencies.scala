@@ -11,13 +11,13 @@ object Dependencies {
   val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.6.0-M1")
   val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.8")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7" // "0.4.0" once Akka 2.6 <3 RC1+
 
-  val playJsonVersion = "2.7.2"
+  val playJsonVersion = "2.7.2" // "2.7.3" once Akka 2.6 <3 RC1+
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.3.6"
+  val specs2Version = "4.5.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -37,7 +37,7 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion = "2.9.8"
+  val jacksonVersion = "2.9.9"
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
@@ -87,11 +87,12 @@ object Dependencies {
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1")
-    case _                               => Nil
+    case Some((2, major)) if major >= 11 =>
+      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1") // "1.1.2" once Akka 2.6 <3 RC1+
+    case _ => Nil
   }
 
-  val springFrameworkVersion = "5.1.5.RELEASE"
+  val springFrameworkVersion = "5.1.7.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -100,7 +101,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.1",
+    "joda-time" % "joda-time"    % "2.10.2",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
@@ -165,7 +166,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.14.1"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "3.14.2"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -260,7 +261,7 @@ object Dependencies {
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
 
   val jcacheApi = Seq(
-    "javax.cache" % "cache-api" % "1.0.0"
+    "javax.cache" % "cache-api" % "1.1.1"
   )
 
   val ehcacheVersion = "2.10.6"
@@ -275,7 +276,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.3"
+  val playWsStandaloneVersion = "2.0.4"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,

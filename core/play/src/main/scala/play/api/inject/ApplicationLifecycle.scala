@@ -73,9 +73,8 @@ trait ApplicationLifecycle {
    * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
    * immediately and return a successful future.
    */
-  def addStopHook(hook: Callable[_ <: CompletionStage[_]]): Unit = {
-    addStopHook(() => FutureConverters.toScala(hook.call().asInstanceOf[CompletionStage[_]]))
-  }
+  def addStopHook(hook: Callable[_ <: CompletionStage[_]]): Unit =
+    addStopHook(() => { val cs = hook.call(); FutureConverters.toScala(cs) })
 
   /**
    * Call to shutdown the application and execute the registered hooks.
@@ -102,7 +101,8 @@ trait ApplicationLifecycle {
  */
 @Singleton
 class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
-  private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
+  private val logger = Logger(getClass)
+  private val hooks  = new ConcurrentLinkedDeque[() => Future[_]]()
 
   override def addStopHook(hook: () => Future[_]): Unit = hooks.push(hook)
 
@@ -115,15 +115,13 @@ class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
    * @return A future that will be redeemed once all hooks have executed.
    */
   override def stop(): Future[_] = {
-
     // run the code only once and memoize the result of the invocation in a Promise.future so invoking
     // the method many times causes a single run producing the same result in all cases.
     if (started.compareAndSet(false, true)) {
       // Do we care if one hook executes on another hooks redeeming thread? Hopefully not.
       import play.core.Execution.Implicits.trampoline
 
-      @tailrec
-      def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
+      @tailrec def clearHooks(previous: Future[Any] = Future.successful[Any](())): Future[Any] = {
         val hook = hooks.poll()
         if (hook != null) clearHooks(previous.flatMap { _ =>
           val hookFuture = Try(hook()) match {
@@ -131,7 +129,7 @@ class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
             case Failure(e) => Future.failed(e)
           }
           hookFuture.recover {
-            case e => Logger.error("Error executing stop hook", e)
+            case e => logger.error("Error executing stop hook", e)
           }
         })
         else previous

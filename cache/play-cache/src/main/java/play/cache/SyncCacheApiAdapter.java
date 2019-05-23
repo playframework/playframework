@@ -24,18 +24,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi {
   }
 
   @Override
-  @Deprecated
-  public <T> T get(String key) {
-    scala.Option<T> opt = scalaApi.get(key, Scala.classTag());
-    if (opt.isDefined()) {
-      return opt.get();
-    } else {
-      return null;
-    }
-  }
-
-  @Override
-  public <T> Optional<T> getOptional(String key) {
+  public <T> Optional<T> get(String key) {
     return toJava(scalaApi.get(key, Scala.classTag()));
   }
 

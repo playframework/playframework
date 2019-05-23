@@ -5,7 +5,6 @@
 package play.api.mvc
 
 import java.io._
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 import java.nio.charset._
 import java.nio.file.Files
@@ -29,6 +28,7 @@ import play.api.libs.Files.TemporaryFileCreator
 import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
+import play.core.Execution
 import play.core.parsers.Multipart
 import play.utils.PlayIO
 
@@ -100,33 +100,13 @@ sealed trait AnyContent {
  * Factory object for creating an AnyContent instance.  Useful for unit testing.
  */
 object AnyContent {
-  def apply(): AnyContent = {
-    AnyContentAsEmpty
-  }
-
-  def apply(contentText: String): AnyContent = {
-    AnyContentAsText(contentText)
-  }
-
-  def apply(json: JsValue): AnyContent = {
-    AnyContentAsJson(json)
-  }
-
-  def apply(xml: NodeSeq): AnyContent = {
-    AnyContentAsXml(xml)
-  }
-
-  def apply(formUrlEncoded: Map[String, Seq[String]]): AnyContent = {
-    AnyContentAsFormUrlEncoded(formUrlEncoded)
-  }
-
-  def apply(formData: MultipartFormData[TemporaryFile]): AnyContent = {
-    AnyContentAsMultipartFormData(formData)
-  }
-
-  def apply(raw: RawBuffer): AnyContent = {
-    AnyContentAsRaw(raw)
-  }
+  def apply(): AnyContent                                           = AnyContentAsEmpty
+  def apply(contentText: String): AnyContent                        = AnyContentAsText(contentText)
+  def apply(json: JsValue): AnyContent                              = AnyContentAsJson(json)
+  def apply(xml: NodeSeq): AnyContent                               = AnyContentAsXml(xml)
+  def apply(formUrlEncoded: Map[String, Seq[String]]): AnyContent   = AnyContentAsFormUrlEncoded(formUrlEncoded)
+  def apply(formData: MultipartFormData[TemporaryFile]): AnyContent = AnyContentAsMultipartFormData(formData)
+  def apply(raw: RawBuffer): AnyContent                             = AnyContentAsRaw(raw)
 }
 
 /**
@@ -178,6 +158,7 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[
    * Access a file part.
    */
   def file(key: String): Option[FilePart[A]] = files.find(_.key == key)
+
 }
 
 /**
@@ -262,11 +243,7 @@ case class RawBuffer(
     }
   }
 
-  private[play] def close(): Unit = {
-    if (outStream != null) {
-      outStream.close()
-    }
-  }
+  private[play] def close(): Unit = if (outStream != null) outStream.close()
 
   private[play] def backToTemporaryFile(): Unit = {
     backedByTemporaryFile = temporaryFileCreator.create("requestBody", "asRaw")
@@ -295,11 +272,7 @@ case class RawBuffer(
    */
   def asBytes(maxLength: Long = memoryThreshold): Option[ByteString] = {
     if (size <= maxLength) {
-      Some(if (inMemory != null) {
-        inMemory
-      } else {
-        ByteString(PlayIO.readFile(backedByTemporaryFile.path))
-      })
+      Some(if (inMemory != null) inMemory else ByteString(PlayIO.readFile(backedByTemporaryFile.path)))
     } else {
       None
     }
@@ -317,9 +290,8 @@ case class RawBuffer(
   }
 
   override def toString = {
-    "RawBuffer(inMemory=" + Option(inMemory)
-      .map(_.size)
-      .orNull + ", backedByTemporaryFile=" + backedByTemporaryFile + ")"
+    val inMemorySize: Any = Option(this.inMemory).map(_.size).orNull
+    s"RawBuffer(inMemory=$inMemorySize, backedByTemporaryFile=$backedByTemporaryFile)"
   }
 
 }
@@ -361,7 +333,7 @@ trait BodyParserUtils {
   /**
    * Don't parse the body content.
    */
-  def empty: BodyParser[Unit] = ignore(Unit)
+  def empty: BodyParser[Unit] = ignore(())
 
   def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
     Accumulator.done(Right(body))
@@ -370,25 +342,19 @@ trait BodyParserUtils {
   /**
    * A body parser that always returns an error.
    */
-  def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error") { request =>
-    import play.core.Execution.Implicits.trampoline
-    Accumulator.done(result.map(Left.apply))
-  }
+  def error[A](result: Future[Result]): BodyParser[A] =
+    BodyParser("error")(_ => Accumulator.done(result.map(Left.apply)(Execution.trampoline)))
 
   /**
    * Allows to choose the right BodyParser parser to use by examining the request headers.
    */
-  def using[A](f: RequestHeader => BodyParser[A]) = BodyParser { request =>
-    f(request)(request)
-  }
+  def using[A](f: RequestHeader => BodyParser[A]) = BodyParser(request => f(request)(request))
 
   /**
    * A body parser that flattens a future BodyParser.
    */
   def flatten[A](underlying: Future[BodyParser[A]])(implicit ec: ExecutionContext, mat: Materializer): BodyParser[A] =
-    BodyParser { request =>
-      Accumulator.flatten(underlying.map(_(request)))
-    }
+    BodyParser(request => Accumulator.flatten(underlying.map(_(request))))
 
   /**
    * Creates a conditional BodyParser.
@@ -402,8 +368,7 @@ trait BodyParserUtils {
       if (predicate(request)) {
         parser(request)
       } else {
-        import play.core.Execution.Implicits.trampoline
-        Accumulator.done(badResult(request).map(Left.apply))
+        Accumulator.done(badResult(request).map(Left.apply)(Execution.trampoline))
       }
     }
   }
@@ -418,13 +383,13 @@ trait BodyParserUtils {
       implicit mat: Materializer
   ): BodyParser[Either[MaxSizeExceeded, A]] =
     BodyParser(s"maxLength=$maxLength, wrapping=$parser") { request =>
-      import play.core.Execution.Implicits.trampoline
       val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
 
       // Apply the request
       val parserSink = parser.apply(request).toSink
 
       Accumulator(takeUpToFlow.toMat(parserSink) { (statusFuture, resultFuture) =>
+        import Execution.Implicits.trampoline
         statusFuture.flatMap {
           case exceeded: MaxSizeExceeded => Future.successful(Right(Left(exceeded)))
           case _ =>
@@ -588,10 +553,9 @@ trait PlayBodyParsers extends BodyParserUtils {
         }
         bodyParser(request)
       } else {
-        import play.core.Execution.Implicits.trampoline
         Accumulator.done {
           val badResult = createBadResult("Expecting text/plain body", UNSUPPORTED_MEDIA_TYPE)
-          badResult(request).map(Left.apply)
+          badResult(request).map(Left.apply)(Execution.trampoline)
         }
       }
     }
@@ -631,7 +595,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def raw(memoryThreshold: Long = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
     BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
-      import play.core.Execution.Implicits.trampoline
+      import Execution.Implicits.trampoline
       enforceMaxLength(
         request,
         maxLength,
@@ -705,7 +669,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def json[A](implicit reader: Reads[A]): BodyParser[A] =
     BodyParser("json reader") { request =>
-      import play.core.Execution.Implicits.trampoline
+      import Execution.Implicits.trampoline
       json(request).mapFuture {
         case Left(simpleResult) =>
           Future.successful(Left(simpleResult))
@@ -744,10 +708,9 @@ trait PlayBodyParsers extends BodyParserUtils {
   def form[A](
       form: Form[A],
       maxLength: Option[Long] = None,
-      onErrors: Form[A] => Result = (formErrors: Form[A]) => Results.BadRequest
+      onErrors: Form[A] => Result = (_: Form[A]) => Results.BadRequest
   ): BodyParser[A] =
     BodyParser { requestHeader =>
-      import play.core.Execution.Implicits.trampoline
       val parser = anyContent(maxLength)
       parser(requestHeader).map { resultOrBody =>
         resultOrBody.right.flatMap { body =>
@@ -755,7 +718,7 @@ trait PlayBodyParsers extends BodyParserUtils {
             .bindFromRequest()(Request[AnyContent](requestHeader, body))
             .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
         }
-      }
+      }(Execution.trampoline)
     }
 
   // -- XML parser
@@ -824,8 +787,8 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @param to The file used to store the content.
    */
-  def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
-    import play.core.Execution.Implicits.trampoline
+  def file(to: File): BodyParser[File] = BodyParser(s"file, to=$to") { _ =>
+    import Execution.Implicits.trampoline
     Accumulator(StreamConverters.fromOutputStream(() => Files.newOutputStream(to.toPath))).map(_ => Right(to))
   }
 
@@ -834,7 +797,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
     val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
-    file(tempFile)(request).map(_ => Right(tempFile))(play.core.Execution.Implicits.trampoline)
+    file(tempFile)(request).map(_ => Right(tempFile))(Execution.trampoline)
   }
 
   // -- FormUrlEncoded
@@ -906,7 +869,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * Guess the body content by checking the Content-Type header.
    */
   def anyContent(maxLength: Option[Long]): BodyParser[AnyContent] = BodyParser("anyContent") { request =>
-    import play.core.Execution.Implicits.trampoline
+    import Execution.Implicits.trampoline
 
     def maxLengthOrDefault          = maxLength.fold(DefaultMaxTextLength)(_.toInt)
     def maxLengthOrDefaultLarge     = maxLength.getOrElse(DefaultMaxDiskLength)
@@ -991,7 +954,7 @@ trait PlayBodyParsers extends BodyParserUtils {
   ): Accumulator[ByteString, Either[Result, A]] = {
     val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
     Accumulator(takeUpToFlow.toMat(accumulator.toSink) { (statusFuture, resultFuture) =>
-      import play.core.Execution.Implicits.trampoline
+      import Execution.Implicits.trampoline
       val defaultCtx = materializer.executionContext
       statusFuture.flatMap {
         case MaxSizeExceeded(_) =>
@@ -1016,7 +979,7 @@ trait PlayBodyParsers extends BodyParserUtils {
       parser: (RequestHeader, ByteString) => A
   ): BodyParser[A] =
     BodyParser(name + ", maxLength=" + maxLength) { request =>
-      import play.core.Execution.Implicits.trampoline
+      import Execution.Implicits.trampoline
 
       def parseBody(bytes: ByteString): Future[Either[Result, A]] = {
         try {

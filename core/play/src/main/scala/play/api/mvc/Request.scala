@@ -33,7 +33,7 @@ trait Request[+A] extends RequestHeader {
   override def hasBody: Boolean = {
     @tailrec @inline def isEmptyBody(body: Any): Boolean = body match {
       case rb: play.mvc.Http.RequestBody                      => isEmptyBody(rb.as(classOf[AnyRef]))
-      case AnyContentAsEmpty | null | Unit                    => true
+      case AnyContentAsEmpty | null | ()                      => true
       case unit if unit.isInstanceOf[scala.runtime.BoxedUnit] => true
       case _                                                  => false
     }
@@ -77,7 +77,7 @@ trait Request[+A] extends RequestHeader {
     removeAttr(Messages.Attrs.CurrentLang)
 
   override def asJava: Http.Request = this match {
-    case req: Request[Http.RequestBody] =>
+    case req: Request[Http.RequestBody @unchecked] =>
       // This will preserve the parsed body since it is already using the Java body wrapper
       new Http.RequestImpl(req)
     case _ =>

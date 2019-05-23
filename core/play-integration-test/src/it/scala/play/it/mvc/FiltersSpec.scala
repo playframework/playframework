@@ -53,7 +53,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
       lazy val router                                     = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
-        new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router))
+        new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
       )
     }.application
 

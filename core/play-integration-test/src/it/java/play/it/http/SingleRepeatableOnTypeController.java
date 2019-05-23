@@ -4,6 +4,7 @@
 
 package play.it.http;
 
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
 
@@ -12,7 +13,7 @@ import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 @SomeRepeatable // runs two actions
 public class SingleRepeatableOnTypeController extends MockController {
 
-    public Result action() {
+    public Result action(Http.Request request) {
         return Results.ok();
     }
 

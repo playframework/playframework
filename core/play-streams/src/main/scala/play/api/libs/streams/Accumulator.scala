@@ -5,7 +5,6 @@
 package play.api.libs.streams
 
 import java.util.Optional
-import java.util.concurrent.CompletionStage
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
@@ -13,6 +12,7 @@ import akka.stream.scaladsl.Keep
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 
+import scala.annotation.unchecked.{ uncheckedVariance => uV }
 import scala.compat.java8.FutureConverters
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -103,8 +103,6 @@ sealed trait Accumulator[-E, +A] {
    */
   def toSink: Sink[E, Future[A]]
 
-  import scala.annotation.unchecked.{ uncheckedVariance => uV }
-
   /**
    * Convert this accumulator to a Java Accumulator.
    *
@@ -137,24 +135,13 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
   )(implicit executor: ExecutionContext): Accumulator[E, B] =
     new SinkAccumulator(sink.mapMaterializedValue(_.recoverWith(pf)))
 
-  def through[F](flow: Flow[F, E, _]): Accumulator[F, A] =
-    new SinkAccumulator(flow.toMat(sink)(Keep.right))
+  def through[F](flow: Flow[F, E, _]): Accumulator[F, A] = new SinkAccumulator(flow.toMat(sink)(Keep.right))
 
-  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
-    source.toMat(sink)(Keep.right).run()
-  }
-
-  def run()(implicit materializer: Materializer): Future[A] = {
-    run(Source.empty)
-  }
-
-  def run(elem: E)(implicit materializer: Materializer): Future[A] = {
-    run(Source.single(elem))
-  }
+  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = source.toMat(sink)(Keep.right).run()
+  def run()(implicit materializer: Materializer): Future[A]                     = run(Source.empty)
+  def run(elem: E)(implicit materializer: Materializer): Future[A]              = run(Source.single(elem))
 
   def toSink: Sink[E, Future[A]] = sink
-
-  import scala.annotation.unchecked.{ uncheckedVariance => uV }
 
   def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = {
     play.libs.streams.Accumulator.fromSink(sink.mapMaterializedValue(FutureConverters.toJava).asJava)
@@ -179,8 +166,7 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
   def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[E, B] =
     mapMat { future =>
       future.value match {
-        // optimize already completed case
-        case Some(Success(a)) =>
+        case Some(Success(a)) => // optimize already completed case
           Try(f(a)) match {
             case Success(fut) => fut
             case Failure(ex)  => Future.failed(ex)
@@ -192,7 +178,7 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
   def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B] =
     mapMat { future =>
       future.value match {
-        case Some(Success(a)) => future // optimize already completed case
+        case Some(Success(_)) => future // optimize already completed case
         case _                => future.recover(pf)
       }
     }
@@ -202,7 +188,7 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
   )(implicit executor: ExecutionContext): Accumulator[E, B] =
     mapMat { future =>
       future.value match {
-        case Some(Success(a)) => future // optimize already completed case
+        case Some(Success(_)) => future // optimize already completed case
         case _                => future.recoverWith(pf)
       }
     }
@@ -211,26 +197,15 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
     new SinkAccumulator(flow.toMat(toSink)(Keep.right))
   }
 
-  override def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
-    source.runWith(toSink)
-  }
+  override def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = source.runWith(toSink)
+  override def run()(implicit materializer: Materializer): Future[A]                     = handler(None)
+  override def run(elem: E)(implicit materializer: Materializer): Future[A]              = handler(Some(elem))
 
-  override def run()(implicit materializer: Materializer): Future[A] = {
-    handler(None)
-  }
-
-  override def run(elem: E)(implicit materializer: Materializer): Future[A] = {
-    handler(Some(elem))
-  }
-
-  import scala.annotation.unchecked.{ uncheckedVariance => uV }
-
-  override def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = play.libs.streams.Accumulator.strict(
-    new java.util.function.Function[Optional[E], CompletionStage[A]] {
-      override def apply(t: Optional[E]) = handler(t.asScala).toJava
-    },
-    toSink.mapMaterializedValue(FutureConverters.toJava).asJava
-  )
+  override def asJava: play.libs.streams.Accumulator[E @uV, A @uV] =
+    play.libs.streams.Accumulator.strict(
+      (t: Optional[E]) => handler(t.asScala).toJava,
+      toSink.mapMaterializedValue(FutureConverters.toJava).asJava
+    )
 }
 
 private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer)
@@ -258,9 +233,7 @@ object Accumulator {
           case error =>
             new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
         }
-        .flatMap { accumulator =>
-          Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run()
-        }
+        .flatMap(accumulator => Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run())
     }
   }
 

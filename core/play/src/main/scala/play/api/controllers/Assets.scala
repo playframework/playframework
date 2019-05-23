@@ -29,6 +29,7 @@ import play.core.routing.ReverseRouteContext
 import play.utils.InvalidUriEncodingException
 import play.utils.Resources
 import play.utils.UriEncoding
+import play.utils.ExecCtxUtils
 
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
@@ -55,9 +56,9 @@ class AssetsFinderProvider @Inject()(assetsMetadata: AssetsMetadata) extends Pro
 }
 
 /**
- * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The [[play.api.mvc.PathBindable PathBindable]]
- * for assets does additional "magic" using statics so routes like {@code routes.Assets.versioned("foo.js") } will
- * find the minified and digested version of that asset.
+ * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The
+ * [[play.api.mvc.PathBindable PathBindable]] for assets does additional "magic" using statics so routes
+ * like `routes.Assets.versioned("foo.js")` will find the minified and digested version of that asset.
  *
  * It is also possible to avoid this provider and simply inject [[AssetsFinder]]. Then you can call
  * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
@@ -75,19 +76,17 @@ class AssetsMetadataProvider @Inject()(
     StaticAssetsMetadata.synchronized {
       instance = Some(assetsMetadata)
     }
-    lifecycle.addStopHook(
-      () =>
-        Future.successful {
-          StaticAssetsMetadata.synchronized {
-            // Set instance to None if this application was the last to set the instance.
-            // Otherwise it's the responsibility of whoever set it last to unset it.
-            // We don't want to break a running application that needs a static instance.
-            if (instance contains assetsMetadata) {
-              instance = None
-            }
-          }
+    lifecycle.addStopHook(() => {
+      StaticAssetsMetadata.synchronized {
+        // Set instance to None if this application was the last to set the instance.
+        // Otherwise it's the responsibility of whoever set it last to unset it.
+        // We don't want to break a running application that needs a static instance.
+        if (instance contains assetsMetadata) {
+          instance = None
         }
-    )
+      }
+      Future.unit
+    })
     assetsMetadata
   }
 }
@@ -142,7 +141,7 @@ private class SelfPopulatingMap[K, V] {
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
       case None =>
-        val f = Future(pf(k))(ec.prepare())
+        val f = Future(pf(k))(ExecCtxUtils.prepare(ec))
         f.onComplete {
           case Failure(_) | Success(None) => store.remove(k)
           case _                          => // Do nothing, the asset was successfully found and is now cached
@@ -369,7 +368,7 @@ trait AssetsFinder { self =>
    *
    * This method is like unprefixedPath, but it prepends the prefix defined in configuration.
    *
-   * Note: to get the path without a URL prefix, you can use {@code this.unprefixed.path(rawPath)}
+   * Note: to get the path without a URL prefix, you can use `this.unprefixed.path(rawPath)`.
    *
    * @param rawPath The original path of the asset
    */
@@ -480,13 +479,9 @@ class DefaultAssetsMetadata(
   private lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 
   private def assetInfoFromResource(name: String): Option[AssetInfo] = blocking {
-    for {
-      url <- resource(name)
-    } yield {
+    for (url <- resource(name)) yield {
       val compressionUrls: Seq[(String, URL)] = config.encodings
-        .map { ae =>
-          (ae.acceptEncoding, resource(ae.forFilename(name)))
-        }
+        .map(ae => (ae.acceptEncoding, resource(ae.forFilename(name))))
         .collect { case (key: String, Some(url: URL)) => (key, url) }
 
       new AssetInfo(name, url, compressionUrls, digest(name), config, fileMimeTypes)
@@ -565,11 +560,8 @@ private class AssetInfo(
       Option(url.openConnection)
         .map {
           case urlConnection: T @unchecked =>
-            try {
-              f(urlConnection)
-            } finally {
-              Resources.closeUrlConnection(urlConnection)
-            }
+            try f(urlConnection)
+            finally Resources.closeUrlConnection(urlConnection)
         }
         .filterNot(_ == -1)
         .map(millis => httpDateFormat.format(Instant.ofEpochMilli(millis)))
@@ -585,10 +577,8 @@ private class AssetInfo(
 
   val etag: Option[String] =
     digest
-      .orElse {
-        lastModified.map(m => Codecs.sha1(m + " -> " + url.toExternalForm))
-      }
-      .map("\"" + _ + "\"")
+      .orElse(lastModified.map(m => Codecs.sha1(m + " -> " + url.toExternalForm)))
+      .map(etag => s""""$etag"""")
 
   val mimeType: String = fileMimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
@@ -639,19 +629,8 @@ private class AssetInfo(
  * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
  * }}}
  */
-object Assets extends AssetsBuilder(LazyHttpErrorHandler, StaticAssetsMetadata) {
-
-  @deprecated("Inject Assets and use Assets#at", "2.6.0")
-  override def at(file: String) = super.at(file)
-
-  @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
-  override def versioned(file: String) = super.versioned(file)
-
-  @deprecated("Inject Assets and use Assets#at", "2.6.0")
-  override def at(path: String, file: String, aggressiveCaching: Boolean) = super.at(path, file, aggressiveCaching)
-
-  @deprecated("Inject Assets and use Assets#versioned", "2.6.0")
-  override def versioned(path: String, file: Asset) = super.versioned(path, file)
+object Assets {
+  private val logger = Logger(getClass)
 
   import ResponseHeader.basicDateFormatPattern
 
@@ -686,14 +665,14 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler, StaticAssetsMetadata) 
         }
       } catch {
         case e: IllegalArgumentException =>
-          Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+          logger.debug(s"An invalid date was received: couldn't parse: $date", e)
           None
         case e: DateTimeParseException =>
-          Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+          logger.debug(s"An invalid date was received: couldn't parse: $date", e)
           None
       }
     } else {
-      Logger.debug(s"An invalid date was received: unrecognized format: $date")
+      logger.debug(s"An invalid date was received: unrecognized format: $date")
       None
     }
   }
@@ -782,21 +761,11 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
     r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
   }
 
-  private def asEncodedResult(
-      response: Result,
-      acceptEncoding: AcceptEncoding,
-      assetInfo: AssetInfo
-  ): Result = {
+  private def asEncodedResult(response: Result, acceptEncoding: AcceptEncoding, assetInfo: AssetInfo): Result = {
     assetInfo
       .bestEncoding(acceptEncoding)
       .map(enc => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> enc))
-      .getOrElse {
-        if (assetInfo.varyEncoding) {
-          response.withHeaders(VARY -> ACCEPT_ENCODING)
-        } else {
-          response
-        }
-      }
+      .getOrElse(if (assetInfo.varyEncoding) response.withHeaders(VARY -> ACCEPT_ENCODING) else response)
   }
 
   /**

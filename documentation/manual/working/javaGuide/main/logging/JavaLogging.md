@@ -83,10 +83,6 @@ Markers can be extremely useful, because they can carry extra contextual informa
 
 @[logging-log-info-with-request-context](code/javaguide/logging/JavaMarkerController.java)
 
-Note that the `requestMarker` method depends on having an `Http.Context` thread local variable in scope, so if you are using [[asynchronous code|JavaAsync]] you must specify an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html):
-
-@[logging-log-info-with-async-request-context](code/javaguide/logging/JavaMarkerController.java)
-
 Note that markers are also very useful for "tracer bullet" style logging, where you want to log on a specific request without explicitly changing log levels.  For example, you can add a marker only when certain conditions are met:
 
 @[logging-log-trace-with-tracer-controller](code/javaguide/logging/JavaTracerController.java)

@@ -3,7 +3,7 @@
 
 ## What is EssentialAction?
 
-[`EssentialAction`](api/java/play/mvc/EssentialAction.html) is the underlying functional type used by Play's HTTP APIs. This differs from the `Action` type in Java, a higher-level type that accepts a `Context` and returns a `CompletionStage<Result>`. Most of the time you will not need to use `EssentialAction` directly in a Java application, but it can be useful when writing filters or interacting with other low-level Play APIs.
+[`EssentialAction`](api/java/play/mvc/EssentialAction.html) is the underlying functional type used by Play's HTTP APIs. This differs from the `Action` type in Java, a higher-level type that accepts a `Request` and returns a `CompletionStage<Result>`. Most of the time you will not need to use `EssentialAction` directly in a Java application, but it can be useful when writing filters or interacting with other low-level Play APIs.
 
 To understand `EssentialAction` we need to understand the Play architecture.
 

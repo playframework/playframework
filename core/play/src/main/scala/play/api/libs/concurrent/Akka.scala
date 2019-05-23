@@ -236,9 +236,9 @@ trait InjectedActorSupport {
  * Provider for creating actor refs
  */
 class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props) extends Provider[ActorRef] {
-
   @Inject private var actorSystem: ActorSystem = _
   @Inject private var injector: Injector       = _
+
   lazy val get = {
     val creation = Props(injector.instanceOf[T])
     actorSystem.actorOf(props(creation), name)
@@ -262,14 +262,14 @@ class CoordinatedShutdownProvider @Inject()(actorSystem: ActorSystem, applicatio
 
     logWarningWhenRunPhaseConfigIsPresent()
 
-    val cs                               = CoordinatedShutdown(actorSystem)
-    implicit val exCtx: ExecutionContext = actorSystem.dispatcher
+    implicit val ec = actorSystem.dispatcher
 
+    val cs = CoordinatedShutdown(actorSystem)
     // Once the ActorSystem is built we can register the ApplicationLifecycle stopHooks as a CoordinatedShutdown phase.
-    CoordinatedShutdown(actorSystem).addTask(CoordinatedShutdown.PhaseServiceStop, "application-lifecycle-stophook") {
-      () =>
+    CoordinatedShutdown(actorSystem)
+      .addTask(CoordinatedShutdown.PhaseServiceStop, "application-lifecycle-stophook")(() => {
         applicationLifecycle.stop().map(_ => Done)
-    }
+      })
 
     cs
   }

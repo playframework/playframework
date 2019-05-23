@@ -17,7 +17,6 @@ import play.api.Application
 import play.api.ApplicationLoader
 import play.api.Environment
 import play.api.Mode
-import play.core.j.JavaContextComponents
 import play.core.server.ServerProvider
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice

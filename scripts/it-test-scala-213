@@ -5,10 +5,13 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-cd "$BASEDIR"
-
-printMessage "RUNNING IT TESTS FOR SCALA 2.13"
-
-runSbt "++2.13.0-M5 Play-Integration-Test/it:test"
-
-printMessage "ALL IT TESTS PASSED"
+# We are not running Scala 2.13 job for scheduled builds because they use
+# Akka snapshots which aren't being published for Scala 2.13 yet.
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    printMessage "SKIPPING TESTS FOR SCALA 2.13"
+else
+    cd "$BASEDIR"
+    printMessage "RUNNING IT TESTS FOR SCALA 2.13"
+    runSbt "++2.13.0-M5 Play-Integration-Test/it:test"
+    printMessage "ALL IT TESTS PASSED"
+fi

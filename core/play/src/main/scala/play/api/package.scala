@@ -15,11 +15,6 @@ package play {
   /**
    * Contains the public API for Scala developers.
    *
-   * ==== Access the current Play application ====
-   * {{{
-   * import play.api.Play.current
-   * }}}
-   *
    * ==== Read configuration ====
    * {{{
    * val poolSize = configuration.getInt("engine.pool.size")

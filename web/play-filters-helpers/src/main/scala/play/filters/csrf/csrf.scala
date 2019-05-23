@@ -16,15 +16,14 @@ import play.api.http.HttpConfiguration
 import play.api.http.HttpErrorHandler
 import play.api.inject.Binding
 import play.api.inject.Module
-import play.api.inject.bind
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.crypto.CSRFTokenSignerProvider
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.core.Execution
 import play.core.j.JavaContextComponents
-import play.core.j.JavaHelpers
 import play.filters.csrf.CSRF.CSRFHttpErrorHandler
 import play.filters.csrf.CSRF._
 import play.mvc.Http
@@ -291,10 +290,13 @@ object CSRF {
     def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
   }
 
-  class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents)
-      extends ErrorHandler {
+  class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler) extends ErrorHandler {
+    @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+    def this(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) {
+      this(underlying)
+    }
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
+      FutureConverters.toScala(underlying.handle(request.asJava, msg)).map(_.asScala)(Execution.trampoline)
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject()(delegate: ErrorHandler) extends CSRFErrorHandler {

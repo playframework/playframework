@@ -40,6 +40,7 @@ import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.core.server.akkahttp.AkkaServerConfigReader
 import play.api.routing.Router
 import play.core.ApplicationProvider
 import play.core.server.Server.ServerStoppedReason
@@ -88,6 +89,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   /** Helper to access server configuration under the `play.server.akka` prefix. */
   private val akkaServerConfig = context.config.configuration.get[Configuration]("play.server.akka")
+
+  private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
 
   override def mode: Mode                               = context.config.mode
   override def applicationProvider: ApplicationProvider = context.appProvider
@@ -152,9 +155,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       connectionContext: ConnectionContext,
       secure: Boolean
   ): ServerSettings = {
-    val idleTimeout     = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
-    val requestTimeout  = akkaServerConfig.get[Duration]("requestTimeout")
-    val initialSettings = ServerSettings(akkaHttpConfig)
+    val idleTimeout       = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
+    val requestTimeout    = akkaServerConfig.get[Duration]("requestTimeout")
+    val initialSettings   = ServerSettings(akkaHttpConfig)
+    val defaultHostHeader = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
+
     initialSettings
       .withTimeouts(
         initialSettings.timeouts
@@ -169,7 +174,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withServerHeader(akkaServerConfig.get[Option[String]]("server-header").collect {
         case s if s.nonEmpty => headers.Server(s)
       })
-      .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
+      .withDefaultHostHeader(defaultHostHeader)
       .withParserSettings(parserSettings)
   }
 
