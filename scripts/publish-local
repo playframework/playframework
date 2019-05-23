@@ -8,7 +8,6 @@
 cd "$BASEDIR"
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-
   printMessage "RUNNING PUBLISH LOCAL"
   runSbt "+publishLocal"
   printMessage "PUBLISH LOCAL PASSED"
