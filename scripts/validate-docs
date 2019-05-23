@@ -8,8 +8,8 @@
 cd "$DOCUMENTATION"
 
 printMessage "RUNNING DOCUMENTATION VALIDATION"
-runSbtWithSnapshots evaluateSbtFiles
-runSbtWithSnapshots validateDocs
+runSbt evaluateSbtFiles
+runSbt validateDocs
 runSbt headerCheck test:headerCheck
 
 scalafmtValidation "documentation"

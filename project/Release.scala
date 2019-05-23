@@ -18,7 +18,7 @@ object Release {
     // these settings. They are required to make sbt 1 and sbt-release (at least < 1.0.10) work together.
     crossScalaVersions := Nil,
     publish / skip := true,
-    // Disable cross building because we're using sbt-doge cross building
+    // Disable cross building because we're using sbt's native "+" cross-building
     releaseCrossBuild := false,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
@@ -37,7 +37,7 @@ object Release {
   )
 
   /**
-   * sbt release's releaseStepCommand does not execute remaining commands, which sbt-doge relies on
+   * sbt release's releaseStepCommand does not execute remaining commands, which sbt's native "+" cross-building relies on (TBC)
    */
   private def releaseStepCommandAndRemaining(command: String): State => State = { originalState =>
     // Capture current remaining commands
