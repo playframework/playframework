@@ -517,8 +517,9 @@ public interface BodyParser<A> {
       Accumulator<ByteString, ByteString> byteStringByteStringAccumulator =
           Accumulator.strict(
               maybeStrictBytes ->
-                  CompletableFuture.completedFuture(maybeStrictBytes.orElse(ByteString.empty())),
-              Sink.fold(ByteString.empty(), ByteString::concat));
+                  CompletableFuture.completedFuture(
+                      maybeStrictBytes.orElse(ByteString.emptyByteString())),
+              Sink.fold(ByteString.emptyByteString(), ByteString::concat));
       Accumulator<ByteString, F.Either<Result, A>> byteStringEitherAccumulator =
           byteStringByteStringAccumulator.mapFuture(
               bytes -> {

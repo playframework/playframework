@@ -8,12 +8,18 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.6.0-M1")
-  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.8")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.23")
+  val akkaHttpVersion = Def.setting {
+    val sv = scalaVersion.value
+    sys.props.getOrElse("akka.http.version", CrossVersion.partialVersion(sv) match {
+      case Some((2, 13)) => "10.1.8+26-f33ec39a"
+      case _             => "10.1.8"
+    })
+  }
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7" // "0.4.0" once Akka 2.6 <3 RC1+
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 
-  val playJsonVersion = "2.7.2" // "2.7.3" once Akka 2.6 <3 RC1+
+  val playJsonVersion = "2.8.0-M1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -87,9 +93,8 @@ object Dependencies {
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 =>
-      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1") // "1.1.2" once Akka 2.6 <3 RC1+
-    case _ => Nil
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
+    case _                               => Nil
   }
 
   val springFrameworkVersion = "5.1.7.RELEASE"
@@ -222,7 +227,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.0.0"
+  val playDocVersion = "2.1.0-M1"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -276,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.4"
+  val playWsStandaloneVersion = "2.1.0-M1"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
@@ -331,11 +336,10 @@ object AkkaDependency {
 
         project.dependsOn(withConfig)
       } else {
-        val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
-        val withConfig =
-          if (config == "") dep
-          else dep % config
-        project.settings(libraryDependencies += withConfig)
+        project.settings(libraryDependencies += {
+          val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion.value
+          if (config == "") dep else dep % config
+        })
       }
   }
 }

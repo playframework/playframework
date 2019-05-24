@@ -90,7 +90,6 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    crossScalaVersions -= scala211, // until using https://github.com/playframework/interplay/pull/58
     scalaVersion := ScalaVersions.scala212,
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
@@ -296,6 +295,8 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveTo"),
       // Add fileName param (with default value) to Scala's sendResource(...) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Removed internally-used subclass
+      ProblemFilters.exclude[MissingClassProblem]("org.jdbcdslog.LogSqlDataSource"),
       // play.api.Logger$ no longer extends play.api.Logger
       ProblemFilters.exclude[MissingTypesProblem]("play.api.Logger$"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.debug"),
