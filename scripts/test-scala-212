@@ -9,6 +9,6 @@ cd "$BASEDIR"
 
 printMessage "RUNNING TESTS FOR SCALA 2.12"
 
-runSbtWithSnapshots "test"
+runSbt "test"
 
 printMessage "ALL TESTS PASSED"
