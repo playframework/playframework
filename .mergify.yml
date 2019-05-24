@@ -19,7 +19,7 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - 2.7.x  
+          - 2.7.x
       label:
         remove: [status:needs-backport]
 
@@ -30,7 +30,7 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - 2.6.x  
+          - 2.6.x
       label:
         remove: [status:needs-backport-2.6]
 
@@ -41,9 +41,33 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - master  
+          - master
       label:
         remove: [status:needs-forwardport]
+
+  - name: Merge Mergify's backport and forwardport PRs that are ready
+    conditions:
+      - author=mergify[bot]
+      - status-success=Travis CI - Pull Request
+      - "#review-requested=0"
+      - "#changes-requested-reviews-by=0"
+      - label!=status:block-merge
+    actions:
+      merge:
+        method: merge
+        strict: smart
+
+  - name: Merge ScalaSteward's PRs that are ready
+    conditions:
+      - author=scala-steward
+      - status-success=Travis CI - Pull Request
+      - "#review-requested=0"
+      - "#changes-requested-reviews-by=0"
+      - label!=status:block-merge
+    actions:
+      merge:
+        method: merge
+        strict: smart
 
   - name: Delete the PR branch after merge
     conditions:
