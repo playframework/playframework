@@ -645,6 +645,15 @@ trait PlayBodyParsers extends BodyParserUtils {
   def tolerantJson: BodyParser[JsValue] = tolerantJson(DefaultMaxTextLength)
 
   /**
+   * Parse the body as Json without checking the Content-Type,
+   * validating the result with the Json reader.
+   *
+   * @tparam A the type to read and validate from the body.
+   * @param reader a Json reader for type A.
+   */
+  def tolerantJson[A](implicit reader: Reads[A]): BodyParser[A] = jsonReads(tolerantJson)
+
+  /**
    * Parse the body as Json if the Content-Type is text/json or application/json.
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
@@ -667,10 +676,16 @@ trait PlayBodyParsers extends BodyParserUtils {
    * @tparam A the type to read and validate from the body.
    * @param reader a Json reader for type A.
    */
-  def json[A](implicit reader: Reads[A]): BodyParser[A] =
+  def json[A](implicit reader: Reads[A]): BodyParser[A] = jsonReads(json)
+
+  /**
+   * Parse the body as Json given a BodyParser,
+   * validating the result with the Json reader.
+   */
+  private def jsonReads[A](parser: BodyParser[JsValue])(implicit reader: Reads[A]): BodyParser[A] =
     BodyParser("json reader") { request =>
       import Execution.Implicits.trampoline
-      json(request).mapFuture {
+      parser(request).mapFuture {
         case Left(simpleResult) =>
           Future.successful(Left(simpleResult))
         case Right(jsValue) =>
