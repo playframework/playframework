@@ -251,7 +251,7 @@ public class StatusHeader extends Result {
     return doSendResource(
         StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
         Optional.empty(),
-        Optional.of(resourceName),
+        Optional.ofNullable(resourceName),
         inline,
         fileMimeTypes);
   }
@@ -320,7 +320,7 @@ public class StatusHeader extends Result {
     return doSendResource(
         StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
         Optional.empty(),
-        Optional.of(filename),
+        Optional.ofNullable(filename),
         inline,
         fileMimeTypes);
   }
@@ -423,7 +423,7 @@ public class StatusHeader extends Result {
       return doSendResource(
           FileIO.fromPath(path),
           Optional.of(Files.size(path)),
-          Optional.of(filename),
+          Optional.ofNullable(filename),
           inline,
           fileMimeTypes);
     } catch (IOException e) {
@@ -481,7 +481,7 @@ public class StatusHeader extends Result {
       return doSendResource(
           FileIO.fromPath(file.toPath()),
           Optional.of(Files.size(file.toPath())),
-          Optional.of(file.getName()),
+          Optional.ofNullable(file.getName()),
           inline,
           fileMimeTypes);
     } catch (final IOException ioe) {
@@ -543,7 +543,7 @@ public class StatusHeader extends Result {
       return doSendResource(
           FileIO.fromPath(file.toPath()),
           Optional.of(Files.size(file.toPath())),
-          Optional.of(fileName),
+          Optional.ofNullable(fileName),
           inline,
           fileMimeTypes);
     } catch (final IOException ioe) {
@@ -561,10 +561,11 @@ public class StatusHeader extends Result {
     // Create a Content-Disposition header
     StringBuilder cdBuilder = new StringBuilder();
     cdBuilder.append(inline ? "inline" : "attachment");
-    if (resourceName.isPresent()) {
-      cdBuilder.append("; ");
-      HttpHeaderParameterEncoding.encodeToBuilder("filename", resourceName.get(), cdBuilder);
-    }
+    resourceName.ifPresent(
+        rn -> {
+          cdBuilder.append("; ");
+          HttpHeaderParameterEncoding.encodeToBuilder("filename", rn, cdBuilder);
+        });
     Map<String, String> headers =
         Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION, cdBuilder.toString());
 

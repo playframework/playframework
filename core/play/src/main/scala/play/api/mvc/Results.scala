@@ -472,7 +472,7 @@ trait Results {
       )
     }
 
-    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean)(
+    private def streamFile(file: Source[ByteString, _], name: Option[String], length: Option[Long], inline: Boolean)(
         implicit fileMimeTypes: FileMimeTypes
     ): Result = {
       Result(
@@ -482,16 +482,18 @@ trait Results {
             CONTENT_DISPOSITION -> {
               val builder = new JStringBuilder
               builder.append(if (inline) "inline" else "attachment")
-              builder.append("; ")
-              HttpHeaderParameterEncoding.encodeToBuilder("filename", name, builder)
+              name.foreach(filename => {
+                builder.append("; ")
+                HttpHeaderParameterEncoding.encodeToBuilder("filename", filename, builder)
+              })
               builder.toString
             }
           )
         ),
         HttpEntity.Streamed(
           file,
-          Some(length),
-          fileMimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
+          length,
+          name.flatMap(fileMimeTypes.forFileName).orElse(Some(play.api.http.ContentTypes.BINARY))
         )
       )
     }
@@ -530,7 +532,7 @@ trait Results {
         .mapMaterializedValue(_.onComplete { _ =>
           onClose()
         })
-      streamFile(io, fileName(content), Files.size(content), inline)(fileMimeTypes)
+      streamFile(io, Option(fileName(content)), Some(Files.size(content)), inline)(fileMimeTypes)
     }
 
     /**
@@ -548,7 +550,12 @@ trait Results {
         fileName: String => String = _.split('/').last
     )(implicit fileMimeTypes: FileMimeTypes): Result = {
       val stream = classLoader.getResourceAsStream(resource)
-      streamFile(StreamConverters.fromInputStream(() => stream), fileName(resource), stream.available(), inline)
+      streamFile(
+        StreamConverters.fromInputStream(() => stream),
+        Option(fileName(resource)),
+        Some(stream.available()),
+        inline
+      )
     }
 
     /**
