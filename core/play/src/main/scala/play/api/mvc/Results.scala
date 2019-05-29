@@ -171,7 +171,7 @@ case class Result(
    * Ok("Hello world").discardingHeader(ETAG)
    * }}}
    *
-   * @param header the headers to discard from this result.
+   * @param name the header to discard from this result.
    * @return the new result
    */
   def discardingHeader(name: String): Result = {
