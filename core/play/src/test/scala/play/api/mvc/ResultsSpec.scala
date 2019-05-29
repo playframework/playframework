@@ -239,6 +239,20 @@ class ResultsSpec extends Specification {
       )
     }
 
+    "support sending a file without filename" in withFile { (file, fileName) =>
+      val rh = Ok.sendFile(file, fileName = _ => null).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("inline"))
+    }
+
+    "support sending a file attached without filename" in withFile { (file, fileName) =>
+      val rh = Ok.sendFile(file, inline = false, fileName = _ => null).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("attachment"))
+    }
+
     "support sending a path with Ok status" in withPath { (file, fileName) =>
       val rh = Ok.sendPath(file).header
 
@@ -269,6 +283,20 @@ class ResultsSpec extends Specification {
           s"""inline; filename="? ?.tmp"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp"""
         )
       )
+    }
+
+    "support sending a path without filename" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file, fileName = _ => null).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("inline"))
+    }
+
+    "support sending a path attached without filename" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file, inline = false, fileName = _ => null).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("attachment"))
     }
 
     "allow checking content length" in withPath { (file, fileName) =>

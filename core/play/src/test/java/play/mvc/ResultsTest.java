@@ -131,6 +131,20 @@ public class ResultsTest {
   }
 
   @Test
+  public void sendPathInlineWithoutFileName() throws IOException {
+    Result result = Results.unauthorized().sendPath(file, (String) null);
+    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline");
+  }
+
+  @Test
+  public void sendPathAsAttachmentWithoutFileName() throws IOException {
+    Result result = Results.unauthorized().sendPath(file, false, (String) null);
+    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment");
+  }
+
+  @Test
   public void sendPathWithFileNameHasSpecialChars() throws IOException {
     Result result = Results.ok().sendPath(file, true, "测 试.tmp");
     assertEquals(result.status(), Http.Status.OK);
@@ -192,6 +206,20 @@ public class ResultsTest {
     assertEquals(result.status(), Http.Status.OK);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+  }
+
+  @Test
+  public void sendFileInlineWithoutFileName() throws IOException {
+    Result result = Results.ok().sendFile(file.toFile(), (String) null);
+    assertEquals(result.status(), Http.Status.OK);
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline");
+  }
+
+  @Test
+  public void sendFileAsAttachmentWithoutFileName() throws IOException {
+    Result result = Results.ok().sendFile(file.toFile(), false, (String) null);
+    assertEquals(result.status(), Http.Status.OK);
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment");
   }
 
   @Test
