@@ -90,6 +90,14 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 
 ## Configuration changes
 
+This section lists changes and deprecations in configurations.
+
+### Debugging SSL Connections
+
+Until Play 2.7, both Play and Play-WS were using a version of [ssl-config](https://lightbend.github.io/ssl-config/) which had a debug system that relied on undocumented modification of internal JSSE debug settings. These are usually set using `javax.net.debug` and `java.security.debug` system properties on startup.
+
+This debug system has been removed, the debug flags that do not have a direct correlation in the new system are deprecated, and the new configuration is documented in [ssl-config docs](https://lightbend.github.io/ssl-config/DebuggingSSL.html).
+
 ## Defaults changes
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.

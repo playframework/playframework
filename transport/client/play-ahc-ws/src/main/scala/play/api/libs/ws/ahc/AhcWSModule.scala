@@ -15,8 +15,6 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 import akka.stream.Materializer
-import com.typesafe.sslconfig.ssl.SystemConfiguration
-import com.typesafe.sslconfig.ssl.debug.DebugConfiguration
 import play.api.inject.ApplicationLifecycle
 import play.api.inject.SimpleModule
 import play.api.inject.bind
@@ -55,7 +53,6 @@ class AsyncHttpClientProvider @Inject()(
     extends Provider[AsyncHttpClient] {
 
   lazy val get: AsyncHttpClient = {
-    configure()
     val cacheProvider = new OptionalAhcHttpCacheProvider(environment, configuration, applicationLifecycle)
     val client        = new DefaultAsyncHttpClient(asyncHttpClientConfig)
     cacheProvider.get match {
@@ -74,16 +71,6 @@ class AsyncHttpClientProvider @Inject()(
   }
 
   private val asyncHttpClientConfig = new AhcConfigBuilder(ahcWsClientConfig).build()
-
-  private def configure(): Unit = {
-    // JSSE depends on various system properties which must be set before JSSE classes
-    // are pulled into memory, so these must come first.
-    val loggerFactory = StandaloneAhcWSClient.loggerFactory
-    if (wsClientConfig.ssl.debug.enabled) {
-      new DebugConfiguration(loggerFactory).configure(wsClientConfig.ssl.debug)
-    }
-    new SystemConfiguration(loggerFactory).configure(wsClientConfig.ssl)
-  }
 
   // Always close the AsyncHttpClient afterwards.
   applicationLifecycle.addStopHook(() => Future.successful(get.close()))
