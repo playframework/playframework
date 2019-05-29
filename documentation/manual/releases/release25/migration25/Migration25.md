@@ -317,7 +317,7 @@ For a variety of reasons, providing cryptographic utilities as a convenience has
 
 ### How to Migrate
 
-Cryptographic migration will depend on your use case, especially if there is unsafe construction of the cryptographic primitives.  The short version is to use [Kalium](https://abstractj.github.io/kalium/) if possible, otherwise use [KeyCzar](https://github.com/google/keyczar) or straight [JCA](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html).
+Cryptographic migration will depend on your use case, especially if there is unsafe construction of the cryptographic primitives.  The short version is to use [Kalium](https://abstractj.github.io/kalium/) if possible, otherwise use [Tink](https://github.com/google/tink) or straight [JCA](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html).
 
 Please see [[Crypto Migration|CryptoMigration25]] for more details.
 

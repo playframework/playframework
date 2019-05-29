@@ -9,8 +9,8 @@ repository:
   has_wiki: false
   has_downloads: true
   default_branch: master
-  allow_squash_merge: true
-  allow_merge_commit: false
+  allow_squash_merge: false
+  allow_merge_commit: true
   allow_rebase_merge: false
 
 teams:
@@ -20,15 +20,24 @@ teams:
     permission: write
 
 branches:
-  - name: "*"
+  - &master_branch_protection
+    name: "master"
     protection:
       required_pull_request_reviews:
         required_approving_review_count: 1
         dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+        dismissal_restrictions: {}
       # Require status checks to pass before merging
       required_status_checks:
+        # Require branches to be up to date before merging.
+        strict: false
         # The list of status checks to require in order to merge into this branch
         contexts: ["Travis CI - Pull Request", "typesafe-cla-validator"]
+      enforce_admins: null
+      restrictions: null
+  - <<: *master_branch_protection
+    name: "2.[0-9].x"
 
 labels:
   - color: f9d0c4
@@ -65,6 +74,8 @@ labels:
   - color: 0e8a16
     name: "status:merge-when-green"
     oldname: merge-when-green
+  - color: fbca04
+    name: "status:needs-backport-2.6"
   - color: fbca04
     name: "status:needs-backport"
   - color: fbca04

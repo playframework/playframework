@@ -76,6 +76,27 @@ public class StatusHeader extends Result {
   }
 
   /**
+   * Send the given bytes.
+   *
+   * @param content The bytes to send.
+   * @return The result.
+   */
+  public Result sendBytes(byte[] content) {
+    return new Result(
+        status(), new HttpEntity.Strict(ByteString.fromArray(content), Optional.empty()));
+  }
+
+  /**
+   * Send the given ByteString.
+   *
+   * @param content The ByteString to send.
+   * @return The result.
+   */
+  public Result sendByteString(ByteString content) {
+    return new Result(status(), new HttpEntity.Strict(content, Optional.empty()));
+  }
+
+  /**
    * Send the given resource.
    *
    * <p>The resource will be loaded from the same classloader that this class comes from.
@@ -119,8 +140,7 @@ public class StatusHeader extends Result {
    * @param fileName The file name of the resource.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-          String resourceName, ClassLoader classLoader, String fileName) {
+  public Result sendResource(String resourceName, ClassLoader classLoader, String fileName) {
     return sendResource(resourceName, classLoader, fileName, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -134,7 +154,7 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-          String resourceName, ClassLoader classLoader, String fileName, FileMimeTypes fileMimeTypes) {
+      String resourceName, ClassLoader classLoader, String fileName, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileName, fileMimeTypes);
   }
 
@@ -457,12 +477,16 @@ public class StatusHeader extends Result {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    return doSendResource(
-        FileIO.fromPath(file.toPath()),
-        Optional.of(file.length()),
-        Optional.of(file.getName()),
-        inline,
-        fileMimeTypes);
+    try {
+      return doSendResource(
+          FileIO.fromPath(file.toPath()),
+          Optional.of(Files.size(file.toPath())),
+          Optional.of(file.getName()),
+          inline,
+          fileMimeTypes);
+    } catch (final IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 
   /**
@@ -515,12 +539,16 @@ public class StatusHeader extends Result {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    return doSendResource(
-        FileIO.fromPath(file.toPath()),
-        Optional.of(file.length()),
-        Optional.of(fileName),
-        inline,
-        fileMimeTypes);
+    try {
+      return doSendResource(
+          FileIO.fromPath(file.toPath()),
+          Optional.of(Files.size(file.toPath())),
+          Optional.of(fileName),
+          inline,
+          fileMimeTypes);
+    } catch (final IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 
   private Result doSendResource(

@@ -212,7 +212,7 @@ trait Application {
 
   /**
    * Returns true if the global application is enabled for this app. If set to false, this changes the behavior of
-   * Play.start, Play.current, and Play.maybeApplication to disallow access to the global application instance,
+   * Play.start to disallow access to the global application instance,
    * also affecting the deprecated Play APIs that use these.
    */
   lazy val globalApplicationEnabled: Boolean = {
@@ -412,6 +412,10 @@ trait BuiltInComponents extends I18nComponents {
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
+  @deprecated(
+    "Use the corresponding methods that provide MessagesApi, Langs, FileMimeTypes or HttpConfiguration",
+    "2.8.0"
+  )
   lazy val javaContextComponents: JavaContextComponents =
     JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 

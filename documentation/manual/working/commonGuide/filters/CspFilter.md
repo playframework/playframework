@@ -44,7 +44,9 @@ In your `conf/routes` file:
 GET     /my-nocsp-route         controllers.HomeController.myAction
 ```
 
-This excludes the `GET /my-csp-route` route from the CSP filter.
+This excludes the `GET /my-csp-route` route from the CSP filter. 
+
+If you wish to provide a custom `Content-Security-Policy` header for only a single route you can exclude the route from the CSP filter with this modifier and then use the `withHeaders` method of your action's `Result` to specify a custom `Content-Security-Policy` header.
 
 ## Enabling CSP on Specific Actions
 

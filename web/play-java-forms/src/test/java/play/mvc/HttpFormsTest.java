@@ -6,13 +6,10 @@ package play.mvc;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.junit.After;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
 import play.api.i18n.DefaultLangs;
-import play.core.j.DefaultJavaContextComponents;
-import play.core.j.JavaContextComponents;
 import play.data.*;
 import play.data.format.Formatters;
 import play.data.Task;
@@ -20,9 +17,9 @@ import play.data.validation.ValidationError;
 import play.i18n.Lang;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
-import play.mvc.Http.Context;
-import play.mvc.Http.Cookie;
+import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
+import play.test.Helpers;
 
 import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
@@ -57,10 +54,6 @@ public class HttpFormsTest {
     }
   }
 
-  private JavaContextComponents contextComponents(Application app) {
-    return app.injector().instanceOf(JavaContextComponents.class);
-  }
-
   private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
     return new Form<T>(
         formToCopy.name(),
@@ -76,12 +69,6 @@ public class HttpFormsTest {
         formToCopy.lang().orElse(null));
   }
 
-  @After
-  public void after() {
-    // make sure we clean the current http context after each test run
-    Context.current.remove();
-  }
-
   @Test
   public void testLangDataBinder() {
     withApplication(
@@ -92,15 +79,13 @@ public class HttpFormsTest {
           // Register Formatter
           formatters.register(BigDecimal.class, new Formats.AnnotationCurrencyFormatter());
 
-          // Prepare Request and Context with french number
+          // Prepare Request with french number
           Map<String, String> data = new HashMap<>();
           data.put("amount", "1234567,89");
           RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          Context ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse french input with french formatter
-          ctx.changeLang("fr");
-          Form<Money> myForm = formFactory.form(Money.class).bindFromRequest();
+          Request req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
+          Form<Money> myForm = formFactory.form(Money.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           Money money = myForm.get();
@@ -108,8 +93,8 @@ public class HttpFormsTest {
           assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
               .isEqualTo("1 234 567,89");
           // Parse french input with english formatter
-          ctx.changeLang("en");
-          myForm = formFactory.form(Money.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("en"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Money.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           money = myForm.get();
@@ -117,15 +102,13 @@ public class HttpFormsTest {
           assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
               .isEqualTo("123,456,789");
 
-          // Prepare Request and Context with english number
+          // Prepare Request with english number
           data = new HashMap<>();
           data.put("amount", "1234567.89");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse english input with french formatter
-          ctx.changeLang("fr");
-          myForm = formFactory.form(Money.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Money.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           money = myForm.get();
@@ -133,8 +116,72 @@ public class HttpFormsTest {
           assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
               .isEqualTo("1 234 567");
           // Parse english input with english formatter
-          ctx.changeLang("en");
-          myForm = formFactory.form(Money.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("en"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Money.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          money = myForm.get();
+          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
+          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
+              .isEqualTo("1,234,567.89");
+
+          // Clean up (Actually not really necassary because formatters are not global anyway ;-)
+          formatters.conversion.removeConvertible(
+              BigDecimal.class, String.class); // removes print conversion
+          formatters.conversion.removeConvertible(
+              String.class, BigDecimal.class); // removes parse conversion
+        });
+  }
+
+  @Test
+  public void testLangDataBinderTransient() {
+    withApplication(
+        (app) -> {
+          FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+          Formatters formatters = app.injector().instanceOf(Formatters.class);
+
+          // Register Formatter
+          formatters.register(BigDecimal.class, new Formats.AnnotationCurrencyFormatter());
+
+          // Prepare Request with french number
+          Map<String, String> data = new HashMap<>();
+          data.put("amount", "1234567,89");
+          RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse french input with french formatter
+          Request req = rb.transientLang(Lang.forCode("fr")).build();
+          Form<Money> myForm = formFactory.form(Money.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          Money money = myForm.get();
+          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
+          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
+              .isEqualTo("1 234 567,89");
+          // Parse french input with english formatter
+          req = rb.transientLang(Lang.forCode("en")).build();
+          myForm = formFactory.form(Money.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          money = myForm.get();
+          assertThat(money.getAmount()).isEqualTo(new BigDecimal("123456789"));
+          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
+              .isEqualTo("123,456,789");
+
+          // Prepare Request with english number
+          data = new HashMap<>();
+          data.put("amount", "1234567.89");
+          rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse english input with french formatter
+          req = rb.transientLang(Lang.forCode("fr")).build();
+          myForm = formFactory.form(Money.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          money = myForm.get();
+          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
+          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
+              .isEqualTo("1 234 567");
+          // Parse english input with english formatter
+          req = rb.transientLang(Lang.forCode("en")).build();
+          myForm = formFactory.form(Money.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           money = myForm.get();
@@ -198,14 +245,9 @@ public class HttpFormsTest {
           ValidatorFactory validatorFactory = app.injector().instanceOf(ValidatorFactory.class);
           Config config = app.injector().instanceOf(Config.class);
 
-          // The context has to contain the empty messagesApi
-          RequestBuilder rb = new RequestBuilder();
-          Context ctx =
-              new Context(
-                  rb,
-                  new DefaultJavaContextComponents(
-                      emptyMessagesApi, new DefaultLangs().asJava(), null, null));
-          Context.current.set(ctx);
+          // The lang has to be build from an empty messagesApi
+          final Lang lang =
+              emptyMessagesApi.preferred(new DefaultLangs().asJava().availables()).lang();
 
           // Also the form should contain the empty messagesApi
           Form<Money> form =
@@ -225,7 +267,10 @@ public class HttpFormsTest {
               "amount",
               "I am not a BigDecimal, I am a String that doesn't even represent a number! Binding to a BigDecimal will fail!");
 
-          assertThat(form.bind(data).errorsAsJson().toString())
+          assertThat(
+                  form.bind(lang, new RequestBuilder().build().attrs(), data)
+                      .errorsAsJson()
+                      .toString())
               .isEqualTo("{\"amount\":[\"error.invalid\"]}");
         });
   }
@@ -236,14 +281,13 @@ public class HttpFormsTest {
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
 
-          // Prepare Request and Context
+          // Prepare Request
           Map<String, String> data = new HashMap<>();
           data.put("date", "3/10/1986");
           RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          Context ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse date input with pattern from the default messages file
-          Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
+          Request req = rb.build();
+          Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           Birthday birthday = myForm.get();
@@ -252,15 +296,13 @@ public class HttpFormsTest {
           assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
               .isEqualTo(LocalDate.of(1986, 10, 3));
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("date", "16.2.2001");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse french date input with pattern from the french messages file
-          ctx.changeLang("fr");
-          myForm = formFactory.form(Birthday.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           birthday = myForm.get();
@@ -269,15 +311,66 @@ public class HttpFormsTest {
           assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
               .isEqualTo(LocalDate.of(2001, 2, 16));
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("date", "8-31-1950");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse english date input with pattern from the en-US messages file
-          ctx.changeLang("en-US");
-          myForm = formFactory.form(Birthday.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("en-US"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          birthday = myForm.get();
+          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
+              .isEqualTo("08-31-1950");
+          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+              .isEqualTo(LocalDate.of(1950, 8, 31));
+        });
+  }
+
+  @Test
+  public void testLangAnnotationDateDataBinderTransient() {
+    withApplication(
+        (app) -> {
+          FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+          // Prepare Request
+          Map<String, String> data = new HashMap<>();
+          data.put("date", "3/10/1986");
+          RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse date input with pattern from the default messages file
+          Request req = rb.build();
+          Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          Birthday birthday = myForm.get();
+          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
+              .isEqualTo("03/10/1986");
+          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+              .isEqualTo(LocalDate.of(1986, 10, 3));
+
+          // Prepare Request
+          data = new HashMap<>();
+          data.put("date", "16.2.2001");
+          rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse french date input with pattern from the french messages file
+          req = rb.transientLang(Lang.forCode("fr")).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          birthday = myForm.get();
+          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
+              .isEqualTo("16.02.2001");
+          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+              .isEqualTo(LocalDate.of(2001, 2, 16));
+
+          // Prepare Request
+          data = new HashMap<>();
+          data.put("date", "8-31-1950");
+          rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse english date input with pattern from the en-US messages file
+          req = rb.transientLang(Lang.forCode("en-US")).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           birthday = myForm.get();
@@ -294,14 +387,13 @@ public class HttpFormsTest {
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
 
-          // Prepare Request and Context
+          // Prepare Request
           Map<String, String> data = new HashMap<>();
           data.put("alternativeDate", "1982-5-7");
           RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          Context ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse date input with pattern from Play's default messages file
-          Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest();
+          Request req = rb.build();
+          Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           Birthday birthday = myForm.get();
@@ -315,15 +407,13 @@ public class HttpFormsTest {
                       .toLocalDate())
               .isEqualTo(LocalDate.of(1982, 5, 7));
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("alternativeDate", "10_4_2005");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse french date input with pattern from the french messages file
-          ctx.changeLang("fr");
-          myForm = formFactory.form(Birthday.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           birthday = myForm.get();
@@ -337,15 +427,81 @@ public class HttpFormsTest {
                       .toLocalDate())
               .isEqualTo(LocalDate.of(2005, 10, 4));
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("alternativeDate", "3/12/1962");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse english date input with pattern from the en-US messages file
-          ctx.changeLang("en-US");
-          myForm = formFactory.form(Birthday.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("en-US"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          birthday = myForm.get();
+          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
+              .isEqualTo("03/12/1962");
+          assertThat(
+                  birthday
+                      .getAlternativeDate()
+                      .toInstant()
+                      .atZone(ZoneId.systemDefault())
+                      .toLocalDate())
+              .isEqualTo(LocalDate.of(1962, 12, 3));
+        });
+  }
+
+  @Test
+  public void testLangDateDataBinderTransient() {
+    withApplication(
+        (app) -> {
+          FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
+
+          // Prepare Request
+          Map<String, String> data = new HashMap<>();
+          data.put("alternativeDate", "1982-5-7");
+          RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse date input with pattern from Play's default messages file
+          Request req = rb.build();
+          Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          Birthday birthday = myForm.get();
+          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
+              .isEqualTo("1982-05-07");
+          assertThat(
+                  birthday
+                      .getAlternativeDate()
+                      .toInstant()
+                      .atZone(ZoneId.systemDefault())
+                      .toLocalDate())
+              .isEqualTo(LocalDate.of(1982, 5, 7));
+
+          // Prepare Request
+          data = new HashMap<>();
+          data.put("alternativeDate", "10_4_2005");
+          rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse french date input with pattern from the french messages file
+          req = rb.transientLang(Lang.forCode("fr")).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
+          assertThat(myForm.hasErrors()).isFalse();
+          assertThat(myForm.hasGlobalErrors()).isFalse();
+          birthday = myForm.get();
+          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
+              .isEqualTo("10_04_2005");
+          assertThat(
+                  birthday
+                      .getAlternativeDate()
+                      .toInstant()
+                      .atZone(ZoneId.systemDefault())
+                      .toLocalDate())
+              .isEqualTo(LocalDate.of(2005, 10, 4));
+
+          // Prepare Request
+          data = new HashMap<>();
+          data.put("alternativeDate", "3/12/1962");
+          rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          // Parse english date input with pattern from the en-US messages file
+          req = rb.transientLang(Lang.forCode("en-US")).build();
+          myForm = formFactory.form(Birthday.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           birthday = myForm.get();
@@ -367,16 +523,15 @@ public class HttpFormsTest {
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
 
-          // Prepare Request and Context
+          // Prepare Request
           Map<String, String> data = new HashMap<>();
           data.put("id", "1234567891");
           data.put("name", "peter");
           data.put("dueDate", "2009/11e/11");
           RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          Context ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse date input with pattern from the default messages file
-          Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
+          Request req = rb.build();
+          Form<Task> myForm = formFactory.form(Task.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isTrue();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           assertThat(myForm.error("dueDate").get().messages().size()).isEqualTo(2);
@@ -386,17 +541,15 @@ public class HttpFormsTest {
           assertThat(myForm.error("dueDate").get().message())
               .isEqualTo("error.invalid.java.util.Date");
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("id", "1234567891");
           data.put("name", "peter");
           data.put("dueDate", "2009/11e/11");
-          Cookie frCookie = new Cookie("PLAY_LANG", "fr", 0, "/", null, false, false, null);
-          rb = new RequestBuilder().cookie(frCookie).uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
+          rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
+          req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           // Parse date input with pattern from the french messages file
-          myForm = formFactory.form(Task.class).bindFromRequest();
+          myForm = formFactory.form(Task.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isTrue();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           assertThat(myForm.error("dueDate").get().messages().size()).isEqualTo(3);
@@ -415,7 +568,7 @@ public class HttpFormsTest {
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
 
-          // Prepare Request and Context
+          // Prepare Request
           Map<String, String> data = new HashMap<>();
           data.put("id", "1234567891");
           data.put("name", "peter");
@@ -423,14 +576,13 @@ public class HttpFormsTest {
           data.put("zip", "1234");
           data.put("anotherZip", "1234");
           RequestBuilder rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          Context ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse input with pattern from the default messages file
-          Form<Task> myForm = formFactory.form(Task.class).bindFromRequest();
+          Request req = rb.build();
+          Form<Task> myForm = formFactory.form(Task.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("id", "1234567891");
           data.put("name", "peter");
@@ -438,15 +590,13 @@ public class HttpFormsTest {
           data.put("zip", "567");
           data.put("anotherZip", "567");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse input with pattern from the french messages file
-          ctx.changeLang("fr");
-          myForm = formFactory.form(Task.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Task.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isFalse();
           assertThat(myForm.hasGlobalErrors()).isFalse();
 
-          // Prepare Request and Context
+          // Prepare Request
           data = new HashMap<>();
           data.put("id", "1234567891");
           data.put("name", "peter");
@@ -454,11 +604,9 @@ public class HttpFormsTest {
           data.put("zip", "1234");
           data.put("anotherZip", "1234");
           rb = new RequestBuilder().uri("http://localhost/test").bodyForm(data);
-          ctx = new Context(rb, contextComponents(app));
-          Context.current.set(ctx);
           // Parse WRONG input with pattern from the french messages file
-          ctx.changeLang("fr");
-          myForm = formFactory.form(Task.class).bindFromRequest();
+          req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
+          myForm = formFactory.form(Task.class).bindFromRequest(req);
           assertThat(myForm.hasErrors()).isTrue();
           assertThat(myForm.hasGlobalErrors()).isFalse();
           assertThat(myForm.error("zip").get().messages().size()).isEqualTo(1);

@@ -2,7 +2,7 @@
 
 # Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
-# shellcheck source=bin/scriptLib
+# shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 cd "$DOCUMENTATION"
@@ -11,6 +11,9 @@ printMessage "RUNNING DOCUMENTATION VALIDATION"
 runSbt evaluateSbtFiles
 runSbt validateDocs
 runSbt headerCheck test:headerCheck
+
+scalafmtValidation "documentation"
+javafmtValidation "documentation"
 
 printMessage "ALL DOCUMENTATION VALIDATION PASSED"
 

@@ -197,14 +197,15 @@ object PlaySettings extends PlaySettingsCompat {
   ) ++ inConfig(Compile)(externalizedSettings)
 
   /**
-   * All default settings for a Play project. Normally these are enabled by the PlayWeb and PlayService plugin and
-   * will be added separately.
+   * All default settings for a Play project with the Full (web) profile and the PlayLayout. Normally these are
+   * enabled by the PlayWeb and PlayService plugin and will be added separately.
    */
   @deprecated("Use serviceSettings for a Play app or service, and add webSettings for a web app", "2.7.0")
   lazy val defaultSettings = serviceSettings ++ webSettings
 
   lazy val webSettings = Seq[Setting[_]](
     TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
+    playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value,
     RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
     // sbt-web
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),

@@ -197,7 +197,7 @@ The following lists all sbt-web related components and their versions at the tim
 
 #### WebJars
 
-[WebJars](https://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+[WebJars](https://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](https://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
 libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
@@ -291,7 +291,7 @@ For more information please consult [the plugin's documentation](https://github.
 
 #### Closure Compiler
 
-The Closure Compiler has been replaced. Its two important functions of validating JavaScript and minifying it have been factored out into [JSHint](http://www.jshint.com/) and [UglifyJS 2](https://github.com/mishoo/UglifyJS2#uglifyjs-2) respectively.
+The Closure Compiler has been replaced. Its two important functions of validating JavaScript and minifying it have been factored out into [JSHint](https://jshint.com/) and [UglifyJS 2](https://github.com/mishoo/UglifyJS2#uglifyjs-2) respectively.
 
 To use JSHint you must declare it, typically in your plugins.sbt file:
 
@@ -299,7 +299,7 @@ To use JSHint you must declare it, typically in your plugins.sbt file:
 addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0")
 ```
 
-Options can be specified in accordance with the [JSHint website](http://www.jshint.com/docs) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
+Options can be specified in accordance with the [JSHint website](https://jshint.com/docs/) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
 `JshintKeys.config` is used to specify the location of a configuration file.
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-jshint#sbt-jshint).

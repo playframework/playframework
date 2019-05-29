@@ -30,7 +30,6 @@ import scala.collection.JavaConverters;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
-import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
@@ -76,7 +75,7 @@ public interface BodyParser<A> {
      *
      * @return the class
      */
-    Class<? extends BodyParser> value();
+    Class<? extends BodyParser<?>> value();
   }
 
   /** If the request has a body, guess the body content by checking the Content-Type header. */
@@ -95,7 +94,7 @@ public interface BodyParser<A> {
           || request.hasHeader(Http.HeaderNames.TRANSFER_ENCODING)) {
         return super.apply(request);
       } else {
-        return (Accumulator) new Empty().apply(request);
+        return BodyParser.<Optional<Void>, Object>widen(new Empty()).apply(request);
       }
     }
   }
@@ -120,7 +119,7 @@ public interface BodyParser<A> {
     public Accumulator<ByteString, F.Either<Result, Object>> apply(Http.RequestHeader request) {
       String contentType =
           request.contentType().map(ct -> ct.toLowerCase(Locale.ENGLISH)).orElse(null);
-      BodyParser parser;
+      final BodyParser<?> parser;
       if (contentType == null) {
         parser = new Raw(parsers);
       } else if (contentType.equals("text/plain")) {
@@ -138,7 +137,8 @@ public interface BodyParser<A> {
       } else {
         parser = new Raw(parsers);
       }
-      return parser.apply(request);
+      final BodyParser<Object> parser1 = widen(parser);
+      return parser1.apply(request);
     }
   }
 
@@ -368,7 +368,6 @@ public interface BodyParser<A> {
 
   /** Parse the body as a byte string. */
   class Bytes extends BufferingBodyParser<ByteString> {
-
     public Bytes(long maxLength, HttpErrorHandler errorHandler) {
       super(maxLength, errorHandler, "Error decoding byte body");
     }
@@ -518,8 +517,9 @@ public interface BodyParser<A> {
       Accumulator<ByteString, ByteString> byteStringByteStringAccumulator =
           Accumulator.strict(
               maybeStrictBytes ->
-                  CompletableFuture.completedFuture(maybeStrictBytes.orElse(ByteString.empty())),
-              Sink.fold(ByteString.empty(), ByteString::concat));
+                  CompletableFuture.completedFuture(
+                      maybeStrictBytes.orElse(ByteString.emptyByteString())),
+              Sink.fold(ByteString.emptyByteString(), ByteString::concat));
       Accumulator<ByteString, F.Either<Result, A>> byteStringEitherAccumulator =
           byteStringByteStringAccumulator.mapFuture(
               bytes -> {
@@ -680,8 +680,7 @@ public interface BodyParser<A> {
      * API.
      */
     private class DelegatingMultipartFormData extends Http.MultipartFormData<A> {
-
-      private play.api.mvc.MultipartFormData<A> scalaFormData;
+      private final play.api.mvc.MultipartFormData<A> scalaFormData;
 
       DelegatingMultipartFormData(play.api.mvc.MultipartFormData<A> scalaFormData) {
         this.scalaFormData = scalaFormData;
@@ -690,9 +689,7 @@ public interface BodyParser<A> {
       @Override
       public Map<String, String[]> asFormUrlEncoded() {
         // TODO have this transformations in Scala is easier.
-        return JavaConverters.mapAsJavaMap(scalaFormData.asFormUrlEncoded())
-            .entrySet()
-            .stream()
+        return JavaConverters.mapAsJavaMap(scalaFormData.asFormUrlEncoded()).entrySet().stream()
             .collect(
                 Collectors.toMap(
                     Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
@@ -700,10 +697,8 @@ public interface BodyParser<A> {
 
       @Override
       public List<FilePart<A>> getFiles() {
-        return seqAsJavaListConverter(scalaFormData.files())
-            .asJava()
-            .stream()
-            .map(part -> toJava(part))
+        return seqAsJavaListConverter(scalaFormData.files()).asJava().stream()
+            .map(DelegatingMultipartFormDataBodyParser.this::toJava)
             .collect(Collectors.toList());
       }
     }
@@ -725,9 +720,15 @@ public interface BodyParser<A> {
           filePart.getKey(),
           filePart.getFilename(),
           Option.apply(filePart.getContentType()),
-          filePart.getFile(),
+          filePart.getRef(),
           filePart.getFileSize(),
           filePart.getDispositionType());
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  // covariance: BodyParser<?> <: BodyParser<Object>, given BodyParser<A> is covariant in A
+  static <A extends B, B> BodyParser<B> widen(final BodyParser<A> parser) {
+    return (BodyParser<B>) parser;
   }
 }

@@ -229,5 +229,31 @@ class HelpersSpec extends Specification {
         "I am the name of the field"
       )
     }
+
+    "correctly display an error when _error is supplied as String" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> "Force an error").body must contain(
+        """<dd class="error">Force an error</dd>"""
+      )
+    }
+
+    "correctly display an error when _error is supplied as Option[String]" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option("Force an error")).body must contain(
+        """<dd class="error">Force an error</dd>"""
+      )
+    }
+
+    "correctly display an error when _error is supplied as Option[FormError]" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option(FormError("foo", "Force an error")))
+        .body must contain(
+        """<dd class="error">Force an error</dd>"""
+      )
+    }
+
+    "don't display an error when _error is supplied but is None" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> None).body must not contain (
+        """class="error""""
+      )
+    }
   }
 }

@@ -10,32 +10,9 @@ import play.api.Environment
 import play.api.Mode
 import play.api.PlayException
 
-class ActualKeySecretConfigurationParserSpec extends SecretConfigurationParserSpec {
-  override def secretKey: String = "play.http.secret.key"
-}
+class SecretConfigurationParserSpec extends Specification {
 
-class DeprecatedKeySecretConfigurationParserSpec extends SecretConfigurationParserSpec {
-  override def secretKey: String = "play.crypto.secret"
-
-  override def parseSecret(mode: Mode, secret: Option[String] = None) = {
-    HttpConfiguration
-      .fromConfiguration(
-        Configuration.reference ++ Configuration.from(
-          secret.map(secretKey -> _).toMap ++ Map(
-            "play.http.secret.key" -> null
-          )
-        ),
-        Environment.simple(mode = mode)
-      )
-      .secret
-      .secret
-  }
-
-}
-
-trait SecretConfigurationParserSpec extends Specification {
-
-  def secretKey: String
+  def secretKey: String = "play.http.secret.key"
 
   val Secret = "abcdefghijklmnopqrs"
 

@@ -28,23 +28,26 @@ class JavaCSPActionSpec extends PlaySpecification {
   private def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
   private def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
-  private def javaContextComponents(implicit app: Application) = inject[JavaContextComponents]
   private def myAction(implicit app: Application)              = inject[JavaCSPActionSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: => Result)(implicit app: Application): JavaAction =
+  def javaAction[T: ClassTag](method: String, inv: Http.Request => Result)(implicit app: Application): JavaAction =
     new JavaAction(javaHandlerComponents) {
       val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
       def parser: BodyParser[Http.RequestBody] =
         HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-      def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv)
+      def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv(req))
       val annotations =
-        new JavaActionAnnotations(clazz, clazz.getMethod(method), handlerComponents.httpConfiguration.actionComposition)
+        new JavaActionAnnotations(
+          clazz,
+          clazz.getMethod(method, classOf[Http.Request]),
+          handlerComponents.httpConfiguration.actionComposition
+        )
     }
 
   def withActionServer[T](config: (String, String)*)(block: Application => T): T = {
     val app = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
-      .appRoutes(implicit app => { case _ => javaAction[JavaCSPActionSpec.MyAction]("index", myAction.index()) })
+      .appRoutes(implicit app => { case _ => javaAction[JavaCSPActionSpec.MyAction]("index", myAction.index) })
       .build()
     block(app)
   }
@@ -66,8 +69,8 @@ object JavaCSPActionSpec {
 
   class MyAction extends Controller {
     @CSP
-    def index(): Result = {
-      require(Controller.request().asScala() != null) // Make sure request is set
+    def index(req: Http.Request): Result = {
+      require(req.asScala() != null) // Make sure request is set
       Results.ok("")
     }
   }

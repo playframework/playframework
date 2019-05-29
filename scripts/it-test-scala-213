@@ -2,13 +2,10 @@
 
 # Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
-# shellcheck source=bin/scriptLib
+# shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 cd "$BASEDIR"
-
 printMessage "RUNNING IT TESTS FOR SCALA 2.13"
-
-runSbt "++2.13.0-M5 Play-Integration-Test/it:test"
-
+runSbt "++2.13.0-RC2 Play-Integration-Test/it:test"
 printMessage "ALL IT TESTS PASSED"

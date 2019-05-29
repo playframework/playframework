@@ -26,7 +26,7 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 * `play.filters.headers.referrerPolicy` - sets [Referrer Policy](https://www.w3.org/TR/referrer-policy/),  "origin-when-cross-origin, strict-origin-when-cross-origin" by default.
 * `play.filters.headers.contentSecurityPolicy` - sets [Content-Security-Policy](https://developers.google.com/web/fundamentals/security/csp/), "default-src 'self'" by default.
 
-> **Note:** The `contentSecurityPolicy` property has been deprecated and the default value has been set to `null` in Play 2.7.  Please see [[CSPFilter]] for details.
+> **Note:** The `contentSecurityPolicy` property has been deprecated and the default value has been set to `null` in Play 2.7.  Please see [[CspFilter]] for details.
  
 Any of the headers can be disabled by setting a configuration value of `null`, for example:
 

@@ -50,9 +50,7 @@ trait Router {
   /**
    * A lifted version of the routes partial function.
    */
-  final def handlerFor(request: RequestHeader): Option[Handler] = {
-    routes.lift(request)
-  }
+  final def handlerFor(request: RequestHeader): Option[Handler] = routes.lift(request)
 
   def asJava: play.routing.Router = new JavaRouterAdapter(this)
 
@@ -93,7 +91,7 @@ object Router {
         // Only throw an exception if a router was explicitly configured, but not found.
         // Otherwise, it just means this application has no router, and that's ok.
         className.map { routerName =>
-          throw configuration.reportError("application.router", "Router not found: " + routerName)
+          throw configuration.reportError("application.router", s"Router not found: $routerName")
         }
     }
   }
@@ -115,6 +113,7 @@ object Router {
        */
       def hasRouteModifier(modifier: String): Boolean =
         handlerDef.exists(_.modifiers.exists(modifier.equalsIgnoreCase))
+
     }
   }
 
@@ -127,6 +126,7 @@ object Router {
      * Key for the [[HandlerDef]] used to handle the request.
      */
     val HandlerDef: TypedKey[HandlerDef] = TypedKey("HandlerDef")
+
   }
 
   /**
@@ -166,11 +166,10 @@ object Router {
  * A simple router that implements the withPrefix and documentation methods for you.
  */
 trait SimpleRouter extends Router { self =>
-  def documentation: Seq[(String, String, String)] = Seq.empty
+  def documentation: Seq[(String, String, String)] = Nil
   def withPrefix(prefix: String): Router = {
-    if (prefix == "/") {
-      self
-    } else {
+    if (prefix == "/") self
+    else {
       val prefixTrailingSlash = if (prefix.endsWith("/")) prefix else prefix + "/"
       val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
         case rh: RequestHeader if rh.path == prefix || rh.path.startsWith(prefixTrailingSlash) =>
@@ -196,4 +195,5 @@ object SimpleRouter {
    * Create a new simple router from the given routes
    */
   def apply(routes: Router.Routes): Router = new SimpleRouterImpl(routes)
+
 }

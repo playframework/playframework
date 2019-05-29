@@ -6,6 +6,7 @@ package scalaguide.async.scalastream
 
 import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.nio.file.Files
 import javax.inject.Inject
 
 import akka.stream.scaladsl.FileIO
@@ -68,7 +69,7 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
     val path: java.nio.file.Path      = file.toPath
     val source: Source[ByteString, _] = FileIO.fromPath(path)
 
-    val contentLength = Some(file.length())
+    val contentLength = Some(Files.size(file.toPath))
 
     Result(
       header = ResponseHeader(200, Map.empty),

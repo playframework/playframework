@@ -4,8 +4,6 @@
 
 package play.it.routing
 
-import java.util.function.Supplier
-
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAll
 import play.{ BuiltInComponents => JBuiltInComponents }
@@ -13,7 +11,6 @@ import play.api.Mode
 import play.api.routing.Router
 import play.it.http.BasicHttpClient
 import play.it.http.BasicRequest
-import play.mvc.Result
 import play.mvc.Results
 import play.routing.RoutingDsl
 import play.server.Server
@@ -29,29 +26,21 @@ class NettyServerSpec extends ServerSpec {
 }
 
 trait ServerSpec extends Specification with BeforeAll {
-
   sequential
 
   def serverProvider: String
 
-  override def beforeAll(): Unit = {
-    System.setProperty("play.server.provider", serverProvider)
-  }
+  override def beforeAll(): Unit = System.setProperty("play.server.provider", serverProvider)
 
-  private def withServer[T](server: Server)(block: Server => T): T = {
-    try {
-      block(server)
-    } finally {
-      server.stop()
-    }
-  }
+  private def withServer[T](server: Server)(block: Server => T): T =
+    try block(server) finally server.stop()
 
   "Java Server" should {
 
     "start server" in {
       "with default mode and free port" in {
         withServer(
-          Server.forRouter(asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
           server.httpPort() must beGreaterThan(0)
           server.underlying().mode must beEqualTo(Mode.Test)
@@ -59,7 +48,7 @@ trait ServerSpec extends Specification with BeforeAll {
       }
       "with given port and default mode" in {
         withServer(
-          Server.forRouter(9999, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(9999, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
           server.httpPort() must beEqualTo(9999)
           server.underlying().mode must beEqualTo(Mode.Test)
@@ -67,7 +56,7 @@ trait ServerSpec extends Specification with BeforeAll {
       }
       "with the given mode and free port" in {
         withServer(
-          Server.forRouter(JavaMode.DEV, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(JavaMode.DEV, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
           server.httpPort() must beGreaterThan(0)
           server.underlying().mode must beEqualTo(Mode.Dev)
@@ -75,7 +64,7 @@ trait ServerSpec extends Specification with BeforeAll {
       }
       "with the given mode and port" in {
         withServer(
-          Server.forRouter(JavaMode.DEV, 9999, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(JavaMode.DEV, 9999, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
         ) { server =>
           server.httpPort() must beEqualTo(9999)
           server.underlying().mode must beEqualTo(Mode.Dev)
@@ -89,11 +78,7 @@ trait ServerSpec extends Specification with BeforeAll {
               RoutingDsl
                 .fromComponents(components)
                 .GET("/something")
-                .routeTo(
-                  new Supplier[Result] {
-                    override def get() = Results.ok("You got something")
-                  }
-                )
+                .routingTo(_ => Results.ok("You got something"))
                 .build()
             }
           )
@@ -109,7 +94,7 @@ trait ServerSpec extends Specification with BeforeAll {
 
     "get the address the server is running" in {
       withServer(
-        Server.forRouter(9999, asJavaFunction((components: JBuiltInComponents) => Router.empty.asJava))
+        Server.forRouter(9999, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
       ) { server =>
         server.mainAddress().getPort must beEqualTo(9999)
       }

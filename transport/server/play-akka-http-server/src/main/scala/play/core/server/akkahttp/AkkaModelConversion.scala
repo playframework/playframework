@@ -28,6 +28,7 @@ import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.core.server.common.ForwardedHeaderHandler
+import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
 import play.mvc.Http.HeaderNames
 
@@ -93,13 +94,14 @@ private[server] class AkkaModelConversion(
       ),
       request.method.name,
       new RequestTarget {
+
         override lazy val uri: URI = new URI(headers.uri)
 
         override def uriString: String = headers.uri
 
         override lazy val path: String = {
           try {
-            request.uri.path.toString
+            PathAndQueryParser.parsePath(headers.uri)
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse path; returning empty string.", e)
@@ -109,28 +111,12 @@ private[server] class AkkaModelConversion(
 
         override lazy val queryMap: Map[String, Seq[String]] = {
           try {
-            toMultiMap(request.uri.query())
+            request.uri.query().toMultiMap
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse query string; returning empty map.", e)
               Map[String, Seq[String]]()
           }
-        }
-
-        // This method converts to a `Map`, preserving the order of the query parameters.
-        // It can be removed and replaced with `query().toMultiMap` once this Akka HTTP
-        // fix is available upstream:
-        // https://github.com/akka/akka-http/pull/1270
-        private def toMultiMap(query: Uri.Query): Map[String, Seq[String]] = {
-          @tailrec
-          def append(map: Map[String, Seq[String]], q: Query): Map[String, Seq[String]] = {
-            if (q.isEmpty) {
-              map
-            } else {
-              append(map.updated(q.key, map.getOrElse(q.key, Vector.empty[String]) :+ q.value), q.tail)
-            }
-          }
-          append(Map.empty, query)
         }
       },
       request.protocol.value,
@@ -189,7 +175,7 @@ private[server] class AkkaModelConversion(
 
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: do something with trailing headers?
-        Right(chunks.takeWhile(!_.isLastChunk).map(_.data()))
+        Right(chunks.filter(!_.isLastChunk).map(_.data()))
     }
   }
 

@@ -96,7 +96,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 Content-Length: 57
 
-{"status":"OK","message":"Place 'Nuthanger Farm' saved."}
+{"message":"Place 'Nuthanger Farm' saved."}
 ```
 
 Testing the action with a invalid data, missing "name" field:
@@ -115,7 +115,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json
 Content-Length: 79
 
-{"status":"KO","message":{"obj.name":[{"msg":"error.path.missing","args":[]}]}}
+{"message":{"obj.name":[{"msg":"error.path.missing","args":[]}]}}
 ```
 Testing the action with a invalid data, wrong data type for "lat":
 
@@ -133,7 +133,7 @@ HTTP/1.1 400 Bad Request
 Content-Type: application/json
 Content-Length: 92
 
-{"status":"KO","message":{"obj.location.lat":[{"msg":"error.expected.jsnumber","args":[]}]}}
+{"message":{"obj.location.lat":[{"msg":"error.expected.jsnumber","args":[]}]}}
 ```
 
 ## Summary

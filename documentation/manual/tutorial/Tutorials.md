@@ -157,10 +157,6 @@ Justin Rodenbostel of SPR Consulting also has two blog posts on building REST AP
 
 * [How to add a form to a Play application](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application) by Chris Birchall of the Guardian.
 
-#### EmberJS
-
-* [HTML 5 Device Orientation with play, ember and websockets](https://www.cakesolutions.net/teamblogs/go-reactive-activator-contest-reactive-orientation) by Cake Solutions (with [activator template](https://www.lightbend.com/activator/template/reactive-orientation)).
-
 #### AngularJS, RequireJS and sbt-web
 
 Marius Soutier has an excellent series on setting up a Javascript interface using AngularJS with Play and sbt-web.  It was originally written for Play 2.1.x, but has been updated for Play 2.4.x.

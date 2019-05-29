@@ -6,6 +6,7 @@ package play.api.mvc
 
 import java.io.File
 import java.io.InputStream
+import java.nio.file.Files
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
@@ -447,7 +448,7 @@ class RangeResultSpec extends Specification {
       val inputStream = java.nio.file.Files.newInputStream(file.toPath)
       try {
         val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
-          RangeResult.ofStream(file.length(), inputStream, None, "file.mp4", Some("video/mp4"))
+          RangeResult.ofStream(Files.size(file.toPath), inputStream, None, "file.mp4", Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
       } finally {

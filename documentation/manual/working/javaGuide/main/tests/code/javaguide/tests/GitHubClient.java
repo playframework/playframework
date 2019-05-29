@@ -28,10 +28,7 @@ class GitHubClient {
         .get()
         .thenApply(
             response ->
-                response
-                    .asJson()
-                    .findValues("full_name")
-                    .stream()
+                response.asJson().findValues("full_name").stream()
                     .map(JsonNode::asText)
                     .collect(Collectors.toList()));
   }

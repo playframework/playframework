@@ -6,14 +6,14 @@ import Dependencies._
 import Generators._
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
-import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
-import com.typesafe.tools.mima.plugin.MimaKeys.mimaReportBinaryIssues
+import com.typesafe.tools.mima.core._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
+import sbt.io.Path._
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
@@ -30,10 +30,6 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-
   .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
-    // See also:
-    // 1. the root project at build.sbt file.
-    // 2. project/BuildSettings.scala
-    crossScalaVersions := Seq(scala212, scala213),
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
@@ -81,6 +77,10 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       .taskValue,
     sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
     TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaParsers.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#MultipartFormData#FilePart.getFile"),
+    ),
     mappings in (Compile, packageSrc) ++= {
       // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
       // so omnidoc can compile and produce scaladocs for them.
@@ -202,6 +202,7 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice
   )
 
 lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plugin")
+  .enablePlugins(SbtPlugin)
   .settings(
     libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
     sourceGenerators in Compile += Def
@@ -354,7 +355,9 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     PlaySpecs2Project,
     PlayFiltersHelpersProject,
     PlayJavaProject,
-    PlayNettyServerProject
+    PlayNettyServerProject,
+    PlayAkkaHttpServerProject,
+    PlayAkkaHttp2SupportProject
   )
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "cache/play-cache")
@@ -398,6 +401,7 @@ lazy val PlayJCacheProject = PlayCrossBuiltProject("Play-JCache", "cache/play-jc
   )
 
 lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-mode/play-docs-sbt-plugin")
+  .enablePlugins(SbtPlugin)
   .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= playDocsSbtPluginDependencies
@@ -452,21 +456,17 @@ lazy val aggregatedProjects = Seq[ProjectReference](
 lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayRootProject)
   .enablePlugins(PlayWhitesourcePlugin)
-  .enablePlugins(CrossPerProjectPlugin)
-  .settings(playCommonSettings: _*)
   .settings(
+    playCommonSettings,
     scalaVersion := (scalaVersion in PlayProject).value,
-    // See also:
-    // 1. project/BuildSettings.scala
-    // 2. RoutesCompilerProject project
-    crossScalaVersions := Seq(scala211, scala212, scala213),
     playBuildRepoName in ThisBuild := "playframework",
+    resolvers in ThisBuild += Resolver.bintrayRepo("akka", "snapshots"),
     concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude := false,
     Docs.apiDocsIncludeManaged := false,
-    mimaReportBinaryIssues := (),
-    commands += Commands.quickPublish
+    mimaReportBinaryIssues := ((): Unit),
+    commands += Commands.quickPublish,
+    Release.settings
   )
-  .settings(Release.settings: _*)
   .aggregate(aggregatedProjects: _*)

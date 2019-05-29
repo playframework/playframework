@@ -11,11 +11,12 @@ lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 
 // Required for PlayEnhancer.md
-addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.2.2")
 
 // Add headers to example sources
-addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.0.0")
-addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.4.3")
+addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.2.0")
+addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.4.4")
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.0")
 
 // Required for Tutorial
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.4.0-M2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.4.1")

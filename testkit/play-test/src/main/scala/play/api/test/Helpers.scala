@@ -4,6 +4,8 @@
 
 package play.api.test
 
+import scala.language.implicitConversions
+
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -149,11 +151,12 @@ trait PlayRunners extends HttpVerbs {
       name: String = "default",
       options: Map[String, String] = Map.empty[String, String]
   ): Map[String, String] = {
-    val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+    val randomInt       = scala.util.Random.nextInt
+    val optionsForDbUrl = options.map { case (k, v) => s"$k=$v" }.mkString(";", ";", "")
 
     Map(
-      ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url")    -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
+      s"db.$name.driver" -> "org.h2.Driver",
+      s"db.$name.url"    -> s"jdbc:h2:mem:play-test-$randomInt$optionsForDbUrl"
     )
   }
 
@@ -165,6 +168,7 @@ object PlayRunners {
    * This mutex is used to ensure that no two tests that set the global application can run at the same time.
    */
   private[play] val mutex: Lock = new ReentrantLock()
+
 }
 
 trait Writeables {

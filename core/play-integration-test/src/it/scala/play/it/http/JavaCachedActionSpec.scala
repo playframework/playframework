@@ -25,6 +25,7 @@ import play.api.test.WsTestClient
 import play.cache.Cached
 import play.cache.DefaultAsyncCacheApi
 import play.inject.ApplicationLifecycle
+import play.mvc.Http
 import play.mvc.Result
 
 import scala.concurrent.ExecutionContext
@@ -96,7 +97,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
     "when action is annotated" in {
       "cache result" in makeRequest(new MockController {
         @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1)
-        override def action: Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
+        override def action(request: Http.Request): Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
       }) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
@@ -112,7 +113,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
 
       "expire result" in makeRequest(new MockController {
         @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1)
-        override def action: Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
+        override def action(request: Http.Request): Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
       }) { port =>
         val first = BasicHttpClient
           .makeRequests(port)(
@@ -137,7 +138,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
 
 @Cached(key = "play.it.http.CachedController.cache", duration = 1)
 class CachedController extends MockController {
-  override def action: Result = {
+  override def action(request: Http.Request): Result = {
     play.mvc.Results.ok("Cached result: " + System.currentTimeMillis())
   }
 }

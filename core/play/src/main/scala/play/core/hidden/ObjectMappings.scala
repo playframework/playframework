@@ -12,7 +12,7 @@ import validation._
 
   The script below will generate this file.  Edit and run the script to edit the file.
 
-#!/bin/sh
+#! /bin/sh -
 exec scala -savecompiled "$0" $0 $@
 !#
 

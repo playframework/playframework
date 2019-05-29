@@ -18,11 +18,13 @@ import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
+import io.netty.channel.epoll.EpollChannelOption
 import io.netty.channel.epoll.EpollEventLoopGroup
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
@@ -58,6 +60,7 @@ class NettyServer(
 )(implicit val materializer: Materializer)
     extends Server {
 
+  initializeChannelOptionsStaticMembers()
   registerShutdownTasks()
 
   private val serverConfig         = config.configuration.get[Configuration]("play.server")
@@ -107,7 +110,11 @@ class NettyServer(
         None
     }
 
-  private def setOptions(setOption: (ChannelOption[AnyRef], AnyRef) => Any, config: Config) = {
+  private def setOptions(
+      setOption: (ChannelOption[AnyRef], AnyRef) => Any,
+      config: Config,
+      bootstrapping: Boolean = false
+  ) = {
     def unwrap(value: ConfigValue) = value.unwrapped() match {
       case number: Number => number.intValue().asInstanceOf[Integer]
       case other          => other
@@ -115,6 +122,11 @@ class NettyServer(
     config.entrySet().asScala.filterNot(_.getKey.startsWith("child.")).foreach { option =>
       val cleanKey = option.getKey.stripPrefix("\"").stripSuffix("\"")
       if (ChannelOption.exists(cleanKey)) {
+        logger.debug(s"Setting Netty channel option ${cleanKey} to ${unwrap(option.getValue)}${if (bootstrapping) {
+          " at bootstrapping"
+        } else {
+          ""
+        }}")
         setOption(ChannelOption.valueOf(cleanKey), unwrap(option.getValue))
       } else {
         logger.warn("Ignoring unknown Netty channel option: " + cleanKey)
@@ -153,7 +165,7 @@ class NettyServer(
       .handler(channelPublisher)
       .localAddress(address)
 
-    setOptions(bootstrap.option, nettyConfig.get[Config]("option"))
+    setOptions(bootstrap.option, nettyConfig.get[Config]("option"), true)
 
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
@@ -285,6 +297,24 @@ class NettyServer(
       }
     }
 
+  }
+
+  private def initializeChannelOptionsStaticMembers(): Unit = {
+    // Workaround to make sure that various *ChannelOption classes (and therefore their static members) get initialized.
+    // The static members of these *ChannelOption classes get initialized by calling ChannelOption.valueOf(...).
+    // ChannelOption.valueOf(...) saves the name of the channel option into a pool/map.
+    // ChannelOption.exists(...) just checks that pool/map, meaning if a class wasn't initialized before,
+    // that method is not able to find a channel option (even though that option "exists" and should be found).
+    // We bumped into this problem when setting a native socket transport option into the config path
+    // play.server.netty.option { ... }
+    // (But not when setting it into the "child" sub-path!)
+
+    // How to force a class to get initialized:
+    // https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html#jls-12.4.1
+    Seq(classOf[ChannelOption[_]], classOf[UnixChannelOption[_]], classOf[EpollChannelOption[_]]).foreach(clazz => {
+      logger.debug(s"Class ${clazz.getName} will be initialized (if it hasn't been initialized already)")
+      Class.forName(clazz.getName)
+    })
   }
 
   override lazy val mainAddress: InetSocketAddress = {

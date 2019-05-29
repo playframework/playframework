@@ -34,7 +34,9 @@ package views.html.helper {
       (args.get('_error) match {
         case Some(Some(play.api.data.FormError(_, message, args))) =>
           Some(Seq(p.messages(message, args.map(a => translateMsgArg(a)): _*)))
-        case _ => None
+        case Some(Some(message: String)) => Some(Seq(p.messages(message)))
+        case Some(message: String)       => Some(Seq(p.messages(message)))
+        case _                           => None
       }).getOrElse {
         (if (args.get('_showErrors) match {
                case Some(false) => false

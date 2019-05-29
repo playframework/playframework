@@ -11,7 +11,7 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.jdbcdslog.LogSqlDataSource;
+import org.jdbcdslog.ConnectionPoolDataSourceProxy;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.Test;
@@ -226,11 +226,12 @@ public class DatabaseTest {
   }
 
   @Test
-  public void useLogSqlDataSourceWhenLogSqlIsTrue() throws Exception {
+  public void useConnectionPoolDataSourceProxyWhenLogSqlIsTrue() throws Exception {
     Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
-    assertThat(db.getDataSource(), instanceOf(LogSqlDataSource.class));
-    assertThat(JNDI.initialContext().lookup("DefaultDS"), instanceOf(LogSqlDataSource.class));
+    assertThat(db.getDataSource(), instanceOf(ConnectionPoolDataSourceProxy.class));
+    assertThat(
+        JNDI.initialContext().lookup("DefaultDS"), instanceOf(ConnectionPoolDataSourceProxy.class));
     db.shutdown();
   }
 

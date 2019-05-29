@@ -4,6 +4,8 @@
 
 package play.api.mvc
 
+import java.nio.file.Files
+
 import akka.NotUsed
 import akka.stream.Attributes
 import akka.stream.FlowShape
@@ -24,7 +26,7 @@ import play.core.utils.HttpHeaderParameterEncoding
 // Long should be good enough to represent even very large files
 // considering that Long.MAX_VALUE is 9223372036854775807 which
 // would be enough to represent Petabytes files. Also, consider
-// that File.length() returns a long value.
+// that Files.size(...) returns a long value.
 private[mvc] case class ByteRange(start: Long, end: Long) extends Ordered[ByteRange] {
 
   override def compare(that: ByteRange): Int = {
@@ -356,7 +358,7 @@ object RangeResult {
       contentType: Option[String]
   ): Result = {
     val source = FileIO.fromPath(path)
-    ofSource(path.toFile.length(), source, rangeHeader, Option(fileName), contentType)
+    ofSource(Files.size(path), source, rangeHeader, Option(fileName), contentType)
   }
 
   /**
@@ -380,7 +382,7 @@ object RangeResult {
    */
   def ofFile(file: java.io.File, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
     val source = FileIO.fromPath(file.toPath)
-    ofSource(file.length(), source, rangeHeader, Option(fileName), contentType)
+    ofSource(Files.size(file.toPath), source, rangeHeader, Option(fileName), contentType)
   }
 
   def ofSource(

@@ -9,17 +9,15 @@ import org.junit.Test;
 import play.api.Application;
 import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
-import play.core.j.JavaContextComponents;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.libs.Files;
 import play.libs.Files.TemporaryFileCreator;
 import play.libs.typedmap.TypedKey;
-import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
+import play.test.Helpers;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -226,30 +224,57 @@ public class RequestBuilderTest {
   }
 
   @Test
+  public void testNewRequestsShouldNotHaveALangCookie() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Request request = builder.build();
+    assertFalse(request.getCookie(Helpers.stubMessagesApi().langCookieName()).isPresent());
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
+  public void testAddALangCookieToRequestBuilder() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Lang lang = new Lang(Locale.GERMAN);
+    Request request = builder.langCookie(lang, Helpers.stubMessagesApi()).build();
+
+    assertEquals(
+        Optional.of(lang.code()),
+        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(c -> c.value()));
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
+  public void testAddALangCookieByLocaleToRequestBuilder() {
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
+
+    Locale locale = Locale.GERMAN;
+    Request request = builder.langCookie(locale, Helpers.stubMessagesApi()).build();
+
+    assertEquals(
+        Optional.of(locale.toLanguageTag()),
+        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(c -> c.value()));
+    assertFalse(request.transientLang().isPresent());
+    assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
+  }
+
+  @Test
   public void testFlash() {
-    Application app = new GuiceApplicationBuilder().build();
-    Play.start(app);
-    JavaContextComponents contextComponents =
-        app.injector().instanceOf(JavaContextComponents.class);
-    RequestBuilder builder = new RequestBuilder().flash("a", "1").flash("b", "1").flash("b", "2");
-    Context ctx = new Context(builder, contextComponents);
-    assertEquals("1", ctx.flash().get("a"));
-    assertEquals("2", ctx.flash().get("b"));
+    final Request req =
+        new RequestBuilder().flash("a", "1").flash("b", "1").flash("b", "2").build();
+    assertEquals(Optional.of("1"), req.flash().get("a"));
+    assertEquals(Optional.of("2"), req.flash().get("b"));
   }
 
   @Test
   public void testSession() {
-    Application app = new GuiceApplicationBuilder().build();
-    Play.start(app);
-    JavaContextComponents contextComponents =
-        app.injector().instanceOf(JavaContextComponents.class);
-    Context ctx =
-        new Context(
-            new RequestBuilder().session("a", "1").session("b", "1").session("b", "2"),
-            contextComponents);
-    assertEquals("1", ctx.session().get("a"));
-    assertEquals("2", ctx.session().get("b"));
-    Play.stop(app);
+    final Request req =
+        new RequestBuilder().session("a", "1").session("b", "1").session("b", "2").build();
+    assertEquals(Optional.of("1"), req.session().get("a"));
+    assertEquals(Optional.of("2"), req.session().get("b"));
   }
 
   @Test
@@ -276,32 +301,61 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testQuery_doubleEncoding() {
+  public void testGetQuery_doubleEncoding() {
     final String query =
         new Http.RequestBuilder().uri("path?query=x%2By").build().getQueryString("query");
     assertEquals("x+y", query);
   }
 
   @Test
-  public void testQuery_multipleParams() {
+  public void testQuery_doubleEncoding() {
+    final Optional<String> query =
+        new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
+    assertEquals(Optional.of("x+y"), query);
+  }
+
+  @Test
+  public void testGetQuery_multipleParams() {
     final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
     assertEquals("1", req.getQueryString("one"));
     assertEquals("a b", req.getQueryString("two"));
   }
 
   @Test
-  public void testQuery_emptyParam() {
+  public void testQuery_multipleParams() {
+    final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
+    assertEquals(Optional.of("1"), req.queryString("one"));
+    assertEquals(Optional.of("a b"), req.queryString("two"));
+  }
+
+  @Test
+  public void testGetQuery_emptyParam() {
     final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
     assertEquals(null, req.getQueryString("one"));
     assertEquals("a b", req.getQueryString("two"));
   }
 
   @Test
-  public void testUri_badEncoding() {
+  public void testQuery_emptyParam() {
+    final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
+    assertEquals(Optional.empty(), req.queryString("one"));
+    assertEquals(Optional.of("a b"), req.queryString("two"));
+  }
+
+  @Test
+  public void testGetUri_badEncoding() {
     final Request req =
         new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
     assertEquals("hello=world", req.getQueryString("one"));
     assertEquals("false", req.getQueryString("two"));
+  }
+
+  @Test
+  public void testUri_badEncoding() {
+    final Request req =
+        new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
+    assertEquals(Optional.of("hello=world"), req.queryString("one"));
+    assertEquals(Optional.of("false"), req.queryString("two"));
   }
 
   @Test

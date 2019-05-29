@@ -190,9 +190,8 @@ object HttpConfiguration {
     config.get[Option[String]](key).flatMap { value =>
       val result = SameSite.parse(value)
       if (result.isEmpty) {
-        logger.warn(
-          s"""Assuming $key = null, since "$value" is not a valid SameSite value (${SameSite.values.mkString(", ")})"""
-        )
+        val values = SameSite.values.mkString(", ")
+        logger.warn(s"""Assuming $key = null, since "$value" is not a valid SameSite value ($values)""")
       }
       result
     }
@@ -285,7 +284,7 @@ object HttpConfiguration {
     val Blank = """\s*""".r
 
     val secret =
-      config.getDeprecated[Option[String]]("play.http.secret.key", "play.crypto.secret", "application.secret") match {
+      config.get[Option[String]]("play.http.secret.key") match {
         case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
           val message =
             """

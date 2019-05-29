@@ -13,16 +13,17 @@ import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
+import interplay.ScalaVersions._
 import interplay._
 import sbt.Keys.version
 import sbt.Keys._
-import sbt.ScriptedPlugin._
+import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
 import sbt.Resolver
 import sbt._
-
-import scala.util.control.NonFatal
-
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
+
+import scala.sys.process.stringToProcess
+import scala.util.control.NonFatal
 
 object BuildSettings {
 
@@ -41,9 +42,7 @@ object BuildSettings {
     }
   }
 
-  /**
-   * File header settings
-   */
+  /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
     val compiledPattern = Pattern.compile(pattern)
     override def accept(pathname: File): Boolean = {
@@ -86,160 +85,432 @@ object BuildSettings {
     playBuildPromoteSonatype := false
   )
 
-  /**
-   * These settings are used by all projects
-   */
-  def playCommonSettings: Seq[Setting[_]] = evictionSettings ++ playPublishingPromotionSettings ++ {
+  val DocsApplication    = config("docs").hide
+  val SourcesApplication = config("sources").hide
 
-    fileHeaderSettings ++ Seq(
-      homepage := Some(url("https://playframework.com")),
-      ivyLoggingLevel := UpdateLogging.DownloadOnly,
-      resolvers ++= Seq(
-        Resolver.sonatypeRepo("releases"),
-        Resolver.typesafeRepo("releases"),
-        Resolver.typesafeIvyRepo("releases")
-      ),
-      javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-      scalacOptions in (Compile, doc) := {
-        // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
-          case _                       => Seq()
-        }
-      },
-      fork in Test := true,
-      parallelExecution in Test := false,
-      testListeners in (Test, test) := Nil,
-      javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
-      testOptions ++= Seq(
-        Tests.Argument(TestFrameworks.Specs2, "showtimes"),
-        Tests.Argument(TestFrameworks.JUnit, "-v")
-      ),
-      bintrayPackage := "play-sbt-plugin",
-      apiURL := {
-        val v = version.value
-        if (isSnapshot.value) {
-          v match {
-            case VersionPattern(epoch, major, _, _) =>
-              Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
-            case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
-          }
-        } else {
-          Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
-        }
-      },
-      autoAPIMappings := true,
-      apiMappings += scalaInstance.value.libraryJar -> url(
-        raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
-      ),
-      apiMappings ++= {
-        // Maps JDK 1.8 jar into apidoc.
-        val rtJar = sys.props
-          .get("sun.boot.class.path")
-          .flatMap(
-            cp =>
-              cp.split(java.io.File.pathSeparator).collectFirst {
-                case str if str.endsWith(java.io.File.separator + "rt.jar") => str
-              }
-          )
-        rtJar match {
-          case None        => Map.empty
-          case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
-        }
-      },
-      apiMappings ++= {
-        // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
-        // See the following:
-        //
-        // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
-        // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
-        // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
-
-        val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
-        val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
-
-        val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
-
-        (for {
-          jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
-          fullyFile = jar.data
-          urlOption = fullyFile.getCanonicalPath match {
-            case ScalaLibraryRegex(v) =>
-              Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
-
-            case JavaxInjectRegex(v) =>
-              // the jar file doesn't match up with $apiName-
-              Some(url(Docs.javaxInjectUrl))
-
-            case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
-              val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
-              apiOrganization match {
-                case "com.typesafe.akka" =>
-                  Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
-
-                case default =>
-                  val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
-                  Some(url(link))
-              }
-
-            case other =>
-              None
-
-          }
-          url <- urlOption
-        } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+  /** These settings are used by all projects. */
+  def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    scalaVersion := ScalaVersions.scala212,
+    fileHeaderSettings,
+    homepage := Some(url("https://playframework.com")),
+    ivyLoggingLevel := UpdateLogging.DownloadOnly,
+    resolvers ++= Seq(
+      Resolver.sonatypeRepo("releases"),
+      Resolver.typesafeRepo("releases"),
+      Resolver.typesafeIvyRepo("releases")
+    ),
+    evictionSettings,
+    ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
+    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
+    scalacOptions in (Compile, doc) := {
+      // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
+        case _                       => Seq()
       }
-    )
-  }
+    },
+    fork in Test := true,
+    parallelExecution in Test := false,
+    testListeners in (Test, test) := Nil,
+    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    testOptions ++= Seq(
+      Tests.Argument(TestFrameworks.Specs2, "showtimes"),
+      Tests.Argument(TestFrameworks.JUnit, "-v")
+    ),
+    bintrayPackage := "play-sbt-plugin",
+    playPublishingPromotionSettings,
+    apiURL := {
+      val v = version.value
+      if (isSnapshot.value) {
+        v match {
+          case VersionPattern(epoch, major, _, _) =>
+            Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
+          case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
+        }
+      } else {
+        Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
+      }
+    },
+    autoAPIMappings := true,
+    apiMappings += scalaInstance.value.libraryJar -> url(
+      raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
+    ),
+    apiMappings ++= {
+      // Maps JDK 1.8 jar into apidoc.
+      val rtJar = sys.props
+        .get("sun.boot.class.path")
+        .flatMap(
+          cp =>
+            cp.split(java.io.File.pathSeparator).collectFirst {
+              case str if str.endsWith(java.io.File.separator + "rt.jar") => str
+            }
+        )
+      rtJar match {
+        case None        => Map.empty
+        case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
+      }
+    },
+    apiMappings ++= {
+      // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
+      // See the following:
+      //
+      // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
+      // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
+      // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
+
+      val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+      val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
+
+      val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
+
+      (for {
+        jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
+        fullyFile = jar.data
+        urlOption = fullyFile.getCanonicalPath match {
+          case ScalaLibraryRegex(v) =>
+            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+
+          case JavaxInjectRegex(v) =>
+            // the jar file doesn't match up with $apiName-
+            Some(url(Docs.javaxInjectUrl))
+
+          case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
+            val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
+            apiOrganization match {
+              case "com.typesafe.akka" =>
+                Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
+
+              case default =>
+                val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
+                Some(url(link))
+            }
+
+          case other =>
+            None
+
+        }
+        url <- urlOption
+      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+    }
+  )
 
   /**
-   * These settings are used by all projects that are part of the runtime, as opposed to development, mode of Play.
+   * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
-  def playRuntimeSettings: Seq[Setting[_]] =
-    playCommonSettings ++ mimaDefaultSettings ++ Seq(
-      mimaPreviousArtifacts := {
-        // Binary compatibility is tested against these versions
-        val previousVersions = mimaPreviousVersions(version.value)
-        if (crossPaths.value) {
-          previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
-        } else {
-          previousVersions.map(v => organization.value % moduleName.value % v)
-        }
-      },
-      mimaPreviousArtifacts := {
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
-          case _                       => mimaPreviousArtifacts.value
-        }
-      },
-      mimaBinaryIssueFilters ++= Seq(
-        // Scala 2.11 removed
-        ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
-        ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
-        ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
-        // Add fileName param (with default value) to Scala's sendResource(...) method
-        ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
+  def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
+    playCommonSettings,
+    mimaDefaultSettings,
+    mimaPreviousArtifacts := {
+      // Binary compatibility is tested against these versions
+      val previousVersions = mimaPreviousVersions(version.value)
+      if (crossPaths.value) {
+        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
+      } else {
+        previousVersions.map(v => organization.value % moduleName.value % v)
+      }
+    },
+    mimaPreviousArtifacts := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
+        case _                       => mimaPreviousArtifacts.value
+      }
+    },
+    mimaBinaryIssueFilters ++= Seq(
+      // Scala 2.11 removed
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.Constraints#ValidationPayload.getArgs"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.Constraints#ValidationPayload.this"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedMap.underlying"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Execution$Implicits$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.concurrent.Timeout$"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.bindFromRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.allErrors"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.getName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form#Field.getValue"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.getError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.getGlobalError"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.openid.DefaultOpenIdClient.verifiedId"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.openid.OpenIdClient.verifiedId"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofPath"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofSource"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.RangeResults.ofStream"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.httpContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.invokeWithContext"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.DynamicForm.bindFromRequest"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.RangeResults.ofFile"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.RangeResults.ofPath"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.RangeResults.ofStream"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.current"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.maybeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.unsafeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyFor$default$*"),
+      // Remove deprecated
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.JavaScriptReverseRouter.create"),
+      // Renamed methods back to original name
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Result.cookie"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Cookies.get"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultAsyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultSyncCacheApi.getOptional"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.SyncCacheApiAdapter.getOptional"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.DefaultSyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
       ),
-      unmanagedSourceDirectories in Compile += {
-        (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
-      },
-      // Argument for setting size of permgen space or meta space for all forked processes
-      Docs.apiDocsInclude := true
-    ) ++ Seq(
-      // See also:
-      // 1. the root project at build.sbt file.
-      // 2. RoutesCompilerProject project
-      crossScalaVersions := Seq(ScalaVersions.scala212, ScalaVersions.scala213)
-    )
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.atomicMoveWithFallback"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.libs.Files#SingletonTemporaryFileCreator#SingletonTemporaryFile.moveTo"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#DelegateTemporaryFile.moveTo"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Files#TemporaryFile.moveTo"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.atomicMoveWithFallback"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.Files#TemporaryFile.moveTo"),
+      // Add fileName param (with default value) to Scala's sendResource(...) method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource"),
+      // Removed internally-used subclass
+      ProblemFilters.exclude[MissingClassProblem]("org.jdbcdslog.LogSqlDataSource"),
+      // play.api.Logger$ no longer extends play.api.Logger
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.Logger$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.debug"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.enabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.error"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.forMode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.info"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isDebugEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isErrorEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isInfoEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isTraceEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isWarnEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.trace"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.warn"),
+      // Add queryString method to RequestHeader interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.queryString"),
+      // Add getCookie method to RequestHeader interface
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.getCookie"),
+      // Removed deprecated method Database.toScala()
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.Database.toScala"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.DefaultDatabase.toScala"),
+      // No longer extends AssetsBuilder
+      ProblemFilters.exclude[MissingTypesProblem]("controllers.Assets$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.at"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.at"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.versioned"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.versioned"),
+      // No longer extends CookieBaker
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Flash$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.COOKIE_NAME"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.config"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.cookieSigner"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.decodeCookieToMap"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.decodeFromCookie"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.deserialize"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.discard"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.domain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.encode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.encodeAsCookie"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.httpOnly"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.isSigned"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.maxAge"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.path"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.sameSite"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.secure"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.serialize"),
+      // No longer extends CookieBaker
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Session$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.COOKIE_NAME"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.config"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.decodeCookieToMap"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.decodeFromCookie"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.deserialize"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.discard"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.domain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.encode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.encodeAsCookie"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.httpOnly"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.isSigned"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.jwtCodec"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.maxAge"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.path"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.sameSite"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.secure"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.serialize"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.signedCodec"),
+      // Remove deprecated
+      ProblemFilters.exclude[MissingClassProblem]("play.api.http.LazyHttpErrorHandler"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.http.LazyHttpErrorHandler$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.Crypto"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.Crypto$"),
+      // Removed deprecated BodyParsers.urlFormEncoded method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DefaultPlayBodyParsers.urlFormEncoded"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
+      // Remove deprecated
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Action$"),
+      // Removed deprecated TOO_MANY_REQUEST field
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ControllerHelpers.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ControllerHelpers.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MessagesAbstractController.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MessagesAbstractController.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsBuilder.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsBuilder.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Default.TooManyRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TOO_MANY_REQUEST"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.ExternalAssets.TooManyRequest"),
+      // Removed deprecated methods that depend on Java's Http.Context
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.changeLang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.clearLang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.ctx"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.flash"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.lang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.request"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.response"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.session"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.TODO"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.getUsername"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.onUnauthorized"),
+      // Removed Java's JPAApi thread-local
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.em"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.jpa.JPAApi.withTransaction"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.JPAEntityManagerContext"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.Transactional"),
+      ProblemFilters.exclude[MissingClassProblem]("play.db.jpa.TransactionalAction"),
+      // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo"),
+      // Remove constructor from private class
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RouterBuilderHelper.this"),
+      // Remove Http.Context and Http.Response
+      ProblemFilters.exclude[DirectAbstractMethodProblem]("play.mvc.Action.call"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.httpContext_="),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.httpContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.HttpExecutionContext.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.createJavaContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.createResult"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.invokeWithContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaAction.withContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.createJavaContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.createResult"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.invokeWithContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaHelpers.withContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.implicitJavaLang"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.implicitJavaMessages"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.javaRequest2ScalaRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.PlayMagicForJava.requestHeader"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Action.call"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Context"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Context$Implicit"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Response"),
+      ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$WrappedContext"),
+      ProblemFilters.exclude[ReversedAbstractMethodProblem]("play.mvc.Action.call"),
+      // Make Java's Session and Flash immutable
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.clear"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.compute"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.computeIfAbsent"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.computeIfPresent"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.containsKey"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.containsValue"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.entrySet"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.forEach"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.getOrDefault"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.isEmpty"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.keySet"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.merge"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.put"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.putAll"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.putIfAbsent"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.remove"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.replace"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.replaceAll"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.size"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.values"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.clear"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.compute"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.computeIfAbsent"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.computeIfPresent"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.containsKey"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.containsValue"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.entrySet"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.forEach"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.getOrDefault"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.isEmpty"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.keySet"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.merge"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.put"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.putAll"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.putIfAbsent"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.remove"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.replace"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.replaceAll"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.size"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Session.values"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#Flash.get"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#Flash.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#Session.get"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#Session.this"),
+      ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Http#Flash.isDirty"),
+      ProblemFilters.exclude[MissingFieldProblem]("play.mvc.Http#Session.isDirty"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Flash"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Session"),
+      ProblemFilters.exclude[InaccessibleMethodProblem]("java.lang.Object.clone")
+    ),
+    unmanagedSourceDirectories in Compile += {
+      val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((x, y)) => s"$x.$y"
+        case None         => scalaBinaryVersion.value
+      }
+      (sourceDirectory in Compile).value / s"scala-$suffix"
+    },
+    // Argument for setting size of permgen space or meta space for all forked processes
+    Docs.apiDocsInclude := true
+  )
 
   def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
     javacOptions ++= Seq("-source", version, "-target", version),
     javacOptions in doc := Seq("-source", version)
   )
 
-  /**
-   * A project that is shared between the sbt runtime and the Play runtime
-   */
+  /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
@@ -247,18 +518,17 @@ object BuildSettings {
       .settings(omnidocSettings: _*)
       .settings(
         autoScalaLibrary := false,
-        crossPaths := false
+        crossPaths := false,
+        crossScalaVersions := Seq(ScalaVersions.scala212)
       )
   }
 
-  /**
-   * A project that is only used when running in development.
-   */
+  /** A project that is only used when running in development. */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
       .settings(
+        playCommonSettings,
         (javacOptions in compile) ~= (_.map {
           case "1.8" => "1.6"
           case other => other
@@ -266,9 +536,7 @@ object BuildSettings {
       )
   }
 
-  /**
-   * A project that is in the Play runtime
-   */
+  /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
@@ -285,8 +553,8 @@ object BuildSettings {
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedPlugin.scripted := ScriptedPlugin.scripted.tag(Tags.Test).evaluated,
-    scriptedLaunchOpts ++= Seq(
+    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
+    ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx768m",
       maxMetaspace,
       "-Dscala.version=" + sys.props
@@ -297,8 +565,8 @@ object BuildSettings {
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] =
-    ScriptedPlugin.scriptedSettings ++ Seq(
-      ScriptedPlugin.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
+    Seq(
+      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
     ) ++ playScriptedSettings
 
   def disablePublishing = Seq[Setting[_]](
@@ -315,24 +583,20 @@ object BuildSettings {
     whitesourceIgnore := true
   )
 
-  /**
-   * A project that runs in the sbt runtime
-   */
+  /** A project that runs in the sbt runtime. */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
+      .settings(playCommonSettings)
   }
 
-  /**
-   * A project that *is* an sbt plugin
-   */
+  /** A project that *is* an sbt plugin. */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
-      .settings(playScriptedSettings: _*)
       .settings(
+        playCommonSettings,
+        playScriptedSettings,
         fork in Test := false
       )
   }

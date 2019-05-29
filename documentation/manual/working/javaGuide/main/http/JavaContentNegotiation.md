@@ -5,7 +5,7 @@
 
 ## Language
 
-You can get the list of acceptable languages for a request using the `play.mvc.Http.RequestHeader#acceptLanguages` method that retrieves them from the `Accept-Language` header and sorts them according to their quality value. Play uses it to set the `lang` value of request’s HTTP context, so they automatically use the best possible language (if supported by your application, otherwise your application’s default language is used).
+You can get the list of acceptable languages for a request using the `play.mvc.Http.RequestHeader#acceptLanguages` method that retrieves them from the `Accept-Language` header and sorts them according to their quality value. Play uses it when calling [`play.i18n.MessagesApi#preferred(Http.RequestHeader)`](api/java/play/i18n/MessagesApi.html#preferred-play.mvc.Http.RequestHeader-) to determine the language of a request, so this method automatically use the best possible language (if supported by your application, otherwise your application’s default language is used).
 
 ## Content
 

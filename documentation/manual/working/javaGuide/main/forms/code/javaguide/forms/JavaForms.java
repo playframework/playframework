@@ -173,6 +173,7 @@ public class JavaForms extends WithApplication {
   // ###insert: import play.data.validation.Constraints.Validatable;
   // ###insert: import play.data.validation.ValidationError;
   // ###insert: import java.util.List;
+  // ###insert: import java.util.ArrayList;
 
   @Validate
   public static class SignUpForm implements Validatable<List<ValidationError>> {
@@ -666,8 +667,6 @@ public class JavaForms extends WithApplication {
     public ValidationError validate(ValidationPayload payload) {
       Lang lang = payload.getLang();
       Messages messages = payload.getMessages();
-      // ###insert:         Map<String, Object> ctxArgs = payload.getArgs();            //###insert:
-      //         Map<String, Object> ctxArgs = payload.getArgs();
       TypedMap attrs = payload.getAttrs();
       Config config = payload.getConfig();
       // ...

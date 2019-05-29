@@ -2,7 +2,7 @@
 
 # Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 
-# shellcheck source=bin/scriptLib
+# shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 cd "$BASEDIR"
@@ -11,13 +11,8 @@ printMessage "VALIDATE BINARY COMPATIBILITY"
 runSbt +mimaReportBinaryIssues
 
 
-printMessage "VALIDATE CODE FORMATTING"
-scripts/scalafmt --test || (
-  echo "ERROR: Scalafmt test failed, see differences above."
-  echo "To fix, format your sources using bin/scalafmt before submitting a pull request."
-  echo "Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."
-  false
-)
+scalafmtValidation "framework"
+javafmtValidation "framework"
 
 
 printMessage "VALIDATE FILE LICENSE HEADERS"

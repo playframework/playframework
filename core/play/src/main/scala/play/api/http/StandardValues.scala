@@ -222,8 +222,6 @@ trait Status {
   val PRECONDITION_REQUIRED           = 428
   val TOO_MANY_REQUESTS               = 429
   val REQUEST_HEADER_FIELDS_TOO_LARGE = 431
-  @deprecated("Use TOO_MANY_REQUESTS instead", "2.6.0")
-  val TOO_MANY_REQUEST = TOO_MANY_REQUESTS
 
   val INTERNAL_SERVER_ERROR           = 500
   val NOT_IMPLEMENTED                 = 501
