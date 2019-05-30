@@ -505,17 +505,23 @@ trait Results {
       Result(
         ResponseHeader(
           status,
-          Map(
-            CONTENT_DISPOSITION -> {
-              val builder = new JStringBuilder
-              builder.append(if (inline) "inline" else "attachment")
-              name.foreach(filename => {
-                builder.append("; ")
-                HttpHeaderParameterEncoding.encodeToBuilder("filename", filename, builder)
-              })
-              builder.toString
-            }
-          )
+          if (!inline || name.exists(_.nonEmpty)) {
+            // According to RFC 6266 (Section 4.2) there is no need to send "Content-Disposition: inline"
+            // https://tools.ietf.org/html/rfc6266#section-4.2
+            Map(
+              CONTENT_DISPOSITION -> {
+                val builder = new JStringBuilder
+                builder.append(if (inline) "inline" else "attachment")
+                name.foreach(filename => {
+                  builder.append("; ")
+                  HttpHeaderParameterEncoding.encodeToBuilder("filename", filename, builder)
+                })
+                builder.toString
+              }
+            )
+          } else {
+            Map.empty
+          }
         ),
         HttpEntity.Streamed(
           file,

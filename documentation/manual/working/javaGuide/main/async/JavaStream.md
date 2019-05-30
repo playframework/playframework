@@ -51,6 +51,8 @@ You can also provide your own file name:
 
 @[serve-file-with-name](code/javaguide/async/JavaStream.java)
 
+> **Note**: If the computed header ends up being _exactly_ `Content-Disposition: inline` (when passing `null` as file name),  it wont be send by Play, because, according to [RFC 6266 Section 4.2](https://tools.ietf.org/html/rfc6266#section-4.2), rendering content inline is the default anyway.
+
 If you want to serve this file `attachment`:
 
 @[serve-file-attachment](code/javaguide/async/JavaStream.java)

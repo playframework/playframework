@@ -243,7 +243,7 @@ class ResultsSpec extends Specification {
       val rh = Ok.sendFile(file, fileName = _ => null).header
 
       (rh.status.aka("status") must_== OK)
-        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("inline"))
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beNone)
     }
 
     "support sending a file attached without filename" in withFile { (file, fileName) =>
@@ -289,7 +289,7 @@ class ResultsSpec extends Specification {
       val rh = Ok.sendPath(file, fileName = _ => null).header
 
       (rh.status.aka("status") must_== OK)
-        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("inline"))
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beNone)
     }
 
     "support sending a path attached without filename" in withPath { (file, fileName) =>
