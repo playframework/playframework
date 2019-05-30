@@ -60,7 +60,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "27.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "2.28.1"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "2.28.2"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
