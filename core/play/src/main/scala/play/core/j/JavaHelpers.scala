@@ -225,9 +225,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def getQueryString(key: String): Optional[String] = OptionConverters.toJava(header.getQueryString(key))
 
-  @deprecated override def cookie(name: String): JCookie = cookies().get(name).orElse(null)
-
-  override def getCookie(name: String): Optional[JCookie] = cookies().get(name)
+  override def cookie(name: String): Optional[JCookie] = cookies().get(name)
 
   override def hasBody: Boolean = header.hasBody
 
