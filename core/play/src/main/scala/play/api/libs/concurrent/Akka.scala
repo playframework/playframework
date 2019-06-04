@@ -135,12 +135,35 @@ object ActorSystemProvider {
   case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
 
   /**
+   * Start an ActorSystem, using the given configuration and ClassLoader.
+   *
+   * @return The ActorSystem and a function that can be used to stop it.
+   */
+  @deprecated("Use setup(ClassLoader, Configuration, Setup*) instead", "2.8.0")
+  protected[ActorSystemProvider] def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
+    start(classLoader, config, Seq.empty: _*)
+  }
+
+  /**
+   * Start an ActorSystem, using the given configuration, ClassLoader, and additional ActorSystem Setup.
+   *
+   * @return The ActorSystem and a function that can be used to stop it.
+   */
+  @deprecated("Use setup(ClassLoader, Configuration, Setup*) instead", "2.8.0")
+  protected[ActorSystemProvider] def start(
+      classLoader: ClassLoader,
+      config: Configuration,
+      additionalSetup: Setup
+  ): ActorSystem = {
+    start(classLoader, config, Seq(additionalSetup): _*)
+  }
+
+  /**
    * Start an ActorSystem, using the given configuration, ClassLoader, and optional additional ActorSystem Setups.
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-
-   def start(classLoader: ClassLoader, config: Configuration, additionalSetups:Setup*): ActorSystem = {
+  def start(classLoader: ClassLoader, config: Configuration, additionalSetups: Setup*): ActorSystem = {
     val exitJvmPath = "akka.coordinated-shutdown.exit-jvm"
     if (config.get[Boolean](exitJvmPath)) {
       // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
@@ -183,9 +206,8 @@ object ActorSystemProvider {
 
     val name = config.get[String]("play.akka.actor-system")
 
-    val bootstrapSetup = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
-    val actorSystemSetup = ActorSystemSetup(bootstrapSetup +: additionalSetups:_*)
-
+    val bootstrapSetup   = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
+    val actorSystemSetup = ActorSystemSetup(bootstrapSetup +: additionalSetups: _*)
 
     val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
