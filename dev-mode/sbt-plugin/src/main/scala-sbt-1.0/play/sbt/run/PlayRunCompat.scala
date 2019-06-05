@@ -60,7 +60,7 @@ private[run] trait PlayRunCompat {
       } yield watched
     }
 
-    val _ :: minor :: patch :: Nil = sbtVersion.split("\\.").map(_.toInt).toList
+    val _ :: minor :: patch :: Nil = sbtVersion.split("\\.").map(_.takeWhile(_.isDigit).toInt).toList
 
     if (minor >= 2) { // sbt 1.2.x and later
       watchUsingEvenMonitor
