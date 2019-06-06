@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.tests.specs2
 
@@ -15,10 +15,10 @@ class UserServiceSpec extends Specification with Mockito {
   "UserService#isAdmin" should {
     "be true when the role is admin" in {
       val userRepository = mock[UserRepository]
-      userRepository.roles(any[User]) returns Set(Role("ADMIN"))
+      userRepository.roles(any[User]).returns(Set(Role("ADMIN")))
 
       val userService = new UserService(userRepository)
-      val actual = userService.isAdmin(User("11", "Steve", "user@example.org"))
+      val actual      = userService.isAdmin(User("11", "Steve", "user@example.org"))
       actual must beTrue
     }
   }

@@ -1,0 +1,24 @@
+/*
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ */
+package play.core.j
+
+import akka.stream.Materializer
+import play.api.mvc.{ Filter => SFilter }
+import play.mvc.EssentialFilter
+import play.mvc.Filter
+
+/**
+ * This class is a Wrapper Class to get around the different trait Encodings
+ * between Scala 2.11 and Scala 2.12
+ *
+ * @param materializer a simple Materializer
+ * @param underlying the Filter that should be converted to scala
+ */
+private[play] abstract class AbstractFilter(materializer: Materializer, underlying: Filter) extends SFilter {
+
+  implicit override def mat: Materializer = materializer
+
+  override def asJava: EssentialFilter = underlying
+
+}

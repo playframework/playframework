@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Translating the Play Documentation
 
 Play 2.3+ provides infrastructure to aid documentation translators in translating the Play documentation and keeping it up to date.
@@ -21,7 +21,7 @@ in the `framework` directory of the Play project.
 
 ## Setting up a translation
 
-Create a new SBT project with the following structure:
+Create a new sbt project with the following structure:
 
 ```
 translation-project
@@ -36,7 +36,7 @@ translation-project
   `- build.sbt
 ```
 
-`build.properties` should contain the SBT version, ie:
+`build.properties` should contain the sbt version, ie:
 
 ```
 sbt.version=0.13.16
@@ -69,7 +69,7 @@ $ sbt run
 Documentation server started, you can now view the docs by going to http://0:0:0:0:0:0:0:0:9000
 ```
 
-Now open <http://localhost:9000> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.
+Now open <http://localhost:9000/> in your browser.  You should be able to see the default Play documentation.  It's time to translate your first page.
 
 Copy a markdown page from the Play repository into your project.  It is important to ensure that the directory structure in your project matches the directory in Play, this will ensure that the code samples work.
 
@@ -89,7 +89,7 @@ The Play documentation is full of code samples.  As described in the [[Documenta
 
 Generally, you will want to leave these snippets as is in your translation, this will ensure that the code snippets your translation stays up to date with Play.
 
-In some situations, it may make sense to override them.  You can either do this by putting the code directly in the documentation, using a fenced block, or by extracting them into your projects own compile code samples.  If you do that, checkout the Play documentation sbt build files for how you might setup SBT to compile them.
+In some situations, it may make sense to override them.  You can either do this by putting the code directly in the documentation, using a fenced block, or by extracting them into your projects own compile code samples.  If you do that, checkout the Play documentation sbt build files for how you might setup sbt to compile them.
 
 ## Validating the documentation
 

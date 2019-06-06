@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -48,7 +48,7 @@ You can tell the routes file to use a different router under a specific prefix b
 ->      /api                        api.MyRouter
 ```
 
-This is especially useful when combined with [[String Interpolating Routing DSL|ScalaSirdRouter]] also known as SIRD routing, or when working with [[sub projects|SBTSubProjects]] that route using several routes files.
+This is especially useful when combined with [[String Interpolating Routing DSL|ScalaSirdRouter]] also known as SIRD routing, or when working with [[sub projects|sbtSubProjects]] that route using several routes files.
 
 It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|ScalaCsrf]]:
 
@@ -211,6 +211,6 @@ In this example, `GET /about` redirects to an external website, but it's also po
 
 ## Custom routing
 
-Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or sird for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
+Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or SIRD for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
 
 See [[String Interpolating Routing DSL|ScalaSirdRouter]]

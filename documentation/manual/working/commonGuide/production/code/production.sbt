@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
 //#no-scaladoc
@@ -10,10 +10,13 @@ publishArtifact in (Compile, packageDoc) := false
 
 //#publish-repo
 publishTo := Some(
-  "My resolver" at "https://mycompany.com/repo"
+  "My resolver".at("https://mycompany.com/repo")
 )
 
 credentials += Credentials(
-  "Repo", "https://mycompany.com/repo", "admin", "admin123"
+  "Repo",
+  "https://mycompany.com/repo",
+  "admin",
+  "admin123"
 )
 //#publish-repo

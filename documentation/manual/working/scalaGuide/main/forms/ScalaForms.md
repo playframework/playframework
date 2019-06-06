@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 ## Overview
@@ -88,7 +88,7 @@ The out of the box constraints are defined on the [Forms object](api/scala/play/
 
 ### Defining ad-hoc constraints
 
-You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/).
+You can define your own ad-hoc constraints on the case classes using the [validation package](api/scala/play/api/data/validation/index.html).
 
 @[userForm-constraints](code/ScalaForms.scala)
 
@@ -134,7 +134,7 @@ The first thing is to be able to create the [form tag](api/scala/views/html/help
 
 @[form-user](code/scalaguide/forms/scalaforms/views/user.scala.html)
 
-You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
+You can find several input helpers in the [`views.html.helper`](api/scala/views/html/helper/index.html) package. You feed them with a form field, and they display the corresponding HTML input, setting the value, constraints and displaying errors when a form binding fails.
 
 > **Note:** You can use `@import helper._` in the template to avoid prefixing helpers with `@helper.`
 
@@ -151,7 +151,7 @@ There are several input helpers, but the most helpful are:
 * [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-checkbox) element.
 * [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
 
-> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/framework/src/play/src/main/scala/views/helper) package on Github.
+> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/core/play/src/main/scala/views/helper) package on Github.
 
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.5
 
 This page highlights the new features of Play 2.5. If you want to learn about the changes you need to make to migrate to Play 2.5, check out the [[Play 2.5 Migration Guide|Migration25]].
@@ -80,7 +80,7 @@ For more information about how to use SQL logging, see the Play [[Java|JavaDatab
 
 ## Netty native socket transport
 
-If you run Play server on Linux you can now get a performance boost by using the [native socket feature](http://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
+If you run Play server on Linux you can now get a performance boost by using the [native socket feature](https://netty.io/wiki/native-transports.html) that was introduced in Netty 4.0.
 
 You can learn how to use native sockets in Play documentation on [[configuring Netty|SettingsNetty#Configuring-transport-socket]].
 

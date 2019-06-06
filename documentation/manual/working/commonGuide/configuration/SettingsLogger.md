@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring logging
 
 Play uses SLF4J for logging, backed by [Logback](https://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](https://logback.qos.ch/manual/configuration.html) for details on configuration.
@@ -205,7 +205,7 @@ You may also wish to configure an appender for the Akka loggers that includes us
 
 ## Using a Custom Logging Framework
 
-Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it.  To do this, the `PlayLogback` SBT plugin must be disabled using `disablePlugins`:
+Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it.  To do this, the `PlayLogback` sbt plugin must be disabled using `disablePlugins`:
 
 ```scala
 lazy val root = (project in file("."))

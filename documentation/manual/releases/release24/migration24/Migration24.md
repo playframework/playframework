@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.4 Migration Guide
 
 This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
@@ -71,13 +71,13 @@ Eclipse support can be setup with as little as one extra line to import the plug
 
 IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt-idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
 
-### Play SBT plugin API
+### Play sbt plugin API
 
-All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build. You will need to import identifiers from `play.sbt.PlayImport` to use play provided configuration elements.
+All classes in the sbt plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build. You will need to import identifiers from `play.sbt.PlayImport` to use play provided configuration elements.
 
 #### `playWatchService` renamed
 
-The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
+The sbt setting key `playWatchService` has been renamed to `fileWatchService`.
 
 Also the corresponding class has changed. To set the FileWatchService to poll every two seconds, use it like this:
 ```scala
@@ -172,7 +172,7 @@ If you wish to switch to the injected generator, add the following to your build
 routesGenerator := InjectedRoutesGenerator
 ```
 
-By default Play will automatically handle the wiring of this router for you using Guice, but depending in the DI approach you're taking, you may be able to customise it.
+By default Play will automatically handle the wiring of this router for you using Guice, but depending in the DI approach you're taking, you may be able to customize it.
 
 The injected routes generator also supports the `@` operator on routes, but it has a slightly different meaning (since everything is injected), if you prefix a controller with `@`, instead of that controller being directly injected, a JSR 330 `Provider` for that controller will be injected.  This can be used, for example, to eliminate circular dependency issues, or if you want a new action instantiated per request.
 

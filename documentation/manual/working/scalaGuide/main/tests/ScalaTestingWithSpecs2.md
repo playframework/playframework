@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application with specs2
 
 Writing tests for your application can be an involved process.  Play provides a default test framework for you, and provides helpers and application stubs to make testing your application as easy as possible.
@@ -15,7 +15,7 @@ You can run tests from the Play console.
 * To run tests continually, run a command with a tilde in front, i.e. `~test-quick`.
 * To access test helpers such as `FakeRequest` in console, run `test:console`.
 
-Testing in Play is based on SBT, and a full description is available in the [testing SBT](https://www.scala-sbt.org/0.13/docs/Testing.html) chapter.
+Testing in Play is based on sbt, and a full description is available in the [testing sbt](https://www.scala-sbt.org/0.13/docs/Testing.html) chapter.
 
 ## Using specs2
 

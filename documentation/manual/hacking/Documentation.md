@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Guidelines for writing Play documentation
 
 The Play documentation is written in Markdown format, with code samples extracted from compiled, run and tested source files.
@@ -100,9 +100,9 @@ Routes files should be tested either with Specs in Scala or JUnit in Java.  Rout
 
 The routes compiler used by the documentation runs in a special mode that generates the reverse router inside the namespace declared by that file.  This means that although a routes code sample may appear to use absolute references to classes, it is actually relative to the namespace of the router.  Thus in the above routes file, if you have a route called `controllers.Application`, it will actually refer to a controller called `scalaguide.http.routing.controllers.Application`.
 
-### SBT code
+### sbt code
 
-SBT code samples should be extracted to `*.sbt` files.  These files get tested separately by the `evaluateSbtFiles` task, which compiles and runs them - by load, it means it runs the settings definitions (ie, builds a `Seq[Setting[_]]`, but doesn't actually run the tasks or settings declared.  The classloader used to run these is the same as the SBT classloader, so any plugins that the code snippets require need to be plugins to the sbt project.
+sbt code samples should be extracted to `*.sbt` files.  These files get tested separately by the `evaluateSbtFiles` task, which compiles and runs them - by load, it means it runs the settings definitions (ie, builds a `Seq[Setting[_]]`, but doesn't actually run the tasks or settings declared.  The classloader used to run these is the same as the sbt classloader, so any plugins that the code snippets require need to be plugins to the sbt project.
 
 ### Other code
 

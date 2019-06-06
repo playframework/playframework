@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Accessing an SQL database
 
 > **NOTE**: JDBC is a blocking operation that will cause threads to wait.  You can negatively impact the performance of your Play application by running JDBC queries directly in your controller!  Please see the "Configuring a CustomExecutionContext" section.
@@ -156,7 +156,7 @@ After that, you can configure the jdbcdslog-exp [log level as explained in their
 
 Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
 
-For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
+For example, if you use MySQL5, you need to add a [[dependency| sbtDependencies]] for the connector:
 
 ```
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.41"

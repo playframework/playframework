@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Play modules
 
 Play uses public modules to augment built-in functionality.  
@@ -35,11 +35,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Typescript Plugin
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
-* **Short description:** A plugin for SBT that uses sbt-web to compile typescript resources
+* **Short description:** A plugin for sbt that uses sbt-web to compile typescript resources
 
 ### play-webpack Plugin
 * **Website:** <https://github.com/BowlingX/play-webpack>
-* **Short description:** A plugin for SBT to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
+* **Short description:** A plugin for sbt to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
 
 ## Authentication (Login & Registration) and Authorization (Restricted Access)
 
@@ -52,7 +52,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Deadbolt 2 Plugin
 
 * **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
-* **Short description:** Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
+* **Short description:** Deadbolt is an authorization mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
 
 ### Play-pac4j (Java and Scala)
 
@@ -93,7 +93,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### MongoDB Morphia Plugin (Java)
 * **Website (docs, sample):** <https://github.com/morellik/play-morphia>
-* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://mongodb.github.io/morphia/)
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://morphiaorg.github.io/morphia/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
 * **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.detailed.filters;
 
@@ -16,15 +16,16 @@ import java.util.List;
 
 public class Filters extends DefaultHttpFilters {
 
-    @Inject
-    public Filters(EnabledFilters enabledFilters, CORSFilter corsFilter) {
-        super(combine(enabledFilters.asJava().getFilters(), corsFilter.asJava()));
-    }
+  @Inject
+  public Filters(EnabledFilters enabledFilters, CORSFilter corsFilter) {
+    super(combine(enabledFilters.asJava().getFilters(), corsFilter.asJava()));
+  }
 
-    private static List<EssentialFilter> combine(List<EssentialFilter> filters, EssentialFilter toAppend) {
-        List<EssentialFilter> combinedFilters = new ArrayList<>(filters);
-        combinedFilters.add(toAppend);
-        return combinedFilters;
-    }
+  private static List<EssentialFilter> combine(
+      List<EssentialFilter> filters, EssentialFilter toAppend) {
+    List<EssentialFilter> combinedFilters = new ArrayList<>(filters);
+    combinedFilters.add(toAppend);
+    return combinedFilters;
+  }
 }
 // #filters-combine-enabled-filters

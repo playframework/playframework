@@ -1,8 +1,8 @@
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
-// You can't define objects at the root level of an SBT file, so we do it inside a def
+// You can't define objects at the root level of an sbt file, so we do it inside a def
 def Grunt(base: File) = {
   //#grunt-before-started
   import play.sbt.PlayRunHook
@@ -64,4 +64,3 @@ def Grunt2(base: File) = {
   //#grunt-watch
   Grunt(base)
 }
-

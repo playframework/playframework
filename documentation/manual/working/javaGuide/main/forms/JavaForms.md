@@ -1,16 +1,16 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
 Before you start with Play forms, read the documentation on the [[Play enhancer|PlayEnhancer]]. The Play enhancer generates accessors for fields in Java classes for you, so that you don't have to generate them yourself. You may decide to use this as a convenience. All the examples below show manually writing accessors for your classes.
 
 ## Enabling/Disabling the forms module
 
-By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` SBT plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
+By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` sbt plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
 
 The forms module is also available in `PlayImport` as `javaForms`, which can be used with `libraryDependencies += javaForms` in your `build.sbt`.
 
 > **Note:** If you are not using forms, you can remove the forms dependency by using the `PlayMinimalJava` SBT plugin instead of `PlayJava`. This also allows you to remove several transitive dependencies only used by the forms module, including several Spring modules and the Hibernate validator.
-    
+
 ## Defining a form
 
 The `play.data` package contains several helpers to handle HTTP form data submission and validation. The easiest way to handle a form submission is to define a `play.data.Form` that wraps an existing class:
@@ -189,7 +189,7 @@ Now we can use it:
 
 @[ordered-group-sequence-validate](code/javaguide/forms/JavaForms.java)
 
-Using this group sequence will first validate all fields belonging to the `Default` group (which again also includes fields that haven't defined a group at all). Only when all the fields belonging to the `Default` group pass validation successfully, the fields belonging to the `SignUpCheck` will be validated and so on. 
+Using this group sequence will first validate all fields belonging to the `Default` group (which again also includes fields that haven't defined a group at all). Only when all the fields belonging to the `Default` group pass validation successfully, the fields belonging to the `SignUpCheck` will be validated and so on.
 
 Using a group sequence is especially a good practice when you have a `validate` method which queries a database or performs any other blocking action: It's not really useful to execute the method at all if the validation fails at it's basic level (email is not valid, number is a string, etc). In such a case you probably want the `validate` be called only after checking all other annotation-based constraints before and only if they pass. A user, for example, who signs up should enter a valid email address and *only* if it is valid a database lookup for the email address should be done *afterwards*.
 
@@ -227,4 +227,4 @@ Finally we can use our custom class-level constraint to validate a form:
 
 @[user](code/javaguide/forms/customconstraint/DBAccessForm.java)
 
-> **Tip:** You might have recognised that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).
+> **Tip:** You might have recognized that you could even implement multiple interfaces and therefore add multiple class-level constraint annotations on your form class. Via validation groups you could then just call the desired validate method(s) (or even multiple at once during one validation process).

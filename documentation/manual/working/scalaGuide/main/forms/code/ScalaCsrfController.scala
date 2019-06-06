@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package controllers
 
@@ -13,9 +13,9 @@ class ScalaCsrfController @Inject()(val controllerComponents: ControllerComponen
   // #some-csrf-action
   // this actions needs to access CSRF token
   def someMethod = Action { implicit request =>
-      // access the token as you need
-      Ok
-    }
+    // access the token as you need
+    Ok
+  }
   // #some-csrf-action
 
   // #some-csrf-action-with-more-methods

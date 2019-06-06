@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package scalaguide.tests.guice
 
@@ -18,7 +18,8 @@ class MockComponent extends Component {
 // #component
 
 // #component-module
-import play.api.{ Environment, Configuration }
+import play.api.Environment
+import play.api.Configuration
 import play.api.inject.Module
 
 class ComponentModule extends Module {

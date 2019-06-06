@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling file upload
 
 ## Uploading files in a form using `multipart/form-data`
@@ -8,6 +8,7 @@ The standard way to upload files in a web application is to use a form with a sp
 Start by writing an HTML form:
 
 ```
+@import helper._
 @form(action = routes.Application.upload, 'enctype -> "multipart/form-data") {
 
     <input type="file" name="picture">

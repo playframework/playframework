@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.application.httpfilters;
 
@@ -13,25 +13,32 @@ import play.mvc.*;
 
 public class LoggingFilter extends Filter {
 
-    @Inject
-    public LoggingFilter(Materializer mat) {
-        super(mat);
-    }
+  @Inject
+  public LoggingFilter(Materializer mat) {
+    super(mat);
+  }
 
-    @Override
-    public CompletionStage<Result> apply(
-            Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
-            Http.RequestHeader requestHeader) {
-        long startTime = System.currentTimeMillis();
-        return nextFilter.apply(requestHeader).thenApply(result -> {
-            long endTime = System.currentTimeMillis();
-            long requestTime = endTime - startTime;
+  @Override
+  public CompletionStage<Result> apply(
+      Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
+      Http.RequestHeader requestHeader) {
+    long startTime = System.currentTimeMillis();
+    return nextFilter
+        .apply(requestHeader)
+        .thenApply(
+            result -> {
+              long endTime = System.currentTimeMillis();
+              long requestTime = endTime - startTime;
 
-            Logger.info("{} {} took {}ms and returned {}",
-                requestHeader.method(), requestHeader.uri(), requestTime, result.status());
+              Logger.info(
+                  "{} {} took {}ms and returned {}",
+                  requestHeader.method(),
+                  requestHeader.uri(),
+                  requestTime,
+                  result.status());
 
-            return result.withHeader("Request-Time", "" + requestTime);
-        });
-    }
+              return result.withHeader("Request-Time", "" + requestTime);
+            });
+  }
 }
 // #simple-filter

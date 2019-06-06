@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package common.build.controllers {
 
@@ -8,9 +8,9 @@ package common.build.controllers {
 
   import play.api.http.HttpErrorHandler
 
-  class Assets @Inject() (
-    errorHandler: HttpErrorHandler,
-    assetsMetadata: controllers.AssetsMetadata
+  class Assets @Inject()(
+      errorHandler: HttpErrorHandler,
+      assetsMetadata: controllers.AssetsMetadata
   ) extends controllers.AssetsBuilder(errorHandler, assetsMetadata)
   //#assets-builder
 

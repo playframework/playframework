@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuration file syntax and features
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
@@ -33,7 +33,7 @@ Java
 
 ## Using with Akka
 
-Akka will use the same configuration file as the one defined for your Play application. Meaning that you can configure anything in Akka in the `application.conf` directory. In Play, Akka reads its settings from within the `play.akka` setting, not from the `akka` setting.
+Akka will use the same configuration file as the one defined for your Play application. Meaning that you can configure anything in Akka in the `application.conf` file. In Play, Akka reads its settings from within the `play.akka` setting, not from the `akka` setting.
 
 ## Using with the `run` command
 

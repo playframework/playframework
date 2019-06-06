@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Removing `GlobalSettings`
 
 If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Ideally, you should be able to refactor your code so that it is possible to eliminate your `GlobalSettings` class altogether.
@@ -9,7 +9,7 @@ Next follows a method-by-method guide for refactoring your code. Because the API
 
 ## Scala
 
-* `GlobalSettings.beforeStart` and `GlobalSettings.onStart`:  Anything that needs to happen on start up should now be happening in the constructor of a dependency injected class. A class will perform its initialisation when the dependency injection framework loads it. If you need eager initialisation (because you need to execute some code *before* the application is actually started), [[define an eager binding|ScalaDependencyInjection#Eager-bindings]].
+* `GlobalSettings.beforeStart` and `GlobalSettings.onStart`:  Anything that needs to happen on start up should now be happening in the constructor of a dependency injected class. A class will perform its initialization when the dependency injection framework loads it. If you need eager initialization (because you need to execute some code *before* the application is actually started), [[define an eager binding|ScalaDependencyInjection#Eager-bindings]].
 
 * `GlobalSettings.onStop`: Add a dependency to [`ApplicationLifecycle`](api/scala/play/api/inject/ApplicationLifecycle.html) on the class that needs to register a stop hook. Then, move the implementation of your `GlobalSettings.onStop` method inside the `Future` passed to the `ApplicationLifecycle.addStopHook`. Read [[Stopping/cleaning-up|ScalaDependencyInjection#Stopping/cleaning-up]] for more information.
 
@@ -49,7 +49,7 @@ Also, mind that if your `Global` class is mixing the `WithFilters` trait, you sh
 
 ## Java
 
-* `GlobalSettings.beforeStart` and `GlobalSettings.onStart`:  Anything that needs to happen on start up should now be happening in the constructor of a dependency injected class. A class will perform its initialisation when the dependency injection framework loads it. If you need eager initialisation (for example, because you need to execute some code *before* the application is actually started), [[define an eager binding|JavaDependencyInjection#Eager-bindings]].
+* `GlobalSettings.beforeStart` and `GlobalSettings.onStart`:  Anything that needs to happen on start up should now be happening in the constructor of a dependency injected class. A class will perform its initialization when the dependency injection framework loads it. If you need eager initialization (for example, because you need to execute some code *before* the application is actually started), [[define an eager binding|JavaDependencyInjection#Eager-bindings]].
 
 * `GlobalSettings.onStop`: Add a dependency to [`ApplicationLifecycle`](api/java/play/inject/ApplicationLifecycle.html) on the class that needs to register a stop hook. Then, move the implementation of your `GlobalSettings.onStop` method inside the `Promise` passed to the `ApplicationLifecycle.addStopHook`. Read [[Stopping/cleaning-up|JavaDependencyInjection#Stopping/cleaning-up]] for more information.
 

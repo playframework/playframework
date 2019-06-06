@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring Security Headers
 
 Play provides a security headers filter that can be used to configure some default headers in the HTTP response to mitigate security issues and provide an extra level of defense for new applications.
@@ -15,7 +15,7 @@ play.filters.enabled += "play.filters.headers.SecurityHeadersFilter"
 
 ## Configuring the security headers
 
-Scaladoc is available in the [play.filters.headers](api/scala/play/filters/headers/) package.
+Scaladoc is available in the [play.filters.headers](api/scala/play/filters/headers/index.html) package.
 
 The filter will set headers in the HTTP response automatically.  The settings can be configured through the following settings in `application.conf`
 

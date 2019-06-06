@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.http
 
@@ -28,7 +28,7 @@ class JavaErrorHandling extends PlaySpecification with WsTestClient {
     }
 
     "allow providing a custom error handler" in new WithServer(fakeApp[ErrorHandler]) {
-      await(wsUrl("/error").get()).body must not startWith("A server error occurred: ")
+      (await(wsUrl("/error").get()).body must not).startWith("A server error occurred: ")
     }
   }
 }

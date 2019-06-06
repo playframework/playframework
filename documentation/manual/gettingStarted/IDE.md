@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -73,13 +73,13 @@ The generated configuration files contain absolute references to your framework 
 
 ## IntelliJ IDEA
 
-[Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
+[Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the sbt build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
 Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](https://www.jetbrains.com/idea/help/creating-and-running-your-scala-application.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
 
 To create a Play application:
 
-1. Open ***New Project*** wizard, select ***Sbt*** under ***Scala*** section and click ***Next***.
+1. Open ***New Project*** wizard, select ***sbt*** under ***Scala*** section and click ***Next***.
 2. Enter your project's information and click ***Finish***.
 
 You can also import an existing Play project.
@@ -88,18 +88,18 @@ To import a Play project:
 
 1. Open Project wizard, select ***Import Project***.
 2. In the window that opens, select a project you want to import and click ***OK***.
-3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***.
+3. On the next page of the wizard, select ***Import project from external model*** option, choose ***sbt project*** and click ***Next***.
 4. On the next page of the wizard, select additional import options and click ***Finish***.
 
 > **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or either one of the [example projects](https://playframework.com/download#examples).
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
-You can run the created application and view the result in the default browser `http://localhost:9000`. To run a Play application:
+You can run the created application and view the result in the default browser <http://localhost:9000>. To run a Play application:
 
 1. Create a new Run Configuration -- From the main menu, select Run -> Edit Configurations
 2. Click on the + to add a new configuration
-3. From the list of configurations, choose "SBT Task"
+3. From the list of configurations, choose "sbt Task"
 4. In the "tasks" input box, simply put "run"
 5. Apply changes and select OK.
 6. Now you can choose "Run" from the main Run menu and run your application
@@ -140,11 +140,11 @@ PLAY_EDITOR="http://localhost:63342/api/file/?file=%s&line=%s"
 
 ### Generate Configuration
 
-Play does not have native [Netbeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and SBT:
+Play does not have native [Netbeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and sbt:
 
 <https://github.com/dcaoyuan/nbscala>
 
-There is also a SBT plugin to create Netbeans project definition:
+There is also a sbt plugin to create Netbeans project definition:
 
 <https://github.com/dcaoyuan/nbsbt>
 
@@ -162,7 +162,7 @@ Edit your project/plugins.sbt file, and add the following line (you should first
 addSbtPlugin("org.ensime" % "sbt-ensime" % "2.0.1")
 ```
 
-Start SBT:
+Start sbt:
 
 ```bash
 $ sbt

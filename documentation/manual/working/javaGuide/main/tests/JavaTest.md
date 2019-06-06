@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application
 
 Writing tests for your application can be an involved process. Play supports [JUnit](https://junit.org/junit4/) and provides helpers and application stubs to make testing your application as easy as possible.
@@ -7,7 +7,7 @@ Writing tests for your application can be an involved process. Play supports [JU
 
 The location for tests is in the "test" folder. There are two sample test files created in the test folder which can be used as templates.
 
-You can run tests from the SBT console.
+You can run tests from the sbt console.
 
 * To run all tests, run `test`.
 * To run only one test class, run `testOnly` followed by the name of the class i.e. `testOnly my.namespace.MyTest`.
@@ -91,7 +91,7 @@ You can test your controllers using Play's [test helpers](api/java/play/test/Hel
 
 ## Unit testing view templates
 
-As a template is a standard Scala method, you can execute it from a test and check the result:
+As a template is a just a method, you can execute it from a test and check the result:
 
 @[test-template](code/javaguide/tests/ControllerTest.java)
 

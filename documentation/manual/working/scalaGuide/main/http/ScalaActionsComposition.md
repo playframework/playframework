@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Action composition
 
 This chapter introduces several ways of defining generic action functionality.
@@ -84,7 +84,7 @@ One of the most common use cases for action functions is authentication.  We can
 
 Play also provides a built in authentication action builder.  Information on this and how to use it can be found [here](api/scala/play/api/mvc/Security$$AuthenticatedBuilder$.html).
 
-> **Note:** The built in authentication action builder is just a convenience helper to minimise the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
+> **Note:** The built in authentication action builder is just a convenience helper to minimize the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
 >
 > Since it is simple to write your own authentication helper, we recommend doing so if the built-in helper does not suit your needs.
 

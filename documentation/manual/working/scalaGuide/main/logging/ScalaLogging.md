@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
 Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](https://logback.qos.ch/) as the default logging engine.
@@ -99,7 +99,7 @@ For convenience, there is an implicit conversion available from a `Marker` to a 
 
 @[logging-log-info-with-implicit-conversion](code/ScalaLoggingSpec.scala)
 
-Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html), request information can be encoded into logging statements automatically:
+Markers can be extremely useful, because they can carry contextual information across threads where MDC may not be available, by using a MarkerContext as an implicit parameter to methods to provide a logging context.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event) and an [implicit conversion chain](https://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html), request information can be encoded into logging statements automatically:
 
 @[logging-request-context-trait](code/ScalaLoggingSpec.scala)
 

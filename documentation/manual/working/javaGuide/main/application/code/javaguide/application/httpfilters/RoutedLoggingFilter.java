@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.application.httpfilters;
 
@@ -16,27 +16,30 @@ import play.routing.Router;
 
 public class RoutedLoggingFilter extends Filter {
 
-    @Inject
-    public RoutedLoggingFilter(Materializer mat) {
-        super(mat);
-    }
+  @Inject
+  public RoutedLoggingFilter(Materializer mat) {
+    super(mat);
+  }
 
-    @Override
-    public CompletionStage<Result> apply(
-            Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
-            Http.RequestHeader requestHeader) {
-        long startTime = System.currentTimeMillis();
-        return nextFilter.apply(requestHeader).thenApply(result -> {
-            HandlerDef handlerDef = requestHeader.attrs().get(Router.Attrs.HANDLER_DEF);
-            String actionMethod = handlerDef.controller() + "." + handlerDef.method();
-            long endTime = System.currentTimeMillis();
-            long requestTime = endTime - startTime;
+  @Override
+  public CompletionStage<Result> apply(
+      Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
+      Http.RequestHeader requestHeader) {
+    long startTime = System.currentTimeMillis();
+    return nextFilter
+        .apply(requestHeader)
+        .thenApply(
+            result -> {
+              HandlerDef handlerDef = requestHeader.attrs().get(Router.Attrs.HANDLER_DEF);
+              String actionMethod = handlerDef.controller() + "." + handlerDef.method();
+              long endTime = System.currentTimeMillis();
+              long requestTime = endTime - startTime;
 
-            Logger.info("{} took {}ms and returned {}",
-                actionMethod, requestTime, result.status());
+              Logger.info(
+                  "{} took {}ms and returned {}", actionMethod, requestTime, result.status());
 
-            return result.withHeader("Request-Time", "" + requestTime);
-        });
-    }
+              return result.withHeader("Request-Time", "" + requestTime);
+            });
+  }
 }
 // #routing-info-access

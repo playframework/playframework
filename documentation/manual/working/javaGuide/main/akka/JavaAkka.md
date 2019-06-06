@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with Akka
 
 [Akka](https://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
@@ -105,7 +105,7 @@ play.akka.config = "my-akka"
 Now settings will be read from the `my-akka` prefix instead of the `akka` prefix.
 
 ```
-my-akka.actor.default-dispatcher.fork-join-executor.pool-size-max = 64
+my-akka.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
 my-akka.actor.debug.receive = on
 ```
 
@@ -144,3 +144,20 @@ If you are using extra actor systems in your Play Application and tests, make su
 You can make your Play application join an existing [Akka Cluster](https://doc.akka.io/docs/akka/snapshot/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Akka's Coordinated Shutdown since Play 2.6 which can take care of that graceful leave but it is disabled. 
 
 If you are joining an Akka Cluster with your Play application and you already have custom Cluster Leave code it is recommended that you replace it and enable Akka's handling using `play.akka.run-cs-from-phase` described above and set it to run from, at least, `before-cluster-shutdown` phase. See [Akka docs](https://doc.akka.io/docs/akka/current/actors.html?language=java#coordinated-shutdown) for more details.
+
+## Updating Akka version
+
+If you want to use a newer version of Akka, one that is not used by Play yet, you can add the following to your `build.sbt` file:
+
+@[akka-update](code/javaguide.akkaupdate.sbt)
+
+Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
+
+If you also want to update Akka HTTP, you should also add its dependencies explicitly:
+
+@[akka-http-update](code/javaguide.akkaupdate.sbt)
+
+> **Note:** When doing such updates, keep in mind that you need to follow Akka's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html). And if you are manually adding other Akka artifacts, remember to keep the version of all the Akka artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.5/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
+
+> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Akka (or Akka HTTP) version than the one you are declaring, Play version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).
+

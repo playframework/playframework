@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Built-in HTTP filters
 
 Play provides several standard filters that can modify the HTTP behavior of your application. You can also write your own filters in either [[Java|JavaHttpFilters]] or [[Scala|ScalaHttpFilters]].
@@ -13,7 +13,7 @@ Play provides several standard filters that can modify the HTTP behavior of your
 
 Play now comes with a default set of enabled filters, defined through configuration.  If the property `play.http.filters` is null, then the default is now `play.api.http.EnabledFilters`, which loads up the filters defined by fully qualified class name in the `play.filters.enabled` configuration property.
 
-In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in SBT as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
+In Play itself, `play.filters.enabled` is an empty list.  However, the filters library is automatically loaded in sbt as an AutoPlugin called `PlayFilters`, and will append the following values to the `play.filters.enabled` property:
 
 * `play.filters.csrf.CSRFFilter`
 * `play.filters.headers.SecurityHeadersFilter`

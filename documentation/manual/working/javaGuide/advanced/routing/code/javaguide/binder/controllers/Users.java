@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.binder.controllers;
 
@@ -8,11 +8,11 @@ import play.mvc.Result;
 
 public class Users extends Controller {
 
-    public Result list() {
-        return ok("List Users");
-    }
+  public Result list() {
+    return ok("List Users");
+  }
 
-    public Result get(Long id) {
-        return ok("Get user by id");
-    }
+  public Result get(Long id) {
+    return ok("Get user by id");
+  }
 }

@@ -1,14 +1,14 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # The build system
 
 This section gives details about Play's build system.
 
 - [[Overview of the build system|BuildOverview]]
-- [[About sbt settings|SBTSettings]]
-- [[Manage application dependencies|SBTDependencies]]
-- [[Working with sub-projects|SBTSubProjects]]
+- [[About sbt settings|sbtSettings]]
+- [[Manage application dependencies|sbtDependencies]]
+- [[Working with sub-projects|sbtSubProjects]]
 - [[Play enhancer|PlayEnhancer]]
 - [[Aggregating reverse routers|AggregatingReverseRouters]]
 - [[Improving Compilation Times|CompilationSpeed]]
-- [[Cookbook|SBTCookbook]]
-- [[Debugging your build|SBTDebugging]]
+- [[Cookbook|sbtCookbook]]
+- [[Debugging your build|sbtDebugging]]

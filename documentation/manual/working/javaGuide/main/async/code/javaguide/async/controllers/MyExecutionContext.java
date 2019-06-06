@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package javaguide.async.controllers;
 
@@ -8,14 +8,13 @@ import play.libs.concurrent.CustomExecutionContext;
 
 import javax.inject.Inject;
 
-//#custom-execution-context
+// #custom-execution-context
 public class MyExecutionContext extends CustomExecutionContext {
 
-    @Inject
-    public MyExecutionContext(ActorSystem actorSystem) {
-        // uses a custom thread pool defined in application.conf
-        super(actorSystem, "my.dispatcher");
-    }
-
+  @Inject
+  public MyExecutionContext(ActorSystem actorSystem) {
+    // uses a custom thread pool defined in application.conf
+    super(actorSystem, "my.dispatcher");
+  }
 }
-//#custom-execution-context
+// #custom-execution-context

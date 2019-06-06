@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Handling data streams reactively
 
 > **Note**: Play Iteratees has been moved to a standalone project. See more details in [[our migration guide|Migration26#Play-Iteratees-moved-to-separate-project]].

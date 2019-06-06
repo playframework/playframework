@@ -1,32 +1,32 @@
 /*
- * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 package scaladoc {
-package module {
+  package module {
 
-import mycomponent._
+    import mycomponent._
 //#module-decl
-import play.api.Configuration
-import play.api.Environment
-import play.api.inject.Binding
-import play.api.inject.Module
+    import play.api.Configuration
+    import play.api.Environment
+    import play.api.inject.Binding
+    import play.api.inject.Module
 
-class MyModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Seq(
-      bind[MyComponent].to[MyComponentImpl]
-    )
+    class MyModule extends Module {
+      def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+        Seq(
+          bind[MyComponent].to[MyComponentImpl]
+        )
+      }
+    }
+//#module-decl
+
+//#components-decl
+    import play.api.inject.ApplicationLifecycle
+
+    trait MyComponents {
+      def applicationLifecycle: ApplicationLifecycle
+      lazy val component: MyComponent = new MyComponentImpl(applicationLifecycle)
+    }
+//#components-decl
   }
-}
-//#module-decl
-
-//#components-decl
-import play.api.inject.ApplicationLifecycle
-
-trait MyComponents {
-  def applicationLifecycle: ApplicationLifecycle
-  lazy val component: MyComponent = new MyComponentImpl(applicationLifecycle)
-}
-//#components-decl
-}
 }
