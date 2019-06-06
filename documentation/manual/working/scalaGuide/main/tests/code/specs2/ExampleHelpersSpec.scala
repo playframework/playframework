@@ -3,8 +3,13 @@
  */
 package specs2
 
-import play.api.mvc.{AbstractController, AnyContent, ControllerComponents}
-import play.api.test.{Helpers, Injecting, PlaySpecification, WithApplication}
+import play.api.mvc.AbstractController
+import play.api.mvc.AnyContent
+import play.api.mvc.ControllerComponents
+import play.api.test.Helpers
+import play.api.test.Injecting
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
 
 import scala.concurrent.ExecutionContext
 
@@ -37,7 +42,5 @@ class ExampleHelpersSpec extends PlaySpecification {
   )
   // #scalatest-stubcontrollercomponents
 
-  class MyController(cc: ControllerComponents) extends AbstractController(cc) {
-
-  }
+  class MyController(cc: ControllerComponents) extends AbstractController(cc) {}
 }

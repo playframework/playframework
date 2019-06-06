@@ -9,15 +9,15 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 public class Api extends Controller {
-    public Result list(String version) {
-        return ok("version " + version);
-    }
+  public Result list(String version) {
+    return ok("version " + version);
+  }
 
-    public Result listOpt(Optional<String> version) {
-        return ok("version " + version.orElse("unknown"));
-    }
+  public Result listOpt(Optional<String> version) {
+    return ok("version " + version.orElse("unknown"));
+  }
 
-    public Result newThing() {
-        return ok();
-    }
+  public Result newThing() {
+    return ok();
+  }
 }

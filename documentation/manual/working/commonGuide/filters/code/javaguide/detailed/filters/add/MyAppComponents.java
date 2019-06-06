@@ -17,20 +17,21 @@ import java.util.List;
 
 public class MyAppComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
 
-    public MyAppComponents(ApplicationLoader.Context context) {
-        super(context);
-    }
+  public MyAppComponents(ApplicationLoader.Context context) {
+    super(context);
+  }
 
-    @Override
-    public List<EssentialFilter> httpFilters() {
-        List<EssentialFilter> combinedFilters = new ArrayList<>(HttpFiltersComponents.super.httpFilters());
-        combinedFilters.add(new LoggingFilter(materializer()));
-        return combinedFilters;
-    }
+  @Override
+  public List<EssentialFilter> httpFilters() {
+    List<EssentialFilter> combinedFilters =
+        new ArrayList<>(HttpFiltersComponents.super.httpFilters());
+    combinedFilters.add(new LoggingFilter(materializer()));
+    return combinedFilters;
+  }
 
-    @Override
-    public Router router() {
-        return Router.empty(); // implement the router as needed
-    }
+  @Override
+  public Router router() {
+    return Router.empty(); // implement the router as needed
+  }
 }
 // #appending-filters-compile-time-di

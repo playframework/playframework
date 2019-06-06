@@ -5,28 +5,26 @@ package javaguide.forms.html;
 
 import java.util.List;
 
-//#code
+// #code
 public class UserForm {
 
-    private String name;
-    private List<String> emails;
+  private String name;
+  private List<String> emails;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setEmails(List<String> emails) {
-        this.emails = emails;
-    }
+  public void setEmails(List<String> emails) {
+    this.emails = emails;
+  }
 
-    public List<String> getEmails() {
-        return emails;
-    }
-
+  public List<String> getEmails() {
+    return emails;
+  }
 }
-//#code
-
+// #code

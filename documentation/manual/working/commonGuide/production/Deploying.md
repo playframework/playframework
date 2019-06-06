@@ -14,7 +14,7 @@ Before you run your application in production mode, you need to generate an appl
 
 ## Using the dist task
 
-The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on SBT, the only thing the server needs is a Java installation.
+The `dist` task builds a binary version of your application that you can deploy to a server without any dependency on sbt, the only thing the server needs is a Java installation.
 
 In the Play console, simply type `dist`:
 
@@ -88,7 +88,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 
 ## The Native Packager
 
-Play uses the [SBT Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.4/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+Play uses the [sbt Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.4/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 [my-first-app] $ universal:packageBin
@@ -183,7 +183,7 @@ Then in the Play console, use the `publish` task:
 
 ## Running a production server in place
 
-In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an SBT installation on the server, and can be done using the `stage` task.
+In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an sbt installation on the server, and can be done using the `stage` task.
 
 ```bash
 $ sbt clean stage
@@ -245,9 +245,9 @@ To run an application in prod mode, run `runProd`:
 [my-first-app] $ runProd
 ```
 
-## Using the SBT assembly plugin
+## Using the sbt assembly plugin
 
-Though not officially supported, the SBT assembly plugin may be used to package and run Play applications.  This will produce one jar as an output artifact, and allow you to execute it directly using the `java` command.
+Though not officially supported, the sbt assembly plugin may be used to package and run Play applications.  This will produce one jar as an output artifact, and allow you to execute it directly using the `java` command.
 
 To use this, add a dependency on the plugin to your `project/plugins.sbt` file:
 

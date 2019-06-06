@@ -3,7 +3,8 @@
  */
 //#log4j2-class
 import java.io.File
-import java.net.{ URI, URL }
+import java.net.URI
+import java.net.URL
 
 //###skip: 1
 /*
@@ -15,9 +16,12 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core._
 import org.apache.logging.log4j.core.config.Configurator
 //###skip: 1
-*/
+ */
 
-import play.api.{ Mode, Configuration, Environment, LoggerConfigurator }
+import play.api.Mode
+import play.api.Configuration
+import play.api.Environment
+import play.api.LoggerConfigurator
 import org.slf4j.ILoggerFactory
 
 class Log4J2LoggerConfigurator extends LoggerConfigurator {
@@ -25,9 +29,9 @@ class Log4J2LoggerConfigurator extends LoggerConfigurator {
   private var factory: ILoggerFactory = _
 
   override def init(rootPath: File, mode: Mode): Unit = {
-    val properties = Map("application.home" -> rootPath.getAbsolutePath)
+    val properties   = Map("application.home" -> rootPath.getAbsolutePath)
     val resourceName = "log4j2.xml"
-    val resourceUrl = Option(this.getClass.getClassLoader.getResource(resourceName))
+    val resourceUrl  = Option(this.getClass.getClassLoader.getResource(resourceName))
     configure(properties, resourceUrl)
   }
 
@@ -37,14 +41,18 @@ class Log4J2LoggerConfigurator extends LoggerConfigurator {
   }
 
   override def configure(env: Environment): Unit = {
-    val properties = LoggerConfigurator.generateProperties(env, Configuration.empty, Map.empty)
+    val properties  = LoggerConfigurator.generateProperties(env, Configuration.empty, Map.empty)
     val resourceUrl = env.resource("log4j2.xml")
     configure(properties, resourceUrl)
   }
 
-  override def configure(env: Environment, configuration: Configuration, optionalProperties: Map[String, String]): Unit = {
+  override def configure(
+      env: Environment,
+      configuration: Configuration,
+      optionalProperties: Map[String, String]
+  ): Unit = {
     // LoggerConfigurator.generateProperties enables play.logger.includeConfigProperties=true
-    val properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties)
+    val properties  = LoggerConfigurator.generateProperties(env, configuration, optionalProperties)
     val resourceUrl = env.resource("log4j2.xml")
     configure(properties, resourceUrl)
   }

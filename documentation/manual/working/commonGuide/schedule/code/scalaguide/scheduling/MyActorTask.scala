@@ -4,14 +4,18 @@
 //###replace: package tasks
 package scalaguide.scheduling
 
-import javax.inject.{Inject, Named}
+import javax.inject.Inject
+import javax.inject.Named
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorRef
+import akka.actor.ActorSystem
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class MyActorTask @Inject() (actorSystem: ActorSystem, @Named("some-actor") someActor: ActorRef)(implicit executionContext: ExecutionContext) {
+class MyActorTask @Inject()(actorSystem: ActorSystem, @Named("some-actor") someActor: ActorRef)(
+    implicit executionContext: ExecutionContext
+) {
 
   actorSystem.scheduler.schedule(
     initialDelay = 0.microseconds,

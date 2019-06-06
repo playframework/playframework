@@ -9,7 +9,7 @@ There are two important parts to using the WS API: making a request, and process
 
 ## Adding WS to project
 
-To use WS, first add `ws` to your `build.sbt` file:
+To use WS, first add `javaWs` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
 

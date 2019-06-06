@@ -21,7 +21,7 @@ in the `framework` directory of the Play project.
 
 ## Setting up a translation
 
-Create a new SBT project with the following structure:
+Create a new sbt project with the following structure:
 
 ```
 translation-project
@@ -36,7 +36,7 @@ translation-project
   `- build.sbt
 ```
 
-`build.properties` should contain the SBT version, ie:
+`build.properties` should contain the sbt version, ie:
 
 ```
 sbt.version=0.13.16
@@ -89,7 +89,7 @@ The Play documentation is full of code samples.  As described in the [[Documenta
 
 Generally, you will want to leave these snippets as is in your translation, this will ensure that the code snippets your translation stays up to date with Play.
 
-In some situations, it may make sense to override them.  You can either do this by putting the code directly in the documentation, using a fenced block, or by extracting them into your projects own compile code samples.  If you do that, checkout the Play documentation sbt build files for how you might setup SBT to compile them.
+In some situations, it may make sense to override them.  You can either do this by putting the code directly in the documentation, using a fenced block, or by extracting them into your projects own compile code samples.  If you do that, checkout the Play documentation sbt build files for how you might setup sbt to compile them.
 
 ## Validating the documentation
 

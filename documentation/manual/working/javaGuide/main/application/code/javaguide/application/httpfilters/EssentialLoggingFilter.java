@@ -13,29 +13,36 @@ import play.mvc.*;
 
 public class EssentialLoggingFilter extends EssentialFilter {
 
-    private final Executor executor;
+  private final Executor executor;
 
-    @Inject
-    public EssentialLoggingFilter(Executor executor) {
-        super();
-        this.executor = executor;
-    }
+  @Inject
+  public EssentialLoggingFilter(Executor executor) {
+    super();
+    this.executor = executor;
+  }
 
-    @Override
-    public EssentialAction apply(EssentialAction next) {
-        return EssentialAction.of(request -> {
-            long startTime = System.currentTimeMillis();
-            Accumulator<ByteString, Result> accumulator = next.apply(request);
-            return accumulator.map(result -> {
+  @Override
+  public EssentialAction apply(EssentialAction next) {
+    return EssentialAction.of(
+        request -> {
+          long startTime = System.currentTimeMillis();
+          Accumulator<ByteString, Result> accumulator = next.apply(request);
+          return accumulator.map(
+              result -> {
                 long endTime = System.currentTimeMillis();
                 long requestTime = endTime - startTime;
 
-                Logger.info("{} {} took {}ms and returned {}",
-                    request.method(), request.uri(), requestTime, result.status());
+                Logger.info(
+                    "{} {} took {}ms and returned {}",
+                    request.method(),
+                    request.uri(),
+                    requestTime,
+                    result.status());
 
                 return result.withHeader("Request-Time", "" + requestTime);
-            }, executor);
+              },
+              executor);
         });
-    }
+  }
 }
 // #essential-filter-example

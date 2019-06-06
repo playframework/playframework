@@ -3,15 +3,15 @@
  */
 package javaguide.akka;
 
-//#protocol
+// #protocol
 import akka.actor.Actor;
 
 public class ConfiguredChildActorProtocol {
 
-    public static class GetConfig {}
+  public static class GetConfig {}
 
-    public interface Factory {
-        public Actor create(String key);
-    }
+  public interface Factory {
+    public Actor create(String key);
+  }
 }
-//#protocol
+// #protocol

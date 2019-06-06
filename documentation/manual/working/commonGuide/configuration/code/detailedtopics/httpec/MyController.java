@@ -3,7 +3,7 @@
  */
 package detailedtopics.httpec;
 
-//#http-execution-context
+// #http-execution-context
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.*;
 
@@ -13,24 +13,27 @@ import java.util.concurrent.CompletionStage;
 
 public class MyController extends Controller {
 
-    private HttpExecutionContext httpExecutionContext;
+  private HttpExecutionContext httpExecutionContext;
 
-    @Inject
-    public MyController(HttpExecutionContext ec) {
-        this.httpExecutionContext = ec;
-    }
+  @Inject
+  public MyController(HttpExecutionContext ec) {
+    this.httpExecutionContext = ec;
+  }
 
-    public CompletionStage<Result> index() {
-        // Use a different task with explicit EC
-        return calculateResponse().thenApplyAsync(answer -> {
-            // uses Http.Context
-            ctx().flash().put("info", "Response updated!");
-            return ok("answer was " + answer);
-        }, httpExecutionContext.current());
-    }
+  public CompletionStage<Result> index() {
+    // Use a different task with explicit EC
+    return calculateResponse()
+        .thenApplyAsync(
+            answer -> {
+              // uses Http.Context
+              ctx().flash().put("info", "Response updated!");
+              return ok("answer was " + answer);
+            },
+            httpExecutionContext.current());
+  }
 
-    private static CompletionStage<String> calculateResponse() {
-        return CompletableFuture.completedFuture("42");
-    }
+  private static CompletionStage<String> calculateResponse() {
+    return CompletableFuture.completedFuture("42");
+  }
 }
-//#http-execution-context
+// #http-execution-context

@@ -25,17 +25,16 @@ package scalaguide.i18n.scalai18n {
   import javax.inject.Inject
   import play.api.i18n._
 
-  class MyMessagesController @Inject()(mcc: MessagesControllerComponents)
-    extends MessagesAbstractController(mcc) {
+  class MyMessagesController @Inject()(mcc: MessagesControllerComponents) extends MessagesAbstractController(mcc) {
 
     def index = Action { implicit request: MessagesRequest[AnyContent] =>
       val messages: Messages = request.messages
-      val message: String = messages("info.error")
+      val message: String    = messages("info.error")
       Ok(message)
     }
 
     def messages2 = Action { implicit request: MessagesRequest[AnyContent] =>
-      val lang: Lang = request.messages.lang
+      val lang: Lang      = request.messages.lang
       val message: String = messagesApi("info.error")(lang)
       Ok(message)
     }
@@ -52,19 +51,19 @@ package scalaguide.i18n.scalai18n {
   import play.api.i18n._
 
   class MySupportController @Inject()(val controllerComponents: ControllerComponents)
-    extends BaseController
+      extends BaseController
       with I18nSupport {
 
     def index = Action { implicit request =>
       // type enrichment through I18nSupport
       val messages: Messages = request.messages
-      val message: String = messages("info.error")
+      val message: String    = messages("info.error")
       Ok(message)
     }
 
     def messages2 = Action { implicit request =>
       // type enrichment through I18nSupport
-      val lang: Lang = request.lang
+      val lang: Lang      = request.lang
       val message: String = messagesApi("info.error")(lang)
       Ok(message)
     }
@@ -72,8 +71,8 @@ package scalaguide.i18n.scalai18n {
     def messages3 = Action { request =>
       // direct access with no implicits required
       val messages: Messages = messagesApi.preferred(request)
-      val lang = messages.lang
-      val message: String = messages("info.error")
+      val lang               = messages.lang
+      val message: String    = messages("info.error")
       Ok(message)
     }
 
@@ -101,20 +100,20 @@ package scalaguide.i18n.scalai18n {
 
     "An messages controller" should {
 
-    "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
-      val controller = app.injector.instanceOf[MyMessagesController]
+      "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
+        val controller = app.injector.instanceOf[MyMessagesController]
 
-      val result = controller.index(FakeRequest())
-      contentAsString(result) must contain("You aren't logged in!")
+        val result = controller.index(FakeRequest())
+        contentAsString(result) must contain("You aren't logged in!")
+      }
     }
-  }
 
-  "A Scala translation" should {
+    "A Scala translation" should {
 
-      val env = Environment.simple()
-      val langs = new DefaultLangsProvider(conf).get
+      val env               = Environment.simple()
+      val langs             = new DefaultLangsProvider(conf).get
       val httpConfiguration = HttpConfiguration.fromConfiguration(conf, env)
-      val messagesApi = new DefaultMessagesApiProvider(env, conf, langs, httpConfiguration).get
+      val messagesApi       = new DefaultMessagesApiProvider(env, conf, langs, httpConfiguration).get
 
       implicit val lang = Lang("en")
 

@@ -5,7 +5,7 @@ package javaguide.di.guice.eager;
 
 import javaguide.di.*;
 
-//#eager-guice-module
+// #eager-guice-module
 import javax.inject.*;
 import play.inject.ApplicationLifecycle;
 import play.Environment;
@@ -19,10 +19,11 @@ public class ApplicationStart {
   @Inject
   public ApplicationStart(ApplicationLifecycle lifecycle, Environment environment) {
     // Shut-down hook
-    lifecycle.addStopHook( () -> {
-      return CompletableFuture.completedFuture(null);
-    } );
+    lifecycle.addStopHook(
+        () -> {
+          return CompletableFuture.completedFuture(null);
+        });
     // ...
   }
 }
-//#eager-guice-module
+// #eager-guice-module

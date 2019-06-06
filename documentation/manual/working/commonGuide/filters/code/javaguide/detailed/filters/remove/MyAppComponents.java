@@ -16,21 +16,20 @@ import java.util.stream.Collectors;
 // #removing-filters-compile-time-di
 public class MyAppComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {
 
-    public MyAppComponents(ApplicationLoader.Context context) {
-        super(context);
-    }
+  public MyAppComponents(ApplicationLoader.Context context) {
+    super(context);
+  }
 
-    @Override
-    public List<EssentialFilter> httpFilters() {
-        return HttpFiltersComponents.super.httpFilters()
-                .stream()
-                .filter(filter -> !filter.getClass().equals(CSRFFilter.class))
-                .collect(Collectors.toList());
-    }
+  @Override
+  public List<EssentialFilter> httpFilters() {
+    return HttpFiltersComponents.super.httpFilters().stream()
+        .filter(filter -> !filter.getClass().equals(CSRFFilter.class))
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public Router router() {
-        return Router.empty(); // implement the router as needed
-    }
+  @Override
+  public Router router() {
+    return Router.empty(); // implement the router as needed
+  }
 }
 // #removing-filters-compile-time-di

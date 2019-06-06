@@ -38,7 +38,7 @@ This will build and publish Play for the default Scala version (currently 2.11.1
 Or to publish for a specific Scala version:
 
 ```bash
-> +++2.11.12 publishLocal
+> ++2.11.12 publishLocal
 ```
 
 ## Build the documentation

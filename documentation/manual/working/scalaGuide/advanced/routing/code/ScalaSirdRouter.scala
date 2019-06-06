@@ -5,7 +5,8 @@ package scalaguide.advanced.routing
 
 import controllers.Assets
 import org.specs2.mutable.Specification
-import play.api.test.{FakeRequest, WithApplication}
+import play.api.test.FakeRequest
+import play.api.test.WithApplication
 
 class ScalaSirdRouter extends Specification {
 
@@ -15,15 +16,17 @@ class ScalaSirdRouter extends Specification {
   import play.api.routing.sird._
   //#imports
 
-  private def Action(block: => Result)(implicit app: play.api.Application) = app.injector.instanceOf[DefaultActionBuilder].apply(block)
+  private def Action(block: => Result)(implicit app: play.api.Application) =
+    app.injector.instanceOf[DefaultActionBuilder].apply(block)
 
   "sird router" should {
     "allow a simple match" in new WithApplication {
       //#simple
       val router = Router.from {
-        case GET(p"/hello/$to") => Action {
-          Results.Ok(s"Hello $to")
-        }
+        case GET(p"/hello/$to") =>
+          Action {
+            Results.Ok(s"Hello $to")
+          }
       }
       //#simple
 
@@ -46,9 +49,10 @@ class ScalaSirdRouter extends Specification {
     "allow a regex match" in new WithApplication {
       //#regexp
       val router = Router.from {
-        case GET(p"/items/$id<[0-9]+>") => Action {
-          Results.Ok(s"Item $id")
-        }
+        case GET(p"/items/$id<[0-9]+>") =>
+          Action {
+            Results.Ok(s"Item $id")
+          }
       }
       //#regexp
 
@@ -59,9 +63,10 @@ class ScalaSirdRouter extends Specification {
     "allow extracting required query parameters" in new WithApplication {
       //#required
       val router = Router.from {
-        case GET(p"/search" ? q"query=$query") => Action {
-          Results.Ok(s"Searching for $query")
-        }
+        case GET(p"/search" ? q"query=$query") =>
+          Action {
+            Results.Ok(s"Searching for $query")
+          }
       }
       //#required
 
@@ -72,10 +77,11 @@ class ScalaSirdRouter extends Specification {
     "allow extracting optional query parameters" in new WithApplication {
       //#optional
       val router = Router.from {
-        case GET(p"/items" ? q_o"page=$page") => Action {
-          val thisPage = page.getOrElse("1")
-          Results.Ok(s"Showing page $thisPage")
-        }
+        case GET(p"/items" ? q_o"page=$page") =>
+          Action {
+            val thisPage = page.getOrElse("1")
+            Results.Ok(s"Showing page $thisPage")
+          }
       }
       //#optional
 
@@ -86,10 +92,11 @@ class ScalaSirdRouter extends Specification {
     "allow extracting multi value query parameters" in new WithApplication {
       //#many
       val router = Router.from {
-        case GET(p"/items" ? q_s"tag=$tags") => Action {
-          val allTags = tags.mkString(", ")
-          Results.Ok(s"Showing items tagged: $allTags")
-        }
+        case GET(p"/items" ? q_s"tag=$tags") =>
+          Action {
+            val allTags = tags.mkString(", ")
+            Results.Ok(s"Showing items tagged: $allTags")
+          }
       }
       //#many
 
@@ -100,13 +107,16 @@ class ScalaSirdRouter extends Specification {
     "allow extracting multiple query parameters" in new WithApplication {
       //#multiple
       val router = Router.from {
-        case GET(p"/items" ? q_o"page=$page"
-          & q_o"per_page=$perPage") => Action {
-          val thisPage = page.getOrElse("1")
-          val pageLength = perPage.getOrElse("10")
+        case GET(
+            p"/items" ? q_o"page=$page"
+              & q_o"per_page=$perPage"
+            ) =>
+          Action {
+            val thisPage   = page.getOrElse("1")
+            val pageLength = perPage.getOrElse("10")
 
-          Results.Ok(s"Showing page $thisPage of length $pageLength")
-        }
+            Results.Ok(s"Showing page $thisPage of length $pageLength")
+          }
       }
       //#multiple
 
@@ -117,9 +127,10 @@ class ScalaSirdRouter extends Specification {
     "allow sub extractor" in new WithApplication {
       //#int
       val router = Router.from {
-        case GET(p"/items/${int(id)}") => Action {
-          Results.Ok(s"Item $id")
-        }
+        case GET(p"/items/${int(id) }") =>
+          Action {
+            Results.Ok(s"Item $id")
+          }
       }
       //#int
 
@@ -130,10 +141,11 @@ class ScalaSirdRouter extends Specification {
     "allow sub extractor on a query parameter" in new WithApplication {
       //#query-int
       val router = Router.from {
-        case GET(p"/items" ? q_o"page=${int(page)}") => Action {
-          val thePage = page.getOrElse(1)
-          Results.Ok(s"Items page $thePage")
-        }
+        case GET(p"/items" ? q_o"page=${int(page) }") =>
+          Action {
+            val thePage = page.getOrElse(1)
+            Results.Ok(s"Items page $thePage")
+          }
       }
       //#query-int
 
@@ -145,9 +157,10 @@ class ScalaSirdRouter extends Specification {
     "allow complex extractors" in new WithApplication {
       //#complex
       val router = Router.from {
-        case rh @ GET(p"/items/${idString @ int(id)}" ?
-          q"price=${int(price)}")
-          if price > 200 =>
+        case rh @ GET(
+              p"/items/${idString @ int(id) }" ?
+                q"price=${int(price) }"
+            ) if price > 200 =>
           Action {
             Results.Ok(s"Expensive item $id")
           }
@@ -160,6 +173,5 @@ class ScalaSirdRouter extends Specification {
     }
 
   }
-
 
 }

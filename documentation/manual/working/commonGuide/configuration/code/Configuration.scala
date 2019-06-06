@@ -8,7 +8,7 @@ object DependencyInjection {
   import javax.inject._
   import play.api.Configuration
 
-  class MyController @Inject() (config: Configuration) {
+  class MyController @Inject()(config: Configuration) {
     // ...
   }
   //#dependency-injection

@@ -10,5 +10,4 @@ public class HomeController extends Controller {
   public Result index() {
     return ok(javaguide.tests.html.index.render("Welcome to Play!"));
   }
-  
 }

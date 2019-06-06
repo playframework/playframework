@@ -35,11 +35,11 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Typescript Plugin
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
-* **Short description:** A plugin for SBT that uses sbt-web to compile typescript resources
+* **Short description:** A plugin for sbt that uses sbt-web to compile typescript resources
 
 ### play-webpack Plugin
 * **Website:** <https://github.com/BowlingX/play-webpack>
-* **Short description:** A plugin for SBT to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
+* **Short description:** A plugin for sbt to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
 
 ## Authentication (Login & Registration) and Authorization (Restricted Access)
 

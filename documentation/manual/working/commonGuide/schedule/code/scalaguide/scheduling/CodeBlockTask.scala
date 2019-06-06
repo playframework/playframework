@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 //#schedule-block-with-interval
-class CodeBlockTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
+class CodeBlockTask @Inject()(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
 
   actorSystem.scheduler.schedule(initialDelay = 10.seconds, interval = 1.minute) {
     // the block of code that will be executed
@@ -21,7 +21,7 @@ class CodeBlockTask @Inject() (actorSystem: ActorSystem)(implicit executionConte
 //#schedule-block-with-interval
 
 //#schedule-block-once
-class ScheduleOnceTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
+class ScheduleOnceTask @Inject()(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
 
   actorSystem.scheduler.scheduleOnce(delay = 10.seconds) {
     // the block of code that will be executed

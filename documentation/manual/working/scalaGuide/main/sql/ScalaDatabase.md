@@ -118,7 +118,7 @@ After that, you can configure the jdbcdslog-exp [log level as explained in their
 
 Play is bundled only with an [H2](http://www.h2database.com) database driver. Consequently, to deploy in production you will need to add your database driver as a dependency.
 
-For example, if you use MySQL5, you need to add a [[dependency|SBTDependencies]] for the connector:
+For example, if you use MySQL5, you need to add a [[dependency|sbtDependencies]] for the connector:
 
 ```scala
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.41"

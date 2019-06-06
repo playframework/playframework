@@ -1,5 +1,9 @@
 language: scala
 
+# Only build non-pushes (so PRs, API requests & cron jobs) OR tags OR forks
+# https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
+if: type != push OR tag IS present OR repo != playframework/playframework
+
 addons:
   apt:
     packages:
@@ -28,21 +32,21 @@ stages:
 jobs:
   include:
     - stage: validations
-      script: framework/bin/validate-code
+      script: scripts/validate-code
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: framework/bin/validate-microbenchmarks
+    - script: scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
     - stage: test
-      script: framework/bin/test-scala-212
+      script: scripts/test-scala-212
       name: "Run tests for Scala 2.12"
-    - script: framework/bin/test-scala-211
+    - script: scripts/test-scala-211
       name: "Run tests for Scala 2.11"
-    - script: framework/bin/test-docs
+    - script: scripts/test-docs
       name: "Run documentation tests"
     - stage: test-sbt
-      script: framework/bin/test-sbt-plugins-0_13
+      script: scripts/test-sbt-plugins-0_13
       name: "Scripted tests for sbt 0.13"
-    - script: framework/bin/test-sbt-plugins-1_0
+    - script: scripts/test-sbt-plugins-1_0
       name: "Scripted tests for sbt 1"
 
 cache:
@@ -59,10 +63,13 @@ before_cache:
   - find $HOME/.sbt -name "*.lock" -delete
 
 notifications:
+  email: play-team@lightbend.com
   webhooks:
     urls:
     - https://webhooks.gitter.im/e/d2c8a242a2615f659595
     on_success: always
     on_failure: always
   slack:
-    secure: LIYWP1YF6DEXh4gBQ0DlaQP+kenerp7Q1AC3y/+egJYUu1g2TWmBlkcpXOcdHzrgTIUX/LYnSlhowIpsW7/YwcyLn3rOJI6SJM00DrDPRm6X1586P9DcR4XiX7MChewzbnmebx6KISt6bFtfvcd67J2cinmShwXQh2AmwvuT3Tc=
+    secure: bMaBU2Az2YK0rVx95luyOikXqB/C5khfvuVI03muOGFfdiEEBEZYoqiCtB7OisveBU/orQCrjZJRL9+vCsEwVvIFF1eIa66ZE8wOTOGNMdv8hetdfR6dg2+RLrnE0zltVhlG2XMFK7X743utmE8e3koMWYH8uQSTQCXdOoUJwpQ=
+    on_success: never
+    on_failure: always

@@ -60,7 +60,7 @@ In the configuration, at runtime a call to the `/my-subproject` URL will eventua
 
 > Note: in order to avoid name collision issues with the main application, always make sure that you define a subpackage within your controller classes that belong to a sub project (i.e. `my.subproject` in this particular example). You'll also need to make sure that the subproject's Assets controller is defined in the same name space.
 
-More information about this feature can be found at [[Working with sub-projects|SBTSubProjects]].
+More information about this feature can be found at [[Working with sub-projects|sbtSubProjects]].
 
 
 ## `Http.Context` propagation in the Java API

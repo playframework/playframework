@@ -10,7 +10,7 @@ import play.api.mvc._
 import scalaguide.binder.models._
 
 class BinderApplication @Inject()(components: ControllerComponents) extends AbstractController(components) {
- 
+
   //#path
   def user(user: User) = Action {
     Ok(user.name)

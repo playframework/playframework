@@ -1,6 +1,6 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 
-# Using the SBT console
+# Using the sbt console
 
 You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). The sbt tool has an interactive mode or you can enter commands one at a time. Interactive mode can be faster over time because sbt only needs to start once. When you enter commands one at a time, sbt restarts each time you run it.
 
@@ -18,7 +18,7 @@ You will see something like:
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 
---- (Running the application from SBT, auto-reloading is enabled) ---
+--- (Running the application from sbt, auto-reloading is enabled) ---
 
 [info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
@@ -73,7 +73,6 @@ $ sbt
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
 
-## Triggered Execution
 
 ## Compiling only
 
@@ -192,7 +191,7 @@ $ sbt run
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 
---- (Running the application from SBT, auto-reloading is enabled) ---
+--- (Running the application from sbt, auto-reloading is enabled) ---
 
 [info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 

@@ -4,6 +4,6 @@
 
 //#javaws-sbt-dependencies
 libraryDependencies ++= Seq(
-  ws
+  javaWs
 )
 //#javaws-sbt-dependencies

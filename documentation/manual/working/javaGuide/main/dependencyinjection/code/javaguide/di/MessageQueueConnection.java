@@ -3,7 +3,7 @@
  */
 package javaguide.di;
 
-//#cleanup
+// #cleanup
 import javax.inject.*;
 import play.inject.ApplicationLifecycle;
 
@@ -12,18 +12,19 @@ import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class MessageQueueConnection {
-    private final MessageQueue connection;
+  private final MessageQueue connection;
 
-    @Inject
-    public MessageQueueConnection(ApplicationLifecycle lifecycle) {
-        connection = MessageQueue.connect();
+  @Inject
+  public MessageQueueConnection(ApplicationLifecycle lifecycle) {
+    connection = MessageQueue.connect();
 
-        lifecycle.addStopHook(() -> {
-            connection.stop();
-            return CompletableFuture.completedFuture(null);
+    lifecycle.addStopHook(
+        () -> {
+          connection.stop();
+          return CompletableFuture.completedFuture(null);
         });
-    }
+  }
 
-    // ...
+  // ...
 }
-//#cleanup
+// #cleanup

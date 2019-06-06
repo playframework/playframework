@@ -3,7 +3,7 @@
  */
 package javaguide.logging;
 
-//#logging-pattern-mix
+// #logging-pattern-mix
 import play.Logger;
 import play.Logger.ALogger;
 import play.mvc.Action;
@@ -32,7 +32,6 @@ public class Application extends Controller {
   private static int riskyCalculation() {
     return 10 / (new java.util.Random()).nextInt(2);
   }
-
 }
 
 class AccessLoggingAction extends Action.Simple {
@@ -41,9 +40,13 @@ class AccessLoggingAction extends Action.Simple {
 
   public CompletionStage<Result> call(Http.Context ctx) {
     final Request request = ctx.request();
-    accessLogger.info("method={} uri={} remote-address={}", request.method(), request.uri(), request.remoteAddress());
+    accessLogger.info(
+        "method={} uri={} remote-address={}",
+        request.method(),
+        request.uri(),
+        request.remoteAddress());
 
     return delegate.call(ctx);
   }
 }
-//#logging-pattern-mix
+// #logging-pattern-mix

@@ -3,12 +3,12 @@
  */
 package javaguide.di;
 
-//#implemented-by
+// #implemented-by
 import com.google.inject.ImplementedBy;
 
 @ImplementedBy(EnglishHello.class)
 public interface Hello {
 
-    String sayHello(String name);
+  String sayHello(String name);
 }
-//#implemented-by
+// #implemented-by

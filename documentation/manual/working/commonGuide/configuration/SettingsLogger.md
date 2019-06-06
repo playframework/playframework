@@ -205,7 +205,7 @@ You may also wish to configure an appender for the Akka loggers that includes us
 
 ## Using a Custom Logging Framework
 
-Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it.  To do this, the `PlayLogback` SBT plugin must be disabled using `disablePlugins`:
+Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it.  To do this, the `PlayLogback` sbt plugin must be disabled using `disablePlugins`:
 
 ```scala
 lazy val root = (project in file("."))

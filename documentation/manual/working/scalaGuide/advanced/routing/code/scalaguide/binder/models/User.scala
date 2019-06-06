@@ -12,9 +12,9 @@ import play.Logger
 case class User(id: Int, name: String) {}
 //#declaration
 object User {
-  
-  // stubbed test 
-	// designed to be lightweight operation
+
+  // stubbed test
+  // designed to be lightweight operation
   def findById(id: Int): Option[User] = {
     Logger.info("findById: " + id.toString)
     if (id > 3) None
@@ -26,7 +26,7 @@ object User {
   implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
     override def bind(key: String, value: String): Either[String, User] = {
       for {
-        id <- intBinder.bind(key, value).right
+        id   <- intBinder.bind(key, value).right
         user <- User.findById(id).toRight("User not found").right
       } yield user
     }
@@ -34,6 +34,5 @@ object User {
       user.id.toString
     }
   }
-	//#bind
+  //#bind
 }
-

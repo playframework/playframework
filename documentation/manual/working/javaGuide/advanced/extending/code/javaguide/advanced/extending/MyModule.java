@@ -10,10 +10,8 @@ import scala.collection.Seq;
 
 // #module-class-definition
 public class MyModule extends play.api.inject.Module {
-    public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        return seq(
-                bind(MyApi.class).toSelf()
-        );
-    }
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    return seq(bind(MyApi.class).toSelf());
+  }
 }
 // #module-class-definition

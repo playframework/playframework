@@ -3,10 +3,10 @@
  */
 package javaguide.forms.customconstraint;
 
-//#interface
+// #interface
 import play.db.Database;
 
 public interface ValidatableWithDB<T> {
-    public T validate(final Database db);
+  public T validate(final Database db);
 }
-//#interface
+// #interface

@@ -3,7 +3,7 @@
  */
 package javaguide.tests;
 
-//#client
+// #client
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -13,20 +13,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.ws.WSClient;
 
 class GitHubClient {
-    private WSClient ws;
+  private WSClient ws;
 
-    @Inject
-    public GitHubClient(WSClient ws) {
-        this.ws = ws;
-    }
+  @Inject
+  public GitHubClient(WSClient ws) {
+    this.ws = ws;
+  }
 
-    String baseUrl = "https://api.github.com";
+  String baseUrl = "https://api.github.com";
 
-    public CompletionStage<List<String>> getRepositories() {
-        return ws.url(baseUrl + "/repositories").get().thenApply(response ->
-            response.asJson().findValues("full_name").stream()
-                .map(JsonNode::asText).collect(Collectors.toList())
-        );
-    }
+  public CompletionStage<List<String>> getRepositories() {
+    return ws.url(baseUrl + "/repositories")
+        .get()
+        .thenApply(
+            response ->
+                response.asJson().findValues("full_name").stream()
+                    .map(JsonNode::asText)
+                    .collect(Collectors.toList()));
+  }
 }
-//#client
+// #client

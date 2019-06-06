@@ -8,9 +8,9 @@ val akkaVersion = "2.5.16"
 
 // Akka dependencies used by Play
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "com.typesafe.akka" %% "akka-actor"  % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+  "com.typesafe.akka" %% "akka-slf4j"  % akkaVersion,
   // Only if you are using Akka Testkit
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion
 )

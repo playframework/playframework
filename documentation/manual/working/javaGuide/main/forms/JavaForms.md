@@ -5,7 +5,7 @@ Before you start with Play forms, read the documentation on the [[Play enhancer|
 
 ## Enabling/Disabling the forms module
 
-By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` SBT plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
+By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` sbt plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
 
 The forms module is also available in `PlayImport` as `javaForms`, which can be used with `libraryDependencies += javaForms` in your `build.sbt`.
 

@@ -23,28 +23,30 @@ import java.io.IOException;
 
 public class StandaloneWithConfig {
 
-    @Test
-    public void testMe() throws IOException {
-        //#ws-standalone-with-config
-        // Set up Akka
-        String name = "wsclient";
-        ActorSystem system = ActorSystem.create(name);
-        ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
-        ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+  @Test
+  public void testMe() throws IOException {
+    // #ws-standalone-with-config
+    // Set up Akka
+    String name = "wsclient";
+    ActorSystem system = ActorSystem.create(name);
+    ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
+    ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
 
-        // Read in config file from application.conf
-        Config conf = ConfigFactory.load();
-        WSConfigParser parser = new WSConfigParser(conf, ClassLoader.getSystemClassLoader());
-        AhcWSClientConfig clientConf = AhcWSClientConfigFactory.forClientConfig(parser.parse());
+    // Read in config file from application.conf
+    Config conf = ConfigFactory.load();
+    WSConfigParser parser = new WSConfigParser(conf, ClassLoader.getSystemClassLoader());
+    AhcWSClientConfig clientConf = AhcWSClientConfigFactory.forClientConfig(parser.parse());
 
-        // Start up asynchttpclient
-        final DefaultAsyncHttpClientConfig asyncHttpClientConfig = new AhcConfigBuilder(clientConf).configure().build();
-        final DefaultAsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig);
+    // Start up asynchttpclient
+    final DefaultAsyncHttpClientConfig asyncHttpClientConfig =
+        new AhcConfigBuilder(clientConf).configure().build();
+    final DefaultAsyncHttpClient asyncHttpClient =
+        new DefaultAsyncHttpClient(asyncHttpClientConfig);
 
-        // Create a new WS client, and then close the client.
-        WSClient client = new AhcWSClient(asyncHttpClient, materializer);
-        client.close();
-        system.terminate();
-        //#ws-standalone-with-config
-    }
+    // Create a new WS client, and then close the client.
+    WSClient client = new AhcWSClient(asyncHttpClient, materializer);
+    client.close();
+    system.terminate();
+    // #ws-standalone-with-config
+  }
 }

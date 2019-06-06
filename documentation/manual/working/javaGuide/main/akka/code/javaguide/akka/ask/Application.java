@@ -6,7 +6,7 @@ package javaguide.akka.ask;
 import javaguide.akka.HelloActor;
 import javaguide.akka.HelloActorProtocol.SayHello;
 
-//#ask
+// #ask
 import akka.actor.*;
 import play.mvc.*;
 import scala.compat.java8.FutureConverters;
@@ -18,15 +18,16 @@ import static akka.pattern.Patterns.ask;
 @Singleton
 public class Application extends Controller {
 
-    final ActorRef helloActor;
+  final ActorRef helloActor;
 
-    @Inject public Application(ActorSystem system) {
-        helloActor = system.actorOf(HelloActor.getProps());
-    }
+  @Inject
+  public Application(ActorSystem system) {
+    helloActor = system.actorOf(HelloActor.getProps());
+  }
 
-    public CompletionStage<Result> sayHello(String name) {
-        return FutureConverters.toJava(ask(helloActor, new SayHello(name), 1000))
-                .thenApply(response -> ok((String) response));
-    }
+  public CompletionStage<Result> sayHello(String name) {
+    return FutureConverters.toJava(ask(helloActor, new SayHello(name), 1000))
+        .thenApply(response -> ok((String) response));
+  }
 }
-//#ask
+// #ask

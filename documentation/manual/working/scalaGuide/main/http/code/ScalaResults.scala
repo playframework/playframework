@@ -44,9 +44,7 @@ package scalaguide.http.scalaresults {
 
       "Manipulating HTTP headers" in {
         //#set-headers
-        val result = Ok("Hello World!").withHeaders(
-          CACHE_CONTROL -> "max-age=3600",
-          ETAG -> "xx")
+        val result = Ok("Hello World!").withHeaders(CACHE_CONTROL -> "max-age=3600", ETAG -> "xx")
         //#set-headers
         testHeader(result, CACHE_CONTROL, "max-age=3600")
         testHeader(result, ETAG, "xx")
@@ -76,7 +74,7 @@ package scalaguide.http.scalaresults {
         assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
       }
 
-       "HTML method works" in {
+      "HTML method works" in {
         val result = scalaguide.http.scalaresults.full.CodeShow.HTML(Codec.javaSupported("iso-8859-1"))
         result must contain("iso-8859-1")
       }
@@ -87,15 +85,25 @@ package scalaguide.http.scalaresults {
     }
 
     def testHeader(results: Result, key: String, value: String) = {
-      results.bakeCookies() // bake cookies with default configuration
-        .header.headers.get(key).get must contain(value)
+      results
+        .bakeCookies() // bake cookies with default configuration
+        .header
+        .headers
+        .get(key)
+        .get must contain(value)
     }
 
     def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
-      assertAction(action, expectedResponse, request) { result => success }
+      assertAction(action, expectedResponse, request) { result =>
+        success
+      }
     }
 
-    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
+    def assertAction[A, T: AsResult](
+        action: Action[A],
+        expectedResponse: Int = OK,
+        request: Request[A] = FakeRequest()
+    )(assertions: Future[Result] => T) = {
       running() { app =>
         val result = action(request)
         status(result) must_== expectedResponse
@@ -120,13 +128,12 @@ package scalaguide.http.scalaresults {
     }
     //#full-application-set-myCustomCharset
 
-
-  object CodeShow {
-    //#Source-Code-HTML
-    def HTML(implicit codec: Codec) = {
-      "text/html; charset=" + codec.charset
+    object CodeShow {
+      //#Source-Code-HTML
+      def HTML(implicit codec: Codec) = {
+        "text/html; charset=" + codec.charset
+      }
+      //#Source-Code-HTML
     }
-    //#Source-Code-HTML
   }
-   }
 }

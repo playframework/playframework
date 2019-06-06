@@ -10,10 +10,13 @@ publishArtifact in (Compile, packageDoc) := false
 
 //#publish-repo
 publishTo := Some(
-  "My resolver" at "https://mycompany.com/repo"
+  "My resolver".at("https://mycompany.com/repo")
 )
 
 credentials += Credentials(
-  "Repo", "https://mycompany.com/repo", "admin", "admin123"
+  "Repo",
+  "https://mycompany.com/repo",
+  "admin",
+  "admin123"
 )
 //#publish-repo
