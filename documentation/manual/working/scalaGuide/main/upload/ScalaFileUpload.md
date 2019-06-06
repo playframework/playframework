@@ -11,6 +11,8 @@ Start by writing an HTML form:
 
 @[file-upload-form](code/scalaguide/templates/views/uploadForm.scala.html)
 
+Add a CSRF token to the form, unless you have the [[CSRF filter|ScalaCsrf]] disabled. The CSRF filter checks the multi-part form in the order the fields are listed, so put the CSRF token before the file input field. This improves efficiency and avoids a token-not-found error if the file size exceeds `play.filters.csrf.body.bufferSize`.
+
 Now define the `upload` action using a `multipartFormData` body parser:
 
 @[upload-file-action](code/ScalaFileUpload.scala)
