@@ -278,8 +278,12 @@ object Docs {
         .get(structure.data)
         .map(_.map { resources =>
           (for {
-            conf <- resources.filter(resource => resource.name == "reference.conf" || resource.name.endsWith(".xml"))
-            id   <- projectId.toSeq
+            conf <- resources.filter(
+              resource =>
+                resource.name == "reference.conf" || resource.name.endsWith(".xml") || resource.name
+                  .endsWith(".default")
+            )
+            id <- projectId.toSeq
           } yield id -> conf).distinct
         })
 

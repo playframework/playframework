@@ -33,6 +33,10 @@ You can also make the language implicit rather than declare it:
 
 @[use-implicit-lang](code/scalaguide/i18n/ScalaI18nService.scala)
 
+Play provides predefined messages for forms validation.  You can overwrite these messages either with the default message file or any language-specific message file. You can see below which messages can be overwritten:
+
+@[](/confs/play/messages.default)
+
 ## Using Messages and MessagesProvider
 
 Because it's common to want to use messages without having to provide an argument, you can wrap a given `Lang` together with the [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) to create a [`play.api.i18n.Messages`](api/scala/play/api/i18n/MessagesImpl.html) instance.  The [`play.api.i18n.MessagesImpl`](api/scala/play/api/i18n/MessagesImpl.html) case class implements the [`Messages`](api/scala/play/api/i18n/Messages.html) trait if you want to create one directly:
