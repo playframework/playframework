@@ -378,6 +378,24 @@ trait JavaResultsHandlingSpec
         )
       }
 
+      "respect play.i18n.langCookieMaxAge configuration" in makeRequestWithApp(
+        additionalConfig = Map(
+          "play.i18n.langCookieMaxAge" -> "15s"
+        )
+      ) { app =>
+        new MockController() {
+          override def action(request: Http.Request): Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain(
+          (s: String) => s.startsWith("PLAY_LANG=pt-BR; Max-Age=15; Expires="), // Mon, 11 Mar 2019 15:34:23 GMT
+          (s: String) => s.endsWith("; SameSite=Lax; Path=/")
+        )
+      }
+
       "respect play.i18n.langCookieSecure configuration" in makeRequestWithApp(
         additionalConfig = Map(
           "play.i18n.langCookieSecure" -> "true"

@@ -168,4 +168,4 @@ For unit testing purposes, [`DefaultMessagesApi`](api/scala/play/api/i18n/Defaul
 
 @[scalatest-examplemessagesspec](code/specs2/ExampleMessagesSpec.scala)
 
-You can also use [`Helpers.stubMessagesApi()`](api/scala/play/api/test/Helpers$.html#stubMessagesApi\(messages:Map[String,Map[String,String]],langs:play.api.i18n.Langs,langCookieName:String,langCookieSecure:Boolean,langCookieHttpOnly:Boolean,langCookieSameSite:Option[play.api.mvc.Cookie.SameSite],httpConfiguration:play.api.http.HttpConfiguration\):play.api.i18n.MessagesApi) in testing to provide a premade empty [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html).
+You can also use [`Helpers.stubMessagesApi()`](api/scala/play/api/test/Helpers$.html#stubMessagesApi\(messages:Map[String,Map[String,String]],langs:play.api.i18n.Langs,langCookieName:String,langCookieSecure:Boolean,langCookieHttpOnly:Boolean,langCookieSameSite:Option[play.api.mvc.Cookie.SameSite],httpConfiguration:play.api.http.HttpConfiguration,langCookieMaxAge:Option[Int]\):play.api.i18n.MessagesApi) in testing to provide a premade empty [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html).

@@ -548,6 +548,7 @@ trait StubMessagesFactory {
    * @param langCookieHttpOnly false by default
    * @param langCookieSameSite None by default
    * @param httpConfiguration configuration, HttpConfiguration() by default.
+   * @param langCookieMaxAge None by default
    * @return the messagesApi with minimal configuration.
    */
   def stubMessagesApi(
@@ -557,7 +558,8 @@ trait StubMessagesFactory {
       langCookieSecure: Boolean = false,
       langCookieHttpOnly: Boolean = false,
       langCookieSameSite: Option[SameSite] = None,
-      httpConfiguration: HttpConfiguration = HttpConfiguration()
+      httpConfiguration: HttpConfiguration = HttpConfiguration(),
+      langCookieMaxAge: Option[Int] = None
   ): MessagesApi = {
     new DefaultMessagesApi(
       messages,
@@ -566,7 +568,8 @@ trait StubMessagesFactory {
       langCookieSecure,
       langCookieHttpOnly,
       langCookieSameSite,
-      httpConfiguration
+      httpConfiguration,
+      langCookieMaxAge
     )
   }
 
