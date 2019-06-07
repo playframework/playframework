@@ -10,6 +10,7 @@ pull_request_rules:
     actions:
       merge:
         method: merge
+        strict: smart
 
   - name: backport patches to 2.7.x branch
     conditions:
