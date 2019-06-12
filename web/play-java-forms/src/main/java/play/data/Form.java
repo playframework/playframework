@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static play.api.templates.PlayMagic.translate;
 import static play.libs.F.Tuple;
 
 /** Helper to manage HTML form description, submission and validation. */
@@ -1217,7 +1218,7 @@ public class Form<T> {
                   messagesApi.get(
                       lang,
                       reversedMessages,
-                      translateMsgArg(error.arguments(), messagesApi, lang)));
+                      translate(error.arguments(), new MessagesImpl(lang, this.messagesApi))));
             } else {
               messages.add(error.message());
             }
@@ -1225,32 +1226,6 @@ public class Form<T> {
           }
         });
     return play.libs.Json.toJson(allMessages);
-  }
-
-  private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, Lang lang) {
-    if (arguments != null) {
-      return arguments.stream()
-          .map(
-              arg -> {
-                if (arg instanceof String) {
-                  return messagesApi != null ? messagesApi.get(lang, (String) arg) : (String) arg;
-                }
-                if (arg instanceof List) {
-                  return ((List<?>) arg)
-                      .stream()
-                          .map(
-                              key ->
-                                  messagesApi != null
-                                      ? messagesApi.get(lang, (String) key)
-                                      : (String) key)
-                          .collect(Collectors.toList());
-                }
-                return arg;
-              })
-          .collect(Collectors.toList());
-    } else {
-      return null;
-    }
   }
 
   /**
