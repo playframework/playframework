@@ -445,7 +445,7 @@ class FormSpec extends Specification {
 
     val form =
       Form(single("foo" -> Forms.text), Map.empty, Seq(FormError("foo", "error.custom", Seq("error.customarg"))), None)
-    (form.errorsAsJson \ "foo")(0).asOpt[String] must beSome("This is a custom error")
+    (form.errorsAsJson \ "foo")(0).asOpt[String] must beSome("This <b>is</b> a custom <b>error</b>")
   }
 
   "correctly format error messages with arguments" in {

@@ -9,6 +9,7 @@ import scala.language.existentials
 import format._
 import play.api.data.validation._
 import play.api.http.HttpVerbs
+import play.api.templates.PlayMagic.translate
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -257,19 +258,11 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
       errors
         .groupBy(_.key)
         .mapValues { errors =>
-          errors.map(e => messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
+          errors.map(e => messages(e.message, e.args.map(a => translate(a)): _*))
         }
         .toMap
     )
 
-  }
-
-  private def translateMsgArg(msgArg: Any)(implicit provider: play.api.i18n.MessagesProvider) = msgArg match {
-    case key: String => provider.messages(key)
-    case keys: Seq[_] =>
-      val k = keys.asInstanceOf[Seq[String]]
-      k.map(key => provider.messages(key))
-    case _ => msgArg
   }
 
   /**
