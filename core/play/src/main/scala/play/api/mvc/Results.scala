@@ -794,7 +794,7 @@ trait Results {
       .map { params =>
         (if (url.contains("?")) "&" else "?") + params.toSeq
           .flatMap { pair =>
-            pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
+            pair._2.map(value => (URLEncoder.encode(pair._1, "utf-8") + "=" + URLEncoder.encode(value, "utf-8")))
           }
           .mkString("&")
       }
