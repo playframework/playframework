@@ -8,6 +8,7 @@ import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
 
+import play.api.Configuration;
 import play.api.OptionalDevContext;
 import play.api.OptionalSourceMapper;
 import play.api.http.DefaultFileMimeTypesProvider;
@@ -268,14 +269,15 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
   }
 
   private Files.TemporaryFileCreator createTempFileCreator() {
+
+    Configuration conf = configuration();
     play.api.libs.Files.DefaultTemporaryFileReaper temporaryFileReaper =
         new play.api.libs.Files.DefaultTemporaryFileReaper(
             actorSystem(),
-            play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(
-                configuration()));
+            play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(conf));
 
     return new play.api.libs.Files.DefaultTemporaryFileCreator(
-            applicationLifecycle().asScala(), temporaryFileReaper)
+            applicationLifecycle().asScala(), temporaryFileReaper, conf)
         .asJava();
   }
 }

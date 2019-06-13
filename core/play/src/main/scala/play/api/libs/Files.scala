@@ -239,7 +239,8 @@ object Files {
   @Singleton
   class DefaultTemporaryFileCreator @Inject()(
       applicationLifecycle: ApplicationLifecycle,
-      temporaryFileReaper: TemporaryFileReaper
+      temporaryFileReaper: TemporaryFileReaper,
+      conf: Configuration
   ) extends TemporaryFileCreator {
 
     private val logger = play.api.Logger(this.getClass)
@@ -253,8 +254,19 @@ object Files {
     private val references = Sets.newConcurrentHashSet[Reference[TemporaryFile]]()
 
     private val TempDirectoryPrefix = "playtemp"
-    private val playTempFolder: Path = {
-      val tmpFolder = JFiles.createTempDirectory(TempDirectoryPrefix)
+    private val playTempFolder: Path = buildPlayTempFolderFromConfiguration(conf)
+
+    private def buildPlayTempFolderFromConfiguration(conf: Configuration) : Path = {
+
+      val tmpFolder =
+        if (conf.has("play.temporaryFile.dir")) {
+          val dir = conf.get[String]("play.temporaryFile.dir")
+          Paths.get( s"$dir/$TempDirectoryPrefix")
+        }
+        else {
+          JFiles.createTempDirectory(TempDirectoryPrefix)
+        }
+
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
