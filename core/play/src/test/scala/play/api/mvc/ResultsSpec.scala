@@ -345,9 +345,9 @@ class ResultsSpec extends Specification {
     }
 
     "redirect with a query string" in {
-      val url                 = "http://host:port/path"
-      val queryString         = Map(
-        "*-._" -> Seq(""" """"),
+      val url = "http://host:port/path"
+      val queryString = Map(
+        "*-._"   -> Seq(""" """"),
         """ """" -> Seq("*-._")
       )
       val expectedQueryString = "*-._=+%22&+%22=*-._"
