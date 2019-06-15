@@ -8,18 +8,12 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M2")
-  val akkaHttpVersion = Def.setting {
-    val sv = scalaVersion.value
-    sys.props.getOrElse("akka.http.version", CrossVersion.partialVersion(sv) match {
-      case Some((2, 13)) => "10.1.8+26-f33ec39a"
-      case _             => "10.1.8"
-    })
-  }
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M3")
+  val akkaHttpVersion = "10.1.8"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 
-  val playJsonVersion = "2.8.0-M1"
+  val playJsonVersion = "2.8.0-M3"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -227,7 +221,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.1.0-M1"
+  val playDocVersion = "2.1.0-M2"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -281,7 +275,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.0-M2"
+  val playWsStandaloneVersion = "2.1.0-M3"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
@@ -337,7 +331,7 @@ object AkkaDependency {
         project.dependsOn(withConfig)
       } else {
         project.settings(libraryDependencies += {
-          val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion.value
+          val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
           if (config == "") dep else dep % config
         })
       }
