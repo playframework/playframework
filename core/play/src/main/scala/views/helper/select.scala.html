@@ -30,7 +30,7 @@
     }){ selectedValues =>
         <select id="@id" name="@selectName" @toHtmlArgs(htmlArgs)>
             @args.toMap.get('_default).map { defaultValue =>
-                <option class="blank" value="">@defaultValue</option>
+                <option class="blank" value="">@translate(defaultValue)</option>
             }
             @options.map { case (k, v) =>
                 @defining( selectedValues.contains(k) ) { selected =>
