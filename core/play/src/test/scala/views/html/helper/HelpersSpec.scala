@@ -50,6 +50,22 @@ class HelpersSpec extends Specification {
     }
   }
 
+  "@checkbox" should {
+    "translate the _text argument" in {
+      val form = Form(single("foo"                  -> Forms.list(Forms.text)))
+      val body = checkbox.apply(form("foo"), '_text -> "myfieldlabel").body
+
+      body must contain("""<span>I am the &lt;b&gt;label&lt;/b&gt; of the field</span>""")
+    }
+
+    "translate the _text argument but keep raw html" in {
+      val form = Form(single("foo"                  -> Forms.list(Forms.text)))
+      val body = checkbox.apply(form("foo"), '_text -> Html("myfieldlabel")).body
+
+      body must contain("""<span>I am the <b>label</b> of the field</span>""")
+    }
+  }
+
   "@checkboxGroup" should {
     "allow to check more than one checkbox" in {
       val form = Form(single("hobbies" -> Forms.list(Forms.text))).fill(List("S", "B"))
@@ -118,6 +134,24 @@ class HelpersSpec extends Specification {
       body must contain("""<option value="0" disabled>test0</option>""")
       body must contain("""<option value="1">test1</option>""")
       body must contain("""<option value="2" disabled>test2</option>""")
+    }
+
+    "translate default option" in {
+      val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
+      val body =
+        select.apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), '_default -> "myfieldlabel").body
+
+      body must contain("""<option class="blank" value="">I am the &lt;b&gt;label&lt;/b&gt; of the field</option>""")
+    }
+
+    "translate default option but keep raw html" in {
+      val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
+      val body =
+        select
+          .apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), '_default -> Html("myfieldlabel"))
+          .body
+
+      body must contain("""<option class="blank" value="">I am the <b>label</b> of the field</option>""")
     }
   }
 
@@ -200,7 +234,7 @@ class HelpersSpec extends Specification {
   }
 
   "helpers" should {
-    "correctly lookup constraint, error and format messages" in {
+    "correctly lookup and escape constraint, error and format messages" in {
 
       val field = Field(
         Form(single("foo" -> Forms.text)),
@@ -213,20 +247,46 @@ class HelpersSpec extends Specification {
 
       val body = inputText.apply(field).body
 
-      body must contain("""<dd class="error">This is a custom error</dd>""")
-      body must contain("""<dd class="info">I am a custom constraint</dd>""")
-      body must contain("""<dd class="info">Look at me! I am a custom format pattern</dd>""")
+      body must contain("""<dd class="error">This &lt;b&gt;is&lt;/b&gt; a custom &lt;b&gt;error&lt;/b&gt;</dd>""")
+      body must contain("""<dd class="info">I &lt;b&gt;am&lt;/b&gt; a custom &lt;b&gt;constraint&lt;/b&gt;</dd>""")
+      body must contain(
+        """<dd class="info">Look &lt;b&gt;at&lt;/b&gt; me! I am a custom &lt;b&gt;format&lt;/b&gt; pattern</dd>"""
+      )
     }
 
     "correctly lookup _label in messages" in {
       inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> "myfieldlabel").body must contain(
-        "I am the label of the field"
+        "I am the &lt;b&gt;label&lt;/b&gt; of the field"
+      )
+    }
+
+    "correctly lookup _label in messages but keep raw html" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> Html("myfieldlabel")).body must contain(
+        "I am the <b>label</b> of the field"
       )
     }
 
     "correctly lookup _name in messages" in {
       inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> "myfieldname").body must contain(
-        "I am the name of the field"
+        "I am the &lt;b&gt;name&lt;/b&gt; of the field"
+      )
+    }
+
+    "correctly lookup _name in messages but keep raw html" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> Html("myfieldname")).body must contain(
+        "I am the <b>name</b> of the field"
+      )
+    }
+
+    "correctly lookup _help in messages" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_help -> "myfieldname").body must contain(
+        """<dd class="info">I am the &lt;b&gt;name&lt;/b&gt; of the field</dd>"""
+      )
+    }
+
+    "correctly lookup _help in messages but keep raw html" in {
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_help -> Html("myfieldname")).body must contain(
+        """<dd class="info">I am the <b>name</b> of the field</dd>"""
       )
     }
 
@@ -236,9 +296,41 @@ class HelpersSpec extends Specification {
       )
     }
 
+    "correctly lookup error in messages when _error is supplied as String" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> "error.generalcustomerror")
+        .body must contain(
+        """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as String but keep raw html" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Html("error.generalcustomerror"))
+        .body must contain(
+        """<dd class="error">Some <b>general custom</b> error message</dd>"""
+      )
+    }
+
     "correctly display an error when _error is supplied as Option[String]" in {
       inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option("Force an error")).body must contain(
         """<dd class="error">Force an error</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as Option[String]" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option("error.generalcustomerror"))
+        .body must contain(
+        """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as Option[String] but keep raw html" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option(Html("error.generalcustomerror")))
+        .body must contain(
+        """<dd class="error">Some <b>general custom</b> error message</dd>"""
       )
     }
 
@@ -247,6 +339,28 @@ class HelpersSpec extends Specification {
         .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option(FormError("foo", "Force an error")))
         .body must contain(
         """<dd class="error">Force an error</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as FormError" in {
+      inputText
+        .apply(
+          Form(single("foo" -> Forms.text))("foo"),
+          '_error -> FormError("foo", "error.generalcustomerror")
+        )
+        .body must contain(
+        """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as Option[FormError]" in {
+      inputText
+        .apply(
+          Form(single("foo" -> Forms.text))("foo"),
+          '_error -> Option(FormError("foo", "error.generalcustomerror"))
+        )
+        .body must contain(
+        """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
       )
     }
 
