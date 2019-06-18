@@ -437,7 +437,6 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       tempFile.exists must beFalse
     }
 
-
     "works when using custom temporary file directory" in new WithScope() {
         val lifecycle   = new DefaultApplicationLifecycle
         val reaper      = mock[TemporaryFileReaper]

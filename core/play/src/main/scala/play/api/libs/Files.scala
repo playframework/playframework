@@ -253,20 +253,10 @@ object Files {
     // Keeping references ensures that the FinalizablePhantomReference itself is not garbage-collected.
     private val references = Sets.newConcurrentHashSet[Reference[TemporaryFile]]()
 
-    private val TempDirectoryPrefix = "playtemp"
-    private val playTempFolder: Path = buildPlayTempFolderFromConfiguration(conf)
-
-    private def buildPlayTempFolderFromConfiguration(conf: Configuration) : Path = {
-
-      val tmpFolder =
-        if (conf.has("play.temporaryFile.dir")) {
-          val dir = conf.get[String]("play.temporaryFile.dir")
-          Paths.get( s"$dir/$TempDirectoryPrefix")
-        }
-        else {
-          JFiles.createTempDirectory(TempDirectoryPrefix)
-        }
-
+    private val TempDirectoryPrefix  = "playtemp"
+    private val playTempFolder: Path = {
+      val dir = conf.get[String]("play.temporaryFile.dir")
+      val tmpFolder = JFiles.createDirectories(Paths.get(s"$dir/$TempDirectoryPrefix"))
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }

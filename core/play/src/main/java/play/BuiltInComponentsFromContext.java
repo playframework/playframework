@@ -269,7 +269,6 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
   }
 
   private Files.TemporaryFileCreator createTempFileCreator() {
-
     Configuration conf = configuration();
     play.api.libs.Files.DefaultTemporaryFileReaper temporaryFileReaper =
         new play.api.libs.Files.DefaultTemporaryFileReaper(
