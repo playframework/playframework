@@ -8,6 +8,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -4535,6 +4539,30 @@ public class Results {
    */
   public static Result redirect(String url) {
     return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, url));
+  }
+
+  /**
+   * Generates a 303 See Other result.
+   *
+   * @param url The url to redirect
+   * @param queryStringParams queryString parameters to add to the queryString
+   * @return the result
+   */
+  public static Result redirect(String url, Map<String, List<String>> queryStringParams) {
+    String fullUrl;
+    if (queryStringParams.isEmpty()) {
+      fullUrl = url;
+    } else {
+      String queryString = queryStringParams
+              .entrySet()
+              .stream()
+              .map(entry -> entry.getKey() + "=" + entry.getValue())
+              .collect(Collectors.joining("&"));
+
+      fullUrl = url + (url.contains("?") ? "&" : "?") + queryString;
+    }
+
+    return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
   }
 
   /**

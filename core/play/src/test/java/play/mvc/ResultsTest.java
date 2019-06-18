@@ -11,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -239,5 +241,41 @@ public class ResultsTest {
     assertTrue(result.cookie("foo").isPresent());
     assertEquals(result.cookie("foo").get().name(), "foo");
     assertFalse(result.cookie("bar").isPresent());
+  }
+
+  @Test
+  public void redirectShouldReturnTheSameUrlIfTheQueryStringParamsAreEmpty() {
+    Map queryStringParameters = new HashMap<>();
+    String url = "/somewhere";
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(url, result.redirectLocation().get());
+  }
+
+  @Test
+  public void redirectShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
+    Map.Entry entry1 = Map.entry("param1" , Arrays.asList("value1"));
+    Map queryStringParameters = Map.ofEntries(entry1);
+    String url = "/somewhere?param2=value2";
+
+    String expectedRedirectUrl = url + "&" + entry1.getKey() + "=" + entry1.getValue();
+
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(expectedRedirectUrl, result.redirectLocation().get());
+  }
+
+  @Test
+  public void redirectShouldAddQueryStringParamsToTheRedirectUrl() {
+    Map.Entry entry1 = Map.entry("param1" , Arrays.asList("value1"));
+    Map.Entry entry2 = Map.entry("param2" , Arrays.asList("value2"));
+    Map queryStringParameters = Map.ofEntries(entry1, entry2);
+    String url = "/somewhere";
+
+    String expectedRedirectUrl = url + "?" + entry1.getKey() + "=" + entry1.getValue() + "&" + entry2.getKey() + "=" + entry2.getValue();
+
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(expectedRedirectUrl, result.redirectLocation().get());
   }
 }
