@@ -7,14 +7,13 @@ package play.mvc;
 import org.junit.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import play.mvc.Http.HeaderNames;
 
@@ -254,11 +253,11 @@ public class ResultsTest {
 
   @Test
   public void redirectShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
-    Map.Entry entry1 = Map.entry("param1" , Arrays.asList("value1"));
+    Map.Entry<String, List<String>> entry1 = Map.entry("param1" , Arrays.asList("value1"));
     Map queryStringParameters = Map.ofEntries(entry1);
     String url = "/somewhere?param2=value2";
 
-    String expectedRedirectUrl = url + "&" + entry1.getKey() + "=" + entry1.getValue();
+    String expectedRedirectUrl = url + "&" + URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
 
     Result result = Results.redirect(url, queryStringParameters);
     assertTrue(result.redirectLocation().isPresent());
@@ -267,15 +266,17 @@ public class ResultsTest {
 
   @Test
   public void redirectShouldAddQueryStringParamsToTheRedirectUrl() {
-    Map.Entry entry1 = Map.entry("param1" , Arrays.asList("value1"));
-    Map.Entry entry2 = Map.entry("param2" , Arrays.asList("value2"));
+    Map.Entry<String, List<String>> entry1 = Map.entry("param1" , Arrays.asList("value1"));
+    Map.Entry<String, List<String>> entry2 = Map.entry("param2" , Arrays.asList("value2"));
     Map queryStringParameters = Map.ofEntries(entry1, entry2);
     String url = "/somewhere";
 
-    String expectedRedirectUrl = url + "?" + entry1.getKey() + "=" + entry1.getValue() + "&" + entry2.getKey() + "=" + entry2.getValue();
+    String expectedParam1Encoded = URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
+    String expectedParam2Encoded = URLEncoder.encode(entry2.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry2.getValue().get(0), StandardCharsets.UTF_8);
 
     Result result = Results.redirect(url, queryStringParameters);
     assertTrue(result.redirectLocation().isPresent());
-    assertEquals(expectedRedirectUrl, result.redirectLocation().get());
+    assertTrue(result.redirectLocation().get().contains(expectedParam1Encoded));
+    assertTrue(result.redirectLocation().get().contains(expectedParam2Encoded));
   }
 }

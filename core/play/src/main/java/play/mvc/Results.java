@@ -6,12 +6,13 @@ package play.mvc;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -4556,7 +4557,11 @@ public class Results {
       String queryString = queryStringParams
               .entrySet()
               .stream()
-              .map(entry -> entry.getKey() + "=" + entry.getValue())
+              .flatMap(
+                      entry -> entry.getValue().stream().map(
+                              parameterValue -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(parameterValue, StandardCharsets.UTF_8)
+                      )
+              )
               .collect(Collectors.joining("&"));
 
       fullUrl = url + (url.contains("?") ? "&" : "?") + queryString;
