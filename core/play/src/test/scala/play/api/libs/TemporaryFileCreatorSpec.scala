@@ -6,7 +6,8 @@ package play.api.libs
 
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.{ Path, Paths }
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.{ Files => JFiles }
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -385,7 +386,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "do not move when destination exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper,Configuration.reference)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("do-not-replace.txt")
         val destination = parentDirectory.resolve("already-exists.txt")
@@ -438,18 +439,17 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "works when using custom temporary file directory" in new WithScope() {
-        val lifecycle   = new DefaultApplicationLifecycle
-        val reaper      = mock[TemporaryFileReaper]
-        val path        = parentDirectory.toAbsolutePath().toString()
-        val customPath  = s"$path/custom/"
-        val conf        = Configuration.from(Map("play.temporaryFile.dir" -> customPath))
-        val creator     = new DefaultTemporaryFileCreator(lifecycle, reaper, conf)
+      val lifecycle  = new DefaultApplicationLifecycle
+      val reaper     = mock[TemporaryFileReaper]
+      val path       = parentDirectory.toAbsolutePath().toString()
+      val customPath = s"$path/custom/"
+      val conf       = Configuration.from(Map("play.temporaryFile.dir" -> customPath))
+      val creator    = new DefaultTemporaryFileCreator(lifecycle, reaper, conf)
 
-        creator.create("foo", "bar")
+      creator.create("foo", "bar")
 
-        JFiles.exists(Paths.get(s"$customPath/playtemp")) must beTrue
-      }
-
+      JFiles.exists(Paths.get(s"$customPath/playtemp")) must beTrue
+    }
   }
 
   private def writeFile(file: Path, content: String) = {
