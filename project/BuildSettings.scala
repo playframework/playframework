@@ -90,7 +90,6 @@ object BuildSettings {
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
     scalaVersion := ScalaVersions.scala212,
-    crossScalaVersions := Seq(ScalaVersions.scala213, ScalaVersions.scala212, "2.11.12"),
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -267,6 +266,9 @@ object BuildSettings {
       .settings(
         // Need to add this after updating to Scala 2.11.12
         scalacOptions += "-target:jvm-1.8"
+      )
+      .settings(
+        crossScalaVersions := Seq(ScalaVersions.scala213, ScalaVersions.scala212, "2.11.12")
       )
   }
 
