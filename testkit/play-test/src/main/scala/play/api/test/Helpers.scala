@@ -748,4 +748,10 @@ object NoMaterializer extends Materializer {
 
   def schedulePeriodically(initialDelay: FiniteDuration, interval: FiniteDuration, task: Runnable): Cancellable =
     throw new UnsupportedOperationException("NoMaterializer cannot schedule a repeated event")
+
+  def scheduleAtFixedRate(initialDelay: FiniteDuration, interval: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer cannot schedule at a fixed rate")
+
+  def scheduleWithFixedDelay(initialDelay: FiniteDuration, delay: FiniteDuration, task: Runnable): Cancellable =
+    throw new UnsupportedOperationException("NoMaterializer cannot schedule at a fixed delay")
 }
