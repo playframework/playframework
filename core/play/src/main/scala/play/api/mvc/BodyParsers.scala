@@ -361,7 +361,7 @@ trait BodyParserUtils {
   /**
    * Don't parse the body content.
    */
-  def empty: BodyParser[Unit] = ignore(Unit)
+  def empty: BodyParser[Unit] = ignore(())
 
   def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
     Accumulator.done(Right(body))

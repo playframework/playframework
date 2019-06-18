@@ -24,7 +24,7 @@ object Probes {
 
     def probeName: String
 
-    def log[T](method: String, message: String = "", logExtra: => Unit = Unit)(block: => T) = {
+    def log[T](method: String, message: String = "", logExtra: => Unit = ())(block: => T) = {
       val threadName = Thread.currentThread().getName
       try {
         println(s"ENTER $probeName.$method at $time in $threadName: $message")
