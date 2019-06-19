@@ -36,7 +36,7 @@ public class MyActorTask {
   private void initialize() {
     actorSystem
         .scheduler()
-        .schedule(
+        .scheduleAtFixedRate(
             Duration.create(0, TimeUnit.SECONDS), // initialDelay
             Duration.create(30, TimeUnit.SECONDS), // interval
             someActor,

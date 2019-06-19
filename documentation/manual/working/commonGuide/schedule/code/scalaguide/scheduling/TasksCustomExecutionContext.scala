@@ -20,8 +20,8 @@ class TasksCustomExecutionContext @Inject()(actorSystem: ActorSystem)
 //#task-using-custom-execution-context
 class SomeTask @Inject()(actorSystem: ActorSystem, executor: TasksCustomExecutionContext) {
 
-  actorSystem.scheduler.schedule(initialDelay = 10.seconds, interval = 1.minute)({
-    print("Executing something...")
+  actorSystem.scheduler.scheduleAtFixedRate(initialDelay = 10.seconds, interval = 1.minute)({ () =>
+    actorSystem.log.info("Executing something...")
   })(executor) // using the custom execution context
 
 }
