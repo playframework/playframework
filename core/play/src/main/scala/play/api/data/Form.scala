@@ -12,6 +12,7 @@ import play.api.http.HttpVerbs
 import play.api.i18n._
 import play.api.libs.json._
 import play.api.mvc._
+import play.api.templates.PlayMagic.translate
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -247,14 +248,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     val messages = provider.messages
     val map = errors
       .groupBy(_.key)
-      .mapValues(_.map(e => messages(e.message, e.args.map(translateMsgArg): _*)))
+      .mapValues(_.map(e => messages(e.message, e.args.map(translate): _*)))
     Json.toJson(map)
-  }
-
-  private def translateMsgArg(msgArg: Any)(implicit provider: MessagesProvider) = msgArg match {
-    case key: String  => provider.messages(key)
-    case keys: Seq[_] => keys.collect { case key: String => provider.messages(key) }
-    case _            => msgArg
   }
 
   /**

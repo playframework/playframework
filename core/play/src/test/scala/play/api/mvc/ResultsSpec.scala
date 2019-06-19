@@ -344,6 +344,17 @@ class ResultsSpec extends Specification {
       Results.Redirect(Call("GET", url, fragment)).header.headers.get(LOCATION) must_== Option(expectedLocation)
     }
 
+    "redirect with a query string" in {
+      val url = "http://host:port/path"
+      val queryString = Map(
+        "*-._"   -> Seq(""" """"),
+        """ """" -> Seq("*-._")
+      )
+      val expectedQueryString = "*-._=+%22&+%22=*-._"
+      val expectedLocation    = url + "?" + expectedQueryString
+      Results.Redirect(url, queryString).header.headers.get(LOCATION) must_== Option(expectedLocation)
+    }
+
     "redirect with a fragment and status" in {
       val url              = "http://host:port/path?k1=v1&k2=v2"
       val fragment         = "my-fragment"
