@@ -793,8 +793,10 @@ trait Results {
       .filterNot(_.isEmpty)
       .map { params =>
         (if (url.contains("?")) "&" else "?") + params.toSeq
-          .flatMap { pair =>
-            pair._2.map(value => (URLEncoder.encode(pair._1, "utf-8") + "=" + URLEncoder.encode(value, "utf-8")))
+          .flatMap {
+            case (key, values) =>
+              val encodedKey = URLEncoder.encode(key, "utf-8")
+              values.map(value => (encodedKey + "=" + URLEncoder.encode(value, "utf-8")))
           }
           .mkString("&")
       }
