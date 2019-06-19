@@ -2340,10 +2340,10 @@ public class Http {
      */
     public ByteString asBytes() {
       if (body == null) {
-        return ByteString.empty();
+        return ByteString.emptyByteString();
       } else if (body instanceof Optional) {
         if (!((Optional<?>) body).isPresent()) {
-          return ByteString.empty();
+          return ByteString.emptyByteString();
         }
       } else if (body instanceof ByteString) {
         return (ByteString) body;

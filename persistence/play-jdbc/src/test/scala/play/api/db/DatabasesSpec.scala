@@ -6,7 +6,7 @@ package play.api.db
 
 import java.sql.SQLException
 
-import org.jdbcdslog.LogSqlDataSource
+import org.jdbcdslog.ConnectionPoolDataSourceProxy
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
 
@@ -35,7 +35,7 @@ class DatabasesSpec extends Specification {
     "create database with log sql" in new WithDatabase {
       val config = Map("logSql" -> "true")
       val db     = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
-      db.dataSource must beAnInstanceOf[LogSqlDataSource]
+      db.dataSource must beAnInstanceOf[ConnectionPoolDataSourceProxy]
     }
 
     "create default in-memory database" in new WithDatabase {

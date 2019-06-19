@@ -11,13 +11,13 @@ object Dependencies {
   val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.23")
   val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.8")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.7"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.8"
 
-  val playJsonVersion = "2.7.2"
+  val playJsonVersion = "2.7.4"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.3.6"
+  val specs2Version = "4.5.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -86,7 +86,7 @@ object Dependencies {
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1")
+    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
     case _                               => Nil
   }
 
@@ -220,7 +220,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.0.0"
+  val playDocVersion = "2.0.2"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -274,7 +274,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.4"
+  val playWsStandaloneVersion = "2.0.6"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,

@@ -267,6 +267,9 @@ object BuildSettings {
         // Need to add this after updating to Scala 2.11.12
         scalacOptions += "-target:jvm-1.8"
       )
+      .settings(
+        crossScalaVersions := Seq(ScalaVersions.scala213, ScalaVersions.scala212, "2.11.12")
+      )
   }
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(

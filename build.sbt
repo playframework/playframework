@@ -21,6 +21,7 @@ import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
 import sbt.io.Path._
+import com.typesafe.tools.mima.core.MissingClassProblem
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
@@ -140,6 +141,11 @@ lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistenc
 
 lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "persistence/play-jdbc")
   .settings(libraryDependencies ++= jdbcDeps)
+  .settings(
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[MissingClassProblem]("org.jdbcdslog.LogSqlDataSource")
+    )
+  )
   .dependsOn(PlayJdbcApiProject)
   .dependsOn(PlaySpecs2Project % "test")
 

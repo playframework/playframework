@@ -7,7 +7,8 @@ package play.api.db
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
-import org.jdbcdslog.LogSqlDataSource
+import org.jdbcdslog.ConnectionPoolDataSourceProxy
+import org.jdbcdslog.AccessConnectionPoolDataSourceProxy
 import play.api.Environment
 import play.api.Mode
 import play.api.inject.Injector
@@ -103,7 +104,7 @@ object ConnectionPool {
    */
   private[db] def wrapToLogSql(dataSource: DataSource, configuration: Config): DataSource = {
     if (configuration.getBoolean("logSql")) {
-      val proxyDataSource = new LogSqlDataSource()
+      val proxyDataSource = new ConnectionPoolDataSourceProxy()
       proxyDataSource.setTargetDSDirect(dataSource)
       proxyDataSource
     } else {
@@ -116,8 +117,8 @@ object ConnectionPool {
    */
   private[db] def unwrap(dataSource: DataSource): DataSource = {
     dataSource match {
-      case ds: LogSqlDataSource => ds.getTargetDatasource
-      case _                    => dataSource
+      case ds: ConnectionPoolDataSourceProxy => AccessConnectionPoolDataSourceProxy.getTargetDatasource(ds)
+      case _                                 => dataSource
     }
   }
 }
