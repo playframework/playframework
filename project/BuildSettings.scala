@@ -550,6 +550,10 @@ object BuildSettings {
       .settings(
         scalacOptions += "-target:jvm-1.8"
       )
+      .settings(
+        scalaVersion := ScalaVersions.scala213,
+        crossScalaVersions := Seq(ScalaVersions.scala213, ScalaVersions.scala212)
+      )
   }
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(

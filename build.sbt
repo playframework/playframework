@@ -209,7 +209,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
       .task(
         PlayVersion(
           version.value,
-          (scalaVersion in PlayProject).value,
+          scala212,
           sbtVersion.value,
           jettyAlpnAgent.revision,
           (sourceManaged in Compile).value

@@ -45,9 +45,9 @@ jobs:
     - script: scripts/test-docs
       name: "Run documentation tests"
     - script: scripts/it-test-scala-212
-      name: "Run it tests for Scala 2.12"
+      name: "Run integration tests for Scala 2.12"
     - script: scripts/it-test-scala-213
-      name: "Run it tests for Scala 2.13"
+      name: "Run integration tests for Scala 2.13"
 
     - stage: test-sbt
       script: scripts/test-sbt-plugins-0_13
@@ -55,17 +55,17 @@ jobs:
     - script: scripts/test-sbt-plugins-1_0
       name: "Scripted tests for sbt 1"
 
-    # Test against Java 11, but only for Scala 2.12
+    # Test against Java 11, but only for Scala 2.13
     - stage: java11
-      script: scripts/test-scala-212
+      script: scripts/test-scala-213
       env: TRAVIS_JDK=adopt@1.11.0-2
-      name: "Run tests for Scala 2.12 and Java 11"
-    - script: scripts/it-test-scala-212
+      name: "Run tests for Scala 2.13 and Java 11"
+    - script: scripts/it-test-scala-213
       env: TRAVIS_JDK=adopt@1.11.0-2
-      name: "Run it tests for Scala 2.12 and Java 11"
+      name: "Run it tests for Scala 2.13 and Java 11"
     - script: scripts/test-docs
       env: TRAVIS_JDK=adopt@1.11.0-2
-      name: "Run documentation tests for Scala 2.12 and Java 11"
+      name: "Run documentation tests for Scala 2.13 and Java 11"
     - script: scripts/test-sbt-plugins-1_0
       env: TRAVIS_JDK=adopt@1.11.0-2
       name: "Scripted tests for sbt 1 and Java 11"
