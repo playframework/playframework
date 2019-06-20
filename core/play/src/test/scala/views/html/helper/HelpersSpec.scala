@@ -13,6 +13,8 @@ import play.api.http.HttpConfiguration
 import play.api.i18n._
 import play.twirl.api.Html
 
+import java.util.Optional
+
 class HelpersSpec extends Specification {
   import FieldConstructor.defaultField
 
@@ -329,6 +331,22 @@ class HelpersSpec extends Specification {
     "correctly lookup error in messages when _error is supplied as Option[String] but keep raw html" in {
       inputText
         .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option(Html("error.generalcustomerror")))
+        .body must contain(
+        """<dd class="error">Some <b>general custom</b> error message</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as Optional[String]" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Optional.of("error.generalcustomerror"))
+        .body must contain(
+        """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
+      )
+    }
+
+    "correctly lookup error in messages when _error is supplied as Optional[String] but keep raw html" in {
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Optional.of(Html("error.generalcustomerror")))
         .body must contain(
         """<dd class="error">Some <b>general custom</b> error message</dd>"""
       )
