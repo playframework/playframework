@@ -72,14 +72,15 @@ package views.html.helper {
 
   object FieldConstructor {
 
-    implicit val defaultField = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
+    implicit val defaultField: FieldConstructor = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
 
     def apply(f: FieldElements => Html): FieldConstructor = new FieldConstructor {
       def apply(elts: FieldElements) = f(elts)
     }
 
-    implicit def inlineFieldConstructor(f: (FieldElements) => Html)            = FieldConstructor(f)
-    implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]) = FieldConstructor(t.render)
+    implicit def inlineFieldConstructor(f: (FieldElements) => Html): FieldConstructor = FieldConstructor(f)
+    implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]): FieldConstructor =
+      FieldConstructor(t.render)
 
   }
 
@@ -120,7 +121,7 @@ package views.html.helper {
   }
 
   trait RepeatHelper {
-    protected def indexes(field: play.api.data.Field, min: Int) = field.indexes match {
+    protected def indexes(field: play.api.data.Field, min: Int): Seq[Int] = field.indexes match {
       case Nil                              => 0 until min
       case complete if complete.size >= min => field.indexes
       case partial                          =>
@@ -133,11 +134,11 @@ package views.html.helper {
 
   object options {
 
-    def apply(options: (String, String)*)             = options.toSeq
-    def apply(options: Map[String, String])           = options.toSeq
-    def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
-    def apply(options: List[String])                  = options.map(v => v -> v)
-    def apply(options: java.util.List[String])        = options.asScala.map(v => v -> v)
+    def apply(options: (String, String)*): Seq[(String, String)]             = options.toSeq
+    def apply(options: Map[String, String]): Seq[(String, String)]           = options.toSeq
+    def apply(options: java.util.Map[String, String]): Seq[(String, String)] = options.asScala.toSeq
+    def apply(options: List[String]): List[(String, String)]                 = options.map(v => v -> v)
+    def apply(options: java.util.List[String]): Seq[(String, String)]        = options.asScala.toSeq.map(v => v -> v)
 
   }
 
