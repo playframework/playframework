@@ -7,13 +7,12 @@ val Versions = new {
   // documentation/manual/working/commonGuide/production/Deploying.md
   val sbtNativePackager  = "1.3.22"
   val mima               = "0.3.0"
-  val sbtJavaAgent       = "0.1.4"
+  val sbtJavaAgent       = "0.1.5"
   val sbtJavaFormatter   = "0.4.4"
   val sbtJmh             = "0.3.4"
-  val sbtDoge            = "0.1.5"
-  val webjarsLocatorCore = "0.36"
+  val webjarsLocatorCore = "0.37"
   val sbtHeader          = "5.2.0"
-  val scalafmt           = "2.0.0"
+  val scalafmt           = "2.0.1"
   val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.5.0-M2")
   val interplay: String  = sys.props.getOrElse("interplay.version", "2.0.8")
 }
