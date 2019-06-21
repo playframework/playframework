@@ -40,12 +40,14 @@ jobs:
     - stage: test
       script: scripts/test-scala-212
       name: "Run tests for Scala 2.12"
-    - script: scripts/test-scala-213
-      name: "Run tests for Scala 2.13"
-    - script: scripts/test-docs
-      name: "Run documentation tests"
+    - script: scripts/test-docs-212
+      name: "Run documentation tests 2.12"
     - script: scripts/it-test-scala-212
       name: "Run it tests for Scala 2.12"
+    - script: scripts/test-scala-213
+      name: "Run tests for Scala 2.13"
+    - script: scripts/test-docs-213
+      name: "Run documentation tests 2.13"
     - script: scripts/it-test-scala-213
       name: "Run it tests for Scala 2.13"
 
