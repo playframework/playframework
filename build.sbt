@@ -103,7 +103,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(Docs.playdocSettings: _*)
   .settings(
     mimaBinaryIssueFilters := Seq(
-      )
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("views.html.helper.options.apply")
+    )
   )
   .dependsOn(
     BuildLinkProject,
