@@ -10,7 +10,7 @@
 
 <span class="form-with-id">
 @* #form-with-id *@
-@helper.form(action = routes.Application.submit(), 'id -> "myForm") {
+@helper.form(action = routes.Application.submit(), Symbol("id") -> "myForm") {
 
 }
 @* #form-with-id *@
@@ -18,7 +18,7 @@
 
 <span class="extra-params">
 @* #extra-params *@
-@helper.inputText(myForm("email"), 'id -> "email", 'size -> 30)
+@helper.inputText(myForm("email"), Symbol("id") -> "email", Symbol("size") -> 30)
 @* #extra-params *@
 </span>
 
@@ -46,7 +46,7 @@
 @* #repeat-with-index *@
 @helper.repeatWithIndex(userForm("emails"), min = 1) { (emailField, index) =>
 
-    @helper.inputText(emailField, '_label -> ("email #" + index))
+    @helper.inputText(emailField, Symbol("_label") -> ("email #" + index))
 
 }
 @* #repeat-with-index *@
