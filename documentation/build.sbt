@@ -17,14 +17,13 @@ lazy val main = Project("Play-Documentation", file("."))
   .disablePlugins(PlayEnhancer)
   .settings(
     // Avoid the use of deprecated APIs in the docs
-    scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
+    scalacOptions ++= Seq("-deprecation"),
     javacOptions ++= Seq(
       "-encoding",
       "UTF-8",
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-      "-Werror"
     ) ++ JavaVersion.sourceAndTarget(CrossJava.Keys.fullJavaHomes.value("8")),
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
