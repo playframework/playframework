@@ -80,6 +80,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaParsers.parse"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#MultipartFormData#FilePart.getFile"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("views.html.helper.options.apply"),
     ),
     mappings in (Compile, packageSrc) ++= {
       // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
