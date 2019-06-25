@@ -70,7 +70,7 @@ lazy val main = Project("Play-Documentation", file("."))
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
     crossScalaVersions := Seq("2.13.0", "2.12.8"),
-    scalaVersion := "2.13.0",
+    scalaVersion := "2.12.8",
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
