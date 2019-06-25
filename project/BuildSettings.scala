@@ -324,6 +324,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.at"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.versioned"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets.versioned"),
+      // TODO: document this exclude
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaParsers.parse"),
+      // TODO: document this exclude
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#MultipartFormData#FilePart.getFile"),
+      // Switch one of these from returning scala.collection.Seq to scala.collection.immutable.Seq (I think)
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("views.html.helper.options.apply"),
       // No longer extends CookieBaker
       ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Flash$"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Flash.COOKIE_NAME"),
