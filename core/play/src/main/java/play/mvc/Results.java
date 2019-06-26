@@ -4554,14 +4554,16 @@ public class Results {
     if (queryStringParams.isEmpty()) {
       fullUrl = url;
     } else {
-      String queryString = queryStringParams
-              .entrySet()
-              .stream()
+      String queryString =
+          queryStringParams.entrySet().stream()
               .flatMap(
-                      entry -> entry.getValue().stream().map(
-                              parameterValue -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(parameterValue, StandardCharsets.UTF_8)
-                      )
-              )
+                  entry ->
+                      entry.getValue().stream()
+                          .map(
+                              parameterValue ->
+                                  URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
+                                      + "="
+                                      + URLEncoder.encode(parameterValue, StandardCharsets.UTF_8)))
               .collect(Collectors.joining("&"));
 
       fullUrl = url + (url.contains("?") ? "&" : "?") + queryString;

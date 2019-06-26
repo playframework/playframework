@@ -253,11 +253,16 @@ public class ResultsTest {
 
   @Test
   public void redirectShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
-    Map.Entry<String, List<String>> entry1 = Map.entry("param1" , Arrays.asList("value1"));
+    Map.Entry<String, List<String>> entry1 = Map.entry("param1", Arrays.asList("value1"));
     Map queryStringParameters = Map.ofEntries(entry1);
     String url = "/somewhere?param2=value2";
 
-    String expectedRedirectUrl = url + "&" + URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
+    String expectedRedirectUrl =
+        url
+            + "&"
+            + URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8)
+            + "="
+            + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
 
     Result result = Results.redirect(url, queryStringParameters);
     assertTrue(result.redirectLocation().isPresent());
@@ -266,13 +271,19 @@ public class ResultsTest {
 
   @Test
   public void redirectShouldAddQueryStringParamsToTheRedirectUrl() {
-    Map.Entry<String, List<String>> entry1 = Map.entry("param1" , Arrays.asList("value1"));
-    Map.Entry<String, List<String>> entry2 = Map.entry("param2" , Arrays.asList("value2"));
+    Map.Entry<String, List<String>> entry1 = Map.entry("param1", Arrays.asList("value1"));
+    Map.Entry<String, List<String>> entry2 = Map.entry("param2", Arrays.asList("value2"));
     Map queryStringParameters = Map.ofEntries(entry1, entry2);
     String url = "/somewhere";
 
-    String expectedParam1Encoded = URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
-    String expectedParam2Encoded = URLEncoder.encode(entry2.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry2.getValue().get(0), StandardCharsets.UTF_8);
+    String expectedParam1Encoded =
+        URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8)
+            + "="
+            + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
+    String expectedParam2Encoded =
+        URLEncoder.encode(entry2.getKey(), StandardCharsets.UTF_8)
+            + "="
+            + URLEncoder.encode(entry2.getValue().get(0), StandardCharsets.UTF_8);
 
     Result result = Results.redirect(url, queryStringParameters);
     assertTrue(result.redirectLocation().isPresent());
