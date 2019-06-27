@@ -243,51 +243,37 @@ public class ResultsTest {
   }
 
   @Test
-  public void redirectShouldReturnTheSameUrlIfTheQueryStringParamsAreEmpty() {
+  public void addQueryStringParamsShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
     Map queryStringParameters = new HashMap<>();
     String url = "/somewhere";
-    Result result = Results.redirect(url, queryStringParameters);
-    assertTrue(result.redirectLocation().isPresent());
-    assertEquals(url, result.redirectLocation().get());
+    String resultUrl = Results.addQueryStringParams(url, queryStringParameters);
+    assertEquals(url, resultUrl);
   }
 
   @Test
-  public void redirectShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
-    Map.Entry<String, List<String>> entry1 = Map.entry("param1", Arrays.asList("value1"));
-    Map queryStringParameters = Map.ofEntries(entry1);
+  public void addQueryStringShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
+    Map queryStringParameters = Map.ofEntries(Map.entry("param1", Arrays.asList("value1")));
     String url = "/somewhere?param2=value2";
 
-    String expectedRedirectUrl =
-        url
-            + "&"
-            + URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8)
-            + "="
-            + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
+    String expectedRedirectUrl = "/somewhere?param2=value2&param1=value1";
 
-    Result result = Results.redirect(url, queryStringParameters);
-    assertTrue(result.redirectLocation().isPresent());
-    assertEquals(expectedRedirectUrl, result.redirectLocation().get());
+    String resultUrl = Results.addQueryStringParams(url, queryStringParameters);
+    assertEquals(expectedRedirectUrl, resultUrl);
   }
 
   @Test
-  public void redirectShouldAddQueryStringParamsToTheRedirectUrl() {
-    Map.Entry<String, List<String>> entry1 = Map.entry("param1", Arrays.asList("value1"));
-    Map.Entry<String, List<String>> entry2 = Map.entry("param2", Arrays.asList("value2"));
-    Map queryStringParameters = Map.ofEntries(entry1, entry2);
+  public void redirectShouldAddQueryStringParamsToTheUrl() {
+    Map queryStringParameters =
+        Map.ofEntries(
+            Map.entry("param1", Arrays.asList("value1")),
+            Map.entry("param2", Arrays.asList("value2")));
     String url = "/somewhere";
 
-    String expectedParam1Encoded =
-        URLEncoder.encode(entry1.getKey(), StandardCharsets.UTF_8)
-            + "="
-            + URLEncoder.encode(entry1.getValue().get(0), StandardCharsets.UTF_8);
-    String expectedParam2Encoded =
-        URLEncoder.encode(entry2.getKey(), StandardCharsets.UTF_8)
-            + "="
-            + URLEncoder.encode(entry2.getValue().get(0), StandardCharsets.UTF_8);
+    String expectedParam1 = "param1=value1";
+    String expectedParam2 = "param2=value2";
 
-    Result result = Results.redirect(url, queryStringParameters);
-    assertTrue(result.redirectLocation().isPresent());
-    assertTrue(result.redirectLocation().get().contains(expectedParam1Encoded));
-    assertTrue(result.redirectLocation().get().contains(expectedParam2Encoded));
+    String resultUrl = Results.addQueryStringParams(url, queryStringParameters);
+    assertTrue(resultUrl.contains(expectedParam1));
+    assertTrue(resultUrl.contains(expectedParam2));
   }
 }

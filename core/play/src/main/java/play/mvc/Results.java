@@ -4550,9 +4550,14 @@ public class Results {
    * @return the result
    */
   public static Result redirect(String url, Map<String, List<String>> queryStringParams) {
-    String fullUrl;
+    String fullUrl = addQueryStringParams(url, queryStringParams);
+    return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
+  }
+
+  public static String addQueryStringParams(
+      String url, Map<String, List<String>> queryStringParams) {
     if (queryStringParams.isEmpty()) {
-      fullUrl = url;
+      return url;
     } else {
       String queryString =
           queryStringParams.entrySet().stream()
@@ -4566,10 +4571,8 @@ public class Results {
                                       + URLEncoder.encode(parameterValue, StandardCharsets.UTF_8)))
               .collect(Collectors.joining("&"));
 
-      fullUrl = url + (url.contains("?") ? "&" : "?") + queryString;
+      return url + (url.contains("?") ? "&" : "?") + queryString;
     }
-
-    return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
   }
 
   /**
