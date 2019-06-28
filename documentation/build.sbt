@@ -17,14 +17,13 @@ lazy val main = Project("Play-Documentation", file("."))
   .disablePlugins(PlayEnhancer)
   .settings(
     // Avoid the use of deprecated APIs in the docs
-    scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
+    scalacOptions ++= Seq("-deprecation"),
     javacOptions ++= Seq(
       "-encoding",
       "UTF-8",
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-      "-Werror"
     ) ++ JavaVersion.sourceAndTarget(CrossJava.Keys.fullJavaHomes.value("8")),
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
@@ -69,8 +68,8 @@ lazy val main = Project("Play-Documentation", file("."))
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
-    crossScalaVersions := Seq(PlayVersion.scalaVersion),
-    scalaVersion := PlayVersion.scalaVersion,
+    crossScalaVersions := Seq("2.13.0", "2.12.8"),
+    scalaVersion := "2.12.8",
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),

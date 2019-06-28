@@ -18,7 +18,7 @@ package client {
 
     def repositories(): Future[Seq[String]] = {
       ws.url(baseUrl + "/repositories").get().map { response =>
-        (response.json \\ "full_name").map(_.as[String])
+        (response.json \\ "full_name").map(_.as[String]).toSeq
       }
     }
   }
