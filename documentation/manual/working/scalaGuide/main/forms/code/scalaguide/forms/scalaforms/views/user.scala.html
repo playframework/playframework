@@ -37,7 +37,7 @@
 
 @helper.form(action = routes.Application.userPost()) {
   @* #form-user-parameters *@
-  @helper.inputText(userForm("name"), 'id -> "name", 'size -> 30)
+  @helper.inputText(userForm("name"), Symbol("id") -> "name", Symbol("size") -> 30)
   @* #form-user-parameters *@
   @helper.inputText(userForm("age"))
   @* #form-user-parameters-html *@

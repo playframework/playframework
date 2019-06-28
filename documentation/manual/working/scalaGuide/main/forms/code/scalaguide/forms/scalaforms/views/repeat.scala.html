@@ -12,7 +12,7 @@
 
     @* #form-field-repeat-with-index *@
     @helper.repeatWithIndex(myForm("emails"), min = 1) { (emailField, index) =>
-        @helper.inputText(emailField, '_label -> ("email #" + index))
+        @helper.inputText(emailField, Symbol("_label") -> ("email #" + index))
     }
     @* #form-field-repeat-with-index *@
 })
