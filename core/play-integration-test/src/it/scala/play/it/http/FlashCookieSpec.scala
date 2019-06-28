@@ -8,7 +8,6 @@ import java.util
 
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
-import okhttp3.internal.http.HttpDate
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.mvc.Results._
@@ -91,7 +90,7 @@ class FlashCookieSpec
   lazy val flashCookieBaker: FlashCookieBaker = new DefaultFlashCookieBaker()
 
   /** Represents a session cookie in OkHttp */
-  val SessionExpiry = HttpDate.MAX_DATE
+  val SessionExpiry = 253402300799999L
 
   /** Represents any expired cookie in OkHttp */
   val PastExpiry = Long.MinValue
