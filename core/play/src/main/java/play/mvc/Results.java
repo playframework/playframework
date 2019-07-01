@@ -4554,6 +4554,12 @@ public class Results {
     return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
   }
 
+  /**
+   * Encodes and adds the query params to the given url
+   * @param url
+   * @param queryStringParams
+   * @return
+   */
   public static String addQueryStringParams(
       String url, Map<String, List<String>> queryStringParams) {
     if (queryStringParams.isEmpty()) {
