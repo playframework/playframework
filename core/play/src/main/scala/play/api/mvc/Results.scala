@@ -792,7 +792,7 @@ trait Results {
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
   def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
-    val queryParamsAsJavaMap = JavaConverters.mapAsJavaMap(queryString.mapValues(JavaConverters.seqAsJavaList(_)))
+    val queryParamsAsJavaMap = JavaConverters.mapAsJavaMap(queryString.mapValues(JavaConverters.seqAsJavaList(_)).toMap) // toMap is required for binary compatibility
     val fullUrl              = play.mvc.Results.addQueryStringParams(url, queryParamsAsJavaMap)
     Status(status).withHeaders(LOCATION -> fullUrl)
   }

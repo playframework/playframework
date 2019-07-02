@@ -4556,6 +4556,7 @@ public class Results {
 
   /**
    * Encodes and adds the query params to the given url
+   *
    * @param url
    * @param queryStringParams
    * @return
