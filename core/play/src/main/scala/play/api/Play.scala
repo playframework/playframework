@@ -48,11 +48,14 @@ object Play {
 
   private[play] val GlobalAppConfigKey = "play.allowGlobalApplication"
 
-  private[play] val xercesSaxParserFactory = SAXParserFactory.newInstance()
-  xercesSaxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false)
-  xercesSaxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false)
-  xercesSaxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true)
-  xercesSaxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+  private[play] lazy val xercesSaxParserFactory = {
+    val saxParserFactory = SAXParserFactory.newInstance()
+    saxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false)
+    saxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false)
+    saxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true)
+    saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+    saxParserFactory
+  }
 
   /*
    * A parser to be used that is configured to ensure that no schemas are loaded.
