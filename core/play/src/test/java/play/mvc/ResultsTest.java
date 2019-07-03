@@ -250,7 +250,8 @@ public class ResultsTest {
 
   @Test
   public void addQueryStringShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
-    Map queryStringParameters = Map.of("param1", Arrays.asList("value1"));
+    Map queryStringParameters = new HashMap<String, List<String>>();
+    queryStringParameters.put("param1", Arrays.asList("value1"));
     String url = "/somewhere?param2=value2";
 
     String expectedRedirectUrl = "/somewhere?param2=value2&param1=value1";
@@ -261,7 +262,9 @@ public class ResultsTest {
 
   @Test
   public void redirectShouldAddQueryStringParamsToTheUrl() {
-    Map queryStringParameters = Map.of("param1", Arrays.asList("value1"), "param2", Arrays.asList("value2"));
+    Map queryStringParameters = new HashMap<String, List<String>>();
+    queryStringParameters.put("param1", Arrays.asList("value1"));
+    queryStringParameters.put("param2", Arrays.asList("value2"));
     String url = "/somewhere";
 
     String expectedParam1 = "param1=value1";
