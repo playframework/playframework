@@ -6,6 +6,7 @@ package play.mvc;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -17,6 +18,8 @@ import java.util.stream.Collectors;
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
 
@@ -26,6 +29,7 @@ import static play.mvc.Http.Status.*;
 /** Common results. */
 public class Results {
 
+  private static final Logger logger = LoggerFactory.getLogger(Results.class);
   private static final String UTF8 = "utf-8";
 
   // -- Status
@@ -4571,14 +4575,19 @@ public class Results {
               .flatMap(
                   entry ->
                       entry.getValue().stream()
-                          .map(
-                              parameterValue ->
-                                  URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
-                                      + "="
-                                      + URLEncoder.encode(parameterValue, StandardCharsets.UTF_8)))
+                          .map(parameterValue -> encodeParameter(entry.getKey(), parameterValue)))
               .collect(Collectors.joining("&"));
 
       return url + (url.contains("?") ? "&" : "?") + queryString;
+    }
+  }
+
+  private static String encodeParameter(String key, String value) {
+    try {
+      return URLEncoder.encode(key, "utf-8") + "=" + URLEncoder.encode(value, "utf-8");
+    } catch (UnsupportedEncodingException e) {
+      logger.error("failed to encode, unsupported encoding!", e);
+      return key + "=" + value;
     }
   }
 
