@@ -7,13 +7,12 @@ package play.mvc;
 import org.junit.*;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import static java.util.Map.entry;
 
 import play.mvc.Http.HeaderNames;
 
@@ -252,7 +251,7 @@ public class ResultsTest {
 
   @Test
   public void addQueryStringShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
-    Map queryStringParameters = Map.ofEntries(Map.entry("param1", Arrays.asList("value1")));
+    Map queryStringParameters = Map.ofEntries(entry("param1", Arrays.asList("value1")));
     String url = "/somewhere?param2=value2";
 
     String expectedRedirectUrl = "/somewhere?param2=value2&param1=value1";
@@ -265,8 +264,8 @@ public class ResultsTest {
   public void redirectShouldAddQueryStringParamsToTheUrl() {
     Map queryStringParameters =
         Map.ofEntries(
-            Map.entry("param1", Arrays.asList("value1")),
-            Map.entry("param2", Arrays.asList("value2")));
+            entry("param1", Arrays.asList("value1")),
+            entry("param2", Arrays.asList("value2")));
     String url = "/somewhere";
 
     String expectedParam1 = "param1=value1";
