@@ -231,7 +231,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     "action-specific headers" should {
       "use provided header instead of config value if allowActionSpecificHeaders=true in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.referrerPolicy="some policy"
           |play.filters.headers.allowActionSpecificHeaders=true
@@ -245,7 +245,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
       "use provided header instead of default if allowActionSpecificHeaders=true in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.allowActionSpecificHeaders=true
         """.stripMargin
@@ -258,7 +258,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
       "reject action-specific override if allowActionSpecificHeaders=false in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.referrerPolicy="some policy"
           |play.filters.headers.allowActionSpecificHeaders=false
@@ -274,7 +274,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
       "reject action-specific override if allowActionSpecificHeaders is not mentioned in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.referrerPolicy="some policy"
         """.stripMargin
