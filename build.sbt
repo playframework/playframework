@@ -70,6 +70,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           scalaVersion.value,
           sbtVersion.value,
           jettyAlpnAgent.revision,
+          Dependencies.akkaVersion,
           (sourceManaged in Compile).value
         )
       )
@@ -207,6 +208,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
           (scalaVersion in PlayProject).value,
           sbtVersion.value,
           jettyAlpnAgent.revision,
+          Dependencies.akkaVersion,
           (sourceManaged in Compile).value
         )
       )
