@@ -5,6 +5,12 @@ language: scala
 if: type != push OR tag IS present OR repo != playframework/playframework
 
 addons:
+  artifacts:
+    debug: true
+    paths:
+      - ${HOME}/thread-dumps/build.tar.gz
+    target_paths:
+      - /play/travis-builds/${TRAVIS_REPO_SLUG}/${TRAVIS_BUILD_NUMBER}/${TRAVIS_JOB_NUMBER}
   apt:
     packages:
       # Install xmllint used to get Akka HTTP version

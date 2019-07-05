@@ -58,3 +58,68 @@ javafmtValidation() {
     false
   )
 }
+
+
+startThreadDumpCollector() {
+  thread_dump_dir=${HOME}/thread-dumps
+
+  # Give other scripts the change to start sbt
+  sleep 10 # seconds
+
+  printMessage "STARTING THREAD DUMP COLLECTOR"
+  mkdir -p "$thread_dump_dir"
+
+  # Some scripts start sbt more than once, so we can
+  # retry to get the process a number of times before
+  # giving up.
+  max_retries=5
+  while :
+  do
+    # Generate a new one so that we can see how things are progressing
+    thread_dump_file=${thread_dump_dir}/$(date '+%Y%m%d-%H%M%S').txt
+    # Get process id for sbt-launcher
+    process_id=$(jps | grep "sbt-launch" | head -n1 | cut -d' ' -f1)
+
+    if [ -z "$process_id" ]; then
+      # No sbt process found, so we can stop collecting thread dumps
+      printMessage "NO MORE sbt PROCESS. EXITING"
+      ((max_retries--))
+      if [ "$max_retries" -eq "0" ]; then
+        break
+      else
+        printMessage "WILL RETRY TO READ sbt PROCESS FOR $max_retries TIMES"
+        sleep 10 # seconds
+      fi
+    else
+      # There is still a process running, let's keep collecting the thread dumps
+
+      # jstack flags:
+      # -l  long listing. Prints additional information about locks
+      jstack -l "$process_id" > "$thread_dump_file"
+      sleep 60 # seconds
+    fi
+  done
+
+  # To make it easier to associate the thread dumps with a build/job
+  generateBuildMetadata "${thread_dump_dir}"/metadata.txt
+
+  # Create gz file with all thread dumps
+  tar -zcvf "${thread_dump_dir}/build.tar.gz" "${thread_dump_dir}"
+}
+
+generateBuildMetadata() {
+  cat <<EOT >> "${1}"
+TRAVIS_BUILD_ID: ${TRAVIS_BUILD_ID}
+TRAVIS_BUILD_NUMBER: ${TRAVIS_BUILD_NUMBER}
+TRAVIS_BUILD_WEB_URL: ${TRAVIS_BUILD_WEB_URL}
+
+TRAVIS_JOB_ID: ${TRAVIS_JOB_ID}
+TRAVIS_JOB_NAME: ${TRAVIS_JOB_NAME}
+TRAVIS_JOB_NUMBER: ${TRAVIS_JOB_NUMBER}
+TRAVIS_JOB_WEB_URL: ${TRAVIS_JOB_WEB_URL}
+EOT
+}
+
+# Start when the script is loaded. It is okay to do it here
+# since it is loaded only once for each job.
+startThreadDumpCollector &
