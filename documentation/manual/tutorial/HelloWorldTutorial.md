@@ -12,8 +12,8 @@ Before following the tutorial instructions:
 
 1. Make sure you have verified the [[requirements for running Play|Requirements]]
 1. Obtain the appropriate example zip file:
-    1. [Play Java Starter Example](https://developer.lightbend.com/start/?group=play&project=play-java-starter-example)
-    1. [Play Scala Starter Example](https://developer.lightbend.com/start/?group=play&project=play-scala-starter-example)
+    1. [Play Java Starter Example](https://developer.lightbend.com/start/?group=play&project=play-samples-play-java-starter-example)
+    1. [Play Scala Starter Example](https://developer.lightbend.com/start/?group=play&project=play-samples-play-scala-starter-example)
 1. Unzip and run the example following the steps in the `README.md` file.
 
  
