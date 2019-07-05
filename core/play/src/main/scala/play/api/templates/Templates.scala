@@ -19,7 +19,7 @@ object PlayMagic {
    *
    * For example:
    * {{{
-   * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
+   * toHtmlArgs(Seq('id -> "item", Symbol("style") -> "color:red"))
    * }}}
    */
   def toHtmlArgs(args: Map[Symbol, Any]) =
