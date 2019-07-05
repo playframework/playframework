@@ -9,11 +9,21 @@ Play 2.8 brings the latest minor version of Akka. Although Akka 2.6 is binary co
 
 ## Other additions
 
+### Build additions
+
+When adding Akka moodules to your application, it is important that you use a consistent version of Akka for all the modules since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/current/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed). To make it easier, `play.core.PlayVersion` object now adds `akkaVersion` so that you can use it in your builds like:
+
+```scala
+import play.core.PlayVersion.akkaVersion
+
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster" % akkaVersion
+```
+
 ### Lang cookie max age configuration
 
 It is now possible to configure a max age for language cookie. To do that, add the following to your `application.conf`:
 
-```
+```HOCON
 play.i18n.langCookieMaxAge = 15 seconds
 ```
 
