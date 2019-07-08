@@ -10,6 +10,7 @@ lazy val root = (project in file("."))
     version := "1.0-SNAPSHOT",
     libraryDependencies += guice,
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     routesGenerator := InjectedRoutesGenerator
   )
 
