@@ -4559,15 +4559,6 @@ public class Results {
     return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
   }
 
-  private static String encodeParameter(String key, String value) {
-    try {
-      return URLEncoder.encode(key, "utf-8") + "=" + URLEncoder.encode(value, "utf-8");
-    } catch (UnsupportedEncodingException e) {
-      logger.error("failed to encode, unsupported encoding!", e);
-      return key + "=" + value;
-    }
-  }
-
   /**
    * Generates a 303 See Other result.
    *
