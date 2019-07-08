@@ -63,7 +63,7 @@ javafmtValidation() {
 startThreadDumpCollector() {
   thread_dump_dir=${HOME}/thread-dumps
 
-  # Give other scripts the change to start sbt
+  # Give other scripts a chance to start sbt
   sleep 10 # seconds
 
   printMessage "STARTING THREAD DUMP COLLECTOR"
