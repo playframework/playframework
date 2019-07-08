@@ -4,7 +4,7 @@
 
 package play.api.mvc
 
-import java.lang.{StringBuilder => JStringBuilder}
+import java.lang.{ StringBuilder => JStringBuilder }
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -27,7 +27,6 @@ import play.api.Mode
 import play.core.utils.CaseInsensitiveOrdered
 import play.core.utils.HttpHeaderParameterEncoding
 
-import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -453,20 +452,23 @@ object Results extends Results with LegacyI18nSupport {
   case class EmptyContent()
 
   /**
-    * Encodes and adds the query params to the given url
-    *
-    * @param url
-    * @param queryStringParams
-    * @return
-    */
+   * Encodes and adds the query params to the given url
+   *
+   * @param url
+   * @param queryStringParams
+   * @return
+   */
   def addQueryStringParams(url: String, queryStringParams: Map[String, Seq[String]]): String = {
     if (queryStringParams.isEmpty) {
       url
     } else {
-      val queryString: String = queryStringParams.flatMap { case (key, values) =>
-        val encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
-        values.map(value => s"$encodedKey=${URLEncoder.encode(value, StandardCharsets.UTF_8)}")
-      }.mkString("&")
+      val queryString: String = queryStringParams
+        .flatMap {
+          case (key, values) =>
+            val encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
+            values.map(value => s"$encodedKey=${URLEncoder.encode(value, StandardCharsets.UTF_8)}")
+        }
+        .mkString("&")
 
       url + (if (url.contains("?")) "&" else "?") + queryString
     }
@@ -813,7 +815,11 @@ trait Results {
    * @param queryStringParams queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(url: String, queryStringParams: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
+  def Redirect(
+      url: String,
+      queryStringParams: Map[String, Seq[String]] = Map.empty,
+      status: Int = SEE_OTHER
+  ): Result = {
     val fullUrl: String = Results.addQueryStringParams(url, queryStringParams)
     Status(status).withHeaders(LOCATION -> fullUrl)
   }
