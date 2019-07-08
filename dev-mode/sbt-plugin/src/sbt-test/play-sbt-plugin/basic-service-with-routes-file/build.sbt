@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
   .settings(
     libraryDependencies += guice,
     scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     InputKey[Unit]("verifyResourceContains") := {
       val args       = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path       = args.head
