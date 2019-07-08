@@ -12,13 +12,13 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import play.core.j.JavaHelpers;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
 
@@ -4553,32 +4553,10 @@ public class Results {
    * @return the result
    */
   public static Result redirect(String url, Map<String, List<String>> queryStringParams) {
-    String fullUrl = addQueryStringParams(url, queryStringParams);
+    String fullUrl =
+        play.api.mvc.Results.addQueryStringParams(
+            url, JavaHelpers.javaMapOfListToImmutableScalaMapOfSeq(queryStringParams));
     return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
-  }
-
-  /**
-   * Encodes and adds the query params to the given url
-   *
-   * @param url
-   * @param queryStringParams
-   * @return
-   */
-  public static String addQueryStringParams(
-      String url, Map<String, List<String>> queryStringParams) {
-    if (queryStringParams.isEmpty()) {
-      return url;
-    } else {
-      String queryString =
-          queryStringParams.entrySet().stream()
-              .flatMap(
-                  entry ->
-                      entry.getValue().stream()
-                          .map(parameterValue -> encodeParameter(entry.getKey(), parameterValue)))
-              .collect(Collectors.joining("&"));
-
-      return url + (url.contains("?") ? "&" : "?") + queryString;
-    }
   }
 
   private static String encodeParameter(String key, String value) {

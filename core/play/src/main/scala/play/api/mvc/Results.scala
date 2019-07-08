@@ -4,7 +4,9 @@
 
 package play.api.mvc
 
-import java.lang.{ StringBuilder => JStringBuilder }
+import java.lang.{StringBuilder => JStringBuilder}
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.format.DateTimeFormatter
@@ -450,6 +452,26 @@ object Results extends Results with LegacyI18nSupport {
   /** Empty result, i.e. nothing to send. */
   case class EmptyContent()
 
+  /**
+    * Encodes and adds the query params to the given url
+    *
+    * @param url
+    * @param queryStringParams
+    * @return
+    */
+  def addQueryStringParams(url: String, queryStringParams: Map[String, Seq[String]]): String = {
+    if (queryStringParams.isEmpty) {
+      url
+    } else {
+      val queryString: String = queryStringParams.flatMap { case (key, values) =>
+        val encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
+        values.map(value => s"$encodedKey=${URLEncoder.encode(value, StandardCharsets.UTF_8)}")
+      }.mkString("&")
+
+      url + (if (url.contains("?")) "&" else "?") + queryString
+    }
+  }
+
 }
 
 /** Helper utilities to generate results. */
@@ -788,12 +810,11 @@ trait Results {
    * Generates a redirect simple result.
    *
    * @param url the URL to redirect to
-   * @param queryString queryString parameters to add to the queryString
+   * @param queryStringParams queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
-    val queryParamsAsJavaMap = JavaConverters.mapAsJavaMap(queryString.mapValues(JavaConverters.seqAsJavaList(_)).toMap) // toMap is required for binary compatibility
-    val fullUrl              = play.mvc.Results.addQueryStringParams(url, queryParamsAsJavaMap)
+  def Redirect(url: String, queryStringParams: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
+    val fullUrl: String = Results.addQueryStringParams(url, queryStringParams)
     Status(status).withHeaders(LOCATION -> fullUrl)
   }
 

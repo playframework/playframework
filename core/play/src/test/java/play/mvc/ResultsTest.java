@@ -241,23 +241,25 @@ public class ResultsTest {
   }
 
   @Test
-  public void addQueryStringParamsShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
+  public void redirectShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
     Map queryStringParameters = new HashMap<>();
     String url = "/somewhere";
-    String resultUrl = Results.addQueryStringParams(url, queryStringParameters);
-    assertEquals(url, resultUrl);
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(url, result.redirectLocation().get());
   }
 
   @Test
-  public void addQueryStringShouldAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
+  public void redirectAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
     Map queryStringParameters = new HashMap<String, List<String>>();
     queryStringParameters.put("param1", Arrays.asList("value1"));
     String url = "/somewhere?param2=value2";
 
     String expectedRedirectUrl = "/somewhere?param2=value2&param1=value1";
 
-    String resultUrl = Results.addQueryStringParams(url, queryStringParameters);
-    assertEquals(expectedRedirectUrl, resultUrl);
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(expectedRedirectUrl, result.redirectLocation().get());
   }
 
   @Test
@@ -270,8 +272,9 @@ public class ResultsTest {
     String expectedParam1 = "param1=value1";
     String expectedParam2 = "param2=value2";
 
-    String resultUrl = Results.addQueryStringParams(url, queryStringParameters);
-    assertTrue(resultUrl.contains(expectedParam1));
-    assertTrue(resultUrl.contains(expectedParam2));
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertTrue(result.redirectLocation().get().contains(expectedParam1));
+    assertTrue(result.redirectLocation().get().contains(expectedParam2));
   }
 }
