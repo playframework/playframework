@@ -6,7 +6,6 @@ package play.api.mvc
 
 import java.lang.{ StringBuilder => JStringBuilder }
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.format.DateTimeFormatter
@@ -465,8 +464,8 @@ object Results extends Results with LegacyI18nSupport {
       val queryString: String = queryStringParams
         .flatMap {
           case (key, values) =>
-            val encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
-            values.map(value => s"$encodedKey=${URLEncoder.encode(value, StandardCharsets.UTF_8)}")
+            val encodedKey = URLEncoder.encode(key, "utf-8")
+            values.map(value => s"$encodedKey=${URLEncoder.encode(value, "utf-8")}")
         }
         .mkString("&")
 
