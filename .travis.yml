@@ -105,7 +105,9 @@ notifications:
     on_failure: always
 
 after_script:
+  - ls -halt "${THREAD_DUMP_DIR}"
   # Ensure that we won't have useless empty files
   - find "${THREAD_DUMP_DIR}" -maxdepth 1 -type f -size 0 -exec rm -vf {} \;
+  - ls -halt "${THREAD_DUMP_DIR}"
   # Cat the latest thread dump
-  - ls -1td "${THREAD_DUMP_DIR}/*" | head -1 | xargs cat
+  - ls -1td "${THREAD_DUMP_DIR}"/* | head -1 | xargs cat
