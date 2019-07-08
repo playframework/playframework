@@ -122,7 +122,7 @@ EOT
 
 # It is not possible to upload artifacts for pull requests:
 # https://docs.travis-ci.com/user/uploading-artifacts/
-if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then
+if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ] && [ "$TRAVIS" = "true" ]; then
   # Start when the script is loaded. It is okay to do it here
   # since it is loaded only once for each job.
   startThreadDumpCollector &
