@@ -61,13 +61,11 @@ javafmtValidation() {
 
 
 startThreadDumpCollector() {
-  thread_dump_dir=${HOME}/thread-dumps
-
   # Give other scripts a chance to start sbt
   sleep 10 # seconds
 
-  printMessage "STARTING THREAD DUMP COLLECTOR"
-  mkdir -p "$thread_dump_dir"
+  printMessage "STARTING THREAD DUMP COLLECTOR: ${THREAD_DUMP_DIR}"
+  mkdir -pv "$THREAD_DUMP_DIR"
 
   # Some scripts start sbt more than once, so we can
   # retry to get the process a number of times before
@@ -76,7 +74,7 @@ startThreadDumpCollector() {
   while :
   do
     # Generate a new one so that we can see how things are progressing
-    thread_dump_file=${thread_dump_dir}/$(date '+%Y%m%d-%H%M%S').txt
+    thread_dump_file=${THREAD_DUMP_DIR}/$(date '+%Y%m%d-%H%M%S').txt
     # Get process id for sbt-launcher
     process_id=$(jps | grep "sbt-launch" | head -n1 | cut -d' ' -f1)
 
@@ -101,10 +99,10 @@ startThreadDumpCollector() {
   done
 
   # To make it easier to associate the thread dumps with a build/job
-  generateBuildMetadata "${thread_dump_dir}"/metadata.txt
+  generateBuildMetadata "${THREAD_DUMP_DIR}"/metadata.txt
 
   # Create gz file with all thread dumps
-  tar -zcvf "${thread_dump_dir}/build.tar.gz" "${thread_dump_dir}"
+  tar -zcvf "${THREAD_DUMP_DIR}/build.tar.gz" "${THREAD_DUMP_DIR}"
 }
 
 generateBuildMetadata() {
@@ -122,7 +120,9 @@ EOT
 
 # It is not possible to upload artifacts for pull requests:
 # https://docs.travis-ci.com/user/uploading-artifacts/
-if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ] && [ "$TRAVIS" = "true" ]; then
+# But we are starting the script anyway to at least `cat`
+# the latest thread dump later.
+if [ "$TRAVIS" = "true" ]; then
   # Start when the script is loaded. It is okay to do it here
   # since it is loaded only once for each job.
   startThreadDumpCollector &
