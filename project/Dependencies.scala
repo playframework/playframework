@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M3")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M4")
   val akkaHttpVersion     = "10.1.8"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
@@ -100,7 +100,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.2",
+    "joda-time" % "joda-time"    % "2.10.3",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
@@ -296,7 +296,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
-  val salvationVersion = "2.6.0"
+  val salvationVersion = "2.7.0"
   val playFilterDeps = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
