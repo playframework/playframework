@@ -14,6 +14,7 @@ import java.util.Map;
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
+import play.api.mvc.Results$;
 import play.core.j.JavaHelpers;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
@@ -4549,7 +4550,7 @@ public class Results {
    */
   public static Result redirect(String url, Map<String, List<String>> queryStringParams) {
     String fullUrl =
-        play.api.mvc.Results.addQueryStringParams(
+        Results$.MODULE$.addQueryStringParams(
             url, JavaHelpers.javaMapOfListToImmutableScalaMapOfSeq(queryStringParams));
     return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
   }
