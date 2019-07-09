@@ -192,11 +192,7 @@ trait JavaHelpers {
 object JavaHelpers extends JavaHelpers {
 
   def javaMapOfListToImmutableScalaMapOfSeq[A, B](javaMap: java.util.Map[A, java.util.List[B]]): Map[A, Seq[B]] = {
-    val mapBuilder = Map.newBuilder[A, Seq[B]]
-    javaMap.entrySet.stream.forEach { entry =>
-      mapBuilder += (entry.getKey -> asScalaIterator[B](entry.getValue.iterator()).toSeq)
-    }
-    mapBuilder.result
+    javaMap.asScala.mapValues(_.asScala).toMap
   }
 
 }

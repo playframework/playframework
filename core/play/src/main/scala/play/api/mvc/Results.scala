@@ -457,7 +457,7 @@ object Results extends Results with LegacyI18nSupport {
    * @param queryStringParams
    * @return
    */
-  def addQueryStringParams(url: String, queryStringParams: Map[String, Seq[String]]): String = {
+  private[play] def addQueryStringParams(url: String, queryStringParams: Map[String, Seq[String]]): String = {
     if (queryStringParams.isEmpty) {
       url
     } else {

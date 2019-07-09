@@ -6,8 +6,6 @@ package play.mvc;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -16,8 +14,6 @@ import java.util.Map;
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import play.core.j.JavaHelpers;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
@@ -28,7 +24,6 @@ import static play.mvc.Http.Status.*;
 /** Common results. */
 public class Results {
 
-  private static final Logger logger = LoggerFactory.getLogger(Results.class);
   private static final String UTF8 = "utf-8";
 
   // -- Status
