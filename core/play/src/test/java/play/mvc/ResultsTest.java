@@ -11,8 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import play.mvc.Http.HeaderNames;
 
@@ -239,5 +238,43 @@ public class ResultsTest {
     assertTrue(result.cookie("foo").isPresent());
     assertEquals(result.cookie("foo").get().name(), "foo");
     assertFalse(result.cookie("bar").isPresent());
+  }
+
+  @Test
+  public void redirectShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
+    Map queryStringParameters = new HashMap<>();
+    String url = "/somewhere";
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(url, result.redirectLocation().get());
+  }
+
+  @Test
+  public void redirectAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
+    Map queryStringParameters = new HashMap<String, List<String>>();
+    queryStringParameters.put("param1", Arrays.asList("value1"));
+    String url = "/somewhere?param2=value2";
+
+    String expectedRedirectUrl = "/somewhere?param2=value2&param1=value1";
+
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertEquals(expectedRedirectUrl, result.redirectLocation().get());
+  }
+
+  @Test
+  public void redirectShouldAddQueryStringParamsToTheUrl() {
+    Map queryStringParameters = new HashMap<String, List<String>>();
+    queryStringParameters.put("param1", Arrays.asList("value1"));
+    queryStringParameters.put("param2", Arrays.asList("value2"));
+    String url = "/somewhere";
+
+    String expectedParam1 = "param1=value1";
+    String expectedParam2 = "param2=value2";
+
+    Result result = Results.redirect(url, queryStringParameters);
+    assertTrue(result.redirectLocation().isPresent());
+    assertTrue(result.redirectLocation().get().contains(expectedParam1));
+    assertTrue(result.redirectLocation().get().contains(expectedParam2));
   }
 }
