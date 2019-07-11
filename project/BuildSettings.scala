@@ -447,6 +447,9 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$Response"),
       ProblemFilters.exclude[MissingClassProblem]("play.mvc.Http$WrappedContext"),
       ProblemFilters.exclude[ReversedAbstractMethodProblem]("play.mvc.Action.call"),
+      // Made these two utility and constants classes final
+      ProblemFilters.exclude[FinalClassProblem]("play.libs.XML$Constants"),
+      ProblemFilters.exclude[FinalClassProblem]("play.libs.XML"),
       // Make Java's Session and Flash immutable
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.clear"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#Flash.compute"),
