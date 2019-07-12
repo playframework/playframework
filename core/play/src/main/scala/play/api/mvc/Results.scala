@@ -5,6 +5,7 @@
 package play.api.mvc
 
 import java.lang.{ StringBuilder => JStringBuilder }
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.format.DateTimeFormatter
@@ -154,6 +155,7 @@ case class Result(
 
   /**
    * Add a header with a DateTime formatted using the default http date format
+   *
    * @param headers the headers with a DateTime to add to this result.
    * @return the new result.
    */
@@ -301,6 +303,7 @@ case class Result(
    * {{{
    *   Ok.addingToSession("foo" -> "bar").addingToSession("baz" -> "bah")
    * }}}
+   *
    * @param values (key -> value) pairs to add to this result’s session
    * @param request Current request
    * @return A copy of this result with `values` added to its session scope.
@@ -313,6 +316,7 @@ case class Result(
    * {{{
    *   Ok.removingFromSession("foo")
    * }}}
+   *
    * @param keys Keys to remove from session
    * @param request Current request
    * @return A copy of this result with `keys` removed from its session scope.
@@ -445,6 +449,29 @@ object Results extends Results with LegacyI18nSupport {
 
   /** Empty result, i.e. nothing to send. */
   case class EmptyContent()
+
+  /**
+   * Encodes and adds the query params to the given url
+   *
+   * @param url
+   * @param queryStringParams
+   * @return
+   */
+  private[play] def addQueryStringParams(url: String, queryStringParams: Map[String, Seq[String]]): String = {
+    if (queryStringParams.isEmpty) {
+      url
+    } else {
+      val queryString: String = queryStringParams
+        .flatMap {
+          case (key, values) =>
+            val encodedKey = URLEncoder.encode(key, "utf-8")
+            values.map(value => s"$encodedKey=${URLEncoder.encode(value, "utf-8")}")
+        }
+        .mkString("&")
+
+      url + (if (url.contains("?")) "&" else "?") + queryString
+    }
+  }
 
 }
 
@@ -784,23 +811,15 @@ trait Results {
    * Generates a redirect simple result.
    *
    * @param url the URL to redirect to
-   * @param queryString queryString parameters to add to the queryString
+   * @param queryStringParams queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
-    import java.net.URLEncoder
-    val fullUrl = url + Option(queryString)
-      .filterNot(_.isEmpty)
-      .map { params =>
-        (if (url.contains("?")) "&" else "?") + params.toSeq
-          .flatMap {
-            case (key, values) =>
-              val encodedKey = URLEncoder.encode(key, "utf-8")
-              values.map(value => (encodedKey + "=" + URLEncoder.encode(value, "utf-8")))
-          }
-          .mkString("&")
-      }
-      .getOrElse("")
+  def Redirect(
+      url: String,
+      queryStringParams: Map[String, Seq[String]] = Map.empty,
+      status: Int = SEE_OTHER
+  ): Result = {
+    val fullUrl: String = Results.addQueryStringParams(url, queryStringParams)
     Status(status).withHeaders(LOCATION -> fullUrl)
   }
 

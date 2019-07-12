@@ -189,7 +189,13 @@ trait JavaHelpers {
 
 }
 
-object JavaHelpers extends JavaHelpers
+object JavaHelpers extends JavaHelpers {
+
+  def javaMapOfListToImmutableScalaMapOfSeq[A, B](javaMap: java.util.Map[A, java.util.List[B]]): Map[A, Seq[B]] = {
+    javaMap.asScala.mapValues(_.asScala.toSeq).toMap
+  }
+
+}
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
