@@ -28,7 +28,7 @@ class HelpersSpec extends Specification {
 
     "allow setting a custom id" in {
 
-      val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), 'id -> "someid").body
+      val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("id") -> "someid").body
 
       val idAttr = "id=\"someid\""
       body must contain(idAttr)
@@ -42,7 +42,7 @@ class HelpersSpec extends Specification {
     }
 
     "allow setting a custom type" in {
-      val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), 'type -> "email").body
+      val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("type") -> "email").body
 
       val typeAttr = "type=\"email\""
       body must contain(typeAttr)
@@ -54,15 +54,15 @@ class HelpersSpec extends Specification {
 
   "@checkbox" should {
     "translate the _text argument" in {
-      val form = Form(single("foo"                  -> Forms.list(Forms.text)))
-      val body = checkbox.apply(form("foo"), '_text -> "myfieldlabel").body
+      val form = Form(single("foo"                           -> Forms.list(Forms.text)))
+      val body = checkbox.apply(form("foo"), Symbol("_text") -> "myfieldlabel").body
 
       body must contain("""<span>I am the &lt;b&gt;label&lt;/b&gt; of the field</span>""")
     }
 
     "translate the _text argument but keep raw html" in {
-      val form = Form(single("foo"                  -> Forms.list(Forms.text)))
-      val body = checkbox.apply(form("foo"), '_text -> Html("myfieldlabel")).body
+      val form = Form(single("foo"                           -> Forms.list(Forms.text)))
+      val body = checkbox.apply(form("foo"), Symbol("_text") -> Html("myfieldlabel")).body
 
       body must contain("""<span>I am the <b>label</b> of the field</span>""")
     }
@@ -85,7 +85,8 @@ class HelpersSpec extends Specification {
 
     "allow setting a custom id" in {
 
-      val body = select.apply(Form(single("foo" -> Forms.text))("foo"), Seq(("0", "test")), 'id -> "someid").body
+      val body =
+        select.apply(Form(single("foo" -> Forms.text))("foo"), Seq(("0", "test")), Symbol("id") -> "someid").body
 
       val idAttr = "id=\"someid\""
       body must contain(idAttr)
@@ -118,7 +119,7 @@ class HelpersSpec extends Specification {
 
     "Work as a multiple select" in {
       val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
-      val body = select.apply(form("foo"), Seq(("0", "test"), ("1", "test")), 'multiple -> None).body
+      val body = select.apply(form("foo"), Seq(("0", "test"), ("1", "test")), Symbol("multiple") -> None).body
 
       // Append [] to the name for the form binding
       body must contain("name=\"foo[]\"")
@@ -131,7 +132,9 @@ class HelpersSpec extends Specification {
     "allow disabled options" in {
       val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
       val body =
-        select.apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), '_disabled -> Seq("0", "2")).body
+        select
+          .apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), Symbol("_disabled") -> Seq("0", "2"))
+          .body
 
       body must contain("""<option value="0" disabled>test0</option>""")
       body must contain("""<option value="1">test1</option>""")
@@ -141,7 +144,9 @@ class HelpersSpec extends Specification {
     "translate default option" in {
       val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
       val body =
-        select.apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), '_default -> "myfieldlabel").body
+        select
+          .apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), Symbol("_default") -> "myfieldlabel")
+          .body
 
       body must contain("""<option class="blank" value="">I am the &lt;b&gt;label&lt;/b&gt; of the field</option>""")
     }
@@ -150,7 +155,11 @@ class HelpersSpec extends Specification {
       val form = Form(single("foo" -> Forms.list(Forms.text))).fill(List("0", "1"))
       val body =
         select
-          .apply(form("foo"), Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"), '_default -> Html("myfieldlabel"))
+          .apply(
+            form("foo"),
+            Seq("0" -> "test0", "1" -> "test1", "2" -> "test2"),
+            Symbol("_default") -> Html("myfieldlabel")
+          )
           .body
 
       body must contain("""<option class="blank" value="">I am the <b>label</b> of the field</option>""")
@@ -227,7 +236,7 @@ class HelpersSpec extends Specification {
       val roleForm = Form(single("role" -> Forms.text)).fill("foo")
       val body = repeat
         .apply(roleForm("bar"), min = 1) { roleField =>
-          select.apply(roleField, Seq("baz" -> "qux"), '_default -> "Role")
+          select.apply(roleField, Seq("baz" -> "qux"), Symbol("_default") -> "Role")
         }
         .mkString("")
 
@@ -257,50 +266,56 @@ class HelpersSpec extends Specification {
     }
 
     "correctly lookup _label in messages" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> "myfieldlabel").body must contain(
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_label") -> "myfieldlabel").body must contain(
         "I am the &lt;b&gt;label&lt;/b&gt; of the field"
       )
     }
 
     "correctly lookup _label in messages but keep raw html" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_label -> Html("myfieldlabel")).body must contain(
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_label") -> Html("myfieldlabel"))
+        .body must contain(
         "I am the <b>label</b> of the field"
       )
     }
 
     "correctly lookup _name in messages" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> "myfieldname").body must contain(
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_name") -> "myfieldname").body must contain(
         "I am the &lt;b&gt;name&lt;/b&gt; of the field"
       )
     }
 
     "correctly lookup _name in messages but keep raw html" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_name -> Html("myfieldname")).body must contain(
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_name") -> Html("myfieldname"))
+        .body must contain(
         "I am the <b>name</b> of the field"
       )
     }
 
     "correctly lookup _help in messages" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_help -> "myfieldname").body must contain(
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_help") -> "myfieldname").body must contain(
         """<dd class="info">I am the &lt;b&gt;name&lt;/b&gt; of the field</dd>"""
       )
     }
 
     "correctly lookup _help in messages but keep raw html" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_help -> Html("myfieldname")).body must contain(
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_help") -> Html("myfieldname"))
+        .body must contain(
         """<dd class="info">I am the <b>name</b> of the field</dd>"""
       )
     }
 
     "correctly display an error when _error is supplied as String" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> "Force an error").body must contain(
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> "Force an error").body must contain(
         """<dd class="error">Force an error</dd>"""
       )
     }
 
     "correctly lookup error in messages when _error is supplied as String" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> "error.generalcustomerror")
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> "error.generalcustomerror")
         .body must contain(
         """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
       )
@@ -308,21 +323,23 @@ class HelpersSpec extends Specification {
 
     "correctly lookup error in messages when _error is supplied as String but keep raw html" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Html("error.generalcustomerror"))
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> Html("error.generalcustomerror"))
         .body must contain(
         """<dd class="error">Some <b>general custom</b> error message</dd>"""
       )
     }
 
     "correctly display an error when _error is supplied as Option[String]" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option("Force an error")).body must contain(
+      inputText
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> Option("Force an error"))
+        .body must contain(
         """<dd class="error">Force an error</dd>"""
       )
     }
 
     "correctly lookup error in messages when _error is supplied as Option[String]" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option("error.generalcustomerror"))
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> Option("error.generalcustomerror"))
         .body must contain(
         """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
       )
@@ -330,7 +347,7 @@ class HelpersSpec extends Specification {
 
     "correctly lookup error in messages when _error is supplied as Option[String] but keep raw html" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option(Html("error.generalcustomerror")))
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> Option(Html("error.generalcustomerror")))
         .body must contain(
         """<dd class="error">Some <b>general custom</b> error message</dd>"""
       )
@@ -338,7 +355,7 @@ class HelpersSpec extends Specification {
 
     "correctly lookup error in messages when _error is supplied as Optional[String]" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Optional.of("error.generalcustomerror"))
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> Optional.of("error.generalcustomerror"))
         .body must contain(
         """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
       )
@@ -346,7 +363,10 @@ class HelpersSpec extends Specification {
 
     "correctly lookup error in messages when _error is supplied as Optional[String] but keep raw html" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Optional.of(Html("error.generalcustomerror")))
+        .apply(
+          Form(single("foo" -> Forms.text))("foo"),
+          Symbol("_error") -> Optional.of(Html("error.generalcustomerror"))
+        )
         .body must contain(
         """<dd class="error">Some <b>general custom</b> error message</dd>"""
       )
@@ -354,7 +374,7 @@ class HelpersSpec extends Specification {
 
     "correctly display an error when _error is supplied as Option[FormError]" in {
       inputText
-        .apply(Form(single("foo" -> Forms.text))("foo"), '_error -> Option(FormError("foo", "Force an error")))
+        .apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> Option(FormError("foo", "Force an error")))
         .body must contain(
         """<dd class="error">Force an error</dd>"""
       )
@@ -364,7 +384,7 @@ class HelpersSpec extends Specification {
       inputText
         .apply(
           Form(single("foo" -> Forms.text))("foo"),
-          '_error -> FormError("foo", "error.generalcustomerror")
+          Symbol("_error") -> FormError("foo", "error.generalcustomerror")
         )
         .body must contain(
         """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
@@ -375,7 +395,7 @@ class HelpersSpec extends Specification {
       inputText
         .apply(
           Form(single("foo" -> Forms.text))("foo"),
-          '_error -> Option(FormError("foo", "error.generalcustomerror"))
+          Symbol("_error") -> Option(FormError("foo", "error.generalcustomerror"))
         )
         .body must contain(
         """<dd class="error">Some &lt;b&gt;general custom&lt;/b&gt; error message</dd>"""
@@ -383,7 +403,7 @@ class HelpersSpec extends Specification {
     }
 
     "don't display an error when _error is supplied but is None" in {
-      inputText.apply(Form(single("foo" -> Forms.text))("foo"), '_error -> None).body must not contain (
+      inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("_error") -> None).body must not contain (
         """class="error""""
       )
     }
