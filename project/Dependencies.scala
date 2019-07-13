@@ -13,11 +13,11 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 
-  val playJsonVersion = "2.8.0-M3"
+  val playJsonVersion = "2.8.0-M4"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.5.1"
+  val specs2Version = "4.6.0"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -37,14 +37,15 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion = "2.9.9"
+  val jacksonVersion         = "2.9.9"
+  val jacksonDatabindVersion = "2.9.9.1"
+  val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
-    "com.fasterxml.jackson.core"     % "jackson-databind",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % jacksonVersion)
+  ).map(_ % jacksonVersion) ++ jacksonDatabind
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
@@ -54,7 +55,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "28.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "2.28.2"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.0.0"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
@@ -165,7 +166,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.0.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.0.1"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {

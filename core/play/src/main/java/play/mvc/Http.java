@@ -1834,7 +1834,8 @@ public class Http {
     /** The cookie SameSite attribute */
     public enum SameSite {
       STRICT("Strict"),
-      LAX("Lax");
+      LAX("Lax"),
+      NONE("None");
 
       private final String value;
 

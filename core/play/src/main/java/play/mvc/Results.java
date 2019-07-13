@@ -8,10 +8,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
+import play.api.mvc.Results$;
+import play.core.j.JavaHelpers;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
 
@@ -4535,6 +4539,20 @@ public class Results {
    */
   public static Result redirect(String url) {
     return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, url));
+  }
+
+  /**
+   * Generates a 303 See Other result.
+   *
+   * @param url The url to redirect
+   * @param queryStringParams queryString parameters to add to the queryString
+   * @return the result
+   */
+  public static Result redirect(String url, Map<String, List<String>> queryStringParams) {
+    String fullUrl =
+        Results$.MODULE$.addQueryStringParams(
+            url, JavaHelpers.javaMapOfListToImmutableScalaMapOfSeq(queryStringParams));
+    return new Result(SEE_OTHER, Collections.singletonMap(LOCATION, fullUrl));
   }
 
   /**
