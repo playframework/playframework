@@ -5,8 +5,13 @@
 package play.sbt
 
 import java.io.Closeable
-
+import java.io.FileDescriptor
+import java.io.FileInputStream
+import java.io.FilterInputStream
+import java.io.InputStream
 import jline.console.ConsoleReader
+import scala.annotation.tailrec
+import scala.concurrent.duration._
 
 trait PlayInteractionMode {
 
@@ -53,9 +58,39 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
  *  wait on jline.
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
+  // This wraps the InputStream with some sleep statements
+  // so it becomes interruptible.
+  private[play] class InputStreamWrapper(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
+    @tailrec final override def read(): Int =
+      if (is.available() != 0) is.read()
+      else {
+        Thread.sleep(poll.toMillis)
+        read()
+      }
+
+    @tailrec final override def read(b: Array[Byte]): Int =
+      if (is.available() != 0) is.read(b)
+      else {
+        Thread.sleep(poll.toMillis)
+        read(b)
+      }
+
+    @tailrec final override def read(b: Array[Byte], off: Int, len: Int): Int =
+      if (is.available() != 0) is.read(b, off, len)
+      else {
+        Thread.sleep(poll.toMillis)
+        read(b, off, len)
+      }
+  }
+
+  private def createReader: ConsoleReader = {
+    val originalIn = new FileInputStream(FileDescriptor.in)
+    val in         = new InputStreamWrapper(originalIn, 2.milliseconds)
+    new ConsoleReader(in, System.out)
+  }
 
   private def withConsoleReader[T](f: ConsoleReader => T): T = {
-    val consoleReader = new ConsoleReader
+    val consoleReader = createReader
     try f(consoleReader)
     finally consoleReader.close()
   }
