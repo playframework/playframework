@@ -45,15 +45,17 @@ class OpenIDSpec extends Specification with Mockito {
     }
 
     "generate a valid redirectUrl" in {
-      val ws          = createMockWithValidOpDiscoveryAndVerification
-      val openId      = new WsOpenIdClient(ws, new WsDiscovery(ws))
-      val redirectUrl = Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto"), dur)
+      val ws     = createMockWithValidOpDiscoveryAndVerification
+      val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
+      val redirectUrl =
+        Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto?foo$bar=ba$z"), dur)
 
       val query = parseQueryString(redirectUrl)
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.return_to") must_== Some(Seq("http://foo.bar.com/returnto"))
+      redirectUrl.endsWith("foo%24bar%3Dba%24z") must beTrue
+      query.get("openid.return_to") must_== Some(Seq("http://foo.bar.com/returnto?foo$bar=ba$z"))
       query.get("openid.realm") must beNone
     }
 
