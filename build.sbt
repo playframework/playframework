@@ -458,6 +458,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     scalaVersion := (scalaVersion in PlayProject).value,
     playBuildRepoName in ThisBuild := "playframework",
     resolvers in ThisBuild += Resolver.bintrayRepo("akka", "snapshots"),
+    resolvers in ThisBuild += "Sonatype OSS Staging".at("https://oss.sonatype.org/content/repositories/staging"),
     concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude := false,
