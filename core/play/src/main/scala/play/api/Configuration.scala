@@ -18,7 +18,6 @@ import play.utils.PlayIO
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 /**
@@ -50,11 +49,13 @@ object Configuration {
       // Iterating through the system properties is prone to ConcurrentModificationExceptions (especially in our tests)
       // Typesafe config maintains a cache for this purpose.  So, if the passed in properties *are* the system
       // properties, use the Typesafe config cache, otherwise it should be safe to parse it ourselves.
-      val systemPropertyConfig = if (properties eq System.getProperties) {
-        ConfigImpl.systemPropertiesAsConfig()
+      val userDefinedProperties = if (properties eq System.getProperties) {
+        // Empty to avoid duplicate loading System Properties parsed below
+        ConfigFactory.empty()
       } else {
         ConfigFactory.parseProperties(properties)
       }
+      val systemPropertyConfig = ConfigImpl.systemPropertiesAsConfig()
 
       // Inject our direct settings into the config.
       val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
@@ -93,6 +94,7 @@ object Configuration {
 
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
+        userDefinedProperties,
         systemPropertyConfig,
         directConfig,
         applicationConfig,
