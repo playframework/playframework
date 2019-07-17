@@ -311,7 +311,9 @@ object QueryStringBindable {
     // No need to URL decode from query string since netty already does that
 
     // Use an option here in case users call index(null) in the routes -- see #818
-    def unbind(key: String, value: String) = key + "=" + URLEncoder.encode(Option(value).getOrElse(""), "utf-8")
+    def unbind(key: String, value: String) =
+      URLEncoder.encode(Option(key).getOrElse(""), "utf-8") + "=" + URLEncoder
+        .encode(Option(value).getOrElse(""), "utf-8")
   }
 
   /**
