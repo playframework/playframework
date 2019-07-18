@@ -57,7 +57,7 @@ case class Lang(locale: Locale) {
    *
    * @param accept The accepted language
    */
-  @deprecated("For the Locale Lookup, use Langs#preferred instead", "2.7.0")
+  @deprecated("For the Locale Lookup, use Langs#preferred instead", "2.8.0")
   def satisfies(accept: Lang): Boolean =
     Locale.lookup(Seq(new Locale.LanguageRange(code)).asJava, Seq(accept.locale).asJava) != null
 
