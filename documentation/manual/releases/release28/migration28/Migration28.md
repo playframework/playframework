@@ -92,6 +92,37 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 
 This section lists changes and deprecations in configurations.
 
+### Configuration loading changes
+
+Until Play 2.7, when loading configuration, Play was not considering the default [Java System Properties](https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html) if the user provides some properties. Now, System Properties are always considered, meaning that you can reference them in your `application.conf` file even if you are also defining custom properties. For example, when [[embedding Play|ScalaEmbeddingPlayAkkaHttp]] like the code below, both `userProperties` and System Properties are used:
+
+```scala
+import java.util.Properties
+
+import play.api.mvc.Results
+import play.core.server.AkkaHttpServer
+import play.core.server.ServerConfig
+import play.api.routing.sird._
+
+class MyApp {
+  def main(args: Array[String]): Unit = {
+    // Define some user properties here
+    val userProperties = new Properties()
+    userProperties.setProperty("my.property", "some value")
+
+    val serverConfig = ServerConfig(properties = userProperties)
+
+    val server = AkkaHttpServer.fromRouterWithComponents(serverConfig) { components => {
+      case GET(p"/hello") => components.defaultActionBuilder {
+        Results.Ok
+      }
+    }}
+  }
+}
+```
+
+Keep in mind that user-defined properties have precedence over default System Properties.
+
 ### Debugging SSL Connections
 
 Until Play 2.7, both Play and Play-WS were using a version of [ssl-config](https://lightbend.github.io/ssl-config/) which had a debug system that relied on undocumented modification of internal JSSE debug settings. These are usually set using `javax.net.debug` and `java.security.debug` system properties on startup.

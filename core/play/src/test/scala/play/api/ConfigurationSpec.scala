@@ -9,6 +9,7 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
+import java.util.Properties
 
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
@@ -19,9 +20,9 @@ import scala.util.control.NonFatal
 
 class ConfigurationSpec extends Specification {
 
-  def config(data: (String, Any)*) = Configuration.from(data.toMap)
+  def config(data: (String, Any)*): Configuration = Configuration.from(data.toMap)
 
-  def exampleConfig = Configuration.from(
+  def exampleConfig: Configuration = Configuration.from(
     Map(
       "foo.bar1" -> "value1",
       "foo.bar2" -> "value2",
@@ -40,6 +41,11 @@ class ConfigurationSpec extends Specification {
       "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
     )
   )
+
+  def load(mode: Mode): Configuration = {
+    // system classloader should not have an application.conf
+    Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, mode))
+  }
 
   "Configuration" should {
 
@@ -132,6 +138,7 @@ class ConfigurationSpec extends Specification {
         config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
       }
     }
+
     "support getting optional values via getOptional" in {
       "when null" in {
         config("foo.bar" -> null).getOptional[String]("foo.bar") must beNone
@@ -143,6 +150,7 @@ class ConfigurationSpec extends Specification {
         config().getOptional[String]("foo.bar") must beNone
       }
     }
+
     "support getting prototyped seqs" in {
       val seq = config(
         "bars"           -> Seq(Map("a" -> "different a")),
@@ -152,6 +160,7 @@ class ConfigurationSpec extends Specification {
       seq.head.get[String]("a") must_== "different a"
       seq.head.get[String]("b") must_== "some b"
     }
+
     "support getting prototyped maps" in {
       val map = config(
         "bars"           -> Map("foo" -> Map("a" -> "different a")),
@@ -268,10 +277,7 @@ class ConfigurationSpec extends Specification {
     }
 
     "fail if application.conf is not found" in {
-      def load(mode: Mode) = {
-        // system classloader should not have an application.conf
-        Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, mode))
-      }
+
       "in dev mode" in {
         load(Mode.Dev) must throwA[PlayException]
       }
@@ -282,8 +288,49 @@ class ConfigurationSpec extends Specification {
         load(Mode.Test) must not(throwA[PlayException])
       }
     }
+
     "throw a useful exception when invalid collections are passed in the load method" in {
       Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
+    }
+
+    "reference values from system properties" in {
+      val configuration = Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, Mode.Test))
+
+      val javaVersion       = System.getProperty("java.specification.version")
+      val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
+
+      configJavaVersion must beEqualTo(javaVersion)
+    }
+
+    "reference values from system properties when passing additional properties" in {
+      val configuration = Configuration.load(
+        ClassLoader.getSystemClassLoader,
+        new Properties(), // empty so that we can check that System Properties are still considered
+        directSettings = Map.empty,
+        allowMissingApplicationConf = true
+      )
+
+      val javaVersion       = System.getProperty("java.specification.version")
+      val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
+
+      configJavaVersion must beEqualTo(javaVersion)
+    }
+
+    "user defined properties should have precedence over system properties" in {
+      val userProperties = new Properties()
+      userProperties.setProperty("java.specification.version", "my java version")
+
+      val configuration = Configuration.load(
+        ClassLoader.getSystemClassLoader,
+        userProperties,
+        directSettings = Map.empty,
+        allowMissingApplicationConf = true
+      )
+
+      val javaVersion       = userProperties.getProperty("java.specification.version")
+      val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
+
+      configJavaVersion must beEqualTo(javaVersion)
     }
   }
 
