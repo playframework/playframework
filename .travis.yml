@@ -1,5 +1,9 @@
 language: scala
 
+# Only build non-pushes (so PRs, API requests & cron jobs) OR tags OR forks OR main branch builds
+# https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
+if: type != push OR tag IS present OR repo != playframework/playframework OR branch IN (master, 2.7.x, 2.6.x)
+
 addons:
   apt:
     packages:
