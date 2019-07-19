@@ -153,6 +153,12 @@ class CookiesSpec extends Specification {
         Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Strict))
       )
     }
+    "handle SameSite=None cookie properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=None")
+      decoded must contain(
+        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.None))
+      )
+    }
   }
 
   "merging cookies" should {
@@ -333,4 +339,16 @@ class CookiesSpec extends Specification {
       encoding must beEqualTo("116d8da7c5283e81341db8a0c0fb5f188f9b0277-hello=world")
     }
   }
+<<<<<<< HEAD
+=======
+
+  "object Cookie.SameSite#parse" should {
+    "successfully parse None value" in {
+      val sameSiteNone = Cookie.SameSite.parse("None")
+      sameSiteNone must beSome[SameSite] {
+        SameSite.None
+      }
+    }
+  }
+>>>>>>> 88b2489b93... fix Cookie.SameSite#parse to accept SameSite.None value
 }
