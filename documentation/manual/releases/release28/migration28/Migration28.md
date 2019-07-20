@@ -2,15 +2,15 @@
 
 # Play 2.8 Migration Guide
 
-This is a guide for migrating from Play 2.7 to Play 2.8. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.7 Migration Guide|Migration27]].
+This guide is for migrating from Play 2.7 to Play 2.8. See the [[Play 2.7 Migration Guide|Migration27]] to upgrade from Play 2.6.
 
 ## How to migrate
 
-The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
+Before starting `sbt`, make sure to make the following upgrades.
 
-### Play upgrade
+### Play update
 
-Update the Play version number in `project/plugins.sbt` to upgrade Play:
+Update the Play version number in `project/plugins.sbt`:
 
 ```scala
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.x")
@@ -18,53 +18,53 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.x")
 
 Where the "x" in `2.8.x` is the minor version of Play you want to use, for instance `2.8.0`.
 
-### sbt upgrade to x.x.x
+### sbt upgrade
 
-Although Play 2.8 still supports sbt x.x series, we recommend that you use sbt x.x from now. This new version is actively maintained and supported. To update, change your `project/build.properties` so that it reads:
+Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This new version is supported and actively maintained. To update, change your `project/build.properties` so that it reads:
 
 ```
-sbt.version=x.x.x
+sbt.version=1.2.8
 ```
 
-At the time of this writing `x.x.x` is the latest version in the sbt x.x family, you may be able to use newer versions too. Check for details in the release notes of your minor version of Play 2.8.x. More information at the list of [sbt releases](https://github.com/sbt/sbt/releases).
+At the time of this writing `1.2.8` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ## API Changes
 
-Multiple APIs changes were made following our policy of deprecating the existing APIs before removing them. This section details these changes.
+Multiple API changes were made following our policy of deprecating the existing APIs before removing them. This section details these changes.
 
 ### Scala 2.11 support discontinued
 
-Play 2.8 has dropped support for Scala 2.11, which has reached it's end of life, and now only supports Scala 2.12 and 2.13.
+Play 2.8 support Scala 2.12 and 2.13, dropping support for 2.11, which has reached its end of life.
 
 ### Setting `scalaVersion` in your project
 
 **Both Scala and Java users** must configure sbt to use Scala 2.12 or 2.13.  Even if you have no Scala code in your project, Play itself uses Scala and must be configured to use the right Scala libraries.
 
-To set the Scala version in sbt, simply set the `scalaVersion` key, eg:
+To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
 
 ```scala
 scalaVersion := "2.13.0"
 ```
 
-If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi project build, then the scala version setting must be set on each project.  Typically, in a multi project build, you will have some common settings shared by every project, this is the best place to put the setting, eg:
+If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi-project build, then the scala version setting must be set on each project.  Typically, in a multi-project build, you will have some common settings shared by every project, this is the best place to put the setting, for example:
 
 ```scala
-def common = Seq(
+def commonSettings = Seq(
   scalaVersion := "2.13.0"
 )
 
-lazy val projectA = (project in file("projectA"))
+val projectA = (project in file("projectA"))
   .enablePlugins(PlayJava)
-  .settings(common: _*)
+  .settings(commonSettings)
 
-lazy val projectB = (project in file("projectB"))
+val projectB = (project in file("projectB"))
   .enablePlugins(PlayJava)
-  .settings(common: _*)
+  .settings(commonSettings)
 ```
 
 ### Deprecated APIs were removed
 
-Many APIs that deprecated in earlier versions were removed in Play 2.8. If you are still using them, we recommend migrating to the new APIs before upgrading to Play 2.8. Both Javadocs and Scaladocs usually have proper documentation on how to migrate. See the [[migration guide for Play 2.7|Migration27]] for more information.
+Many APIs that were deprecated in earlier versions were removed in Play 2.8. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.8. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.7|Migration27]] for more information.
 
 #### Scala API
 
