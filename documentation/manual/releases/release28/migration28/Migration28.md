@@ -92,6 +92,14 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 
 This section lists changes and deprecations in configurations.
 
+### Dropped the overrides for `akka.actor.default-dispatcher.fork-join-executor`
+
+The overrides that Play had under `akka.actor.default-dispatcher.fork-join-executor` have been dropped in favour of using Akka's new-and-improved defaults.
+
+See the section related to [changes in the default dispatch][akka-migration-guide-default-dispatcher] in Akka's migration guide for more details.
+
+[akka-migration-guide-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html#default-dispatcher-size
+
 ### Configuration loading changes
 
 Until Play 2.7, when loading configuration, Play was not considering the default [Java System Properties](https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html) if the user provides some properties. Now, System Properties are always considered, meaning that you can reference them in your `application.conf` file even if you are also defining custom properties. For example, when [[embedding Play|ScalaEmbeddingPlayAkkaHttp]] like the code below, both `userProperties` and System Properties are used:
