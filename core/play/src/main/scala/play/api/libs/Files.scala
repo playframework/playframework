@@ -256,7 +256,7 @@ object Files {
     private val TempDirectoryPrefix = "playtemp"
     private val playTempFolder: Path = {
       val dir       = conf.get[String]("play.temporaryFile.dir")
-      val tmpFolder = JFiles.createDirectories(Paths.get(s"$dir/$TempDirectoryPrefix"))
+      val tmpFolder = Paths.get(s"$dir/$TempDirectoryPrefix/")
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
