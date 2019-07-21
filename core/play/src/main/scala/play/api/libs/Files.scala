@@ -313,21 +313,23 @@ object Files {
      */
     applicationLifecycle.addStopHook { () =>
       Future.successful(
-        JFiles.walkFileTree(
-          playTempFolder,
-          new SimpleFileVisitor[Path] {
-            override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-              logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
-              deletePath(path)
-              FileVisitResult.CONTINUE
-            }
+        if (JFiles.isDirectory(playTempFolder)) {
+          JFiles.walkFileTree(
+            playTempFolder,
+            new SimpleFileVisitor[Path] {
+              override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
 
-            override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
-              deletePath(path)
-              FileVisitResult.CONTINUE
+              override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
             }
-          }
-        )
+          )
+        }
       )
     }
   }
