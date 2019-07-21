@@ -15,9 +15,19 @@ package views.html.helper {
       id: String,
       field: play.api.data.Field,
       input: Html,
-      args: Map[Symbol, Any],
+      params: Map[String, Any],
       p: play.api.i18n.MessagesProvider
   ) {
+    def this(
+        id: String,
+        field: play.api.data.Field,
+        input: Html,
+        args: Map[Symbol, Any],
+        p: play.api.i18n.MessagesProvider
+    )(implicit d: DummyImplicit) = this(id, field, input, args.map { case (k, v) => k.name -> v }, p)
+
+    @deprecated("Use params instead", "2.8.0")
+    lazy val args: Map[Symbol, Any] = params.map { case (k, v) => Symbol(k) -> v }
 
     def infos: Seq[Any] = {
       args.get('_help).map(m => Seq(translate(m)(p))).getOrElse {
@@ -68,6 +78,16 @@ package views.html.helper {
 
   trait FieldConstructor {
     def apply(elts: FieldElements): Html
+  }
+
+  object FieldElements {
+    def apply(
+        id: String,
+        field: play.api.data.Field,
+        input: Html,
+        args: Map[Symbol, Any],
+        p: play.api.i18n.MessagesProvider
+    )(implicit d: DummyImplicit): FieldElements = new FieldElements(id, field, input, args, p)
   }
 
   object FieldConstructor {
