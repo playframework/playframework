@@ -4,6 +4,7 @@
 
 package play.components;
 
+import akka.actor.typed.javadsl.Adapter;
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 import akka.stream.ActorMaterializer;
@@ -14,6 +15,10 @@ import scala.concurrent.ExecutionContext;
 public interface AkkaComponents {
 
   ActorSystem actorSystem();
+
+  default akka.actor.typed.ActorSystem<Void> typedActorSystem() {
+    return Adapter.toTyped(actorSystem());
+  }
 
   default Materializer materializer() {
     return ActorMaterializer.create(actorSystem());

@@ -7,6 +7,7 @@ package play.api.libs.concurrent
 import akka.Done
 import akka.actor.setup.ActorSystemSetup
 import akka.actor.setup.Setup
+import akka.actor.typed.scaladsl.adapter._
 import akka.actor.CoordinatedShutdown
 import akka.actor._
 import akka.stream.ActorMaterializer
@@ -97,6 +98,9 @@ trait AkkaComponents {
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
+
+  lazy val typedActorSystem: typed.ActorSystem[Nothing] = new TypedActorSystemProvider(actorSystem).get
+
 }
 
 /**
@@ -108,6 +112,12 @@ class ActorSystemProvider @Inject()(environment: Environment, configuration: Con
 
   lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
 
+}
+
+/** A [[Provider]] for the Akka Actor Typed's [[typed.ActorSystem ActorSystem]]. */
+@Singleton final class TypedActorSystemProvider @Inject()(actorSystem: ActorSystem)
+    extends Provider[typed.ActorSystem[Nothing]] {
+  lazy val get = actorSystem.toTyped
 }
 
 /**

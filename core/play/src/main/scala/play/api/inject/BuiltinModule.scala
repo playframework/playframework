@@ -9,6 +9,7 @@ import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+import akka.actor.typed
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
 import akka.stream.Materializer
@@ -75,6 +76,7 @@ class BuiltinModule
         bind[play.Application].to[play.DefaultApplication],
         bind[play.routing.Router].to[JavaRouterAdapter],
         bind[ActorSystem].toProvider[ActorSystemProvider],
+        bind[typed.ActorSystem[Nothing]].toProvider[TypedActorSystemProvider],
         bind[Materializer].toProvider[MaterializerProvider],
         bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],

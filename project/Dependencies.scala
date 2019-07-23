@@ -140,8 +140,8 @@ object Dependencies {
 
   def runtime(scalaVersion: String) =
     slf4j ++
-      Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
-      Seq("akka-testkit").map("com.typesafe.akka"             %% _ % akkaVersion % Test) ++
+      Seq("akka-actor", "akka-actor-typed", "akka-slf4j").map("com.typesafe.akka" %% _ % akkaVersion) ++
+      Seq("akka-testkit").map("com.typesafe.akka"                                 %% _ % akkaVersion % Test) ++
       jacksons ++
       Seq(
         playJson,
