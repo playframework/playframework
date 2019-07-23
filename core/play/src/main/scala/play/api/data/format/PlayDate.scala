@@ -27,8 +27,8 @@ private[play] class PlayDate(accessor: TemporalAccessor) {
     val hour: Int   = getOrDefault(ChronoField.HOUR_OF_DAY, 0)
     val minute: Int = getOrDefault(ChronoField.MINUTE_OF_HOUR, 0)
     val second: Int = getOrDefault(ChronoField.SECOND_OF_MINUTE, 0)
-    val nano: Int = getOrDefault(ChronoField.NANO_OF_SECOND, 0)
-    
+    val nano: Int   = getOrDefault(ChronoField.NANO_OF_SECOND, 0)
+
     ZonedDateTime.of(LocalDateTime.of(year, month, day, hour, minute, second, nano), zoneId)
   }
 
