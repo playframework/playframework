@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
 // #custom-java-object-mapper
-public class JavaJsonCustomObjectMapper extends Provider<ObjectMapper> {
+public class JavaJsonCustomObjectMapper implements Provider<ObjectMapper> {
 
   @Override
   public ObjectMapper get() {
@@ -28,6 +28,8 @@ public class JavaJsonCustomObjectMapper extends Provider<ObjectMapper> {
 
     // Needs to set to Json helper
     Json.setObjectMapper(mapper);
+
+    return mapper;
   }
 }
 // #custom-java-object-mapper
