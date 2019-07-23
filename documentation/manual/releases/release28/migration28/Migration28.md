@@ -92,6 +92,16 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 
 This section lists changes and deprecations in configurations.
 
+### `ObjectMapper` serialization change
+
+Since Play 2.8 adopts Akka Jackson Serialization support, it is also using the defaults provided by Akka. One of the changes is how [Java Time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) types are rendered. Until Play 2.7 they were rendered as timestamps, which has better performance, but they are now using [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) ([rfc3339](https://tools.ietf.org/html/rfc3339)) format (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
+
+If you need to use the old timestamps default format, then add the following configuration in your `application.conf`:
+
+```HOCON
+akka.serialization.jackson.play.serialization-features.WRITE_NUMBERS_AS_STRINGS = true
+```
+
 ### Dropped the overrides for `akka.actor.default-dispatcher.fork-join-executor`
 
 The overrides that Play had under `akka.actor.default-dispatcher.fork-join-executor` have been dropped in favour of using Akka's new-and-improved defaults.
