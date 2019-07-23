@@ -506,7 +506,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.DefaultMessagesApi.this"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieMaxAge"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
+      // Use Akka Jackson ObjectMapper
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.ObjectMapperComponents.actorSystem"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ObjectMapperProvider.this")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
