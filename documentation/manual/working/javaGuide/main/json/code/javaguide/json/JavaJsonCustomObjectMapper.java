@@ -10,21 +10,24 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.inject.guice.GuiceApplicationLoader;
 
 import play.libs.Json;
+import javax.inject.Provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
 // #custom-java-object-mapper
-public class JavaJsonCustomObjectMapper {
+public class JavaJsonCustomObjectMapper extends Provider<ObjectMapper> {
 
-  JavaJsonCustomObjectMapper() {
-    ObjectMapper mapper =
-        Json.newDefaultMapper()
-            // enable features and customize the object mapper here ...
-            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    // etc.
+  @Override
+  public ObjectMapper get() {
+    ObjectMapper mapper = new ObjectMapper()
+      // enable features and customize the object mapper here ...
+      .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    
+    // Needs to set to Json helper
     Json.setObjectMapper(mapper);
   }
+
 }
 // #custom-java-object-mapper

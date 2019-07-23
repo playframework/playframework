@@ -22,6 +22,13 @@ public class Json {
   private static final ObjectMapper defaultObjectMapper = newDefaultMapper();
   private static volatile ObjectMapper objectMapper = null;
 
+  /**
+   * Creates an {@link ObjectMapper} with the default configuration for Play.
+   *
+   * @return an {@link ObjectMapper} with some modules enabled.
+   * @deprecated Deprecated as of 2.8.0. Inject an {@link ObjectMapper} instead.
+   */
+  @Deprecated
   public static ObjectMapper newDefaultMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new Jdk8Module());

@@ -4,10 +4,11 @@
 
 package play.core
 
+import akka.actor.ActorSystem
+import akka.serialization.jackson.JacksonObjectMapperProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import play.api.inject._
 import play.libs.Json
-
 import javax.inject._
 
 import scala.concurrent.Future
@@ -24,14 +25,18 @@ class ObjectMapperModule
     )
 
 @Singleton
-class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle) extends Provider[ObjectMapper] {
+class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
+    extends Provider[ObjectMapper] {
+
+  private val BINDING_NAME = "jackson-json-play"
+
   lazy val get: ObjectMapper = {
-    val objectMapper = Json.newDefaultMapper()
-    Json.setObjectMapper(objectMapper)
+    val mapper = JacksonObjectMapperProvider.get(actorSystem).getOrCreate(BINDING_NAME, Option.empty)
+    Json.setObjectMapper(mapper)
     lifecycle.addStopHook { () =>
       Future.successful(Json.setObjectMapper(null))
     }
-    objectMapper
+    mapper
   }
 }
 
@@ -40,7 +45,8 @@ class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle) extends Pr
  */
 trait ObjectMapperComponents {
 
+  def actorSystem: ActorSystem
   def applicationLifecycle: ApplicationLifecycle
 
-  lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle).get
+  lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle, actorSystem).get
 }
