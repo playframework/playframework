@@ -20,14 +20,14 @@ public class JavaJsonCustomObjectMapper extends Provider<ObjectMapper> {
 
   @Override
   public ObjectMapper get() {
-    ObjectMapper mapper = new ObjectMapper()
-      // enable features and customize the object mapper here ...
-      .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    
+    ObjectMapper mapper =
+        new ObjectMapper()
+            // enable features and customize the object mapper here ...
+            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
     // Needs to set to Json helper
     Json.setObjectMapper(mapper);
   }
-
 }
 // #custom-java-object-mapper

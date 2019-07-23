@@ -12,8 +12,8 @@ public class JavaJsonCustomObjectMapperModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(JavaJsonCustomObjectMapper.class)
-      .toProvider(JavaJsonCustomObjectMapper.class)
-      .asEagerSingleton();
+        .toProvider(JavaJsonCustomObjectMapper.class)
+        .asEagerSingleton();
   }
 }
 // #custom-java-object-mapper2
