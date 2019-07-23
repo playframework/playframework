@@ -32,7 +32,7 @@ class PlayGlobalAppSpec extends Specification {
     "start apps with global state disabled" in {
       val app = testApp(false)
       Play.start(app)
-      Play.privateMaybeApplication must throwA[RuntimeException]
+      Play.privateMaybeApplication must beFailedTry
       Play.stop(app)
       success
     }
@@ -80,7 +80,7 @@ class PlayGlobalAppSpec extends Specification {
       Play.start(app2)
       app1.isTerminated must beFalse
       app2.isTerminated must beFalse
-      Play.privateMaybeApplication must throwA[RuntimeException]
+      Play.privateMaybeApplication must beFailedTry
       Play.stop(app1)
       Play.stop(app2)
       success
@@ -88,7 +88,7 @@ class PlayGlobalAppSpec extends Specification {
     "should stop an app with global state disabled" in {
       val app = testApp(false)
       Play.start(app)
-      Play.privateMaybeApplication must throwA[RuntimeException]
+      Play.privateMaybeApplication must beFailedTry
 
       Play.stop(app)
       app.isTerminated must beTrue
@@ -100,7 +100,7 @@ class PlayGlobalAppSpec extends Specification {
 
       Play.stop(app)
       app.isTerminated must beTrue
-      Play.privateMaybeApplication must throwA[RuntimeException]
+      Play.privateMaybeApplication must beFailedTry
     }
   }
 }
