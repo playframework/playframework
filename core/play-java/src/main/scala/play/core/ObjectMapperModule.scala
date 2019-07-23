@@ -28,7 +28,7 @@ class ObjectMapperModule
 class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
     extends Provider[ObjectMapper] {
 
-  private val BINDING_NAME = "jackson-json-play"
+  private val BINDING_NAME = "play"
 
   lazy val get: ObjectMapper = {
     val mapper = JacksonObjectMapperProvider.get(actorSystem).getOrCreate(BINDING_NAME, Option.empty)

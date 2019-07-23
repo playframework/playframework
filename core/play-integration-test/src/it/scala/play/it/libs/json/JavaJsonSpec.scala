@@ -11,6 +11,7 @@ import java.util.OptionalInt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -20,10 +21,29 @@ import play.libs.Json
 import play.mvc.Http
 import play.mvc.Http.RequestBody
 
+// Use an `ObjectMapper` which overrides some defaults
+class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
+  override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder()
+  // should be able to use `.play.` namespace to override configurations
+  // for this `ObjectMapper`.
+    .configure("akka.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> false)
+    .build()
+    .injector
+    .instanceOf[ObjectMapper]
+
+  "ObjectMapper" should {
+    "respect the custom configuration" in new JsonScope {
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_WITH_ZONE_ID) must beFalse
+    }
+  }
+}
+
+// The dependency injected `ObjectMapper`
 class ApplicationJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder().build().injector.instanceOf[ObjectMapper]
 }
 
+// Classic static `ObjectMapper` from play.libs.Json
 class StaticJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = Json.newDefaultMapper()
 }
@@ -34,7 +54,7 @@ trait JavaJsonSpec extends Specification {
 
   def createObjectMapper: ObjectMapper
 
-  private class JsonScope(val mapper: ObjectMapper = createObjectMapper) extends Scope {
+  private[json] class JsonScope(val mapper: ObjectMapper = createObjectMapper) extends Scope {
     val testJsonString =
       """{
         |  "foo" : "bar",
@@ -112,7 +132,7 @@ trait JavaJsonSpec extends Specification {
         val instant: Instant = Instant.ofEpochSecond(1425435861)
 
         // The configured mapper should be able to handle Java Time fields
-        Json.mapper().writeValueAsString(instant) must startWith("1425435861")
+        Json.mapper().writeValueAsString(instant) must_== """"2015-03-04T02:24:21Z""""
       }
     }
 
@@ -171,7 +191,7 @@ trait JavaJsonSpec extends Specification {
         jsonNode.get("optionalInt").asText() must_== "12345"
 
         // Java Time fields
-        jsonNode.get("instant").asText() must_== "1425435861"
+        jsonNode.get("instant").asText() must_== "2015-03-04T02:24:21Z"
       }
 
       "include null fields" in new JsonScope(createObjectMapper) {
