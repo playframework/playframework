@@ -94,7 +94,7 @@ This section lists changes and deprecations in configurations.
 
 ### `ObjectMapper` serialization change
 
-Play 2.8 adopts Akka Jackson Serialization support and it is using the defaults provided by Akka. One of the changes is how [Java Time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) types are rendered. Until Play 2.7 they were rendered as timestamps, which has better performance, but they are now using [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) ([rfc3339](https://tools.ietf.org/html/rfc3339)) format (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
+Play 2.8 adopts Akka Jackson Serialization support and then uses the defaults provided by Akka. One of the changes is how [Java Time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) types are rendered. Until Play 2.7 they were rendered as timestamps, which has better performance, but now they are rendered using [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) ([rfc3339](https://tools.ietf.org/html/rfc3339)) format (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
 
 If you need to use the old timestamps default format, then add the following configuration in your `application.conf`:
 
