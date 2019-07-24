@@ -171,7 +171,10 @@ object Modules {
           tryConstruct()
         }
         .getOrElse {
-          throw new PlayException("No valid constructors", "Module [" + className + "] cannot be instantiated.")
+          val parameters: Array[Array[String]] = ConstructorUtils.getConstructorParameters(moduleClass)
+          throw new PlayException(s"""No valid public constructors for ${moduleClass.getCanonicalName}. Expected one of:
+            ${parameters.map(_.mkString("(", ", ", ")")).mkString(", ")}
+            """.stripMargin, "Module [" + className + "] cannot be instantiated.")
         }
     } catch {
       case e: PlayException       => throw e

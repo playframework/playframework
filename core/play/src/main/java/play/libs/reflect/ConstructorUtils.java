@@ -18,6 +18,7 @@ package play.libs.reflect;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 /** Imported from apache.commons.lang3 3.6 */
 public class ConstructorUtils {
@@ -113,6 +114,23 @@ public class ConstructorUtils {
       }
     }
     return result;
+  }
+
+  /**
+   * Finds the class names of all accessible constructors.
+   *
+   * @param <T> the constructor type
+   * @return the constructors parameters, empty array if no matching accessible constructor found
+   */
+  public static <T> String[][] getConstructorParameters(final Class<T> type) {
+    Constructor[] allConstructors = type.getDeclaredConstructors();
+    return Arrays.stream(allConstructors)
+        .map(
+            cons ->
+                Arrays.stream(cons.getParameterTypes())
+                    .map(Class::getCanonicalName)
+                    .toArray(String[]::new))
+        .toArray(String[][]::new);
   }
 
   /**

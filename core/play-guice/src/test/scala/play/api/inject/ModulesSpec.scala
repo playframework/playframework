@@ -10,6 +10,7 @@ import org.specs2.matcher.BeEqualTypedValueCheck
 import org.specs2.mutable.Specification
 import play.api.Configuration
 import play.api.Environment
+import play.api.PlayException
 import play.{ Environment => JavaEnvironment }
 
 class ModulesSpec extends Specification {
@@ -63,6 +64,21 @@ class ModulesSpec extends Specification {
       }
     }
 
+    "list current constructor parameters when none match" in {
+      val env = Environment.simple()
+      val conf = Configuration(
+        "play.modules.enabled" -> Seq(
+          classOf[InvalidConfigModule].getName
+        )
+      )
+
+      Modules.locate(env, conf) must throwA[PlayException].like {
+        case e =>
+          e.getMessage must contain("(com.typesafe.config.Config, java.lang.String, long)")
+          e.getMessage must contain("(com.typesafe.config.Config, java.lang.String)")
+      }
+    }
+
   }
 
 }
@@ -76,5 +92,10 @@ class ScalaGuiceModule(val environment: Environment, val configuration: Configur
 }
 
 class JavaGuiceConfigModule(val environment: JavaEnvironment, val config: Config) extends AbstractModule {
+  override def configure(): Unit = ()
+}
+
+class InvalidConfigModule(val config: Config, val ignored: String) extends AbstractModule {
+  def this(config: Config, ignored: String, useless: Long) = this(config, ignored)
   override def configure(): Unit = ()
 }
