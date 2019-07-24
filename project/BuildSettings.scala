@@ -506,7 +506,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.DefaultMessagesApi.this"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieMaxAge"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
+      // Add configuration for temporary file directory
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#DefaultTemporaryFileCreator.this")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
