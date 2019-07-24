@@ -239,7 +239,8 @@ object Files {
   @Singleton
   class DefaultTemporaryFileCreator @Inject()(
       applicationLifecycle: ApplicationLifecycle,
-      temporaryFileReaper: TemporaryFileReaper
+      temporaryFileReaper: TemporaryFileReaper,
+      conf: Configuration
   ) extends TemporaryFileCreator {
 
     private val logger = play.api.Logger(this.getClass)
@@ -254,7 +255,8 @@ object Files {
 
     private val TempDirectoryPrefix = "playtemp"
     private val playTempFolder: Path = {
-      val tmpFolder = JFiles.createTempDirectory(TempDirectoryPrefix)
+      val dir       = conf.get[String]("play.temporaryFile.dir")
+      val tmpFolder = Paths.get(s"$dir/$TempDirectoryPrefix/")
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
@@ -271,12 +273,13 @@ object Files {
 
     private def createReference(tempFile: TemporaryFile) = {
       val path = tempFile.path
-      val reference = new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
-        override def finalizeReferent(): Unit = {
-          references.remove(this)
-          deletePath(path)
+      val reference =
+        new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
+          override def finalizeReferent(): Unit = {
+            references.remove(this)
+            deletePath(path)
+          }
         }
-      }
       references.add(reference)
       tempFile
     }
@@ -310,21 +313,23 @@ object Files {
      */
     applicationLifecycle.addStopHook { () =>
       Future.successful(
-        JFiles.walkFileTree(
-          playTempFolder,
-          new SimpleFileVisitor[Path] {
-            override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-              logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
-              deletePath(path)
-              FileVisitResult.CONTINUE
-            }
+        if (JFiles.isDirectory(playTempFolder)) {
+          JFiles.walkFileTree(
+            playTempFolder,
+            new SimpleFileVisitor[Path] {
+              override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
 
-            override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
-              deletePath(path)
-              FileVisitResult.CONTINUE
+              override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
             }
-          }
-        )
+          )
+        }
       )
     }
   }

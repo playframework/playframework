@@ -510,6 +510,8 @@ object BuildSettings {
       // Use Akka Jackson ObjectMapper
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.ObjectMapperComponents.actorSystem"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ObjectMapperProvider.this")
+      // Add configuration for temporary file directory
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#DefaultTemporaryFileCreator.this")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

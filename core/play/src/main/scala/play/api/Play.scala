@@ -52,7 +52,7 @@ object Play {
       Success(_currentApp.get)
     } else {
       Failure(
-        sys.error(
+        new RuntimeException(
           s"""
              |The global application reference is disabled. Play's global state is deprecated and will
              |be removed in a future release. You should use dependency injection instead. To enable
