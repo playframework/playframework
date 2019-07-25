@@ -507,8 +507,11 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieMaxAge"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
+      // Use Akka Jackson ObjectMapper
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.ObjectMapperComponents.actorSystem"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ObjectMapperProvider.this"),
       // Add configuration for temporary file directory
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#DefaultTemporaryFileCreator.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#DefaultTemporaryFileCreator.this"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

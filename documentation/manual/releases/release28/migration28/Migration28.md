@@ -22,7 +22,7 @@ Where the "x" in `2.8.x` is the minor version of Play you want to use, for insta
 
 Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This new version is supported and actively maintained. To update, change your `project/build.properties` so that it reads:
 
-```
+```properties
 sbt.version=1.2.8
 ```
 
@@ -91,6 +91,16 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 ## Configuration changes
 
 This section lists changes and deprecations in configurations.
+
+### `ObjectMapper` serialization change
+
+Play 2.8 adopts Akka Jackson Serialization support and then uses the defaults provided by Akka. One of the changes is how [Java Time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) types are rendered. Until Play 2.7 they were rendered as timestamps, which has better performance, but now they are rendered using [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) ([rfc3339](https://tools.ietf.org/html/rfc3339)) format (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
+
+If you need to use the old timestamps default format, then add the following configuration in your `application.conf`:
+
+```HOCON
+akka.serialization.jackson.play.serialization-features.WRITE_NUMBERS_AS_STRINGS = true
+```
 
 ### Dropped the overrides for `akka.actor.default-dispatcher.fork-join-executor`
 

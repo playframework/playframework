@@ -139,7 +139,7 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  @deprecated("Use setup(ClassLoader, Configuration, Setup*) instead", "2.8.0")
+  @deprecated("Use start(ClassLoader, Configuration, Setup*) instead", "2.8.0")
   protected[ActorSystemProvider] def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
     start(classLoader, config, Seq.empty: _*)
   }
@@ -149,7 +149,7 @@ object ActorSystemProvider {
    *
    * @return The ActorSystem and a function that can be used to stop it.
    */
-  @deprecated("Use setup(ClassLoader, Configuration, Setup*) instead", "2.8.0")
+  @deprecated("Use start(ClassLoader, Configuration, Setup*) instead", "2.8.0")
   protected[ActorSystemProvider] def start(
       classLoader: ClassLoader,
       config: Configuration,

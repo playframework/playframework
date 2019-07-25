@@ -2,10 +2,11 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.libs;
+package play.it.libs.json;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class JavaPOJO {
 
@@ -13,6 +14,19 @@ public class JavaPOJO {
   private String bar;
   private Instant instant;
   private Optional<Integer> optNumber;
+  private OptionalInt optionalInt;
+
+  public JavaPOJO() {
+    // empty constructor useful for Jackson
+  }
+
+  public JavaPOJO(String foo, String bar, Instant instant, Optional<Integer> optNumber, OptionalInt optionalInt) {
+    this.foo = foo;
+    this.bar = bar;
+    this.instant = instant;
+    this.optNumber = optNumber;
+    this.optionalInt = optionalInt;
+  }
 
   public String getFoo() {
     return foo;
@@ -44,5 +58,13 @@ public class JavaPOJO {
 
   public void setOptNumber(Optional<Integer> optNumber) {
     this.optNumber = optNumber;
+  }
+
+  public OptionalInt getOptionalInt() {
+    return optionalInt;
+  }
+
+  public void setOptionalInt(OptionalInt optionalInt) {
+    this.optionalInt = optionalInt;
   }
 }
