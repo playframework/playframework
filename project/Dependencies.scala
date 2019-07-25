@@ -240,6 +240,10 @@ object Dependencies {
     logback % Test
   )
 
+  val clusterDependencies = Seq(
+    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
+  )
+
   val fluentleniumVersion = "3.7.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2

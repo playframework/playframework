@@ -85,6 +85,9 @@ object PlayImport extends PlayImportCompat {
 
   val specs2 = component("play-specs2")
 
+  val javadslClusterSharding  = component("play-cluster-sharding-javadsl")
+  val scaladslClusterSharding = component("play-cluster-sharding-scaladsl")
+
   object PlayKeys {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
     val playDefaultAddress = SettingKey[String]("playDefaultAddress", "The default address that Play runs on")
