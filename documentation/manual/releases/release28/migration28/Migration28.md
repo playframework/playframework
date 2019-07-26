@@ -99,7 +99,7 @@ Play 2.8 adopts Akka Jackson Serialization support and then uses the defaults pr
 If you need to use the old timestamps default format, then add the following configuration in your `application.conf`:
 
 ```HOCON
-akka.serialization.jackson.play.serialization-features.WRITE_NUMBERS_AS_STRINGS = true
+akka.serialization.jackson.play.serialization-features.WRITE_DATES_AS_TIMESTAMPS = on
 ```
 
 ### Dropped the overrides for `akka.actor.default-dispatcher.fork-join-executor`
