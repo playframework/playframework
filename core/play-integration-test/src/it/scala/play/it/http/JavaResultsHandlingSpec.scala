@@ -5,7 +5,7 @@
 package play.it.http
 
 import java.io.ByteArrayInputStream
-import java.util.Arrays
+import java.util
 import java.util.Locale
 import java.util.Optional
 
@@ -581,7 +581,7 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
-        val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(Arrays.asList(objectNode))
+        val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(util.Arrays.asList(objectNode))
         val cometSource                           = dataSource.via(Comet.json("callback"))
         Results.ok().chunked(cometSource)
       }
@@ -593,10 +593,8 @@ trait JavaResultsHandlingSpec
 
     "chunk event source results" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map {
-          new akka.japi.function.Function[String, EventSource.Event] {
-            def apply(t: String) = EventSource.Event.event(t)
-          }
+        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map { t =>
+          EventSource.Event.event(t)
         }
         val eventSource = dataSource.via(EventSource.flow())
         Results.ok().chunked(eventSource).as("text/event-stream")

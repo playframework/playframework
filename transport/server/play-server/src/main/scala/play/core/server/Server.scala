@@ -318,9 +318,7 @@ private[server] trait ServerFromRouter {
 
 private[play] object JavaServerHelper {
   def forRouter(router: JRouter, mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
-    forRouter(mode, httpPort, sslPort)(new JFunction[JBuiltInComponents, JRouter] {
-      override def apply(components: JBuiltInComponents): JRouter = router
-    })
+    forRouter(mode, httpPort, sslPort)(_ => router)
   }
 
   def forRouter(mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer])(

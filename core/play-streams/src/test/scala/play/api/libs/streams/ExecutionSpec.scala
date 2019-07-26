@@ -29,9 +29,7 @@ class ExecutionSpec extends Specification {
     "not overflow the stack" in {
       def executeRecursively(ec: ExecutionContext, times: Int): Unit = {
         if (times > 0) {
-          ec.execute(new Runnable {
-            def run() = executeRecursively(ec, times - 1)
-          })
+          ec.execute(() => executeRecursively(ec, times - 1))
         }
       }
 
@@ -61,7 +59,7 @@ class ExecutionSpec extends Specification {
     "execute code in the order it was submitted" in {
       val runRecord = scala.collection.mutable.Buffer.empty[Int]
       case class TestRunnable(id: Int, children: Runnable*) extends Runnable {
-        def run() = {
+        def run(): Unit = {
           runRecord += id
           for (c <- children) trampoline.execute(c)
         }

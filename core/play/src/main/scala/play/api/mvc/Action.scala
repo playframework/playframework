@@ -26,7 +26,7 @@ import scala.language.higherKinds
 trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler { self =>
 
   /** @return itself, for better support in the routes file. */
-  def apply() = this
+  def apply(): EssentialAction = this
 
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
     def apply(rh: play.mvc.Http.RequestHeader) = self(rh.asScala).map(_.asJava)(Execution.trampoline).asJava

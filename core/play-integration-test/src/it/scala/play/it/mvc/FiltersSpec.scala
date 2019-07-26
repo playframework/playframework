@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
 
 import akka.stream.Materializer
+import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
@@ -20,6 +21,7 @@ import play.api._
 import play.core.server.Server
 import play.it._
 import play.filters.HttpFiltersComponents
+import play.libs.streams
 
 import scala.concurrent.ExecutionContext.{ global => ec }
 import scala.concurrent._
@@ -315,14 +317,12 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       Results.internalServerError(Option(t.getCause).getOrElse(t).getMessage)
     }
 
-    def apply(next: EssentialAction) = new EssentialAction {
-      override def apply(request: Http.RequestHeader) = {
+    def apply(next: EssentialAction): EssentialAction = new EssentialAction {
+      override def apply(request: Http.RequestHeader): Accumulator[ByteString, Result] = {
         try {
           next
             .apply(request)
-            .recover(new java.util.function.Function[Throwable, Result]() {
-              def apply(t: Throwable) = getResult(t)
-            }, ec)
+            .recover(t => getResult(t), ec)
         } catch {
           case t: Throwable => Accumulator.done(getResult(t))
         }
@@ -372,13 +372,11 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val header        = "Java"
     val expectedValue = "1"
 
-    override def apply(next: EssentialAction) = new EssentialAction {
-      override def apply(request: Http.RequestHeader) = {
+    override def apply(next: EssentialAction): EssentialAction = new EssentialAction {
+      override def apply(request: Http.RequestHeader): streams.Accumulator[ByteString, Result] = {
         next
           .apply(request)
-          .map(new java.util.function.Function[Result, Result]() {
-            def apply(result: Result) = result.withHeader(header, expectedValue)
-          }, ec)
+          .map(result => result.withHeader(header, expectedValue), ec)
       }
     }
   }
