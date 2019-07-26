@@ -412,7 +412,8 @@ object Files {
             s"Reaper enabled but no temp folder has been created yet, starting in $initialDelay with $interval intervals"
           )
       }
-      cancellable = Some(actorSystem.scheduler.schedule(initialDelay, interval) {
+
+      cancellable = Some(actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () =>
         reap()
       }(actorSystem.dispatcher))
     }
