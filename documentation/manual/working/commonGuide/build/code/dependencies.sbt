@@ -18,11 +18,11 @@ libraryDependencies ++= Seq(
 //#multi-deps
 
 //#explicit-scala-version-dep
-libraryDependencies += "org.scala-stm" % "scala-stm_2.11" % "0.8"
+libraryDependencies += "org.scala-stm" % "scala-stm_2.13" % "0.9.1"
 //#explicit-scala-version-dep
 
 //#auto-scala-version-dep
-libraryDependencies += "org.scala-stm" %% "scala-stm" % "0.8"
+libraryDependencies += "org.scala-stm" %% "scala-stm" % "0.9.1"
 //#auto-scala-version-dep
 
 //#resolver

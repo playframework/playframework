@@ -29,8 +29,6 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Publisher
 
 class AccumulatorSpec extends org.specs2.mutable.Specification {
-  // JavaConversions is required because JavaConverters.asJavaIterable only exists in 2.12
-  // and we cross compile for 2.11
   import scala.collection.JavaConverters._
 
   def withMaterializer[T](block: Materializer => T) = {
