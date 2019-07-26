@@ -106,7 +106,7 @@ trait AkkaComponents {
 class ActorSystemProvider @Inject()(environment: Environment, configuration: Configuration)
     extends Provider[ActorSystem] {
 
-  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
+  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil: _*)
 
 }
 
@@ -141,7 +141,7 @@ object ActorSystemProvider {
    */
   @deprecated("Use start(ClassLoader, Configuration, Setup*) instead", "2.8.0")
   protected[ActorSystemProvider] def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
-    start(classLoader, config, Seq.empty: _*)
+    start(classLoader, config, Nil: _*)
   }
 
   /**
@@ -169,16 +169,14 @@ object ActorSystemProvider {
       // When this setting is enabled, there'll be a deadlock at shutdown. Therefore, we
       // prevent the creation of the Actor System.
       val errorMessage =
-        s"""Can't start Play: detected "$exitJvmPath = on". Using "$exitJvmPath = on" in
-           | Play may cause a deadlock when shutting down. Please set "$exitJvmPath = off"""".stripMargin
-          .replace("\n", "")
+        s"""Can't start Play: detected "$exitJvmPath = on". """ +
+          s"""Using "$exitJvmPath = on" in Play may cause a deadlock when shutting down. """ +
+          s"""Please set "$exitJvmPath = off""""
       logger.error(errorMessage)
       throw config.reportError(exitJvmPath, errorMessage)
     }
 
     val akkaConfig: Config = {
-      val akkaConfigRoot = config.get[String]("play.akka.config")
-
       // normalize timeout values for Akka's use
       // TODO: deprecate this setting (see https://github.com/playframework/playframework/issues/8442)
       val playTimeoutKey      = "play.akka.shutdown-timeout"
@@ -187,21 +185,18 @@ object ActorSystemProvider {
       // Typesafe config used internally by Akka doesn't support "infinite".
       // Also, the value expected is an integer so can't use Long.MaxValue.
       // Finally, Akka requires the delay to be less than a certain threshold.
-      val akkaMaxDelay    = Int.MaxValue / 1000
-      val akkaMaxDuration = Duration(akkaMaxDelay, "seconds")
-      val normalisedDuration =
-        if (playTimeoutDuration > akkaMaxDuration) akkaMaxDuration else playTimeoutDuration
+      val akkaMaxDelay        = Int.MaxValue / 1000
+      val akkaMaxDuration     = Duration(akkaMaxDelay, "seconds")
+      val normalisedDuration  = playTimeoutDuration.min(akkaMaxDuration)
+      val akkaTimeoutDuration = java.time.Duration.ofMillis(normalisedDuration.toMillis)
 
       val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
       config
-        .get[Config](akkaConfigRoot)
+        .get[Config](config.get[String]("play.akka.config"))
         // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
         .withFallback(config.underlying)
         // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
-        .withValue(
-          akkaTimeoutKey,
-          ConfigValueFactory.fromAnyRef(java.time.Duration.ofMillis(normalisedDuration.toMillis))
-        )
+        .withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef(akkaTimeoutDuration))
     }
 
     val name = config.get[String]("play.akka.actor-system")
@@ -209,10 +204,8 @@ object ActorSystemProvider {
     val bootstrapSetup   = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
     val actorSystemSetup = ActorSystemSetup(bootstrapSetup +: additionalSetups: _*)
 
-    val system = ActorSystem(name, actorSystemSetup)
     logger.debug(s"Starting application default Akka system: $name")
-
-    system
+    ActorSystem(name, actorSystemSetup)
   }
 
 }
