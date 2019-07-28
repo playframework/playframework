@@ -1,2 +1,2 @@
-JavaConfig:The Config API
+JavaConfig:The Configuration API
 

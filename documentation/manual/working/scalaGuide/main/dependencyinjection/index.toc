@@ -1,2 +1,2 @@
-ScalaDependencyInjection:Runtime dependency injection
-ScalaCompileTimeDependencyInjection:Compile time dependency injection
+ScalaDependencyInjection:Dependency Injection with Guice
+ScalaCompileTimeDependencyInjection:Compile Time Dependency Injection

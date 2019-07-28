@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# Integrating with JPA
+# Using JPA to access your database
 
 ## Adding dependencies to your project
 
@@ -97,7 +97,7 @@ database.dispatcher {
 
 The `JPAApi` provides you various `withTransaction(...)` methods to execute arbitrary code inside a JPA transaction. These methods however do not include a custom execution context and therefore must be wrapped inside a `CompletableFuture` with an IO bound execution context.
 
-### Examples:
+### Examples
 
 Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-):
 
