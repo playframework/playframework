@@ -2,12 +2,11 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package scalaguide.sql
+package sdatabase
 
 // #inject-controller
 // ###insert: package controllers
 import javax.inject.Inject
-
 import play.api.db._
 import play.api.mvc._
 
