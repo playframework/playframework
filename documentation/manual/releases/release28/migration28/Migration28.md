@@ -2,7 +2,7 @@
 
 # Play 2.8 Migration Guide
 
-This guide is for migrating from Play 2.7 to Play 2.8. See the [[Play 2.7 Migration Guide|Migration27]] to upgrade from Play 2.6.
+This guide is for migrating from Play 2.7 to Play 2.8. See the [[Play 2.7 Migration Guide|Migration27]] to upgrade from Play 2.6. It is also recommended to read [Akka 2.5 to 2.6 migration guide](https://doc.akka.io/docs/akka/2.6.0-M5/project/migration-guide-2.5.x-2.6.x.html) since multiple changes there have an impact on Play 2.8.
 
 ## How to migrate
 
@@ -109,6 +109,10 @@ The overrides that Play had under `akka.actor.default-dispatcher.fork-join-execu
 See the section related to [changes in the default dispatch][akka-migration-guide-default-dispatcher] in Akka's migration guide for more details.
 
 [akka-migration-guide-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html#default-dispatcher-size
+
+### `IOSource` and `FileIO` changes in Akka Streams
+
+There are changes related to how Akka Streams handle errors for `FileIO.toPath`, `StreamConverters.fromInputStream`, and `StreamConverters.fromOutputStream`. See the section related to [these changes](https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html#iosources-file) in Akka's migration guide for more details.
 
 ### Configuration loading changes
 
