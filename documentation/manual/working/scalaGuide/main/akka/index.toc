@@ -1,1 +1,2 @@
 ScalaAkka:Integrating with Akka
+ScalaClusterSharding:Akka Cluster Sharding for Akka Typed (experimental)
