@@ -23,7 +23,7 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
     with Closeable {
 
   def this(repo: FileRepository, toClose: Closeable) = this(repo, repo, toClose)
-  def this(repo: FileRepository, apiRepo: FileRepository) = this(repo, apiRepo, new Closeable() { def close() = () })
+  def this(repo: FileRepository, apiRepo: FileRepository) = this(repo, apiRepo, () => ())
   def this(repo: FileRepository) = this(repo, repo)
 
   private val fileMimeTypes: FileMimeTypes = {

@@ -5,7 +5,6 @@
 package play.core.utils
 
 import java.lang.{ StringBuilder => JStringBuilder }
-import java.util.function.IntConsumer
 import java.util.{ BitSet => JBitSet }
 
 /**
@@ -110,8 +109,8 @@ private[play] object HttpHeaderParameterEncoding {
     // end up with multiple placeholders per logical character.
     value
       .codePoints()
-      .forEach(new IntConsumer {
-        override def accept(codePoint: Int): Unit = {
+      .forEach(
+        codePoint =>
           // We could support a wider range of characters here by using
           // the 'token' or 'quoted printable' encoding, however it's
           // simpler to use the subset of characters that is also valid
@@ -124,8 +123,7 @@ private[play] object HttpHeaderParameterEncoding {
             // Render a placeholder instead of the unsupported character.
             builder.append(PlaceholderChar)
           }
-        }
-      })
+      )
 
     builder.append('"')
 

@@ -4,13 +4,11 @@
 
 package play.it.http
 
-import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
+
 import javax.inject.Inject
 import javax.inject.Provider
-
 import akka.Done
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -190,12 +188,10 @@ class TestAsyncCacheApiProvider @Inject()(lifeCycle: ApplicationLifecycle)(impli
       .expireAfterWrite(1, TimeUnit.SECONDS) // consistent with the value used in @Cached annotations above
       .build[String, Object]()
 
-    lifeCycle.addStopHook(new Callable[CompletionStage[_]] {
-      override def call(): CompletionStage[_] = {
-        cache.cleanUp()
-        cache.invalidateAll()
-        CompletableFuture.completedFuture(true)
-      }
+    lifeCycle.addStopHook(() => {
+      cache.cleanUp()
+      cache.invalidateAll()
+      CompletableFuture.completedFuture(true)
     })
 
     new TestAsyncCacheApi(cache)
