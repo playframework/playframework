@@ -23,6 +23,36 @@ And if you need to write numbers as strings, add the following configuration:
 akka.serialization.jackson.serialization-features.WRITE_NUMBERS_AS_STRINGS=true
 ```
 
+### Guice support for Akka Actor Typed
+
+The pre-existing `AkkaGuiceSupport` utility, which helped bind Akka's "classic" actors, has gained additional methods to support Akka 2.6's new [Typed Actor API][].
+
+[Typed Actor API]: https://doc.akka.io/docs/akka/2.6/typed/actors.html
+
+Here's a quick example, in Scala, of defining a Guice module which binds a `HelloActor`:
+
+```scala
+object AppModule extends AbstractModule with AkkaGuiceSupport {
+  override def configure() = {
+    bindTypedActor(HelloActor(), "hello-actor")
+  }
+}
+```
+
+And again, in Java, where the actor extends Akka's Java DSL `AbstractBehavior`:
+
+```java
+public final class AppModule extends AbstractModule
+    implements AkkaGuiceSupport {
+  @Override
+  protected void configure() {
+    bindTypedActor(HelloActor.class, "hello-actor");
+  }
+}
+```
+
+See [[Integrating with Akka Typed|AkkaTyped]] for more details.
+
 ## Other additions
 
 ### Build additions
