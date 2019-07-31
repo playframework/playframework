@@ -6,7 +6,6 @@ package play.javadsl.cluster.sharding.typed;
 
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import play.components.*;
-import play.internal.javadsl.cluster.sharding.typed.ClusterShardingProvider;
 import akka.annotation.ApiMayChange;
 
 @ApiMayChange
