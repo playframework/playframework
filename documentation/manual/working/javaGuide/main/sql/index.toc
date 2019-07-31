@@ -1,3 +1,2 @@
 JavaDatabase:Configuring and using JDBC
-JavaJPA:Integrating with JPA
-JavaEbean:Using Ebean ORM
+JavaJPA:Using JPA to access your database
