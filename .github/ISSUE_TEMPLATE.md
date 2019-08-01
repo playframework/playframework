@@ -1,6 +1,6 @@
 <!--
 
-If you are reporting an bug, please be informative. This template can guide you to provide basic information, but you are not limited to that.
+If you are reporting a bug, please be informative. This template can guide you to provide basic information, but you are not limited to that.
 
 ### Are you looking for help?
 
@@ -20,7 +20,7 @@ This is an issue tracker, used to manage and track the development of Play. It i
 
 ### Operating System
 
-<!-- Use `uname -a` if on Linuxs -->
+<!-- Use `uname -a` if on Linux -->
 
 
 ### JDK
