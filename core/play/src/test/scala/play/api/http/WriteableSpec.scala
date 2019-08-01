@@ -69,6 +69,17 @@ class WriteableSpec extends Specification {
         writeable.contentType must beSome(startWith("multipart/form-data; boundary="))
       }
     }
+
+    "of urlEncodedForm" should {
+      "encode keys and values" in {
+        val codec                   = Codec.utf_8
+        val writeable               = Writeable.writeableOf_urlEncodedForm(codec)
+        val transformed: ByteString = writeable.transform(Map("foo$bar" -> Seq("ba$z")))
+
+        transformed.utf8String must contain("foo%24bar=ba%24z")
+      }
+    }
+
   }
 
   def createMultipartFormData[A](ref: A): MultipartFormData[A] = {

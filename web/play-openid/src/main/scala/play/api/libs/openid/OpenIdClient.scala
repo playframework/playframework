@@ -131,7 +131,10 @@ class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: 
         ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
         val separator = if (server.url.contains("?")) "&" else "?"
         server.url + separator + parameters
-          .map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8"))
+          .map({
+            case (k, v) =>
+              URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
+          })
           .mkString("&")
       })
   }
