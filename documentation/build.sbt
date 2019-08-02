@@ -6,9 +6,8 @@ import com.typesafe.play.docs.sbtplugin.Imports._
 import com.typesafe.play.docs.sbtplugin._
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
-import sbt._
-import akka.JavaVersion
-import akka.CrossJava
+import playbuild.JavaVersion
+import playbuild.CrossJava
 
 val DocsApplication = config("docs").hide
 
@@ -24,7 +23,10 @@ lazy val main = Project("Play-Documentation", file("."))
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-    ) ++ JavaVersion.sourceAndTarget(CrossJava.Keys.fullJavaHomes.value("8")),
+    ) ++ {
+      val javaHomes = fullJavaHomes.value
+      JavaVersion.sourceAndTarget(javaHomes.get("8").orElse(javaHomes.get("system@8")))
+    },
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.

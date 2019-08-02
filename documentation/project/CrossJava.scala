@@ -4,16 +4,17 @@
 
 // this is copy/pasted from https://github.com/akka/akka/blob/5576c233d063b3ee4cfc05d8e73c614a3dea478d/project/CrossJava.scalas
 
-package akka
+package playbuild
 
 import java.io.File
 
 import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
+
 import sbt._
+import sbt.Keys._
 import sbt.librarymanagement.SemanticSelector
 import sbt.librarymanagement.VersionNumber
-import akka.CrossJava.nullBlank
 
 /*
  * Tools for discovering different Java versions,
@@ -48,26 +49,18 @@ object JavaVersion {
 
   def notOnJdk8[T](values: Seq[T]): Seq[T] = if (isJdk8) Seq.empty[T] else values
 
-  def sourceAndTarget(fullJavaHome: File): Seq[String] =
-    if (isJdk8) Seq.empty
-    else Seq("-source", "8", "-target", "8", "-bootclasspath", fullJavaHome + "/jre/lib/rt.jar")
+  def sourceAndTarget(fullJavaHome: Option[File]): Seq[String] = {
+    if (isJdk8) Nil
+    else {
+      val javaHome = fullJavaHome.getOrElse {
+        sys.error("Unable to identify a Java 8 home to specify the boot classpath")
+      }
+      Seq("-source", "8", "-target", "8", "-bootclasspath", s"$javaHome/jre/lib/rt.jar")
+    }
+  }
 }
 
 object CrossJava {
-  object Keys {
-    val discoveredJavaHomes = settingKey[Map[String, File]]("Discovered Java home directories")
-    val javaHomes           = settingKey[Map[String, File]]("The user-defined additional Java home directories")
-    val fullJavaHomes       = settingKey[Map[String, File]]("Combines discoveredJavaHomes and custom javaHomes.")
-  }
-
-  import Keys._
-
-  val crossJavaSettings = Seq(
-    discoveredJavaHomes := CrossJava.discoverJavaHomes,
-    javaHomes := ListMap.empty,
-    fullJavaHomes := CrossJava.expandJavaHomes(discoveredJavaHomes.value ++ javaHomes.value)
-  )
-
   // parses jabba style version number adopt@1.8
   def parseJavaVersion(version: String): JavaVersion = {
     def splitDot(s: String): Vector[Long] =
