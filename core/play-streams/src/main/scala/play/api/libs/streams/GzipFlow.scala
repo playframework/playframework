@@ -40,7 +40,7 @@ object GzipFlow {
 
       setHandler(out, new OutHandler {
         override def onPull(): Unit = {
-          if (isClosed(in)) emitChunk()
+          if (buffer.length >= chunkSize || isClosed(in)) emitChunk()
           else pull(in)
         }
       })
