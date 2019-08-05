@@ -203,11 +203,8 @@ object BuildSettings {
     mimaPreviousArtifacts := {
       // Binary compatibility is tested against these versions
       val previousVersions = mimaPreviousVersions(version.value)
-      if (crossPaths.value) {
-        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
-      } else {
-        previousVersions.map(v => organization.value % moduleName.value % v)
-      }
+      val cross            = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      previousVersions.map(v => (organization.value %% moduleName.value % v).cross(cross))
     },
     mimaPreviousArtifacts := {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -269,8 +266,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultSyncCacheApi.getOptional"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.SyncCacheApiAdapter.getOptional"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.DefaultSyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.cache.DefaultAsyncCacheApi.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.cache.AsyncCacheApi.get"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
@@ -381,6 +380,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
       // Remove deprecated
       ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Action$"),
+      // These return Seq[Any] instead of Seq[String] #9385
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.infos"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.errors"),
       // Removed deprecated TOO_MANY_REQUEST field
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TOO_MANY_REQUEST"),
@@ -409,6 +411,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.TODO"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.getUsername"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.onUnauthorized"),
+      // No static forwarders for non-public overloads
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Action.async"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Action.invokeBlock"),
       // Removed Java's JPAApi thread-local
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
@@ -422,6 +429,8 @@ object BuildSettings {
       // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo"),
+      // Tweaked generic signature - false positive
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.test.Helpers.fakeApplication"),
       // Remove constructor from private class
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RouterBuilderHelper.this"),
       // Remove Http.Context and Http.Response
@@ -502,6 +511,10 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Flash"),
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Session"),
       ProblemFilters.exclude[InaccessibleMethodProblem]("java.lang.Object.clone"),
+      // Taught Scala.asScala to covariantly widen seq element type
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.libs.Scala.asScala"),
+      // Replaced raw type usages
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.mvc.BodyParser#Of.value"),
       // Add configuration for max-age of language-cookie
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.DefaultMessagesApi.this"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieMaxAge"),
@@ -551,7 +564,8 @@ object BuildSettings {
         (javacOptions in compile) ~= (_.map {
           case "1.8" => "1.6"
           case other => other
-        })
+        }),
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 
@@ -606,7 +620,10 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings)
+      .settings(
+        playCommonSettings,
+        mimaPreviousArtifacts := Set.empty,
+      )
   }
 
   /** A project that *is* an sbt plugin. */
@@ -616,7 +633,8 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        fork in Test := false
+        fork in Test := false,
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 
