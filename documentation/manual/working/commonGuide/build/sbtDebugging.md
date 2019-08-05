@@ -9,7 +9,7 @@ By default, sbt generates reports of all your dependencies, including dependency
 
 The reports are generated into xml files, with an accompanying XSL stylesheet that allow browsers that support XSL to convert the XML reports into HTML.  Browsers with this support include Firefox and Safari, and notably don't include Chrome.
 
-The reports can be found in the `target/scala-2.12/resolution-cache/reports/` directory of your project, one is generated for each scope in your project, and are named `organization-projectId_scalaVersion-scope.xml`, for example, `com.example-my-first-app_2.11-compile.xml`.  When opened in Firefox, this report looks something like this:
+The reports can be found in the `target/scala-2.12/resolution-cache/reports/` directory of your project, one is generated for each scope in your project, and are named `organization-projectId_scalaVersion-scope.xml`, for example, `com.example-my-first-app_2.13-compile.xml`.  When opened in Firefox, this report looks something like this:
 
 [[images/ivy-report.png]]
 
@@ -24,11 +24,11 @@ The show command shows the return value from any sbt task.  So for example, if y
 ```
 [my-first-app] $ show sources
 [info] ArrayBuffer(my-first-app/app/controllers/Application.scala, 
-  my-first-app/target/scala-2.11/twirl/main/views/html/index.template.scala,
-  my-first-app/target/scala-2.11/twirl/main/views/html/main.template.scala,
-  my-first-app/target/scala-2.11/src_managed/main/routes_reverseRouting.scala,
-  my-first-app/target/scala-2.11/src_managed/main/routes_routing.scala,
-  my-first-app/target/scala-2.11/src_managed/main/controllers/routes.java)
+  my-first-app/target/scala-2.13/twirl/main/views/html/index.template.scala,
+  my-first-app/target/scala-2.13/twirl/main/views/html/main.template.scala,
+  my-first-app/target/scala-2.13/src_managed/main/routes_reverseRouting.scala,
+  my-first-app/target/scala-2.13/src_managed/main/routes_routing.scala,
+  my-first-app/target/scala-2.13/src_managed/main/controllers/routes.java)
 ```
 
 The output above has been formatted to ensure it fits cleanly on the screen, you may need to copy it to an editor to make sense of it if the task you run returns a long list of items.
@@ -38,8 +38,8 @@ You can also specify a task a particular scope, eg `test:sources` or `compile:so
 ```
 [my-first-app] $ show compile:packageBin::mappings
 [info] List(
-  (my-first-app/target/scala-2.11/classes/application.conf,application.conf),
-  (my-first-app/target/scala-2.11/classes/controllers/Application.class,controllers/Application.class),
+  (my-first-app/target/scala-2.13/classes/application.conf,application.conf),
+  (my-first-app/target/scala-2.13/classes/controllers/Application.class,controllers/Application.class),
   ...
 ```
 
@@ -97,7 +97,7 @@ So, let's say you `compile`, and a file needs to be recompiled:
 
 ```
 [my-first-app] $ compile
-[info] Compiling 1 Scala source to my-first-app/target/scala-2.11/classes...
+[info] Compiling 1 Scala source to my-first-app/target/scala-2.13/classes...
 [success] Total time: 1 s, completed 07/04/2015 1:28:43 PM
 ```
 

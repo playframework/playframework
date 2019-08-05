@@ -38,7 +38,7 @@ This will build and publish Play for the default Scala version (currently 2.12.8
 Or to publish for a specific Scala version:
 
 ```bash
-> +++ 2.11.12 publishLocal
+> ++ 2.13.0 publishLocal
 ```
 
 ## Build the documentation
@@ -73,8 +73,8 @@ When you publish Play locally, it will publish a snapshot version to your local 
 Navigate to your existing Play project and make the following edits in `project/plugins.sbt`:
 
 ```scala
-// Change the sbt plugin to use the local Play build (2.7.0-SNAPSHOT)
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.7.0-SNAPSHOT")
+// Change the sbt plugin to use the local Play build (2.8.0-SNAPSHOT)
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.0-SNAPSHOT")
 ```
 
 Once you have done this, you can start the console and interact with your project normally:

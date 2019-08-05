@@ -30,7 +30,7 @@ logs                     → Logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
  └ resolution-cache      → Info about dependencies
- └ scala-2.11
+ └ scala-2.13
     └ api                → Generated API docs
     └ classes            → Compiled class files
     └ routes             → Sources generated from routes
@@ -116,11 +116,9 @@ dist
 
 ## Default sbt layout
 
-You also have the option of using the default layout used by SBT and Maven. In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
+You also have the option of using the default layout used by [sbt](https://www.scala-sbt.org/1.x/docs/Directories.html) and [Maven](https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html). In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
 
-```
-disablePlugins(PlayLayoutPlugin)
-```
+@[](code/anatomy.sbt)
 
 This will stop Play from overriding the default sbt layout, which looks like this:
 
@@ -158,7 +156,7 @@ lib                        → Unmanaged libraries dependencies
 logs                       → Logs folder
  └ application.log         → Default log file
 target                     → Generated stuff
- └ scala-2.11.12
+ └ scala-2.13
     └ cache
     └ classes              → Compiled class files
     └ classes_managed      → Managed class files (templates, ...)
