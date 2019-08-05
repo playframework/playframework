@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
-    scalaVersion := "2.12.8",
+    scalaVersion := "2.12.9",
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies ++= Seq(
       guice,
