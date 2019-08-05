@@ -176,11 +176,8 @@ object BuildSettings {
           case _                                         => sys.error(s"Cannot find previous versions for ${version.value}")
         }
       }.toSet -- invalidVersions
-      if (crossPaths.value) {
-        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
-      } else {
-        previousVersions.map(v => organization.value % moduleName.value % v)
-      }
+      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      previousVersions.map(v => (organization.value %% moduleName.value % v).cross(cross))
     },
     mimaBinaryIssueFilters ++= Seq(
       // Changing return and parameter types from DefaultApplicationLifecycle (implementation) to ApplicationLifecycle (trait)
@@ -286,7 +283,8 @@ object BuildSettings {
         (javacOptions in compile) ~= (_.map {
           case "1.8" => "1.6"
           case other => other
-        })
+        }),
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 
@@ -332,7 +330,10 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
+      .settings(
+        playCommonSettings,
+        mimaPreviousArtifacts := Set.empty,
+      )
   }
 
   /**
@@ -341,10 +342,11 @@ object BuildSettings {
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
-      .settings(playCommonSettings: _*)
-      .settings(playScriptedSettings: _*)
       .settings(
-        fork in Test := false
+        playCommonSettings,
+        playScriptedSettings,
+        fork in Test := false,
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 
