@@ -6,14 +6,6 @@ import Dependencies._
 import Generators._
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
-import com.typesafe.tools.mima.core.DirectMissingMethodProblem
-import com.typesafe.tools.mima.core.IncompatibleMethTypeProblem
-import com.typesafe.tools.mima.core.IncompatibleResultTypeProblem
-import com.typesafe.tools.mima.core.ProblemFilters
-import com.typesafe.tools.mima.core.ReversedMissingMethodProblem
-import com.typesafe.tools.mima.plugin.MimaKeys.mimaBinaryIssueFilters
-import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
-import com.typesafe.tools.mima.plugin.MimaKeys.mimaReportBinaryIssues
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
@@ -21,7 +13,6 @@ import sbt.Keys.parallelExecution
 import sbt.ScriptedPlugin._
 import sbt._
 import sbt.io.Path._
-import com.typesafe.tools.mima.core.MissingClassProblem
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
@@ -101,10 +92,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     Docs.apiDocsIncludeManaged := true
   )
   .settings(Docs.playdocSettings: _*)
-  .settings(
-    mimaBinaryIssueFilters := Seq(
-      )
-  )
   .dependsOn(
     BuildLinkProject,
     StreamsProject
@@ -141,11 +128,6 @@ lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistenc
 
 lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "persistence/play-jdbc")
   .settings(libraryDependencies ++= jdbcDeps)
-  .settings(
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[MissingClassProblem]("org.jdbcdslog.LogSqlDataSource")
-    )
-  )
   .dependsOn(PlayJdbcApiProject)
   .dependsOn(PlaySpecs2Project % "test")
 
@@ -478,7 +460,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude := false,
     Docs.apiDocsIncludeManaged := false,
-    mimaReportBinaryIssues := ((): Unit),
+    mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
     Release.settings
   )
