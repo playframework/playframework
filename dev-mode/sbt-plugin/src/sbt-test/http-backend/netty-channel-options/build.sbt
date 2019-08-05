@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayNettyServer)
   .disablePlugins(PlayAkkaHttpServer)
   .settings(
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9"),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies ++= Seq(
       guice
