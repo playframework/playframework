@@ -283,12 +283,13 @@ object Dependencies {
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
-    "com.typesafe.play"             %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-asynchttpclient"  % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-oauth"            % playWsStandaloneVersion,
-    "com.github.ben-manes.caffeine" % "jcache"                  % caffeineVersion % Test,
-    "net.sf.ehcache"                % "ehcache"                 % ehcacheVersion % Test,
-    "org.ehcache"                   % "jcache"                  % "1.0.1" % Test
+    "com.typesafe.play" %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
+    "com.typesafe.play" % "shaded-asynchttpclient"  % playWsStandaloneVersion,
+    "com.typesafe.play" % "shaded-oauth"            % playWsStandaloneVersion,
+    scalaJava8Compat, // update from 0.8.0 to 0.9.0 - first version available for Scala 2.13
+    "com.github.ben-manes.caffeine" % "jcache"  % caffeineVersion % Test,
+    "net.sf.ehcache"                % "ehcache" % ehcacheVersion  % Test,
+    "org.ehcache"                   % "jcache"  % "1.0.1"         % Test
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(
