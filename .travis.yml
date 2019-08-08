@@ -60,7 +60,7 @@ jobs:
     # Test against Java 11, but only for Scala 2.12
     - stage: java11
       script: scripts/test-scala-212
-      env: TRAVIS_JDK=adopt@1.11.0-2
+      env: TRAVIS_JDK=adopt@1.11.0-4
       name: "Run tests for Scala 2.12 and Java 11"
     - script: scripts/it-test-scala-212
       env: TRAVIS_JDK=adopt@1.11.0-2
