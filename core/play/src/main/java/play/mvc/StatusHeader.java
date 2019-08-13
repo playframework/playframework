@@ -248,12 +248,7 @@ public class StatusHeader extends Result {
    */
   public Result sendResource(
       String resourceName, ClassLoader classLoader, boolean inline, FileMimeTypes fileMimeTypes) {
-    return doSendResource(
-        StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
-        Optional.empty(),
-        Optional.ofNullable(resourceName),
-        inline,
-        fileMimeTypes);
+    return sendResource(resourceName, classLoader, inline, resourceName, fileMimeTypes);
   }
 
   /**
@@ -477,16 +472,7 @@ public class StatusHeader extends Result {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    try {
-      return doSendResource(
-          FileIO.fromPath(file.toPath()),
-          Optional.of(Files.size(file.toPath())),
-          Optional.ofNullable(file.getName()),
-          inline,
-          fileMimeTypes);
-    } catch (final IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
+    return sendFile(file, inline, file.getName(), fileMimeTypes);
   }
 
   /**
