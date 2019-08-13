@@ -4,13 +4,20 @@
 
 package play.libs.akka;
 
+import scala.reflect.ClassTag;
+
 import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.actor.typed.Behavior;
+import akka.annotation.ApiMayChange;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
+import play.api.libs.concurrent.TypedActorRefProvider;
 import play.libs.Akka;
+
+import static play.api.libs.concurrent.TypedAkka.*;
 
 import java.util.function.Function;
 
@@ -24,6 +31,7 @@ import java.util.function.Function;
  * public class MyModule extends AbstractModule implements AkkaGuiceSupport {
  *   protected void configure() {
  *     bindActor(MyActor.class, "myActor");
+ *     bindTypedActor(HelloActor.class, "hello-actor");
  *   }
  * }
  * </pre>
@@ -33,6 +41,7 @@ import java.util.function.Function;
  * <pre>
  * public class MyController extends Controller {
  *   {@literal @}Inject @Named("myActor") ActorRef myActor;
+ *   {@literal @}Inject ActorRef&lt;HelloActor.SayHello&gt; helloActor;
  *   ...
  * }
  * </pre>
@@ -94,5 +103,29 @@ public interface AkkaGuiceSupport {
   default <T extends Actor> void bindActorFactory(Class<T> actorClass, Class<?> factoryClass) {
     BinderAccessor.binder(this)
         .install(new FactoryModuleBuilder().implement(Actor.class, actorClass).build(factoryClass));
+  }
+
+  /**
+   * Bind a typed actor.
+   *
+   * <p>For the given message type {@code T} binds {@code Behavior[T]} to the given {@link Behavior}
+   * subclass and {@code ActorRef[T]} to an instance of {@link TypedActorRefProvider} with the given
+   * actor name, so that it can be injected into other components.
+   *
+   * <p>Note that, while the name is used when spawning the actor in the {@code ActorSystem}, it is
+   * <em>NOT</em> used as a name qualifier for the binding. This is so that you don't need to use
+   * {@link javax.inject.Named Named} to qualify all injections of typed actors. Use the underlying
+   * API to create multiple, name-annotated bindings.
+   *
+   * @param behaviorClass The {@code Behavior} subclass for the typed actor.
+   * @param name The name of the typed actor.
+   * @param <T> The type of the messages the typed actor can handle.
+   */
+  @ApiMayChange
+  default <T> void bindTypedActor(Class<? extends Behavior<T>> behaviorClass, String name) {
+    Class<T> cls = messageTypeOf(behaviorClass);
+    TypedActorRefProvider<T> provider = new TypedActorRefProvider<>(name, ClassTag.apply(cls));
+    BinderAccessor.binder(this).bind(behaviorOf(cls)).to(behaviorClass).asEagerSingleton();
+    BinderAccessor.binder(this).bind(actorRefOf(cls)).toProvider(provider).asEagerSingleton();
   }
 }
