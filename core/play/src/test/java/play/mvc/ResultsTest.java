@@ -133,7 +133,7 @@ public class ResultsTest {
   public void sendPathInlineWithoutFileName() throws IOException {
     Result result = Results.unauthorized().sendPath(file, (String) null);
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline");
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION), Optional.empty());
   }
 
   @Test
@@ -211,7 +211,7 @@ public class ResultsTest {
   public void sendFileInlineWithoutFileName() throws IOException {
     Result result = Results.ok().sendFile(file.toFile(), (String) null);
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline");
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION), Optional.empty());
   }
 
   @Test

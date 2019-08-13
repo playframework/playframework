@@ -558,16 +558,21 @@ public class StatusHeader extends Result {
       boolean inline,
       FileMimeTypes fileMimeTypes) {
 
-    // Create a Content-Disposition header
-    StringBuilder cdBuilder = new StringBuilder();
-    cdBuilder.append(inline ? "inline" : "attachment");
-    resourceName.ifPresent(
-        rn -> {
-          cdBuilder.append("; ");
-          HttpHeaderParameterEncoding.encodeToBuilder("filename", rn, cdBuilder);
-        });
-    Map<String, String> headers =
-        Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION, cdBuilder.toString());
+    Map<String, String> headers = Collections.emptyMap();
+    if (!inline || resourceName.filter(rn -> !rn.isEmpty()).isPresent()) {
+      // Create a Content-Disposition header
+      // According to RFC 6266 (Section 4.2) there is no need to send "Content-Disposition: inline"
+      // https://tools.ietf.org/html/rfc6266#section-4.2
+      StringBuilder cdBuilder = new StringBuilder();
+      cdBuilder.append(inline ? "inline" : "attachment");
+      resourceName.ifPresent(
+          rn -> {
+            cdBuilder.append("; ");
+            HttpHeaderParameterEncoding.encodeToBuilder("filename", rn, cdBuilder);
+          });
+      headers =
+          Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION, cdBuilder.toString());
+    }
 
     return new Result(
         status(),

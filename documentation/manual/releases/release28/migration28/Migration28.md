@@ -155,6 +155,15 @@ This debug system has been removed, the debug flags that do not have a direct co
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.
 
+### `Content-Disposition: inline` header not send anymore when serving files
+
+When serving files via the [[Scala API|ScalaStream#Serving-files]] or the [[Java API|JavaStream#Serving-files]] Play by default generates the `Content-Disposition` header automatically and sends it to the client.
+
+Starting with Play 2.8 however, when the computed header ends up being _exactly_ `Content-Disposition: inline` (when passing `inline = true`, which is the default, and `null` as file name),  it wont be send by Play automatically anymore. Because, according to [RFC 6266 Section 4.2](https://tools.ietf.org/html/rfc6266#section-4.2), rendering content inline is the default anyway.
+Therefore this change should not effect you at all, since all browsers adhere to the specs and do not treat this header in any special way but to render content inline, like no header was send.
+
+If you still want to send this exact header however, you can still do that by using the `withHeader(s)` methods from [`Scala's`](api/scala/play/api/mvc/Result.html#withHeaders\(headers:\(String,String\)*\):play.api.mvc.Result) or [`Java's`](api/java/play/mvc/Result.html#withHeader-java.lang.String-java.lang.String-) `Result` class.
+
 ## Updated libraries
 
 This section lists significant updates made to our dependencies.
