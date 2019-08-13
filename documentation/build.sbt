@@ -53,7 +53,11 @@ lazy val main = Project("Play-Documentation", file("."))
         "ScalaJson",
         "ScalaJsonAutomated",
         "ScalaJsonCombinators",
-        "ScalaJsonTransformers"
+        "ScalaJsonTransformers",
+        // These are not  downstream pages, but they were renamed
+        // and are still linked in old migration guides.
+        "JavaDatabase",
+        "ScalaDatabase"
       )
     ),
     PlayDocsKeys.javaManualSourceDirectories :=

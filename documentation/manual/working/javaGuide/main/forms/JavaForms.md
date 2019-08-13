@@ -219,7 +219,7 @@ Because constraints support both [[runtime Dependency Injection|JavaDependencyIn
 
 > **Note:** You only need to create one class-level constraint for each cross concern. For example, the constraint we will create in this section is reusable and can be used for all validation processes where you need to access the database. The reason why Play doesn't provide any generic class-level constraints with dependency injected components is because Play doesn't know which components you might have enabled in your project.
 
-First let's set up the interface with the `validate` method we will implement in our form later. You can see the method gets passed a `Database` object (Checkout the [[database docs|JavaDatabase]]):
+First let's set up the interface with the `validate` method we will implement in our form later. You can see the method gets passed a `Database` object (Checkout the [[database docs|AccessingAnSQLDatabase]]):
 
 Without Payload
 : @[interface](code/javaguide/forms/customconstraint/nopayload/ValidatableWithDB.java)

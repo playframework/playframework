@@ -17,7 +17,7 @@ JPA requires the datasource to be accessible via [JNDI](https://www.oracle.com/t
 db.default.jndiName=DefaultDS
 ```
 
-See the [[Java Database docs|JavaDatabase]] for more information about how to configure your datasource.
+See the [[Database docs|AccessingAnSQLDatabase]] for more information about how to configure your datasource.
 
 ## Creating a Persistence Unit
 

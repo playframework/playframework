@@ -2,15 +2,14 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.sql;
+package jdatabase;
 
+// #java-jdbc-connection
 import java.sql.Connection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.inject.Inject;
 
-import play.mvc.Controller;
-import play.db.NamedDatabase;
 import play.db.Database;
 
 class JavaJdbcConnection {
@@ -35,3 +34,4 @@ class JavaJdbcConnection {
         executionContext);
   }
 }
+// #java-jdbc-connection
