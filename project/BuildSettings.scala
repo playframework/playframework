@@ -537,11 +537,6 @@ object BuildSettings {
     Docs.apiDocsInclude := true
   )
 
-  def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
-    javacOptions ++= Seq("-source", version, "-target", version),
-    javacOptions in doc := Seq("-source", version)
-  )
-
   /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
