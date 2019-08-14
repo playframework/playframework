@@ -13,9 +13,11 @@ organization := "com.lightbend.play"
 enablePlugins(PlayScala, PlayNettyServer)
 disablePlugins(PlayAkkaHttpServer)
 
-               updateOptions := updateOptions.value.withLatestSnapshots(false)
-                scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9")
-PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
+                    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9")
+                   updateOptions := updateOptions.value.withLatestSnapshots(false)
+evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
+    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
+
          libraryDependencies += guice
  InputKey[Unit]("callIndex") := {
    try DevModeBuild.callIndex() catch { case e: java.net.ConnectException =>
