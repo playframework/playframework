@@ -12,6 +12,7 @@ organization := "com.lightbend.play"
 enablePlugins(PlayScala, PlayNettyServer)
 disablePlugins(PlayAkkaHttpServer)
 
+               updateOptions := updateOptions.value.withLatestSnapshots(false)
                 scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9")
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
          libraryDependencies += guice
