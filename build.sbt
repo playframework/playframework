@@ -213,13 +213,6 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         )
       )
       .taskValue,
-    // This only publishes the sbt plugin projects on each scripted run.
-    // The runtests script does a full publish before running tests.
-    // When developing the sbt plugins, run a publishLocal in the root project first.
-    scriptedDependencies := {
-      val () = publishLocal.value
-      val () = (publishLocal in RoutesCompilerProject).value
-    }
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
 
@@ -401,7 +394,8 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
   .enablePlugins(SbtPlugin)
   .enablePlugins(SbtTwirl)
   .settings(
-    libraryDependencies ++= playDocsSbtPluginDependencies
+    libraryDependencies ++= playDocsSbtPluginDependencies,
+    scriptedDependencies := (()), // drop Test/compile & publishLocal being called on aggregating root scripted
   )
   .dependsOn(SbtPluginProject)
 

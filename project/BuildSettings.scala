@@ -15,9 +15,8 @@ import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import interplay._
-import sbt.Keys.version
 import sbt.Keys._
-import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
+import sbt.ScriptedPlugin.autoImport._
 import sbt.Resolver
 import sbt._
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
@@ -572,28 +571,27 @@ object BuildSettings {
       )
   }
 
-  def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
+  def omnidocSettings: Seq[Setting[_]] = Def.settings(
+    Omnidoc.projectSettings,
     omnidocSnapshotBranch := snapshotBranch,
     omnidocPathPrefix := ""
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
-    ScriptedImport.scriptedLaunchOpts ++= Seq(
-      s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
-      "-Xmx512m",
-      "-XX:MaxMetaspaceSize=512m",
-      "-Dscala.version=" + sys.props
-        .get("scripted.scala.version")
-        .orElse(sys.props.get("scala.version"))
-        .getOrElse("2.12.9")
-    )
+    // Don't automatically publish anything.
+    // The test-sbt-plugins-* scripts publish before running the scripted tests.
+    // When developing the sbt plugins:
+    // * run a publishLocal in the root project to get everything
+    // * run a publishLocal in the changes projects for fast feedback loops
+    scriptedDependencies := (()), // drop Test/compile & publishLocal
+    scriptedBufferLog := false,
+    scriptedLaunchOpts ++= {
+      val bootDir = file(sys.props("user.home")) / ".sbt" / "boot"
+      val sv      = sys.props.getOrElse("scripted.scala.version", sys.props.getOrElse("scala.version", "2.12.8"))
+      Seq(s"-Dsbt.boot.directory=$bootDir", "-Xmx512m", "-XX:MaxMetaspaceSize=512m", s"-Dscala.version=$sv")
+    },
+    scripted := scripted.tag(Tags.Test).evaluated,
   )
-
-  def playFullScriptedSettings: Seq[Setting[_]] =
-    Seq(
-      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
-    ) ++ playScriptedSettings
 
   def disablePublishing = Seq[Setting[_]](
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
