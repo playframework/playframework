@@ -16,10 +16,18 @@ lazy val root = (project in file("."))
     evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies += guice,
-    InputKey[Unit]("callIndex") := ScriptedTools.callIndex(),
+    InputKey[Unit]("callIndex") := {
+      try ScriptedTools.callIndex() catch { case e: java.net.ConnectException =>
+        play.sbt.run.PlayRun.stop(state.value)
+        throw e
+      }
+    },
     InputKey[Unit]("checkLines") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
-      ScriptedTools.checkLines(source, target)
+        try ScriptedTools.checkLines(source, target) catch { case e: java.net.ConnectException =>
+          play.sbt.run.PlayRun.stop(state.value)
+          throw e
+        }
     }
   )
