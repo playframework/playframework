@@ -537,6 +537,7 @@ trait Results {
      * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendFile(
         content: java.io.File,
@@ -553,6 +554,7 @@ trait Results {
      * @param content The path to send.
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendPath(
         content: Path,
@@ -565,7 +567,7 @@ trait Results {
         .mapMaterializedValue(_.onComplete { _ =>
           onClose()
         })
-      streamFile(io, Option(fileName(content)), Some(Files.size(content)), inline)(fileMimeTypes)
+      streamFile(io, Option(fileName(content)), Some(Files.size(content)), inline)
     }
 
     /**
@@ -575,20 +577,22 @@ trait Results {
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
      * @param fileName Function to retrieve the file name. By default the name of the resource is used.
+     * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendResource(
         resource: String,
         classLoader: ClassLoader = Results.getClass.getClassLoader,
         inline: Boolean = true,
-        fileName: String => String = _.split('/').last
-    )(implicit fileMimeTypes: FileMimeTypes): Result = {
+        fileName: String => String = _.split('/').last,
+        onClose: () => Unit = () => ()
+    )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val stream = classLoader.getResourceAsStream(resource)
-      streamFile(
-        StreamConverters.fromInputStream(() => stream),
-        Option(fileName(resource)),
-        Some(stream.available()),
-        inline
-      )
+      val io = StreamConverters
+        .fromInputStream(() => stream)
+        .mapMaterializedValue(_.onComplete { _ =>
+          onClose()
+        })
+      streamFile(io, Option(fileName(resource)), Some(stream.available()), inline)
     }
 
     /**

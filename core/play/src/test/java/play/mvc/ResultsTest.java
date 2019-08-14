@@ -4,6 +4,10 @@
 
 package play.mvc;
 
+import akka.actor.ActorSystem;
+import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
+import akka.stream.javadsl.Sink;
 import org.junit.*;
 
 import java.io.IOException;
@@ -12,8 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import play.mvc.Http.HeaderNames;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static org.junit.Assert.*;
 
@@ -228,6 +237,73 @@ public class ResultsTest {
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(),
         "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+  }
+
+  @Test
+  public void sendFileHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result = Results.ok().sendFile(file.toFile(), () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendPathHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result = Results.ok().sendPath(file, () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendResourceHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result =
+          Results.ok().sendResource("multipart-form-data-file.txt", () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
   }
 
   @Test
