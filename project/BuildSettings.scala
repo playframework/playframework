@@ -24,9 +24,6 @@ import scala.util.control.NonFatal
 
 object BuildSettings {
 
-  // Argument for setting size of permgen space or meta space for all forked processes
-  val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
-
   val snapshotBranch: String = {
     try {
       val branch = "git rev-parse --abbrev-ref HEAD".!!.trim
@@ -92,7 +89,7 @@ object BuildSettings {
     fork in Test := true,
     parallelExecution in Test := false,
     testListeners in (Test, test) := Nil,
-    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    javaOptions in Test ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     bintrayPackage := "play-sbt-plugin",
     apiURL := {
@@ -312,8 +309,8 @@ object BuildSettings {
   def playScriptedSettings: Seq[Setting[_]] = Seq(
     ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
     ScriptedImport.scriptedLaunchOpts ++= Seq(
-      "-Xmx768m",
-      maxMetaspace,
+      "-Xmx512m",
+      "-XX:MaxMetaspaceSize=512m",
       "-Dscala.version=" + sys.props
         .get("scripted.scala.version")
         .orElse(sys.props.get("scala.version"))
