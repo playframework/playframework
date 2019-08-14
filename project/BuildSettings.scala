@@ -580,6 +580,7 @@ object BuildSettings {
   def playScriptedSettings: Seq[Setting[_]] = Seq(
     ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
     ScriptedImport.scriptedLaunchOpts ++= Seq(
+      s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
       "-XX:MaxMetaspaceSize=512m",
       "-Dscala.version=" + sys.props
