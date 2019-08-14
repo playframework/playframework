@@ -105,14 +105,7 @@ object DevModeBuild {
 
       val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
 
-      def processIsRunning(pidString: String): Boolean = {
-        val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
-          .split("\n") // split per line
-          .filter { _.contains("ProdServerStart") }
-        foundProcesses // filter only the Play processes
-        // This assertion is flaky since `11234` contains `123`. TODO: improve matcher
-          .exists(_.contains(pidString)) // see if one of them is PID
-      }
+      def processIsRunning(pid: String) = Process("jps").!!.split("\n").exists(_.startsWith(s"$pid "))
 
       println("Preparing to stop Prod...")
       Command2.process("stopProd --no-exit-sbt", state)

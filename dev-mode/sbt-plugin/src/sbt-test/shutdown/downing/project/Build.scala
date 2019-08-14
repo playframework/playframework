@@ -104,15 +104,7 @@ object DevModeBuild {
 
       val pidString = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
 
-      def processIsRunning(pidString: String): Boolean = {
-        val foundProcesses = Process("jps").!! // runs the command and returns the output as a single String.
-          .split("\n") // split per line
-          .filter { _.contains("ProdServerStart") }
-        foundProcesses // filter only the Play processes
-        // check that there is a process line starting with 'pidString '
-        // (note padding with whitespace)
-          .exists(_.startsWith(pidString + " "))
-      }
+      def processIsRunning(pid: String) = Process("jps").!!.split("\n").exists(_.startsWith(s"$pid "))
 
       println("Preparing to stop Prod...")
       verifyResourceContains("/simulate-downing", 200, Seq.empty[String], 3)
