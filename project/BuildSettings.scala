@@ -585,7 +585,7 @@ object BuildSettings {
       "-Dscala.version=" + sys.props
         .get("scripted.scala.version")
         .orElse(sys.props.get("scala.version"))
-        .getOrElse("2.12.8")
+        .getOrElse("2.12.9")
     )
   )
 

@@ -29,7 +29,7 @@ To build and publish Play, run `publishLocal`:
 > publishLocal
 ```
 
-This will build and publish Play for the default Scala version (currently 2.12.8). If you want to publish for all versions of Scala, you can cross build:
+This will build and publish Play for the default Scala version (currently 2.12.9). If you want to publish for all versions of Scala, you can cross build:
 
 ```bash
 > +publishLocal

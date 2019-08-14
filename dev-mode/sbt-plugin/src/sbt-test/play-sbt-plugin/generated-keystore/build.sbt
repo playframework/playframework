@@ -8,7 +8,7 @@ lazy val root = (project in file("."))
   .settings(
     libraryDependencies += guice,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9"),
     InputKey[Unit]("makeRequest") := {
       val args                      = Def.spaceDelimited("<path> <status> ...").parsed
       val path :: status :: headers = args

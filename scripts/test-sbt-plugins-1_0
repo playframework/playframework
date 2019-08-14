@@ -5,7 +5,7 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-SCALA_VERSION="2.12.8"
+SCALA_VERSION="2.12.9"
 SBT_VERSION="1.2.8"
 
 cd "$BASEDIR"
