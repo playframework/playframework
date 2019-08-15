@@ -48,13 +48,26 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendInputStream(InputStream stream) {
+    return sendInputStream(stream, Optional.empty());
+  }
+
+  /**
+   * Send the given input stream.
+   *
+   * <p>The input stream will be sent chunked since there is no specified content length.
+   *
+   * @param stream The input stream to send.
+   * @param contentType the entity content type.
+   * @return The result.
+   */
+  public Result sendInputStream(InputStream stream, Optional<String> contentType) {
     if (stream == null) {
       throw new NullPointerException("Null stream");
     }
     return new Result(
         status(),
         HttpEntity.chunked(
-            StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE), Optional.empty()));
+            StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE), contentType));
   }
 
   /**
@@ -65,6 +78,19 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendInputStream(InputStream stream, long contentLength) {
+    return sendInputStream(stream, contentLength, Optional.empty());
+  }
+
+  /**
+   * Send the given input stream.
+   *
+   * @param stream The input stream to send.
+   * @param contentLength The length of the content in the stream.
+   * @param contentType the entity content type.
+   * @return The result.
+   */
+  public Result sendInputStream(
+      InputStream stream, long contentLength, Optional<String> contentType) {
     if (stream == null) {
       throw new NullPointerException("Null stream");
     }
@@ -73,7 +99,7 @@ public class StatusHeader extends Result {
         new HttpEntity.Streamed(
             StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
             Optional.of(contentLength),
-            Optional.empty()));
+            contentType));
   }
 
   /**
@@ -83,8 +109,18 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendBytes(byte[] content) {
-    return new Result(
-        status(), new HttpEntity.Strict(ByteString.fromArray(content), Optional.empty()));
+    return sendBytes(content, Optional.empty());
+  }
+
+  /**
+   * Send the given bytes.
+   *
+   * @param content The bytes to send.
+   * @param contentType the entity content type.
+   * @return The result.
+   */
+  public Result sendBytes(byte[] content, Optional<String> contentType) {
+    return new Result(status(), new HttpEntity.Strict(ByteString.fromArray(content), contentType));
   }
 
   /**
@@ -94,7 +130,18 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendByteString(ByteString content) {
-    return new Result(status(), new HttpEntity.Strict(content, Optional.empty()));
+    return sendByteString(content, Optional.empty());
+  }
+
+  /**
+   * Send the given ByteString.
+   *
+   * @param content The ByteString to send.
+   * @param contentType the entity content type.
+   * @return The result.
+   */
+  public Result sendByteString(ByteString content, Optional<String> contentType) {
+    return new Result(status(), new HttpEntity.Strict(content, contentType));
   }
 
   /**
@@ -1205,7 +1252,18 @@ public class StatusHeader extends Result {
    * @return a '200 OK' response with the given chunks.
    */
   public Result chunked(Source<ByteString, ?> chunks) {
-    return new Result(status(), HttpEntity.chunked(chunks, Optional.empty()));
+    return chunked(chunks, Optional.empty());
+  }
+
+  /**
+   * Send a chunked response with the given chunks.
+   *
+   * @param chunks the chunks to send
+   * @param contentType the entity content type.
+   * @return a '200 OK' response with the given chunks.
+   */
+  public Result chunked(Source<ByteString, ?> chunks, Optional<String> contentType) {
+    return new Result(status(), HttpEntity.chunked(chunks, contentType));
   }
 
   /**

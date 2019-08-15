@@ -615,6 +615,17 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.body must_== "hello"
+      response.contentType must_== "application/octet-stream"
+    }
+
+    "stream input stream responses as chunked with content type set" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
+        Results.ok().sendInputStream(new ByteArrayInputStream("hello".getBytes("utf-8")), Optional.of(HTML))
+      }
+    }) { response =>
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.body must_== "hello"
+      response.contentType must startWith("text/html")
     }
 
     "not chunk input stream results if a content length is set" in makeRequest(new MockController {
@@ -626,6 +637,19 @@ trait JavaResultsHandlingSpec
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
       response.body must_== "hello"
+      response.contentType must_== "application/octet-stream"
+    }
+
+    "not chunk input stream results with content type set if a content length is set" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
+        // chunk size 2 to force more than one chunk
+        Results.ok().sendInputStream(new ByteArrayInputStream("hello".getBytes("utf-8")), 5, Optional.of(HTML))
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beSome("5")
+      response.header(TRANSFER_ENCODING) must beNone
+      response.body must_== "hello"
+      response.contentType must startWith("text/html")
     }
 
     "when changing the content-type" should {
@@ -637,6 +661,30 @@ trait JavaResultsHandlingSpec
         // Use starts with because there is also the charset
         response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
         response.body must beEqualTo("<h1>Hello</h1>")
+      }
+
+      "is not set by default for chunked entities" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val chunks     = List(ByteString("a"), ByteString("b"))
+          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          Results.ok().chunked(dataSource)
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beNone
+        response.header(TRANSFER_ENCODING) must beSome("chunked")
+      }
+
+      "correct set it for chunked entities" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val chunks     = List(ByteString("a"), ByteString("b"))
+          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          Results.ok().chunked(dataSource, Optional.of(HTML))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
       "correct change it for chunked entities" in makeRequest(new MockController {
@@ -651,13 +699,56 @@ trait JavaResultsHandlingSpec
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
+      "correct set it for streamed entities" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          Results.ok().streamed(source, Optional.empty(), Optional.of(HTML))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
       "correct change it for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
-          new Result(
-            new ResponseHeader(200, java.util.Collections.emptyMap()),
-            new HttpEntity.Streamed(source, Optional.empty(), Optional.empty())
-          ).as(HTML) // start without content type, but later change it to HTML
+          Results.ok().streamed(source, Optional.empty(), Optional.empty()).as(HTML) // start without content type, but later change it to HTML
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
+      "is not set by default when sending ByteString" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendByteString(ByteString("hello"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beNone
+      }
+
+      "correct set it when sending ByteString" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendByteString(ByteString("hello"), Optional.of(HTML))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
+      "is not set by default when sending bytes" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendBytes("hello".getBytes("utf-8"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beNone
+      }
+
+      "correct set it when sending bytes" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendBytes("hello".getBytes("utf-8"), Optional.of(HTML))
         }
       }) { response =>
         // Use starts with because there is also the charset
