@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
   // disable PlayLayoutPlugin because the `test` file used by `sbt-scripted` collides with the `test/` Play expects.
   .disablePlugins(PlayLayoutPlugin)
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.9"
 
 libraryDependencies += guice
 libraryDependencies += specs2
