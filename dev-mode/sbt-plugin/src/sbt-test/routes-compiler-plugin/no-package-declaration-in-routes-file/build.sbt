@@ -42,21 +42,23 @@ sourcePositionMappers := Nil
 
 routesGenerator := play.routes.compiler.InjectedRoutesGenerator
 
-compile in Compile := {
-  (compile in Compile).result.value match {
-    case Inc(inc) =>
-      // If there was a compilation error, dump generated routes files so we can read them
-      allFiles((target in routes in Compile).value).map { file =>
-        println("Dumping " + file + ":")
-        IO.readLines(file).zipWithIndex.foreach {
-          case (line, index) => println("%4d".format(index + 1) + ": " + line)
+Seq(Compile, Test).flatMap(inConfig(_)(Seq(
+  compile := {
+    compile.result.value match {
+      case Value(v) => v
+      case Inc(inc) =>
+        // If there was a compilation error, dump generated routes files so we can read them
+        allFiles((target in routes in Compile).value).map { file =>
+          println(s"Dumping $file:")
+          IO.readLines(file).zipWithIndex.foreach {
+            case (line, index) => println(f"${index + 1}%4d: $line")
+          }
+          println()
         }
-        println()
-      }
-      throw inc
-    case Value(v) => v
+        throw inc
+    }
   }
-}
+)))
 
 play.sbt.routes.RoutesKeys.routesImport := Seq()
 
