@@ -117,7 +117,7 @@ class ScalaTestingWebServiceClients extends Specification {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
               Action { req =>
-                Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
+                Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes)
               }
           }
         }.application
@@ -142,7 +142,7 @@ class ScalaTestingWebServiceClients extends Specification {
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
                 Action { req =>
-                  Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
+                  Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes)
                 }
             }
           }.application
