@@ -44,7 +44,7 @@ The Play team uses [Lightbend Tech Hub](https://developer.lightbend.com/start/?g
 
 ## Third Party Tutorials and Templates
 
-The Play community also has a number of tutorials and templates that cover aspects of Play than the documentation can, or has a different angle.  Templates listed here are not maintained by the Play team, and so may be out of date.
+The Play community also has a number of tutorials and templates that cover aspects of Play better than the documentation can, or has a different angle.  Templates listed here are not maintained by the Play team, and so may be out of date.
 
 This is an incomplete list of several helpful blog posts, and because some of the blog posts have been written a while ago, this section is organized by Play version.
 
