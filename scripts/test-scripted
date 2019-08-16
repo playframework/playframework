@@ -11,10 +11,6 @@ setScalaVersionFromSbtVersion
 
 cd "$BASEDIR"
 
-printMessage "PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
-runSbt "++$SCALA_VERSION" quickPublish publishLocal
-printMessage "PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
-
 printMessage "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION"
 runSbt "++$SCALA_VERSION" "scripted $@"
 printMessage "ALL SCRIPTED TESTS PASSED"
