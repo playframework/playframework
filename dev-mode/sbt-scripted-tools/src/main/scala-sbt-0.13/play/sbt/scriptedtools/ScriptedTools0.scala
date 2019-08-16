@@ -2,14 +2,24 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import play.sbt.PlayScala
-import play.sbt.test.MediatorWorkaroundPlugin
-import sbt.Keys._
+package play.sbt.scriptedtools
+
+import scala.reflect.{ ClassTag, classTag }
+
 import sbt._
 
-object Common {
+trait ScriptedTools0 {
 
-  val bufferLogger = new AbstractLogger {
+  def assertNotEmpty[T: ClassTag](m: xsbti.Maybe[T]): T = {
+    if (m.isEmpty) throw new Exception(s"Expected Some[${classTag[T]}]")
+    else m.get()
+  }
+
+  def bufferLoggerMessages = bufferLogger.messages
+
+  // sbt 1.0 defines extraLogs as a SettingKey[ScopedKey[_] => Seq[Appender]]
+  // while sbt 0.13 uses SettingKey[ScopedKey[_] => Seq[AbstractLogger]]
+  object bufferLogger extends AbstractLogger {
     @volatile var messages                                     = List.empty[String]
     def getLevel                                               = Level.Error
     def setLevel(newLevel: Level.Value)                        = ()
@@ -26,20 +36,6 @@ object Common {
         messages = message :: messages
       }
     }
-  }
-
-  import complete.DefaultParsers._
-
-  def simpleParser(state: State) = Space ~> any.+.map(_.mkString(""))
-
-  def checkLogContains(msg: String): Task[Boolean] = task {
-    if (!bufferLogger.messages.exists(_.contains(msg))) {
-      sys.error(
-        "Did not find log message:\n    '" + msg + "'\nin output:\n" + bufferLogger.messages.reverse
-          .mkString("    ", "\n    ", "")
-      )
-    }
-    true
   }
 
 }

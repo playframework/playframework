@@ -3,7 +3,9 @@ organization := "com.example"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.12.9"
+scalaVersion := sys.props("scala.version")
+updateOptions := updateOptions.value.withLatestSnapshots(false)
+evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 libraryDependencies += guice
 
@@ -16,6 +18,6 @@ lazy val root = (project in file("."))
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
-      DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
+      ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     }
   )

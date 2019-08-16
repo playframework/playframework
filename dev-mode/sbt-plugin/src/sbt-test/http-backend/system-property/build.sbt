@@ -6,18 +6,17 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala).enablePlugins(Me
 
 name := "system-property"
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9")
+scalaVersion := sys.props("scala.version")
+updateOptions := updateOptions.value.withLatestSnapshots(false)
+evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // because the "test" directory clashes with the scripted test file
 scalaSource in Test := (baseDirectory.value / "tests")
 
-libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-akka-http-server" % sys.props("project.version"),
-  "com.typesafe.play" %% "play-netty-server"     % sys.props("project.version"),
-  guice,
-  ws,
-  specs2 % Test
-)
+val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % sys.props("project.version")
+val playNettyServer    = "com.typesafe.play" %% "play-netty-server"     % sys.props("project.version")
+
+libraryDependencies ++= Seq(playAkkaHttpServer, playNettyServer, guice, ws, specs2 % Test)
 
 fork in Test := true
 
@@ -30,5 +29,5 @@ InputKey[Unit]("verifyResourceContains") := {
   val path       = args.head
   val status     = args.tail.head.toInt
   val assertions = args.tail.tail
-  DevModeBuild.verifyResourceContains(path, status, assertions, 0)
+  ScriptedTools.verifyResourceContains(path, status, assertions)
 }

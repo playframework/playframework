@@ -7,20 +7,20 @@ import sbt.Keys.libraryDependencies
 // Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
-scalaVersion := "2.12.9"
-
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   // disable PlayLayoutPlugin because the `test` file used by `sbt-scripted` collides with the `test/` Play expects.
   .disablePlugins(PlayLayoutPlugin)
   .settings(
+    scalaVersion := sys.props("scala.version"),
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9"),
     fork in test := false,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
-    commands += DevModeBuild.assertProcessIsStopped,
+    PlayKeys.fileWatchService := ScriptedTools.initialFileWatchService,
+    commands += ScriptedTools.assertProcessIsStopped,
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"
       // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
@@ -40,7 +40,7 @@ lazy val root = (project in file("."))
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
-      DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
+      ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     }
   )
 

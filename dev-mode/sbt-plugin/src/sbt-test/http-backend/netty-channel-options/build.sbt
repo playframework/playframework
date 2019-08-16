@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 name := """netty-channel-options"""
 organization := "com.lightbend.play"
@@ -11,17 +11,15 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayNettyServer)
   .disablePlugins(PlayAkkaHttpServer)
   .settings(
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9"),
+    scalaVersion := sys.props("scala.version"),
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    libraryDependencies ++= Seq(
-      guice
-    ),
-    InputKey[Unit]("callIndex") := {
-      DevModeBuild.callIndex()
-    },
+    libraryDependencies += guice,
+    InputKey[Unit]("callIndex") := ScriptedTools.callIndex(),
     InputKey[Unit]("checkLines") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
-      DevModeBuild.checkLines(source, target)
+      ScriptedTools.checkLines(source, target)
     }
   )

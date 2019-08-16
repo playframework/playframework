@@ -4,8 +4,6 @@
 
 package play.sbt
 
-import java.util.Optional
-
 import play.api._
 import sbt._
 

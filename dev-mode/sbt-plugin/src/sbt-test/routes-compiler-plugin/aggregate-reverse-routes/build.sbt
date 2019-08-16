@@ -10,7 +10,9 @@ lazy val root = (project in file("."))
   .aggregate(common, a, b, c, nonplay)
 
 def commonSettings: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9"),
+  scalaVersion := sys.props("scala.version"),
+  updateOptions := updateOptions.value.withLatestSnapshots(false),
+  evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice,
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,
   // This makes it possible to run tests on the output regardless of scala version
