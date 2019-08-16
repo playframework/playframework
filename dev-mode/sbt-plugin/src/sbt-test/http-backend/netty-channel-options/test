@@ -1,6 +1,6 @@
 > playUpdateSecret
 > runProd --no-exit-sbt
-$ sleep 5000
+$ sleep 8000
 > callIndex
 $ sleep 2000
 > checkLines expected-application-log.txt target/universal/stage/logs/application.log
