@@ -52,10 +52,18 @@ jobs:
       name: "Run it tests for Scala 2.13"
 
     - stage: test-sbt
-      script: scripts/test-sbt-plugins-0_13
-      name: "Scripted tests for sbt 0.13"
-    - script: scripts/test-sbt-plugins-1_0
-      name: "Scripted tests for sbt 1"
+      name: "Run scripted tests (a) for sbt 0.13.x"
+      script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*'
+    - name: "Run scripted tests (b) for sbt 0.13.x"
+      script: scripts/test-scripted 0.13.x 'routes-compiler-plugin/*'
+    - name: "Run scripted tests (c) for sbt 0.13.x"
+      script: scripts/test-scripted 0.13.x 'evolutions/* http-backend/* maven-layout/* shutdown/*'
+    - name: "Run scripted tests (a) for sbt 1.x"
+      script: scripts/test-scripted 1.x 'play-sbt-plugin/*'
+    - name: "Run scripted tests (b) for sbt 1.x"
+      script: scripts/test-scripted 1.x 'routes-compiler-plugin/*'
+    - name: "Run scripted tests (c) for sbt 1.x"
+      script: scripts/test-scripted 1.x 'evolutions/* http-backend/* maven-layout/* shutdown/*'
 
     # Test against Java 11, but only for Scala 2.12
     - stage: java11
@@ -68,9 +76,15 @@ jobs:
     - script: scripts/test-docs-212
       env: TRAVIS_JDK=adopt@1.11.0-2
       name: "Run documentation tests for Scala 2.12 and Java 11"
-    - script: scripts/test-sbt-plugins-1_0
+    - name: "Run scripted tests (a) for sbt 1.x and Java 11"
+      script: scripts/test-scripted 1.x 'play-sbt-plugin/*'
       env: TRAVIS_JDK=adopt@1.11.0-2
-      name: "Scripted tests for sbt 1 and Java 11"
+    - name: "Run scripted tests (b) for sbt 1.x and Java 11"
+      script: scripts/test-scripted 1.x 'routes-compiler-plugin/*'
+      env: TRAVIS_JDK=adopt@1.11.0-2
+    - name: "Run scripted tests (c) for sbt 1.x and Java 11"
+      script: scripts/test-scripted 1.x 'evolutions/* http-backend/* maven-layout/* shutdown/*'
+      env: TRAVIS_JDK=adopt@1.11.0-2
 
 cache:
   directories:
