@@ -11,6 +11,6 @@ setScalaVersionFromSbtVersion
 
 cd "$BASEDIR"
 
-printMessage "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION"
+start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION"
 runSbt "++$SCALA_VERSION" "Sbt-Plugin/scripted $@"
-printMessage "ALL SCRIPTED TESTS PASSED"
+end scripted "ALL SCRIPTED TESTS PASSED"

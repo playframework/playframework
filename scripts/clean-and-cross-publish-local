@@ -7,13 +7,13 @@
 
 cd "$BASEDIR"
 
-printMessage "CLEANING IVY LOCAL REPO AND CACHE"
+start clean "CLEANING IVY LOCAL REPO AND CACHE"
 rm -rf $HOME/.ivy2/local
 rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
 rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
 find $HOME/.ivy2 -name "ivydata-*.properties" -delete
-printMessage "CLEANED IVY LOCAL REPO AND CACHE"
+end clean "CLEANED IVY LOCAL REPO AND CACHE"
 
-printMessage "CROSS-PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
+start publish-local "CROSS-PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
 runSbt +publishLocal
-printMessage "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
+end publish-local "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
