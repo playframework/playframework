@@ -21,7 +21,6 @@ import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.Status._
-import play.core.utils.HttpHeaderParameterEncoding
 
 // Long should be good enough to represent even very large files
 // considering that Long.MAX_VALUE is 9223372036854775807 which
@@ -408,7 +407,7 @@ object RangeResult {
       buf += ACCEPT_RANGES -> "bytes"
 
       fileName.foreach { f =>
-        buf += CONTENT_DISPOSITION -> s"""attachment; ${HttpHeaderParameterEncoding.encode("filename", f)}"""
+        buf ++= Results.contentDispositionHeader(false, fileName)
       }
 
       buf.result()
