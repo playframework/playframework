@@ -28,7 +28,7 @@ object Imports {
     val manualPath = SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
     val docsVersion =
       SettingKey[String]("playDocsVersion", "The version of the documentation to fallback to.", KeyRanks.ASetting)
-    val docsName    = SettingKey[String]("playDocsName", "The name of the documentation artifact", KeyRanks.BSetting)
+    val docsName    = play.sbt.PlayImport.PlayKeys.playDocsName
     val docsJarFile = TaskKey[Option[File]]("playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
     val resources = TaskKey[Seq[PlayDocsResource]](
       "playDocsResources",

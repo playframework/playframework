@@ -47,6 +47,10 @@ object PlaySettings extends PlaySettingsCompat {
     Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
   }
 
+  lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq(
+    playOmnidoc := false
+  )
+
   // Settings for a Play service (not a web project)
   lazy val serviceSettings = Seq[Setting[_]](
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
@@ -66,7 +70,6 @@ object PlaySettings extends PlaySettingsCompat {
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
     ivyConfigurations += DocsApplication,
-    playOmnidoc := !play.core.PlayVersion.current.endsWith("-SNAPSHOT"),
     playDocsName := { if (playOmnidoc.value) "play-omnidoc" else "play-docs" },
     playDocsModule := Some(
       "com.typesafe.play" %% playDocsName.value % play.core.PlayVersion.current % DocsApplication.name
