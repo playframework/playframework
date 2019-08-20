@@ -121,7 +121,7 @@ trait MimeTypes {
   val XML = "application/xml"
 
   /**
-   * Content-Type of xml.
+   * Content-Type of xhtml.
    */
   val XHTML = "application/xhtml+xml"
 
