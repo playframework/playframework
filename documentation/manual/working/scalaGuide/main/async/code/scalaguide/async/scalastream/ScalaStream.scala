@@ -88,7 +88,7 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
   def fileWithName = Action {
     Ok.sendFile(
       content = new java.io.File("/tmp/fileToServe.pdf"),
-      fileName = _ => "termsOfService.pdf"
+      fileName = _ => Some("termsOfService.pdf")
     )
   }
   //#serve-file-with-name

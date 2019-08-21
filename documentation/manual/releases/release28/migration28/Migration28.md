@@ -62,6 +62,11 @@ val projectB = (project in file("projectB"))
   .settings(commonSettings)
 ```
 
+### File serving methods changed the type of their `filename` parameters
+
+Methods for serving files, like `ok(File content, ...)` (and similar) in the [Java API](api/java/play/mvc/Results.html#ok-java.io.File-) or `sendFile`, `sendPath` and `sendResource` in both Java's  [`StatusHeader`](api/java/play/mvc/StatusHeader.html) and Scala's [`Status`](api/scala/play/api/mvc/Results$Status.html) class changed the type of their `filename` parameters: Instead of using a plain `String`, the Scala API now uses an `Option[String]` as return type for its `filename` parameter function. The Java API changed the parameter type to be an `Optional<String>`.
+This API change better reflects the fact that you can pass `None` / `Optional.empty()` if you don't want the `Content-Disposition` header to include a filename.
+
 ### Deprecated APIs were removed
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.8. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.8. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.7|Migration27]] for more information.

@@ -309,7 +309,8 @@ public class StatusHeader extends Result {
    * @param fileName The file name of the resource.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(String resourceName, ClassLoader classLoader, String fileName) {
+  public Result sendResource(
+      String resourceName, ClassLoader classLoader, Optional<String> fileName) {
     return sendResource(resourceName, classLoader, fileName, () -> {}, null);
   }
 
@@ -327,7 +328,7 @@ public class StatusHeader extends Result {
   public Result sendResource(
       String resourceName,
       ClassLoader classLoader,
-      String fileName,
+      Optional<String> fileName,
       Runnable onClose,
       Executor executor) {
     return sendResource(
@@ -349,7 +350,10 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName, ClassLoader classLoader, String fileName, FileMimeTypes fileMimeTypes) {
+      String resourceName,
+      ClassLoader classLoader,
+      Optional<String> fileName,
+      FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -368,7 +372,7 @@ public class StatusHeader extends Result {
   public Result sendResource(
       String resourceName,
       ClassLoader classLoader,
-      String fileName,
+      Optional<String> fileName,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -419,7 +423,7 @@ public class StatusHeader extends Result {
    * @param fileName The file name of the resource.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(String resourceName, String fileName) {
+  public Result sendResource(String resourceName, Optional<String> fileName) {
     return sendResource(resourceName, fileName, () -> {}, null);
   }
 
@@ -436,7 +440,7 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName, String fileName, Runnable onClose, Executor executor) {
+      String resourceName, Optional<String> fileName, Runnable onClose, Executor executor) {
     return sendResource(
         resourceName, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
@@ -451,7 +455,8 @@ public class StatusHeader extends Result {
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(String resourceName, String fileName, FileMimeTypes fileMimeTypes) {
+  public Result sendResource(
+      String resourceName, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -470,7 +475,7 @@ public class StatusHeader extends Result {
    */
   public Result sendResource(
       String resourceName,
-      String fileName,
+      Optional<String> fileName,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -613,7 +618,30 @@ public class StatusHeader extends Result {
       Runnable onClose,
       Executor executor) {
     return sendResource(
-        resourceName, classLoader, inline, resourceName, fileMimeTypes, onClose, executor);
+        resourceName,
+        classLoader,
+        inline,
+        Optional.ofNullable(resourceName),
+        fileMimeTypes,
+        onClose,
+        executor);
+  }
+
+  /**
+   * Send the given resource.
+   *
+   * <p>The resource will be loaded from the same classloader that this class comes from.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param inline Whether it should be served as an inline file, or as an attachment.
+   * @param filename The file name of the resource.
+   * @return a '200 OK' result containing the resource in the body.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, boolean,
+   *     Optional<String>)}.
+   */
+  @Deprecated
+  public Result sendResource(String resourceName, boolean inline, String filename) {
+    return sendResource(resourceName, inline, Optional.ofNullable(filename));
   }
 
   /**
@@ -626,7 +654,7 @@ public class StatusHeader extends Result {
    * @param filename The file name of the resource.
    * @return a '200 OK' result containing the resource in the body.
    */
-  public Result sendResource(String resourceName, boolean inline, String filename) {
+  public Result sendResource(String resourceName, boolean inline, Optional<String> filename) {
     return sendResource(resourceName, inline, filename, () -> {}, null);
   }
 
@@ -644,7 +672,11 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the resource in the body.
    */
   public Result sendResource(
-      String resourceName, boolean inline, String filename, Runnable onClose, Executor executor) {
+      String resourceName,
+      boolean inline,
+      Optional<String> filename,
+      Runnable onClose,
+      Executor executor) {
     return sendResource(
         resourceName, inline, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
@@ -659,9 +691,28 @@ public class StatusHeader extends Result {
    * @param filename The file name of the resource.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, boolean, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public Result sendResource(
       String resourceName, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return sendResource(resourceName, inline, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Send the given resource.
+   *
+   * <p>The resource will be loaded from the same classloader that this class comes from.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param inline Whether it should be served as an inline file, or as an attachment.
+   * @param filename The file name of the resource.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the resource in the body.
+   */
+  public Result sendResource(
+      String resourceName, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, inline, filename, fileMimeTypes, () -> {}, null);
   }
 
@@ -682,7 +733,7 @@ public class StatusHeader extends Result {
   public Result sendResource(
       String resourceName,
       boolean inline,
-      String filename,
+      Optional<String> filename,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -704,9 +755,26 @@ public class StatusHeader extends Result {
    * @param inline Whether it should be served as an inline file, or as an attachment.
    * @param filename The file name of the resource.
    * @return a '200 OK' result containing the resource in the body.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, ClassLoader, boolean,
+   *     Optional)}.
    */
+  @Deprecated
   public Result sendResource(
       String resourceName, ClassLoader classLoader, boolean inline, String filename) {
+    return sendResource(resourceName, classLoader, inline, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Send the given resource from the given classloader.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param classLoader The classloader to load it from.
+   * @param inline Whether it should be served as an inline file, or as an attachment.
+   * @param filename The file name of the resource.
+   * @return a '200 OK' result containing the resource in the body.
+   */
+  public Result sendResource(
+      String resourceName, ClassLoader classLoader, boolean inline, Optional<String> filename) {
     return sendResource(resourceName, classLoader, inline, filename, () -> {}, null);
   }
 
@@ -726,7 +794,7 @@ public class StatusHeader extends Result {
       String resourceName,
       ClassLoader classLoader,
       boolean inline,
-      String filename,
+      Optional<String> filename,
       Runnable onClose,
       Executor executor) {
     return sendResource(
@@ -748,12 +816,35 @@ public class StatusHeader extends Result {
    * @param filename The file name of the resource.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, ClassLoader, boolean,
+   *     Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public Result sendResource(
       String resourceName,
       ClassLoader classLoader,
       boolean inline,
       String filename,
+      FileMimeTypes fileMimeTypes) {
+    return sendResource(
+        resourceName, classLoader, inline, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Send the given resource from the given classloader.
+   *
+   * @param resourceName The path of the resource to load.
+   * @param classLoader The classloader to load it from.
+   * @param inline Whether it should be served as an inline file, or as an attachment.
+   * @param filename The file name of the resource.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the resource in the body.
+   */
+  public Result sendResource(
+      String resourceName,
+      ClassLoader classLoader,
+      boolean inline,
+      Optional<String> filename,
       FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, inline, filename, fileMimeTypes, () -> {}, null);
   }
@@ -775,14 +866,14 @@ public class StatusHeader extends Result {
       String resourceName,
       ClassLoader classLoader,
       boolean inline,
-      String filename,
+      Optional<String> filename,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
     return doSendResource(
         StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
         Optional.empty(),
-        Optional.ofNullable(filename),
+        filename,
         inline,
         fileMimeTypes,
         onClose,
@@ -892,7 +983,26 @@ public class StatusHeader extends Result {
    */
   public Result sendPath(
       Path path, boolean inline, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
-    return sendPath(path, inline, path.getFileName().toString(), fileMimeTypes, onClose, executor);
+    return sendPath(
+        path,
+        inline,
+        Optional.ofNullable(path).map(p -> p.getFileName().toString()),
+        fileMimeTypes,
+        onClose,
+        executor);
+  }
+
+  /**
+   * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
+   *
+   * @param path The path to send.
+   * @param filename The file name of the path.
+   * @return a '200 OK' result containing the file at the provided path
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, Optional)}.
+   */
+  @Deprecated
+  public Result sendPath(Path path, String filename) {
+    return sendPath(path, Optional.ofNullable(filename));
   }
 
   /**
@@ -902,7 +1012,7 @@ public class StatusHeader extends Result {
    * @param filename The file name of the path.
    * @return a '200 OK' result containing the file at the provided path
    */
-  public Result sendPath(Path path, String filename) {
+  public Result sendPath(Path path, Optional<String> filename) {
     return sendPath(path, filename, () -> {}, null);
   }
 
@@ -916,7 +1026,8 @@ public class StatusHeader extends Result {
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
-  public Result sendPath(Path path, String filename, Runnable onClose, Executor executor) {
+  public Result sendPath(
+      Path path, Optional<String> filename, Runnable onClose, Executor executor) {
     return sendPath(path, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -927,8 +1038,22 @@ public class StatusHeader extends Result {
    * @param filename The file name of the path.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file at the provided path
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public Result sendPath(Path path, String filename, FileMimeTypes fileMimeTypes) {
+    return sendPath(path, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
+   *
+   * @param path The path to send.
+   * @param filename The file name of the path.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the file at the provided path
+   */
+  public Result sendPath(Path path, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return sendPath(path, filename, fileMimeTypes, () -> {}, null);
   }
 
@@ -945,7 +1070,7 @@ public class StatusHeader extends Result {
    */
   public Result sendPath(
       Path path,
-      String filename,
+      Optional<String> filename,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -959,8 +1084,22 @@ public class StatusHeader extends Result {
    * @param inline Whether it should be served as an inline file, or as an attachment.
    * @param filename The file name of the path.
    * @return a '200 OK' result containing the file at the provided path
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, boolean, Optional)}.
    */
+  @Deprecated
   public Result sendPath(Path path, boolean inline, String filename) {
+    return sendPath(path, inline, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions
+   *
+   * @param path The path to send.
+   * @param inline Whether it should be served as an inline file, or as an attachment.
+   * @param filename The file name of the path.
+   * @return a '200 OK' result containing the file at the provided path
+   */
+  public Result sendPath(Path path, boolean inline, Optional<String> filename) {
     return sendPath(path, inline, filename, () -> {}, null);
   }
 
@@ -976,7 +1115,7 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the file at the provided path
    */
   public Result sendPath(
-      Path path, boolean inline, String filename, Runnable onClose, Executor executor) {
+      Path path, boolean inline, Optional<String> filename, Runnable onClose, Executor executor) {
     return sendPath(path, inline, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -988,8 +1127,25 @@ public class StatusHeader extends Result {
    * @param filename The file name of the path.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file at the provided path
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, boolean, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public Result sendPath(Path path, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return sendPath(path, inline, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions
+   *
+   * @param path The path to send.
+   * @param inline Whether it should be served as an inline file, or as an attachment.
+   * @param filename The file name of the path.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the file at the provided path
+   */
+  public Result sendPath(
+      Path path, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return sendPath(path, inline, filename, fileMimeTypes, () -> {}, null);
   }
 
@@ -1008,7 +1164,7 @@ public class StatusHeader extends Result {
   public Result sendPath(
       Path path,
       boolean inline,
-      String filename,
+      Optional<String> filename,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -1019,7 +1175,7 @@ public class StatusHeader extends Result {
       return doSendResource(
           FileIO.fromPath(path),
           Optional.of(Files.size(path)),
-          Optional.ofNullable(filename),
+          filename,
           inline,
           fileMimeTypes,
           onClose,
@@ -1135,7 +1291,26 @@ public class StatusHeader extends Result {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    return sendFile(file, inline, file.getName(), fileMimeTypes, onClose, executor);
+    return sendFile(
+        file,
+        inline,
+        Optional.ofNullable(file).map(f -> f.getName()),
+        fileMimeTypes,
+        onClose,
+        executor);
+  }
+
+  /**
+   * Send the given file.
+   *
+   * @param file The file to send.
+   * @param fileName The name of the attachment
+   * @return a '200 OK' result containing the file
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, Optional)}.
+   */
+  @Deprecated
+  public Result sendFile(File file, String fileName) {
+    return sendFile(file, Optional.ofNullable(fileName));
   }
 
   /**
@@ -1145,7 +1320,7 @@ public class StatusHeader extends Result {
    * @param fileName The name of the attachment
    * @return a '200 OK' result containing the file
    */
-  public Result sendFile(File file, String fileName) {
+  public Result sendFile(File file, Optional<String> fileName) {
     return sendFile(file, fileName, () -> {}, null);
   }
 
@@ -1159,7 +1334,8 @@ public class StatusHeader extends Result {
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
-  public Result sendFile(File file, String fileName, Runnable onClose, Executor executor) {
+  public Result sendFile(
+      File file, Optional<String> fileName, Runnable onClose, Executor executor) {
     return sendFile(file, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -1170,8 +1346,22 @@ public class StatusHeader extends Result {
    * @param fileName The name of the attachment
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public Result sendFile(File file, String fileName, FileMimeTypes fileMimeTypes) {
+    return sendFile(file, Optional.ofNullable(fileName), fileMimeTypes);
+  }
+
+  /**
+   * Send the given file.
+   *
+   * @param file The file to send.
+   * @param fileName The name of the attachment
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the file
+   */
+  public Result sendFile(File file, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return sendFile(file, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -1188,7 +1378,7 @@ public class StatusHeader extends Result {
    */
   public Result sendFile(
       File file,
-      String fileName,
+      Optional<String> fileName,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -1203,8 +1393,23 @@ public class StatusHeader extends Result {
    * @param inline True if the file should be sent inline, false if it should be sent as an
    *     attachment.
    * @return a '200 OK' result containing the file
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, boolean, Optional)}.
    */
+  @Deprecated
   public Result sendFile(File file, boolean inline, String fileName) {
+    return sendFile(file, inline, Optional.ofNullable(fileName));
+  }
+
+  /**
+   * Send the given file.
+   *
+   * @param file The file to send.
+   * @param fileName The name of the attachment
+   * @param inline True if the file should be sent inline, false if it should be sent as an
+   *     attachment.
+   * @return a '200 OK' result containing the file
+   */
+  public Result sendFile(File file, boolean inline, Optional<String> fileName) {
     return sendFile(file, inline, fileName, () -> {}, null);
   }
 
@@ -1221,7 +1426,7 @@ public class StatusHeader extends Result {
    * @return a '200 OK' result containing the file
    */
   public Result sendFile(
-      File file, boolean inline, String fileName, Runnable onClose, Executor executor) {
+      File file, boolean inline, Optional<String> fileName, Runnable onClose, Executor executor) {
     return sendFile(file, inline, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -1234,8 +1439,26 @@ public class StatusHeader extends Result {
    *     attachment.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, boolean, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public Result sendFile(File file, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
+    return sendFile(file, inline, Optional.ofNullable(fileName), fileMimeTypes);
+  }
+
+  /**
+   * Send the given file.
+   *
+   * @param file The file to send.
+   * @param fileName The name of the attachment
+   * @param inline True if the file should be sent inline, false if it should be sent as an
+   *     attachment.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return a '200 OK' result containing the file
+   */
+  public Result sendFile(
+      File file, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return sendFile(file, inline, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -1255,7 +1478,7 @@ public class StatusHeader extends Result {
   public Result sendFile(
       File file,
       boolean inline,
-      String fileName,
+      Optional<String> fileName,
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
@@ -1266,7 +1489,7 @@ public class StatusHeader extends Result {
       return doSendResource(
           FileIO.fromPath(file.toPath()),
           Optional.of(Files.size(file.toPath())),
-          Optional.ofNullable(fileName),
+          fileName,
           inline,
           fileMimeTypes,
           onClose,

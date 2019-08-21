@@ -428,7 +428,7 @@ trait ScalaResultsHandlingSpec
           implicit val mimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration())
           Results.Ok.sendFile(
             tempFile.toFile,
-            fileName = _ => "测 试.tmp"
+            fileName = _ => Some("测 试.tmp")
           )
         } { port =>
           val response = BasicHttpClient

@@ -552,7 +552,7 @@ trait Results {
     def sendFile(
         content: java.io.File,
         inline: Boolean = true,
-        fileName: java.io.File => String = _.getName,
+        fileName: java.io.File => Option[String] = Option(_).map(_.getName),
         onClose: () => Unit = () => ()
     )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
@@ -569,7 +569,7 @@ trait Results {
     def sendPath(
         content: Path,
         inline: Boolean = true,
-        fileName: Path => String = _.getFileName.toString,
+        fileName: Path => Option[String] = Option(_).map(_.getFileName.toString),
         onClose: () => Unit = () => ()
     )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val io = FileIO
@@ -577,7 +577,7 @@ trait Results {
         .mapMaterializedValue(_.onComplete { _ =>
           onClose()
         })
-      streamFile(io, Option(fileName(content)), Some(Files.size(content)), inline)
+      streamFile(io, fileName(content), Some(Files.size(content)), inline)
     }
 
     /**
@@ -593,7 +593,7 @@ trait Results {
         resource: String,
         classLoader: ClassLoader = Results.getClass.getClassLoader,
         inline: Boolean = true,
-        fileName: String => String = _.split('/').last,
+        fileName: String => Option[String] = Option(_).map(_.split('/').last),
         onClose: () => Unit = () => ()
     )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val stream = classLoader.getResourceAsStream(resource)
@@ -602,7 +602,7 @@ trait Results {
         .mapMaterializedValue(_.onComplete { _ =>
           onClose()
         })
-      streamFile(io, Option(fileName(resource)), Some(stream.available()), inline)
+      streamFile(io, fileName(resource), Some(stream.available()), inline)
     }
 
     /**
