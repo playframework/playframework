@@ -10,6 +10,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import org.junit.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -291,6 +292,60 @@ public class ResultsTest {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result =
           Results.ok().sendResource("multipart-form-data-file.txt", () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendInputStreamHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result =
+          Results.ok()
+              .sendInputStream(
+                  new ByteArrayInputStream("test data".getBytes()),
+                  9,
+                  () -> fileSent.set(true),
+                  null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendInputStreamChunkedHonoringOnClose()
+      throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result =
+          Results.ok()
+              .sendInputStream(
+                  new ByteArrayInputStream("test data".getBytes()), () -> fileSent.set(true), null);
 
       // Actually we need to wait until the Stream completes
       Await.ready(

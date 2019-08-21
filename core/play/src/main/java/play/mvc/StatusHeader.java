@@ -10,8 +10,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 
+import akka.stream.IOResult;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.stream.javadsl.StreamConverters;
@@ -45,7 +47,22 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendInputStream(InputStream stream) {
-    return sendInputStream(stream, Optional.empty());
+    return sendInputStream(stream, () -> {}, null);
+  }
+
+  /**
+   * Send the given input stream.
+   *
+   * <p>The input stream will be sent chunked since there is no specified content length.
+   *
+   * @param stream The input stream to send.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
+   *     generated for a download).
+   * @param executor The executor to use for asynchronous execution of {@code onClose}.
+   * @return The result.
+   */
+  public Result sendInputStream(InputStream stream, Runnable onClose, Executor executor) {
+    return sendInputStream(stream, Optional.empty(), onClose, executor);
   }
 
   /**
@@ -58,13 +75,34 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendInputStream(InputStream stream, Optional<String> contentType) {
+    return sendInputStream(stream, contentType, () -> {}, null);
+  }
+
+  /**
+   * Send the given input stream.
+   *
+   * <p>The input stream will be sent chunked since there is no specified content length.
+   *
+   * @param stream The input stream to send.
+   * @param contentType the entity content type.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
+   *     generated for a download).
+   * @param executor The executor to use for asynchronous execution of {@code onClose}.
+   * @return The result.
+   */
+  public Result sendInputStream(
+      InputStream stream, Optional<String> contentType, Runnable onClose, Executor executor) {
     if (stream == null) {
       throw new NullPointerException("Null stream");
     }
     return new Result(
         status(),
         HttpEntity.chunked(
-            StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE), contentType));
+            attachOnClose(
+                StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
+                onClose,
+                executor),
+            contentType));
   }
 
   /**
@@ -75,7 +113,22 @@ public class StatusHeader extends Result {
    * @return The result.
    */
   public Result sendInputStream(InputStream stream, long contentLength) {
-    return sendInputStream(stream, contentLength, Optional.empty());
+    return sendInputStream(stream, contentLength, () -> {}, null);
+  }
+
+  /**
+   * Send the given input stream.
+   *
+   * @param stream The input stream to send.
+   * @param contentLength The length of the content in the stream.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
+   *     generated for a download).
+   * @param executor The executor to use for asynchronous execution of {@code onClose}.
+   * @return The result.
+   */
+  public Result sendInputStream(
+      InputStream stream, long contentLength, Runnable onClose, Executor executor) {
+    return sendInputStream(stream, contentLength, Optional.empty(), onClose, executor);
   }
 
   /**
@@ -88,13 +141,36 @@ public class StatusHeader extends Result {
    */
   public Result sendInputStream(
       InputStream stream, long contentLength, Optional<String> contentType) {
+    return sendInputStream(stream, contentLength, contentType, () -> {}, null);
+  }
+
+  /**
+   * Send the given input stream.
+   *
+   * @param stream The input stream to send.
+   * @param contentLength The length of the content in the stream.
+   * @param contentType the entity content type.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
+   *     generated for a download).
+   * @param executor The executor to use for asynchronous execution of {@code onClose}.
+   * @return The result.
+   */
+  public Result sendInputStream(
+      InputStream stream,
+      long contentLength,
+      Optional<String> contentType,
+      Runnable onClose,
+      Executor executor) {
     if (stream == null) {
       throw new NullPointerException("Null stream");
     }
     return new Result(
         status(),
         new HttpEntity.Streamed(
-            StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
+            attachOnClose(
+                StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
+                onClose,
+                executor),
             Optional.of(contentLength),
             contentType));
   }
@@ -704,16 +780,13 @@ public class StatusHeader extends Result {
       Runnable onClose,
       Executor executor) {
     return doSendResource(
-        StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName))
-            .mapMaterializedValue(
-                cs ->
-                    executor != null
-                        ? cs.whenCompleteAsync((ioResult, exception) -> onClose.run(), executor)
-                        : cs.whenCompleteAsync((ioResult, exception) -> onClose.run())),
+        StreamConverters.fromInputStream(() -> classLoader.getResourceAsStream(resourceName)),
         Optional.empty(),
         Optional.ofNullable(filename),
         inline,
-        fileMimeTypes);
+        fileMimeTypes,
+        onClose,
+        executor);
   }
 
   /**
@@ -944,16 +1017,13 @@ public class StatusHeader extends Result {
     }
     try {
       return doSendResource(
-          FileIO.fromPath(path)
-              .mapMaterializedValue(
-                  cs ->
-                      executor != null
-                          ? cs.whenCompleteAsync((ioResult, exception) -> onClose.run(), executor)
-                          : cs.whenCompleteAsync((ioResult, exception) -> onClose.run())),
+          FileIO.fromPath(path),
           Optional.of(Files.size(path)),
           Optional.ofNullable(filename),
           inline,
-          fileMimeTypes);
+          fileMimeTypes,
+          onClose,
+          executor);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -1194,35 +1264,43 @@ public class StatusHeader extends Result {
     }
     try {
       return doSendResource(
-          FileIO.fromPath(file.toPath())
-              .mapMaterializedValue(
-                  cs ->
-                      executor != null
-                          ? cs.whenCompleteAsync((ioResult, exception) -> onClose.run(), executor)
-                          : cs.whenCompleteAsync((ioResult, exception) -> onClose.run())),
+          FileIO.fromPath(file.toPath()),
           Optional.of(Files.size(file.toPath())),
           Optional.ofNullable(fileName),
           inline,
-          fileMimeTypes);
+          fileMimeTypes,
+          onClose,
+          executor);
     } catch (final IOException ioe) {
       throw new RuntimeException(ioe);
     }
   }
 
   private Result doSendResource(
-      Source<ByteString, ?> data,
+      Source<ByteString, CompletionStage<IOResult>> data,
       Optional<Long> contentLength,
       Optional<String> resourceName,
       boolean inline,
-      FileMimeTypes fileMimeTypes) {
+      FileMimeTypes fileMimeTypes,
+      Runnable onClose,
+      Executor executor) {
     return new Result(
         status(),
         Results.contentDispositionHeader(inline, resourceName),
         new HttpEntity.Streamed(
-            data,
+            attachOnClose(data, onClose, executor),
             contentLength,
             resourceName.map(
                 name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
+  }
+
+  private static Source<ByteString, CompletionStage<IOResult>> attachOnClose(
+      Source<ByteString, CompletionStage<IOResult>> data, Runnable onClose, Executor executor) {
+    return data.mapMaterializedValue(
+        cs ->
+            executor != null
+                ? cs.whenCompleteAsync((ioResult, exception) -> onClose.run(), executor)
+                : cs.whenCompleteAsync((ioResult, exception) -> onClose.run()));
   }
 
   /**
