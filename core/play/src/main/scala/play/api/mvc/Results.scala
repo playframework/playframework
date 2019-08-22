@@ -546,7 +546,10 @@ trait Results {
      *
      * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
      * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendFile(
@@ -563,7 +566,10 @@ trait Results {
      *
      * @param content The path to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
      * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendPath(
@@ -586,7 +592,10 @@ trait Results {
      * @param resource The path of the resource to load.
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
-     * @param fileName Function to retrieve the file name. By default the name of the resource is used.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
      * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendResource(
@@ -615,11 +624,44 @@ trait Results {
      * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
      *
      * @param content Source providing the content to stream.
+     * @param contentType an optional content type.
      */
-    def chunked[C](content: Source[C, _])(implicit writeable: Writeable[C]): Result = {
+    def chunked[C](content: Source[C, _], contentType: Option[String] = None)(
+        implicit writeable: Writeable[C]
+    ): Result = {
       Result(
         header = header,
-        body = HttpEntity.Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), writeable.contentType)
+        body = HttpEntity
+          .Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), contentType.orElse(writeable.contentType))
+      )
+    }
+
+    /**
+     * Feed the content as the response, using chunked transfer encoding.
+     *
+     * Chunked transfer encoding is only supported for HTTP 1.1 clients.  If the client is an HTTP 1.0 client, Play will
+     * instead return a 505 error code.
+     *
+     * Chunked encoding allows the server to send a response where the content length is not known, or for potentially
+     * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
+     *
+     * @param content Source providing the content to stream.
+     * @param inline If the content should be rendered inline or as attachment.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to the content-type of the
+     *      {@code implicit writeable} if unknown.
+     */
+    def chunked[C](content: Source[C, _], inline: Boolean, fileName: Option[String])(
+        implicit writeable: Writeable[C],
+        fileMimeTypes: FileMimeTypes
+    ): Result = {
+      Result(
+        header = header.copy(headers = header.headers ++ Results.contentDispositionHeader(inline, fileName)),
+        body = HttpEntity.Chunked(
+          content.map(c => HttpChunk.Chunk(writeable.transform(c))),
+          fileName.flatMap(fileMimeTypes.forFileName).orElse(writeable.contentType)
+        )
       )
     }
 
@@ -644,13 +686,62 @@ trait Results {
     }
 
     /**
+     * Feed the content as the response, using a streamed entity.
+     *
+     * It will use the given Content-Type, but if is not present, then it fallsback
+     * to use the [[Writeable]] contentType.
+     *
+     * @param content Source providing the content to stream.
+     * @param contentLength an optional content length.
+     * @param inline If the content should be rendered inline or as attachment.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to the content-type of the
+     *      {@code implicit writeable} if unknown.
+     */
+    def streamed[C](content: Source[C, _], contentLength: Option[Long], inline: Boolean, fileName: Option[String])(
+        implicit writeable: Writeable[C],
+        fileMimeTypes: FileMimeTypes
+    ): Result = {
+      Result(
+        header = header.copy(headers = header.headers ++ Results.contentDispositionHeader(inline, fileName)),
+        body = HttpEntity.Streamed(
+          content.map(c => writeable.transform(c)),
+          contentLength,
+          fileName.flatMap(fileMimeTypes.forFileName).orElse(writeable.contentType)
+        )
+      )
+    }
+
+    /**
      * Send an HTTP entity with this status.
+     *
+     * @param entity The entity to send.
      */
     def sendEntity(entity: HttpEntity): Result = {
       Result(
         header = header,
         body = entity
       )
+    }
+
+    /**
+     * Send an HTTP entity with this status.
+     *
+     * @param entity The entity to send.
+     * @param inline If the content should be rendered inline or as attachment.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
+     */
+    def sendEntity(entity: HttpEntity, inline: Boolean, fileName: Option[String])(
+        implicit fileMimeTypes: FileMimeTypes
+    ): Result = {
+      Result(
+        header = header.copy(headers = header.headers ++ Results.contentDispositionHeader(inline, fileName)),
+        body = entity
+      ).as(fileName.flatMap(fileMimeTypes.forFileName).getOrElse(play.api.http.ContentTypes.BINARY))
     }
   }
 

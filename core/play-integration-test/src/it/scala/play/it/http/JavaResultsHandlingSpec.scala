@@ -699,6 +699,27 @@ trait JavaResultsHandlingSpec
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
+      "correct set it for chunked entities when send as attachment" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val chunks     = List(ByteString("a"), ByteString("b"))
+          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          Results.ok().chunked(dataSource, false, Optional.of("file.xml"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+      }
+
+      "is not set by default for streamed entities" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          Results.ok().streamed(source, Optional.empty())
+        }
+      }) { response =>
+        response.header(CONTENT_TYPE) must beNone
+      }
+
       "correct set it for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
@@ -712,11 +733,22 @@ trait JavaResultsHandlingSpec
       "correct change it for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
-          Results.ok().streamed(source, Optional.empty(), Optional.empty()).as(HTML) // start without content type, but later change it to HTML
+          Results.ok().streamed(source, Optional.empty()).as(HTML)
         }
       }) { response =>
         // Use starts with because there is also the charset
         response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
+      "correct set it for streamed entities when send as attachment" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          Results.ok().streamed(source, Optional.empty(), false, Optional.of("file.xml"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
       "is not set by default when sending ByteString" in makeRequest(new MockController {
@@ -737,6 +769,16 @@ trait JavaResultsHandlingSpec
         response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
       }
 
+      "correct set it when sending ByteString as attachment" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendByteString(ByteString("hello"), false, Optional.of("file.xml"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+      }
+
       "is not set by default when sending bytes" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           Results.ok().sendBytes("hello".getBytes("utf-8"))
@@ -753,6 +795,16 @@ trait JavaResultsHandlingSpec
       }) { response =>
         // Use starts with because there is also the charset
         response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
+      "correct set it when sending bytes as attachment" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendBytes("hello".getBytes("utf-8"), false, Optional.of("file.xml"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
       "have no content type if set to null in strict entities" in makeRequest(new MockController {
@@ -784,6 +836,28 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         response.header(CONTENT_TYPE) must beNone
+      }
+
+      "correct set it when sending entity as attachment" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok().sendEntity(new HttpEntity.Strict(ByteString("hello world"), Optional.of("schmitch/foo; bar=bax")), false, Optional.of("file.xml"))
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+      }
+
+      "correct set it when sending json as attachment" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          val objectNode = Json.newObject
+          objectNode.put("foo", "bar")
+          Results.ok().sendJson(objectNode, false, Optional.of("file.txt")) // even though the extension is txt, the content-type is json
+        }
+      }) { response =>
+        // Use starts with because there is also the charset
+        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/json"))
+        response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.txt"""")
       }
     }
 

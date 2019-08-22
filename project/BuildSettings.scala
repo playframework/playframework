@@ -525,6 +525,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendFile$default$3"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath$default$3"),
+      // Add contentType param (which defaults to None) to Results.chunked(...) like Results.streamed(...) already has
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.chunked"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
