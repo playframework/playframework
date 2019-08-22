@@ -169,6 +169,14 @@ Therefore this change should not effect you at all, since all browsers adhere to
 
 If you still want to send this exact header however, you can still do that by using the `withHeader(s)` methods from [`Scala's`](api/scala/play/api/mvc/Result.html#withHeaders\(headers:\(String,String\)*\):play.api.mvc.Result) or [`Java's`](api/java/play/mvc/Result.html#withHeader-java.lang.String-java.lang.String-) `Result` class.
 
+### sbt: The `playOmnidoc` key now defaults to `false`
+
+The Play's sbt plugin key `playOmnidoc`, which used to default to `true` (for non-snapshot version of Play) now
+defaults to `false` (and does so in sbt's `Global` scope).  The impact is that any Play app that previously
+enabled the `PlayDocsPlugin` won't get all the documentation they used when running the app and going to
+`http://localhost:9000/@documentation`.  You can reverse this change by setting `ThisBuild / playOmnidoc :=
+true` in your sbt build.
+
 ## Updated libraries
 
 This section lists significant updates made to our dependencies.

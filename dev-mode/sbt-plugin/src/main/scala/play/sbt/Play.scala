@@ -23,6 +23,7 @@ object PlayService extends AutoPlugin {
 
   val autoImport = PlayImport
 
+  override def globalSettings  = PlaySettings.serviceGlobalSettings
   override def projectSettings = PlaySettings.serviceSettings
 }
 
