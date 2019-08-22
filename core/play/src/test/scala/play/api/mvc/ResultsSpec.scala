@@ -230,7 +230,7 @@ class ResultsSpec extends Specification {
     }
 
     "support sending a file with filename" in withFile { (file, fileName) =>
-      val rh = Ok.sendFile(file, fileName = _ => "测 试.tmp").header
+      val rh = Ok.sendFile(file, fileName = _ => Some("测 试.tmp")).header
 
       (rh.status.aka("status") must_== OK).and(
         rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome(
@@ -240,14 +240,14 @@ class ResultsSpec extends Specification {
     }
 
     "support sending a file without filename" in withFile { (file, fileName) =>
-      val rh = Ok.sendFile(file, fileName = _ => null).header
+      val rh = Ok.sendFile(file, fileName = _ => None).header
 
       (rh.status.aka("status") must_== OK)
         .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beNone)
     }
 
     "support sending a file attached without filename" in withFile { (file, fileName) =>
-      val rh = Ok.sendFile(file, inline = false, fileName = _ => null).header
+      val rh = Ok.sendFile(file, inline = false, fileName = _ => None).header
 
       (rh.status.aka("status") must_== OK)
         .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("attachment"))
@@ -276,7 +276,7 @@ class ResultsSpec extends Specification {
     }
 
     "support sending a path with filename" in withPath { (file, fileName) =>
-      val rh = Ok.sendPath(file, fileName = _ => "测 试.tmp").header
+      val rh = Ok.sendPath(file, fileName = _ => Some("测 试.tmp")).header
 
       (rh.status.aka("status") must_== OK).and(
         rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome(
@@ -286,14 +286,14 @@ class ResultsSpec extends Specification {
     }
 
     "support sending a path without filename" in withPath { (file, fileName) =>
-      val rh = Ok.sendPath(file, fileName = _ => null).header
+      val rh = Ok.sendPath(file, fileName = _ => None).header
 
       (rh.status.aka("status") must_== OK)
         .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beNone)
     }
 
     "support sending a path attached without filename" in withPath { (file, fileName) =>
-      val rh = Ok.sendPath(file, inline = false, fileName = _ => null).header
+      val rh = Ok.sendPath(file, inline = false, fileName = _ => None).header
 
       (rh.status.aka("status") must_== OK)
         .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("attachment"))

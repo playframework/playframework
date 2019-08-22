@@ -248,9 +248,39 @@ public class Results {
    * @param content the file to send
    * @param fileName the name that the client should receive this file as
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #status(int, File, Optional)}.
    */
+  @Deprecated
   public static Result status(int status, File content, String fileName) {
+    return status(status, content, Optional.ofNullable(fileName));
+  }
+
+  /**
+   * Generates a result.
+   *
+   * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+   * @param content the file to send
+   * @param fileName the name that the client should receive this file as
+   * @return the result
+   */
+  public static Result status(int status, File content, Optional<String> fileName) {
     return status(status, content, fileName, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Generates a result.
+   *
+   * @param status the HTTP status for this result e.g. 200 (OK), 404 (NOT_FOUND)
+   * @param content the file to send
+   * @param fileName the name that the client should receive this file as
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #status(int, File, Optional, FileMimeTypes)}.
+   */
+  @Deprecated
+  public static Result status(
+      int status, File content, String fileName, FileMimeTypes fileMimeTypes) {
+    return status(status, content, Optional.ofNullable(fileName), fileMimeTypes);
   }
 
   /**
@@ -263,7 +293,7 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, File content, String fileName, FileMimeTypes fileMimeTypes) {
+      int status, File content, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return status(status).sendFile(content, fileName, fileMimeTypes);
   }
 
@@ -276,7 +306,7 @@ public class Results {
    * @param fileName the name that the client should receive this file as
    * @return the result
    */
-  public static Result status(int status, File content, boolean inline, String fileName) {
+  public static Result status(int status, File content, boolean inline, Optional<String> fileName) {
     return status(status).sendFile(content, inline, fileName);
   }
 
@@ -291,7 +321,11 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, File content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
+      int status,
+      File content,
+      boolean inline,
+      Optional<String> fileName,
+      FileMimeTypes fileMimeTypes) {
     return status(status).sendFile(content, inline, fileName, fileMimeTypes);
   }
 
@@ -352,7 +386,7 @@ public class Results {
    * @param fileName the name that the client should receive this path as
    * @return the result
    */
-  public static Result status(int status, Path content, String fileName) {
+  public static Result status(int status, Path content, Optional<String> fileName) {
     return status(status, content, fileName, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -366,7 +400,7 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, Path content, String fileName, FileMimeTypes fileMimeTypes) {
+      int status, Path content, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return status(status).sendPath(content, fileName, fileMimeTypes);
   }
 
@@ -379,7 +413,7 @@ public class Results {
    * @param fileName the name that the client should receive this path as
    * @return the result
    */
-  public static Result status(int status, Path content, boolean inline, String fileName) {
+  public static Result status(int status, Path content, boolean inline, Optional<String> fileName) {
     return status(status).sendPath(content, inline, fileName);
   }
 
@@ -394,7 +428,11 @@ public class Results {
    * @return the result
    */
   public static Result status(
-      int status, Path content, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
+      int status,
+      Path content,
+      boolean inline,
+      Optional<String> fileName,
+      FileMimeTypes fileMimeTypes) {
     return status(status).sendPath(content, inline, fileName, fileMimeTypes);
   }
 
@@ -567,8 +605,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #ok(File, Optional)}.
    */
+  @Deprecated
   public static Result ok(File content, String filename) {
+    return ok(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 200 OK result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result ok(File content, Optional<String> filename) {
     return ok(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -579,8 +630,22 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #ok(File, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public static Result ok(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return ok(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 200 OK result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result ok(File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(OK, content, filename, fileMimeTypes);
   }
 
@@ -592,7 +657,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result ok(File content, boolean inline, String filename) {
+  public static Result ok(File content, boolean inline, Optional<String> filename) {
     return status(OK, content, inline, filename);
   }
 
@@ -606,7 +671,7 @@ public class Results {
    * @return the result
    */
   public static Result ok(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(OK, content, inline, filename, fileMimeTypes);
   }
 
@@ -661,7 +726,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result ok(Path content, String filename) {
+  public static Result ok(Path content, Optional<String> filename) {
     return ok(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -673,7 +738,7 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result ok(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result ok(Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(OK, content, filename, fileMimeTypes);
   }
 
@@ -685,7 +750,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result ok(Path content, boolean inline, String filename) {
+  public static Result ok(Path content, boolean inline, Optional<String> filename) {
     return status(OK, content, inline, filename);
   }
 
@@ -699,7 +764,7 @@ public class Results {
    * @return the result
    */
   public static Result ok(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(OK, content, inline, filename, fileMimeTypes);
   }
 
@@ -857,8 +922,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #created(File, Optional)}.
    */
+  @Deprecated
   public static Result created(File content, String filename) {
+    return created(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 201 Created result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result created(File content, Optional<String> filename) {
     return created(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -869,8 +947,23 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #created(File, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public static Result created(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return created(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 201 Created result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result created(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, filename, fileMimeTypes);
   }
 
@@ -882,7 +975,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result created(File content, boolean inline, String filename) {
+  public static Result created(File content, boolean inline, Optional<String> filename) {
     return status(CREATED, content, inline, filename);
   }
 
@@ -896,7 +989,7 @@ public class Results {
    * @return the result
    */
   public static Result created(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, inline, filename, fileMimeTypes);
   }
 
@@ -951,7 +1044,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result created(Path content, String filename) {
+  public static Result created(Path content, Optional<String> filename) {
     return created(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -963,7 +1056,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result created(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result created(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, filename, fileMimeTypes);
   }
 
@@ -975,7 +1069,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result created(Path content, boolean inline, String filename) {
+  public static Result created(Path content, boolean inline, Optional<String> filename) {
     return status(CREATED, content, inline, filename);
   }
 
@@ -989,7 +1083,7 @@ public class Results {
    * @return the result
    */
   public static Result created(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(CREATED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1147,8 +1241,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #badRequest(File, Optional)}.
    */
+  @Deprecated
   public static Result badRequest(File content, String filename) {
+    return badRequest(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 400 Bad Request result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result badRequest(File content, Optional<String> filename) {
     return badRequest(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1159,8 +1266,23 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #badRequest(File, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public static Result badRequest(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return badRequest(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 400 Bad Request result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result badRequest(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(BAD_REQUEST, content, filename, fileMimeTypes);
   }
 
@@ -1172,7 +1294,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result badRequest(File content, boolean inline, String filename) {
+  public static Result badRequest(File content, boolean inline, Optional<String> filename) {
     return status(BAD_REQUEST, content, inline, filename);
   }
 
@@ -1186,7 +1308,7 @@ public class Results {
    * @return the result
    */
   public static Result badRequest(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(BAD_REQUEST, content, inline, filename, fileMimeTypes);
   }
 
@@ -1241,7 +1363,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result badRequest(Path content, String filename) {
+  public static Result badRequest(Path content, Optional<String> filename) {
     return badRequest(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1253,7 +1375,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result badRequest(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result badRequest(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(BAD_REQUEST, content, filename, fileMimeTypes);
   }
 
@@ -1265,7 +1388,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result badRequest(Path content, boolean inline, String filename) {
+  public static Result badRequest(Path content, boolean inline, Optional<String> filename) {
     return status(BAD_REQUEST, content, inline, filename);
   }
 
@@ -1279,7 +1402,7 @@ public class Results {
    * @return the result
    */
   public static Result badRequest(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(BAD_REQUEST, content, inline, filename, fileMimeTypes);
   }
 
@@ -1437,8 +1560,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #unauthorized(File, Optional)}.
    */
+  @Deprecated
   public static Result unauthorized(File content, String filename) {
+    return unauthorized(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 401 Unauthorized result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result unauthorized(File content, Optional<String> filename) {
     return unauthorized(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1449,8 +1585,24 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #unauthorized(File, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public static Result unauthorized(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return unauthorized(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 401 Unauthorized result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result unauthorized(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, filename, fileMimeTypes);
   }
 
@@ -1462,7 +1614,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unauthorized(File content, boolean inline, String filename) {
+  public static Result unauthorized(File content, boolean inline, Optional<String> filename) {
     return status(UNAUTHORIZED, content, inline, filename);
   }
 
@@ -1476,7 +1628,7 @@ public class Results {
    * @return the result
    */
   public static Result unauthorized(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1531,7 +1683,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unauthorized(Path content, String filename) {
+  public static Result unauthorized(Path content, Optional<String> filename) {
     return unauthorized(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1543,7 +1695,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result unauthorized(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result unauthorized(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, filename, fileMimeTypes);
   }
 
@@ -1555,7 +1708,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unauthorized(Path content, boolean inline, String filename) {
+  public static Result unauthorized(Path content, boolean inline, Optional<String> filename) {
     return status(UNAUTHORIZED, content, inline, filename);
   }
 
@@ -1569,7 +1722,7 @@ public class Results {
    * @return the result
    */
   public static Result unauthorized(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNAUTHORIZED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1727,8 +1880,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #paymentRequired(File, Optional)}.
    */
+  @Deprecated
   public static Result paymentRequired(File content, String filename) {
+    return paymentRequired(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 402 Payment Required result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result paymentRequired(File content, Optional<String> filename) {
     return paymentRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1739,8 +1905,24 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #paymentRequired(File, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public static Result paymentRequired(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return paymentRequired(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 402 Payment Required result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result paymentRequired(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PAYMENT_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -1752,7 +1934,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result paymentRequired(File content, boolean inline, String filename) {
+  public static Result paymentRequired(File content, boolean inline, Optional<String> filename) {
     return status(PAYMENT_REQUIRED, content, inline, filename);
   }
 
@@ -1766,7 +1948,7 @@ public class Results {
    * @return the result
    */
   public static Result paymentRequired(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PAYMENT_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -1821,7 +2003,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result paymentRequired(Path content, String filename) {
+  public static Result paymentRequired(Path content, Optional<String> filename) {
     return paymentRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1833,7 +2015,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result paymentRequired(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result paymentRequired(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PAYMENT_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -1845,7 +2028,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result paymentRequired(Path content, boolean inline, String filename) {
+  public static Result paymentRequired(Path content, boolean inline, Optional<String> filename) {
     return status(PAYMENT_REQUIRED, content, inline, filename);
   }
 
@@ -1859,7 +2042,7 @@ public class Results {
    * @return the result
    */
   public static Result paymentRequired(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PAYMENT_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -2017,8 +2200,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #forbidden(File, Optional)}.
    */
+  @Deprecated
   public static Result forbidden(File content, String filename) {
+    return forbidden(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 403 Forbidden result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result forbidden(File content, Optional<String> filename) {
     return forbidden(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2029,8 +2225,23 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #forbidden(File, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public static Result forbidden(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return forbidden(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 403 Forbidden result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result forbidden(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, filename, fileMimeTypes);
   }
 
@@ -2042,7 +2253,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result forbidden(File content, boolean inline, String filename) {
+  public static Result forbidden(File content, boolean inline, Optional<String> filename) {
     return status(FORBIDDEN, content, inline, filename);
   }
 
@@ -2056,7 +2267,7 @@ public class Results {
    * @return the result
    */
   public static Result forbidden(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, inline, filename, fileMimeTypes);
   }
 
@@ -2111,7 +2322,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result forbidden(Path content, String filename) {
+  public static Result forbidden(Path content, Optional<String> filename) {
     return forbidden(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2123,7 +2334,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result forbidden(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result forbidden(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, filename, fileMimeTypes);
   }
 
@@ -2135,7 +2347,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result forbidden(Path content, boolean inline, String filename) {
+  public static Result forbidden(Path content, boolean inline, Optional<String> filename) {
     return status(FORBIDDEN, content, inline, filename);
   }
 
@@ -2149,7 +2361,7 @@ public class Results {
    * @return the result
    */
   public static Result forbidden(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(FORBIDDEN, content, inline, filename, fileMimeTypes);
   }
 
@@ -2307,8 +2519,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #notFound(File, Optional)}.
    */
+  @Deprecated
   public static Result notFound(File content, String filename) {
+    return notFound(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 404 Not Found result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result notFound(File content, Optional<String> filename) {
     return notFound(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2319,8 +2544,23 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #notFound(File, Optional, FileMimeTypes)}.
    */
+  @Deprecated
   public static Result notFound(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return notFound(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 404 Not Found result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result notFound(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_FOUND, content, filename, fileMimeTypes);
   }
 
@@ -2332,7 +2572,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result notFound(File content, boolean inline, String filename) {
+  public static Result notFound(File content, boolean inline, Optional<String> filename) {
     return status(NOT_FOUND, content, inline, filename);
   }
 
@@ -2346,7 +2586,7 @@ public class Results {
    * @return the result
    */
   public static Result notFound(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_FOUND, content, inline, filename, fileMimeTypes);
   }
 
@@ -2401,7 +2641,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result notFound(Path content, String filename) {
+  public static Result notFound(Path content, Optional<String> filename) {
     return notFound(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2413,7 +2653,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result notFound(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result notFound(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_FOUND, content, filename, fileMimeTypes);
   }
 
@@ -2425,7 +2666,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result notFound(Path content, boolean inline, String filename) {
+  public static Result notFound(Path content, boolean inline, Optional<String> filename) {
     return status(NOT_FOUND, content, inline, filename);
   }
 
@@ -2439,7 +2680,7 @@ public class Results {
    * @return the result
    */
   public static Result notFound(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_FOUND, content, inline, filename, fileMimeTypes);
   }
 
@@ -2597,8 +2838,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #notAcceptable(File, Optional)}.
    */
+  @Deprecated
   public static Result notAcceptable(File content, String filename) {
+    return notAcceptable(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 406 Not Acceptable result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result notAcceptable(File content, Optional<String> filename) {
     return notAcceptable(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2609,8 +2863,24 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #notAcceptable(File, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public static Result notAcceptable(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return notAcceptable(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 406 Not Acceptable result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result notAcceptable(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, filename, fileMimeTypes);
   }
 
@@ -2622,7 +2892,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result notAcceptable(File content, boolean inline, String filename) {
+  public static Result notAcceptable(File content, boolean inline, Optional<String> filename) {
     return status(NOT_ACCEPTABLE, content, inline, filename);
   }
 
@@ -2636,7 +2906,7 @@ public class Results {
    * @return the result
    */
   public static Result notAcceptable(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, inline, filename, fileMimeTypes);
   }
 
@@ -2691,7 +2961,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result notAcceptable(Path content, String filename) {
+  public static Result notAcceptable(Path content, Optional<String> filename) {
     return notAcceptable(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2703,7 +2973,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result notAcceptable(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result notAcceptable(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, filename, fileMimeTypes);
   }
 
@@ -2715,7 +2986,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result notAcceptable(Path content, boolean inline, String filename) {
+  public static Result notAcceptable(Path content, boolean inline, Optional<String> filename) {
     return status(NOT_ACCEPTABLE, content, inline, filename);
   }
 
@@ -2729,7 +3000,7 @@ public class Results {
    * @return the result
    */
   public static Result notAcceptable(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NOT_ACCEPTABLE, content, inline, filename, fileMimeTypes);
   }
 
@@ -2888,9 +3159,38 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #unsupportedMediaType(File, Optional)}.
    */
+  @Deprecated
   public static Result unsupportedMediaType(File content, String filename) {
+    return unsupportedMediaType(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 415 Unsupported Media Type result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result unsupportedMediaType(File content, Optional<String> filename) {
     return unsupportedMediaType(content, filename, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Generates a 415 Unsupported Media Type result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #unsupportedMediaType(File, Optional,
+   *     FileMimeTypes)}.
+   */
+  @Deprecated
+  public static Result unsupportedMediaType(
+      File content, String filename, FileMimeTypes fileMimeTypes) {
+    return unsupportedMediaType(content, Optional.ofNullable(filename), fileMimeTypes);
   }
 
   /**
@@ -2902,7 +3202,7 @@ public class Results {
    * @return the result
    */
   public static Result unsupportedMediaType(
-      File content, String filename, FileMimeTypes fileMimeTypes) {
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, filename, fileMimeTypes);
   }
 
@@ -2914,7 +3214,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unsupportedMediaType(File content, boolean inline, String filename) {
+  public static Result unsupportedMediaType(
+      File content, boolean inline, Optional<String> filename) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename);
   }
 
@@ -2928,7 +3229,7 @@ public class Results {
    * @return the result
    */
   public static Result unsupportedMediaType(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename, fileMimeTypes);
   }
 
@@ -2984,7 +3285,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unsupportedMediaType(Path content, String filename) {
+  public static Result unsupportedMediaType(Path content, Optional<String> filename) {
     return unsupportedMediaType(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -2997,7 +3298,7 @@ public class Results {
    * @return the result
    */
   public static Result unsupportedMediaType(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, filename, fileMimeTypes);
   }
 
@@ -3009,7 +3310,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result unsupportedMediaType(Path content, boolean inline, String filename) {
+  public static Result unsupportedMediaType(
+      Path content, boolean inline, Optional<String> filename) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename);
   }
 
@@ -3023,7 +3325,7 @@ public class Results {
    * @return the result
    */
   public static Result unsupportedMediaType(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(UNSUPPORTED_MEDIA_TYPE, content, inline, filename, fileMimeTypes);
   }
 
@@ -3182,9 +3484,38 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #preconditionRequired(File, Optional)}.
    */
+  @Deprecated
   public static Result preconditionRequired(File content, String filename) {
+    return preconditionRequired(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 428 Precondition Required result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result preconditionRequired(File content, Optional<String> filename) {
     return preconditionRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Generates a 428 Precondition Required result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #preconditionRequired(File, Optional,
+   *     FileMimeTypes)}.
+   */
+  @Deprecated
+  public static Result preconditionRequired(
+      File content, String filename, FileMimeTypes fileMimeTypes) {
+    return preconditionRequired(content, Optional.ofNullable(filename), fileMimeTypes);
   }
 
   /**
@@ -3196,7 +3527,7 @@ public class Results {
    * @return the result
    */
   public static Result preconditionRequired(
-      File content, String filename, FileMimeTypes fileMimeTypes) {
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -3208,7 +3539,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result preconditionRequired(File content, boolean inline, String filename) {
+  public static Result preconditionRequired(
+      File content, boolean inline, Optional<String> filename) {
     return status(PRECONDITION_REQUIRED, content, inline, filename);
   }
 
@@ -3222,7 +3554,7 @@ public class Results {
    * @return the result
    */
   public static Result preconditionRequired(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -3278,7 +3610,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result preconditionRequired(Path content, String filename) {
+  public static Result preconditionRequired(Path content, Optional<String> filename) {
     return preconditionRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -3291,7 +3623,7 @@ public class Results {
    * @return the result
    */
   public static Result preconditionRequired(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -3303,7 +3635,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result preconditionRequired(Path content, boolean inline, String filename) {
+  public static Result preconditionRequired(
+      Path content, boolean inline, Optional<String> filename) {
     return status(PRECONDITION_REQUIRED, content, inline, filename);
   }
 
@@ -3317,7 +3650,7 @@ public class Results {
    * @return the result
    */
   public static Result preconditionRequired(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(PRECONDITION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -3475,8 +3808,21 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #tooManyRequests(File, Optional)}.
    */
+  @Deprecated
   public static Result tooManyRequests(File content, String filename) {
+    return tooManyRequests(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 429 Too Many Requests result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result tooManyRequests(File content, Optional<String> filename) {
     return tooManyRequests(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -3487,8 +3833,24 @@ public class Results {
    * @param filename The name to send the file as.
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #tooManyRequests(File, Optional,
+   *     FileMimeTypes)}.
    */
+  @Deprecated
   public static Result tooManyRequests(File content, String filename, FileMimeTypes fileMimeTypes) {
+    return tooManyRequests(content, Optional.ofNullable(filename), fileMimeTypes);
+  }
+
+  /**
+   * Generates a 429 Too Many Requests result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   */
+  public static Result tooManyRequests(
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, filename, fileMimeTypes);
   }
 
@@ -3500,7 +3862,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result tooManyRequests(File content, boolean inline, String filename) {
+  public static Result tooManyRequests(File content, boolean inline, Optional<String> filename) {
     return status(TOO_MANY_REQUESTS, content, inline, filename);
   }
 
@@ -3514,7 +3876,7 @@ public class Results {
    * @return the result
    */
   public static Result tooManyRequests(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, inline, filename, fileMimeTypes);
   }
 
@@ -3569,7 +3931,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result tooManyRequests(Path content, String filename) {
+  public static Result tooManyRequests(Path content, Optional<String> filename) {
     return tooManyRequests(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -3581,7 +3943,8 @@ public class Results {
    * @param fileMimeTypes Used for file type mapping.
    * @return the result
    */
-  public static Result tooManyRequests(Path content, String filename, FileMimeTypes fileMimeTypes) {
+  public static Result tooManyRequests(
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, filename, fileMimeTypes);
   }
 
@@ -3593,7 +3956,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result tooManyRequests(Path content, boolean inline, String filename) {
+  public static Result tooManyRequests(Path content, boolean inline, Optional<String> filename) {
     return status(TOO_MANY_REQUESTS, content, inline, filename);
   }
 
@@ -3607,7 +3970,7 @@ public class Results {
    * @return the result
    */
   public static Result tooManyRequests(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(TOO_MANY_REQUESTS, content, inline, filename, fileMimeTypes);
   }
 
@@ -3766,9 +4129,39 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #requestHeaderFieldsTooLarge(File,
+   *     Optional)}.
    */
+  @Deprecated
   public static Result requestHeaderFieldsTooLarge(File content, String filename) {
+    return requestHeaderFieldsTooLarge(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 431 Request Header Fields Too Large result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result requestHeaderFieldsTooLarge(File content, Optional<String> filename) {
     return requestHeaderFieldsTooLarge(content, filename, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Generates a 431 Request Header Fields Too Large result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #requestHeaderFieldsTooLarge(File, Optional,
+   *     FileMimeTypes)}.
+   */
+  @Deprecated
+  public static Result requestHeaderFieldsTooLarge(
+      File content, String filename, FileMimeTypes fileMimeTypes) {
+    return requestHeaderFieldsTooLarge(content, Optional.ofNullable(filename), fileMimeTypes);
   }
 
   /**
@@ -3780,7 +4173,7 @@ public class Results {
    * @return the result
    */
   public static Result requestHeaderFieldsTooLarge(
-      File content, String filename, FileMimeTypes fileMimeTypes) {
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, filename, fileMimeTypes);
   }
 
@@ -3792,7 +4185,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(File content, boolean inline, String filename) {
+  public static Result requestHeaderFieldsTooLarge(
+      File content, boolean inline, Optional<String> filename) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename);
   }
 
@@ -3806,7 +4200,7 @@ public class Results {
    * @return the result
    */
   public static Result requestHeaderFieldsTooLarge(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename, fileMimeTypes);
   }
 
@@ -3862,7 +4256,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(Path content, String filename) {
+  public static Result requestHeaderFieldsTooLarge(Path content, Optional<String> filename) {
     return requestHeaderFieldsTooLarge(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -3875,7 +4269,7 @@ public class Results {
    * @return the result
    */
   public static Result requestHeaderFieldsTooLarge(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, filename, fileMimeTypes);
   }
 
@@ -3887,7 +4281,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result requestHeaderFieldsTooLarge(Path content, boolean inline, String filename) {
+  public static Result requestHeaderFieldsTooLarge(
+      Path content, boolean inline, Optional<String> filename) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename);
   }
 
@@ -3901,7 +4296,7 @@ public class Results {
    * @return the result
    */
   public static Result requestHeaderFieldsTooLarge(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(REQUEST_HEADER_FIELDS_TOO_LARGE, content, inline, filename, fileMimeTypes);
   }
 
@@ -4060,9 +4455,38 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #internalServerError(File, Optional)}.
    */
+  @Deprecated
   public static Result internalServerError(File content, String filename) {
+    return internalServerError(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 500 Internal Server Error result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result internalServerError(File content, Optional<String> filename) {
     return internalServerError(content, filename, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Generates a 500 Internal Server Error result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #internalServerError(File, Optional,
+   *     FileMimeTypes)}.
+   */
+  @Deprecated
+  public static Result internalServerError(
+      File content, String filename, FileMimeTypes fileMimeTypes) {
+    return internalServerError(content, Optional.ofNullable(filename), fileMimeTypes);
   }
 
   /**
@@ -4074,7 +4498,7 @@ public class Results {
    * @return the result
    */
   public static Result internalServerError(
-      File content, String filename, FileMimeTypes fileMimeTypes) {
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, filename, fileMimeTypes);
   }
 
@@ -4086,7 +4510,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result internalServerError(File content, boolean inline, String filename) {
+  public static Result internalServerError(
+      File content, boolean inline, Optional<String> filename) {
     return status(INTERNAL_SERVER_ERROR, content, inline, filename);
   }
 
@@ -4100,7 +4525,7 @@ public class Results {
    * @return the result
    */
   public static Result internalServerError(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, inline, filename, fileMimeTypes);
   }
 
@@ -4156,7 +4581,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result internalServerError(Path content, String filename) {
+  public static Result internalServerError(Path content, Optional<String> filename) {
     return internalServerError(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -4169,7 +4594,7 @@ public class Results {
    * @return the result
    */
   public static Result internalServerError(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, filename, fileMimeTypes);
   }
 
@@ -4181,7 +4606,8 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result internalServerError(Path content, boolean inline, String filename) {
+  public static Result internalServerError(
+      Path content, boolean inline, Optional<String> filename) {
     return status(INTERNAL_SERVER_ERROR, content, inline, filename);
   }
 
@@ -4195,7 +4621,7 @@ public class Results {
    * @return the result
    */
   public static Result internalServerError(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(INTERNAL_SERVER_ERROR, content, inline, filename, fileMimeTypes);
   }
 
@@ -4354,9 +4780,39 @@ public class Results {
    * @param content The file to send.
    * @param filename The name to send the file as.
    * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #networkAuthenticationRequired(File,
+   *     Optional)}.
    */
+  @Deprecated
   public static Result networkAuthenticationRequired(File content, String filename) {
+    return networkAuthenticationRequired(content, Optional.ofNullable(filename));
+  }
+
+  /**
+   * Generates a 511 Network Authentication Required result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @return the result
+   */
+  public static Result networkAuthenticationRequired(File content, Optional<String> filename) {
     return networkAuthenticationRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
+  }
+
+  /**
+   * Generates a 511 Network Authentication Required result.
+   *
+   * @param content The file to send.
+   * @param filename The name to send the file as.
+   * @param fileMimeTypes Used for file type mapping.
+   * @return the result
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #networkAuthenticationRequired(File,
+   *     Optional, FileMimeTypes)}.
+   */
+  @Deprecated
+  public static Result networkAuthenticationRequired(
+      File content, String filename, FileMimeTypes fileMimeTypes) {
+    return networkAuthenticationRequired(content, Optional.ofNullable(filename), fileMimeTypes);
   }
 
   /**
@@ -4368,7 +4824,7 @@ public class Results {
    * @return the result
    */
   public static Result networkAuthenticationRequired(
-      File content, String filename, FileMimeTypes fileMimeTypes) {
+      File content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -4381,7 +4837,7 @@ public class Results {
    * @return the result
    */
   public static Result networkAuthenticationRequired(
-      File content, boolean inline, String filename) {
+      File content, boolean inline, Optional<String> filename) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename);
   }
 
@@ -4395,7 +4851,7 @@ public class Results {
    * @return the result
    */
   public static Result networkAuthenticationRequired(
-      File content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      File content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 
@@ -4451,7 +4907,7 @@ public class Results {
    * @param filename The name to send the file as.
    * @return the result
    */
-  public static Result networkAuthenticationRequired(Path content, String filename) {
+  public static Result networkAuthenticationRequired(Path content, Optional<String> filename) {
     return networkAuthenticationRequired(content, filename, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -4464,7 +4920,7 @@ public class Results {
    * @return the result
    */
   public static Result networkAuthenticationRequired(
-      Path content, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, filename, fileMimeTypes);
   }
 
@@ -4477,7 +4933,7 @@ public class Results {
    * @return the result
    */
   public static Result networkAuthenticationRequired(
-      Path content, boolean inline, String filename) {
+      Path content, boolean inline, Optional<String> filename) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename);
   }
 
@@ -4491,7 +4947,7 @@ public class Results {
    * @return the result
    */
   public static Result networkAuthenticationRequired(
-      Path content, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+      Path content, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return status(NETWORK_AUTHENTICATION_REQUIRED, content, inline, filename, fileMimeTypes);
   }
 

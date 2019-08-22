@@ -521,6 +521,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ObjectMapperProvider.this"),
       // Add configuration for temporary file directory
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#DefaultTemporaryFileCreator.this"),
+      // Return type of filename function parameter changed from String to Option[String]
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendFile"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendFile$default$3"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath$default$3"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
