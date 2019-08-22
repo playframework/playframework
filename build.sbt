@@ -201,20 +201,23 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
   .enablePlugins(SbtPlugin)
   .settings(
     libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
-    sourceGenerators in Compile += Def
-      .task(
-        PlayVersion(
-          version.value,
-          (scalaVersion in PlayProject).value,
-          sbtVersion.value,
-          jettyAlpnAgent.revision,
-          Dependencies.akkaVersion,
-          (sourceManaged in Compile).value
-        )
+    sourceGenerators in Compile += Def.task {
+      PlayVersion(
+        version.value,
+        (scalaVersion in PlayProject).value,
+        sbtVersion.value,
+        jettyAlpnAgent.revision,
+        Dependencies.akkaVersion,
+        (sourceManaged in Compile).value
       )
-      .taskValue,
+    }.taskValue,
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
+
+lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "dev-mode/sbt-scripted-tools")
+  .enablePlugins(SbtPlugin)
+  .dependsOn(SbtPluginProject)
+  .settings(disableNonLocalPublishing)
 
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
@@ -434,6 +437,7 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayOpenIdProject,
   RunSupportProject,
   SbtPluginProject,
+  SbtScriptedToolsProject,
   PlaySpecs2Project,
   PlayTestProject,
   PlayExceptionsProject,

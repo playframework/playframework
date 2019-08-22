@@ -282,24 +282,19 @@ object PlayRun extends PlayRunCompat {
 
   }
 
-  val playStopProdCommand = Command.args("stopProd", "") { (state: State, args: Seq[String]) =>
-    val extracted = Project.extract(state)
+  val playStopProdCommand = Command.args("stopProd", "<args>") { (state, args) =>
+    stop(state)
+    if (args.contains("--no-exit-sbt")) state else state.copy(remainingCommands = Nil)
+  }
 
-    val pidFile = extracted.get(stagingDirectory in Universal) / "RUNNING_PID"
-    if (!pidFile.exists) {
-      println("No PID file found. Are you sure the app is running?")
-    } else {
+  def stop(state: State): Unit = {
+    val pidFile = Project.extract(state).get(stagingDirectory in Universal) / "RUNNING_PID"
+    if (pidFile.exists) {
       val pid = IO.read(pidFile)
       kill(pid)
-      // PID file will be deleted by a shutdown hook attached on start in ServerStart.scala
+      // PID file will be deleted by a shutdown hook attached on start in ProdServerStart.scala
       println(s"Stopped application with process ID $pid")
-    }
+    } else println(s"No PID file found at $pidFile. Are you sure the app is running?")
     println()
-
-    if (args.contains("--no-exit-sbt")) {
-      state
-    } else {
-      state.copy(remainingCommands = List.empty)
-    }
   }
 }

@@ -11,14 +11,13 @@ import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
-import interplay._
+import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbt.Resolver
-import sbt._
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
@@ -86,7 +85,7 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    scalaVersion := ScalaVersions.scala212,
+    scalaVersion := scala212,
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -547,7 +546,7 @@ object BuildSettings {
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
-        crossScalaVersions := Seq(ScalaVersions.scala212)
+        crossScalaVersions := Seq(scala212)
       )
   }
 
@@ -590,23 +589,27 @@ object BuildSettings {
     // * run a publishLocal in the changes projects for fast feedback loops
     scriptedDependencies := (()), // drop Test/compile & publishLocal
     scriptedBufferLog := false,
-    scriptedLaunchOpts ++= {
-      val bootDir = file(sys.props("user.home")) / ".sbt" / "boot"
-      val sv      = sys.props.getOrElse("scripted.scala.version", sys.props.getOrElse("scala.version", "2.12.8"))
-      Seq(s"-Dsbt.boot.directory=$bootDir", "-Xmx512m", "-XX:MaxMetaspaceSize=512m", s"-Dscala.version=$sv")
-    },
+    scriptedLaunchOpts ++= Seq(
+      s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
+      "-Xmx512m",
+      "-XX:MaxMetaspaceSize=512m",
+      s"-Dscala.version=$scala212",
+    ),
     scripted := scripted.tag(Tags.Test).evaluated,
   )
 
-  def disablePublishing = Seq[Setting[_]](
+  def disablePublishing = Def.settings(
+    disableNonLocalPublishing,
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
     // `compile` and `update` tasks.
     skip in publish := true,
+    publishLocal := {},
+  )
+  def disableNonLocalPublishing = Def.settings(
     // For sbt 0.13 this is what we need to avoid publishing. These settings can
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
     publish := {},
-    publishLocal := {},
     // We also don't need to track dependencies for unpublished projects
     // so we need to disable WhiteSource plugin.
     whitesourceIgnore := true

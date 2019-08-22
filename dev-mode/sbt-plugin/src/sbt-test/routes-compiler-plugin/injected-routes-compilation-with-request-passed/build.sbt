@@ -1,15 +1,15 @@
 //
 // Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
-import Common._
-
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .enablePlugins(MediatorWorkaroundPlugin)
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := sys.props.get("scala.version").getOrElse("2.12.9")
+scalaVersion := sys.props("scala.version")
+updateOptions := updateOptions.value.withLatestSnapshots(false)
+evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // can't use test directory since scripted calls its script "test"
 sourceDirectory in Test := baseDirectory.value / "tests"
@@ -42,25 +42,8 @@ sourcePositionMappers := Nil
 
 routesGenerator := play.routes.compiler.InjectedRoutesGenerator
 
-play.sbt.routes.RoutesKeys.routesImport := Seq()
-
-Seq(Compile, Test).flatMap(inConfig(_)(Seq(
-  compile := {
-    compile.result.value match {
-      case Value(v) => v
-      case Inc(inc) =>
-        // If there was a compilation error, dump generated routes files so we can read them
-        allFiles((target in routes in Compile).value).map { file =>
-          println(s"Dumping $file:")
-          IO.readLines(file).zipWithIndex.foreach {
-            case (line, index) => println(f"${index + 1}%4d: $line")
-          }
-          println()
-        }
-        throw inc
-    }
-  }
-)))
+play.sbt.routes.RoutesKeys.routesImport := Nil
+ScriptedTools.dumpRoutesSourceOnCompilationFailure
 
 scalacOptions ++= {
   Seq(

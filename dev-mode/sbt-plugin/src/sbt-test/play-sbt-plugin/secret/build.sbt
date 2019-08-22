@@ -2,21 +2,23 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-val Secret = """(?s).*play.http.secret.key="(.*)".*""".r
-
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     name := "secret-sample",
     version := "1.0-SNAPSHOT",
+    scalaVersion := sys.props("scala.version"),
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
     TaskKey[Unit]("checkSecret") := {
       val file = IO.read(baseDirectory.value / "conf/application.conf")
+      val Secret = """(?s).*play.http.secret.key="(.*)".*""".r
       file match {
-        case Secret("changeme") => throw new RuntimeException("secret not changed!!\n" + file)
+        case Secret("changeme") => sys.error(s"secret not changed!!\n$file")
         case Secret(_)          =>
-        case _                  => throw new RuntimeException("secret not found!!\n" + file)
+        case _                  => sys.error(s"secret not found!!\n$file")
       }
     }
   )

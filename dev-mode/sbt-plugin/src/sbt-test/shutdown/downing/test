@@ -87,7 +87,7 @@ $ exists target/universal/stage/RUNNING_PID
 
 ## 2. Mode.Prod exits the JVM without deadlock on Downing
 
-> assertProcessIsStopped
+> assertProcessIsStopped simulate-downing
 > awaitPidfileDeletion
 $ exists target/proofs/application-actorsystem-name.txt
 -$ exists target/universal/stage/RUNNING_PID
