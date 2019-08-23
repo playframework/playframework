@@ -7,8 +7,8 @@
 
 cd "$BASEDIR"
 
-printMessage "RUNNING TESTS FOR SCALA 2.13"
+start test "RUNNING TESTS FOR SCALA 2.13"
 
 runSbt "++2.13.0 test"
 
-printMessage "ALL TESTS PASSED"
+end test "ALL TESTS PASSED"

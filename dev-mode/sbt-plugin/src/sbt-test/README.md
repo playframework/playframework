@@ -1,12 +1,21 @@
-# Play Plugin Tests
+# Play's scripted tests
 
-This is a collection of sbt scripted tests for Play's sbt-plugin. They are organized in distinct groups to test specific features provided by Play plugin.
+This is a collection of sbt scripted tests for Play's sbt plugin.
+
+They are all in the play-sbt-plugin directory so we can use scripted's "play-sbt-plugin/*1of3" feature to
+auto-split the tests into groups and run them in parallel build jobs.
+
+But we'll discuss them by their logical groupings.
 
 ## Maven Layout test suite
+
+Prefix: `maven-layout-`
 
 This holds a few regression tests. When Maven Layout becomes the default Layout for Play this test suite can be removed.
 
 ## Evolutions test suite
+
+Prefix: `evolutions-`
 
 Verifies that Play evolutions work as expected for the following scenarios:
 
@@ -25,7 +34,7 @@ Verifies that Play evolutions work as expected for the following scenarios:
     2. When one is configured to `autoApply=false` and the other one is `autoApply=true`
     3. Should ask to apply when there is a new evolution to the db with `autoApply=false`
     4. Should apply a new evolution automatically when for the db with `autoApply=true`
-    
+
 ### `PROD` mode
 
 1. Should start successfully when there are evolutions and `autoApply=true`
@@ -33,11 +42,13 @@ Verifies that Play evolutions work as expected for the following scenarios:
 
 ## Shutdown test suite
 
-This collection of scripted tests helps ensuring the correct resource de-alloc 
+Prefix: `shutdown-`
+
+This collection of scripted tests helps ensuring the correct resource de-alloc
 in as many scenarios as possible.
 
-Tests are grouped in `scripted` suites to reduce the maintainability costs and time 
-to execute at the cost of loosing some visibility when a test fails. 
+Tests are grouped in `scripted` suites to reduce the maintainability costs and time
+to execute at the cost of loosing some visibility when a test fails.
 
 Here's a list of `scripted` suites and what are the tests they exercise:
 
@@ -47,15 +58,15 @@ Here's a list of `scripted` suites and what are the tests they exercise:
     * `3-`: Mode.Test + non-forked tests
     * `1-`: Mode.Prod finished on `SIGTERM`
  * `downing`:
-    * `7-`: Mode.Dev + on `Down`ing, stop dev mode 
+    * `7-`: Mode.Dev + on `Down`ing, stop dev mode
     * `4-`: Mode.Test + forked tests
     * `2-`: Mode.Prod finished on `Down`ing
 
 ### General requirements
 
-#### i. PID file 
+#### i. PID file
 
-Only when running Play in Mode.Prod requires producing a `pidfile` that must be deleted when the 
+Only when running Play in Mode.Prod requires producing a `pidfile` that must be deleted when the
 process completes.
 
 That file must only exist during the life-span of a PROD process (never TEST nor DEV).
@@ -69,7 +80,7 @@ There's a first batch of use cases to be tested with default settings.
 
 1- Process finishes on `SIGTERM`
 
-2- Process finishes on programmatic event (e.g. cluster `Down`ing event) 
+2- Process finishes on programmatic event (e.g. cluster `Down`ing event)
 
 #### Mode.Test
 
@@ -85,20 +96,22 @@ There's a first batch of use cases to be tested with default settings.
 
 7- on programmatic event (e.g. `Down`ing): only the Application should die, run coordinated shutdown but don't exit the JVM
 
-### Using custom settings (WIP) 
+### Using custom settings (WIP)
 
-There's a collection of settings with a certain impact on shutdown that deserve careful testing. Below is a 
+There's a collection of settings with a certain impact on shutdown that deserve careful testing. Below is a
 list of those settings. Using each of these settings may require on or many tests from the `Using default settings` list above.
- 
-a- Using `akka.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start 
 
-b- Using `akka.coordinated-shutdown.reason-overrides....exit-jvm` for a custom reason is honored 
+a- Using `akka.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start
+
+b- Using `akka.coordinated-shutdown.reason-overrides....exit-jvm` for a custom reason is honored
 
 c- (TODO) Using a custom `exit-code` is honored
 
 d- (TODO) Using a custom `exit-code` for a custom reason is honored
 
 ## HTTP backend test suite
+
+Prefix: `http-backend-`
 
 Provides a few test for custom behaviors depending on the HTTP backend used.
 
@@ -108,4 +121,4 @@ In Test mode, Play provides tools to handle the Server and Application lifecycle
 using the configured backend and the specified protocols:
 
 * test the backend is Akka HTTP or Netty
-* test HTTP/2 is dis/enabled 
+* test HTTP/2 is dis/enabled

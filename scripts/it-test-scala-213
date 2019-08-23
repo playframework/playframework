@@ -6,6 +6,6 @@
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 cd "$BASEDIR"
-printMessage "RUNNING IT TESTS FOR SCALA 2.13"
+start test "RUNNING IT TESTS FOR SCALA 2.13"
 runSbt "++2.13.0 Play-Integration-Test/it:test"
-printMessage "ALL IT TESTS PASSED"
+end test "ALL IT TESTS PASSED"

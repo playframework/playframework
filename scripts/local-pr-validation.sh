@@ -5,11 +5,12 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-printMessage "RUNNING FRAMEWORK VALIDATION"
+start validation "RUNNING FRAMEWORK VALIDATION"
 sbt headerCreate test:headerCreate javafmt test:javafmt scalafmtCheckAll scalafmtSbtCheck
+start validation "FRAMEWORK VALIDATION DONE"
 
 pushd "$DOCUMENTATION"
-printMessage "RUNNING DOCUMENTATION VALIDATION"
+start doc-validation "RUNNING DOCUMENTATION VALIDATION"
 sbt headerCreate test:headerCreate javafmt test:javafmt scalafmtCheckAll scalafmtSbtCheck
 
 git diff --exit-code . || (
@@ -22,4 +23,4 @@ git diff --exit-code . || (
 
 popd
 
-printMessage "ALL VALIDATIONS DONE"
+end doc-validation "ALL VALIDATIONS DONE"
