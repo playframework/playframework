@@ -8,14 +8,15 @@ import java.io.File
 import java.io.IOException
 import java.lang.ref.Reference
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{ Files => JFiles, _ }
+import java.nio.file.{ Files => JFiles }
+import java.nio.file._
 import java.time.Clock
 import java.time.Instant
-import java.util.function.Predicate
+import java.util.stream
+
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
-
 import akka.actor.ActorSystem
 import akka.actor.Cancellable
 import com.google.common.base.FinalizablePhantomReference
@@ -239,7 +240,8 @@ object Files {
   @Singleton
   class DefaultTemporaryFileCreator @Inject()(
       applicationLifecycle: ApplicationLifecycle,
-      temporaryFileReaper: TemporaryFileReaper
+      temporaryFileReaper: TemporaryFileReaper,
+      conf: Configuration
   ) extends TemporaryFileCreator {
 
     private val logger = play.api.Logger(this.getClass)
@@ -254,7 +256,8 @@ object Files {
 
     private val TempDirectoryPrefix = "playtemp"
     private val playTempFolder: Path = {
-      val tmpFolder = JFiles.createTempDirectory(TempDirectoryPrefix)
+      val dir       = conf.get[String]("play.temporaryFile.dir")
+      val tmpFolder = Paths.get(s"$dir/$TempDirectoryPrefix/")
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
@@ -271,12 +274,13 @@ object Files {
 
     private def createReference(tempFile: TemporaryFile) = {
       val path = tempFile.path
-      val reference = new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
-        override def finalizeReferent(): Unit = {
-          references.remove(this)
-          deletePath(path)
+      val reference =
+        new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
+          override def finalizeReferent(): Unit = {
+            references.remove(this)
+            deletePath(path)
+          }
         }
-      }
       references.add(reference)
       tempFile
     }
@@ -310,21 +314,23 @@ object Files {
      */
     applicationLifecycle.addStopHook { () =>
       Future.successful(
-        JFiles.walkFileTree(
-          playTempFolder,
-          new SimpleFileVisitor[Path] {
-            override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-              logger.debug(s"stopHook: Removing leftover temporary file $path from ${playTempFolder}")
-              deletePath(path)
-              FileVisitResult.CONTINUE
-            }
+        if (JFiles.isDirectory(playTempFolder)) {
+          JFiles.walkFileTree(
+            playTempFolder,
+            new SimpleFileVisitor[Path] {
+              override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                logger.debug(s"stopHook: Removing leftover temporary file $path from $playTempFolder")
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
 
-            override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
-              deletePath(path)
-              FileVisitResult.CONTINUE
+              override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
             }
-          }
-        )
+          )
+        }
       )
     }
   }
@@ -362,15 +368,13 @@ object Files {
           .map { f =>
             import scala.compat.java8.StreamConverters._
 
-            val directoryStream = JFiles.list(f)
+            val directoryStream: stream.Stream[Path] = JFiles.list(f)
 
             try {
               val reaped = directoryStream
-                .filter(new Predicate[Path]() {
-                  override def test(p: Path): Boolean = {
-                    val lastModifiedTime = JFiles.getLastModifiedTime(p).toInstant
-                    lastModifiedTime.isBefore(secondsAgo)
-                  }
+                .filter(p => {
+                  val lastModifiedTime = JFiles.getLastModifiedTime(p).toInstant
+                  lastModifiedTime.isBefore(secondsAgo)
                 })
                 .toScala[List]
 
@@ -408,7 +412,8 @@ object Files {
             s"Reaper enabled but no temp folder has been created yet, starting in $initialDelay with $interval intervals"
           )
       }
-      cancellable = Some(actorSystem.scheduler.schedule(initialDelay, interval) {
+
+      cancellable = Some(actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () =>
         reap()
       }(actorSystem.dispatcher))
     }
@@ -460,14 +465,14 @@ object Files {
     )
     class TemporaryFileReaperConfigurationProvider @Inject()(configuration: Configuration)
         extends Provider[TemporaryFileReaperConfiguration] {
-      lazy val get = fromConfiguration(configuration)
+      lazy val get: TemporaryFileReaperConfiguration = fromConfiguration(configuration)
     }
   }
 
   @Singleton
   class TemporaryFileReaperConfigurationProvider @Inject()(configuration: Configuration)
       extends Provider[TemporaryFileReaperConfiguration] {
-    lazy val get = TemporaryFileReaperConfiguration.fromConfiguration(configuration)
+    lazy val get: TemporaryFileReaperConfiguration = TemporaryFileReaperConfiguration.fromConfiguration(configuration)
   }
 
   /**

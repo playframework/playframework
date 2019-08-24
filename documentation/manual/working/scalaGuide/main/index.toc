@@ -12,7 +12,7 @@ cache:Using the Cache
 ws:Calling REST APIs with Play WS
 akka:Integrating with Akka
 i18n:Internationalization with Messages
-dependencyinjection:Dependency injection
+dependencyinjection:Dependency Injection
 application:Application Settings
 tests:Testing your application
 logging:Logging

@@ -4,7 +4,7 @@
 
 package play.sbt.run
 
-import annotation.tailrec
+import scala.annotation.tailrec
 
 import sbt._
 import sbt.Keys._
@@ -214,92 +214,73 @@ object PlayRun extends PlayRunCompat {
   }
 
   private def testProd(state: State, args: Seq[String]): State = {
-
     val extracted = Project.extract(state)
 
     val interaction = extracted.get(playInteractionMode)
     val noExitSbt   = args.contains("--no-exit-sbt")
-
-    val filter      = Set("--no-exit-sbt")
-    val filtered    = args.filterNot(filter)
+    val filtered    = args.filterNot(Set("--no-exit-sbt"))
     val devSettings = Seq.empty[(String, String)] // there are no dev settings in a prod website
 
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort, httpAddress) =
+    val (properties, httpPort, httpsPort, _) =
       Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress), devSettings)
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
-    Project.runTask(stage, state).get._2.toEither match {
-      case Left(_) =>
-        println()
-        println("Cannot start with errors.")
-        println()
-        state.fail
-      case Right(_) =>
-        val stagingBin =
-          Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(executableScriptName)).map { f =>
-            if (System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win"))
-              f.getAbsolutePath + ".bat"
-            else f.getAbsolutePath
-          }.get
-        val javaProductionOptions =
-          Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
+    def fail(state: State) = {
+      println()
+      println("Cannot start with errors.")
+      println()
+      state.fail
+    }
+    Project.runTask(stage, state) match {
+      case None                  => fail(state)
+      case Some((state, Inc(_))) => fail(state)
+      case Some((state, Value(stagingDir))) =>
+        val stagingBin = {
+          val path  = (stagingDir / "bin" / extracted.get(executableScriptName)).getAbsolutePath
+          val isWin = System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win")
+          if (isWin) s"$path.bat" else path
+        }
+        val javaOpts = Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Nil)
 
         // Note that I'm unable to pass system properties along with properties... if I do then I receive:
         //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
-        // Things are working without passing system properties, and I'm unsure that they need to be passed explicitly. If def main(args: Array[String]){
-        // problem occurs in this area then at least we know what to look at.
+        // Things are working without passing system properties, and I'm unsure that they need to be passed explicitly.
+        // If def main(args: Array[String]) { problem occurs in this area then at least we know what to look at.
         val args = Seq(stagingBin) ++
-          properties.map {
-            case (key, value) => s"-D$key=$value"
-          } ++
-          javaProductionOptions ++
-          Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"))
+          properties.map { case (key, value) => s"-D$key=$value" } ++
+          javaOpts ++
+          Seq(s"-Dhttp.port=${httpPort.getOrElse("disabled")}")
         new Thread {
           override def run(): Unit = {
-            if (noExitSbt) {
-              createAndRunProcess(args)
-            } else {
-              System.exit(createAndRunProcess(args))
-            }
+            val exitCode = createAndRunProcess(args)
+            if (!noExitSbt) System.exit(exitCode)
           }
         }.start()
-
-        println(Colors.green("""|
-                                |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
-                                | """.stripMargin))
-
+        val msg =
+          """|
+             |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
+             | """.stripMargin
+        println(Colors.green(msg))
         interaction.waitForCancel()
-
         println()
-
-        if (noExitSbt) {
-          state
-        } else {
-          state.copy(remainingCommands = List.empty)
-        }
+        if (noExitSbt) state else state.copy(remainingCommands = Nil)
     }
-
   }
 
-  val playStopProdCommand = Command.args("stopProd", "") { (state: State, args: Seq[String]) =>
-    val extracted = Project.extract(state)
+  val playStopProdCommand = Command.args("stopProd", "<args>") { (state, args) =>
+    stop(state)
+    if (args.contains("--no-exit-sbt")) state else state.copy(remainingCommands = Nil)
+  }
 
-    val pidFile = extracted.get(stagingDirectory in Universal) / "RUNNING_PID"
-    if (!pidFile.exists) {
-      println("No PID file found. Are you sure the app is running?")
-    } else {
+  def stop(state: State): Unit = {
+    val pidFile = Project.extract(state).get(stagingDirectory in Universal) / "RUNNING_PID"
+    if (pidFile.exists) {
       val pid = IO.read(pidFile)
       kill(pid)
-      // PID file will be deleted by a shutdown hook attached on start in ServerStart.scala
+      // PID file will be deleted by a shutdown hook attached on start in ProdServerStart.scala
       println(s"Stopped application with process ID $pid")
-    }
+    } else println(s"No PID file found at $pidFile. Are you sure the app is running?")
     println()
-
-    if (args.contains("--no-exit-sbt")) {
-      state
-    } else {
-      state.copy(remainingCommands = List.empty)
-    }
   }
 }

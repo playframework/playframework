@@ -5,7 +5,53 @@ This page highlights the new features of Play 2.8. If you want to learn about th
 
 ## Akka 2.6
 
-Play 2.8 brings the latest minor version of Akka. Although Akka 2.6 is binary compatible with 2.5, there are changes in the default configurations and some deprecated features were removed. You can see more details about the changes in [Akka 2.6 migration guide](https://doc.akka.io/docs/akka/2.6.0-M1/project/migration-guide-2.5.x-2.6.x.html).
+Play 2.8 brings the latest minor version of Akka. Although Akka 2.6 is binary compatible with 2.5, there are changes in the default configurations and some deprecated features were removed. You can see more details about the changes in [Akka 2.6 migration guide][akka-migration-guide].
+
+[akka-migration-guide]: https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html
+
+### Jackson `ObjectMapper` configuration
+
+Instead of providing its way to create and configure an `ObjectMapper`, which before Play 2.8 requires the user to write a custom binding if some customization is required, Play now uses Akka Jackson support to provide an `ObjectMapper`. It means that it is now possible to add Jackson [Modules](http://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/Module.html) and configure [Features](https://github.com/FasterXML/jackson-databind/wiki/JacksonFeatures) using `application.conf`. For example, if you want to add [Joda support](https://github.com/FasterXML/jackson-datatype-joda), you just need to add the following configuration:
+
+```HOCON
+akka.serialization.jackson.jackson-modules += "com.fasterxml.jackson.datatype.joda.JodaModule"
+```
+
+And if you need to write numbers as strings, add the following configuration:
+
+```HOCON
+akka.serialization.jackson.serialization-features.WRITE_NUMBERS_AS_STRINGS=true
+```
+
+### Guice support for Akka Actor Typed
+
+The pre-existing `AkkaGuiceSupport` utility, which helped bind Akka's "classic" actors, has gained additional methods to support Akka 2.6's new [Typed Actor API][].
+
+[Typed Actor API]: https://doc.akka.io/docs/akka/2.6/typed/actors.html
+
+Here's a quick example, in Scala, of defining a Guice module which binds a `HelloActor`:
+
+```scala
+object AppModule extends AbstractModule with AkkaGuiceSupport {
+  override def configure() = {
+    bindTypedActor(HelloActor(), "hello-actor")
+  }
+}
+```
+
+And again, in Java, where the actor extends Akka's Java DSL `AbstractBehavior`:
+
+```java
+public final class AppModule extends AbstractModule
+    implements AkkaGuiceSupport {
+  @Override
+  protected void configure() {
+    bindTypedActor(HelloActor.class, "hello-actor");
+  }
+}
+```
+
+See [[Integrating with Akka Typed|AkkaTyped]] for more details.
 
 ## Other additions
 

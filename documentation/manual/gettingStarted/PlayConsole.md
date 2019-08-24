@@ -86,7 +86,7 @@ And you will see something like:
 
 ```bash
 [my-first-app] $ compile
-[info] Compiling 1 Scala source to /Users/play-developer/my-first-app/target/scala-2.11/classes...
+[info] Compiling 1 Scala source to /Users/play-developer/my-first-app/target/scala-2.13/classes...
 [error] /Users/play-developer/my-first-app/app/controllers/HomeController.scala:21: not found: value Actionx
 [error]   def index = Actionx { implicit request =>
 [error]               ^

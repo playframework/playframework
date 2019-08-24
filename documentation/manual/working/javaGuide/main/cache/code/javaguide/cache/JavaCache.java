@@ -106,17 +106,17 @@ public class JavaCache extends WithApplication {
   @Test
   public void http() {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
+    Controller1 controller1 = new Controller1(instanceOf(JavaHandlerComponents.class));
 
-    assertThat(
-        contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("Hello world"));
-    assertThat(cache.sync().get("homePage").get(), notNullValue());
-    cache.sync().set("homePage", Results.ok("something else"));
-    assertThat(
-        contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("something else"));
+    assertThat(contentAsString(call(controller1, fakeRequest(), mat)), equalTo("Hello world"));
+
+    assertThat(block(cache.get("homePage")).get(), notNullValue());
+
+    // Set a new value to the cache key. We are blocking to ensure
+    // the test will continue only when the value set is done.
+    block(cache.set("homePage", Results.ok("something else")));
+
+    assertThat(contentAsString(call(controller1, fakeRequest(), mat)), equalTo("something else"));
   }
 
   private static <T> T block(CompletionStage<T> stage) {

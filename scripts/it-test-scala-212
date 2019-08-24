@@ -7,8 +7,8 @@
 
 cd "$BASEDIR"
 
-printMessage "RUNNING IT TESTS FOR SCALA 2.12"
+start test "RUNNING IT TESTS FOR SCALA 2.12"
 
 runSbt "Play-Integration-Test/it:test"
 
-printMessage "ALL IT TESTS PASSED"
+end test "ALL IT TESTS PASSED"

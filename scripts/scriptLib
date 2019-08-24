@@ -28,11 +28,9 @@ if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
     AKKA_HTTP_VERSION_OPTS="-Dakka.http.version=${AKKA_HTTP_VERSION}"
 fi
 
-printMessage() {
-  echo "[info]"
-  echo "[info] ---- $1"
-  echo "[info]"
-}
+printMessage() { echo -e "\033[33;1m[info] ---- $1\033[0m"; }
+start() { echo -e "travis_fold:start:$1\033[33;1m[info] ---- $2\033[0m"   ; }
+end()   { echo -e "\ntravis_fold:end:$1\r\033[32;1m[info] ---- $2\033[0m" ; }
 
 runSbt() {
   sbt "$AKKA_VERSION_OPTS" "$AKKA_HTTP_VERSION_OPTS" -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
@@ -40,21 +38,35 @@ runSbt() {
 
 # Runs code formating validation in the current directory
 scalafmtValidation() {
-  printMessage "VALIDATE SCALA CODE FORMATTING"
+  start validate-scalafmt "VALIDATE SCALA CODE FORMATTING"
   runSbt scalafmtCheckAll scalafmtSbtCheck || (
     echo "[error] ERROR: Scalafmt test failed for $1 source."
     echo "[error] To fix, format your sources using 'sbt scalafmtAll scalafmtSbt' before submitting a pull request."
     false
   )
+  ret=$?
+  end validate-scalafmt "VALIDATED SCALA CODE FORMATTING"
+  return $ret
 }
 
 # Runs code formating validation in the current directory
 javafmtValidation() {
-  printMessage "VALIDATE JAVA CODE FORMATTING"
+  start validate-javafmt "VALIDATE JAVA CODE FORMATTING"
   runSbt javafmt test:javafmt
   git diff --exit-code || (
     echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
     echo "[error] To fix, format your sources using 'sbt javafmt test:javafmt' before submitting a pull request."
     false
   )
+  ret=$?
+  end validate-javafmt "VALIDATE JAVA CODE FORMATTING"
+  return $ret
+}
+
+setScalaVersionFromSbtVersion() {
+  case "$SBT_VERSION" in
+       1*) SCALA_VERSION="2.12.9" ;;
+    0.13*) SCALA_VERSION="2.10.7" ;;
+        *) echo "Aborting: Failed to determine scala version for sbt $SBT_VERSION" >&2; exit 1 ;;
+  esac
 }

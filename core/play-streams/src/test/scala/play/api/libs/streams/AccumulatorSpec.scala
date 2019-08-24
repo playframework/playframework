@@ -4,15 +4,13 @@
 
 package play.api.libs.streams
 
-import java.util.concurrent.CompletionStage
-
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
-import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import org.specs2.mutable.Specification
@@ -25,7 +23,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccumulatorSpec extends Specification {
 
-  def withMaterializer[T](block: Materializer => T) = {
+  def withMaterializer[T](block: Materializer => T): T = {
     val system = ActorSystem("test")
     try {
       block(ActorMaterializer()(system))
@@ -35,18 +33,17 @@ class AccumulatorSpec extends Specification {
     }
   }
 
-  def source                 = Source(1 to 3)
-  def await[T](f: Future[T]) = Await.result(f, 10.seconds)
-  def error[T](any: Any): T  = throw sys.error("error")
-  def errorSource[T] =
-    Source.fromPublisher(new Publisher[T] {
-      def subscribe(s: Subscriber[_ >: T]) = {
+  def source                    = Source(1 to 3)
+  def await[T](f: Future[T]): T = Await.result(f, 10.seconds)
+  def error[T](any: Any): T     = throw sys.error("error")
+  def errorSource[T]: Source[T, NotUsed] =
+    Source.fromPublisher(
+      (s: Subscriber[_ >: T]) =>
         s.onSubscribe(new Subscription {
-          def cancel()         = s.onComplete()
-          def request(n: Long) = s.onError(new RuntimeException("error"))
+          def cancel(): Unit         = s.onComplete()
+          def request(n: Long): Unit = s.onError(new RuntimeException("error"))
         })
-      }
-    })
+    )
 
   "a sink accumulator" should {
     def sum: Accumulator[Int, Int] = Accumulator(Sink.fold[Int, Int](0)(_ + _))

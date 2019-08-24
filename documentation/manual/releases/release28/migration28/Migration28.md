@@ -2,7 +2,7 @@
 
 # Play 2.8 Migration Guide
 
-This guide is for migrating from Play 2.7 to Play 2.8. See the [[Play 2.7 Migration Guide|Migration27]] to upgrade from Play 2.6.
+This guide is for migrating from Play 2.7 to Play 2.8. See the [[Play 2.7 Migration Guide|Migration27]] to upgrade from Play 2.6. It is also recommended to read [Akka 2.5 to 2.6 migration guide](https://doc.akka.io/docs/akka/2.6.0-M5/project/migration-guide-2.5.x-2.6.x.html) since multiple changes there have an impact on Play 2.8.
 
 ## How to migrate
 
@@ -22,7 +22,7 @@ Where the "x" in `2.8.x` is the minor version of Play you want to use, for insta
 
 Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This new version is supported and actively maintained. To update, change your `project/build.properties` so that it reads:
 
-```
+```properties
 sbt.version=1.2.8
 ```
 
@@ -62,6 +62,11 @@ val projectB = (project in file("projectB"))
   .settings(commonSettings)
 ```
 
+### File serving methods changed the type of their `filename` parameters
+
+Methods for serving files, like `ok(File content, ...)` (and similar) in the [Java API](api/java/play/mvc/Results.html#ok-java.io.File-) or `sendFile`, `sendPath` and `sendResource` in both Java's  [`StatusHeader`](api/java/play/mvc/StatusHeader.html) and Scala's [`Status`](api/scala/play/api/mvc/Results$Status.html) class changed the type of their `filename` parameters: Instead of using a plain `String`, the Scala API now uses an `Option[String]` as return type for its `filename` parameter function. The Java API changed the parameter type to be an `Optional<String>`.
+This API change better reflects the fact that you can pass `None` / `Optional.empty()` if you don't want the `Content-Disposition` header to include a filename.
+
 ### Deprecated APIs were removed
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.8. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.8. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.7|Migration27]] for more information.
@@ -91,6 +96,28 @@ Many changes have been made to Play's internal APIs. These APIs are used interna
 ## Configuration changes
 
 This section lists changes and deprecations in configurations.
+
+### `ObjectMapper` serialization change
+
+Play 2.8 adopts Akka Jackson Serialization support and then uses the defaults provided by Akka. One of the changes is how [Java Time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) types are rendered. Until Play 2.7 they were rendered as timestamps, which has better performance, but now they are rendered using [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) ([rfc3339](https://tools.ietf.org/html/rfc3339)) format (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
+
+If you need to use the old timestamps default format, then add the following configuration in your `application.conf`:
+
+```HOCON
+akka.serialization.jackson.play.serialization-features.WRITE_DATES_AS_TIMESTAMPS = on
+```
+
+### Dropped the overrides for `akka.actor.default-dispatcher.fork-join-executor`
+
+The overrides that Play had under `akka.actor.default-dispatcher.fork-join-executor` have been dropped in favour of using Akka's new-and-improved defaults.
+
+See the section related to [changes in the default dispatch][akka-migration-guide-default-dispatcher] in Akka's migration guide for more details.
+
+[akka-migration-guide-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html#default-dispatcher-size
+
+### `IOSource` and `FileIO` changes in Akka Streams
+
+There are changes related to how Akka Streams handle errors for `FileIO.toPath`, `StreamConverters.fromInputStream`, and `StreamConverters.fromOutputStream`. See the section related to [these changes](https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html#iosources-file) in Akka's migration guide for more details.
 
 ### Configuration loading changes
 
@@ -132,6 +159,23 @@ This debug system has been removed, the debug flags that do not have a direct co
 ## Defaults changes
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.
+
+### `Content-Disposition: inline` header not send anymore when serving files
+
+When serving files via the [[Scala API|ScalaStream#Serving-files]] or the [[Java API|JavaStream#Serving-files]] Play by default generates the `Content-Disposition` header automatically and sends it to the client.
+
+Starting with Play 2.8 however, when the computed header ends up being _exactly_ `Content-Disposition: inline` (when passing `inline = true`, which is the default, and `null` as file name),  it wont be send by Play automatically anymore. Because, according to [RFC 6266 Section 4.2](https://tools.ietf.org/html/rfc6266#section-4.2), rendering content inline is the default anyway.
+Therefore this change should not effect you at all, since all browsers adhere to the specs and do not treat this header in any special way but to render content inline, like no header was send.
+
+If you still want to send this exact header however, you can still do that by using the `withHeader(s)` methods from [`Scala's`](api/scala/play/api/mvc/Result.html#withHeaders\(headers:\(String,String\)*\):play.api.mvc.Result) or [`Java's`](api/java/play/mvc/Result.html#withHeader-java.lang.String-java.lang.String-) `Result` class.
+
+### sbt: The `playOmnidoc` key now defaults to `false`
+
+The Play's sbt plugin key `playOmnidoc`, which used to default to `true` (for non-snapshot version of Play) now
+defaults to `false` (and does so in sbt's `Global` scope).  The impact is that any Play app that previously
+enabled the `PlayDocsPlugin` won't get all the documentation they used when running the app and going to
+`http://localhost:9000/@documentation`.  You can reverse this change by setting `ThisBuild / playOmnidoc :=
+true` in your sbt build.
 
 ## Updated libraries
 

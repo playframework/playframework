@@ -6,9 +6,8 @@ import com.typesafe.play.docs.sbtplugin.Imports._
 import com.typesafe.play.docs.sbtplugin._
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
-import sbt._
-import akka.JavaVersion
-import akka.CrossJava
+import playbuild.JavaVersion
+import playbuild.CrossJava
 
 val DocsApplication = config("docs").hide
 
@@ -24,7 +23,10 @@ lazy val main = Project("Play-Documentation", file("."))
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-    ) ++ JavaVersion.sourceAndTarget(CrossJava.Keys.fullJavaHomes.value("8")),
+    ) ++ {
+      val javaHomes = fullJavaHomes.value
+      JavaVersion.sourceAndTarget(javaHomes.get("8").orElse(javaHomes.get("system@8")))
+    },
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
@@ -51,7 +53,11 @@ lazy val main = Project("Play-Documentation", file("."))
         "ScalaJson",
         "ScalaJsonAutomated",
         "ScalaJsonCombinators",
-        "ScalaJsonTransformers"
+        "ScalaJsonTransformers",
+        // These are not  downstream pages, but they were renamed
+        // and are still linked in old migration guides.
+        "JavaDatabase",
+        "ScalaDatabase"
       )
     ),
     PlayDocsKeys.javaManualSourceDirectories :=
@@ -68,8 +74,8 @@ lazy val main = Project("Play-Documentation", file("."))
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.0", "2.12.8"),
-    scalaVersion := "2.12.8",
+    crossScalaVersions := Seq("2.13.0", "2.12.9"),
+    scalaVersion := "2.12.9",
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),

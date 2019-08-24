@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Calling REST APIs with Play WS
 
-Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/play/api/libs/ws/index.html), which provides a way to make asynchronous HTTP calls through a WSClient instance.
+Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS ("WebService") library](api/scala/play/api/libs/ws/index.html), which provides a way to make asynchronous HTTP calls through a WSClient instance.
 
 There are two important parts to using the WSClient: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WSClient.  Finally, we'll discuss some common use cases.
 

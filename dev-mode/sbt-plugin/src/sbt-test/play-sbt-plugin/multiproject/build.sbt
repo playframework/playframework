@@ -26,7 +26,9 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+  scalaVersion := sys.props("scala.version"),
+  updateOptions := updateOptions.value.withLatestSnapshots(false),
+  evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice
 )
 
@@ -49,14 +51,14 @@ TaskKey[Unit]("checkPlayMonitoredFiles") := {
     println()
     println("but got:")
     sorted.foreach(println)
-    throw new RuntimeException("Expected " + expected + " but got " + sorted)
+    sys.error(s"Expected $expected but got $sorted")
   }
 }
 
 TaskKey[Unit]("checkPlayCompileEverything") := {
   val analyses = play.sbt.PlayInternalKeys.playCompileEverything.value
   if (analyses.size != 4) {
-    throw new RuntimeException("Expected 4 analysis objects, but got " + analyses.size)
+    sys.error(s"Expected 4 analysis objects, but got ${analyses.size}")
   }
   val base = baseDirectory.value
   val expectedSourceFiles = Seq(
@@ -72,6 +74,6 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
     println()
     println("but got:")
     allSources.foreach(println)
-    throw new RuntimeException("Expected " + expectedSourceFiles + " but got " + allSources)
+    sys.error(s"Expected $expectedSourceFiles but got $allSources")
   }
 }

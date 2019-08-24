@@ -7,19 +7,21 @@
 
 cd "$BASEDIR"
 
-printMessage "VALIDATE BINARY COMPATIBILITY"
+start mima "VALIDATE BINARY COMPATIBILITY"
 runSbt +mimaReportBinaryIssues
+end mima "VALIDATED BINARY COMPATIBILITY"
 
 
 scalafmtValidation "framework"
 javafmtValidation "framework"
 
 
-printMessage "VALIDATE FILE LICENSE HEADERS"
+start headerCheck "VALIDATE FILE LICENSE HEADERS"
 runSbt +headerCheck +test:headerCheck Play-Microbenchmark/test:headerCheck
+end headerCheck "VALIDATED FILE LICENSE HEADERS"
 
 
-printMessage "RUNNING WHITESOURCE REPORT"
+start whitesource "RUNNING WHITESOURCE REPORT"
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     runSbt 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
 else
@@ -29,3 +31,4 @@ else
     echo "[info] https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions"
     echo "[info]"
 fi
+end whitesource "RUNNING WHITESOURCE REPORT"

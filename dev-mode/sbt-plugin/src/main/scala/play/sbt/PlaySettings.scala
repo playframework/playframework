@@ -4,48 +4,55 @@
 
 package play.sbt
 
-import scala.collection.JavaConverters._
 import scala.language.postfixOps
+
+import scala.collection.JavaConverters._
+
 import sbt._
 import sbt.Keys._
+
 import play.TemplateImports
+import play.core.PlayVersion
 import play.dev.filewatch.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.routes.RoutesKeys
-import play.sbt.run._
+import play.sbt.routes.RoutesCompiler.autoImport._
+import play.sbt.run.PlayRun
 import play.sbt.run.PlayRun.DocsApplication
-import play.twirl.sbt.Import.TwirlKeys
+import play.sbt.run.toLoggerProxy
+import play.twirl.sbt.Import.TwirlKeys._
+
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
-import WebKeys._
+import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 
 object PlaySettings extends PlaySettingsCompat {
 
   lazy val minimalJavaSettings = Seq[Setting[_]](
-    TwirlKeys.templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
-    RoutesKeys.routesImport ++= Seq(
-      "play.libs.F"
-    )
+    templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
+    routesImport ++= Seq("play.libs.F")
   )
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
-    TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
-    RoutesKeys.routesImport ++= Seq(
-      "play.libs.F"
-    )
+    templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
+    routesImport ++= Seq("play.libs.F")
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-    TwirlKeys.templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
+    templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
   )
 
   /** Ask sbt to manage the classpath for the given configuration. */
   def manageClasspath(config: Configuration) = managedClasspath in config := {
     Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
   }
+
+  lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq(
+    playOmnidoc := false
+  )
 
   // Settings for a Play service (not a web project)
   lazy val serviceSettings = Seq[Setting[_]](
@@ -58,19 +65,15 @@ object PlaySettings extends PlaySettingsCompat {
     includeDocumentationInBinary := true,
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
     libraryDependencies += {
-      if (playPlugin.value) {
-        "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
-      } else {
-        "com.typesafe.play" %% "play-server" % play.core.PlayVersion.current
-      }
+      if (playPlugin.value)
+        "com.typesafe.play" %% "play" % PlayVersion.current % "provided"
+      else
+        "com.typesafe.play" %% "play-server" % PlayVersion.current
     },
-    libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
+    libraryDependencies += "com.typesafe.play" %% "play-test" % PlayVersion.current % "test",
     ivyConfigurations += DocsApplication,
-    playOmnidoc := !play.core.PlayVersion.current.endsWith("-SNAPSHOT"),
     playDocsName := { if (playOmnidoc.value) "play-omnidoc" else "play-docs" },
-    playDocsModule := Some(
-      "com.typesafe.play" %% playDocsName.value % play.core.PlayVersion.current % DocsApplication.name
-    ),
+    playDocsModule := Some("com.typesafe.play" %% playDocsName.value % PlayVersion.current % DocsApplication.name),
     libraryDependencies ++= playDocsModule.value.toSeq,
     manageClasspath(DocsApplication),
     playDocsJar := (managedClasspath in DocsApplication).value.files.find(_.getName.startsWith(playDocsName.value)),
@@ -95,9 +98,8 @@ object PlaySettings extends PlaySettingsCompat {
     mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
     PlayInternalKeys.playStop := {
       playInteractionMode.value match {
-        case nonBlocking: PlayNonBlockingInteractionMode =>
-          nonBlocking.stop()
-        case _ => throw new RuntimeException("Play interaction mode must be non blocking to stop it")
+        case x: PlayNonBlockingInteractionMode => x.stop()
+        case _                                 => sys.error("Play interaction mode must be non blocking to stop it")
       }
     },
     shellPrompt := PlayCommands.playPrompt,
@@ -204,16 +206,14 @@ object PlaySettings extends PlaySettingsCompat {
   lazy val defaultSettings = serviceSettings ++ webSettings
 
   lazy val webSettings = Seq[Setting[_]](
-    TwirlKeys.constructorAnnotations += "@javax.inject.Inject()",
-    playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value,
-    RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
+    constructorAnnotations += "@javax.inject.Inject()",
+    playMonitoredFiles ++= (sourceDirectories in (Compile, compileTemplates)).value,
+    routesImport ++= Seq("controllers.Assets.Asset"),
     // sbt-web
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
     WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
-    playAssetsWithCompilation := {
-      val ignore = ((assets in Assets) ?).value
-      getPlayAssetsWithCompilation((compile in Compile).value)
-    },
+    playAssetsWithCompilation := getPlayAssetsWithCompilation((compile in Compile).value),
+    playAssetsWithCompilation := playAssetsWithCompilation.dependsOn((assets in Assets).?).value,
     // Assets for run mode
     PlayRun.playPrefixAndAssetsSetting,
     PlayRun.playAllAssetsSetting,

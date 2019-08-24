@@ -3,8 +3,9 @@
 !assets:Static assets
 !filters:Built-in HTTP filters
 !Modules:Extending Play with modules
-!database:Databases
+!database:Working with Databases
 !server:Server Backends
 !production:Deploying your application
 !schedule:Scheduling tasks
 !shutdown:Application Shutdown
+!akka:Integrating with Akka Typed

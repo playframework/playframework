@@ -4,16 +4,26 @@
 
 package play.mvc;
 
+import akka.actor.ActorSystem;
+import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
+import akka.stream.javadsl.Sink;
 import org.junit.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import play.mvc.Http.HeaderNames;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static org.junit.Assert.*;
 
@@ -115,7 +125,7 @@ public class ResultsTest {
 
   @Test
   public void sendPathWithFileName() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, "foo.bar");
+    Result result = Results.unauthorized().sendPath(file, Optional.of("foo.bar"));
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
@@ -123,7 +133,7 @@ public class ResultsTest {
 
   @Test
   public void sendPathInlineWithFileName() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, true, "foo.bar");
+    Result result = Results.unauthorized().sendPath(file, true, Optional.of("foo.bar"));
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
@@ -131,21 +141,21 @@ public class ResultsTest {
 
   @Test
   public void sendPathInlineWithoutFileName() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, (String) null);
+    Result result = Results.unauthorized().sendPath(file, Optional.empty());
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline");
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION), Optional.empty());
   }
 
   @Test
   public void sendPathAsAttachmentWithoutFileName() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, false, (String) null);
+    Result result = Results.unauthorized().sendPath(file, false, Optional.empty());
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
     assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment");
   }
 
   @Test
   public void sendPathWithFileNameHasSpecialChars() throws IOException {
-    Result result = Results.ok().sendPath(file, true, "测 试.tmp");
+    Result result = Results.ok().sendPath(file, true, Optional.of("测 试.tmp"));
     assertEquals(result.status(), Http.Status.OK);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(),
@@ -193,7 +203,7 @@ public class ResultsTest {
 
   @Test
   public void sendFileWithFileName() throws IOException {
-    Result result = Results.unauthorized().sendFile(file.toFile(), "foo.bar");
+    Result result = Results.unauthorized().sendFile(file.toFile(), Optional.of("foo.bar"));
     assertEquals(result.status(), Http.Status.UNAUTHORIZED);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
@@ -201,7 +211,7 @@ public class ResultsTest {
 
   @Test
   public void sendFileInlineWithFileName() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), true, "foo.bar");
+    Result result = Results.ok().sendFile(file.toFile(), true, Optional.of("foo.bar"));
     assertEquals(result.status(), Http.Status.OK);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
@@ -209,25 +219,146 @@ public class ResultsTest {
 
   @Test
   public void sendFileInlineWithoutFileName() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), (String) null);
+    Result result = Results.ok().sendFile(file.toFile(), Optional.empty());
     assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline");
+    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION), Optional.empty());
   }
 
   @Test
   public void sendFileAsAttachmentWithoutFileName() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), false, (String) null);
+    Result result = Results.ok().sendFile(file.toFile(), false, Optional.empty());
     assertEquals(result.status(), Http.Status.OK);
     assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment");
   }
 
   @Test
   public void sendFileWithFileNameHasSpecialChars() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), true, "测 试.tmp");
+    Result result = Results.ok().sendFile(file.toFile(), true, Optional.of("测 试.tmp"));
     assertEquals(result.status(), Http.Status.OK);
     assertEquals(
         result.header(HeaderNames.CONTENT_DISPOSITION).get(),
         "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+  }
+
+  @Test
+  public void sendFileHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result = Results.ok().sendFile(file.toFile(), () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendPathHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result = Results.ok().sendPath(file, () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendResourceHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result =
+          Results.ok().sendResource("multipart-form-data-file.txt", () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendInputStreamHonoringOnClose() throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result =
+          Results.ok()
+              .sendInputStream(
+                  new ByteArrayInputStream("test data".getBytes()),
+                  9,
+                  () -> fileSent.set(true),
+                  null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
+  }
+
+  @Test
+  public void sendInputStreamChunkedHonoringOnClose()
+      throws TimeoutException, InterruptedException {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = ActorMaterializer.create(actorSystem);
+    try {
+      AtomicBoolean fileSent = new AtomicBoolean(false);
+      Result result =
+          Results.ok()
+              .sendInputStream(
+                  new ByteArrayInputStream("test data".getBytes()), () -> fileSent.set(true), null);
+
+      // Actually we need to wait until the Stream completes
+      Await.ready(
+          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          Duration.create("60s"));
+      // and then we need to wait until the onClose completes
+      Thread.sleep(500);
+
+      assertTrue(fileSent.get());
+      assertEquals(result.status(), Http.Status.OK);
+    } finally {
+      Await.ready(actorSystem.terminate(), Duration.create("60s"));
+    }
   }
 
   @Test

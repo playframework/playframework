@@ -4,16 +4,12 @@
 
 package play.api.cache
 
-import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import java.util.Optional
 
 import akka.util.Timeout
-
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.execute.AsResult
-
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
@@ -55,9 +51,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       "update cache when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
         val future = cacheApi
-          .getOrElseUpdate[String]("foo", new Callable[CompletionStage[String]] {
-            override def call() = CompletableFuture.completedFuture[String]("bar")
-          })
+          .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"))
           .toScala
 
         future must beEqualTo("bar").await
@@ -66,9 +60,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       "update cache with an expiration time when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
         val future = cacheApi
-          .getOrElseUpdate[String]("foo", new Callable[CompletionStage[String]] {
-            override def call() = CompletableFuture.completedFuture[String]("bar")
-          }, 1 /* second */ )
+          .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"), 1 /* second */ )
           .toScala
 
         future must beEqualTo("bar").await
@@ -121,18 +113,14 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       }
       "update cache when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
-        val value = cacheApi.getOrElseUpdate[String]("foo", new Callable[String] {
-          override def call() = "bar"
-        })
+        val value    = cacheApi.getOrElseUpdate[String]("foo", () => "bar")
 
         value must beEqualTo("bar")
         cacheApi.get[String]("foo") must beEqualTo(Optional.of("bar"))
       }
       "update cache with an expiration time when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
-        val future = cacheApi.getOrElseUpdate[String]("foo", new Callable[String] {
-          override def call() = "bar"
-        }, 1 /* second */ )
+        val future   = cacheApi.getOrElseUpdate[String]("foo", () => "bar", 1 /* second */ )
 
         future must beEqualTo("bar")
 

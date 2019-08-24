@@ -11,24 +11,19 @@ import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
-import interplay._
-import sbt.Keys.version
-import sbt.Keys._
-import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
-import sbt.Resolver
 import sbt._
+import sbt.Keys._
+import sbt.ScriptedPlugin.autoImport._
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
-
-  // Argument for setting size of permgen space or meta space for all forked processes
-  val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
 
   val snapshotBranch: String = {
     try {
@@ -90,7 +85,7 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    scalaVersion := ScalaVersions.scala212,
+    scalaVersion := scala212,
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -112,7 +107,7 @@ object BuildSettings {
     fork in Test := true,
     parallelExecution in Test := false,
     testListeners in (Test, test) := Nil,
-    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    javaOptions in Test ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
@@ -203,11 +198,8 @@ object BuildSettings {
     mimaPreviousArtifacts := {
       // Binary compatibility is tested against these versions
       val previousVersions = mimaPreviousVersions(version.value)
-      if (crossPaths.value) {
-        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
-      } else {
-        previousVersions.map(v => organization.value % moduleName.value % v)
-      }
+      val cross            = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      previousVersions.map(v => (organization.value %% moduleName.value % v).cross(cross))
     },
     mimaPreviousArtifacts := {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -269,8 +261,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.DefaultSyncCacheApi.getOptional"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.SyncCacheApiAdapter.getOptional"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.DefaultSyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.cache.DefaultAsyncCacheApi.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApiAdapter.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.SyncCacheApi.get"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.cache.AsyncCacheApi.get"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.get"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
@@ -381,6 +375,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PlayBodyParsers.urlFormEncoded"),
       // Remove deprecated
       ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Action$"),
+      // These return Seq[Any] instead of Seq[String] #9385
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.infos"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.errors"),
       // Removed deprecated TOO_MANY_REQUEST field
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.Status.TOO_MANY_REQUEST"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.AbstractController.TOO_MANY_REQUEST"),
@@ -409,6 +406,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Controller.TODO"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.getUsername"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Security#Authenticator.onUnauthorized"),
+      // No static forwarders for non-public overloads
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.concurrent.ActorSystemProvider.start"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Action.async"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Action.invokeBlock"),
       // Removed Java's JPAApi thread-local
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi#JPAApiProvider.this"),
@@ -422,6 +424,8 @@ object BuildSettings {
       // Removed deprecated methods PathPatternMatcher.routeAsync and PathPatternMatcher.routeTo
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeAsync"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RoutingDsl#PathPatternMatcher.routeTo"),
+      // Tweaked generic signature - false positive
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.test.Helpers.fakeApplication"),
       // Remove constructor from private class
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.routing.RouterBuilderHelper.this"),
       // Remove Http.Context and Http.Response
@@ -502,13 +506,30 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Flash"),
       ProblemFilters.exclude[MissingTypesProblem]("play.mvc.Http$Session"),
       ProblemFilters.exclude[InaccessibleMethodProblem]("java.lang.Object.clone"),
+      // Taught Scala.asScala to covariantly widen seq element type
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.libs.Scala.asScala"),
+      // Replaced raw type usages
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.mvc.BodyParser#Of.value"),
       // Add configuration for max-age of language-cookie
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.DefaultMessagesApi.this"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.langCookieMaxAge"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.stubMessagesApi"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
       // Overload helpers so Symbol is not required
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.FieldElements$")
+      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.FieldElements$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.StubMessagesFactory.stubMessagesApi"),
+      // Use Akka Jackson ObjectMapper
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.ObjectMapperComponents.actorSystem"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ObjectMapperProvider.this"),
+      // Add configuration for temporary file directory
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.Files#DefaultTemporaryFileCreator.this"),
+      // Return type of filename function parameter changed from String to Option[String]
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendFile"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendFile$default$3"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath$default$3"),
+      // Add contentType param (which defaults to None) to Results.chunked(...) like Results.streamed(...) already has
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.chunked"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
@@ -521,11 +542,6 @@ object BuildSettings {
     Docs.apiDocsInclude := true
   )
 
-  def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
-    javacOptions ++= Seq("-source", version, "-target", version),
-    javacOptions in doc := Seq("-source", version)
-  )
-
   /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
@@ -535,7 +551,7 @@ object BuildSettings {
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
-        crossScalaVersions := Seq(ScalaVersions.scala212)
+        crossScalaVersions := Seq(scala212)
       )
   }
 
@@ -548,7 +564,8 @@ object BuildSettings {
         (javacOptions in compile) ~= (_.map {
           case "1.8" => "1.6"
           case other => other
-        })
+        }),
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 
@@ -563,37 +580,41 @@ object BuildSettings {
       )
   }
 
-  def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
+  def omnidocSettings: Seq[Setting[_]] = Def.settings(
+    Omnidoc.projectSettings,
     omnidocSnapshotBranch := snapshotBranch,
     omnidocPathPrefix := ""
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
-    ScriptedImport.scriptedLaunchOpts ++= Seq(
-      "-Xmx768m",
-      maxMetaspace,
-      "-Dscala.version=" + sys.props
-        .get("scripted.scala.version")
-        .orElse(sys.props.get("scala.version"))
-        .getOrElse("2.12.8")
-    )
+    // Don't automatically publish anything.
+    // The test-sbt-plugins-* scripts publish before running the scripted tests.
+    // When developing the sbt plugins:
+    // * run a publishLocal in the root project to get everything
+    // * run a publishLocal in the changes projects for fast feedback loops
+    scriptedDependencies := (()), // drop Test/compile & publishLocal
+    scriptedBufferLog := false,
+    scriptedLaunchOpts ++= Seq(
+      s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
+      "-Xmx512m",
+      "-XX:MaxMetaspaceSize=512m",
+      s"-Dscala.version=$scala212",
+    ),
+    scripted := scripted.tag(Tags.Test).evaluated,
   )
 
-  def playFullScriptedSettings: Seq[Setting[_]] =
-    Seq(
-      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
-    ) ++ playScriptedSettings
-
-  def disablePublishing = Seq[Setting[_]](
+  def disablePublishing = Def.settings(
+    disableNonLocalPublishing,
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
     // `compile` and `update` tasks.
     skip in publish := true,
+    publishLocal := {},
+  )
+  def disableNonLocalPublishing = Def.settings(
     // For sbt 0.13 this is what we need to avoid publishing. These settings can
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
     publish := {},
-    publishLocal := {},
     // We also don't need to track dependencies for unpublished projects
     // so we need to disable WhiteSource plugin.
     whitesourceIgnore := true
@@ -603,7 +624,10 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings)
+      .settings(
+        playCommonSettings,
+        mimaPreviousArtifacts := Set.empty,
+      )
   }
 
   /** A project that *is* an sbt plugin. */
@@ -613,7 +637,8 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        fork in Test := false
+        fork in Test := false,
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 

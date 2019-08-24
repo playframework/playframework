@@ -6,31 +6,31 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
-    libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+    scalaVersion := sys.props("scala.version"),
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    PlayKeys.fileWatchService := DevModeBuild.initialFileWatchService,
-    TaskKey[Unit]("resetReloads") := {
-      (target.value / "reload.log").delete()
-    },
+    PlayKeys.fileWatchService := ScriptedTools.initialFileWatchService,
+    libraryDependencies += guice,
+    TaskKey[Unit]("resetReloads") := (target.value / "reload.log").delete(),
     InputKey[Unit]("verifyReloads") := {
       val expected = Def.spaceDelimited().parsed.head.toInt
       val actual   = IO.readLines(target.value / "reload.log").count(_.nonEmpty)
       if (expected == actual) {
         println(s"Expected and got $expected reloads")
       } else {
-        throw new RuntimeException(s"Expected $expected reloads but got $actual")
+        sys.error(s"Expected $expected reloads but got $actual")
       }
     },
     InputKey[Unit]("makeRequestWithHeader") := {
       val args                      = Def.spaceDelimited("<path> <status> <headers> ...").parsed
       val path :: status :: headers = args
       val headerName                = headers.mkString
-      DevModeBuild.verifyResourceContains(path, status.toInt, Seq.empty, 0, headerName -> "Header-Value")
+      ScriptedTools.verifyResourceContains(path, status.toInt, Nil, headerName -> "Header-Value")
     },
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
-      DevModeBuild.verifyResourceContains(path, status.toInt, assertions, 0)
+      ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     }
   )

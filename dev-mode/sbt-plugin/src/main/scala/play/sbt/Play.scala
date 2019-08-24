@@ -4,25 +4,27 @@
 
 package play.sbt
 
-import com.typesafe.sbt.jse.SbtJsTask
-import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
-import play.sbt.PlayImport.PlayKeys
-import play.sbt.routes.RoutesCompiler
-import play.twirl.sbt.SbtTwirl
-import sbt.Keys._
 import sbt._
+import sbt.Keys._
+import com.lightbend.sbt.javaagent.JavaAgent
+import com.lightbend.sbt.javaagent.JavaAgent.autoImport._
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
+import com.typesafe.sbt.jse.SbtJsTask
+import play.core.PlayVersion
+import play.sbt.routes.RoutesCompiler
+import play.sbt.PlayImport.PlayKeys
+import play.twirl.sbt.SbtTwirl
 
 /**
- * Base plugin for all Play services (web apps or microservices).
+ * Base plugin for all Play services (web apps or micro-services).
  *
  * Declares common settings for both Java and Scala based Play projects.
  */
 object PlayService extends AutoPlugin {
-
   override def requires = JavaServerAppPackaging
+  val autoImport        = PlayImport
 
-  val autoImport = PlayImport
-
+  override def globalSettings  = PlaySettings.serviceGlobalSettings
   override def projectSettings = PlaySettings.serviceSettings
 }
 
@@ -55,9 +57,10 @@ object PlayWeb extends AutoPlugin {
  */
 object PlayMinimalJava extends AutoPlugin {
   override def requires = PlayWeb
-  override def projectSettings =
-    PlaySettings.minimalJavaSettings ++
-      Seq(libraryDependencies += PlayImport.javaCore)
+  override def projectSettings = Def.settings(
+    PlaySettings.minimalJavaSettings,
+    libraryDependencies += PlayImport.javaCore
+  )
 }
 
 /**
@@ -72,9 +75,10 @@ object PlayMinimalJava extends AutoPlugin {
  */
 object PlayJava extends AutoPlugin {
   override def requires = PlayWeb
-  override def projectSettings =
-    PlaySettings.defaultJavaSettings ++
-      Seq(libraryDependencies += PlayImport.javaForms)
+  override def projectSettings = Def.settings(
+    PlaySettings.defaultJavaSettings,
+    libraryDependencies += PlayImport.javaForms
+  )
 }
 
 /**
@@ -85,9 +89,8 @@ object PlayJava extends AutoPlugin {
  * }}}
  */
 object PlayScala extends AutoPlugin {
-  override def requires = PlayWeb
-  override def projectSettings =
-    PlaySettings.defaultScalaSettings
+  override def requires        = PlayWeb
+  override def projectSettings = PlaySettings.defaultScalaSettings
 }
 
 /**
@@ -95,15 +98,8 @@ object PlayScala extends AutoPlugin {
  */
 object PlayNettyServer extends AutoPlugin {
   override def requires = PlayService
-
   override def projectSettings = Seq(
-    libraryDependencies ++= {
-      if (PlayKeys.playPlugin.value) {
-        Nil
-      } else {
-        Seq(PlayImport.nettyServer)
-      }
-    }
+    libraryDependencies ++= (if (PlayKeys.playPlugin.value) Nil else Seq(PlayImport.nettyServer))
   )
 }
 
@@ -111,23 +107,15 @@ object PlayNettyServer extends AutoPlugin {
  * This plugin enables the Play akka http server
  */
 object PlayAkkaHttpServer extends AutoPlugin {
-  override def requires = PlayService
-  override def trigger  = allRequirements
-
-  override def projectSettings = Seq(
-    libraryDependencies += PlayImport.akkaHttpServer
-  )
+  override def requires        = PlayService
+  override def trigger         = allRequirements
+  override def projectSettings = Seq(libraryDependencies += PlayImport.akkaHttpServer)
 }
 
 object PlayAkkaHttp2Support extends AutoPlugin {
-  import com.lightbend.sbt.javaagent.JavaAgent
-
   override def requires = PlayAkkaHttpServer && JavaAgent
-
-  import JavaAgent.JavaAgentKeys._
-
   override def projectSettings = Seq(
-    libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % play.core.PlayVersion.current,
-    javaAgents += "org.mortbay.jetty.alpn"     % "jetty-alpn-agent"         % play.core.PlayVersion.jettyAlpnAgentVersion % "compile;test"
+    libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % PlayVersion.current,
+    javaAgents += "org.mortbay.jetty.alpn"     % "jetty-alpn-agent"         % PlayVersion.jettyAlpnAgentVersion % "compile;test"
   )
 }

@@ -7,6 +7,7 @@ package play.api.libs
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.{ Files => JFiles }
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -64,7 +65,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
 
       val lifecycle = new DefaultApplicationLifecycle
       val reaper    = mock[TemporaryFileReaper]
-      val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+      val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
       try {
         val executionContext = ExecutionContext.fromExecutorService(threadPool)
@@ -99,7 +100,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     "recreate directory if it is deleted" in new WithScope() {
       val lifecycle     = new DefaultApplicationLifecycle
       val reaper        = mock[TemporaryFileReaper]
-      val creator       = new DefaultTemporaryFileCreator(lifecycle, reaper)
+      val creator       = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
       val temporaryFile = creator.create("foo", "bar")
       JFiles.delete(temporaryFile.toPath)
       creator.create("foo", "baz")
@@ -112,7 +113,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "copy when destination does not exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("copy.txt")
         val destination = parentDirectory.resolve("does-not-exists.txt")
@@ -137,7 +138,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "copy when destination does not exists and replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("copy.txt")
         val destination = parentDirectory.resolve("destination.txt")
@@ -161,7 +162,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "copy when destination exists and replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("copy.txt")
         val destination = parentDirectory.resolve("destination.txt")
@@ -186,7 +187,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "do not copy when destination exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("do-not-replace.txt")
         val destination = parentDirectory.resolve("already-exists.txt")
@@ -201,7 +202,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "delete source file has no impact on the destination file" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file = parentDirectory.resolve("move.txt")
         writeFile(file, "file to be moved")
@@ -228,7 +229,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move when destination does not exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("move.txt")
         val destination = parentDirectory.resolve("does-not-exists.txt")
@@ -249,7 +250,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move when destination does not exists and replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("move.txt")
         val destination = parentDirectory.resolve("destination.txt")
@@ -269,7 +270,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move when destination exists and replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("move.txt")
         val destination = parentDirectory.resolve("destination.txt")
@@ -290,7 +291,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "do not move when destination exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("do-not-replace.txt")
         val destination = parentDirectory.resolve("already-exists.txt")
@@ -305,7 +306,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move a file atomically with replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file = parentDirectory.resolve("move.txt")
         writeFile(file, "file to be moved")
@@ -323,7 +324,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move when destination does not exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("move.txt")
         val destination = parentDirectory.resolve("does-not-exists.txt")
@@ -344,7 +345,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move when destination does not exists and replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("move.txt")
         val destination = parentDirectory.resolve("destination.txt")
@@ -364,7 +365,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move when destination exists and replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("move.txt")
         val destination = parentDirectory.resolve("destination.txt")
@@ -385,7 +386,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "do not move when destination exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file        = parentDirectory.resolve("do-not-replace.txt")
         val destination = parentDirectory.resolve("already-exists.txt")
@@ -400,7 +401,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       "move a file atomically with replace enabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
-        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper)
+        val creator   = new DefaultTemporaryFileCreator(lifecycle, reaper, Configuration.reference)
 
         val file = parentDirectory.resolve("move.txt")
         writeFile(file, "file to be moved")
@@ -435,6 +436,19 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
         Play.stop(app)
       }
       tempFile.exists must beFalse
+    }
+
+    "works when using custom temporary file directory" in new WithScope() {
+      val lifecycle  = new DefaultApplicationLifecycle
+      val reaper     = mock[TemporaryFileReaper]
+      val path       = parentDirectory.toAbsolutePath().toString()
+      val customPath = s"$path/custom/"
+      val conf       = Configuration.from(Map("play.temporaryFile.dir" -> customPath))
+      val creator    = new DefaultTemporaryFileCreator(lifecycle, reaper, conf)
+
+      creator.create("foo", "bar")
+
+      JFiles.exists(Paths.get(s"$customPath/playtemp")) must beTrue
     }
   }
 

@@ -65,6 +65,11 @@ class BindersSpec extends Specification {
       val boundValue = bindableString.unbind("key", null)
       boundValue must beEqualTo("key=")
     }
+    "unbind with keys needing encode" in {
+      import QueryStringBindable._
+      val boundValue = bindableString.unbind("ke=y", "bar")
+      boundValue must beEqualTo("ke%3Dy=bar")
+    }
   }
 
   "QueryStringBindable.bindableSeq" should {

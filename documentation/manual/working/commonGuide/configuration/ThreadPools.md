@@ -46,21 +46,19 @@ or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=scala).
+This execution context connects directly to the Application's `ActorSystem` and uses Akka's [default dispatcher][akka-default-dispatcher].
 
 ### Configuring the default thread pool
 
-The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace. Here is default configuration for Play's thread pool:
+The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace.
 
-@[default-config](code/ThreadPools.scala)
+If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][akka-dispatcher-types] section of Akka's reference documentation for full details.
 
-This configuration instructs Akka to create 1 thread per available processor, with a maximum of 24 threads in the pool.
+The full configuration options available to you can be found in the [Configuration][akka-default-config] section.
 
-You can also try the default Akka configuration:
-
-@[akka-default-config](code/ThreadPools.scala)
-
-The full configuration options available to you can be found [here](https://doc.akka.io/docs/akka/2.5.3/java/general/configuration.html#listing-of-the-reference-configuration).
+[akka-default-config]:     https://doc.akka.io/docs/akka/2.6/general/configuration.html#listing-of-the-reference-configuration
+[akka-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/dispatchers.html#default-dispatcher
+[akka-dispatcher-types]:   https://doc.akka.io/docs/akka/2.6/dispatchers.html#types-of-dispatchers
 
 ## Using other thread pools
 

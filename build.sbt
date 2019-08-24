@@ -201,27 +201,23 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
   .enablePlugins(SbtPlugin)
   .settings(
     libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
-    sourceGenerators in Compile += Def
-      .task(
-        PlayVersion(
-          version.value,
-          (scalaVersion in PlayProject).value,
-          sbtVersion.value,
-          jettyAlpnAgent.revision,
-          Dependencies.akkaVersion,
-          (sourceManaged in Compile).value
-        )
+    sourceGenerators in Compile += Def.task {
+      PlayVersion(
+        version.value,
+        (scalaVersion in PlayProject).value,
+        sbtVersion.value,
+        jettyAlpnAgent.revision,
+        Dependencies.akkaVersion,
+        (sourceManaged in Compile).value
       )
-      .taskValue,
-    // This only publishes the sbt plugin projects on each scripted run.
-    // The runtests script does a full publish before running tests.
-    // When developing the sbt plugins, run a publishLocal in the root project first.
-    scriptedDependencies := {
-      val () = publishLocal.value
-      val () = (publishLocal in RoutesCompilerProject).value
-    }
+    }.taskValue,
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
+
+lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "dev-mode/sbt-scripted-tools")
+  .enablePlugins(SbtPlugin)
+  .dependsOn(SbtPluginProject)
+  .settings(disableNonLocalPublishing)
 
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
@@ -401,7 +397,8 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
   .enablePlugins(SbtPlugin)
   .enablePlugins(SbtTwirl)
   .settings(
-    libraryDependencies ++= playDocsSbtPluginDependencies
+    libraryDependencies ++= playDocsSbtPluginDependencies,
+    scriptedDependencies := (()), // drop Test/compile & publishLocal being called on aggregating root scripted
   )
   .dependsOn(SbtPluginProject)
 
@@ -440,6 +437,7 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayOpenIdProject,
   RunSupportProject,
   SbtPluginProject,
+  SbtScriptedToolsProject,
   PlaySpecs2Project,
   PlayTestProject,
   PlayExceptionsProject,

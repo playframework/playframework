@@ -36,8 +36,10 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.collection.JavaConverters._
+import scala.util.control.NoStackTrace
 
 class HttpErrorHandlerSpec extends Specification {
+  import HttpErrorHandlerSpec._
 
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
@@ -65,7 +67,7 @@ class HttpErrorHandlerSpec extends Specification {
         await(errorHandler.onClientError(FakeRequest(), 399)).header.status must throwAn[IllegalArgumentException]
       }
       "render a server error" in {
-        await(errorHandler.onServerError(FakeRequest(), new RuntimeException())).header.status must_== 500
+        await(errorHandler.onServerError(FakeRequest(), new SimulateServerError)).header.status must_== 500
       }
     }
 
@@ -246,6 +248,10 @@ class HttpErrorHandlerSpec extends Specification {
       .instanceOf[HttpErrorHandler]
   }
 
+}
+
+object HttpErrorHandlerSpec {
+  final class SimulateServerError extends RuntimeException("simulate server error") with NoStackTrace
 }
 
 class CustomScalaErrorHandler extends HttpErrorHandler {
