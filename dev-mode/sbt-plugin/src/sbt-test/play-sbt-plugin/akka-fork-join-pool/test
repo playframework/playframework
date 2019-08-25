@@ -1,0 +1,8 @@
+> playUpdateSecret
+> runProd --no-exit-sbt
+$ sleep 8000
+> callIndex
+$ sleep 2000
+# Make sure we just run on akka threads, and never on "ForkJoinPool.commonPool-worker-x" threads
+> checkLines expected-application-log.txt target/universal/stage/logs/application.log
+> stopProd --no-exit-sbt
