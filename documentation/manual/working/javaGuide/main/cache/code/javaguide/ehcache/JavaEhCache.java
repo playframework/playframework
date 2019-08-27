@@ -7,6 +7,7 @@ package javaguide.ehcache;
 import akka.Done;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
+import org.junit.Ignore;
 import play.Application;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
@@ -103,6 +104,7 @@ public class JavaEhCache extends WithApplication {
     // #http
   }
 
+  @Ignore
   @Test
   public void http() {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
