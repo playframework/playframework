@@ -25,7 +25,7 @@ Play asynchronous API methods give you a `CompletionStage`. This is the case whe
 
 In this case, using `CompletionStage.thenApply` will execute the completion stage in the same calling thread as the previous task.  This is fine when you have a small amount of CPU bound logic with no blocking.
 
-A simple way to execute a block of code asynchronously and to get a `CompletionStage` is to use the `CompletionStage.supplyAsync()` method:
+A simple way to execute a block of code asynchronously and to get a `CompletionStage` is to use the `CompletableFuture.supplyAsync()` method:
 
 @[promise-async](code/javaguide/async/JavaAsync.java)
 
