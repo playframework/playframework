@@ -81,7 +81,6 @@ public class JavaAsync {
   @Test
   public void promiseAsync() throws Exception {
     // #promise-async
-    // import static java.util.concurrent.CompletableFuture.supplyAsync;
     // creates new task
     CompletionStage<Integer> promiseOfInt =
         CompletableFuture.supplyAsync(() -> intensiveComputation());
