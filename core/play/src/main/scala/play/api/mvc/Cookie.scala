@@ -76,6 +76,7 @@ object Cookie {
     def parse(value: String): Option[SameSite] = values.find(_.matches(value))
     case object Strict extends SameSite("Strict")
     case object Lax    extends SameSite("Lax")
+    case object None   extends SameSite("None")
   }
 
   /**
