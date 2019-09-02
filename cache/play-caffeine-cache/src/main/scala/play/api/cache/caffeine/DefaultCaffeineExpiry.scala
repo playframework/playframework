@@ -6,7 +6,7 @@ package play.api.cache.caffeine
 
 import com.github.benmanes.caffeine.cache.Expiry
 
-class CaffeineDefaultExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
+class DefaultCaffeineExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
 
   def expireAfterCreate(key: String, value: ExpirableCacheValue[Any], currentTime: Long): Long = {
     value.durationMaybe match {
