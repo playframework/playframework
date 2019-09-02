@@ -24,7 +24,7 @@ import scala.concurrent.Future
 class EhCacheApiSpec extends PlaySpecification {
   sequential
 
-  "SyncCacheApi" should {
+  "CacheApi" should {
     "bind named caches" in new WithApplication(
       _.configure(
         "play.cache.bindCaches" -> Seq("custom")
@@ -55,6 +55,35 @@ class EhCacheApiSpec extends PlaySpecification {
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       syncCacheApi.getOrElseUpdate("foo")("baz") must_== "bar"
+    }
+
+    "put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      val result: String = syncCacheApi.getOrElseUpdate("aaa")("ddd")
+      result mustEqual "ddd"
+      val resultFromCacheMaybe = syncCacheApi.get("aaa")
+      resultFromCacheMaybe must beSome("ddd")
+    }
+
+    "asynchronously put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
+      val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      val resultFuture: Future[String] = asyncCacheApi.getOrElseUpdate[String]("aaa")(Future.successful("ddd"))
+      val result: String = Await.result(resultFuture, 2.seconds)
+      result mustEqual "ddd"
+      val resultFromCacheFuture = asyncCacheApi.get("aaa")
+      val resultFromCacheMaybe = Await.result(resultFromCacheFuture, 2.seconds)
+      resultFromCacheMaybe must beSome("ddd")
+    }
+
+    "expire the item after the given amount of time is passed" in new WithApplication() {
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      val expiration = 1.second
+      val result: String = syncCacheApi.getOrElseUpdate("aaa", expiration)("ddd")
+      result mustEqual "ddd"
+      Thread.sleep(expiration.toMillis) // be sure that expire duration passes
+      val resultMaybe = syncCacheApi.get("aaa")
+      resultMaybe must beNone
     }
 
     "get values from cache without deadlocking" in new WithApplication(

@@ -22,9 +22,9 @@ import play.api.inject._
 import play.api.Configuration
 import play.cache.NamedCacheImpl
 import play.cache.SyncCacheApiAdapter
-import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
-import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
-import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
+import play.cache.{AsyncCacheApi => JavaAsyncCacheApi}
+import play.cache.{DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi}
+import play.cache.{SyncCacheApi => JavaSyncCacheApi}
 
 import scala.compat.java8.DurationConverters
 import scala.concurrent.duration.Duration
@@ -205,22 +205,16 @@ class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) ex
   override def remove(key: String): Unit = syncCache.invalidate(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    get[A](key) match {
-      case Some(value) => value
-      case None =>
-        val value = orElse
-        set(key, value, expiration)
-        value
-    }
+    cache.get(key, _ => ExpirableCacheValue(orElse, Some(expiration))).asInstanceOf[ExpirableCacheValue[A]].value
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
-    Option(syncCache.getIfPresent(key))
+    Option(syncCache.getIfPresent(key).asInstanceOf[ExpirableCacheValue[T]])
       .filter { v =>
-        Primitives.wrap(ct.runtimeClass).isInstance(v) ||
-        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
+        Primitives.wrap(ct.runtimeClass).isInstance(v.value) ||
+        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v.value == ((): Unit))
       }
-      .asInstanceOf[Option[T]]
+      .map(_.value)
   }
 }
 
@@ -247,10 +241,7 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    get[A](key).flatMap {
-      case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
-    }
+    orElse.map(orElseValue => sync.getOrElseUpdate(key, expiration)(orElseValue))
   }
 
   def removeAll(): Future[Done] = Future {

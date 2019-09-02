@@ -209,13 +209,15 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
   override def remove(key: String): Unit = cache.remove(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    get[A](key) match {
-      case Some(value) => value
-      case None =>
-        val value = orElse
-        set(key, value, expiration)
-        value
+    val newElement = new Element(key, orElse)
+    if (expiration.isFinite) {
+      newElement.setTimeToIdle(expiration.toSeconds.toInt)
+    } else {
+      newElement.setEternal(true)
     }
+    val elementFromCache = cache.putIfAbsent(newElement)
+    val element = if (elementFromCache != null) elementFromCache else newElement
+    element.getObjectValue.asInstanceOf[A]
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
@@ -252,10 +254,7 @@ class EhCacheApi @Inject()(private[ehcache] val cache: Ehcache)(implicit context
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    get[A](key).flatMap {
-      case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
-    }
+    orElse.map(orElseValue => sync.getOrElseUpdate(key, expiration)(orElseValue))
   }
 
   def removeAll(): Future[Done] = Future {
