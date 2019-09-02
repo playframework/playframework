@@ -200,7 +200,7 @@ $ sbt run
 
 The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt.
 
-By default the server is bound to the default port 9000. A custom port can be port (e.g. 8080) can be specified: `sbt 'run 8080'`
+By default the server is bound to the default port 9000. A custom port (e.g. 8080) can be specified: `sbt 'run 8080'`
 
 Of course, the **triggered execution** is available here as well:
 
