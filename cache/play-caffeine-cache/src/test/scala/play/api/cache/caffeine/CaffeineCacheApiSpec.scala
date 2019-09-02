@@ -4,7 +4,7 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.Executors
+import java.util.concurrent.{Executors, TimeUnit}
 
 import javax.inject.Inject
 import javax.inject.Provider
