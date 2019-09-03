@@ -216,7 +216,7 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
       newElement.setEternal(true)
     }
     val elementFromCache = cache.putIfAbsent(newElement)
-    val element = if (elementFromCache != null) elementFromCache else newElement
+    val element          = if (elementFromCache != null) elementFromCache else newElement
     element.getObjectValue.asInstanceOf[A]
   }
 

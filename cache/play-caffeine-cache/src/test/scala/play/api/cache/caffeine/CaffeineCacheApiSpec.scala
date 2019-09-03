@@ -4,7 +4,7 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.Executors
 
 import javax.inject.Inject
 import javax.inject.Provider
@@ -101,7 +101,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
     }
 
     "put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      val syncCacheApi   = app.injector.instanceOf[SyncCacheApi]
       val result: String = syncCacheApi.getOrElseUpdate("aaa")("ddd")
       result mustEqual "ddd"
       val resultFromCacheMaybe = syncCacheApi.get("aaa")
@@ -109,19 +109,19 @@ class CaffeineCacheApiSpec extends PlaySpecification {
     }
 
     "asynchronously put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
-      val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      val asyncCacheApi                = app.injector.instanceOf[AsyncCacheApi]
+      val syncCacheApi                 = app.injector.instanceOf[SyncCacheApi]
       val resultFuture: Future[String] = asyncCacheApi.getOrElseUpdate[String]("aaa")(Future.successful("ddd"))
-      val result: String = Await.result(resultFuture, 2.seconds)
+      val result: String               = Await.result(resultFuture, 2.seconds)
       result mustEqual "ddd"
       val resultFromCacheFuture = asyncCacheApi.get("aaa")
-      val resultFromCacheMaybe = Await.result(resultFromCacheFuture, 2.seconds)
+      val resultFromCacheMaybe  = Await.result(resultFromCacheFuture, 2.seconds)
       resultFromCacheMaybe must beSome("ddd")
     }
 
     "expire the item after the given amount of time is passed" in new WithApplication() {
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
-      val expiration = 1.second
+      val syncCacheApi   = app.injector.instanceOf[SyncCacheApi]
+      val expiration     = 1.second
       val result: String = syncCacheApi.getOrElseUpdate("aaa", expiration)("ddd")
       result mustEqual "ddd"
       Thread.sleep(expiration.toMillis) // be sure that expire duration passes

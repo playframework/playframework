@@ -11,11 +11,16 @@ class DefaultCaffeineExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
   def expireAfterCreate(key: String, value: ExpirableCacheValue[Any], currentTime: Long): Long = {
     value.durationMaybe match {
       case Some(duration) if duration.isFinite => duration.toNanos
-      case _ => Long.MaxValue
+      case _                                   => Long.MaxValue
     }
   }
 
-  def expireAfterUpdate(key: String, value: ExpirableCacheValue[Any], currentTime: Long, currentDuration: Long): Long = {
+  def expireAfterUpdate(
+      key: String,
+      value: ExpirableCacheValue[Any],
+      currentTime: Long,
+      currentDuration: Long
+  ): Long = {
     currentDuration
   }
 
