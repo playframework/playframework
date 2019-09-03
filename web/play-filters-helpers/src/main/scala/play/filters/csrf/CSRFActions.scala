@@ -549,7 +549,9 @@ class CSRFActionHelper(
    *         prevent caching for this response.
    */
   def isCached(result: Result): Boolean =
-    !result.header.headers.get(CACHE_CONTROL).map(extractCacheControlDirectives)
+    !result.header.headers
+      .get(CACHE_CONTROL)
+      .map(extractCacheControlDirectives)
       .exists(_.exists(NoCacheDirectives.contains))
 
   def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {

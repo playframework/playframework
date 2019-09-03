@@ -51,14 +51,18 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     "not add a token to non GET request when response is cached" in {
       Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
         method >> {
-          buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=2600")(_.execute(method))(_.cookies must be empty)
+          buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=2600")(_.execute(method))(
+            _.cookies must be empty
+          )
         }
       }
     }
     "not add a token to non GET request when response is not cached " in {
       Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
         method >> {
-          buildCsrfAddResponseHeaders()(_.addHttpHeaders(CACHE_CONTROL -> "no-cache").execute(method))(_.cookies must be empty)
+          buildCsrfAddResponseHeaders()(_.addHttpHeaders(CACHE_CONTROL -> "no-cache").execute(method))(
+            _.cookies must be empty
+          )
         }
       }
     }
