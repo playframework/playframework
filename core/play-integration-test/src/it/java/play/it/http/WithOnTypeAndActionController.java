@@ -15,9 +15,8 @@ import play.it.http.ActionCompositionOrderTest.SecondAction;
 @With({FirstAction.class, SecondAction.class})
 public class WithOnTypeAndActionController extends MockController {
 
-    @With({FirstAction.class, SecondAction.class})
-    public Result action(Http.Request request) {
-        return Results.ok();
-    }
-
+  @With({FirstAction.class, SecondAction.class})
+  public Result action(Http.Request request) {
+    return Results.ok();
+  }
 }

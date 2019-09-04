@@ -13,8 +13,7 @@ import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 @SomeRepeatable // runs two actions
 public class SingleRepeatableOnTypeController extends MockController {
 
-    public Result action(Http.Request request) {
-        return Results.ok();
-    }
-
+  public Result action(Http.Request request) {
+    return Results.ok();
+  }
 }
