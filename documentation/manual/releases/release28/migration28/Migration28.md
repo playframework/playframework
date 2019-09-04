@@ -156,6 +156,31 @@ Until Play 2.7, both Play and Play-WS were using a version of [ssl-config](https
 
 This debug system has been removed, the debug flags that do not have a direct correlation in the new system are deprecated, and the new configuration is documented in [ssl-config docs](https://lightbend.github.io/ssl-config/DebuggingSSL.html).
 
+### I18n behavior changes
+
+Matching of languages behavior now satisfies [RFC 4647](https://www.ietf.org/rfc/rfc4647.txt).
+
+#### Example
+
+`conf/application.conf` file:
+
+```
+play.i18n.langs = [ "fr", "fr-FR", "en", "en-US" ]
+```
+
+User's accept-language:
+```
+en-GB
+```
+
+##### Before
+
+User's accept-language `en-GB` does not match any of the conf. The play app responds French page against user's will.
+
+##### After
+
+User's accept-language `en-GB` matches `en`. The play app responds English page.
+
 ## Defaults changes
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.
