@@ -14,7 +14,11 @@ public class MultipleRepeatableOnTypeAndActionController extends MockController 
 
   @SomeRepeatable // again runs two actions
   @SomeRepeatable // plus two more
+<<<<<<< HEAD:core/play-integration-test/src/test/java/play/it/http/MultipleRepeatableOnTypeAndActionController.java
   public Result action() {
+=======
+  public Result action(Http.Request request) {
+>>>>>>> bd30e5f6aa... Java code format for integration tests:core/play-integration-test/src/it/java/play/it/http/MultipleRepeatableOnTypeAndActionController.java
     return Results.ok();
   }
 }

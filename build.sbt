@@ -283,6 +283,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
 =======
     Defaults.itSettings,
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
+    JavaFormatterPlugin.settingsFor(IntegrationTest),
     libraryDependencies += okHttp % IntegrationTest,
     parallelExecution in IntegrationTest := false,
 >>>>>>> 9c02d454a6... Run scalafmt for integration tests code
