@@ -438,4 +438,10 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     commands += Commands.quickPublish,
     Release.settings
   )
+<<<<<<< HEAD
   .aggregate(publishedProjects: _*)
+=======
+  .aggregate(aggregatedProjects: _*)
+
+addCommandAlias("javafmtAll", ";javafmt; test:javafmt; it:javafmt")
+>>>>>>> a7f38c4346... Verify javafmt for integration tests on Travis
