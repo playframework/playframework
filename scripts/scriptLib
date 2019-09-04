@@ -52,10 +52,10 @@ scalafmtValidation() {
 # Runs code formating validation in the current directory
 javafmtValidation() {
   start validate-javafmt "VALIDATE JAVA CODE FORMATTING"
-  runSbt javafmt test:javafmt
+  runSbt javafmtAll
   git diff --exit-code || (
     echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
-    echo "[error] To fix, format your sources using 'sbt javafmt test:javafmt' before submitting a pull request."
+    echo "[error] To fix, format your sources using 'sbt javafmtAll' before submitting a pull request."
     false
   )
   ret=$?

@@ -6,7 +6,7 @@
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 start validation "RUNNING FRAMEWORK VALIDATION"
-sbt headerCreate test:headerCreate javafmt test:javafmt scalafmtCheckAll scalafmtSbtCheck
+sbt headerCreate test:headerCreate javafmtAll scalafmtCheckAll scalafmtSbtCheck
 start validation "FRAMEWORK VALIDATION DONE"
 
 pushd "$DOCUMENTATION"

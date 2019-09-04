@@ -466,3 +466,5 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Release.settings
   )
   .aggregate(aggregatedProjects: _*)
+
+addCommandAlias("javafmtAll", ";javafmt; test:javafmt; it:javafmt")
