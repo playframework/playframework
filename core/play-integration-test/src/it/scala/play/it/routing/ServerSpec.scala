@@ -33,7 +33,8 @@ trait ServerSpec extends Specification with BeforeAll {
   override def beforeAll(): Unit = System.setProperty("play.server.provider", serverProvider)
 
   private def withServer[T](server: Server)(block: Server => T): T =
-    try block(server) finally server.stop()
+    try block(server)
+    finally server.stop()
 
   "Java Server" should {
 

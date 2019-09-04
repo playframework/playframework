@@ -727,7 +727,8 @@ trait ScalaResultsHandlingSpec
       }
 
       "correct set it for chunked entities when send as attachment" in {
-        implicit val mimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
         makeRequest(
           Results.Ok.chunked(Source(List("a", "b", "c")), false, Some("file.xml"))
         ) { response =>
@@ -746,7 +747,8 @@ trait ScalaResultsHandlingSpec
       }
 
       "correct set it for streamed entities when send as attachment" in {
-        implicit val mimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
         makeRequest(
           Results.Ok.streamed(Source.single(ByteString("a")), None, false, Some("file.xml"))
         ) { response =>
@@ -757,7 +759,8 @@ trait ScalaResultsHandlingSpec
       }
 
       "correct set it sending entity as attachment" in {
-        implicit val mimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
         makeRequest(
           Results.Ok.sendEntity(HttpEntity.NoEntity, false, Some("file.xml"))
         ) { response =>
