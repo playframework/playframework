@@ -671,6 +671,22 @@ trait ScalaResultsHandlingSpec
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
+<<<<<<< HEAD:core/play-integration-test/src/test/scala/play/it/http/ScalaResultsHandlingSpec.scala
+=======
+      "correct set it for chunked entities when send as attachment" in {
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        makeRequest(
+          Results.Ok.chunked(Source(List("a", "b", "c")), false, Some("file.xml"))
+        ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+          response.header(TRANSFER_ENCODING) must beSome("chunked")
+        }
+      }
+
+>>>>>>> 9c02d454a6... Run scalafmt for integration tests code:core/play-integration-test/src/it/scala/play/it/http/ScalaResultsHandlingSpec.scala
       "correct change it for streamed entities" in makeRequest(
         Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, None)).as(HTML)
       ) { response =>
@@ -678,6 +694,33 @@ trait ScalaResultsHandlingSpec
         response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
       }
 
+<<<<<<< HEAD:core/play-integration-test/src/test/scala/play/it/http/ScalaResultsHandlingSpec.scala
+=======
+      "correct set it for streamed entities when send as attachment" in {
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        makeRequest(
+          Results.Ok.streamed(Source.single(ByteString("a")), None, false, Some("file.xml"))
+        ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+        }
+      }
+
+      "correct set it sending entity as attachment" in {
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        makeRequest(
+          Results.Ok.sendEntity(HttpEntity.NoEntity, false, Some("file.xml"))
+        ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+        }
+      }
+
+>>>>>>> 9c02d454a6... Run scalafmt for integration tests code:core/play-integration-test/src/it/scala/play/it/http/ScalaResultsHandlingSpec.scala
       "have no content type if set to null in strict entities" in makeRequest(
         // First set to HTML and later to null so that we can see content type was overridden
         Results.Ok("<h1>Hello</h1>").as(HTML).as(null)

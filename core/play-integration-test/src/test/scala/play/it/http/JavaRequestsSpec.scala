@@ -52,8 +52,12 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
 
       val requestHeader: Request[Http.RequestBody] =
         Request[Http.RequestBody](FakeRequest().withCookies(cookie1), new RequestBody(null))
+<<<<<<< HEAD:core/play-integration-test/src/test/scala/play/it/http/JavaRequestsSpec.scala
       val javaContext: Context = JavaHelpers.createJavaContext(requestHeader, JavaHelpers.createContextComponents())
       val javaRequest          = javaContext.request()
+=======
+      val javaRequest = new RequestImpl(requestHeader)
+>>>>>>> 9c02d454a6... Run scalafmt for integration tests code:core/play-integration-test/src/it/scala/play/it/http/JavaRequestsSpec.scala
 
       val iterator: Iterator[Http.Cookie] = javaRequest.cookies().asScala.toIterator
       val cookieList                      = iterator.toList

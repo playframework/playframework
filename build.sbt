@@ -9,12 +9,11 @@ import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
 import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
 import com.typesafe.tools.mima.plugin.MimaKeys.mimaReportBinaryIssues
 import interplay.PlayBuildBase.autoImport._
-import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.Keys.parallelExecution
-import sbt.ScriptedPlugin._
 import sbt._
 import sbt.io.Path._
+import org.scalafmt.sbt.ScalafmtPlugin
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
@@ -278,8 +277,15 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")
   .enablePlugins(JavaAgent)
   .settings(
+<<<<<<< HEAD
     libraryDependencies += okHttp % Test,
     parallelExecution in Test := false,
+=======
+    Defaults.itSettings,
+    inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
+    libraryDependencies += okHttp % IntegrationTest,
+    parallelExecution in IntegrationTest := false,
+>>>>>>> 9c02d454a6... Run scalafmt for integration tests code
     mimaPreviousArtifacts := Set.empty,
     fork in Test := true,
     javaOptions in Test += "-Dfile.encoding=UTF8",
