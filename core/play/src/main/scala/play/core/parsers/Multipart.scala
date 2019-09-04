@@ -37,8 +37,8 @@ import play.core.Execution.Implicits.trampoline
 object Multipart {
 
   private final val maxHeaderBuffer = 4096
-  private val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-  private val ExtendedKeyValue = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
+  private val KeyValue              = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+  private val ExtendedKeyValue      = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
   /**
    * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
@@ -239,7 +239,7 @@ object Multipart {
                 case KeyValue(key, v) => (key, v)
                 case ExtendedKeyValue(key, encoding, value) =>
                   (key, URLDecoder.decode(value, encoding))
-                case key              => (key.trim, "")
+                case key => (key.trim, "")
               }
               .toMap
           )
