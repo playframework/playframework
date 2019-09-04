@@ -4,6 +4,8 @@
 
 package play.core.parsers
 
+import java.net.URLDecoder
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -35,6 +37,8 @@ import play.core.Execution.Implicits.trampoline
 object Multipart {
 
   private final val maxHeaderBuffer = 4096
+  private val KeyValue              = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+  private val ExtendedKeyValue      = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
   /**
    * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
@@ -198,9 +202,6 @@ object Multipart {
     }
 
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -210,7 +211,9 @@ object Multipart {
               .map {
                 // unescape escaped quotes
                 case KeyValue(key, v) =>
-                  (key.trim, v.trim.replaceAll("""\\"""", "\""))
+                  (key, v.trim.replaceAll("""\\"""", "\""))
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
                 case key => (key.trim, "")
               }
               .toMap
@@ -226,9 +229,6 @@ object Multipart {
 
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -236,8 +236,10 @@ object Multipart {
             _.split(";").iterator
               .map(_.trim)
               .map {
-                case KeyValue(key, v) => (key.trim, v.trim)
-                case key              => (key.trim, "")
+                case KeyValue(key, v) => (key, v)
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
+                case key => (key.trim, "")
               }
               .toMap
           )
