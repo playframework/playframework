@@ -406,7 +406,7 @@ class CSRFActionHelper(
 ) {
 
   /** Set of Cache-Control header directives that will explicitly prevent response caching in shared caches (e.g. proxies). */
-  private val NoCacheDirectives = Set("no-cache", "no-store")
+  private val NoCacheDirectives = Set("no-cache", "no-store", "private")
 
   /**
    * Construct a new CSRFActionHelper and determine the TokenProvider from configuration.

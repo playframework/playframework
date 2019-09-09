@@ -49,7 +49,18 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must be empty)
     }
     "add a token to GET request when response is not cached by shared cache" in {
-      Fragment.foreach(Seq("no-cache", "no-store", "NO-CACHE", "NO-STORE ", "no-cache, must-revalidate")) { directive =>
+      Fragment.foreach(
+        Seq(
+          "no-cache",
+          "no-store",
+          "NO-CACHE",
+          "NO-STORE ",
+          "no-cache, must-revalidate",
+          "private",
+          "PRIVATE ",
+          "must-revalidate, private"
+        )
+      ) { directive =>
         directive >> {
           buildCsrfAddResponseHeaders(CACHE_CONTROL -> directive)(_.get())(_.cookies must not be empty)
         }
