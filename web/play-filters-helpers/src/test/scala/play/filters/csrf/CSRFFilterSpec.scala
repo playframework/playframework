@@ -73,8 +73,8 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
         }
       }
     }
-    "add a token to GET request when response is cached " in {
-      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must not be empty)
+    "not add a token to GET request when response is cached " in {
+      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must be empty)
     }
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)

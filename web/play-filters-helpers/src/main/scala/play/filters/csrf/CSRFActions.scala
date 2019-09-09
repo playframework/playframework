@@ -511,7 +511,7 @@ class CSRFActionHelper(
           } =>
         filterLogger.trace("[CSRF] Not emitting CSRF token because token was never rendered")
         result
-      case _ if !csrfConfig.createIfNotFound(request) && isCached(result) =>
+      case _ if isCached(result) =>
         filterLogger.trace(s"[CSRF] Not adding token to cached response for ${request.method} request")
         result
       case Some(tokenInfo) =>
@@ -549,10 +549,10 @@ class CSRFActionHelper(
    *         prevent caching for this response.
    */
   def isCached(result: Result): Boolean =
-    !result.header.headers
+    result.header.headers
       .get(CACHE_CONTROL)
       .map(extractCacheControlDirectives)
-      .exists(_.exists(NoCacheDirectives.contains))
+      .fold(false)(!_.exists(NoCacheDirectives.contains))
 
   def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
