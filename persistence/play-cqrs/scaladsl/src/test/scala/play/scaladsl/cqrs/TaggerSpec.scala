@@ -89,18 +89,6 @@ class TaggerSpec extends Specification {
       Tagger[TestEvent].addTagGroup("  ") must throwA[IllegalArgumentException]
     }
 
-    "shard a tag (with custom tag group)" in {
-      val tagger      = Tagger[TestEvent].addTagGroup(customTagGroup)
-      val shardedTags = tagger.tagFunction(persistenceId)(TestEventA)
-      shardedTags must beEqualTo(Set("MyTag-0"))
-
-    }
-
-    "'allShardedTags' honour custom tagger format" in {
-      val tagger         = Tagger[TestEvent].addTagGroup(customTagGroup)
-      val allShardedTags = tagger.allShardedTags(customTagGroup.originalTag)
-      allShardedTags must beEqualTo(Set("MyTag-0", "MyTag-1", "MyTag-2"))
-    }
   }
 
   sealed trait TestEvent
@@ -109,23 +97,4 @@ class TaggerSpec extends Specification {
   sealed trait TestEventB extends TestEvent
   case object TestEventB  extends TestEventB
 
-  private val customTagGroup = new TagGroup[TestEvent] {
-    val numOfShards: Int                = 3
-    val originalTag: String             = "MyTag"
-    val predicate: TestEvent => Boolean = _ => true
-
-    final def shardTag(shardNum: Int): String =
-      if (numOfShards > 1) s"$originalTag-$shardNum"
-      else originalTag
-
-    final def tagFunction(persistenceId: String): TestEvent => Option[String] =
-      evt => {
-        if (predicate(evt)) {
-          val tag =
-            if (numOfShards > 1) shardTag(Math.abs(persistenceId.hashCode % numOfShards))
-            else originalTag
-          Some(tag)
-        } else None
-      }
-  }
 }
