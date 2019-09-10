@@ -22,12 +22,15 @@ import akka.cluster.sharding.typed.ShardingEnvelope
 @ApiMayChange
 class EntityFactory[Command: ClassTag, Event, State](
     name: String,
-    typeKey: EntityTypeKey[Command],
     behaviorFunc: EntityContext => EventSourcedBehavior[Command, Event, State],
     tagger: Tagger[Event],
-    clusterSharding: ClusterSharding,
-    configureShardedEntity: Entity[Command, ShardingEnvelope[Command]] => Entity[Command, ShardingEnvelope[Command]]
+    clusterSharding: ClusterSharding
 ) {
+
+  private val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command](name)
+
+  def configureEntity(entity: Entity[Command, ShardingEnvelope[Command]]): Entity[Command, ShardingEnvelope[Command]] =
+    entity
 
   final def entityRefFor(entityId: String): EntityRef[Command] = {
     // this will generate persistence Id compatible with Lagom's Ids, eg: 'ModelName|entityId'
@@ -36,7 +39,7 @@ class EntityFactory[Command: ClassTag, Event, State](
   }
 
   clusterSharding.init(
-    configureShardedEntity(
+    configureEntity(
       Entity(
         typeKey,
         ctx => {
@@ -45,7 +48,4 @@ class EntityFactory[Command: ClassTag, Event, State](
       )
     )
   )
-
-  // TODO: need hooks to glue to projections that are based on journal sources for the entity declared here
-  // When we get to this, we will be glueing write-side and read-side perfectly at model declaration
 }

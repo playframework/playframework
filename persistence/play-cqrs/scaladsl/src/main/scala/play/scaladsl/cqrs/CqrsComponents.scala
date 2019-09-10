@@ -27,20 +27,6 @@ trait CqrsComponents {
       behaviorFunc: EntityContext => EventSourcedBehavior[Command, Event, State],
       tagger: Tagger[Event]
   ): EntityFactory[Command, Event, State] =
-    newEntityFactory(name, behaviorFunc, tagger, identity)
+    new EntityFactory(name, behaviorFunc, tagger, clusterSharding)
 
-  final def newEntityFactory[Command: ClassTag, Event, State](
-      name: String,
-      behaviorFunc: EntityContext => EventSourcedBehavior[Command, Event, State],
-      tagger: Tagger[Event],
-      configureShardedEntity: Entity[Command, ShardingEnvelope[Command]] => Entity[Command, ShardingEnvelope[Command]]
-  ): EntityFactory[Command, Event, State] =
-    new EntityFactory[Command, Event, State](
-      name = name,
-      typeKey = EntityTypeKey[Command](name),
-      behaviorFunc = behaviorFunc,
-      tagger = tagger,
-      clusterSharding,
-      configureShardedEntity
-    )
 }

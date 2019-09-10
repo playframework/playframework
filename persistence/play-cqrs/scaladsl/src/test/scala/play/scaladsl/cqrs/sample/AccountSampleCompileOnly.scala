@@ -17,6 +17,7 @@ import akka.persistence.typed.scaladsl.Effect
 import akka.persistence.typed.scaladsl.EventSourcedBehavior
 import akka.persistence.typed.scaladsl.ReplyEffect
 import play.scaladsl.cqrs.CqrsComponents
+import akka.cluster.sharding.typed.ShardingEnvelope
 
 /**
  * That's just an example. Not sure if we need such a wrapping thing,
