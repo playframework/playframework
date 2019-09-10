@@ -7,13 +7,12 @@ package play.api.cache.caffeine
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
+import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
 import play.cache.caffeine.CaffeineDefaultExpiry
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
-
-import com.github.benmanes.caffeine.cache.Cache
 
 class CaffeineCacheManager(private var config: Config) {
 
@@ -27,7 +26,7 @@ class CaffeineCacheManager(private var config: Config) {
 
     if (namedCache == null) {
       val cacheBuilder: Caffeine[K, V] = getCacheBuilder(cacheName).asInstanceOf[Caffeine[K, V]]
-      namedCache = new NamedCaffeineCache[K, V](cacheName, cacheBuilder.build().asInstanceOf[Cache[K, V]])
+      namedCache = new NamedCaffeineCache[K, V](cacheName, cacheBuilder.buildAsync().asInstanceOf[AsyncCache[K, V]])
       cacheMap.put(cacheName, namedCache.asInstanceOf[NamedCaffeineCache[_, _]])
     }
     namedCache

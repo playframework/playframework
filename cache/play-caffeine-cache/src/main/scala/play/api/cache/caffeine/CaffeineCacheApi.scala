@@ -4,15 +4,17 @@
 
 package play.api.cache.caffeine
 
+import java.time
 import java.util.concurrent.TimeUnit
+
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 import javax.cache.CacheException
-
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
 import play.cache.caffeine.NamedCaffeineCache
 import play.api.cache._
@@ -24,10 +26,13 @@ import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
+import scala.compat.java8.DurationConverters
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.Duration.Infinite
 import scala.reflect.ClassTag
 
 /**
@@ -184,23 +189,20 @@ private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwa
 
 class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
 
-  override def set(key: String, value: Any, expiration: Duration): Unit = {
-    expiration match {
-      case infinite: Duration.Infinite =>
-        cache.policy().expireVariably().get().put(key, value, Long.MaxValue, TimeUnit.DAYS)
-      case finite: FiniteDuration =>
-        val seconds = finite.toSeconds
-        if (seconds <= 0) {
-          cache.policy().expireVariably().get().put(key, value, 1, TimeUnit.SECONDS)
-        } else {
-          cache.policy().expireVariably().get().put(key, value, seconds.toInt, TimeUnit.SECONDS)
-        }
-    }
+  private val syncCache: Cache[Any, Any] = cache.synchronous()
+  private val variableExpiration         = syncCache.policy.expireVariably.get
 
+  override def set(key: String, value: Any, expiration: Duration): Unit = {
+    val duration = expiration match {
+      case _: Infinite                                                     => time.Duration.ofSeconds(Long.MaxValue)
+      case finiteDuration: FiniteDuration if finiteDuration.lteq(0.second) => time.Duration.ofSeconds(1)
+      case finiteDuration: FiniteDuration                                  => DurationConverters.toJava(finiteDuration)
+    }
+    variableExpiration.put(key, value, duration.getSeconds, TimeUnit.SECONDS)
     Done
   }
 
-  override def remove(key: String): Unit = cache.invalidate(key)
+  override def remove(key: String): Unit = syncCache.invalidate(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
     get[A](key) match {
@@ -213,7 +215,7 @@ class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) ex
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
-    Option(cache.getIfPresent(key))
+    Option(syncCache.getIfPresent(key))
       .filter { v =>
         Primitives.wrap(ct.runtimeClass).isInstance(v) ||
         ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
@@ -252,7 +254,7 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
   }
 
   def removeAll(): Future[Done] = Future {
-    cache.invalidateAll()
+    cache.synchronous.invalidateAll
     Done
   }
 }

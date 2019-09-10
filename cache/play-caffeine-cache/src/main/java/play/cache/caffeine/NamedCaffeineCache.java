@@ -4,21 +4,23 @@
 
 package play.cache.caffeine;
 
+import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Policy;
-import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class NamedCaffeineCache<K, V> implements Cache<K, V> {
-  private Cache<K, V> cache;
+public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
+  private AsyncCache<K, V> cache;
   private String name;
 
-  public NamedCaffeineCache(String name, Cache<K, V> cache) {
+  public NamedCaffeineCache(String name, AsyncCache<K, V> cache) {
     this.cache = cache;
     this.name = name;
   }
@@ -29,72 +31,37 @@ public class NamedCaffeineCache<K, V> implements Cache<K, V> {
 
   @CheckForNull
   @Override
-  public V getIfPresent(@Nonnull Object key) {
+  public CompletableFuture<V> getIfPresent(@Nonnull Object key) {
     return cache.getIfPresent(key);
   }
 
   @CheckForNull
   @Override
-  public V get(@Nonnull K key, @Nonnull Function<? super K, ? extends V> mappingFunction) {
+  public CompletableFuture<V> get(
+      @Nonnull K key, @Nonnull Function<? super K, ? extends V> mappingFunction) {
     return cache.get(key, mappingFunction);
   }
 
-  @Nonnull
   @Override
-  public Map<K, V> getAllPresent(@Nonnull Iterable<?> keys) {
-    return cache.getAllPresent(keys);
+  public @NonNull CompletableFuture<V> get(
+      @NonNull K key,
+      @NonNull BiFunction<? super K, Executor, CompletableFuture<V>> mappingFunction) {
+    return cache.get(key, mappingFunction);
   }
 
   @Override
-  public void put(@Nonnull K key, @Nonnull V value) {
+  public void put(@Nonnull K key, @Nonnull CompletableFuture<V> value) {
     cache.put(key, value);
   }
 
-  @Override
-  public void putAll(@Nonnull Map<? extends K, ? extends V> map) {
-    cache.putAll(map);
-  }
-
-  @Override
-  public void invalidate(@Nonnull Object key) {
-    cache.invalidate(key);
-  }
-
-  @Override
-  public void invalidateAll(@Nonnull Iterable<?> keys) {
-    cache.invalidateAll(keys);
-  }
-
-  @Override
-  public void invalidateAll() {
-    cache.invalidateAll();
-  }
-
-  @Override
-  public long estimatedSize() {
-    return cache.estimatedSize();
-  }
-
   @Nonnull
   @Override
-  public CacheStats stats() {
-    return cache.stats();
-  }
-
-  @Nonnull
-  @Override
-  public ConcurrentMap<K, V> asMap() {
+  public ConcurrentMap<K, CompletableFuture<V>> asMap() {
     return cache.asMap();
   }
 
   @Override
-  public void cleanUp() {
-    cache.cleanUp();
-  }
-
-  @Nonnull
-  @Override
-  public Policy<K, V> policy() {
-    return cache.policy();
+  public Cache<K, V> synchronous() {
+    return cache.synchronous();
   }
 }
