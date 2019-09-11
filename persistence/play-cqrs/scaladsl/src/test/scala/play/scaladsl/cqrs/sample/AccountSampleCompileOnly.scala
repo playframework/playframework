@@ -30,7 +30,7 @@ abstract class AccountComponent extends CqrsComponents {
   val tagger = Tagger[AccountEvent].addTagGroup("AccountEvent", 10)
 
   lazy val accountFactory: EntityFactory[AccountCommand, AccountEvent, Account] =
-    newEntityFactory("AccountEntity", Account.behavior, tagger)
+    createEntityFactory("AccountEntity", Account.behavior, tagger)
 }
 
 /**

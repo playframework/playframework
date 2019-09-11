@@ -7,6 +7,7 @@ package play.scaladsl.cqrs
 import akka.persistence.typed.PersistenceId
 import akka.annotation.ApiMayChange
 
+@ApiMayChange
 final class Tagger[Event](tagGroups: List[TagGroup[Event]] = Nil) {
 
   final def tagFunction(persistenceId: String): Event => Set[String] =

@@ -18,11 +18,14 @@ import akka.persistence.typed.scaladsl.ReplyEffect
 
 import scala.reflect.ClassTag
 
+import akka.annotation.ApiMayChange
+
+@ApiMayChange
 trait CqrsComponents {
 
   def clusterSharding: ClusterSharding
 
-  final def newEntityFactory[Command: ClassTag, Event, State](
+  final def createEntityFactory[Command: ClassTag, Event, State](
       name: String,
       behaviorFunc: EntityContext => EventSourcedBehavior[Command, Event, State],
       tagger: Tagger[Event]
