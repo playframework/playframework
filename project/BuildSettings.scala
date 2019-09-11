@@ -527,6 +527,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Results#Status.sendPath$default$3"),
       // Add contentType param (which defaults to None) to Results.chunked(...) like Results.streamed(...) already has
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.chunked"),
+      // Netty's request handler needs maxContentLength to check if request size exceeds allowed configured value
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler.this"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

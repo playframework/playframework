@@ -7,6 +7,7 @@ package play.core.server
 import java.util.function.{ Function => JFunction }
 
 import akka.actor.CoordinatedShutdown
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
@@ -133,6 +134,17 @@ object Server {
    */
   private[server] def actionForResult(errorResult: Future[Result]): Handler = {
     EssentialAction(_ => Accumulator.done(errorResult))
+  }
+
+  /**
+   * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
+   * parsing of byte values.
+   */
+  private[server] def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
+    config.getString(path) match {
+      case "infinite" => Long.MaxValue
+      case _          => config.getBytes(path)
+    }
   }
 
   /**
