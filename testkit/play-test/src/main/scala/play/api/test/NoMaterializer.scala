@@ -4,7 +4,7 @@
 
 // Using an `akka` package to make it possible to extend Materializer
 // which has some `private[akka]` methods.
-package akka.testkit
+package akka.stream.testkit
 
 import akka.actor.ActorSystem
 import akka.actor.Cancellable

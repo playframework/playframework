@@ -5,7 +5,7 @@
 package play.libs.ws
 
 import akka.stream.Materializer
-import akka.testkit.NoMaterializer
+import akka.stream.testkit.NoMaterializer
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.test._

@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 import akka.stream.scaladsl.Source
 import akka.stream._
-import akka.testkit.NoMaterializer
+import akka.stream.testkit.NoMaterializer
 import akka.util.ByteString
 import akka.util.Timeout
 import org.openqa.selenium.WebDriver
