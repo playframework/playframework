@@ -93,6 +93,10 @@ xxx
 
 Many changes have been made to Play's internal APIs. These APIs are used internally and don't follow a normal deprecation process. Changes may be mentioned below to help those who integrate directly with Play internal APIs.
 
+### Test API changes
+
+1. `play.api.test.NoMaterializer` was removed in favor of Akka's `akka.stream.testkit.NoMaterializer`.
+
 ## Configuration changes
 
 This section lists changes and deprecations in configurations.
