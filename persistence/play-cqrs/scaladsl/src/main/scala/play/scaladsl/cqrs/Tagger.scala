@@ -35,8 +35,14 @@ final class Tagger[Event](tagGroups: List[TagGroup[Event]] = Nil) {
   def addTagGroup(tag: String): Tagger[Event] =
     addTagGroup(new TagGroup[Event](tag, 1, _ => true))
 
-  private def addTagGroup(tagGroup: TagGroup[Event]): Tagger[Event] =
+  private def addTagGroup(tagGroup: TagGroup[Event]): Tagger[Event] = {
+    require(
+      !tagGroups.exists(_.originalTag == tagGroup.originalTag),
+      s"Duplicated tag detected for '${tagGroup.originalTag}'. Tags must be unique"
+    )
+
     new Tagger(tagGroups :+ tagGroup)
+  }
 }
 
 @ApiMayChange

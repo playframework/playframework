@@ -89,6 +89,10 @@ class TaggerSpec extends Specification {
       Tagger[TestEvent].addTagGroup("  ") must throwA[IllegalArgumentException]
     }
 
+    "fail when same tag is declared" in {
+      Tagger[TestEvent].addTagGroup("TagA").addTagGroup("TagA") must throwA[IllegalArgumentException]
+    }
+
   }
 
   sealed trait TestEvent
