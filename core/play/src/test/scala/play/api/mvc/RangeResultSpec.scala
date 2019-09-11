@@ -10,7 +10,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity
@@ -21,8 +21,6 @@ import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification
 
 class ByteRangeSpec extends Specification {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
   "Distance" in {
     "Between 0-10 and 20-30 is 10" in {
       val byteRange1 = ByteRange(0, 10)
@@ -376,7 +374,7 @@ class RangeResultSpec extends Specification {
       headers must havePair("Content-Range" -> "bytes 1-2/3")
 
       implicit val system       = ActorSystem()
-      implicit val materializer = ActorMaterializer()
+      implicit val materializer = Materializer.matFromSystem
       val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
       mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](2, 3)))
     }
@@ -388,7 +386,7 @@ class RangeResultSpec extends Specification {
         RangeResult.ofSource(bytes.length, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/6")
       implicit val system       = ActorSystem()
-      implicit val materializer = ActorMaterializer()
+      implicit val materializer = Materializer.matFromSystem
       val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
       mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5)))
     }
@@ -400,7 +398,7 @@ class RangeResultSpec extends Specification {
         RangeResult.ofSource(None, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/*")
       implicit val system       = ActorSystem()
-      implicit val materializer = ActorMaterializer()
+      implicit val materializer = Materializer.matFromSystem
       val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
       mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5, 6)))
     }

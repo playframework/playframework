@@ -4,13 +4,11 @@
 
 package detailedtopics.configuration.gzipencoding
 
-import akka.stream.ActorMaterializer
 import play.api.test._
 
 class GzipEncoding extends PlaySpecification {
 
   import javax.inject.Inject
-
   import play.api.http.DefaultHttpFilters
   import play.filters.gzip.GzipFilter
 
@@ -22,7 +20,7 @@ class GzipEncoding extends PlaySpecification {
 
       import play.api.mvc._
       running() { app =>
-        implicit val mat = ActorMaterializer()(app.actorSystem)
+        implicit val mat = app.materializer
         def Action       = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter =
@@ -41,7 +39,7 @@ class GzipEncoding extends PlaySpecification {
       import play.api.mvc._
       val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
-        implicit val mat = ActorMaterializer()(app.actorSystem)
+        implicit val mat = app.materializer
         def Action       = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter = (new CustomFilters(mat)).getFilters.get(0)

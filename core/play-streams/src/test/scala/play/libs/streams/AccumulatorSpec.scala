@@ -18,7 +18,6 @@ import scala.compat.java8.FutureConverters
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source
 import akka.stream.javadsl.Sink
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import akka.japi.function.{ Function => JFn }
 import org.reactivestreams.Subscription
@@ -29,7 +28,7 @@ class AccumulatorSpec extends org.specs2.mutable.Specification {
   def withMaterializer[T](block: Materializer => T): T = {
     val system = ActorSystem("test")
     try {
-      block(ActorMaterializer()(system))
+      block(Materializer.matFromSystem(system))
     } finally {
       system.terminate()
       Await.result(system.whenTerminated, Duration.Inf)

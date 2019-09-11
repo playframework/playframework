@@ -5,7 +5,7 @@
 package play.api.test
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
@@ -52,9 +52,9 @@ class HelpersSpec extends Specification {
   "status" should {
 
     "extract the status from Accumulator[ByteString, Result] as Int" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         status(ctrl.abcAction.apply(FakeRequest())) must_== 200
       } finally {
         system.terminate()
@@ -77,9 +77,9 @@ class HelpersSpec extends Specification {
     }
 
     "extract the content from Accumulator[ByteString, Result] as String" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         contentAsString(ctrl.abcAction.apply(FakeRequest())) must_== "abc"
       } finally {
         system.terminate()
@@ -94,9 +94,9 @@ class HelpersSpec extends Specification {
     }
 
     "extract the content from chunked Result as Bytes" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         contentAsBytes(Future.successful(Ok.chunked(Source(List("a", "b", "c"))))) must_== ByteString(97, 98, 99)
       } finally {
         system.terminate()
@@ -129,9 +129,9 @@ class HelpersSpec extends Specification {
     }
 
     "extract the content from Accumulator[ByteString, Result] as Json" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         (contentAsJson(ctrl.jsonAction.apply(FakeRequest())) \ "content").as[String] must_== "abc"
       } finally {
         system.terminate()

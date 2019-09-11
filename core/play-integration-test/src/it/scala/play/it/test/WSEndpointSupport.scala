@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.actor.Terminated
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.typesafe.sslconfig.ssl.SSLConfigSettings
 import com.typesafe.sslconfig.ssl.SSLLooseConfig
 import org.specs2.execute.AsResult
@@ -127,7 +127,7 @@ trait WSEndpointSupport {
         val wsClientConfig: WSClientConfig = WSClientConfig(ssl = sslConfig)
         val ahcWsClientConfig              = AhcWSClientConfig(wsClientConfig = wsClientConfig, maxRequestRetry = 0)
 
-        implicit val materializer = ActorMaterializer(namePrefix = Some("WSEndpointSupport"))(actorSystem)
+        implicit val materializer = Materializer.matFromSystem(actorSystem)
         AhcWSClient(ahcWsClientConfig)
       }
       override def close(): Unit = {

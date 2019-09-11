@@ -5,7 +5,7 @@
 package play.core.server.common
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.http.Status._
@@ -106,7 +106,7 @@ class ServerResultUtilsSpec extends Specification {
 
   "resultUtils.validateResult" should {
     implicit val system       = ActorSystem()
-    implicit val materializer = ActorMaterializer()
+    implicit val materializer = Materializer.matFromSystem
 
     val header = new RequestHeaderImpl(
       RemoteConnection("", false, None),

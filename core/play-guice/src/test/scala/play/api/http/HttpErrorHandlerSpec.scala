@@ -7,7 +7,7 @@ package play.api.http
 import java.util.concurrent.CompletableFuture
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
@@ -30,7 +30,6 @@ import play.core.test.Fakes
 import play.http
 import play.i18n.Langs
 import play.i18n.MessagesApi
-import play.mvc.{ FileMimeTypes => JFileMimeTypes }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
@@ -43,8 +42,8 @@ class HttpErrorHandlerSpec extends Specification {
 
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
-  implicit val system: ActorSystem             = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val system: ActorSystem        = ActorSystem()
+  implicit val materializer: Materializer = Materializer.matFromSystem
 
   "HttpErrorHandler" should {
     def sharedSpecs(_eh: => HttpErrorHandler) = {
@@ -74,7 +73,7 @@ class HttpErrorHandlerSpec extends Specification {
     def jsonResponsesSpecs(
         _eh: => HttpErrorHandler,
         isProdMode: Boolean
-    )(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+    )(implicit system: ActorSystem, materializer: Materializer) = {
       lazy val errorHandler = _eh
 
       def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)

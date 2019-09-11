@@ -5,8 +5,7 @@
 package javaguide.ws;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
-import akka.stream.ActorMaterializerSettings;
+import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
@@ -16,7 +15,6 @@ import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.AhcWSClientConfigFactory;
 import play.libs.ws.WSClient;
 import play.libs.ws.ahc.AhcWSClient;
-import play.libs.ws.ahc.StandaloneAhcWSClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 
@@ -30,8 +28,7 @@ public class StandaloneWithConfig {
     // Set up Akka
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
-    ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
-    ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+    Materializer materializer = Materializer.matFromSystem(system);
 
     // Read in config file from application.conf
     Config conf = ConfigFactory.load();

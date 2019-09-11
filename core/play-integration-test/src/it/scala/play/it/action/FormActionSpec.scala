@@ -5,7 +5,6 @@
 package play.it.action
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import play.api._
 import play.api.data._
@@ -43,7 +42,7 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
       import play.api.routing.sird.{ POST => SirdPost, _ }
 
       override lazy val actorSystem: ActorSystem            = ActorSystem("form-action-spec")
-      implicit override lazy val materializer: Materializer = ActorMaterializer()(this.actorSystem)
+      implicit override lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
 
       override def router: Router = Router.from {
         case SirdPost(p"/multipart") =>

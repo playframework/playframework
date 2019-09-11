@@ -4,15 +4,11 @@
 
 package play.api.mvc
 
-import java.io.IOException
-
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.actor.ActorSystem
 import akka.util.ByteString
-
 import org.specs2.mutable.Specification
-
 import play.core.test.FakeHeaders
 import play.core.test.FakeRequest
 
@@ -23,8 +19,8 @@ class MultipartBodyParserSpec extends Specification {
 
   "Multipart body parser" should {
     implicit val system           = ActorSystem()
+    implicit val materializer     = Materializer.matFromSystem
     implicit val executionContext = system.dispatcher
-    implicit val materializer     = ActorMaterializer()
 
     val playBodyParsers = PlayBodyParsers(tfc = new InMemoryTemporaryFileCreator(10))
 

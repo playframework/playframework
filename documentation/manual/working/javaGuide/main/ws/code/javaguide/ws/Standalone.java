@@ -6,12 +6,13 @@ package javaguide.ws;
 
 // #ws-standalone-imports
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
-import akka.stream.ActorMaterializerSettings;
-import org.junit.Test;
+import akka.stream.Materializer;
+
 import play.shaded.ahc.org.asynchttpclient.*;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
+
+import org.junit.Test;
 // #ws-standalone-imports
 
 import java.util.Optional;
@@ -24,8 +25,7 @@ public class Standalone {
     // Set up Akka
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
-    ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
-    ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+    Materializer materializer = Materializer.matFromSystem(system);
 
     // Set up AsyncHttpClient directly from config
     AsyncHttpClientConfig asyncHttpClientConfig =

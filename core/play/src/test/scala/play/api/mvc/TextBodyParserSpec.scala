@@ -9,30 +9,15 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
-import play.api.http.DefaultHttpErrorHandler
-import play.api.http.ParserConfiguration
-import play.api.http.Status
-import play.api.libs.Files.SingletonTemporaryFileCreator
-import play.api.libs.streams.Accumulator
-import play.api.Configuration
-import play.api.Environment
 import play.core.test.FakeRequest
-import play.libs.F
-import play.mvc.Http
-import play.mvc.Http.RequestBody
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.util.Failure
-import scala.util.Try
 
 /**
  *
@@ -40,7 +25,7 @@ import scala.util.Try
 class TextBodyParserSpec extends Specification with AfterAll {
 
   implicit val system = ActorSystem()
-  implicit val mat    = ActorMaterializer()
+  implicit val mat    = Materializer.matFromSystem
   val parse           = PlayBodyParsers()
 
   override def afterAll: Unit = {

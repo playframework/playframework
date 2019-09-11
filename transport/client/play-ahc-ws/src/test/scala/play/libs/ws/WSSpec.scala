@@ -5,6 +5,7 @@
 package play.libs.ws
 
 import akka.stream.Materializer
+import akka.testkit.NoMaterializer
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.test._
@@ -26,7 +27,8 @@ class WSSpec extends PlaySpecification with WsTestClient {
         mat = components.materializer
 
         import components.{ defaultActionBuilder => Action }
-        import play.api.routing.sird.{ POST => SirdPost, _ }
+        import play.api.routing.sird.{ POST => SirdPost }
+        import play.api.routing.sird._
         {
           case SirdPost(p"/") =>
             Action { req: Request[AnyContent] =>
