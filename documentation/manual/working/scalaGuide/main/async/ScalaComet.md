@@ -51,7 +51,7 @@ play.filters.headers {
 }
 ```
 
-For an example of a Comet helper, see the [Play Streaming Example](https://github.com/playframework/play-scala-streaming-example).
+For an example of a Comet helper, see the `play-scala-streaming-example` in the  [Play Samples](https://github.com/playframework/play-samples) repository.
 
 ## Debugging Comet
 

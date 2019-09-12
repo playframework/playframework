@@ -51,7 +51,7 @@ play.filters.headers {
 }
 ```
 
-For an example of a Comet helper, see the [Play 2.5 Clock Template](https://github.com/typesafehub/play-2.5-clock/).
+For an example of a Comet helper, see the `play-java-streaming-example` in the  [Play Samples](https://github.com/playframework/play-samples) repository.
 
 ## Debugging Comet
 
