@@ -50,9 +50,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   // #scalaws-context-injected
   val url = s"http://localhost:$testServerPort/"
 
-  implicit val system = ActorSystem()
+  val system = ActorSystem()
 
-  implicit val materializer = Materializer.matFromSystem
+  implicit val materializer = Materializer.matFromSystem(system)
   implicit val ec           = system.dispatcher
 
   val parse  = PlayBodyParsers()
@@ -536,7 +536,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val result: Future[Result] =
         ws.url(url)
           .get()
-          .withTimeout(1 second)
+          .withTimeout(1.second)
           .flatMap { response =>
             // val url2 = response.json \ "url"
             ws.url(url2).get().map { response2 =>
@@ -556,8 +556,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       import play.api.libs.ws.ahc._
 
       // usually injected through @Inject()(implicit mat: Materializer)
-      implicit val mat: akka.stream.Materializer = app.materializer
-      val wsClient                               = AhcWSClient()
+      val mat: akka.stream.Materializer = app.materializer
+      val wsClient                      = AhcWSClient()(mat)
       //#simple-ws-custom-client
 
       wsClient.close()
@@ -580,7 +580,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       // If running in Play, environment should be injected
       val environment        = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
       val wsConfig           = AhcWSClientConfigFactory.forConfig(configuration.underlying, environment.classLoader)
-      val wsClient: WSClient = AhcWSClient(wsConfig)
+      val mat                = app.materializer
+      val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
+
       //#ws-custom-client
 
       //#close-client
