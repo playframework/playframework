@@ -19,7 +19,6 @@ import akka.stream.Materializer
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration.FiniteDuration
 
-// TODO: Remove in favor of the `NoMaterializer` provided by Akka TestKit in the future.
 object NoMaterializer extends Materializer {
   override def withNamePrefix(name: String): Materializer =
     throw new UnsupportedOperationException("NoMaterializer does not provide withNamePrefix")
