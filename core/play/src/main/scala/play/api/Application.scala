@@ -8,7 +8,6 @@ import java.io._
 
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -397,7 +396,7 @@ trait BuiltInComponents extends I18nComponents {
   )
 
   lazy val actorSystem: ActorSystem            = new ActorSystemProvider(environment, configuration).get
-  implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
+  implicit lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
   lazy val coordinatedShutdown: CoordinatedShutdown =
     new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
   implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher

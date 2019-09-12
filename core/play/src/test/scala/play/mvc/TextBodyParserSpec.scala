@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletionStage
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 import org.specs2.matcher.MustMatchers
@@ -26,7 +26,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
   "Java TextBodyParserSpec" title
 
   implicit val system       = ActorSystem("text-body-parser-spec")
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = Materializer.matFromSystem
 
   def afterAll(): Unit = {
     materializer.shutdown()

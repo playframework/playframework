@@ -4,6 +4,7 @@
 
 package play.api.test
 
+import akka.stream.Materializer
 import play.api.libs.ws._
 import play.api.mvc.Call
 
@@ -123,7 +124,6 @@ object WsTestClient extends WsTestClient {
     import akka.actor.ActorSystem
     import akka.actor.Cancellable
     import akka.actor.Terminated
-    import akka.stream.ActorMaterializer
     import play.api.libs.ws.ahc.AhcWSClient
     import play.api.libs.ws.ahc.AhcWSClientConfig
 
@@ -176,7 +176,7 @@ object WsTestClient extends WsTestClient {
       val name = "ws-test-client-" + count.getAndIncrement()
       logger.info(s"createNewClient: name = $name")
       val system       = ActorSystem(name)
-      val materializer = ActorMaterializer(namePrefix = Some(name))(system)
+      val materializer = Materializer.matFromSystem(system)
       val config       = AhcWSClientConfig(maxRequestRetry = 0) // Don't retry for tests
       val client       = AhcWSClient(config)(materializer)
       (client, system)

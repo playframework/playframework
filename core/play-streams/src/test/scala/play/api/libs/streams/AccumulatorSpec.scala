@@ -9,7 +9,6 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
@@ -26,7 +25,7 @@ class AccumulatorSpec extends Specification {
   def withMaterializer[T](block: Materializer => T): T = {
     val system = ActorSystem("test")
     try {
-      block(ActorMaterializer()(system))
+      block(Materializer.matFromSystem(system))
     } finally {
       system.terminate()
       Await.result(system.whenTerminated, Duration.Inf)

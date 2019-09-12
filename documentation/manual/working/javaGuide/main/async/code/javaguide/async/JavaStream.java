@@ -168,7 +168,7 @@ public class JavaStream extends WithApplication {
 
     // #serve-file-with-name
     public Result index() {
-      return ok(new java.io.File("/tmp/fileToServe.pdf"), "fileToServe.pdf");
+      return ok(new java.io.File("/tmp/fileToServe.pdf"), Optional.of("fileToServe.pdf"));
     }
     // #serve-file-with-name
   }

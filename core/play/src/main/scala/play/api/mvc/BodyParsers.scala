@@ -307,7 +307,7 @@ trait BodyParsers {
   @inline private def maybeApp = Play.privateMaybeApplication.toOption
 
   private val hcCache                = Application.instanceCache[HttpConfiguration]
-  private lazy val mat: Materializer = ActorMaterializer()(ActorSystem("play-body-parsers"))
+  private lazy val mat: Materializer = Materializer.matFromSystem(ActorSystem("play-body-parsers"))
 
   private def parserConfig: ParserConfiguration = maybeApp.fold(ParserConfiguration())(hcCache(_).parser)
   private def parserErrorHandler: HttpErrorHandler =

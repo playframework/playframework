@@ -9,7 +9,6 @@ import akka.actor.setup.ActorSystemSetup
 import akka.actor.setup.Setup
 import akka.actor.CoordinatedShutdown
 import akka.actor._
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigValueFactory
@@ -115,7 +114,7 @@ class ActorSystemProvider @Inject()(environment: Environment, configuration: Con
  */
 @Singleton
 class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Materializer] {
-  lazy val get: Materializer = ActorMaterializer()(actorSystem)
+  lazy val get: Materializer = Materializer.matFromSystem(actorSystem)
 }
 
 /**
@@ -123,7 +122,7 @@ class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[
  */
 @Singleton
 class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
-  def get = actorSystem.dispatcher
+  def get: ExecutionContextExecutor = actorSystem.dispatcher
 }
 
 object ActorSystemProvider {

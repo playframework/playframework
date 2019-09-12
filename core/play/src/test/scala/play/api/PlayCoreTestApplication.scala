@@ -6,12 +6,18 @@ package play.api
 
 import java.io.File
 
+import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpRequestHandler
 import play.api.http.NotImplementedHttpRequestHandler
 import play.api.libs.concurrent.ActorSystemProvider
 import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.request.RequestFactory
+
+import scala.concurrent.Future
 
 /**
  * Fake application as used by Play core tests.  This is needed since Play core can't depend on the Play test API.
@@ -28,17 +34,19 @@ private[play] case class PlayCoreTestApplication(
   private var _terminated   = false
   def isTerminated: Boolean = _terminated
 
-  val classloader                            = Thread.currentThread.getContextClassLoader
-  lazy val configuration                     = Configuration.from(config)
-  lazy val actorSystem                       = ActorSystemProvider.start(classloader, configuration)
-  lazy val materializer                      = ActorMaterializer()(actorSystem)
-  lazy val coordinatedShutdown               = CoordinatedShutdown(actorSystem)
-  lazy val requestFactory                    = new DefaultRequestFactory(httpConfiguration)
-  val errorHandler                           = DefaultHttpErrorHandler
-  val requestHandler                         = NotImplementedHttpRequestHandler
-  override lazy val environment: Environment = Environment.simple(path, mode)
+  override val classloader: ClassLoader          = Thread.currentThread.getContextClassLoader
+  override lazy val environment: Environment     = Environment.simple(path, mode)
+  override lazy val configuration: Configuration = Configuration.from(config)
 
-  def stop() = {
+  override lazy val requestFactory: RequestFactory     = new DefaultRequestFactory(httpConfiguration)
+  override lazy val errorHandler: HttpErrorHandler     = DefaultHttpErrorHandler
+  override lazy val requestHandler: HttpRequestHandler = NotImplementedHttpRequestHandler
+
+  override lazy val actorSystem: ActorSystem                 = ActorSystemProvider.start(classloader, configuration)
+  override lazy val materializer: Materializer               = Materializer.matFromSystem(actorSystem)
+  override lazy val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(actorSystem)
+
+  def stop(): Future[Unit] = {
     implicit val ctx = actorSystem.dispatcher
     coordinatedShutdown
       .run(CoordinatedShutdown.UnknownReason)

@@ -5,29 +5,29 @@
 package play.it.http.parsing
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import play.api.libs.streams.Accumulator
 import play.core.Execution.Implicits.trampoline
 
 import scala.concurrent.Future
-
 import play.api.mvc.BodyParser
 import play.api.mvc.Results
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
-
 import org.specs2.ScalaCheck
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
+import scala.concurrent.ExecutionContextExecutor
+
 class BodyParserSpec extends PlaySpecification with ScalaCheck {
 
-  def run[A](bodyParser: BodyParser[A]) = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val system       = ActorSystem()
-    implicit val mat = ActorMaterializer()(system)
+  def run[A](bodyParser: BodyParser[A]): Either[Result, A] = {
+    val system: ActorSystem                   = ActorSystem()
+    implicit val mat: Materializer            = Materializer.matFromSystem(system)
+    implicit val ec: ExecutionContextExecutor = system.dispatcher
     try {
       await {
         Future {

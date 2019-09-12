@@ -4,7 +4,6 @@
 
 package scalaguide.http.routing
 
-import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
 import play.api.test.FakeRequest
 import play.api.mvc._
@@ -168,7 +167,7 @@ object ScalaRoutingSpec extends Specification {
 
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running() { app =>
-      implicit val mat = ActorMaterializer()(app.actorSystem)
+      implicit val mat = app.materializer
       contentAsString {
         val routedHandler          = app.injector.instanceOf(router).routes(rh)
         val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)
@@ -181,7 +180,7 @@ object ScalaRoutingSpec extends Specification {
 
   def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running() { app =>
-      implicit val mat = ActorMaterializer()(app.actorSystem)
+      implicit val mat = app.materializer
       status {
         val routedHandler          = app.injector.instanceOf(router).routes(rh)
         val (rh2, terminalHandler) = Handler.applyStages(rh, routedHandler)

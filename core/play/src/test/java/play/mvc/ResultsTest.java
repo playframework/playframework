@@ -5,7 +5,6 @@
 package play.mvc;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import org.junit.*;
@@ -243,7 +242,7 @@ public class ResultsTest {
   @Test
   public void sendFileHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
-    Materializer mat = ActorMaterializer.create(actorSystem);
+    Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result = Results.ok().sendFile(file.toFile(), () -> fileSent.set(true), null);
@@ -265,7 +264,7 @@ public class ResultsTest {
   @Test
   public void sendPathHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
-    Materializer mat = ActorMaterializer.create(actorSystem);
+    Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result = Results.ok().sendPath(file, () -> fileSent.set(true), null);
@@ -287,7 +286,7 @@ public class ResultsTest {
   @Test
   public void sendResourceHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
-    Materializer mat = ActorMaterializer.create(actorSystem);
+    Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result =
@@ -310,7 +309,7 @@ public class ResultsTest {
   @Test
   public void sendInputStreamHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
-    Materializer mat = ActorMaterializer.create(actorSystem);
+    Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result =
@@ -339,7 +338,7 @@ public class ResultsTest {
   public void sendInputStreamChunkedHonoringOnClose()
       throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
-    Materializer mat = ActorMaterializer.create(actorSystem);
+    Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result =
