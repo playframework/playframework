@@ -1,11 +1,9 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Cluster Sharding for Akka Typed (experimental)
 
-Play provides an experimental module for integration with Akka Cluster Sharding Typed. To enable this module, add `scaladslClusterSharding` in your build dependencies:
+Play provides an experimental module for integration with Akka Cluster Sharding Typed. To enable this module, add `clusterSharding` in your build dependencies:
 
-```scala
-libraryDependencies += scaladslClusterSharding
-```
+@[scala-cluster-deps](code/scalaguide.clusterdeps.sbt)
 
 ## Usage
 
@@ -28,6 +26,6 @@ If you're using compile-time DI, you can get have access to the `akka.cluster.sh
 
 ## Cluster Formation
 
-When including this module, the application `ActorSystem` will be configured for a clustered environment. As a result, it will start [Akka Remote](https://doc.akka.io/docs/akka/2.6/remoting-artery.html#dependency) and bind it, by default, to port 25520.
+When including this module, the application `ActorSystem` will be configured for a clustered environment. As a result, it will start [Akka Remote](https://doc.akka.io/docs/akka/2.6/remoting-artery.html) and bind it, by default, to port `25520` (see [Akka docs for how to configure a different port](https://doc.akka.io/docs/akka/2.6/remoting-artery.html#configuration)).
 
 In addition to that, it is expected that your application's Actor System forms a cluster with other instances of your application. Please consult [Akka's documentation](https://doc.akka.io/docs/akka/2.6/typed/cluster.html) on how to form an Akka Cluster.
