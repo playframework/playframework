@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.javadsl.cluster.sharding.typed
+package play.cluster.sharding.typed
 
 import akka.cluster.sharding.typed.javadsl.ClusterSharding
 import play.api.inject._
@@ -20,6 +20,6 @@ final class ClusterShardingModule extends SimpleModule(bind[ClusterSharding].toP
 @Singleton
 @InternalApi
 class ClusterShardingProvider @Inject()(val actorSystem: ActorSystem) extends Provider[ClusterSharding] {
-  private val sharding = ClusterSharding.get(Adapter.toTyped(actorSystem))
+  private val sharding       = ClusterSharding.get(Adapter.toTyped(actorSystem))
   def get(): ClusterSharding = sharding
 }

@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.javadsl.cluster.sharding.typed;
+package play.cluster.sharding.typed;
 
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import play.components.*;
