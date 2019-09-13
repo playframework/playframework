@@ -5,7 +5,7 @@
 package play.filters.cors
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import play.api.mvc.Results
 import play.api.Application
 import play.api.Configuration
@@ -13,7 +13,7 @@ import play.api.Configuration
 class CORSActionBuilderSpec extends CORSCommonSpec {
 
   implicit val system       = ActorSystem()
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = Materializer.matFromSystem(system)
   implicit val ec           = play.core.Execution.trampoline
 
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {

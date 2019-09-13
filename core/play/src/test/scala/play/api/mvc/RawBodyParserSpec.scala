@@ -7,7 +7,7 @@ package play.api.mvc
 import java.io.IOException
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
@@ -22,7 +22,7 @@ import scala.concurrent.duration.Duration
 class RawBodyParserSpec extends Specification with AfterAll {
 
   implicit val system       = ActorSystem("raw-body-parser-spec")
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = Materializer.matFromSystem
 
   def afterAll(): Unit = {
     materializer.shutdown()

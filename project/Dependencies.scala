@@ -8,12 +8,12 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M5")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M7")
   val akkaHttpVersion     = "10.1.9"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 
-  val playJsonVersion = "2.8.0-M5"
+  val playJsonVersion = "2.8.0-M6"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -157,7 +157,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.39.Final"
+  val nettyVersion = "4.1.41.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.3",
@@ -168,7 +168,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.1.1"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.2.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -278,7 +278,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.0-M4"
+  val playWsStandaloneVersion = "2.1.0-M5"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,

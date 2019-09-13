@@ -6,7 +6,6 @@ package play.api.libs
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl._
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import akka.util.ByteString
 import akka.util.Timeout
@@ -47,7 +46,7 @@ class CometSpec extends Specification {
 
   def newTestApplication(): play.api.Application = new PlayCoreTestApplication() {
     override lazy val actorSystem  = ActorSystem()
-    override lazy val materializer = ActorMaterializer()(actorSystem)
+    override lazy val materializer = Materializer.matFromSystem(actorSystem)
   }
 
   "play comet" should {
@@ -55,9 +54,9 @@ class CometSpec extends Specification {
     "work with string" in {
       val app = newTestApplication()
       try {
-        implicit val m = app.materializer
-        val controller = new MockController(m, ActionBuilder.ignoringBody)
-        val result     = controller.cometString.apply(FakeRequest())
+        implicit val mat = app.materializer
+        val controller   = new MockController(mat, ActionBuilder.ignoringBody)
+        val result       = controller.cometString.apply(FakeRequest())
         contentAsString(result) must contain(
           "<html><body><script>parent.cometMessage('kiki');</script><script>parent.cometMessage('foo');</script><script>parent.cometMessage('bar');</script>"
         )

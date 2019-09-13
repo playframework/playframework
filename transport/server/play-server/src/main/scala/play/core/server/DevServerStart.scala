@@ -9,7 +9,7 @@ import java.io._
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import play.api._
 import play.api.inject.DefaultApplicationLifecycle
 import play.core._
@@ -263,7 +263,7 @@ object DevServerStart {
           serverConfig,
           appProvider,
           actorSystem,
-          ActorMaterializer()(actorSystem),
+          Materializer.matFromSystem(actorSystem),
           () => Future.successful(())
         )
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)

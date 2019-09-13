@@ -529,6 +529,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.chunked"),
       // Netty's request handler needs maxContentLength to check if request size exceeds allowed configured value
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler.this"),
+      // Removing NoMaterializer
+      ProblemFilters.exclude[MissingClassProblem]("play.api.test.NoMaterializer$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.test.NoMaterializer"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -6,7 +6,6 @@ package play.test;
 
 import akka.actor.ActorSystem;
 import akka.actor.Terminated;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.util.ByteString;
 import org.hamcrest.CoreMatchers;
@@ -89,7 +88,7 @@ public class HelpersTest {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
-      Materializer mat = ActorMaterializer.create(actorSystem);
+      Materializer mat = Materializer.matFromSystem(actorSystem);
 
       Result result = Results.ok("Test content");
       ByteString contentAsBytes = Helpers.contentAsBytes(result, mat);
@@ -126,7 +125,7 @@ public class HelpersTest {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
-      Materializer mat = ActorMaterializer.create(actorSystem);
+      Materializer mat = Materializer.matFromSystem(actorSystem);
 
       Result result = Results.ok("Test content");
       String contentAsString = Helpers.contentAsString(result, mat);

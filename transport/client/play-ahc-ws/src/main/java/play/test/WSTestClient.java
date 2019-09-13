@@ -6,16 +6,14 @@ package play.test;
 
 import akka.actor.ActorSystem;
 import akka.actor.Terminated;
-import akka.stream.ActorMaterializer;
-import akka.stream.ActorMaterializerSettings;
-import play.libs.ws.ahc.StandaloneAhcWSClient;
+import akka.stream.Materializer;
+import play.libs.ws.WSClient;
+import play.libs.ws.WSRequest;
+import play.libs.ws.ahc.AhcWSClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClientConfig;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
-import play.libs.ws.WSClient;
-import play.libs.ws.WSRequest;
-import play.libs.ws.ahc.AhcWSClient;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -25,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class WSTestClient {
 
-  // This is used to create fresh names when creating `ActorMaterializer` instances in
+  // This is used to create fresh names when creating `Materializer` instances in
   // `WsTestClient.withClient`.
   // The motivation is that it can be useful for debugging.
   private static AtomicInteger instanceNumber = new AtomicInteger(1);
@@ -53,8 +51,7 @@ public class WSTestClient {
 
     String name = "ws-test-client-" + instanceNumber.getAndIncrement();
     final ActorSystem system = ActorSystem.create(name);
-    ActorMaterializerSettings settings = ActorMaterializerSettings.create(system);
-    ActorMaterializer materializer = ActorMaterializer.create(settings, system, name);
+    Materializer materializer = Materializer.matFromSystem(system);
 
     final AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(config);
     final WSClient client = new AhcWSClient(asyncHttpClient, materializer);

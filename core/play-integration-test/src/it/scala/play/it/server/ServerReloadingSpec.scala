@@ -4,7 +4,7 @@
 
 package play.it.server
 
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import javax.inject.Inject
 import javax.inject.Provider
 import play.api.inject.bind
@@ -49,7 +49,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
     val configuration =
       Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     val actorSystem  = ActorSystemProvider.start(classLoader, configuration)
-    val materializer = ActorMaterializer()(actorSystem)
+    val materializer = Materializer.matFromSystem(actorSystem)
 
     val server = integrationServerProvider.createServer(
       ServerProvider.Context(

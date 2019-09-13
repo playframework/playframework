@@ -14,7 +14,7 @@ import java.time.ZoneOffset
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
@@ -309,7 +309,7 @@ class ResultsSpec extends Specification {
 
     "sendFile should honor onClose" in withFile { (file, fileName) =>
       implicit val system = ActorSystem()
-      implicit val mat    = ActorMaterializer()
+      implicit val mat    = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendFile(file, onClose = () => {
@@ -329,7 +329,7 @@ class ResultsSpec extends Specification {
 
     "sendPath should honor onClose" in withFile { (file, fileName) =>
       implicit val system = ActorSystem()
-      implicit val mat    = ActorMaterializer()
+      implicit val mat    = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendPath(file.toPath, onClose = () => {
@@ -349,7 +349,7 @@ class ResultsSpec extends Specification {
 
     "sendResource should honor onClose" in withFile { (file, fileName) =>
       implicit val system = ActorSystem()
-      implicit val mat    = ActorMaterializer()
+      implicit val mat    = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendResource("multipart-form-data-file.txt", onClose = () => {

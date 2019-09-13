@@ -405,6 +405,9 @@ class CSRFActionHelper(
     tokenProvider: TokenProvider
 ) {
 
+  /** Set of Cache-Control header directives that will explicitly prevent response caching in shared caches (e.g. proxies). */
+  private val NoCacheDirectives = Set("no-cache", "no-store", "private")
+
   /**
    * Construct a new CSRFActionHelper and determine the TokenProvider from configuration.
    */
@@ -508,8 +511,8 @@ class CSRFActionHelper(
           } =>
         filterLogger.trace("[CSRF] Not emitting CSRF token because token was never rendered")
         result
-      case _ if isCached(result) =>
-        filterLogger.trace("[CSRF] Not adding token to cached response")
+      case _ if isCacheableBySharedCache(result) =>
+        filterLogger.trace("[CSRF] Not adding token to response that might get cached by a shared cache (e.g. proxies)")
         result
       case Some(tokenInfo) =>
         val Token(tokenName, tokenValue) = tokenInfo.toToken
@@ -535,8 +538,24 @@ class CSRFActionHelper(
     }
   }
 
-  def isCached(result: Result): Boolean =
-    result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
+  /**
+   * @return an array of Cache-Control header directives.
+   */
+  private def extractCacheControlDirectives(headerValue: String): Array[String] =
+    headerValue.toLowerCase(Locale.ROOT).split(",").map(_.trim)
+
+  /**
+   * @return false if Cache-Control header is absent or true if it exists but does not contain an explicit directive to
+   *         prevent caching (e.g. "no-store") in shared caches (e.g. proxies)
+   */
+  def isCacheableBySharedCache(result: Result): Boolean =
+    result.header.headers
+      .get(CACHE_CONTROL)
+      .map(extractCacheControlDirectives)
+      .fold(false)(!_.exists(NoCacheDirectives.contains))
+
+  @deprecated("Renamed to isCacheableBySharedCache", "2.8.0")
+  def isCached(result: Result): Boolean = isCacheableBySharedCache(result)
 
   def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline

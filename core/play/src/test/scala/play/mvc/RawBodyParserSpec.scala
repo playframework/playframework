@@ -7,7 +7,7 @@ package play.mvc
 import java.io.IOException
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
@@ -24,7 +24,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
   "Java RawBodyParserSpec" title
 
   implicit val system       = ActorSystem("raw-body-parser-spec")
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = Materializer.matFromSystem
   val parsers               = PlayBodyParsers()
 
   def afterAll(): Unit = {

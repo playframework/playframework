@@ -6,7 +6,6 @@ package javaguide.http
 
 import java.util.concurrent.CompletableFuture
 
-import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
 import play.api.mvc.EssentialAction
 import play.api.mvc.RequestHeader
@@ -64,7 +63,7 @@ class JavaRouting extends Specification {
     }
     "support reverse routing" in {
       running() { app =>
-        implicit val mat = ActorMaterializer()(app.actorSystem)
+        implicit val mat = app.materializer
         header(
           "Location",
           call(
@@ -82,7 +81,7 @@ class JavaRouting extends Specification {
 
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running(_.configure("play.http.router" -> router.getName)) { app =>
-      implicit val mat = ActorMaterializer()(app.actorSystem)
+      implicit val mat = app.materializer
       contentAsString(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run()
       })
@@ -91,7 +90,7 @@ class JavaRouting extends Specification {
 
   def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running(_.configure("play.http.router" -> router.getName)) { app =>
-      implicit val mat = ActorMaterializer()(app.actorSystem)
+      implicit val mat = app.materializer
       status(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run()
       })

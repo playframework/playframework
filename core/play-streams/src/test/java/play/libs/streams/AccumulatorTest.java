@@ -5,7 +5,6 @@
 package play.libs.streams;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
@@ -109,7 +108,7 @@ public class AccumulatorTest {
   @Before
   public void setUp() {
     system = ActorSystem.create();
-    mat = ActorMaterializer.create(system);
+    mat = Materializer.matFromSystem(system);
     ec = system.dispatcher();
   }
 

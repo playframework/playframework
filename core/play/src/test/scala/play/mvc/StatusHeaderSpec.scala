@@ -7,7 +7,7 @@ package play.mvc
 import java.util.Optional
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import akka.util.ByteString
@@ -35,7 +35,7 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
   "StatusHeader" should {
 
     "use factory attached to Json.mapper() when serializing Json" in {
-      val materializer = ActorMaterializer()
+      val materializer = Materializer.matFromSystem
 
       Json.mapper.getFactory.setCharacterEscapes(new CharacterEscapes {
         override def getEscapeSequence(ch: Int) = new SerializedString(f"\\u$ch%04x")
