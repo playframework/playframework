@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.scaladsl.cqrs.sample
+package play.cqrs.sample
 
 import play.scaladsl.cqrs._
 import akka.Done
@@ -16,7 +16,7 @@ import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.Effect
 import akka.persistence.typed.scaladsl.EventSourcedBehavior
 import akka.persistence.typed.scaladsl.ReplyEffect
-import play.scaladsl.cqrs.CqrsComponents
+import play.cqrs.CqrsComponents
 import akka.cluster.sharding.typed.ShardingEnvelope
 
 /**

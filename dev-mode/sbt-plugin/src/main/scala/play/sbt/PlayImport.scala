@@ -85,8 +85,10 @@ object PlayImport extends PlayImportCompat {
 
   val specs2 = component("play-specs2")
 
-  val javadslCqrs = component("play-cqrs-javadsl")
-  val scaladslCqrs = component("play-cqrs-scaladsl")
+  val cqrs = component("play-cqrs")
+
+  // TODO: enable this when we start to add the java cqrs api
+  val javaCqrs = component("play-java-cqrs")
 
   object PlayKeys {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")

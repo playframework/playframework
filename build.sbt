@@ -124,13 +124,14 @@ lazy val PlayAkkaHttp2SupportProject =
     .dependsOn(PlayAkkaHttpServerProject)
     .addAkkaModuleDependency("akka-http2-support")
 
-lazy val PlayCqrsJavadsl = PlayCrossBuiltProject("Play-CQRS-Javadsl", "persistence/play-cqrs/javadsl")
+lazy val PlayCqrs = PlayCrossBuiltProject("Play-CQRS", "persistence/play-cqrs")
   .settings(libraryDependencies ++= cqrsDependencies)
-  .dependsOn(PlayProject) 
+  .dependsOn(PlayProject)
 
-lazy val PlayCqrsScaladsl = PlayCrossBuiltProject("Play-CQRS-Scaladsl", "persistence/play-cqrs/scaladsl")
-  .settings(libraryDependencies ++= cqrsDependencies)
-  .dependsOn(PlayProject) 
+// TODO: enable this when we start to add the java cqrs api
+// lazy val PlayJavaCqrs = PlayCrossBuiltProject("Play-Java-CQRS", "persistence/play-java-cqrs")
+//   .settings(libraryDependencies ++= cqrsDependencies)
+//   .dependsOn(PlayProject)
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistence/play-jdbc-api")
   .dependsOn(PlayProject)
@@ -454,8 +455,10 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
   StreamsProject,
-  PlayCqrsJavadsl,
-  PlayCqrsScaladsl
+  PlayCqrs
+
+  // TODO: enable this when we start to add the java cqrs api
+  // PlayJavaCqrs
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))

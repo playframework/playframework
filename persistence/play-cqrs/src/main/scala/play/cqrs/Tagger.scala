@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.scaladsl.cqrs
+package play.cqrs
 
 import akka.persistence.typed.PersistenceId
 import akka.annotation.ApiMayChange
