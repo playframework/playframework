@@ -51,7 +51,7 @@ play.filters.headers {
 }
 ```
 
-For an example of a Comet helper, see the `play-java-streaming-example` in the  [Play Samples](https://github.com/playframework/play-samples) repository.
+For an example of a Comet helper, see the [Play Streaming Example](https://developer.lightbend.com/start/?group=play&project=play-samples-play-java-streaming-example).
 
 ## Debugging Comet
 
