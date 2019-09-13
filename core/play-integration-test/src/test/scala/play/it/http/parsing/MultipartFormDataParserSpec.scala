@@ -251,7 +251,13 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
     "ignore extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(
+<<<<<<< HEAD:core/play-integration-test/src/test/scala/play/it/http/parsing/MultipartFormDataParserSpec.scala
         Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt""")
+=======
+        Map(
+          "content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''%E4%BD%A0%E5%A5%BD.txt"""
+        )
+>>>>>>> 0b0b2141f4... Fix code format:core/play-integration-test/src/it/scala/play/it/http/parsing/MultipartFormDataParserSpec.scala
       )
       result must not(beEmpty)
       result.get must equalTo(("document", "hello.txt", None))

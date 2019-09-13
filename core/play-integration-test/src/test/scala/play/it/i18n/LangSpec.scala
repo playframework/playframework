@@ -136,7 +136,13 @@ class LangSpec extends PlaySpecification {
         val zhHant = Lang("zh-Hant")
 
         implicit val app =
+<<<<<<< HEAD:core/play-integration-test/src/test/scala/play/it/i18n/LangSpec.scala
           GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code)).build()
+=======
+          GuiceApplicationBuilder()
+            .configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code))
+            .build()
+>>>>>>> 0b0b2141f4... Fix code format:core/play-integration-test/src/it/scala/play/it/i18n/LangSpec.scala
         val langs = app.injector.instanceOf[Langs]
 
         "with exact match" in {
