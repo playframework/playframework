@@ -13,7 +13,8 @@ Play 2.8 brings the latest minor version of Akka. Although Akka 2.6 is binary co
 
 #### Cluster Sharding for Akka Typed
 
-Play 2.8 provides dependency injection modules for Akka Cluster Sharding Typed allowing users to inject a `ClusterSharding` instance and start sharded typed actors across an Akka Cluster.
+
+Play 2.8 provides dependency injection modules for [Akka Cluster Sharding Typed](https://doc.akka.io/docs/akka/2.6/typed/cluster-sharding.html), allowing users to inject a `ClusterSharding` instance and start sharded typed actors across an [Akka Cluster](https://doc.akka.io/docs/akka/2.6/typed/cluster.html).
 
 ### Jackson `ObjectMapper` configuration
 
