@@ -55,11 +55,23 @@ javafmtValidation() {
   runSbtNoisy javafmt test:javafmt
 =======
   start validate-javafmt "VALIDATE JAVA CODE FORMATTING"
+<<<<<<< HEAD
   runSbt javafmtAll
 >>>>>>> a7f38c4346... Verify javafmt for integration tests on Travis
+=======
+  setJavafmtIntegrationTests "$1"
+  runSbt javafmt test:javafmt $JAVAFMT_INTEGRATION_TESTS
+>>>>>>> 0f59380b0d... Do no run it:javafmt for docs
   git diff --exit-code || (
     echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
     echo "[error] To fix, format your sources using 'sbt javafmtAll' before submitting a pull request."
     false
   )
+}
+
+setJavafmtIntegrationTests() {
+  JAVAFMT_INTEGRATION_TESTS=""
+  if [ "$1" == "framework" ]; then
+      JAVAFMT_INTEGRATION_TESTS="it:javafmt"
+  fi
 }
