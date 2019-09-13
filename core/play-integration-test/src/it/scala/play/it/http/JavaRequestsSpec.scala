@@ -61,7 +61,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
 
       val requestHeader: Request[Http.RequestBody] =
         Request[Http.RequestBody](FakeRequest().withCookies(cookie1), new RequestBody(null))
-      val javaRequest          = new RequestImpl(requestHeader)
+      val javaRequest = new RequestImpl(requestHeader)
 
       val iterator: Iterator[Http.Cookie] = javaRequest.cookies().asScala.toIterator
       val cookieList                      = iterator.toList

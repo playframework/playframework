@@ -12,10 +12,9 @@ import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 
 public class MultipleRepeatableOnActionController extends MockController {
 
-    @SomeRepeatable // runs two actions
-    @SomeRepeatable // plus two more
-    public Result action(Http.Request request) {
-        return Results.ok();
-    }
-
+  @SomeRepeatable // runs two actions
+  @SomeRepeatable // plus two more
+  public Result action(Http.Request request) {
+    return Results.ok();
+  }
 }

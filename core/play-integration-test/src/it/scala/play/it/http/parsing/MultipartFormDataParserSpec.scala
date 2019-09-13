@@ -365,7 +365,9 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
     "parse extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(
-        Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''%E4%BD%A0%E5%A5%BD.txt""")
+        Map(
+          "content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''%E4%BD%A0%E5%A5%BD.txt"""
+        )
       )
       result must not(beEmpty)
       result.get must equalTo(("document", "你好.txt", None, "form-data"))

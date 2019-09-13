@@ -121,10 +121,13 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
   )(block: WSResponse => T): T
 
   "When action composition is configured to invoke controller first" should {
-    "execute controller composition before action composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action(request: Request): Result = Results.ok()
-    }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true")) { response =>
+    "execute controller composition before action composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action(request: Request): Result = Results.ok()
+      },
+      Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true")
+    ) { response =>
       response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodaction")
     }
 
@@ -136,17 +139,23 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
   }
 
   "When action composition is configured to invoke action first" should {
-    "execute action composition before controller composition" in makeRequest(new ComposedController {
-      @ActionAnnotation
-      override def action(request: Request): Result = Results.ok()
-    }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")) { response =>
+    "execute action composition before controller composition" in makeRequest(
+      new ComposedController {
+        @ActionAnnotation
+        override def action(request: Request): Result = Results.ok()
+      },
+      Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")
+    ) { response =>
       response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller")
     }
 
-    "execute action composition when controller is not annotated" in makeRequest(new MockController {
-      @ActionAnnotation
-      override def action(request: Request): Result = Results.ok()
-    }, Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")) { response =>
+    "execute action composition when controller is not annotated" in makeRequest(
+      new MockController {
+        @ActionAnnotation
+        override def action(request: Request): Result = Results.ok()
+      },
+      Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")
+    ) { response =>
       response.body must beEqualTo("java.lang.reflect.Methodaction")
     }
 
@@ -159,10 +168,12 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
   }
 
   "Java action composition" should {
-    "ensure the right request attributes are set when an attribute is added down the chain" in makeRequest(new MockController {
-      @WithUsername("foo")
-      def action(request: Request) = Results.ok(request.attrs().get(Security.USERNAME))
-    }) { response =>
+    "ensure the right request attributes are set when an attribute is added down the chain" in makeRequest(
+      new MockController {
+        @WithUsername("foo")
+        def action(request: Request) = Results.ok(request.attrs().get(Security.USERNAME))
+      }
+    ) { response =>
       response.body must_== "foo"
     }
     "ensure withNewSession maintains Session" in makeRequest(new MockController {

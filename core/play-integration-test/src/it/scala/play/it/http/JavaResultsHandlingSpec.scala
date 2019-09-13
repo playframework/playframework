@@ -640,12 +640,14 @@ trait JavaResultsHandlingSpec
       response.contentType must_== "application/octet-stream"
     }
 
-    "not chunk input stream results with content type set if a content length is set" in makeRequest(new MockController {
-      def action(request: Http.Request) = {
-        // chunk size 2 to force more than one chunk
-        Results.ok().sendInputStream(new ByteArrayInputStream("hello".getBytes("utf-8")), 5, Optional.of(HTML))
+    "not chunk input stream results with content type set if a content length is set" in makeRequest(
+      new MockController {
+        def action(request: Http.Request) = {
+          // chunk size 2 to force more than one chunk
+          Results.ok().sendInputStream(new ByteArrayInputStream("hello".getBytes("utf-8")), 5, Optional.of(HTML))
+        }
       }
-    }) { response =>
+    ) { response =>
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
       response.body must_== "hello"
@@ -840,7 +842,13 @@ trait JavaResultsHandlingSpec
 
       "correct set it when sending entity as attachment" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          Results.ok().sendEntity(new HttpEntity.Strict(ByteString("hello world"), Optional.of("schmitch/foo; bar=bax")), false, Optional.of("file.xml"))
+          Results
+            .ok()
+            .sendEntity(
+              new HttpEntity.Strict(ByteString("hello world"), Optional.of("schmitch/foo; bar=bax")),
+              false,
+              Optional.of("file.xml")
+            )
         }
       }) { response =>
         // Use starts with because there is also the charset
